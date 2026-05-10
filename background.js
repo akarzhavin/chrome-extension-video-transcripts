@@ -52,10 +52,11 @@ chrome.webRequest.onCompleted.addListener(
         // Отправляем текст во вкладку
         chrome.tabs.sendMessage(details.tabId, {
           action: "VTT_LOADED",
-          payload: vttText
+          payload: vttText,
+          url: details.url
         });
         
-        console.log("VTT успешно скачан и отправлен на страницу");
+        console.log("VTT успешно скачан и отправлен на страницу", details.url);
       } catch (err) {
         console.error("Критическая ошибка загрузки VTT после всех попыток:", err);
         // Если совсем не удалось скачать, удаляем из кеша, чтобы можно было попробовать снова при обновлении

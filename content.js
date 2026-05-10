@@ -1,7 +1,41 @@
 // Identify if we are in the top window or an iframe
 const isTopWindow = window === window.top;
 
-let subtitles = [];
+let subtitleTracks = []; // [{ name: "eng", data: [...] }]
+let activeTrackIndex = 0;
+let secondaryTrackIndex = 0;
+let displayMode = 'single'; // 'single' или 'dual'
+
+function guessLanguage(subs) {
+    if (!subs || subs.length === 0) return "Unknown";
+    
+    // Берем первые 20 фраз для анализа
+    const sampleText = subs.slice(0, 20).map(s => s.text).join(' ');
+    
+    const cyrillicCount = (sampleText.match(/[а-яА-ЯёЁіІїЇєЄґҐ]/g) || []).length;
+    const latinCount = (sampleText.match(/[a-zA-Z]/g) || []).length;
+    
+    if (cyrillicCount > latinCount) {
+        const ukrainianCount = (sampleText.match(/[іІїЇєЄ]/g) || []).length;
+        if (ukrainianCount > 0) return "Ukrainian";
+        return "Russian";
+    } else if (latinCount > cyrillicCount && latinCount > 0) {
+        return "English";
+    }
+    
+    return "Track";
+}
+
+function generateTrackName(subs) {
+    const lang = guessLanguage(subs);
+    // Ищем, сколько уже таких языков добавлено, чтобы сделать "English 2"
+    let count = 0;
+    subtitleTracks.forEach(t => {
+        if (t.name.startsWith(lang)) count++;
+    });
+    return count > 0 ? `${lang} ${count + 1}` : lang;
+}
+
 let currentIndex = -1;
 let isHovering = false; // Флаг для остановки автоскролла
 
@@ -43,8 +77,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "VTT_LOADED") {
         console.log("VTT Sidebar: Received subtitles in " + (isTopWindow ? "top window." : "iframe."));
         const vttText = request.payload;
-        subtitles = parseVTT(vttText);
-        renderSubtitles(subtitles);
+        const newSubs = parseVTT(vttText);
+        
+        if (newSubs.length > 0) {
+            const isDuplicate = subtitleTracks.some(track => 
+                track.data.length > 0 && 
+                track.data[0].text === newSubs[0].text && 
+                track.data[Math.floor(track.data.length/2)]?.text === newSubs[Math.floor(newSubs.length/2)]?.text
+            );
+
+            if (!isDuplicate) {
+                const name = generateTrackName(newSubs);
+                subtitleTracks.push({ name, data: newSubs });
+                
+                if (subtitleTracks.length === 1) {
+                    activeTrackIndex = 0;
+                } else {
+                    secondaryTrackIndex = activeTrackIndex; // Предыдущий главный становится вторичным
+                    activeTrackIndex = subtitleTracks.length - 1; // Новый становится главным
+                }
+            }
+            
+            updateSidebarControls();
+            renderSubtitles();
+        }
     }
     
     // 2. Обновление времени (обрабатываем во ВСЕХ окнах)
@@ -81,15 +137,109 @@ function initSidebar() {
     });
     sidebar.appendChild(toggleBtn);
 
+    const header = document.createElement('div');
+    header.id = 'vtt-header';
+
     const title = document.createElement('h2');
     title.textContent = 'Subtitles';
-    sidebar.appendChild(title);
+    header.appendChild(title);
+
+    // Контейнер для селекторов дорожек
+    const selectorsDiv = document.createElement('div');
+    selectorsDiv.id = 'vtt-track-selectors';
+    selectorsDiv.style.display = 'none';
+
+    const mainSelect = document.createElement('select');
+    mainSelect.id = 'vtt-main-select';
+    mainSelect.title = 'Main Track';
+    mainSelect.className = 'vtt-select';
+    mainSelect.addEventListener('change', (e) => {
+        activeTrackIndex = parseInt(e.target.value);
+        updateSidebarControls();
+        renderSubtitles();
+        updateHighlight();
+    });
+    
+    const subSelect = document.createElement('select');
+    subSelect.id = 'vtt-sub-select';
+    subSelect.title = 'Secondary Track';
+    subSelect.className = 'vtt-select';
+    subSelect.addEventListener('change', (e) => {
+        secondaryTrackIndex = parseInt(e.target.value);
+        updateSidebarControls();
+        renderSubtitles();
+    });
+
+    selectorsDiv.appendChild(mainSelect);
+    selectorsDiv.appendChild(subSelect);
+    header.appendChild(selectorsDiv);
+
+    // Контейнер для кнопок управления (по умолчанию скрыт, пока нет 2 дорожек)
+    const controls = document.createElement('div');
+    controls.id = 'vtt-controls';
+    controls.style.display = 'none';
+
+    const swapBtn = document.createElement('button');
+    swapBtn.id = 'vtt-swap-btn';
+    swapBtn.title = 'Swap Language (Shift+S)';
+    swapBtn.textContent = '🔄 Swap';
+    swapBtn.addEventListener('click', () => {
+        if (subtitleTracks.length > 1) {
+            const temp = activeTrackIndex;
+            activeTrackIndex = secondaryTrackIndex;
+            secondaryTrackIndex = temp;
+            updateSidebarControls();
+            renderSubtitles();
+            updateHighlight();
+        }
+    });
+    controls.appendChild(swapBtn);
+
+    const dualBtn = document.createElement('button');
+    dualBtn.id = 'vtt-dual-btn';
+    dualBtn.title = 'Toggle Dual Mode (Shift+D)';
+    dualBtn.textContent = '📖 Dual';
+    dualBtn.addEventListener('click', () => {
+        if (subtitleTracks.length > 1) {
+            displayMode = displayMode === 'single' ? 'dual' : 'single';
+            dualBtn.classList.toggle('active', displayMode === 'dual');
+            renderSubtitles();
+            updateHighlight();
+        }
+    });
+    controls.appendChild(dualBtn);
+
+    header.appendChild(controls);
+    sidebar.appendChild(header);
 
     const list = document.createElement('div');
     list.id = 'vtt-list';
     sidebar.appendChild(list);
 
     document.body.appendChild(sidebar);
+    
+    // Глобальные горячие клавиши для переключения (Shift+S и Shift+D)
+    document.addEventListener('keydown', (e) => {
+        if (e.shiftKey && e.code === 'KeyS') {
+            if (subtitleTracks.length > 1) {
+                const temp = activeTrackIndex;
+                activeTrackIndex = secondaryTrackIndex;
+                secondaryTrackIndex = temp;
+                updateSidebarControls();
+                renderSubtitles();
+                updateHighlight();
+            }
+        }
+        if (e.shiftKey && e.code === 'KeyD') {
+            if (subtitleTracks.length > 1) {
+                displayMode = displayMode === 'single' ? 'dual' : 'single';
+                const dualBtn = document.getElementById('vtt-dual-btn');
+                if (dualBtn) dualBtn.classList.toggle('active', displayMode === 'dual');
+                renderSubtitles();
+                updateHighlight();
+            }
+        }
+    });
     
     // Останавливаем автоскролл, если пользователь навел мышку на панель
     sidebar.addEventListener('mouseenter', () => { isHovering = true; });
@@ -127,20 +277,84 @@ function initSidebar() {
     });
 }
 
-function renderSubtitles(subs) {
+function updateSidebarControls() {
+    const controls = document.getElementById('vtt-controls');
+    const selectors = document.getElementById('vtt-track-selectors');
+    if (controls && selectors) {
+        const hasMultiple = subtitleTracks.length > 1;
+        controls.style.display = hasMultiple ? 'flex' : 'none';
+        selectors.style.display = hasMultiple ? 'flex' : 'none';
+
+        if (hasMultiple) {
+            const mainSelect = document.getElementById('vtt-main-select');
+            const subSelect = document.getElementById('vtt-sub-select');
+            
+            // Сохраняем фокус если он был на одном из селектов
+            const activeId = document.activeElement?.id;
+            
+            mainSelect.innerHTML = '';
+            subSelect.innerHTML = '';
+            
+            subtitleTracks.forEach((track, i) => {
+                const optMain = document.createElement('option');
+                optMain.value = i;
+                optMain.textContent = 'Main: ' + track.name;
+                optMain.selected = i === activeTrackIndex;
+                mainSelect.appendChild(optMain);
+                
+                const optSub = document.createElement('option');
+                optSub.value = i;
+                optSub.textContent = 'Sub: ' + track.name;
+                optSub.selected = i === secondaryTrackIndex;
+                subSelect.appendChild(optSub);
+            });
+
+            if (activeId) document.getElementById(activeId)?.focus();
+        }
+    }
+}
+
+function updateHighlight() {
+    const video = document.querySelector('video');
+    if (video) highlightSubtitle(video.currentTime);
+}
+
+function renderSubtitles() {
     const list = document.getElementById('vtt-list');
     if (!list) return;
     
     list.innerHTML = ''; // clear existing
     currentIndex = -1; // reset index
 
-    subs.forEach((sub, index) => {
+    if (subtitleTracks.length === 0) return;
+
+    const mainTrack = subtitleTracks[activeTrackIndex]?.data;
+    const secondaryTrack = subtitleTracks.length > 1 ? subtitleTracks[secondaryTrackIndex]?.data : null;
+
+    if (!mainTrack) return;
+
+    mainTrack.forEach((sub, index) => {
         const item = document.createElement('div');
         item.className = 'vtt-item';
         item.dataset.index = index;
         item.dataset.start = sub.startTime;
         item.dataset.end = sub.endTime;
-        item.textContent = sub.text;
+
+        const mainTextDiv = document.createElement('div');
+        mainTextDiv.className = 'vtt-main-text';
+        mainTextDiv.textContent = sub.text;
+        item.appendChild(mainTextDiv);
+
+        if (displayMode === 'dual' && secondaryTrack) {
+            // Ищем пересекающиеся по времени субтитры во второй дорожке
+            const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+            if (overlap.length > 0) {
+                const subTextDiv = document.createElement('div');
+                subTextDiv.className = 'vtt-sub-text';
+                subTextDiv.textContent = overlap.map(s => s.text).join(' | ');
+                item.appendChild(subTextDiv);
+            }
+        }
 
         item.addEventListener('click', () => {
             try {
@@ -166,11 +380,13 @@ function renderSubtitles(subs) {
 }
 
 function highlightSubtitle(currentTime) {
-    if (!subtitles || subtitles.length === 0) return;
+    if (subtitleTracks.length === 0) return;
+    const currentTrack = subtitleTracks[activeTrackIndex]?.data;
+    if (!currentTrack || currentTrack.length === 0) return;
 
     let activeIndex = -1;
-    for (let i = 0; i < subtitles.length; i++) {
-        if (currentTime >= subtitles[i].startTime && currentTime <= subtitles[i].endTime) {
+    for (let i = 0; i < currentTrack.length; i++) {
+        if (currentTime >= currentTrack[i].startTime && currentTime <= currentTrack[i].endTime) {
             activeIndex = i;
             break;
         }
