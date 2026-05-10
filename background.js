@@ -38,30 +38,36 @@ chrome.webRequest.onCompleted.addListener(
 
     // Убеждаемся, что это файл субтитров
     if (details.url.includes('.vtt')) {
-      console.log("VTT file detected:", details.url);
-      
-      // Помечаем URL как обрабатываемый
-      processedUrls.add(details.url);
-      // Очищаем кеш, чтобы он не разрастался бесконечно
-      if (processedUrls.size > 100) processedUrls.clear();
+      chrome.tabs.get(details.tabId, async (tab) => {
+        if (!tab || !tab.url) return;
+        // Проверяем, что вкладка открыта на сайте rezka
+        if (!tab.url.includes('rezka.ag') && !tab.url.includes('hdrezka')) return;
 
-      try {
-        // Скачиваем сам файл с механизмом retry (3 попытки, 1 сек пауза)
-        const vttText = await fetchWithRetry(details.url, 3, 1000);
+        console.log("VTT file detected on Rezka:", details.url);
         
-        // Отправляем текст во вкладку
-        chrome.tabs.sendMessage(details.tabId, {
-          action: "VTT_LOADED",
-          payload: vttText,
-          url: details.url
-        });
-        
-        console.log("VTT успешно скачан и отправлен на страницу", details.url);
-      } catch (err) {
-        console.error("Критическая ошибка загрузки VTT после всех попыток:", err);
-        // Если совсем не удалось скачать, удаляем из кеша, чтобы можно было попробовать снова при обновлении
-        processedUrls.delete(details.url);
-      }
+        // Помечаем URL как обрабатываемый
+        processedUrls.add(details.url);
+        // Очищаем кеш, чтобы он не разрастался бесконечно
+        if (processedUrls.size > 100) processedUrls.clear();
+
+        try {
+          // Скачиваем сам файл с механизмом retry (3 попытки, 1 сек пауза)
+          const vttText = await fetchWithRetry(details.url, 3, 1000);
+          
+          // Отправляем текст во вкладку
+          chrome.tabs.sendMessage(details.tabId, {
+            action: "VTT_LOADED",
+            payload: vttText,
+            url: details.url
+          });
+          
+          console.log("VTT успешно скачан и отправлен на страницу", details.url);
+        } catch (err) {
+          console.error("Критическая ошибка загрузки VTT после всех попыток:", err);
+          // Если совсем не удалось скачать, удаляем из кеша, чтобы можно было попробовать снова при обновлении
+          processedUrls.delete(details.url);
+        }
+      });
     }
   },
   { urls: ["*://*/*.vtt*"] } // Фильтр запросов

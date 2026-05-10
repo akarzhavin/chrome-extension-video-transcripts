@@ -1,412 +1,522 @@
 // Identify if we are in the top window or an iframe
 const isTopWindow = window === window.top;
 
-let subtitleTracks = []; // [{ name: "eng", data: [...] }]
-let activeTrackIndex = 0;
-let secondaryTrackIndex = 0;
-let displayMode = 'single'; // 'single' или 'dual'
-
-function guessLanguage(subs) {
-    if (!subs || subs.length === 0) return "Unknown";
+(() => {
+    // 1. Убеждаемся, что мы на сайте rezka (или фрейм встроен в rezka)
+    let isRezka = false;
     
-    // Берем первые 20 фраз для анализа
-    const sampleText = subs.slice(0, 20).map(s => s.text).join(' ');
-    
-    const cyrillicCount = (sampleText.match(/[а-яА-ЯёЁіІїЇєЄґҐ]/g) || []).length;
-    const latinCount = (sampleText.match(/[a-zA-Z]/g) || []).length;
-    
-    if (cyrillicCount > latinCount) {
-        const ukrainianCount = (sampleText.match(/[іІїЇєЄ]/g) || []).length;
-        if (ukrainianCount > 0) return "Ukrainian";
-        return "Russian";
-    } else if (latinCount > cyrillicCount && latinCount > 0) {
-        return "English";
-    }
-    
-    return "Track";
-}
-
-function generateTrackName(subs) {
-    const lang = guessLanguage(subs);
-    // Ищем, сколько уже таких языков добавлено, чтобы сделать "English 2"
-    let count = 0;
-    subtitleTracks.forEach(t => {
-        if (t.name.startsWith(lang)) count++;
-    });
-    return count > 0 ? `${lang} ${count + 1}` : lang;
-}
-
-let currentIndex = -1;
-let isHovering = false; // Флаг для остановки автоскролла
-
-console.log("VTT Sidebar: Running in " + (isTopWindow ? "top window." : "iframe."));
-
-// Инициализируем сайдбар ВО ВСЕХ окнах (в iframe он будет скрыт до перехода в fullscreen)
-initSidebar();
-
-// Polling to find the video element since it might be added dynamically
-const videoInterval = setInterval(() => {
-    const videos = document.querySelectorAll('video');
-    videos.forEach(video => {
-        if (!video.dataset.vttAttached) {
-            video.dataset.vttAttached = "true";
-            console.log("VTT Sidebar: Attached timeupdate to a video element.");
-            
-            video.addEventListener('timeupdate', () => {
-                try {
-                    // Отправляем время через background.js во все окна
-                    chrome.runtime.sendMessage({
-                        action: "TIME_UPDATE",
-                        time: video.currentTime
-                    });
-                } catch (e) {
-                    // Игнорируем ошибку "Extension context invalidated", которая возникает 
-                    // при перезагрузке расширения до обновления вкладки
-                    if (!e.message.includes("Extension context invalidated")) {
-                        console.error(e);
-                    }
-                }
-            });
+    if (isTopWindow) {
+        if (window.location.hostname.includes('rezka.ag') || window.location.hostname.includes('hdrezka')) {
+            isRezka = true;
         }
-    });
-}, 1000);
+    } else {
+        // Проверяем родителей фрейма (Chrome-specific API, идеально для расширений)
+        if (window.location.ancestorOrigins) {
+            for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
+                if (window.location.ancestorOrigins[i].includes('rezka.ag') || window.location.ancestorOrigins[i].includes('hdrezka')) {
+                    isRezka = true;
+                    break;
+                }
+            }
+        }
+    }
 
-// Единый слушатель сообщений от background.js
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    // 1. Получение субтитров (обрабатываем во ВСЕХ окнах, чтобы при fullscreen сайдбар был готов)
-    if (request.action === "VTT_LOADED") {
-        console.log("VTT Sidebar: Received subtitles in " + (isTopWindow ? "top window." : "iframe."));
-        const vttText = request.payload;
-        const newSubs = parseVTT(vttText);
-        
-        if (newSubs.length > 0) {
-            const isDuplicate = subtitleTracks.some(track => 
+    if (!isRezka) {
+        return; // Полностью отключаем скрипт на других сайтах
+    }
+    // =========================================================================
+    // 1. STATE MANAGEMENT
+    // =========================================================================
+    class AppState {
+        constructor() {
+            this.tracks = []; // [{ name: "eng", data: [...] }]
+            this.activeTrackIndex = 0;
+            this.secondaryTrackIndex = 0;
+            this.displayMode = 'single'; // 'single' | 'dual'
+            this.overlayEnabled = false;
+            this.currentIndex = -1;
+            this.isHovering = false;
+        }
+
+        addTrack(name, data) {
+            this.tracks.push({ name, data });
+            if (this.tracks.length === 1) {
+                this.activeTrackIndex = 0;
+            } else {
+                this.secondaryTrackIndex = this.activeTrackIndex;
+                this.activeTrackIndex = this.tracks.length - 1;
+            }
+        }
+
+        isDuplicate(newSubs) {
+            return this.tracks.some(track => 
                 track.data.length > 0 && 
                 track.data[0].text === newSubs[0].text && 
                 track.data[Math.floor(track.data.length/2)]?.text === newSubs[Math.floor(newSubs.length/2)]?.text
             );
+        }
 
-            if (!isDuplicate) {
-                const name = generateTrackName(newSubs);
-                subtitleTracks.push({ name, data: newSubs });
-                
-                if (subtitleTracks.length === 1) {
-                    activeTrackIndex = 0;
-                } else {
-                    secondaryTrackIndex = activeTrackIndex; // Предыдущий главный становится вторичным
-                    activeTrackIndex = subtitleTracks.length - 1; // Новый становится главным
-                }
+        hasMultipleTracks() {
+            return this.tracks.length > 1;
+        }
+
+        swapTracks() {
+            if (this.hasMultipleTracks()) {
+                [this.activeTrackIndex, this.secondaryTrackIndex] = [this.secondaryTrackIndex, this.activeTrackIndex];
+                return true;
             }
-            
-            updateSidebarControls();
-            renderSubtitles();
+            return false;
+        }
+
+        toggleDualMode() {
+            if (this.hasMultipleTracks()) {
+                this.displayMode = this.displayMode === 'single' ? 'dual' : 'single';
+                return true;
+            }
+            return false;
+        }
+
+        getMainTrack() {
+            return this.tracks[this.activeTrackIndex]?.data || null;
+        }
+
+        getSecondaryTrack() {
+            return this.hasMultipleTracks() ? this.tracks[this.secondaryTrackIndex]?.data : null;
         }
     }
-    
-    // 2. Обновление времени (обрабатываем во ВСЕХ окнах)
-    if (request.action === "TIME_UPDATE") {
-        highlightSubtitle(request.time);
-    }
 
-    // 3. Перемотка видео (ищем видео в любом окне и перематываем)
-    if (request.action === "SEEK_VIDEO") {
-        const videos = document.querySelectorAll('video');
-        videos.forEach(video => {
-            video.currentTime = request.time;
-            video.play().catch(e => console.log("Auto-play prevented", e));
-        });
-    }
-});
-
-function initSidebar() {
-    if (document.getElementById('vtt-sidebar')) return;
-
-    const sidebar = document.createElement('div');
-    sidebar.id = 'vtt-sidebar';
-    
-    // Кнопка для скрытия/показа сайдбара
-    const toggleBtn = document.createElement('div');
-    toggleBtn.id = 'vtt-toggle-btn';
-    toggleBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-    `;
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-    });
-    sidebar.appendChild(toggleBtn);
-
-    const header = document.createElement('div');
-    header.id = 'vtt-header';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Subtitles';
-    header.appendChild(title);
-
-    // Контейнер для селекторов дорожек
-    const selectorsDiv = document.createElement('div');
-    selectorsDiv.id = 'vtt-track-selectors';
-    selectorsDiv.style.display = 'none';
-
-    const mainSelect = document.createElement('select');
-    mainSelect.id = 'vtt-main-select';
-    mainSelect.title = 'Main Track';
-    mainSelect.className = 'vtt-select';
-    mainSelect.addEventListener('change', (e) => {
-        activeTrackIndex = parseInt(e.target.value);
-        updateSidebarControls();
-        renderSubtitles();
-        updateHighlight();
-    });
-    
-    const subSelect = document.createElement('select');
-    subSelect.id = 'vtt-sub-select';
-    subSelect.title = 'Secondary Track';
-    subSelect.className = 'vtt-select';
-    subSelect.addEventListener('change', (e) => {
-        secondaryTrackIndex = parseInt(e.target.value);
-        updateSidebarControls();
-        renderSubtitles();
-    });
-
-    selectorsDiv.appendChild(mainSelect);
-    selectorsDiv.appendChild(subSelect);
-    header.appendChild(selectorsDiv);
-
-    // Контейнер для кнопок управления (по умолчанию скрыт, пока нет 2 дорожек)
-    const controls = document.createElement('div');
-    controls.id = 'vtt-controls';
-    controls.style.display = 'none';
-
-    const swapBtn = document.createElement('button');
-    swapBtn.id = 'vtt-swap-btn';
-    swapBtn.title = 'Swap Language (Shift+S)';
-    swapBtn.textContent = '🔄 Swap';
-    swapBtn.addEventListener('click', () => {
-        if (subtitleTracks.length > 1) {
-            const temp = activeTrackIndex;
-            activeTrackIndex = secondaryTrackIndex;
-            secondaryTrackIndex = temp;
-            updateSidebarControls();
-            renderSubtitles();
-            updateHighlight();
-        }
-    });
-    controls.appendChild(swapBtn);
-
-    const dualBtn = document.createElement('button');
-    dualBtn.id = 'vtt-dual-btn';
-    dualBtn.title = 'Toggle Dual Mode (Shift+D)';
-    dualBtn.textContent = '📖 Dual';
-    dualBtn.addEventListener('click', () => {
-        if (subtitleTracks.length > 1) {
-            displayMode = displayMode === 'single' ? 'dual' : 'single';
-            dualBtn.classList.toggle('active', displayMode === 'dual');
-            renderSubtitles();
-            updateHighlight();
-        }
-    });
-    controls.appendChild(dualBtn);
-
-    header.appendChild(controls);
-    sidebar.appendChild(header);
-
-    const list = document.createElement('div');
-    list.id = 'vtt-list';
-    sidebar.appendChild(list);
-
-    document.body.appendChild(sidebar);
-    
-    // Глобальные горячие клавиши для переключения (Shift+S и Shift+D)
-    document.addEventListener('keydown', (e) => {
-        if (e.shiftKey && e.code === 'KeyS') {
-            if (subtitleTracks.length > 1) {
-                const temp = activeTrackIndex;
-                activeTrackIndex = secondaryTrackIndex;
-                secondaryTrackIndex = temp;
-                updateSidebarControls();
-                renderSubtitles();
-                updateHighlight();
-            }
-        }
-        if (e.shiftKey && e.code === 'KeyD') {
-            if (subtitleTracks.length > 1) {
-                displayMode = displayMode === 'single' ? 'dual' : 'single';
-                const dualBtn = document.getElementById('vtt-dual-btn');
-                if (dualBtn) dualBtn.classList.toggle('active', displayMode === 'dual');
-                renderSubtitles();
-                updateHighlight();
-            }
-        }
-    });
-    
-    // Останавливаем автоскролл, если пользователь навел мышку на панель
-    sidebar.addEventListener('mouseenter', () => { isHovering = true; });
-    sidebar.addEventListener('mouseleave', () => { 
-        isHovering = false; 
-        // Возвращаем скролл к текущей фразе, когда мышка уходит
-        const active = document.querySelector('.vtt-item.active-sub');
-        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    if (isTopWindow) {
-        document.body.classList.add('vtt-sidebar-active');
-    } else {
-        // В iframe прячем сайдбар по умолчанию
-        sidebar.style.display = 'none';
-    }
-
-    // Обработка перехода в полноэкранный режим
-    document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) {
-            // Переносим сайдбар внутрь fullscreen-контейнера
-            sidebar.style.display = 'flex';
-            // Автоматически сворачиваем сайдбар, чтобы не перекрывать видео при переходе
-            sidebar.classList.add('collapsed');
-            document.fullscreenElement.appendChild(sidebar);
-        } else {
-            // Возвращаем сайдбар в body
-            document.body.appendChild(sidebar);
-            if (!isTopWindow) {
-                sidebar.style.display = 'none'; // Снова прячем в iframe
-            } else {
-                sidebar.classList.remove('collapsed'); // Разворачиваем в нормальном режиме
-            }
-        }
-    });
-}
-
-function updateSidebarControls() {
-    const controls = document.getElementById('vtt-controls');
-    const selectors = document.getElementById('vtt-track-selectors');
-    if (controls && selectors) {
-        const hasMultiple = subtitleTracks.length > 1;
-        controls.style.display = hasMultiple ? 'flex' : 'none';
-        selectors.style.display = hasMultiple ? 'flex' : 'none';
-
-        if (hasMultiple) {
-            const mainSelect = document.getElementById('vtt-main-select');
-            const subSelect = document.getElementById('vtt-sub-select');
+    // =========================================================================
+    // 2. UTILS
+    // =========================================================================
+    const LanguageUtils = {
+        guessLanguage(subs) {
+            if (!subs || subs.length === 0) return "Unknown";
             
-            // Сохраняем фокус если он был на одном из селектов
-            const activeId = document.activeElement?.id;
+            const sampleText = subs.slice(0, 20).map(s => s.text).join(' ');
+            const cyrillicCount = (sampleText.match(/[а-яА-ЯёЁіІїЇєЄґҐ]/g) || []).length;
+            const latinCount = (sampleText.match(/[a-zA-Z]/g) || []).length;
             
-            mainSelect.innerHTML = '';
-            subSelect.innerHTML = '';
+            if (cyrillicCount > latinCount) {
+                const ukrainianCount = (sampleText.match(/[іІїЇєЄ]/g) || []).length;
+                return ukrainianCount > 0 ? "Ukrainian" : "Russian";
+            }
+            if (latinCount > cyrillicCount && latinCount > 0) return "English";
+            return "Track";
+        },
+
+        generateTrackName(subs, existingTracks) {
+            const lang = this.guessLanguage(subs);
+            const count = existingTracks.filter(t => t.name.startsWith(lang)).length;
+            return count > 0 ? `${lang} ${count + 1}` : lang;
+        }
+    };
+
+    // =========================================================================
+    // 3. UI LAYER
+    // =========================================================================
+    class SidebarUI {
+        constructor(state, app) {
+            this.state = state;
+            this.app = app;
+            this.elements = {};
+        }
+
+        init() {
+            if (document.getElementById('vtt-sidebar')) return false;
+
+            const sidebar = document.createElement('div');
+            sidebar.id = 'vtt-sidebar';
+
+            // Toggle Button
+            const toggleBtn = document.createElement('div');
+            toggleBtn.id = 'vtt-toggle-btn';
+            toggleBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+            toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+            sidebar.appendChild(toggleBtn);
+
+            // Header Container
+            const header = document.createElement('div');
+            header.id = 'vtt-header';
+
+            const headerTop = document.createElement('div');
+            headerTop.id = 'vtt-header-top';
+            headerTop.innerHTML = `<h2>Subtitles</h2>`;
             
-            subtitleTracks.forEach((track, i) => {
-                const optMain = document.createElement('option');
-                optMain.value = i;
-                optMain.textContent = 'Main: ' + track.name;
-                optMain.selected = i === activeTrackIndex;
-                mainSelect.appendChild(optMain);
-                
-                const optSub = document.createElement('option');
-                optSub.value = i;
-                optSub.textContent = 'Sub: ' + track.name;
-                optSub.selected = i === secondaryTrackIndex;
-                subSelect.appendChild(optSub);
+            const settingsBtn = document.createElement('div');
+            settingsBtn.id = 'vtt-settings-btn';
+            settingsBtn.title = 'Settings';
+            settingsBtn.style.display = 'flex'; // Always visible now
+            settingsBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`;
+            settingsBtn.addEventListener('click', () => this.elements.settingsPanel?.classList.toggle('open'));
+            headerTop.appendChild(settingsBtn);
+            header.appendChild(headerTop);
+
+            // Settings Panel
+            const settingsPanel = document.createElement('div');
+            settingsPanel.id = 'vtt-settings-panel';
+
+            const selectorsDiv = document.createElement('div');
+            selectorsDiv.id = 'vtt-track-selectors';
+
+            const mainSelect = document.createElement('select');
+            mainSelect.id = 'vtt-main-select';
+            mainSelect.title = 'Main Track';
+            mainSelect.className = 'vtt-select';
+            mainSelect.addEventListener('change', (e) => {
+                this.state.activeTrackIndex = parseInt(e.target.value);
+                this.refresh();
             });
+
+            const subSelect = document.createElement('select');
+            subSelect.id = 'vtt-sub-select';
+            subSelect.title = 'Secondary Track';
+            subSelect.className = 'vtt-select';
+            subSelect.addEventListener('change', (e) => {
+                this.state.secondaryTrackIndex = parseInt(e.target.value);
+                this.refresh();
+            });
+
+            selectorsDiv.appendChild(mainSelect);
+            selectorsDiv.appendChild(subSelect);
+            settingsPanel.appendChild(selectorsDiv);
+
+            // Controls
+            const controls = document.createElement('div');
+            controls.id = 'vtt-controls';
+
+            const swapBtn = document.createElement('button');
+            swapBtn.id = 'vtt-swap-btn';
+            swapBtn.title = 'Swap Language (Shift+S)';
+            swapBtn.textContent = '🔄 Swap';
+            swapBtn.addEventListener('click', () => {
+                if (this.state.swapTracks()) this.refresh();
+            });
+            controls.appendChild(swapBtn);
+
+            const dualBtn = document.createElement('button');
+            dualBtn.id = 'vtt-dual-btn';
+            dualBtn.title = 'Toggle Dual Mode (Shift+D)';
+            dualBtn.textContent = '📖 Dual';
+            dualBtn.addEventListener('click', () => {
+                if (this.state.toggleDualMode()) this.refresh();
+            });
+            controls.appendChild(dualBtn);
+
+            const overlayBtn = document.createElement('button');
+            overlayBtn.id = 'vtt-overlay-btn';
+            overlayBtn.title = 'Toggle On-Screen Overlay (Shift+O)';
+            overlayBtn.textContent = '📺 Overlay';
+            overlayBtn.addEventListener('click', () => {
+                this.state.overlayEnabled = !this.state.overlayEnabled;
+                this.refresh();
+            });
+            controls.appendChild(overlayBtn);
+
+            settingsPanel.appendChild(controls);
+            header.appendChild(settingsPanel);
+            sidebar.appendChild(header);
+
+            // Subtitles List
+            const list = document.createElement('div');
+            list.id = 'vtt-list';
+            sidebar.appendChild(list);
+
+            document.body.appendChild(sidebar);
+
+            // Store DOM references
+            this.elements = { sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list };
+
+            // Hover interactions
+            sidebar.addEventListener('mouseenter', () => this.state.isHovering = true);
+            sidebar.addEventListener('mouseleave', () => {
+                this.state.isHovering = false;
+                const active = document.querySelector('.vtt-item.active-sub');
+                if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+
+            if (isTopWindow) {
+                document.body.classList.add('vtt-sidebar-active');
+            } else {
+                sidebar.style.display = 'none';
+            }
+
+            this.setupFullscreenHandling();
+            return true;
+        }
+
+        setupFullscreenHandling() {
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    this.elements.sidebar.style.display = 'flex';
+                    this.elements.sidebar.classList.add('fullscreen');
+                    // Автоматически сворачиваем сайдбар, чтобы не перекрывать видео при переходе
+                    this.elements.sidebar.classList.add('collapsed');
+                    document.fullscreenElement.appendChild(this.elements.sidebar);
+                } else {
+                    document.body.appendChild(this.elements.sidebar);
+                    this.elements.sidebar.classList.remove('fullscreen');
+                    if (!isTopWindow) {
+                        this.elements.sidebar.style.display = 'none';
+                    } else {
+                        this.elements.sidebar.classList.remove('collapsed');
+                    }
+                }
+            });
+        }
+
+        refresh() {
+            this.updateControls();
+            this.renderSubtitles();
+            this.app.updateHighlight();
+        }
+
+        updateControls() {
+            if (!this.elements.settingsBtn) return;
+            
+            // Always show the settings button so the user can see what track is currently loaded
+            this.elements.settingsBtn.style.display = 'flex';
+            
+            const hasMultiple = this.state.hasMultipleTracks();
+            this.elements.dualBtn.classList.toggle('active', this.state.displayMode === 'dual');
+            this.elements.overlayBtn.classList.toggle('active', this.state.overlayEnabled);
+
+            const activeId = document.activeElement?.id;
+            this.elements.mainSelect.innerHTML = '';
+            this.elements.subSelect.innerHTML = '';
+
+            this.state.tracks.forEach((track, i) => {
+                this.elements.mainSelect.appendChild(new Option('Main: ' + track.name, i, false, i === this.state.activeTrackIndex));
+                this.elements.subSelect.appendChild(new Option('Sub: ' + track.name, i, false, i === this.state.secondaryTrackIndex));
+            });
+
+            // If there's only one track, disable the swap and dual buttons to indicate they require a second track
+            this.elements.dualBtn.disabled = !hasMultiple;
+            const swapBtn = document.getElementById('vtt-swap-btn');
+            if (swapBtn) swapBtn.disabled = !hasMultiple;
 
             if (activeId) document.getElementById(activeId)?.focus();
         }
-    }
-}
 
-function updateHighlight() {
-    const video = document.querySelector('video');
-    if (video) highlightSubtitle(video.currentTime);
-}
+        renderSubtitles() {
+            if (!this.elements.list) return;
+            this.elements.list.innerHTML = '';
+            this.state.currentIndex = -1;
 
-function renderSubtitles() {
-    const list = document.getElementById('vtt-list');
-    if (!list) return;
-    
-    list.innerHTML = ''; // clear existing
-    currentIndex = -1; // reset index
+            const mainTrack = this.state.getMainTrack();
+            if (!mainTrack) return;
 
-    if (subtitleTracks.length === 0) return;
+            const secondaryTrack = this.state.getSecondaryTrack();
+            const df = document.createDocumentFragment();
 
-    const mainTrack = subtitleTracks[activeTrackIndex]?.data;
-    const secondaryTrack = subtitleTracks.length > 1 ? subtitleTracks[secondaryTrackIndex]?.data : null;
+            mainTrack.forEach((sub, index) => {
+                const item = document.createElement('div');
+                item.className = 'vtt-item';
+                item.dataset.index = index;
 
-    if (!mainTrack) return;
+                const mainText = document.createElement('div');
+                mainText.className = 'vtt-main-text';
+                mainText.textContent = sub.text;
+                item.appendChild(mainText);
 
-    mainTrack.forEach((sub, index) => {
-        const item = document.createElement('div');
-        item.className = 'vtt-item';
-        item.dataset.index = index;
-        item.dataset.start = sub.startTime;
-        item.dataset.end = sub.endTime;
+                if (this.state.displayMode === 'dual' && secondaryTrack) {
+                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+                    if (overlap.length > 0) {
+                        const subText = document.createElement('div');
+                        subText.className = 'vtt-sub-text';
+                        subText.textContent = overlap.map(s => s.text).join(' | ');
+                        item.appendChild(subText);
+                    }
+                }
 
-        const mainTextDiv = document.createElement('div');
-        mainTextDiv.className = 'vtt-main-text';
-        mainTextDiv.textContent = sub.text;
-        item.appendChild(mainTextDiv);
+                item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
+                df.appendChild(item);
+            });
 
-        if (displayMode === 'dual' && secondaryTrack) {
-            // Ищем пересекающиеся по времени субтитры во второй дорожке
-            const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-            if (overlap.length > 0) {
-                const subTextDiv = document.createElement('div');
-                subTextDiv.className = 'vtt-sub-text';
-                subTextDiv.textContent = overlap.map(s => s.text).join(' | ');
-                item.appendChild(subTextDiv);
+            this.elements.list.appendChild(df);
+        }
+
+        highlightSubtitle(currentTime) {
+            const mainTrack = this.state.getMainTrack();
+            if (!mainTrack) return;
+
+            let activeIndex = -1;
+            for (let i = 0; i < mainTrack.length; i++) {
+                if (currentTime >= mainTrack[i].startTime && currentTime <= mainTrack[i].endTime) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+
+            if (activeIndex !== -1 && activeIndex !== this.state.currentIndex) {
+                const oldActive = this.elements.list.querySelector('.vtt-item.active-sub');
+                if (oldActive) oldActive.classList.remove('active-sub');
+
+                const newActive = this.elements.list.querySelector(`.vtt-item[data-index="${activeIndex}"]`);
+                if (newActive) {
+                    newActive.classList.add('active-sub');
+                    if (!this.state.isHovering) {
+                        newActive.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+                this.state.currentIndex = activeIndex;
+                this.updateOverlay(activeIndex);
+            } else if (activeIndex === -1 && this.state.currentIndex !== -1) {
+                // Clear overlay when no subtitle is active
+                this.state.currentIndex = -1;
+                this.updateOverlay(-1);
+            } else if (activeIndex !== -1 && activeIndex === this.state.currentIndex) {
+                // Keep overlay updated if we just toggled the mode
+                this.updateOverlay(activeIndex);
             }
         }
 
-        item.addEventListener('click', () => {
-            try {
-                // Отправляем команду перемотки через background.js (для всех фреймов)
-                chrome.runtime.sendMessage({
-                    action: "SEEK_VIDEO",
-                    time: sub.startTime
+        updateOverlay(index) {
+            let overlay = document.getElementById('vtt-video-overlay');
+            
+            if (!this.state.overlayEnabled) {
+                if (overlay) overlay.style.display = 'none';
+                return;
+            }
+
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'vtt-video-overlay';
+                const video = document.querySelector('video');
+                if (video && video.parentElement) {
+                    video.parentElement.appendChild(overlay);
+                } else {
+                    return; // Can't find video container
+                }
+            }
+
+            overlay.style.display = 'flex';
+
+            if (index === -1) {
+                overlay.innerHTML = '';
+                return;
+            }
+
+            const mainTrack = this.state.getMainTrack();
+            const sub = mainTrack[index];
+            if (!sub) return;
+
+            overlay.innerHTML = '';
+
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'vtt-overlay-main';
+            mainDiv.textContent = sub.text;
+            overlay.appendChild(mainDiv);
+
+            if (this.state.displayMode === 'dual') {
+                const secondaryTrack = this.state.getSecondaryTrack();
+                if (secondaryTrack) {
+                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+                    if (overlap.length > 0) {
+                        const subDiv = document.createElement('div');
+                        subDiv.className = 'vtt-overlay-sub';
+                        subDiv.textContent = overlap.map(s => s.text).join(' | ');
+                        overlay.appendChild(subDiv);
+                    }
+                }
+            }
+        }
+    }
+
+    // =========================================================================
+    // 4. MAIN APP ORCHESTRATOR
+    // =========================================================================
+    class VttApp {
+        constructor() {
+            this.state = new AppState();
+            this.ui = new SidebarUI(this.state, this);
+            
+            console.log("VTT Sidebar: Running in " + (isTopWindow ? "top window." : "iframe."));
+            this.ui.init();
+            this.setupListeners();
+            this.startVideoPolling();
+        }
+
+        startVideoPolling() {
+            setInterval(() => {
+                document.querySelectorAll('video').forEach(video => {
+                    if (!video.dataset.vttAttached) {
+                        video.dataset.vttAttached = "true";
+                        console.log("VTT Sidebar: Attached timeupdate to a video element.");
+                        
+                        video.addEventListener('timeupdate', () => {
+                            try {
+                                chrome.runtime.sendMessage({ action: "TIME_UPDATE", time: video.currentTime });
+                            } catch (e) {
+                                if (!e.message.includes("Extension context invalidated")) console.error(e);
+                            }
+                        });
+                    }
                 });
+            }, 1000);
+        }
+
+        setupListeners() {
+            // Background script messages
+            chrome.runtime.onMessage.addListener((request) => {
+                if (request.action === "VTT_LOADED") {
+                    this.handleNewSubtitles(request.payload);
+                } else if (request.action === "TIME_UPDATE") {
+                    this.ui.highlightSubtitle(request.time);
+                } else if (request.action === "SEEK_VIDEO") {
+                    this.seekVideoLocal(request.time);
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.shiftKey && e.code === 'KeyS') {
+                    if (this.state.swapTracks()) this.ui.refresh();
+                }
+                if (e.shiftKey && e.code === 'KeyD') {
+                    if (this.state.toggleDualMode()) this.ui.refresh();
+                }
+                if (e.shiftKey && e.code === 'KeyO') {
+                    this.state.overlayEnabled = !this.state.overlayEnabled;
+                    this.ui.refresh();
+                }
+            });
+        }
+
+        handleNewSubtitles(vttText) {
+            if (typeof parseVTT !== 'function') return; // Wait for parser.js
+            
+            const newSubs = parseVTT(vttText);
+            if (newSubs.length === 0) return;
+
+            if (!this.state.isDuplicate(newSubs)) {
+                const name = LanguageUtils.generateTrackName(newSubs, this.state.tracks);
+                this.state.addTrack(name, newSubs);
+            }
+            this.ui.refresh();
+        }
+
+        seekVideo(time) {
+            try {
+                chrome.runtime.sendMessage({ action: "SEEK_VIDEO", time });
             } catch (e) {
                 if (!e.message.includes("Extension context invalidated")) console.error(e);
             }
-            
-            // Также перематываем локально (если видео в текущем окне)
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => {
-                video.currentTime = sub.startTime;
-                video.play().catch(e => {});
+            this.seekVideoLocal(time);
+        }
+
+        seekVideoLocal(time) {
+            document.querySelectorAll('video').forEach(video => {
+                video.currentTime = time;
+                video.play().catch(() => {});
             });
-        });
+        }
 
-        list.appendChild(item);
-    });
-}
-
-function highlightSubtitle(currentTime) {
-    if (subtitleTracks.length === 0) return;
-    const currentTrack = subtitleTracks[activeTrackIndex]?.data;
-    if (!currentTrack || currentTrack.length === 0) return;
-
-    let activeIndex = -1;
-    for (let i = 0; i < currentTrack.length; i++) {
-        if (currentTime >= currentTrack[i].startTime && currentTime <= currentTrack[i].endTime) {
-            activeIndex = i;
-            break;
+        updateHighlight() {
+            const video = document.querySelector('video');
+            if (video) this.ui.highlightSubtitle(video.currentTime);
         }
     }
 
-    if (activeIndex !== -1 && activeIndex !== currentIndex) {
-        const list = document.getElementById('vtt-list');
-        if (!list) return;
-
-        const oldActive = list.querySelector('.vtt-item.active-sub');
-        if (oldActive) oldActive.classList.remove('active-sub');
-
-        const newActive = list.querySelector(`.vtt-item[data-index="${activeIndex}"]`);
-        if (newActive) {
-            newActive.classList.add('active-sub');
-            // Скроллим только если пользователь не читает сам (не навел мышку)
-            if (!isHovering) {
-                newActive.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-        currentIndex = activeIndex;
-    }
-}
+    // Bootstrap
+    new VttApp();
+})();
