@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "VTT Sidebar Reader",
+  "version": "1.0",
+  "description": "Reads and displays VTT subtitles in a sidebar with video synchronization.",
+  "permissions": [
+    "webRequest", 
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.rezka.ag/*",
+    "*://*/*.vtt*" 
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.rezka.ag/*", "<all_urls>"],
+      "all_frames": true, 
+      "js": ["parser.js", "content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

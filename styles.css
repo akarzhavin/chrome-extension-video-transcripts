@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+#vtt-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100vh;
+    background-color: rgba(25, 25, 25, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#vtt-sidebar.collapsed {
+    transform: translateX(100%);
+}
+
+#vtt-toggle-btn {
+    position: absolute;
+    top: 50%;
+    left: -40px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 60px;
+    background-color: rgba(25, 25, 25, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#vtt-toggle-btn:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+}
+
+#vtt-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#vtt-sidebar.collapsed #vtt-toggle-btn svg {
+    transform: rotate(180deg);
+}
+
+#vtt-sidebar h2 {
+    margin: 0;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    letter-spacing: 0.5px;
+}
+
+#vtt-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+#vtt-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#vtt-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#vtt-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.vtt-item {
+    padding: 14px;
+    margin-bottom: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1.5;
+    word-wrap: break-word;
+    color: #b0b0b0;
+}
+
+.vtt-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.vtt-item:active {
+    transform: translateY(1px);
+}
+
+.vtt-item.active-sub {
+    background-color: rgba(0, 122, 204, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    border-left: 4px solid #4da3ff;
+    border-right: 1px solid rgba(0, 122, 204, 0.3);
+    border-top: 1px solid rgba(0, 122, 204, 0.3);
+    border-bottom: 1px solid rgba(0, 122, 204, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
