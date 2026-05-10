@@ -1,5 +1,7 @@
-function parseVTT(vttString) {
-    const subtitles = [];
+import { Subtitle } from './types';
+
+export function parseVTT(vttString: string): Subtitle[] {
+    const subtitles: Subtitle[] = [];
     // Разбиваем текст на блоки (пустые строки)
     // Поддержка \r\n или \n
     const blocks = vttString.split(/(?:\r?\n){2,}/); 
@@ -25,6 +27,7 @@ function parseVTT(vttString) {
             const endTime = (endH * 3600) + (endM * 60) + endS + (endMs / 1000);
 
             // Достаем текст (всё, что после строки с таймкодом)
+            if (match.index === undefined) return;
             const textPart = block.substring(match.index + match[0].length);
             // заодно чистим от HTML тегов (типа <b>, <i>, <v Name>)
             const text = textPart.trim().replace(/<[^>]+>/g, ''); 

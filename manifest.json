@@ -9,17 +9,22 @@
   ],
   "host_permissions": [
     "*://*.rezka.ag/*",
+    "*://*.hdrezka.ag/*",
+    "*://*.hdrezka.org/*",
     "*://*/*.vtt*" 
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.rezka.ag/*", "<all_urls>"],
+      "matches": ["*://*.rezka.ag/*", "*://*.hdrezka.ag/*", "*://*.hdrezka.org/*", "<all_urls>"],
       "all_frames": true, 
-      "js": ["parser.js", "content.js"],
-      "css": ["styles.css"]
+      "js": [
+        "src/content/index.js"
+      ],
+      "css": ["src/assets/styles.css"]
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background.js",
+    "type": "module"
   }
 }

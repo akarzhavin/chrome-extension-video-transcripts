@@ -1,0 +1,28 @@
+{
+  "name": "rezka_plugin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "jest",
+    "build": "vite build",
+    "dev": "vite",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/chrome": "^0.1.42",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.2",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.11",
+    "vite-plugin-static-copy": "^4.1.0"
+  }
+}

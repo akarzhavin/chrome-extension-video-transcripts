@@ -1,14 +1,14 @@
 // Кеш для запоминания уже загруженных URL, чтобы не качать дубликаты
-const processedUrls = new Set();
+export const processedUrls = new Set<string>();
 
 // Функция для скачивания файла с автоматическим повтором при ошибке (retry)
-async function fetchWithRetry(url, retries = 3, delay = 1000) {
+export async function fetchWithRetry(url: string, retries: number = 3, delay: number = 1000): Promise<string> {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return await response.text();
-    } catch (err) {
+    } catch (err: any) {
       console.warn(`Попытка загрузки ${i + 1} не удалась для ${url}:`, err.message);
       if (i < retries - 1) {
         // Ждем перед следующей попыткой
@@ -19,6 +19,7 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
       }
     }
   }
+  throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
 }
 
 chrome.webRequest.onCompleted.addListener(
@@ -74,7 +75,7 @@ chrome.webRequest.onCompleted.addListener(
 );
 
 // Ретранслятор сообщений (Relay) для обмена данными между фреймами
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender) => {
     if (request.action === "TIME_UPDATE" || request.action === "SEEK_VIDEO") {
         if (sender.tab && sender.tab.id) {
             chrome.tabs.sendMessage(sender.tab.id, request);
