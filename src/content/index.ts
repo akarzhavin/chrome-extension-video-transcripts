@@ -20,10 +20,6 @@ class VttApp implements AppInterface {
         console.log("VTT Sidebar: Running in " + (this.isTopWindow ? "top window." : "iframe."));
         this.ui.init();
         this.setupListeners();
-        this.state.loadSettings().then(() => {
-            this.ui.refresh();
-            console.log("VTT Sidebar: Settings loaded.");
-        });
         this.startVideoPolling();
         this.detector.start();
     }
@@ -163,15 +159,15 @@ class VttDetector {
         console.log("VttDetector: Requesting VTT fetch via background:", url);
         
         try {
-            // Мы отправляем запрос в background, потому что там есть host_permissions для voidboost
-            // и нет ограничений CORS, которые есть у контент-скрипта.
+            // We send the request to the background because it has host_permissions for voidboost
+            // and is not subject to the CORS restrictions that affect the content script.
             chrome.runtime.sendMessage({ 
                 action: "FETCH_VTT", 
                 url: url 
             });
         } catch (err) {
             console.error("VttDetector: Failed to send FETCH_VTT message:", err);
-            this.processedUrls.delete(url); // Позволяем попробовать снова
+            this.processedUrls.delete(url); // Allow retry
         }
     }
 

@@ -1,4 +1,4 @@
-// Функция для скачивания файла с автоматическим повтором при ошибке (retry)
+// Function to download a file with automatic retry on error
 async function fetchWithRetry(url: string, retries: number = 3, delay: number = 1000): Promise<string> {
     for (let i = 0; i < retries; i++) {
         try {
@@ -6,7 +6,7 @@ async function fetchWithRetry(url: string, retries: number = 3, delay: number = 
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.text();
         } catch (err: any) {
-            console.warn(`Попытка загрузки ${i + 1} не удалась для ${url}:`, err.message);
+            console.warn(`Fetch attempt ${i + 1} failed for ${url}:`, err.message);
             if (i < retries - 1) {
                 await new Promise(res => setTimeout(res, delay));
             } else {
@@ -17,8 +17,8 @@ async function fetchWithRetry(url: string, retries: number = 3, delay: number = 
     throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
 }
 
-// Ретранслятор сообщений (Relay) для обмена данными между фреймами
-// А также обработчик запросов на скачивание VTT
+// Message Relay for data exchange between frames
+// Also handles VTT download requests
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "TIME_UPDATE" || request.action === "SEEK_VIDEO" || request.action === "VTT_LOADED") {
         if (sender.tab && sender.tab.id) {
@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === "FETCH_VTT") {
         fetchWithRetry(request.url)
             .then(text => {
-                // Отправляем результат обратно во вкладку
+                // Send result back to the tab
                 if (sender.tab && sender.tab.id) {
                     chrome.tabs.sendMessage(sender.tab.id, {
                         action: "VTT_LOADED",
@@ -40,5 +40,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 console.error("Background: Failed to fetch VTT:", err);
             });
     }
-    return true; // Держим канал открытым для асинхронных ответов если нужно
+    return true; // Keep the channel open for asynchronous responses if needed
 });

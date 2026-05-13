@@ -18,29 +18,29 @@ export class AppState {
     applyPreferences(): void {
         if (this.tracks.length === 0) return;
 
-        // Ищем индексы ключевых языков
+        // Find indices of key languages
         const engIndex = this.tracks.findIndex(t => t.name.includes('English'));
         const rusIndex = this.tracks.findIndex(t => t.name.includes('Russian') || t.name.includes('Ukrainian'));
 
-        // Сценарий 1: Есть английский
+        // Scenario 1: English is present
         if (engIndex !== -1) {
-            this.activeTrackIndex = engIndex; // Английский всегда главный
+            this.activeTrackIndex = engIndex; // English is always primary
             
             if (rusIndex !== -1) {
-                this.secondaryTrackIndex = rusIndex; // Русский всегда второй
+                this.secondaryTrackIndex = rusIndex; // Russian is always secondary
             } else if (this.tracks.length > 1) {
-                // Если русского нет, берем любую другую дорожку для массовки
+                // If Russian is not found, pick any other track as filler
                 this.secondaryTrackIndex = (engIndex === 0) ? 1 : 0;
             }
         } 
-        // Сценарий 2: Английского нет, но есть русский
+        // Scenario 2: English is absent, but Russian is present
         else if (rusIndex !== -1) {
-            this.activeTrackIndex = rusIndex; // Русский становится главным
+            this.activeTrackIndex = rusIndex; // Russian becomes primary
             if (this.tracks.length > 1) {
                 this.secondaryTrackIndex = (rusIndex === 0) ? 1 : 0;
             }
         }
-        // Сценарий 3: Нет ни английского, ни русского
+        // Scenario 3: Neither English nor Russian found
         else {
             this.activeTrackIndex = 0;
             if (this.tracks.length > 1) {
