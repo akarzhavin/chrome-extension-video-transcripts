@@ -10,39 +10,42 @@ const commonConfig = {
   },
 };
 
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   if (command === 'build') {
+    const isBackground = mode === 'background';
+    const isContent = mode === 'content';
+    const isInterceptor = mode === 'interceptor';
+
     return {
       ...commonConfig,
       build: {
         outDir: 'build',
-        emptyOutDir: true,
-        rollupOptions: {
-          input: {
-            background: resolve(__dirname, 'src/background/background.ts'),
-            content: resolve(__dirname, 'src/content/index.ts'),
-          },
-          output: {
-            // We use 'es' format but we will fix the content script issue
-            // Actually, let's try 'cjs' which doesn't use 'export default' by default in the same way, 
-            // but it might use 'exports'.
-            // The best is 'iife' but it requires single entry.
-            // So we'll use a little trick: we'll use 'es' and then a manual fix or just use 'iife' by splitting.
-            format: 'es', 
-            entryFileNames: (chunkInfo) => {
-              if (chunkInfo.name === 'background') {
-                return 'src/background/background.js';
-              }
-              if (chunkInfo.name === 'content') {
-                return 'src/content/index.js';
-              }
-              return '[name].js';
-            },
-          },
+        // Important: only empty the dir on the very first pass
+        emptyOutDir: isBackground, 
+        lib: {
+          entry: isBackground 
+            ? resolve(__dirname, 'src/background/background.ts') 
+            : isContent 
+              ? resolve(__dirname, 'src/content/index.ts')
+              : resolve(__dirname, 'src/content/network-interceptor.ts'),
+          formats: [isBackground ? 'es' : 'iife'],
+          name: isContent ? 'VttContent' : isInterceptor ? 'VttInterceptor' : undefined,
+          fileName: (format) => {
+            if (isBackground) return 'src/background/background.js';
+            if (isContent) return 'src/content/index.js';
+            if (isInterceptor) return 'src/content/network-interceptor.js';
+            return 'bundle.js';
+          }
         },
+        rollupOptions: {
+          output: {
+            extend: true,
+          }
+        }
       },
       plugins: [
-        viteStaticCopy({
+        // Only copy static files on the first pass
+        isBackground && viteStaticCopy({
           targets: [
             {
               src: 'manifest.json',
@@ -53,9 +56,14 @@ export default defineConfig(({ command }) => {
               dest: 'src/assets',
               rename: { stripBase: true }
             },
+            {
+              src: 'src/assets/icons/*.png',
+              dest: 'src/assets/icons',
+              rename: { stripBase: true }
+            }
           ],
         }),
-        {
+        isContent && {
           name: 'remove-export-statement',
           generateBundle(options, bundle) {
             for (const fileName in bundle) {
@@ -72,7 +80,7 @@ export default defineConfig(({ command }) => {
             }
           }
         }
-      ],
+      ].filter(Boolean),
     };
   }
   return commonConfig;

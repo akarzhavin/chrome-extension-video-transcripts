@@ -9,15 +9,23 @@ class VttApp implements AppInterface {
     ui: SidebarUI;
     isTopWindow: boolean;
 
+    detector: VttDetector;
+
     constructor() {
         this.isTopWindow = window === window.top;
         this.state = new AppState();
         this.ui = new SidebarUI(this.state, this);
+        this.detector = new VttDetector(this);
         
         console.log("VTT Sidebar: Running in " + (this.isTopWindow ? "top window." : "iframe."));
         this.ui.init();
         this.setupListeners();
+        this.state.loadSettings().then(() => {
+            this.ui.refresh();
+            console.log("VTT Sidebar: Settings loaded.");
+        });
         this.startVideoPolling();
+        this.detector.start();
     }
 
     startVideoPolling(): void {
@@ -97,6 +105,87 @@ class VttApp implements AppInterface {
     updateHighlight(): void {
         const video = document.querySelector('video');
         if (video) this.ui.highlightSubtitle(video.currentTime);
+    }
+}
+
+class VttDetector {
+    app: VttApp;
+    processedUrls: Set<string> = new Set();
+
+    constructor(app: VttApp) {
+        this.app = app;
+    }
+
+    start(): void {
+        this.observeDOM();
+        this.pollVideoTracks();
+        this.interceptNetwork();
+    }
+
+    observeDOM(): void {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node instanceof HTMLTrackElement) {
+                        this.handleTrackElement(node);
+                    } else if (node instanceof HTMLElement) {
+                        node.querySelectorAll('track').forEach(track => this.handleTrackElement(track));
+                    }
+                });
+            });
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    pollVideoTracks(): void {
+        setInterval(() => {
+            document.querySelectorAll('video').forEach(video => {
+                for (let i = 0; i < video.textTracks.length; i++) {
+                    const track = video.textTracks[i];
+                    // We can't always get the URL from textTrack, but we can sometimes find the <track> element
+                }
+            });
+        }, 2000);
+    }
+
+    handleTrackElement(track: HTMLTrackElement): void {
+        const url = track.src;
+        if (url && url.includes('.vtt') && !this.processedUrls.has(url)) {
+            console.log("VTT Detector: Found track element:", url);
+            this.loadVtt(url);
+        }
+    }
+
+    async loadVtt(url: string): Promise<void> {
+        if (this.processedUrls.has(url)) return;
+        this.processedUrls.add(url);
+
+        console.log("VttDetector: Requesting VTT fetch via background:", url);
+        
+        try {
+            // Мы отправляем запрос в background, потому что там есть host_permissions для voidboost
+            // и нет ограничений CORS, которые есть у контент-скрипта.
+            chrome.runtime.sendMessage({ 
+                action: "FETCH_VTT", 
+                url: url 
+            });
+        } catch (err) {
+            console.error("VttDetector: Failed to send FETCH_VTT message:", err);
+            this.processedUrls.delete(url); // Позволяем попробовать снова
+        }
+    }
+
+    interceptNetwork(): void {
+        const script = document.createElement('script');
+        script.src = chrome.runtime.getURL('src/content/network-interceptor.js');
+        (document.head || document.documentElement).appendChild(script);
+        script.onload = () => script.remove();
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'VTT_URL_DETECTED') {
+                this.loadVtt(event.data.url);
+            }
+        });
     }
 }
 
