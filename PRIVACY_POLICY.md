@@ -6,29 +6,30 @@ This Privacy Policy describes how the **Language Learning Transcript Sidebar** C
 
 ## 1. Information Collection and Use
 
-The Extension is designed with privacy as a core principle. 
+The Extension is designed with privacy as a priority. 
 
-*   **No Personal Data Collection:** The Extension does not collect, store, or transmit any personally identifiable information (PII) to any external servers.
-*   **No Tracking:** We do not use any analytics or tracking tools to monitor your behavior.
-*   **Local Processing:** All subtitle parsing and video synchronization happen locally within your browser. 
-*   **Network Requests:** The Extension intercepts and fetches `.vtt` (subtitle) files directly from the video platform's content delivery networks (CDNs) to display them in the sidebar. These requests are made on your behalf and do not involve any intermediate servers owned by the Extension developers.
+*   **No Personal Data Collection:** The Extension does not collect, store, or transmit any personally identifiable information (PII). We do not have access to your browsing history, email address, or any other personal data.
+*   **No Tracking:** We do not use any analytics, tracking tools, or cookies to monitor your behavior or usage of the Extension.
+*   **No Remote Backend:** The Extension does not communicate with any servers owned or operated by the Extension developers. All processing of subtitle data happens entirely within your browser.
 
 ## 2. Storage
 
-The Extension may use your browser's local storage to save your preferences (e.g., display mode, primary language). This data remains on your device and is not shared with us or any third party.
+The Extension does not use any persistent storage (such as `chrome.storage` or `localStorage`). All settings and subtitle data are stored only in the browser's memory and are discarded as soon as you close the tab or refresh the page. No information is saved on your device or transmitted elsewhere.
 
-## 3. Third-Party Services
+## 3. Third-Party Network Requests
 
-The Extension does not integrate with any third-party services or APIs that collect user data.
+To provide its core functionality, the Extension fetches `.vtt` (subtitle) files directly from the video platform's content delivery networks (CDNs) as you watch videos. These requests:
+*   Are made directly from your browser to the source platform.
+*   Do not involve any intermediate proxy servers.
+*   Are subject to the privacy policies of the respective video platforms (e.g., HDRezka, Voidboost).
 
 ## 4. Changes to This Policy
 
-We may update our Privacy Policy from time to time. Any changes will be reflected in this document and updated in the Chrome Web Store.
+We may update our Privacy Policy from time to time. Any changes will be reflected in this document.
 
-## 5. Contact Us
+## 5. Contact
 
-If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at:
-[Your Email/Contact Link Here]
+For any questions regarding this Privacy Policy, please contact the developer via the official repository or the Chrome Web Store support page.
 
 ---
-*Note: This extension is an independent tool and is not affiliated with the video platforms it supports.*
+*Note: This extension is an independent tool and is not affiliated with, authorized, or endorsed by the video platforms it supports.*
