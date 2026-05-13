@@ -18,21 +18,38 @@
 
 ---
 
+## 🚀 How it Works
+
+To start using the extension on supported sites (like HDRezka):
+1.  **Open a video** and wait for the player to load.
+2.  **Enable Subtitles** in the original video player settings (e.g., select English). The extension will automatically intercept the data.
+3.  **Switch Subtitles** in the original player to another language (e.g., Russian). The extension will capture the second track and enable **Dual Mode**.
+4.  **Enjoy** the synchronized transcript in the sidebar!
+
+---
+
 ## ✨ Key Features
 
 ### 📚 Synchronized Transcript Sidebar
-The entire video text is available in an interactive sidebar. The current phrase is highlighted in real-time as the video plays.
+The entire video text is available in an interactive sidebar. The current phrase is automatically highlighted and scrolled into view as the video plays.
 
 <img src="docs/assets/screenshot1.png" width="100%" alt="Transcript Sidebar View" />
 
-### 🌐 Dual Subtitles Support
-Learn new languages by seeing two translations simultaneously. The extension merges data streams for maximum contextual understanding.
+### 🌐 Dynamic Dual Subtitles
+Learn by comparing two languages side-by-side. Once you load two different tracks in the original player, the extension merges them for maximum contextual understanding.
 
-### 🖱️ Interactive Navigation
-Click any sentence in the transcript to instantly jump to that specific moment in the video. No more manual seeking!
+### 🖱️ Interactive Navigation & Seeking
+Click any sentence in the transcript to instantly jump to that specific moment in the video. Perfect for repeating difficult phrases or skipping ahead.
 
-### 🌗 Premium Dark Mode
-A minimalist design that seamlessly integrates with video player interfaces without distracting you from the content.
+### 🎓 Smart Learning Modes
+*   **Dual Mode**: See both languages at once.
+*   **Guess Mode (Blur)**: Hide the primary language and reveal it word-by-word or on hover to test your listening skills.
+
+### ⌨️ Productivity Hotkeys
+*   `Shift + D`: Toggle Dual/Single mode.
+*   `Shift + S`: Swap primary and secondary languages.
+*   `Shift + G`: Toggle Guess (Blur) mode.
+*   `Shift + O`: Show/Hide the sidebar overlay.
 
 <img src="docs/assets/screenshot2.png" width="100%" alt="Interactive Navigation" />
 
