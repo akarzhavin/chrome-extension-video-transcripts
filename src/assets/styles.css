@@ -245,6 +245,30 @@
     font-weight: 400;
 }
 
+.vtt-masked-word {
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 1px;
+    font-style: italic;
+}
+
+.vtt-revealed-word {
+    color: #e0e0e0;
+    transition: color 0.3s ease;
+}
+
+.vtt-item.active-sub .vtt-revealed-word {
+    color: #fff;
+}
+
+.vtt-item.fully-revealed {
+    border-left: 4px solid #4caf50;
+}
+
+.vtt-item.fully-revealed.active-sub {
+    border-left: 4px solid #66bb6a;
+    background-color: rgba(76, 175, 80, 0.15);
+}
+
 #vtt-video-overlay {
     position: absolute;
     bottom: 80px;

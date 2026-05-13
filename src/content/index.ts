@@ -61,6 +61,9 @@ class VttApp implements AppInterface {
                 this.state.overlayEnabled = !this.state.overlayEnabled;
                 this.ui.refresh();
             }
+            if (e.shiftKey && e.code === 'KeyG') {
+                if (this.state.toggleGuessMode()) this.ui.refresh();
+            }
         });
     }
 

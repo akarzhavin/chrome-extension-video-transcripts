@@ -4,10 +4,11 @@ export class AppState {
     tracks: Track[] = [];
     activeTrackIndex: number = 0;
     secondaryTrackIndex: number = 0;
-    displayMode: 'single' | 'dual' = 'dual';
+    displayMode: 'single' | 'dual' | 'guess' = 'dual';
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;
+    guessState: Map<number, number> = new Map();
 
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
@@ -74,6 +75,44 @@ export class AppState {
             return true;
         }
         return false;
+    }
+
+    toggleGuessMode(): boolean {
+        if (this.displayMode === 'guess') {
+            this.displayMode = 'dual';
+        } else {
+            this.displayMode = 'guess';
+            this.resetGuessState();
+        }
+        return true;
+    }
+
+    revealNextWord(index: number): boolean {
+        const mainTrack = this.getMainTrack();
+        if (!mainTrack || !mainTrack[index]) return false;
+
+        const words = mainTrack[index].text.split(/\s+/);
+        const current = this.guessState.get(index) ?? 1;
+
+        if (current >= words.length) return true; // already fully revealed
+
+        this.guessState.set(index, current + 1);
+        return current + 1 >= words.length;
+    }
+
+    getRevealedCount(index: number): number {
+        return this.guessState.get(index) ?? 1;
+    }
+
+    isFullyRevealed(index: number): boolean {
+        const mainTrack = this.getMainTrack();
+        if (!mainTrack || !mainTrack[index]) return false;
+        const words = mainTrack[index].text.split(/\s+/);
+        return this.getRevealedCount(index) >= words.length;
+    }
+
+    resetGuessState(): void {
+        this.guessState.clear();
     }
 
     getMainTrack(): Subtitle[] | null {

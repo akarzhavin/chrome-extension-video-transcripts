@@ -95,6 +95,15 @@ export class SidebarUI {
         });
         controls.appendChild(dualBtn);
 
+        const guessBtn = document.createElement('button');
+        guessBtn.id = 'vtt-guess-btn';
+        guessBtn.title = 'Toggle Guess Mode (Shift+G)';
+        guessBtn.textContent = '🧩 Guess';
+        guessBtn.addEventListener('click', () => {
+            if (this.state.toggleGuessMode()) this.refresh();
+        });
+        controls.appendChild(guessBtn);
+
         const overlayBtn = document.createElement('button');
         overlayBtn.id = 'vtt-overlay-btn';
         overlayBtn.title = 'Toggle On-Screen Overlay (Shift+O)';
@@ -176,6 +185,9 @@ export class SidebarUI {
         this.elements.dualBtn.classList.toggle('active', this.state.displayMode === 'dual');
         this.elements.overlayBtn.classList.toggle('active', this.state.overlayEnabled);
 
+        const guessBtn = document.getElementById('vtt-guess-btn') as HTMLButtonElement | null;
+        if (guessBtn) guessBtn.classList.toggle('active', this.state.displayMode === 'guess');
+
         const activeId = document.activeElement?.id;
         this.elements.mainSelect.innerHTML = '';
         this.elements.subSelect.innerHTML = '';
@@ -195,6 +207,67 @@ export class SidebarUI {
         }
     }
 
+    buildMaskedContent(text: string, revealedCount: number): HTMLElement {
+        const container = document.createElement('div');
+        container.className = 'vtt-main-text';
+        const words = text.split(/\s+/);
+
+        words.forEach((word, i) => {
+            if (i > 0) container.appendChild(document.createTextNode(' '));
+            const span = document.createElement('span');
+            if (i < revealedCount) {
+                span.className = 'vtt-revealed-word';
+                span.textContent = word;
+            } else {
+                span.className = 'vtt-masked-word';
+                span.textContent = '***';
+            }
+            container.appendChild(span);
+        });
+
+        return container;
+    }
+
+    getMaskedText(text: string, revealedCount: number): string {
+        const words = text.split(/\s+/);
+        return words.map((w, i) => i < revealedCount ? w : '***').join(' ');
+    }
+
+    updateGuessItem(index: number): void {
+        if (!this.elements.list) return;
+        const item = this.elements.list.querySelector(`.vtt-item[data-index="${index}"]`) as HTMLDivElement | null;
+        if (!item) return;
+
+        const mainTrack = this.state.getMainTrack();
+        if (!mainTrack || !mainTrack[index]) return;
+
+        // Replace main text
+        const oldMain = item.querySelector('.vtt-main-text');
+        const revealedCount = this.state.getRevealedCount(index);
+        const newMain = this.buildMaskedContent(mainTrack[index].text, revealedCount);
+        if (oldMain) {
+            item.replaceChild(newMain, oldMain);
+        }
+
+        // Add translation if fully revealed
+        if (this.state.isFullyRevealed(index)) {
+            item.classList.add('fully-revealed');
+            if (!item.querySelector('.vtt-sub-text')) {
+                const secondaryTrack = this.state.getSecondaryTrack();
+                if (secondaryTrack) {
+                    const sub = mainTrack[index];
+                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+                    if (overlap.length > 0) {
+                        const subText = document.createElement('div');
+                        subText.className = 'vtt-sub-text';
+                        subText.textContent = overlap.map(s => s.text).join(' | ');
+                        item.appendChild(subText);
+                    }
+                }
+            }
+        }
+    }
+
     renderSubtitles(): void {
         if (!this.elements.list) return;
         this.elements.list.innerHTML = '';
@@ -205,28 +278,55 @@ export class SidebarUI {
 
         const secondaryTrack = this.state.getSecondaryTrack();
         const df = document.createDocumentFragment();
+        const isGuessMode = this.state.displayMode === 'guess';
 
         mainTrack.forEach((sub, index) => {
             const item = document.createElement('div');
             item.className = 'vtt-item';
             item.dataset.index = index.toString();
 
-            const mainText = document.createElement('div');
-            mainText.className = 'vtt-main-text';
-            mainText.textContent = sub.text;
-            item.appendChild(mainText);
+            if (isGuessMode) {
+                const revealedCount = this.state.getRevealedCount(index);
+                const mainText = this.buildMaskedContent(sub.text, revealedCount);
+                item.appendChild(mainText);
 
-            if (this.state.displayMode === 'dual' && secondaryTrack) {
-                const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-                if (overlap.length > 0) {
-                    const subText = document.createElement('div');
-                    subText.className = 'vtt-sub-text';
-                    subText.textContent = overlap.map(s => s.text).join(' | ');
-                    item.appendChild(subText);
+                if (this.state.isFullyRevealed(index)) {
+                    item.classList.add('fully-revealed');
+                    if (secondaryTrack) {
+                        const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+                        if (overlap.length > 0) {
+                            const subText = document.createElement('div');
+                            subText.className = 'vtt-sub-text';
+                            subText.textContent = overlap.map(s => s.text).join(' | ');
+                            item.appendChild(subText);
+                        }
+                    }
                 }
+
+                item.addEventListener('click', () => {
+                    this.state.revealNextWord(index);
+                    this.updateGuessItem(index);
+                    this.app.seekVideo(sub.startTime);
+                });
+            } else {
+                const mainText = document.createElement('div');
+                mainText.className = 'vtt-main-text';
+                mainText.textContent = sub.text;
+                item.appendChild(mainText);
+
+                if (this.state.displayMode === 'dual' && secondaryTrack) {
+                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+                    if (overlap.length > 0) {
+                        const subText = document.createElement('div');
+                        subText.className = 'vtt-sub-text';
+                        subText.textContent = overlap.map(s => s.text).join(' | ');
+                        item.appendChild(subText);
+                    }
+                }
+
+                item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
             }
 
-            item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
             df.appendChild(item);
         });
 
@@ -302,10 +402,19 @@ export class SidebarUI {
 
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
-        mainDiv.textContent = sub.text;
+
+        if (this.state.displayMode === 'guess') {
+            const revealedCount = this.state.getRevealedCount(index);
+            mainDiv.textContent = this.getMaskedText(sub.text, revealedCount);
+        } else {
+            mainDiv.textContent = sub.text;
+        }
         overlay.appendChild(mainDiv);
 
-        if (this.state.displayMode === 'dual') {
+        const showTranslation = this.state.displayMode === 'dual' || 
+            (this.state.displayMode === 'guess' && this.state.isFullyRevealed(index));
+
+        if (showTranslation) {
             const secondaryTrack = this.state.getSecondaryTrack();
             if (secondaryTrack) {
                 const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
