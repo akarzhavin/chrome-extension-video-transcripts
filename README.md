@@ -1,7 +1,7 @@
 <div align="center">
   <img src="src/assets/icons/icon128.png" width="128" height="128" alt="Logo" />
-  <h1>Language Learning Transcript Sidebar</h1>
-  <p><b>Interactive subtitles and transcripts for effortless language immersion.</b></p>
+  <h1>Learn languages while watching Rezka</h1>
+  <p><b>Interactive transcripts and dual subtitles to help you understand every word while watching Rezka.</b></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Chrome Web Store](https://img.shields.io/badge/Chrome-Extension-blue.svg)](https://chrome.google.com/webstore)
@@ -14,17 +14,19 @@
 
 ## 🌟 Overview
 
-**Language Learning Transcript Sidebar** is a professional Chrome extension designed to turn your video viewing experience (on platforms like HDRezka) into a powerful learning environment. It automatically intercepts subtitle files, merges them, and displays them in a sleek, synchronized sidebar.
+**Rezka Subtitle Reader** is a specialized Chrome extension tailored for the **Rezka.ag** (and HDRezka) platform. It transforms your movie-watching experience into an active language learning session by intercepting VTT subtitles and presenting them in a clean, interactive, and synchronized sidebar.
+
+No more struggling to catch every word — see the full context, click to jump, and learn naturally while watching your favorite content.
 
 ---
 
 ## 🚀 How it Works
 
-To start using the extension on supported sites (like HDRezka):
-1.  **Open a video** and wait for the player to load.
-2.  **Enable Subtitles** in the original video player settings (e.g., select English). The extension will automatically intercept the data.
-3.  **Switch Subtitles** in the original player to another language (e.g., Russian). The extension will capture the second track and enable **Dual Mode**.
-4.  **Enjoy** the synchronized transcript in the sidebar!
+The extension seamlessly integrates with the Rezka video player:
+1.  **Open any video** on Rezka.ag or HDRezka.
+2.  **Enable Subtitles** in the native player settings (e.g., select English). The extension automatically captures the track.
+3.  **Add a Second Track** by switching the player to another language (e.g., Russian). The extension merges them into **Dual Mode**.
+4.  **Interactive Sidebar**: Use the sidebar to scroll, search, and navigate the video by clicking on sentences.
 
 ---
 
@@ -61,7 +63,7 @@ The project is built with modern technologies focusing on performance and reliab
 
 - **Manifest V3**: Compliant with the latest Chrome security standards.
 - **Vite + TypeScript**: Fast builds and type-safe development.
-- **Network Interceptor**: Smart `.vtt` request interception for clean subtitle data.
+- **Rezka-Specific Interceptor**: Smart `.vtt` request interception tailored for Rezka's player patterns.
 - **Vanilla DOM**: Maximum performance without heavy framework overhead.
 
 ---
