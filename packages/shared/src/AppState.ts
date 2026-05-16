@@ -130,4 +130,10 @@ export class AppState {
     getSecondaryTrack(): Subtitle[] | null {
         return this.hasMultipleTracks() ? this.tracks[this.secondaryTrackIndex]?.subtitles : null;
     }
+
+    getOverlappingSecondary(sub: Subtitle): Subtitle[] {
+        const secondary = this.getSecondaryTrack();
+        if (!secondary) return [];
+        return secondary.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+    }
 }

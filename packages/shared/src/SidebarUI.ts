@@ -1,5 +1,5 @@
 import { AppState } from './AppState';
-import { SidebarElements, AppInterface } from './types';
+import { SidebarElements, AppInterface, Subtitle } from './types';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -195,6 +195,14 @@ export class SidebarUI {
         active?.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
     }
 
+    private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
+        if (overlap.length === 0) return null;
+        const div = document.createElement('div');
+        div.className = className;
+        div.textContent = overlap.map(s => s.text).join(' | ');
+        return div;
+    }
+
     refresh(): void {
         this.updateControls();
         this.renderSubtitles();
@@ -278,17 +286,8 @@ export class SidebarUI {
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
             if (!item.querySelector('.vtt-sub-text')) {
-                const secondaryTrack = this.state.getSecondaryTrack();
-                if (secondaryTrack) {
-                    const sub = mainTrack[index];
-                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-                    if (overlap.length > 0) {
-                        const subText = document.createElement('div');
-                        subText.className = 'vtt-sub-text';
-                        subText.textContent = overlap.map(s => s.text).join(' | ');
-                        item.appendChild(subText);
-                    }
-                }
+                const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(mainTrack[index]));
+                if (subText) item.appendChild(subText);
             }
         }
     }
@@ -301,156 +300,131 @@ export class SidebarUI {
         const mainTrack = this.state.getMainTrack();
         if (!mainTrack) return;
 
-        const secondaryTrack = this.state.getSecondaryTrack();
-        const df = document.createDocumentFragment();
         const isGuessMode = this.state.displayMode === 'guess';
+        const df = document.createDocumentFragment();
 
         mainTrack.forEach((sub, index) => {
-            const item = document.createElement('div');
-            item.className = 'vtt-item';
-            item.dataset.index = index.toString();
-
-            if (isGuessMode) {
-                const revealedCount = this.state.getRevealedCount(index);
-                const mainText = this.buildMaskedContent(sub.text, revealedCount);
-                item.appendChild(mainText);
-
-                if (this.state.isFullyRevealed(index)) {
-                    item.classList.add('fully-revealed');
-                    if (secondaryTrack) {
-                        const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-                        if (overlap.length > 0) {
-                            const subText = document.createElement('div');
-                            subText.className = 'vtt-sub-text';
-                            subText.textContent = overlap.map(s => s.text).join(' | ');
-                            item.appendChild(subText);
-                        }
-                    }
-                }
-
-                item.addEventListener('click', () => {
-                    this.state.revealNextWord(index);
-                    this.updateGuessItem(index);
-                    this.app.seekVideo(sub.startTime);
-                });
-            } else {
-                const mainText = document.createElement('div');
-                mainText.className = 'vtt-main-text';
-                mainText.textContent = sub.text;
-                item.appendChild(mainText);
-
-                if (this.state.displayMode === 'dual' && secondaryTrack) {
-                    const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-                    if (overlap.length > 0) {
-                        const subText = document.createElement('div');
-                        subText.className = 'vtt-sub-text';
-                        subText.textContent = overlap.map(s => s.text).join(' | ');
-                        item.appendChild(subText);
-                    }
-                }
-
-                item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
-            }
-
-            df.appendChild(item);
+            df.appendChild(isGuessMode ? this.buildGuessItem(sub, index) : this.buildPlainItem(sub, index));
         });
 
         this.elements.list.appendChild(df);
+    }
+
+    private createSubtitleItem(index: number): HTMLDivElement {
+        const item = document.createElement('div');
+        item.className = 'vtt-item';
+        item.dataset.index = index.toString();
+        return item;
+    }
+
+    private buildGuessItem(sub: Subtitle, index: number): HTMLDivElement {
+        const item = this.createSubtitleItem(index);
+        item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index)));
+
+        if (this.state.isFullyRevealed(index)) {
+            item.classList.add('fully-revealed');
+            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            if (subText) item.appendChild(subText);
+        }
+
+        item.addEventListener('click', () => {
+            this.state.revealNextWord(index);
+            this.updateGuessItem(index);
+            this.app.seekVideo(sub.startTime);
+        });
+        return item;
+    }
+
+    private buildPlainItem(sub: Subtitle, index: number): HTMLDivElement {
+        const item = this.createSubtitleItem(index);
+
+        const mainText = document.createElement('div');
+        mainText.className = 'vtt-main-text';
+        mainText.textContent = sub.text;
+        item.appendChild(mainText);
+
+        if (this.state.displayMode === 'dual') {
+            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            if (subText) item.appendChild(subText);
+        }
+
+        item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
+        return item;
     }
 
     highlightSubtitle(currentTime: number): void {
         const mainTrack = this.state.getMainTrack();
         if (!mainTrack || !this.elements.list) return;
 
-        let activeIndex = -1;
-        for (let i = 0; i < mainTrack.length; i++) {
-            if (currentTime >= mainTrack[i].startTime && currentTime <= mainTrack[i].endTime) {
-                activeIndex = i;
-                break;
-            }
-        }
+        const activeIndex = mainTrack.findIndex(s => currentTime >= s.startTime && currentTime <= s.endTime);
 
-        if (activeIndex !== -1 && activeIndex !== this.state.currentIndex) {
-            const oldActive = this.elements.list.querySelector('.vtt-item.active-sub');
-            if (oldActive) oldActive.classList.remove('active-sub');
-
-            const newActive = this.elements.list.querySelector(`.vtt-item[data-index="${activeIndex}"]`) as HTMLDivElement | null;
-            if (newActive) {
-                newActive.classList.add('active-sub');
-                if (!this.state.isHovering) {
-                    const mode = this.pickScrollMode(activeIndex, this.state.currentIndex);
-                    newActive.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
-                }
-            }
+        if (activeIndex !== this.state.currentIndex) {
+            this.moveActiveSubtitleClass(activeIndex);
             this.state.currentIndex = activeIndex;
-            this.updateOverlay(activeIndex);
-        } else if (activeIndex === -1 && this.state.currentIndex !== -1) {
-            this.state.currentIndex = -1;
-            this.updateOverlay(-1);
-        } else if (activeIndex !== -1 && activeIndex === this.state.currentIndex) {
-            this.updateOverlay(activeIndex);
+        }
+        this.updateOverlay(this.state.currentIndex);
+    }
+
+    private moveActiveSubtitleClass(newIndex: number): void {
+        if (!this.elements.list) return;
+        this.elements.list.querySelector('.vtt-item.active-sub')?.classList.remove('active-sub');
+        if (newIndex === -1) return;
+
+        const newActive = this.elements.list.querySelector(`.vtt-item[data-index="${newIndex}"]`) as HTMLDivElement | null;
+        if (!newActive) return;
+
+        newActive.classList.add('active-sub');
+        if (!this.state.isHovering) {
+            const mode = this.pickScrollMode(newIndex, this.state.currentIndex);
+            newActive.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
         }
     }
 
     updateOverlay(index: number): void {
-        let overlay = document.getElementById('vtt-video-overlay');
-        
+        const existing = document.getElementById('vtt-video-overlay');
+
         if (!this.state.overlayEnabled) {
-            if (overlay) overlay.style.display = 'none';
+            if (existing) existing.style.display = 'none';
             return;
         }
 
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'vtt-video-overlay';
-            const video = document.querySelector('video');
-            if (video && video.parentElement) {
-                video.parentElement.appendChild(overlay);
-            } else {
-                return;
-            }
-        }
+        const overlay = existing ?? this.createOverlayElement();
+        if (!overlay) return; // No video to attach to yet.
 
         overlay.style.display = 'flex';
-
-        if (index === -1) {
-            overlay.innerHTML = '';
-            return;
-        }
-
-        const mainTrack = this.state.getMainTrack();
-        if (!mainTrack) return;
-        
-        const sub = mainTrack[index];
-        if (!sub) return;
-
         overlay.innerHTML = '';
 
+        const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+        if (!sub) return;
+
+        overlay.appendChild(this.buildOverlayMain(sub, index));
+        if (this.shouldShowOverlayTranslation(index)) {
+            const subDiv = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub), 'vtt-overlay-sub');
+            if (subDiv) overlay.appendChild(subDiv);
+        }
+    }
+
+    private createOverlayElement(): HTMLDivElement | null {
+        const video = document.querySelector('video');
+        if (!video || !video.parentElement) return null;
+        const overlay = document.createElement('div');
+        overlay.id = 'vtt-video-overlay';
+        video.parentElement.appendChild(overlay);
+        return overlay;
+    }
+
+    private buildOverlayMain(sub: Subtitle, index: number): HTMLDivElement {
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
+        mainDiv.textContent = this.state.displayMode === 'guess'
+            ? this.getMaskedText(sub.text, this.state.getRevealedCount(index))
+            : sub.text;
+        return mainDiv;
+    }
 
-        if (this.state.displayMode === 'guess') {
-            const revealedCount = this.state.getRevealedCount(index);
-            mainDiv.textContent = this.getMaskedText(sub.text, revealedCount);
-        } else {
-            mainDiv.textContent = sub.text;
-        }
-        overlay.appendChild(mainDiv);
-
-        const showTranslation = this.state.displayMode === 'dual' || 
-            (this.state.displayMode === 'guess' && this.state.isFullyRevealed(index));
-
-        if (showTranslation) {
-            const secondaryTrack = this.state.getSecondaryTrack();
-            if (secondaryTrack) {
-                const overlap = secondaryTrack.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
-                if (overlap.length > 0) {
-                    const subDiv = document.createElement('div');
-                    subDiv.className = 'vtt-overlay-sub';
-                    subDiv.textContent = overlap.map(s => s.text).join(' | ');
-                    overlay.appendChild(subDiv);
-                }
-            }
-        }
+    private shouldShowOverlayTranslation(index: number): boolean {
+        if (this.state.displayMode === 'dual') return true;
+        if (this.state.displayMode === 'guess') return this.state.isFullyRevealed(index);
+        return false;
     }
 }
