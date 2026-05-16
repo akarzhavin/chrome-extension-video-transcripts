@@ -62,16 +62,40 @@ describe('SidebarUI', () => {
     test('updateOverlay should create overlay if enabled', () => {
         state.overlayEnabled = true;
         state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
-        
+
         const video = document.createElement('video');
         const container = document.createElement('div');
         container.appendChild(video);
         document.body.appendChild(container);
-        
+
         ui.updateOverlay(0);
-        
+
         const overlay = document.getElementById('vtt-video-overlay');
         expect(overlay).not.toBeNull();
         expect(overlay?.textContent).toBe('Hello');
+    });
+
+    describe('pickScrollMode', () => {
+        // Private method — accessed via `as any` to keep the API surface clean.
+        const pickScrollMode = (target: number, from: number): 'smooth' | 'instant' =>
+            (ui as any).pickScrollMode(target, from);
+
+        test('instant when there is no previous subtitle (from === -1)', () => {
+            expect(pickScrollMode(0, -1)).toBe('instant');
+            expect(pickScrollMode(500, -1)).toBe('instant');
+        });
+
+        test('smooth for short hops within the threshold', () => {
+            expect(pickScrollMode(5, 4)).toBe('smooth');   // forward by 1
+            expect(pickScrollMode(5, 25)).toBe('smooth');  // backward by 20 — boundary, still smooth
+            expect(pickScrollMode(25, 5)).toBe('smooth');  // forward by 20 — boundary, still smooth
+            expect(pickScrollMode(5, 5)).toBe('smooth');   // same index (defensive)
+        });
+
+        test('instant for big jumps past the threshold', () => {
+            expect(pickScrollMode(26, 5)).toBe('instant');  // forward by 21
+            expect(pickScrollMode(5, 26)).toBe('instant');  // backward by 21
+            expect(pickScrollMode(1000, 0)).toBe('instant');
+        });
     });
 });

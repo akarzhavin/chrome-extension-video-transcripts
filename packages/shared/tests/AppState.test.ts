@@ -142,4 +142,36 @@ describe('AppState', () => {
         expect(state.activeTrackIndex).toBe(0); // First track
         expect(state.secondaryTrackIndex).toBe(1); // Second track
     });
+
+    describe('getOverlappingSecondary', () => {
+        const mainSub: Subtitle = { text: 'main', startTime: 10, endTime: 15 };
+
+        test('returns empty array when no secondary track exists', () => {
+            state.addTrack('English', [mainSub]);
+            expect(state.getOverlappingSecondary(mainSub)).toEqual([]);
+        });
+
+        test('returns subtitles whose time ranges overlap the main sub', () => {
+            const secondary: Subtitle[] = [
+                { text: 'before', startTime: 0, endTime: 9 },        // ends before main starts
+                { text: 'touching-start', startTime: 5, endTime: 10 }, // ends exactly at main start — not overlap
+                { text: 'partial-left', startTime: 8, endTime: 12 },  // overlaps
+                { text: 'inside', startTime: 11, endTime: 14 },       // fully inside
+                { text: 'partial-right', startTime: 14, endTime: 18 },// overlaps
+                { text: 'touching-end', startTime: 15, endTime: 20 }, // starts exactly at main end — not overlap
+                { text: 'after', startTime: 16, endTime: 20 },        // starts after main ends
+            ];
+            state.addTrack('English', [mainSub]);
+            state.addTrack('Russian', secondary);
+
+            const result = state.getOverlappingSecondary(mainSub).map(s => s.text);
+            expect(result).toEqual(['partial-left', 'inside', 'partial-right']);
+        });
+
+        test('returns empty array when no secondary sub overlaps', () => {
+            state.addTrack('English', [mainSub]);
+            state.addTrack('Russian', [{ text: 'far', startTime: 100, endTime: 200 } as Subtitle]);
+            expect(state.getOverlappingSecondary(mainSub)).toEqual([]);
+        });
+    });
 });
