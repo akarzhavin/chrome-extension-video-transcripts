@@ -1,6 +1,12 @@
 import { AppState } from './AppState';
 import { SidebarElements, AppInterface } from './types';
 
+// Smooth-scroll budget. Jumps within this many subtitle indices animate;
+// bigger jumps snap instantly so the user doesn't watch a full-list scroll.
+const NEARBY_SUBTITLE_THRESHOLD = 20;
+
+type ScrollMode = 'smooth' | 'instant';
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
@@ -129,23 +135,16 @@ export class SidebarUI {
         // Store DOM references
         this.elements = { sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list };
 
-        // Hover interactions
+        // Hover interactions. While hovering, highlightSubtitle skips scrolls
+        // but still moves the active-sub class, so on mouseleave we may need to
+        // catch up — compared against the snapshot taken on mouseenter.
         sidebar.addEventListener('mouseenter', () => {
             this.state.isHovering = true;
             this.hoverStartIndex = this.state.currentIndex;
         });
         sidebar.addEventListener('mouseleave', () => {
             this.state.isHovering = false;
-            const active = document.querySelector('.vtt-item.active-sub');
-            if (active) {
-                // While hovering, highlightSubtitle skips scrolls but still updates
-                // currentIndex (e.g., when user clicks a sidebar item to seek).
-                // Use the snapshot from mouseenter to decide if the jump is short.
-                const start = this.hoverStartIndex;
-                const isNearby = start !== -1 && Math.abs(this.state.currentIndex - start) <= 20;
-                const behavior: ScrollBehavior = isNearby ? 'smooth' : ('instant' as ScrollBehavior);
-                active.scrollIntoView({ behavior, block: 'center' });
-            }
+            this.scrollActiveIntoView(this.pickScrollMode(this.state.currentIndex, this.hoverStartIndex));
         });
 
         const isTopWindow = window === window.top;
@@ -182,9 +181,18 @@ export class SidebarUI {
 
             // Re-parenting resets list scroll to 0. state.currentIndex is unchanged,
             // so highlightSubtitle wouldn't re-scroll on its own — do it explicitly.
-            const active = this.elements.list?.querySelector('.vtt-item.active-sub');
-            if (active) active.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
+            this.scrollActiveIntoView('instant');
         });
+    }
+
+    private pickScrollMode(targetIndex: number, fromIndex: number): ScrollMode {
+        if (fromIndex === -1) return 'instant';
+        return Math.abs(targetIndex - fromIndex) <= NEARBY_SUBTITLE_THRESHOLD ? 'smooth' : 'instant';
+    }
+
+    private scrollActiveIntoView(mode: ScrollMode): void {
+        const active = this.elements.list?.querySelector('.vtt-item.active-sub');
+        active?.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
     }
 
     refresh(): void {
@@ -370,13 +378,8 @@ export class SidebarUI {
             if (newActive) {
                 newActive.classList.add('active-sub');
                 if (!this.state.isHovering) {
-                    // Smooth-scroll only for short hops (normal playback advancing by 1,
-                    // or small seeks). Big jumps — first render (currentIndex = -1) or
-                    // seek far away — would animate a full list height across the screen.
-                    const prev = this.state.currentIndex;
-                    const isNearby = prev !== -1 && Math.abs(activeIndex - prev) <= 20;
-                    const behavior: ScrollBehavior = isNearby ? 'smooth' : ('instant' as ScrollBehavior);
-                    newActive.scrollIntoView({ behavior, block: 'center' });
+                    const mode = this.pickScrollMode(activeIndex, this.state.currentIndex);
+                    newActive.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
                 }
             }
             this.state.currentIndex = activeIndex;
