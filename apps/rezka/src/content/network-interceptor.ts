@@ -1,7 +1,7 @@
 (function() {
     const originalFetch = window.fetch;
     window.fetch = async function(...args: any[]) {
-        const response = await originalFetch.apply(window, args);
+        const response = await originalFetch.apply(window, args as [RequestInfo | URL, RequestInit?]);
         const url = typeof args[0] === 'string' ? args[0] : args[0].url;
         if (url && url.includes('.vtt')) {
             window.postMessage({ type: 'VTT_URL_DETECTED', url }, '*');

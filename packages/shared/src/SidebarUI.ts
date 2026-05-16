@@ -1,5 +1,5 @@
 import { AppState } from './AppState';
-import { SidebarElements, AppInterface } from '../common/types';
+import { SidebarElements, AppInterface } from './types';
 
 export class SidebarUI {
     state: AppState;

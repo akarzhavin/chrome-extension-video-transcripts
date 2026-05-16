@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Learn languages while watching Rezka",
-  "version": "1.0.1",
-  "description": "Interactive transcripts and dual subtitles to help you understand every word while watching Rezka.",
+  "version": "0.0.0",
+  "description": "Interactive transcripts and dual subtitles to help you understand every word.",
   "icons": {
     "16": "src/assets/icons/icon16.png",
     "48": "src/assets/icons/icon48.png",

@@ -1,18 +1,16 @@
 {
-  "name": "rezka_plugin",
+  "name": "chrome-extension-video-transcripts",
   "version": "1.0.0",
-  "description": "",
-  "main": "background.js",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "test": "jest",
-    "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor",
-    "dev": "vite",
-    "type-check": "tsc --noEmit"
+    "build": "npm run build --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "devDependencies": {
     "@types/chrome": "^0.1.42",
     "@types/jest": "^30.0.0",

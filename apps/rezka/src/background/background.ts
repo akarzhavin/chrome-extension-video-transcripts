@@ -1,5 +1,5 @@
 // Function to download a file with automatic retry on error
-async function fetchWithRetry(url: string, retries: number = 3, delay: number = 1000): Promise<string> {
+export async function fetchWithRetry(url: string, retries: number = 3, delay: number = 1000): Promise<string> {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);

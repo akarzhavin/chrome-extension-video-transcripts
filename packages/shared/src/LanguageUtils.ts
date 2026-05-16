@@ -1,4 +1,4 @@
-import { Subtitle, Track } from '../common/types';
+import { Subtitle, Track } from './types';
 
 export const LanguageUtils = {
     guessLanguage(subs: Subtitle[]): string {

@@ -2,9 +2,9 @@
  * @jest-environment jsdom
  */
 
-import { SidebarUI } from '../src/content/SidebarUI';
-import { AppState } from '../src/content/AppState';
-import { Subtitle, AppInterface } from '../src/common/types';
+import { SidebarUI } from '../src/SidebarUI';
+import { AppState } from '../src/AppState';
+import { Subtitle, AppInterface } from '../src/types';
 
 // Mock chrome API
 (global as any).chrome = {

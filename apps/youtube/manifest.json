@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Learn languages while watching YouTube",
+  "version": "0.0.0",
+  "description": "Interactive transcripts and dual subtitles to help you understand every word on YouTube.",
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Transcript Sidebar"
+  },
+  "permissions": [],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/content/page-script.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/content/index.js"],
+      "css": ["src/assets/styles.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  }
+}

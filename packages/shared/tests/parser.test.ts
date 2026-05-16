@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { parseVTT } from '../src/common/parser';
+import { parseVTT } from '../src/parser';
 
 describe('parseVTT', () => {
     test('should parse a standard VTT file', () => {

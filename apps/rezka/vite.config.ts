@@ -50,6 +50,11 @@ export default defineConfig(({ command, mode }) => {
             {
               src: 'manifest.json',
               dest: '.',
+              transform: (content) => {
+                const manifest = JSON.parse(content);
+                manifest.version = process.env.npm_package_version || manifest.version;
+                return JSON.stringify(manifest, null, 2);
+              }
             },
             {
               src: 'src/assets/styles.css',

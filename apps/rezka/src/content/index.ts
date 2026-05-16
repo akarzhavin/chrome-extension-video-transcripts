@@ -1,8 +1,4 @@
-import { AppState } from './AppState';
-import { SidebarUI } from './SidebarUI';
-import { parseVTT } from '../common/parser';
-import { LanguageUtils } from './LanguageUtils';
-import { AppInterface } from '../common/types';
+import { AppState, SidebarUI, parseVTT, LanguageUtils, AppInterface } from '@video-transcripts/shared';
 
 class VttApp implements AppInterface {
     state: AppState;

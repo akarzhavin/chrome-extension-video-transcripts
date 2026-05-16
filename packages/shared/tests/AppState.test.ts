@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { AppState } from '../src/content/AppState';
-import { Subtitle } from '../src/common/types';
+import { AppState } from '../src/AppState';
+import { Subtitle } from '../src/types';
 
 describe('AppState', () => {
     let state: AppState;

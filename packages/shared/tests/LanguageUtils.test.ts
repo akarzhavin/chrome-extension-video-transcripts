@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { LanguageUtils } from '../src/content/LanguageUtils';
-import { Subtitle, Track } from '../src/common/types';
+import { LanguageUtils } from '../src/LanguageUtils';
+import { Subtitle, Track } from '../src/types';
 
 describe('LanguageUtils', () => {
     test('guessLanguage should identify English', () => {

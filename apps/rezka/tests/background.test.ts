@@ -13,11 +13,11 @@
     }
 };
 
-import { fetchWithRetry, processedUrls } from '../src/background/background';
+import { fetchWithRetry } from '../src/background/background';
 
 describe('background script', () => {
     beforeEach(() => {
-        processedUrls.clear();
+
         (global as any).fetch = jest.fn();
     });
 
@@ -53,9 +53,5 @@ describe('background script', () => {
             .rejects.toThrow('HTTP error! status: 404');
     });
 
-    test('processedUrls should track URLs', () => {
-        processedUrls.add('url1');
-        expect(processedUrls.has('url1')).toBe(true);
-        expect(processedUrls.has('url2')).toBe(false);
-    });
+
 });

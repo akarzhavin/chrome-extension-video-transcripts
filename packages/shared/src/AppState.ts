@@ -1,4 +1,4 @@
-import { Subtitle, Track } from '../common/types';
+import { Subtitle, Track } from './types';
 
 export class AppState {
     tracks: Track[] = [];
@@ -13,6 +13,14 @@ export class AppState {
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
+    }
+
+    reset(): void {
+        this.tracks = [];
+        this.activeTrackIndex = 0;
+        this.secondaryTrackIndex = 0;
+        this.currentIndex = -1;
+        this.guessState.clear();
     }
 
     applyPreferences(): void {
