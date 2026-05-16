@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="src/assets/icons/icon128.png" width="128" height="128" alt="Logo" />
+  <img src="apps/rezka/src/assets/icons/icon128.png" width="128" height="128" alt="Logo" />
   <h1>Learn languages while watching Rezka</h1>
   <p><b>Interactive transcripts and dual subtitles to help you understand every word while watching Rezka.</b></p>
 
@@ -35,7 +35,7 @@ The extension seamlessly integrates with the Rezka video player:
 ### 📚 Synchronized Transcript Sidebar
 The entire video text is available in an interactive sidebar. The current phrase is automatically highlighted and scrolled into view as the video plays.
 
-<img src="docs/assets/screenshot1.png" width="100%" alt="Transcript Sidebar View" />
+<img src="apps/rezka/docs/assets/screenshot1.png" width="100%" alt="Transcript Sidebar View" />
 
 ### 🌐 Dynamic Dual Subtitles
 Learn by comparing two languages side-by-side. Once you load two different tracks in the original player, the extension merges them for maximum contextual understanding.
@@ -53,7 +53,7 @@ Click any sentence in the transcript to instantly jump to that specific moment i
 *   `Shift + G`: Toggle Guess (Blur) mode.
 *   `Shift + O`: Show/Hide the sidebar overlay.
 
-<img src="docs/assets/screenshot2.png" width="100%" alt="Interactive Navigation" />
+<img src="apps/rezka/docs/assets/screenshot2.png" width="100%" alt="Interactive Navigation" />
 
 ---
 
