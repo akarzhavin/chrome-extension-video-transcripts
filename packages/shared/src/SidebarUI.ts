@@ -5,6 +5,7 @@ export class SidebarUI {
     state: AppState;
     app: AppInterface;
     elements: SidebarElements;
+    hoverStartIndex: number = -1;
 
     constructor(state: AppState, app: AppInterface) {
         this.state = state;
@@ -129,11 +130,22 @@ export class SidebarUI {
         this.elements = { sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list };
 
         // Hover interactions
-        sidebar.addEventListener('mouseenter', () => this.state.isHovering = true);
+        sidebar.addEventListener('mouseenter', () => {
+            this.state.isHovering = true;
+            this.hoverStartIndex = this.state.currentIndex;
+        });
         sidebar.addEventListener('mouseleave', () => {
             this.state.isHovering = false;
             const active = document.querySelector('.vtt-item.active-sub');
-            if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (active) {
+                // While hovering, highlightSubtitle skips scrolls but still updates
+                // currentIndex (e.g., when user clicks a sidebar item to seek).
+                // Use the snapshot from mouseenter to decide if the jump is short.
+                const start = this.hoverStartIndex;
+                const isNearby = start !== -1 && Math.abs(this.state.currentIndex - start) <= 20;
+                const behavior: ScrollBehavior = isNearby ? 'smooth' : ('instant' as ScrollBehavior);
+                active.scrollIntoView({ behavior, block: 'center' });
+            }
         });
 
         const isTopWindow = window === window.top;
@@ -167,6 +179,11 @@ export class SidebarUI {
                     sidebar.classList.remove('collapsed');
                 }
             }
+
+            // Re-parenting resets list scroll to 0. state.currentIndex is unchanged,
+            // so highlightSubtitle wouldn't re-scroll on its own — do it explicitly.
+            const active = this.elements.list?.querySelector('.vtt-item.active-sub');
+            if (active) active.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
         });
     }
 
@@ -353,7 +370,13 @@ export class SidebarUI {
             if (newActive) {
                 newActive.classList.add('active-sub');
                 if (!this.state.isHovering) {
-                    newActive.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Smooth-scroll only for short hops (normal playback advancing by 1,
+                    // or small seeks). Big jumps — first render (currentIndex = -1) or
+                    // seek far away — would animate a full list height across the screen.
+                    const prev = this.state.currentIndex;
+                    const isNearby = prev !== -1 && Math.abs(activeIndex - prev) <= 20;
+                    const behavior: ScrollBehavior = isNearby ? 'smooth' : ('instant' as ScrollBehavior);
+                    newActive.scrollIntoView({ behavior, block: 'center' });
                 }
             }
             this.state.currentIndex = activeIndex;
