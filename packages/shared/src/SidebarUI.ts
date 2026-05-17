@@ -388,7 +388,11 @@ export class SidebarUI {
             return;
         }
 
-        const overlay = existing ?? this.createOverlayElement();
+        const desiredParent = this.app.getOverlayParent?.() ?? document.querySelector('video')?.parentElement ?? null;
+        if (existing && desiredParent && existing.parentElement !== desiredParent) {
+            existing.remove();
+        }
+        const overlay = document.getElementById('vtt-video-overlay') ?? this.createOverlayElement();
         if (!overlay) return; // No video to attach to yet.
 
         overlay.style.display = 'flex';
@@ -405,11 +409,11 @@ export class SidebarUI {
     }
 
     private createOverlayElement(): HTMLDivElement | null {
-        const video = document.querySelector('video');
-        if (!video || !video.parentElement) return null;
+        const parent = this.app.getOverlayParent?.() ?? document.querySelector('video')?.parentElement;
+        if (!parent) return null;
         const overlay = document.createElement('div');
         overlay.id = 'vtt-video-overlay';
-        video.parentElement.appendChild(overlay);
+        parent.appendChild(overlay);
         return overlay;
     }
 

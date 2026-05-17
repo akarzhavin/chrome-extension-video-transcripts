@@ -48,12 +48,18 @@ class YouTubeVttApp implements AppInterface {
         }
     }
 
+    isAdPlaying(): boolean {
+        const player = document.querySelector('#movie_player, .html5-video-player');
+        return !!player && player.classList.contains('ad-showing');
+    }
+
     startVideoPolling(): void {
         setInterval(() => {
             document.querySelectorAll('video').forEach((video) => {
                 if (!video.dataset.vttAttached) {
                     video.dataset.vttAttached = 'true';
                     video.addEventListener('timeupdate', () => {
+                        if (this.isAdPlaying()) return;
                         this.ui.highlightSubtitle(video.currentTime);
                     });
                 }
@@ -126,8 +132,15 @@ class YouTubeVttApp implements AppInterface {
     }
 
     updateHighlight(): void {
+        if (this.isAdPlaying()) return;
         const video = document.querySelector('video');
         if (video) this.ui.highlightSubtitle(video.currentTime);
+    }
+
+    getOverlayParent(): HTMLElement | null {
+        return document.querySelector('#movie_player') as HTMLElement | null
+            ?? document.querySelector('video')?.parentElement
+            ?? null;
     }
 }
 

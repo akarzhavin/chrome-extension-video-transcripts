@@ -23,4 +23,5 @@ export interface SidebarElements {
 export interface AppInterface {
   updateHighlight(): void;
   seekVideo(time: number): void;
+  getOverlayParent?(): HTMLElement | null;
 }
