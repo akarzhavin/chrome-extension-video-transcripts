@@ -18,6 +18,7 @@ interface PlayerResponse {
     const TAG = '[YT-VTT page-script]';
     const originalFetch = window.fetch.bind(window);
     const potByVideoId = new Map<string, string>();
+    const potWaitersByVideoId = new Map<string, Set<(pot: string) => void>>();
 
     // ---------- pot sniffing ----------
 
@@ -27,13 +28,45 @@ interface PlayerResponse {
             if (!u.pathname.includes('/api/timedtext')) return;
             const v = u.searchParams.get('v');
             const pot = u.searchParams.get('pot');
-            if (v && pot && !potByVideoId.has(v)) {
+            if (!v || !pot) return;
+            if (!potByVideoId.has(v)) {
                 potByVideoId.set(v, pot);
                 console.log(TAG, 'captured pot for', v);
+            }
+            const waiters = potWaitersByVideoId.get(v);
+            if (waiters && waiters.size > 0) {
+                const fns = [...waiters];
+                potWaitersByVideoId.delete(v);
+                fns.forEach((fn) => fn(pot));
             }
         } catch {
             // ignore
         }
+    }
+
+    function waitForPot(videoId: string, timeoutMs: number): Promise<string | null> {
+        return new Promise((resolve) => {
+            let done = false;
+            const waiter = (pot: string) => {
+                if (done) return;
+                done = true;
+                clearTimeout(timer);
+                resolve(pot);
+            };
+            const timer = setTimeout(() => {
+                if (done) return;
+                done = true;
+                const set = potWaitersByVideoId.get(videoId);
+                if (set) {
+                    set.delete(waiter);
+                    if (set.size === 0) potWaitersByVideoId.delete(videoId);
+                }
+                resolve(null);
+            }, timeoutMs);
+            const set = potWaitersByVideoId.get(videoId) ?? new Set();
+            set.add(waiter);
+            potWaitersByVideoId.set(videoId, set);
+        });
     }
 
     const xhrOpen = XMLHttpRequest.prototype.open;
@@ -140,28 +173,33 @@ interface PlayerResponse {
         if (!clickCcButton()) fireCcKey();
     }
 
-    async function ensurePot(videoId: string): Promise<string | null> {
-        if (potByVideoId.has(videoId)) return potByVideoId.get(videoId)!;
+    const inFlightEnsurePot = new Map<string, Promise<string | null>>();
 
+    async function generatePotForVideo(videoId: string): Promise<string | null> {
         // Wait briefly for the player UI to be ready
         for (let i = 0; i < 20; i++) {
             if (document.querySelector('.ytp-subtitles-button')) break;
             await new Promise((r) => setTimeout(r, 200));
         }
 
-        console.log(TAG, 'pot not yet seen, toggling CC');
+        console.log(TAG, 'pot not yet seen, toggling CC for', videoId);
+        const wait = waitForPot(videoId, 15000);
         toggleCc();
+        const pot = await wait;
+        toggleCc(); // restore previous CC state
+        return pot;
+    }
 
-        for (let i = 0; i < 30; i++) {
-            await new Promise((r) => setTimeout(r, 200));
-            if (potByVideoId.has(videoId)) {
-                toggleCc(); // turn CC back off
-                return potByVideoId.get(videoId)!;
-            }
-        }
-
-        toggleCc();
-        return null;
+    async function ensurePot(videoId: string): Promise<string | null> {
+        const own = potByVideoId.get(videoId);
+        if (own) return own;
+        const existing = inFlightEnsurePot.get(videoId);
+        if (existing) return existing;
+        const p = generatePotForVideo(videoId).finally(() => {
+            inFlightEnsurePot.delete(videoId);
+        });
+        inFlightEnsurePot.set(videoId, p);
+        return p;
     }
 
     // ---------- fetch with pot ----------

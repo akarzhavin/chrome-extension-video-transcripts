@@ -21,6 +21,7 @@ export default defineConfig(({ command, mode }) => {
       build: {
         outDir: 'build',
         emptyOutDir: isBackground,
+        minify: true,
         lib: {
           entry: isBackground
             ? resolve(__dirname, 'src/background/background.ts')
