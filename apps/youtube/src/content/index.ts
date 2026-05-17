@@ -28,9 +28,24 @@ class YouTubeVttApp implements AppInterface {
 
         console.log('[YT-VTT] content script running');
         this.ui.init();
+        this.updateSidebarVisibility();
         this.setupListeners();
         this.startVideoPolling();
         this.detector.start();
+    }
+
+    updateSidebarVisibility(): void {
+        if (window !== window.top) return;
+        const sidebar = document.getElementById('vtt-sidebar');
+        if (!sidebar) return;
+        const onVideoPage = this.detector.getVideoIdFromUrl() !== null;
+        if (onVideoPage) {
+            sidebar.style.display = '';
+            document.body.classList.add('vtt-sidebar-active');
+        } else {
+            sidebar.style.display = 'none';
+            document.body.classList.remove('vtt-sidebar-active');
+        }
     }
 
     startVideoPolling(): void {
@@ -133,7 +148,10 @@ class YouTubeCaptionDetector {
             }
         });
 
-        document.addEventListener('yt-navigate-finish', () => this.checkCurrentVideo());
+        document.addEventListener('yt-navigate-finish', () => {
+            this.checkCurrentVideo();
+            this.app.updateSidebarVisibility();
+        });
 
         let lastVideoId = this.getVideoIdFromUrl();
         setInterval(() => {
@@ -141,6 +159,7 @@ class YouTubeCaptionDetector {
             if (id !== lastVideoId) {
                 lastVideoId = id;
                 this.checkCurrentVideo();
+                this.app.updateSidebarVisibility();
             }
         }, 1000);
 
