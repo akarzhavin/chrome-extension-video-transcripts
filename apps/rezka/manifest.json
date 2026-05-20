@@ -32,8 +32,8 @@
   "externally_connectable": {
     "matches": [
       "http://localhost:5173/*",
-      "https://*.lingogram.app/*",
-      "https://lingogram.app/*"
+      "https://lingogram-app.web.app/*",
+      "https://lingogram-app.firebaseapp.com/*"
     ]
   },
   "content_scripts": [

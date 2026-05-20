@@ -103,16 +103,18 @@ interface ExternalAuthMessage {
     payload?: ExternalAuthPayload;
 }
 
+// Origins allowed to hand off Firebase tokens to this extension. Kept in sync
+// with manifest.externally_connectable.matches — Chrome already filters by
+// that, this is a belt-and-braces check against accidental wildcard matches.
+const ALLOWED_EXTERNAL_ORIGINS: ReadonlySet<string> = new Set([
+    'http://localhost:5173',
+    'https://lingogram-app.web.app',
+    'https://lingogram-app.firebaseapp.com',
+]);
+
 function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean {
     const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : undefined);
-    if (!origin) return false;
-    if (origin === 'http://localhost:5173') return true;
-    try {
-        const host = new URL(origin).hostname;
-        return /(^|\.)lingogram\.(app|com|dev)$/.test(host);
-    } catch {
-        return false;
-    }
+    return !!origin && ALLOWED_EXTERNAL_ORIGINS.has(origin);
 }
 
 chrome.runtime.onMessageExternal.addListener((message: ExternalAuthMessage, sender, sendResponse) => {

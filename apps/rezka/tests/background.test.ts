@@ -123,15 +123,17 @@ describe('onMessageExternal handoff', () => {
         expect(state?.idToken).toBe('t1');
     });
 
-    test('accepts production lingogram.app origin', async () => {
-        const res = await invokeExternal(
-            {
-                type: 'lingogram-extension-auth',
-                payload: { idToken: 't2', refreshToken: 'r2', expiresAt: 1, email: 'p@b', uid: 'uid-2' },
-            },
-            { origin: 'https://app.lingogram.app', url: 'https://app.lingogram.app/extension-auth' },
-        );
-        expect(res).toEqual({ ok: true });
+    test('accepts production Firebase Hosting origins', async () => {
+        for (const origin of ['https://lingogram-app.web.app', 'https://lingogram-app.firebaseapp.com']) {
+            const res = await invokeExternal(
+                {
+                    type: 'lingogram-extension-auth',
+                    payload: { idToken: 't2', refreshToken: 'r2', expiresAt: 1, email: 'p@b', uid: 'uid-2' },
+                },
+                { origin, url: `${origin}/extension-auth` },
+            );
+            expect(res).toEqual({ ok: true });
+        }
     });
 
     test('rejects unauthorized origin', async () => {

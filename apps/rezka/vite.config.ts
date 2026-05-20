@@ -20,7 +20,7 @@ const buildDefines = {
   __IDENTITY_TOOLKIT_URL__: JSON.stringify(isDev ? 'http://localhost:9099/identitytoolkit.googleapis.com' : 'https://identitytoolkit.googleapis.com'),
   __SECURE_TOKEN_URL__: JSON.stringify(isDev ? 'http://localhost:9099/securetoken.googleapis.com' : 'https://securetoken.googleapis.com'),
   __FIRESTORE_URL__: JSON.stringify(isDev ? 'http://localhost:8080' : 'https://firestore.googleapis.com'),
-  __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? (isDev ? 'http://localhost:5173' : 'https://lingogram.app')),
+  __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? (isDev ? 'http://localhost:5173' : 'https://lingogram-app.web.app')),
 };
 
 export default defineConfig(({ command, mode }) => {
@@ -74,6 +74,16 @@ export default defineConfig(({ command, mode }) => {
                 // Strip prod-only placeholders in dev so Chrome can load unpacked.
                 if (isDev) {
                   delete manifest.key;
+                  delete manifest.oauth2;
+                }
+                // Even in prod builds, drop placeholders that haven't been
+                // replaced yet — otherwise Chrome refuses to load the unpacked
+                // build at all (invalid base64 `key`). This lets the prod build
+                // be smoke-tested without first running the GCP OAuth setup.
+                if (typeof manifest.key === 'string' && manifest.key.startsWith('REPLACE_WITH_')) {
+                  delete manifest.key;
+                }
+                if (manifest.oauth2?.client_id?.startsWith('REPLACE_WITH_')) {
                   delete manifest.oauth2;
                 }
                 return JSON.stringify(manifest, null, 2);
