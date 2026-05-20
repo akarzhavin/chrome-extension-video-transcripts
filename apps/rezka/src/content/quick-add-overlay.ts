@@ -74,17 +74,23 @@ function showPill(rect: DOMRect, term: string): void {
         e.stopPropagation();
         pill.disabled = true;
         pill.textContent = '…';
+        console.log('[Lingogram] ADD_WORD →', term);
         try {
-            const res = await sendMessage<{ ok: boolean; error?: string }>({
+            const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string }>({
                 action: 'ADD_WORD',
                 term,
                 sourceUrl: location.href,
             });
+            console.log('[Lingogram] ADD_WORD ←', res);
             if (!res.ok) throw new Error(res.error ?? 'add failed');
             showToast(`Added: ${term}`, true);
         } catch (err) {
-            showToast(`Sign in via the extension icon first.`, false);
-            console.warn('Lingogram add failed:', err);
+            const msg = String(err instanceof Error ? err.message : err);
+            const friendly = /Not signed in/i.test(msg)
+                ? 'Sign in via the Lingogram badge above the subtitle list.'
+                : `Failed: ${msg}`;
+            showToast(friendly, false);
+            console.warn('[Lingogram] add failed:', err);
         } finally {
             removePill();
         }
