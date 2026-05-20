@@ -39,10 +39,39 @@ interface Message {
     [k: string]: unknown;
 }
 
+// Dev convenience: at most one auto-sign-in attempt per service worker life
+// against the seeded emulator user, so the user never sees the password form.
+// Cleared on manual sign-out so a deliberate sign-out sticks.
+const DEV_AUTO_SIGN_IN_EMAIL = 'student@example.com';
+const DEV_AUTO_SIGN_IN_PASSWORD = 'SecurePass123!';
+let devAutoSignInPending: Promise<boolean> | null = null;
+let devAutoSignInDisabled = false;
+
+async function maybeDevAutoSignIn(): Promise<boolean> {
+    if (config.env !== 'dev' || devAutoSignInDisabled) return false;
+    if (devAutoSignInPending) return devAutoSignInPending;
+    devAutoSignInPending = (async () => {
+        try {
+            const state = await signInWithPassword(config, DEV_AUTO_SIGN_IN_EMAIL, DEV_AUTO_SIGN_IN_PASSWORD);
+            await setAuthState(state);
+            console.log('[Lingogram] dev auto-sign-in as', state.email);
+            return true;
+        } catch (err) {
+            console.warn('[Lingogram] dev auto-sign-in failed:', err);
+            return false;
+        }
+    })();
+    return devAutoSignInPending;
+}
+
 async function handleAuth(request: Message): Promise<unknown> {
     switch (request.action) {
         case 'AUTH_STATUS': {
-            const state = await getAuthState();
+            let state = await getAuthState();
+            if (!state) {
+                const signedIn = await maybeDevAutoSignIn();
+                if (signedIn) state = await getAuthState();
+            }
             const inboxCount = await getInboxCount();
             return state
                 ? { signedIn: true, email: state.email, uid: state.uid, inboxCount }
@@ -60,11 +89,17 @@ async function handleAuth(request: Message): Promise<unknown> {
             if (!email || !password) throw new Error('email and password required');
             const state = await signInWithPassword(config, email, password);
             await setAuthState(state);
+            devAutoSignInDisabled = false;
+            devAutoSignInPending = null;
             return { ok: true };
         }
         case 'AUTH_SIGN_OUT': {
             await clearCachedGoogleTokens();
             await clearAuthState();
+            // Don't immediately re-login: a deliberate sign-out should stick
+            // until the user explicitly signs in again (or reloads the extension).
+            devAutoSignInDisabled = true;
+            devAutoSignInPending = null;
             return { ok: true };
         }
         case 'ADD_WORD': {
