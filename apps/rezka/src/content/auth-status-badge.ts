@@ -41,8 +41,9 @@ function panelBase(): HTMLDivElement {
     return el('div', { id: PANEL_ID }, {
         position: 'absolute',
         top: '100%',
-        left: '0',
-        marginTop: '8px',
+        left: '12px',
+        right: '12px',
+        marginTop: '6px',
         zIndex: '2147483647',
         background: 'rgba(25, 25, 25, 0.97)',
         backdropFilter: 'blur(8px)',
@@ -51,7 +52,6 @@ function panelBase(): HTMLDivElement {
         borderRadius: '8px',
         border: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-        minWidth: '220px',
         fontSize: '12px',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         textAlign: 'left',
@@ -198,54 +198,74 @@ async function render(badge: HTMLElement): Promise<void> {
     }
     badge.innerHTML = '';
 
-    const pill = el('button', { type: 'button' }, {
+    const row = el('button', { type: 'button' }, {
         all: 'unset',
         cursor: 'pointer',
-        display: 'inline-flex',
+        display: 'flex',
         alignItems: 'center',
-        gap: '6px',
-        padding: '4px 10px 4px 8px',
-        borderRadius: '999px',
+        gap: '8px',
+        width: '100%',
+        boxSizing: 'border-box',
+        padding: '6px 20px',
         fontSize: '11px',
         fontWeight: '500',
         lineHeight: '1.2',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        color: 'rgba(255, 255, 255, 0.55)',
         background: 'transparent',
-        color: 'rgba(255, 255, 255, 0.75)',
-        whiteSpace: 'nowrap',
-        maxWidth: '180px',
-        transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+        transition: 'background 0.15s, color 0.15s',
     });
+
+    const labelPrefix = el('span', { textContent: 'Lingogram' }, {
+        color: 'rgba(255, 255, 255, 0.35)',
+        fontSize: '10px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        flexShrink: '0',
+    });
+    row.appendChild(labelPrefix);
 
     if (status.signedIn) {
         const dot = el('span', {}, {
             width: '6px', height: '6px', borderRadius: '50%',
             background: '#22c55e',
-            boxShadow: '0 0 6px rgba(34, 197, 94, 0.6)',
+            boxShadow: '0 0 6px rgba(34, 197, 94, 0.5)',
             flexShrink: '0',
         });
         const text = el('span', { textContent: status.email ?? 'Signed in' }, {
-            overflow: 'hidden', textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: '1',
+            minWidth: '0',
         });
-        pill.append(dot, text);
-        pill.title = `Lingogram — ${status.inboxCount ?? 0} words added · click to manage`;
+        row.append(dot, text);
+        row.title = `Signed in as ${status.email} — ${status.inboxCount ?? 0} words added · click to manage`;
     } else {
-        pill.textContent = 'Sign in';
-        pill.title = 'Sign in to save words to Lingogram';
+        const text = el('span', { textContent: 'Sign in to save words' }, {
+            color: 'rgba(255, 255, 255, 0.75)',
+            textDecoration: 'underline',
+            textDecorationColor: 'rgba(255, 255, 255, 0.2)',
+            textUnderlineOffset: '2px',
+            flex: '1',
+            minWidth: '0',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+        });
+        row.append(text);
+        row.title = 'Sign in to save words to Lingogram';
     }
 
-    pill.addEventListener('mouseenter', () => {
-        pill.style.background = 'rgba(255, 255, 255, 0.06)';
-        pill.style.color = '#fff';
-        pill.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+    row.addEventListener('mouseenter', () => {
+        row.style.background = 'rgba(255, 255, 255, 0.04)';
+        row.style.color = 'rgba(255, 255, 255, 0.85)';
     });
-    pill.addEventListener('mouseleave', () => {
-        pill.style.background = 'transparent';
-        pill.style.color = 'rgba(255, 255, 255, 0.75)';
-        pill.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+    row.addEventListener('mouseleave', () => {
+        row.style.background = 'transparent';
+        row.style.color = 'rgba(255, 255, 255, 0.55)';
     });
 
-    pill.addEventListener('click', (e) => {
+    row.addEventListener('click', (e) => {
         e.stopPropagation();
         if (document.getElementById(PANEL_ID)) {
             closePanel();
@@ -258,18 +278,17 @@ async function render(badge: HTMLElement): Promise<void> {
         }
     });
 
-    badge.appendChild(pill);
+    badge.appendChild(row);
 }
 
 function ensureHostStyles(host: HTMLElement): void {
-    // Absolute-positioned on the left of #vtt-header-top so the centred
-    // "Subtitles" title stays centred (mirrors #vtt-settings-btn on the right).
-    host.style.position = 'absolute';
-    host.style.left = '20px';
-    host.style.top = '50%';
-    host.style.transform = 'translateY(-50%)';
-    host.style.display = 'inline-flex';
-    host.style.alignItems = 'center';
+    // Full-width strip below #vtt-header-top, above the settings panel.
+    // Keeps the "Subtitles" title untouched and avoids horizontal contention.
+    host.style.position = 'relative';
+    host.style.display = 'block';
+    host.style.width = '100%';
+    host.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
+    host.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
 }
 
 export function installAuthStatusBadge(): void {
@@ -277,17 +296,18 @@ export function installAuthStatusBadge(): void {
 
     const tryAttach = (): void => {
         if (attached) return;
+        const header = document.getElementById('vtt-header');
         const headerTop = document.getElementById('vtt-header-top');
-        if (!headerTop) return;
+        if (!header || !headerTop) return;
         let badge = document.getElementById(BADGE_ID);
         if (!badge) {
             badge = document.createElement('div');
             badge.id = BADGE_ID;
             ensureHostStyles(badge);
-            // Insert before the settings button so the pill sits to the right of "Subtitles" header text.
-            const settingsBtn = headerTop.querySelector('#vtt-settings-btn');
-            if (settingsBtn) headerTop.insertBefore(badge, settingsBtn);
-            else headerTop.appendChild(badge);
+            // Insert as a thin strip directly below the title row, above the
+            // (collapsible) settings panel. Avoids fighting the centred title
+            // for horizontal space.
+            headerTop.insertAdjacentElement('afterend', badge);
         }
         attached = true;
         render(badge);
