@@ -1,7 +1,7 @@
 <div align="center">
   <img src="apps/rezka/src/assets/icons/icon128.png" width="128" height="128" alt="Logo" />
-  <h1>Learn languages while watching Rezka</h1>
-  <p><b>Interactive transcripts and dual subtitles to help you understand every word while watching Rezka.</b></p>
+  <h1>Learn languages while watching Rezka & YouTube</h1>
+  <p><b>Interactive transcripts, dual subtitles, and one-click word capture into your Lingogram dictionary.</b></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Chrome Web Store](https://img.shields.io/badge/Chrome-Extension-blue.svg)](https://chrome.google.com/webstore)
@@ -14,19 +14,23 @@
 
 ## 🌟 Overview
 
-**Rezka Subtitle Reader** is a specialized Chrome extension tailored for the **Rezka.ag** (and HDRezka) platform. It transforms your movie-watching experience into an active language learning session by intercepting VTT subtitles and presenting them in a clean, interactive, and synchronized sidebar.
+This repo ships **two Chrome extensions** that turn passive watching into active language learning:
 
-No more struggling to catch every word — see the full context, click to jump, and learn naturally while watching your favorite content.
+- **Rezka** — for [rezka.ag](https://rezka.ag) / HDRezka. Intercepts native `.vtt` subtitle tracks.
+- **YouTube** — for [youtube.com](https://youtube.com). Captures auto-generated and uploaded captions.
+
+Both expose the same interactive transcript sidebar, dual-subtitle merging, and a "Sign in on Lingogram" flow that lets you save unknown words to your personal dictionary on [lingogram.app](https://lingogram-app.web.app) without leaving the video.
 
 ---
 
 ## 🚀 How it Works
 
-The extension seamlessly integrates with the Rezka video player:
-1.  **Open any video** on Rezka.ag or HDRezka.
-2.  **Enable Subtitles** in the native player settings (e.g., select English). The extension automatically captures the track.
-3.  **Add a Second Track** by switching the player to another language (e.g., Russian). The extension merges them into **Dual Mode**.
-4.  **Interactive Sidebar**: Use the sidebar to scroll, search, and navigate the video by clicking on sentences.
+1. **Open any video** on a supported site and enable captions in the native player.
+2. The **transcript sidebar** appears with the full text, auto-scrolling to the current phrase.
+3. **Load a second language** in the player to merge tracks into **Dual Mode**.
+4. **Sign in on Lingogram** (one click in the popup → tab opens, you sign in once, the tab closes itself). The extension's service worker holds the auth handoff for future word captures.
+5. **Highlight any word** in the transcript → the quick-add pill writes it to your Firestore inbox.
+6. Visit [/student/vocabulary](https://lingogram-app.web.app/student/vocabulary) on Lingogram → the **Rezka** collection card shows pending words and drains them into your dictionary topic with one click.
 
 ---
 
@@ -44,14 +48,20 @@ Learn by comparing two languages side-by-side. Once you load two different track
 Click any sentence in the transcript to instantly jump to that specific moment in the video. Perfect for repeating difficult phrases or skipping ahead.
 
 ### 🎓 Smart Learning Modes
-*   **Dual Mode**: See both languages at once.
-*   **Guess Mode (Blur)**: Hide the primary language and reveal it word-by-word or on hover to test your listening skills.
+- **Dual Mode** — see both languages at once.
+- **Guess Mode (Blur)** — hide the primary language and reveal it word-by-word or on hover to test your listening skills.
+- Preferences persist across reloads via `chrome.storage`.
+
+### 🔐 Lingogram Account Integration
+- "Sign in on Lingogram" opens the web app's `/extension-auth?ext=<extId>` route in a tab. After auth, the tab forwards the Firebase `idToken` + `refreshToken` to the extension via `chrome.runtime.sendMessage` (gated by `externally_connectable` and a build-time origin allowlist).
+- The service worker uses the token to append words to `inbox/{uid}/words/*` in Firestore, with per-day rate limits enforced by Firestore Security Rules.
+- Words drain into the user's dictionary topic on the Lingogram web app — partial failures stay in the inbox for retry.
 
 ### ⌨️ Productivity Hotkeys
-*   `Shift + D`: Toggle Dual/Single mode.
-*   `Shift + S`: Swap primary and secondary languages.
-*   `Shift + G`: Toggle Guess (Blur) mode.
-*   `Shift + O`: Show/Hide the sidebar overlay.
+- `Shift + D` — toggle Dual / Single mode
+- `Shift + S` — swap primary and secondary languages
+- `Shift + G` — toggle Guess (Blur) mode
+- `Shift + O` — show / hide the sidebar overlay
 
 <img src="apps/rezka/docs/assets/screenshot2.png" width="100%" alt="Interactive Navigation" />
 
@@ -59,42 +69,72 @@ Click any sentence in the transcript to instantly jump to that specific moment i
 
 ## 🛠 Architecture
 
-The project is built with modern technologies focusing on performance and reliability:
+```
+chrome-extension-video-transcripts/
+├── apps/
+│   ├── rezka/              # Rezka.ag / HDRezka extension
+│   └── youtube/            # YouTube extension
+├── packages/
+│   └── shared/             # Code reused by both extensions
+│       ├── src/auth/       # Firebase REST auth, Firestore inbox writer, MV3 SW handoff
+│       ├── src/content/    # In-page auth pill, highlight → quick-add overlay
+│       ├── src/popup/      # "Sign in on Lingogram" popup (html + css + ts)
+│       ├── src/prefs.ts    # chrome.storage-backed preferences
+│       └── vite-limits.mjs # Build-time daily/term/url limit injection
+└── releases/               # Built .zip artifacts (one per extension version)
+```
 
-- **Manifest V3**: Compliant with the latest Chrome security standards.
-- **Vite + TypeScript**: Fast builds and type-safe development.
-- **Rezka-Specific Interceptor**: Smart `.vtt` request interception tailored for Rezka's player patterns.
-- **Vanilla DOM**: Maximum performance without heavy framework overhead.
+- **Manifest V3** — compliant with Chrome's latest security model. No persistent background page; service worker survives restarts.
+- **Vite + TypeScript** — fast builds and type-safe development.
+- **Firebase Auth + Firestore** — auth lives in the Lingogram web app (no Firebase SDK in the service worker); tokens are handed to the extension via `externally_connectable`.
+- **Rezka-specific interceptor** — smart `.vtt` request capture for Rezka's player patterns.
+- **YouTube page-script** — captures `pot` parameters from network calls so VTT URLs can be re-fetched.
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation (developer build)
 
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/akarzhavin/chrome-extension-video-transcripts.git
+   cd chrome-extension-video-transcripts
    ```
 2. **Install dependencies:**
    ```bash
    npm install
    ```
-3. **Build the project:**
+3. **Build the extensions:**
    ```bash
-   npm run build
+   npm run build                  # builds both, emits zips into releases/
+   npm run build --workspace=@video-transcripts/rezka     # one app only
+   npm run build --workspace=@video-transcripts/youtube
+   ```
+   Dev builds (point at local Firebase emulators + `http://localhost:5173`):
+   ```bash
+   npm run build:dev --workspace=@video-transcripts/rezka
    ```
 4. **Load into Chrome:**
    - Open `chrome://extensions/`.
    - Enable **Developer mode**.
    - Click **Load unpacked**.
-   - Select the `build` folder from the project root.
+   - Select `apps/rezka/build` or `apps/youtube/build`.
+
+---
+
+## 🧪 Tests
+
+```bash
+npm test                       # jest, all workspaces
+npm run type-check             # tsc --noEmit across workspaces
+```
 
 ---
 
 ## 📋 Roadmap
-- [ ] Support for YouTube and Netflix
-- [ ] Anki integration for quick card creation
-- [ ] Built-in dictionary on hover
-- [ ] Export transcripts to PDF/Markdown
+- [ ] Netflix support
+- [ ] Anki export from the inbox
+- [ ] Built-in dictionary on hover (delegate to dictionary-service)
+- [ ] Per-video learning stats
 
 ---
 
