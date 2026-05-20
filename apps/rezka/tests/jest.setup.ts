@@ -5,3 +5,4 @@
 (global as any).__IDENTITY_TOOLKIT_URL__ = 'http://localhost:9099/identitytoolkit.googleapis.com';
 (global as any).__SECURE_TOKEN_URL__ = 'http://localhost:9099/securetoken.googleapis.com';
 (global as any).__FIRESTORE_URL__ = 'http://localhost:8080';
+(global as any).__FRONTEND_BASE_URL__ = 'http://localhost:5173';

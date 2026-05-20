@@ -29,6 +29,13 @@
     "client_id": "REPLACE_WITH_GCP_OAUTH_CLIENT_ID.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:5173/*",
+      "https://*.lingogram.app/*",
+      "https://lingogram.app/*"
+    ]
+  },
   "content_scripts": [
     {
       "matches": [

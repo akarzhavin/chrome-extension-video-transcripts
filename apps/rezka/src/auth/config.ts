@@ -5,6 +5,7 @@ export interface AuthConfig {
     identityToolkitUrl: string;
     secureTokenUrl: string;
     firestoreUrl: string;
+    frontendBaseUrl: string;
 }
 
 export const config: AuthConfig = {
@@ -14,6 +15,7 @@ export const config: AuthConfig = {
     identityToolkitUrl: __IDENTITY_TOOLKIT_URL__,
     secureTokenUrl: __SECURE_TOKEN_URL__,
     firestoreUrl: __FIRESTORE_URL__,
+    frontendBaseUrl: __FRONTEND_BASE_URL__,
 };
 
 export const isDev = config.env === 'dev';

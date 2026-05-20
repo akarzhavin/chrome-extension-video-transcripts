@@ -31,7 +31,7 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 
 type Action =
     | 'TIME_UPDATE' | 'SEEK_VIDEO' | 'VTT_LOADED' | 'FETCH_VTT'
-    | 'AUTH_STATUS' | 'AUTH_SIGN_IN' | 'AUTH_SIGN_IN_PASSWORD' | 'AUTH_SIGN_OUT'
+    | 'AUTH_STATUS' | 'AUTH_SIGN_IN' | 'AUTH_SIGN_IN_PASSWORD' | 'AUTH_SIGN_IN_VIA_LINGOGRAM' | 'AUTH_SIGN_OUT'
     | 'ADD_WORD';
 
 interface Message {
@@ -39,39 +39,10 @@ interface Message {
     [k: string]: unknown;
 }
 
-// Dev convenience: at most one auto-sign-in attempt per service worker life
-// against the seeded emulator user, so the user never sees the password form.
-// Cleared on manual sign-out so a deliberate sign-out sticks.
-const DEV_AUTO_SIGN_IN_EMAIL = 'student@example.com';
-const DEV_AUTO_SIGN_IN_PASSWORD = 'SecurePass123!';
-let devAutoSignInPending: Promise<boolean> | null = null;
-let devAutoSignInDisabled = false;
-
-async function maybeDevAutoSignIn(): Promise<boolean> {
-    if (config.env !== 'dev' || devAutoSignInDisabled) return false;
-    if (devAutoSignInPending) return devAutoSignInPending;
-    devAutoSignInPending = (async () => {
-        try {
-            const state = await signInWithPassword(config, DEV_AUTO_SIGN_IN_EMAIL, DEV_AUTO_SIGN_IN_PASSWORD);
-            await setAuthState(state);
-            console.log('[Lingogram] dev auto-sign-in as', state.email);
-            return true;
-        } catch (err) {
-            console.warn('[Lingogram] dev auto-sign-in failed:', err);
-            return false;
-        }
-    })();
-    return devAutoSignInPending;
-}
-
 async function handleAuth(request: Message): Promise<unknown> {
     switch (request.action) {
         case 'AUTH_STATUS': {
-            let state = await getAuthState();
-            if (!state) {
-                const signedIn = await maybeDevAutoSignIn();
-                if (signedIn) state = await getAuthState();
-            }
+            const state = await getAuthState();
             const inboxCount = await getInboxCount();
             return state
                 ? { signedIn: true, email: state.email, uid: state.uid, inboxCount }
@@ -89,17 +60,17 @@ async function handleAuth(request: Message): Promise<unknown> {
             if (!email || !password) throw new Error('email and password required');
             const state = await signInWithPassword(config, email, password);
             await setAuthState(state);
-            devAutoSignInDisabled = false;
-            devAutoSignInPending = null;
+            return { ok: true };
+        }
+        case 'AUTH_SIGN_IN_VIA_LINGOGRAM': {
+            const extId = chrome.runtime.id;
+            const url = `${config.frontendBaseUrl}/extension-auth?ext=${encodeURIComponent(extId)}`;
+            await chrome.tabs.create({ url });
             return { ok: true };
         }
         case 'AUTH_SIGN_OUT': {
             await clearCachedGoogleTokens();
             await clearAuthState();
-            // Don't immediately re-login: a deliberate sign-out should stick
-            // until the user explicitly signs in again (or reloads the extension).
-            devAutoSignInDisabled = true;
-            devAutoSignInPending = null;
             return { ok: true };
         }
         case 'ADD_WORD': {
@@ -116,8 +87,64 @@ async function handleAuth(request: Message): Promise<unknown> {
 }
 
 const AUTH_ACTIONS: ReadonlySet<Action> = new Set([
-    'AUTH_STATUS', 'AUTH_SIGN_IN', 'AUTH_SIGN_IN_PASSWORD', 'AUTH_SIGN_OUT', 'ADD_WORD',
+    'AUTH_STATUS', 'AUTH_SIGN_IN', 'AUTH_SIGN_IN_PASSWORD', 'AUTH_SIGN_IN_VIA_LINGOGRAM', 'AUTH_SIGN_OUT', 'ADD_WORD',
 ]);
+
+interface ExternalAuthPayload {
+    idToken?: unknown;
+    refreshToken?: unknown;
+    expiresAt?: unknown;
+    email?: unknown;
+    uid?: unknown;
+}
+
+interface ExternalAuthMessage {
+    type?: unknown;
+    payload?: ExternalAuthPayload;
+}
+
+function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean {
+    const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : undefined);
+    if (!origin) return false;
+    if (origin === 'http://localhost:5173') return true;
+    try {
+        const host = new URL(origin).hostname;
+        return /(^|\.)lingogram\.(app|com|dev)$/.test(host);
+    } catch {
+        return false;
+    }
+}
+
+chrome.runtime.onMessageExternal.addListener((message: ExternalAuthMessage, sender, sendResponse) => {
+    if (!isAllowedExternalSender(sender)) {
+        sendResponse({ ok: false, error: 'unauthorized origin' });
+        return false;
+    }
+    if (message?.type !== 'lingogram-extension-auth') {
+        sendResponse({ ok: false, error: 'unknown message type' });
+        return false;
+    }
+    const p = message.payload ?? {};
+    const idToken = typeof p.idToken === 'string' ? p.idToken : '';
+    const refreshToken = typeof p.refreshToken === 'string' ? p.refreshToken : '';
+    const expiresAt = typeof p.expiresAt === 'number' ? p.expiresAt : 0;
+    const email = typeof p.email === 'string' ? p.email : '';
+    const uid = typeof p.uid === 'string' ? p.uid : '';
+    if (!idToken || !uid) {
+        sendResponse({ ok: false, error: 'idToken and uid required' });
+        return false;
+    }
+    (async () => {
+        try {
+            await setAuthState({ idToken, refreshToken, expiresAt, email, uid });
+            console.log('[Lingogram] external auth handoff accepted for', email || uid);
+            sendResponse({ ok: true });
+        } catch (err) {
+            sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
+        }
+    })();
+    return true;
+});
 
 // Message Relay for data exchange between frames
 // Also handles VTT download requests and auth/inbox actions

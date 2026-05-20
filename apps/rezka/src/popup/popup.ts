@@ -107,11 +107,28 @@ function renderSignedOut(): void {
 }
 
 function renderGoogleSignIn(): void {
-    const btn = document.createElement('button');
-    btn.className = 'primary';
-    btn.textContent = 'Sign in with Google';
-    btn.addEventListener('click', async () => {
-        btn.disabled = true;
+    const primary = document.createElement('button');
+    primary.className = 'primary';
+    primary.textContent = 'Sign in on lingogram';
+    primary.addEventListener('click', async () => {
+        primary.disabled = true;
+        try {
+            const res = await send<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+            if (!res.ok) throw new Error(res.error ?? 'Failed to open auth tab');
+            window.close();
+        } catch (err) {
+            render({ error: String(err) });
+            return;
+        }
+    });
+    root.appendChild(primary);
+
+    const secondary = document.createElement('button');
+    secondary.className = 'secondary';
+    secondary.style.marginTop = '8px';
+    secondary.textContent = 'Sign in with Google (native)';
+    secondary.addEventListener('click', async () => {
+        secondary.disabled = true;
         try {
             const res = await send<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN' });
             if (!res.ok) throw new Error(res.error ?? 'Sign-in failed');
@@ -121,10 +138,31 @@ function renderGoogleSignIn(): void {
         }
         await refresh();
     });
-    root.appendChild(btn);
+    root.appendChild(secondary);
 }
 
 function renderDevSignIn(): void {
+    const primary = document.createElement('button');
+    primary.className = 'primary';
+    primary.textContent = 'Sign in on lingogram';
+    primary.addEventListener('click', async () => {
+        primary.disabled = true;
+        try {
+            const res = await send<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+            if (!res.ok) throw new Error(res.error ?? 'Failed to open auth tab');
+            window.close();
+        } catch (err) {
+            render({ error: String(err) });
+            return;
+        }
+    });
+    root.appendChild(primary);
+
+    const divider = document.createElement('div');
+    divider.style.cssText = 'margin: 10px 0; font-size: 10px; color: #9ca3af; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;';
+    divider.textContent = 'or dev quick-login';
+    root.appendChild(divider);
+
     const form = document.createElement('div');
     form.className = 'row';
 
@@ -141,8 +179,8 @@ function renderDevSignIn(): void {
     form.appendChild(password);
 
     const btn = document.createElement('button');
-    btn.className = 'primary';
-    btn.textContent = 'Sign in (dev)';
+    btn.className = 'secondary';
+    btn.textContent = 'Sign in with seeded user';
     btn.addEventListener('click', async () => {
         btn.disabled = true;
         try {

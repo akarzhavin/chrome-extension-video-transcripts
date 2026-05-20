@@ -4,3 +4,4 @@ declare const __FIREBASE_API_KEY__: string;
 declare const __IDENTITY_TOOLKIT_URL__: string;
 declare const __SECURE_TOKEN_URL__: string;
 declare const __FIRESTORE_URL__: string;
+declare const __FRONTEND_BASE_URL__: string;

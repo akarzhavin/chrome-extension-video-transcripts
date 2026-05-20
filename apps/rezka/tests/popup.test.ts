@@ -34,8 +34,10 @@ describe('popup', () => {
         expect(root.querySelector('h1')?.textContent).toContain('Lingogram');
         expect(root.querySelector('input[type="email"]')).not.toBeNull();
         expect(root.querySelector('input[type="password"]')).not.toBeNull();
-        const btn = root.querySelector('button.primary');
-        expect(btn?.textContent).toContain('Sign in (dev)');
+        const primary = root.querySelector('button.primary');
+        expect(primary?.textContent).toContain('Sign in on lingogram');
+        const secondary = root.querySelector('button.secondary');
+        expect(secondary?.textContent).toContain('Sign in with seeded user');
     });
 
     test('renders signed-in view with email and count', async () => {

@@ -102,20 +102,54 @@ function ghostButton(text: string): HTMLButtonElement {
     });
 }
 
+function divider(label: string): HTMLDivElement {
+    const wrap = el('div', {}, {
+        display: 'flex', alignItems: 'center', gap: '8px',
+        margin: '12px 0 10px',
+        color: 'rgba(255, 255, 255, 0.3)', fontSize: '10px',
+        textTransform: 'uppercase', letterSpacing: '0.5px',
+    });
+    const lineLeft = el('div', {}, { flex: '1', height: '1px', background: 'rgba(255, 255, 255, 0.08)' });
+    const lineRight = el('div', {}, { flex: '1', height: '1px', background: 'rgba(255, 255, 255, 0.08)' });
+    wrap.append(lineLeft, el('span', { textContent: label }), lineRight);
+    return wrap;
+}
+
 function showSignInPanel(badge: HTMLElement): void {
     closePanel();
     const panel = panelBase();
     const errEl = el('div', {}, { color: '#f87171', fontSize: '11px', marginTop: '6px', display: 'none' });
 
+    // Always-available: open Lingogram in a new tab and let the user sign in
+    // through the regular web UI; the page POSTs tokens back to us via
+    // chrome.runtime.sendMessage (externally_connectable in manifest).
+    const viaLingogram = primaryButton('Sign in on lingogram');
+    viaLingogram.style.padding = '9px 10px';
+    viaLingogram.addEventListener('click', async () => {
+        viaLingogram.disabled = true;
+        errEl.style.display = 'none';
+        try {
+            const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+            if (!res.ok) throw new Error(res.error ?? 'Failed to open auth tab');
+            closePanel();
+        } catch (err) {
+            errEl.textContent = String(err instanceof Error ? err.message : err);
+            errEl.style.display = 'block';
+            viaLingogram.disabled = false;
+        }
+    });
+
+    const title = el('div', { textContent: 'Sign in to Lingogram' }, {
+        fontWeight: '600', marginBottom: '10px', color: '#fff',
+    });
+    panel.append(title, viaLingogram);
+
     if (__EXT_ENV__ === 'dev') {
-        const title = el('div', { textContent: 'Sign in (dev)' }, {
-            fontWeight: '600', marginBottom: '8px', color: '#fff', fontSize: '12px',
-            textTransform: 'uppercase', letterSpacing: '0.5px',
-        });
+        panel.append(divider('or dev quick-login'));
         const email = styledInput({ type: 'email', placeholder: 'email', value: 'student@example.com' });
         const password = styledInput({ type: 'password', placeholder: 'password', value: 'SecurePass123!' });
         password.style.marginBottom = '10px';
-        const submit = primaryButton('Sign in');
+        const submit = ghostButton('Sign in with seeded user');
         submit.addEventListener('click', async () => {
             submit.disabled = true;
             errEl.style.display = 'none';
@@ -134,15 +168,12 @@ function showSignInPanel(badge: HTMLElement): void {
                 submit.disabled = false;
             }
         });
-        panel.append(title, email, password, submit, errEl);
+        panel.append(email, password, submit);
     } else {
-        const title = el('div', { textContent: 'Sign in to Lingogram' }, {
-            fontWeight: '600', marginBottom: '10px', color: '#fff',
-        });
-        const btn = primaryButton('Sign in with Google');
-        btn.style.padding = '9px 10px';
-        btn.addEventListener('click', async () => {
-            btn.disabled = true;
+        panel.append(divider('or'));
+        const googleBtn = ghostButton('Sign in with Google (native)');
+        googleBtn.addEventListener('click', async () => {
+            googleBtn.disabled = true;
             errEl.style.display = 'none';
             try {
                 const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN' });
@@ -152,12 +183,13 @@ function showSignInPanel(badge: HTMLElement): void {
             } catch (err) {
                 errEl.textContent = String(err instanceof Error ? err.message : err);
                 errEl.style.display = 'block';
-                btn.disabled = false;
+                googleBtn.disabled = false;
             }
         });
-        panel.append(title, btn, errEl);
+        panel.append(googleBtn);
     }
 
+    panel.append(errEl);
     badge.appendChild(panel);
 }
 
