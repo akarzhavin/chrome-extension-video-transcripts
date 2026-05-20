@@ -38,7 +38,12 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         sendMessage: jest.fn(),
         lastError: undefined,
     },
-    tabs: { get: jest.fn(), sendMessage: jest.fn(), create: jest.fn().mockResolvedValue({ id: 1 }) },
+    tabs: {
+        get: jest.fn(),
+        sendMessage: jest.fn(),
+        create: jest.fn().mockResolvedValue({ id: 1 }),
+        remove: jest.fn().mockResolvedValue(undefined),
+    },
     storage: makeChromeStorage(),
     identity: {
         getAuthToken: jest.fn(),
@@ -166,5 +171,55 @@ describe('onMessageExternal handoff', () => {
         );
         expect(res.ok).toBe(false);
         expect(res.error).toMatch(/idToken/);
+    });
+
+    test('payload silent=true closes the originating tab after storing tokens', async () => {
+        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
+        tabsRemove.mockClear();
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    idToken: 't-silent',
+                    refreshToken: '',
+                    expiresAt: Date.now() + 60_000,
+                    email: 'a@b.com',
+                    uid: 'uid-silent',
+                    silent: true,
+                },
+            },
+            {
+                origin: 'http://localhost:5173',
+                url: 'http://localhost:5173/extension-auth?ext=foo&silent=1',
+                tab: { id: 42 },
+            },
+        );
+        expect(res).toEqual({ ok: true });
+        expect((await getAuthState())?.uid).toBe('uid-silent');
+        expect(tabsRemove).toHaveBeenCalledWith(42);
+    });
+
+    test('non-silent handoff does not close the originating tab', async () => {
+        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
+        tabsRemove.mockClear();
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    idToken: 't-visible',
+                    refreshToken: 'r-visible',
+                    expiresAt: Date.now() + 60_000,
+                    email: 'a@b.com',
+                    uid: 'uid-visible',
+                },
+            },
+            {
+                origin: 'http://localhost:5173',
+                url: 'http://localhost:5173/extension-auth?ext=foo',
+                tab: { id: 43 },
+            },
+        );
+        expect(res).toEqual({ ok: true });
+        expect(tabsRemove).not.toHaveBeenCalled();
     });
 });
