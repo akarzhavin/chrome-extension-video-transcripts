@@ -70,6 +70,11 @@ export default defineConfig(({ command, mode }) => {
               transform: (content) => {
                 const manifest = JSON.parse(content);
                 manifest.version = process.env.npm_package_version || manifest.version;
+                // Strip prod-only placeholders in dev so Chrome can load unpacked.
+                if (isDev) {
+                  delete manifest.key;
+                  delete manifest.oauth2;
+                }
                 return JSON.stringify(manifest, null, 2);
               }
             },
