@@ -47,7 +47,7 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
 };
 
 import { fetchWithRetry } from '../src/background/background';
-import { getAuthState } from '../src/auth/storage';
+import { buildAllowedExternalOrigins, getAuthState } from '@video-transcripts/shared';
 
 describe('background script', () => {
     beforeEach(() => {
@@ -123,17 +123,20 @@ describe('onMessageExternal handoff', () => {
         expect(state?.idToken).toBe('t1');
     });
 
-    test('accepts production Firebase Hosting origins', async () => {
-        for (const origin of ['https://lingogram-app.web.app', 'https://lingogram-app.firebaseapp.com']) {
-            const res = await invokeExternal(
-                {
-                    type: 'lingogram-extension-auth',
-                    payload: { idToken: 't2', refreshToken: 'r2', expiresAt: 1, email: 'p@b', uid: 'uid-2' },
-                },
-                { origin, url: `${origin}/extension-auth` },
-            );
-            expect(res).toEqual({ ok: true });
-        }
+    test('derives prod allowlist from frontend base URL, including .firebaseapp.com mirror', () => {
+        const web = buildAllowedExternalOrigins('https://lingogram-app.web.app');
+        expect(web.has('https://lingogram-app.web.app')).toBe(true);
+        expect(web.has('https://lingogram-app.firebaseapp.com')).toBe(true);
+
+        const mirror = buildAllowedExternalOrigins('https://lingogram-app.firebaseapp.com');
+        expect(mirror.has('https://lingogram-app.firebaseapp.com')).toBe(true);
+        expect(mirror.has('https://lingogram-app.web.app')).toBe(true);
+
+        const staging = buildAllowedExternalOrigins('https://staging.lingogram.example.com');
+        expect([...staging]).toEqual(['https://staging.lingogram.example.com']);
+
+        const bad = buildAllowedExternalOrigins('not-a-url');
+        expect([...bad]).toEqual([]);
     });
 
     test('rejects unauthorized origin', async () => {

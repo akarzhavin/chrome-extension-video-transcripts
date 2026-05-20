@@ -39,7 +39,7 @@ function showToast(text: string, ok: boolean): void {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
     } as CSSStyleDeclaration);
-    document.body.appendChild(t);
+    (document.fullscreenElement ?? document.body).appendChild(t);
     setTimeout(() => t.remove(), 2500);
 }
 
@@ -96,7 +96,7 @@ function showPill(rect: DOMRect, term: string): void {
         }
     });
 
-    document.body.appendChild(pill);
+    (document.fullscreenElement ?? document.body).appendChild(pill);
 }
 
 function sendMessage<T>(msg: object): Promise<T> {

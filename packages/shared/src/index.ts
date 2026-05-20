@@ -2,4 +2,8 @@ export * from './AppState';
 export * from './SidebarUI';
 export * from './LanguageUtils';
 export * from './parser';
+export * from './prefs';
 export * from './types';
+export * from './auth';
+export * from './content';
+export * from './popup';

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { loadLingogramLimits, limitDefines, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
 
 const commonConfig = {
   resolve: {
@@ -13,6 +14,10 @@ const commonConfig = {
 const env = process.env.EXT_ENV ?? 'prod';
 const isDev = env === 'dev';
 
+const EXT_SOURCE = 'rezka-extension';
+const limits = loadLingogramLimits();
+assertSourceAllowed(limits, EXT_SOURCE);
+
 const buildDefines = {
   __EXT_ENV__: JSON.stringify(env),
   __FIREBASE_PROJECT_ID__: JSON.stringify(isDev ? 'demo-lingogram' : 'project-51896e3c-eb11-40-4279f'),
@@ -21,6 +26,8 @@ const buildDefines = {
   __SECURE_TOKEN_URL__: JSON.stringify(isDev ? 'http://localhost:9099/securetoken.googleapis.com' : 'https://securetoken.googleapis.com'),
   __FIRESTORE_URL__: JSON.stringify(isDev ? 'http://localhost:8080' : 'https://firestore.googleapis.com'),
   __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? (isDev ? 'http://localhost:5173' : 'https://lingogram-app.web.app')),
+  __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
+  ...limitDefines(limits),
 };
 
 export default defineConfig(({ command, mode }) => {
@@ -74,17 +81,12 @@ export default defineConfig(({ command, mode }) => {
                 // Strip prod-only placeholders in dev so Chrome can load unpacked.
                 if (isDev) {
                   delete manifest.key;
-                  delete manifest.oauth2;
                 }
-                // Even in prod builds, drop placeholders that haven't been
-                // replaced yet — otherwise Chrome refuses to load the unpacked
-                // build at all (invalid base64 `key`). This lets the prod build
-                // be smoke-tested without first running the GCP OAuth setup.
+                // Even in prod builds, drop the `key` if it's still the
+                // REPLACE_WITH_ placeholder — otherwise Chrome refuses to load
+                // the unpacked build (invalid base64).
                 if (typeof manifest.key === 'string' && manifest.key.startsWith('REPLACE_WITH_')) {
                   delete manifest.key;
-                }
-                if (manifest.oauth2?.client_id?.startsWith('REPLACE_WITH_')) {
-                  delete manifest.oauth2;
                 }
                 return JSON.stringify(manifest, null, 2);
               }
@@ -100,12 +102,12 @@ export default defineConfig(({ command, mode }) => {
               rename: { stripBase: true }
             },
             {
-              src: 'src/popup/popup.html',
+              src: '../../packages/shared/src/popup/popup.html',
               dest: '.',
               rename: { stripBase: true }
             },
             {
-              src: 'src/popup/popup.css',
+              src: '../../packages/shared/src/popup/popup.css',
               dest: 'src/popup',
               rename: { stripBase: true }
             }

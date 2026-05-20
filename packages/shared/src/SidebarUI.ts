@@ -1,4 +1,5 @@
 import { AppState } from './AppState';
+import { loadPrefs, onPrefsChanged, savePrefs } from './prefs';
 import { SidebarElements, AppInterface, Subtitle } from './types';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -29,7 +30,7 @@ export class SidebarUI {
         const toggleBtn = document.createElement('div');
         toggleBtn.id = 'vtt-toggle-btn';
         toggleBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
-        toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        toggleBtn.addEventListener('click', () => this.toggleCollapsed());
         sidebar.appendChild(toggleBtn);
 
         // Header Container
@@ -97,28 +98,21 @@ export class SidebarUI {
         dualBtn.id = 'vtt-dual-btn';
         dualBtn.title = 'Toggle Dual Mode (Shift+D)';
         dualBtn.textContent = '📖 Dual';
-        dualBtn.addEventListener('click', () => {
-            if (this.state.toggleDualMode()) this.refresh();
-        });
+        dualBtn.addEventListener('click', () => this.toggleDualMode());
         controls.appendChild(dualBtn);
 
         const guessBtn = document.createElement('button');
         guessBtn.id = 'vtt-guess-btn';
         guessBtn.title = 'Toggle Guess Mode (Shift+G)';
         guessBtn.textContent = '🧩 Guess';
-        guessBtn.addEventListener('click', () => {
-            if (this.state.toggleGuessMode()) this.refresh();
-        });
+        guessBtn.addEventListener('click', () => this.toggleGuessMode());
         controls.appendChild(guessBtn);
 
         const overlayBtn = document.createElement('button');
         overlayBtn.id = 'vtt-overlay-btn';
         overlayBtn.title = 'Toggle On-Screen Overlay (Shift+O)';
         overlayBtn.textContent = '📺 Overlay';
-        overlayBtn.addEventListener('click', () => {
-            this.state.overlayEnabled = !this.state.overlayEnabled;
-            this.refresh();
-        });
+        overlayBtn.addEventListener('click', () => this.toggleOverlay());
         controls.appendChild(overlayBtn);
 
         settingsPanel.appendChild(controls);
@@ -155,7 +149,62 @@ export class SidebarUI {
         }
 
         this.setupFullscreenHandling();
+        this.hydrateFromPrefs();
         return true;
+    }
+
+    // Loads persisted prefs into AppState + DOM, then subscribes so cross-tab
+    // changes (or popup-driven changes later) propagate in. Fire-and-forget —
+    // the initial render uses defaults; the prefs swap re-renders if needed.
+    private hydrateFromPrefs(): void {
+        loadPrefs().then((prefs) => {
+            this.state.displayMode = prefs.displayMode;
+            this.state.overlayEnabled = prefs.overlayEnabled;
+            this.elements.sidebar?.classList.toggle('collapsed', prefs.sidebarCollapsed);
+            this.refresh();
+        }).catch(() => {});
+
+        onPrefsChanged((prefs) => {
+            let changed = false;
+            if (this.state.displayMode !== prefs.displayMode) {
+                this.state.displayMode = prefs.displayMode;
+                changed = true;
+            }
+            if (this.state.overlayEnabled !== prefs.overlayEnabled) {
+                this.state.overlayEnabled = prefs.overlayEnabled;
+                changed = true;
+            }
+            const sidebar = this.elements.sidebar;
+            if (sidebar && sidebar.classList.contains('collapsed') !== prefs.sidebarCollapsed) {
+                sidebar.classList.toggle('collapsed', prefs.sidebarCollapsed);
+            }
+            if (changed) this.refresh();
+        });
+    }
+
+    toggleCollapsed(): void {
+        const sidebar = this.elements.sidebar;
+        if (!sidebar) return;
+        sidebar.classList.toggle('collapsed');
+        savePrefs({ sidebarCollapsed: sidebar.classList.contains('collapsed') });
+    }
+
+    toggleDualMode(): void {
+        if (!this.state.toggleDualMode()) return;
+        this.refresh();
+        savePrefs({ displayMode: this.state.displayMode });
+    }
+
+    toggleGuessMode(): void {
+        if (!this.state.toggleGuessMode()) return;
+        this.refresh();
+        savePrefs({ displayMode: this.state.displayMode });
+    }
+
+    toggleOverlay(): void {
+        this.state.overlayEnabled = !this.state.overlayEnabled;
+        this.refresh();
+        savePrefs({ overlayEnabled: this.state.overlayEnabled });
     }
 
     setupFullscreenHandling(): void {

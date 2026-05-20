@@ -42,14 +42,15 @@ const clearAllCachedAuthTokensMock = jest.fn((cb: () => void) => cb());
     },
 };
 
-import { config } from '../src/auth/config';
 import {
-    exchangeGoogleAccessToken,
+    config,
     signInWithPassword,
     refreshIdToken,
-} from '../src/auth/firebaseRest';
-import { addInboxWord } from '../src/auth/firestoreRest';
-import { getAuthState, setAuthState, clearAuthState } from '../src/auth/storage';
+    addInboxWord,
+    getAuthState,
+    setAuthState,
+    clearAuthState,
+} from '@video-transcripts/shared';
 
 function mockJsonResponse(body: unknown, status = 200): any {
     return {
@@ -99,23 +100,6 @@ describe('firebaseRest', () => {
         });
     });
 
-    test('exchangeGoogleAccessToken posts access_token via signInWithIdp', async () => {
-        ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
-            idToken: 'fid', refreshToken: 'fr', expiresIn: '3600',
-            localId: 'guid', email: 'g@example.com',
-        }));
-
-        const state = await exchangeGoogleAccessToken(config, 'google-tok');
-        expect(state.uid).toBe('guid');
-
-        const [url, init] = ((global as any).fetch as jest.Mock).mock.calls[0];
-        expect(url).toContain('/v1/accounts:signInWithIdp');
-        const body = JSON.parse(init.body);
-        expect(body.postBody).toContain('access_token=google-tok');
-        expect(body.postBody).toContain('providerId=google.com');
-        expect(body.returnSecureToken).toBe(true);
-    });
-
     test('refreshIdToken hits secure token endpoint', async () => {
         ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
             id_token: 'new-id', refresh_token: 'new-r', expires_in: '3600',
@@ -148,6 +132,33 @@ describe('storage', () => {
 });
 
 describe('addInboxWord', () => {
+    const SENTINEL_URL = 'http://localhost:8080/v1/projects/demo-lingogram/databases/(default)/documents/inbox/uid-X';
+    const COMMIT_URL = 'http://localhost:8080/v1/projects/demo-lingogram/databases/(default)/documents:commit';
+
+    function mockSentinel(dailyCount: number, dayBucket: number): any {
+        return mockJsonResponse({
+            name: 'projects/demo-lingogram/databases/(default)/documents/inbox/uid-X',
+            fields: {
+                lastAddedAt: { timestampValue: new Date(Date.now() - 60_000).toISOString() },
+                dailyCount: { integerValue: String(dailyCount) },
+                dayBucket: { integerValue: String(dayBucket) },
+            },
+            createTime: '', updateTime: '',
+        }, 200);
+    }
+
+    function mockCommitOk(): any {
+        return mockJsonResponse({
+            writeResults: [{ updateTime: '2026-05-20T17:00:00Z' }, { updateTime: '2026-05-20T17:00:00Z', transformResults: [] }],
+            commitTime: '2026-05-20T17:00:00Z',
+        }, 200);
+    }
+
+    function today(): number {
+        const d = new Date();
+        return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    }
+
     beforeEach(async () => {
         await setAuthState({
             idToken: 'tok', refreshToken: 'ref', expiresAt: Date.now() + 600_000,
@@ -155,47 +166,95 @@ describe('addInboxWord', () => {
         });
     });
 
-    test('POSTs Firestore REST shape with Bearer auth', async () => {
-        ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
-            name: 'projects/demo-lingogram/databases/(default)/documents/inbox/uid-X/words/wid-1',
-            fields: {}, createTime: '', updateTime: '',
-        }, 200));
+    test('first ever add: 404 sentinel → :commit with dailyCount=1 and word', async () => {
+        ((global as any).fetch as jest.Mock)
+            .mockResolvedValueOnce(mockEmptyResponse(404)) // GET sentinel
+            .mockResolvedValueOnce(mockCommitOk());        // POST :commit
 
         const r = await addInboxWord(config, { term: 'ephemeral', sourceUrl: 'https://rezka.ag/x' });
-        expect(r.wordId).toBe('wid-1');
+        expect(r.wordId).toMatch(/^[A-Za-z0-9]{20}$/);
+        expect(r.documentPath).toContain(`/documents/inbox/uid-X/words/${r.wordId}`);
 
-        const [url, init] = ((global as any).fetch as jest.Mock).mock.calls[0];
-        expect(url).toBe('http://localhost:8080/v1/projects/demo-lingogram/databases/(default)/documents/inbox/uid-X/words');
-        expect(init.method).toBe('POST');
-        expect(init.headers['Authorization']).toBe('Bearer tok');
-        const body = JSON.parse(init.body);
-        expect(body.fields.term.stringValue).toBe('ephemeral');
-        expect(body.fields.source.stringValue).toBe('rezka-extension');
-        expect(body.fields.sourceUrl.stringValue).toBe('https://rezka.ag/x');
-        expect(body.fields.processed.booleanValue).toBe(false);
-        expect(typeof body.fields.addedAt.timestampValue).toBe('string');
+        const [getUrl, getInit] = ((global as any).fetch as jest.Mock).mock.calls[0];
+        expect(getUrl).toBe(SENTINEL_URL);
+        expect(getInit.headers['Authorization']).toBe('Bearer tok');
+
+        const [commitUrl, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
+        expect(commitUrl).toBe(COMMIT_URL);
+        expect(commitInit.method).toBe('POST');
+        expect(commitInit.headers['Authorization']).toBe('Bearer tok');
+
+        const body = JSON.parse(commitInit.body);
+        expect(body.writes).toHaveLength(2);
+
+        const wordWrite = body.writes[0];
+        expect(wordWrite.update.name).toContain('/documents/inbox/uid-X/words/');
+        expect(wordWrite.currentDocument).toEqual({ exists: false });
+        expect(wordWrite.update.fields.term.stringValue).toBe('ephemeral');
+        expect(wordWrite.update.fields.source.stringValue).toBe('rezka-extension');
+        expect(wordWrite.update.fields.sourceUrl.stringValue).toBe('https://rezka.ag/x');
+        expect(wordWrite.update.fields.processed.booleanValue).toBe(false);
+        expect(typeof wordWrite.update.fields.addedAt.timestampValue).toBe('string');
+
+        const sentinelWrite = body.writes[1];
+        expect(sentinelWrite.update.name).toBe('projects/demo-lingogram/databases/(default)/documents/inbox/uid-X');
+        expect(sentinelWrite.update.fields.dailyCount.integerValue).toBe('1');
+        expect(sentinelWrite.update.fields.dayBucket.integerValue).toBe(String(today()));
+        expect(sentinelWrite.updateTransforms).toEqual([
+            { fieldPath: 'lastAddedAt', setToServerValue: 'REQUEST_TIME' },
+        ]);
     });
 
-    test('on 401 refreshes token and retries once', async () => {
+    test('same-day sentinel: dailyCount increments', async () => {
         ((global as any).fetch as jest.Mock)
-            .mockResolvedValueOnce(mockEmptyResponse(401))
-            .mockResolvedValueOnce(mockJsonResponse({
+            .mockResolvedValueOnce(mockSentinel(7, today()))
+            .mockResolvedValueOnce(mockCommitOk());
+
+        await addInboxWord(config, { term: 'next', sourceUrl: '' });
+        const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
+        const body = JSON.parse(commitInit.body);
+        expect(body.writes[1].update.fields.dailyCount.integerValue).toBe('8');
+        expect(body.writes[1].update.fields.dayBucket.integerValue).toBe(String(today()));
+    });
+
+    test('different-day sentinel: dailyCount resets to 1', async () => {
+        ((global as any).fetch as jest.Mock)
+            .mockResolvedValueOnce(mockSentinel(420, today() - 1))
+            .mockResolvedValueOnce(mockCommitOk());
+
+        await addInboxWord(config, { term: 'fresh', sourceUrl: '' });
+        const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
+        const body = JSON.parse(commitInit.body);
+        expect(body.writes[1].update.fields.dailyCount.integerValue).toBe('1');
+        expect(body.writes[1].update.fields.dayBucket.integerValue).toBe(String(today()));
+    });
+
+    test('refuses when daily cap reached', async () => {
+        ((global as any).fetch as jest.Mock)
+            .mockResolvedValueOnce(mockSentinel(500, today()));
+
+        await expect(addInboxWord(config, { term: 'over', sourceUrl: '' }))
+            .rejects.toThrow(/Daily limit/);
+        // No :commit call — we refused client-side.
+        expect(((global as any).fetch as jest.Mock).mock.calls.length).toBe(1);
+    });
+
+    test('on 401 from :commit refreshes token and retries once', async () => {
+        ((global as any).fetch as jest.Mock)
+            .mockResolvedValueOnce(mockEmptyResponse(404)) // GET sentinel: not found
+            .mockResolvedValueOnce(mockEmptyResponse(401)) // POST :commit fails
+            .mockResolvedValueOnce(mockJsonResponse({     // refresh
                 id_token: 'tok-2', refresh_token: 'ref-2', expires_in: '3600', user_id: 'uid-X',
             }))
-            .mockResolvedValueOnce(mockJsonResponse({
-                name: 'projects/demo-lingogram/databases/(default)/documents/inbox/uid-X/words/wid-2',
-                fields: {}, createTime: '', updateTime: '',
-            }));
+            .mockResolvedValueOnce(mockCommitOk());        // retried :commit succeeds
 
-        const r = await addInboxWord(config, { term: 'word', sourceUrl: '' });
-        expect(r.wordId).toBe('wid-2');
-        expect(((global as any).fetch as jest.Mock).mock.calls.length).toBe(3);
-        const [, secondInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
-        expect(secondInit.body).toContain('grant_type=refresh_token');
-        const [, retryInit] = ((global as any).fetch as jest.Mock).mock.calls[2];
+        await addInboxWord(config, { term: 'word', sourceUrl: '' });
+        expect(((global as any).fetch as jest.Mock).mock.calls.length).toBe(4);
+        const [, refreshInit] = ((global as any).fetch as jest.Mock).mock.calls[2];
+        expect(refreshInit.body).toContain('grant_type=refresh_token');
+        const [, retryInit] = ((global as any).fetch as jest.Mock).mock.calls[3];
         expect(retryInit.headers['Authorization']).toBe('Bearer tok-2');
-        const got = await getAuthState();
-        expect(got?.idToken).toBe('tok-2');
+        expect((await getAuthState())?.idToken).toBe('tok-2');
     });
 
     test('throws when not signed in', async () => {
@@ -213,15 +272,15 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockJsonResponse({
                 id_token: 'new', refresh_token: 'r-new', expires_in: '3600', user_id: 'uid-X',
             }))
-            .mockResolvedValueOnce(mockJsonResponse({
-                name: 'projects/demo-lingogram/databases/(default)/documents/inbox/uid-X/words/wid-3',
-                fields: {}, createTime: '', updateTime: '',
-            }));
+            .mockResolvedValueOnce(mockEmptyResponse(404)) // GET sentinel
+            .mockResolvedValueOnce(mockCommitOk());        // POST :commit
 
         await addInboxWord(config, { term: 'soon', sourceUrl: '' });
-        const [firstUrl] = ((global as any).fetch as jest.Mock).mock.calls[0];
-        expect(firstUrl).toContain('/v1/token');
-        const [, secondInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
-        expect(secondInit.headers['Authorization']).toBe('Bearer new');
+        const [refreshUrl] = ((global as any).fetch as jest.Mock).mock.calls[0];
+        expect(refreshUrl).toContain('/v1/token');
+        const [, getSentinelInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
+        expect(getSentinelInit.headers['Authorization']).toBe('Bearer new');
+        const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[2];
+        expect(commitInit.headers['Authorization']).toBe('Bearer new');
     });
 });

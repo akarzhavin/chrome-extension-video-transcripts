@@ -13,7 +13,7 @@
     "default_title": "Lingogram",
     "default_popup": "popup.html"
   },
-  "permissions": ["identity", "storage"],
+  "permissions": ["storage"],
   "host_permissions": [
     "*://*.rezka.ag/*",
     "*://*.hdrezka.ag/*",
@@ -25,10 +25,6 @@
     "http://localhost:9099/*",
     "http://localhost:8080/*"
   ],
-  "oauth2": {
-    "client_id": "REPLACE_WITH_GCP_OAUTH_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
-  },
   "externally_connectable": {
     "matches": [
       "http://localhost:5173/*",

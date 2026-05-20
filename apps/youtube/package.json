@@ -1,9 +1,10 @@
 {
   "name": "@video-transcripts/youtube",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build": "vite build --mode background && vite build --mode content && vite build --mode page-script && npm run zip",
+    "build": "vite build --mode background && vite build --mode content && vite build --mode page-script && vite build --mode popup && npm run zip",
+    "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode page-script && EXT_ENV=dev vite build --mode popup",
     "zip": "mkdir -p ../../releases && cd build && zip -r ../../../releases/youtube-v$npm_package_version.zip .",
     "dev": "vite",
     "type-check": "tsc --noEmit"

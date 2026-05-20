@@ -3,18 +3,32 @@
   "name": "Learn languages while watching YouTube",
   "version": "0.0.0",
   "description": "Interactive transcripts and dual subtitles to help you understand every word on YouTube.",
+  "key": "REPLACE_WITH_BASE64_DER_PUBLIC_KEY",
   "icons": {
     "16": "src/assets/icons/icon16.png",
     "48": "src/assets/icons/icon48.png",
     "128": "src/assets/icons/icon128.png"
   },
   "action": {
-    "default_title": "Transcript Sidebar"
+    "default_title": "Lingogram",
+    "default_popup": "popup.html"
   },
-  "permissions": [],
+  "permissions": ["storage"],
   "host_permissions": [
-    "*://*.youtube.com/*"
+    "*://*.youtube.com/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "http://localhost:9099/*",
+    "http://localhost:8080/*"
   ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:5173/*",
+      "https://lingogram-app.web.app/*",
+      "https://lingogram-app.firebaseapp.com/*"
+    ]
+  },
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],

@@ -35,24 +35,6 @@ async function postJson<T>(url: string, body: object | string, contentType = 'ap
     return res.json() as Promise<T>;
 }
 
-export async function exchangeGoogleAccessToken(cfg: AuthConfig, googleAccessToken: string): Promise<AuthState> {
-    const url = `${cfg.identityToolkitUrl}/v1/accounts:signInWithIdp?key=${encodeURIComponent(cfg.apiKey)}`;
-    const body = {
-        postBody: `access_token=${encodeURIComponent(googleAccessToken)}&providerId=google.com`,
-        requestUri: 'http://localhost',
-        returnSecureToken: true,
-        returnIdpCredential: true,
-    };
-    const r = await postJson<SignInResponse>(url, body);
-    return {
-        idToken: r.idToken,
-        refreshToken: r.refreshToken,
-        expiresAt: expiresAtFromSeconds(r.expiresIn),
-        email: r.email,
-        uid: r.localId,
-    };
-}
-
 export async function signInWithPassword(cfg: AuthConfig, email: string, password: string): Promise<AuthState> {
     const url = `${cfg.identityToolkitUrl}/v1/accounts:signInWithPassword?key=${encodeURIComponent(cfg.apiKey)}`;
     const body = { email, password, returnSecureToken: true };

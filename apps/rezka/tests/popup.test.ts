@@ -22,7 +22,7 @@ function nextTick(): Promise<void> {
 }
 
 describe('popup', () => {
-    test('renders dev sign-in form when not signed in', async () => {
+    test('renders sign-in button when not signed in (dev)', async () => {
         sendMessageMock.mockImplementationOnce((_msg, cb) => {
             cb({ signedIn: false, inboxCount: 0 });
         });
@@ -32,12 +32,12 @@ describe('popup', () => {
 
         const root = document.getElementById('root')!;
         expect(root.querySelector('h1')?.textContent).toContain('Lingogram');
-        expect(root.querySelector('input[type="email"]')).not.toBeNull();
-        expect(root.querySelector('input[type="password"]')).not.toBeNull();
+        expect(root.querySelector('input[type="email"]')).toBeNull();
+        expect(root.querySelector('input[type="password"]')).toBeNull();
         const primary = root.querySelector('button.primary');
         expect(primary?.textContent).toContain('Sign in on lingogram');
-        const secondary = root.querySelector('button.secondary');
-        expect(secondary?.textContent).toContain('Sign in with seeded user');
+        // Dev hides the native-Google fallback (which requires a stable extension ID).
+        expect(root.querySelector('button.secondary')).toBeNull();
     });
 
     test('renders signed-in view with email and count', async () => {

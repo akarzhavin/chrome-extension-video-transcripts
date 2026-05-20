@@ -1,6 +1,12 @@
-import { AppState, SidebarUI, parseVTT, LanguageUtils, AppInterface } from '@video-transcripts/shared';
-import { installQuickAddOverlay } from './quick-add-overlay';
-import { installAuthStatusBadge } from './auth-status-badge';
+import {
+    AppState,
+    SidebarUI,
+    parseVTT,
+    LanguageUtils,
+    AppInterface,
+    installAuthStatusBadge,
+    installQuickAddOverlay,
+} from '@video-transcripts/shared';
 
 class VttApp implements AppInterface {
     state: AppState;
@@ -56,16 +62,9 @@ class VttApp implements AppInterface {
             if (e.shiftKey && e.code === 'KeyS') {
                 if (this.state.swapTracks()) this.ui.refresh();
             }
-            if (e.shiftKey && e.code === 'KeyD') {
-                if (this.state.toggleDualMode()) this.ui.refresh();
-            }
-            if (e.shiftKey && e.code === 'KeyO') {
-                this.state.overlayEnabled = !this.state.overlayEnabled;
-                this.ui.refresh();
-            }
-            if (e.shiftKey && e.code === 'KeyG') {
-                if (this.state.toggleGuessMode()) this.ui.refresh();
-            }
+            if (e.shiftKey && e.code === 'KeyD') this.ui.toggleDualMode();
+            if (e.shiftKey && e.code === 'KeyO') this.ui.toggleOverlay();
+            if (e.shiftKey && e.code === 'KeyG') this.ui.toggleGuessMode();
         });
     }
 

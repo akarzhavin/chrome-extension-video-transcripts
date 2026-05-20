@@ -229,7 +229,7 @@ interface PlayerResponse {
     async function fetchVtt(reqKey: string, baseUrl: string, videoId: string, tlang?: string): Promise<void> {
         const pot = await ensurePot(videoId);
         if (!pot) {
-            console.warn(TAG, 'no pot for', videoId);
+            // console.warn(TAG, 'no pot for', videoId);
             window.postMessage({ type: 'YT_VTT_RESULT', url: reqKey, text: '', error: 'no_pot' }, '*');
             return;
         }

@@ -1,4 +1,10 @@
-import { AppState, SidebarUI, AppInterface } from '@video-transcripts/shared';
+import {
+    AppState,
+    SidebarUI,
+    AppInterface,
+    installAuthStatusBadge,
+    installQuickAddOverlay,
+} from '@video-transcripts/shared';
 import { parseJson3 } from './json3';
 
 interface CaptionTrack {
@@ -79,16 +85,9 @@ class YouTubeVttApp implements AppInterface {
             if (e.shiftKey && e.code === 'KeyS') {
                 if (this.state.swapTracks()) this.ui.refresh();
             }
-            if (e.shiftKey && e.code === 'KeyD') {
-                if (this.state.toggleDualMode()) this.ui.refresh();
-            }
-            if (e.shiftKey && e.code === 'KeyO') {
-                this.state.overlayEnabled = !this.state.overlayEnabled;
-                this.ui.refresh();
-            }
-            if (e.shiftKey && e.code === 'KeyG') {
-                if (this.state.toggleGuessMode()) this.ui.refresh();
-            }
+            if (e.shiftKey && e.code === 'KeyD') this.ui.toggleDualMode();
+            if (e.shiftKey && e.code === 'KeyO') this.ui.toggleOverlay();
+            if (e.shiftKey && e.code === 'KeyG') this.ui.toggleGuessMode();
         });
     }
 
@@ -300,6 +299,8 @@ function bootstrap(): void {
     injectLayoutOverrides();
     new YouTubeVttApp();
     watchSidebarState();
+    installQuickAddOverlay();
+    if (window === window.top) installAuthStatusBadge();
 }
 
 bootstrap();

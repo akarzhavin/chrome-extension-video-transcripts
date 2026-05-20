@@ -6,6 +6,7 @@ export interface AuthConfig {
     secureTokenUrl: string;
     firestoreUrl: string;
     frontendBaseUrl: string;
+    source: string;
 }
 
 export const config: AuthConfig = {
@@ -16,6 +17,7 @@ export const config: AuthConfig = {
     secureTokenUrl: __SECURE_TOKEN_URL__,
     firestoreUrl: __FIRESTORE_URL__,
     frontendBaseUrl: __FRONTEND_BASE_URL__,
+    source: __EXT_SOURCE__,
 };
 
 export const isDev = config.env === 'dev';

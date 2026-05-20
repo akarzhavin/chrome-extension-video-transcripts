@@ -1,5 +1,3 @@
-declare const __EXT_ENV__: 'dev' | 'prod';
-
 const BADGE_ID = 'lingogram-auth-badge';
 const PANEL_ID = 'lingogram-auth-panel';
 
@@ -58,21 +56,6 @@ function panelBase(): HTMLDivElement {
     });
 }
 
-function styledInput(props: Partial<HTMLInputElement>): HTMLInputElement {
-    return el('input', props, {
-        width: '100%',
-        boxSizing: 'border-box',
-        padding: '7px 9px',
-        marginBottom: '6px',
-        background: 'rgba(255, 255, 255, 0.06)',
-        color: '#e0e0e0',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        borderRadius: '5px',
-        fontSize: '12px',
-        outline: 'none',
-    });
-}
-
 function primaryButton(text: string): HTMLButtonElement {
     return el('button', { textContent: text }, {
         width: '100%',
@@ -102,19 +85,6 @@ function ghostButton(text: string): HTMLButtonElement {
     });
 }
 
-function divider(label: string): HTMLDivElement {
-    const wrap = el('div', {}, {
-        display: 'flex', alignItems: 'center', gap: '8px',
-        margin: '12px 0 10px',
-        color: 'rgba(255, 255, 255, 0.3)', fontSize: '10px',
-        textTransform: 'uppercase', letterSpacing: '0.5px',
-    });
-    const lineLeft = el('div', {}, { flex: '1', height: '1px', background: 'rgba(255, 255, 255, 0.08)' });
-    const lineRight = el('div', {}, { flex: '1', height: '1px', background: 'rgba(255, 255, 255, 0.08)' });
-    wrap.append(lineLeft, el('span', { textContent: label }), lineRight);
-    return wrap;
-}
-
 function showSignInPanel(badge: HTMLElement): void {
     closePanel();
     const panel = panelBase();
@@ -142,54 +112,7 @@ function showSignInPanel(badge: HTMLElement): void {
     const title = el('div', { textContent: 'Sign in to Lingogram' }, {
         fontWeight: '600', marginBottom: '10px', color: '#fff',
     });
-    panel.append(title, viaLingogram);
-
-    if (__EXT_ENV__ === 'dev') {
-        panel.append(divider('or dev quick-login'));
-        const email = styledInput({ type: 'email', placeholder: 'email', value: 'student@example.com' });
-        const password = styledInput({ type: 'password', placeholder: 'password', value: 'SecurePass123!' });
-        password.style.marginBottom = '10px';
-        const submit = ghostButton('Sign in with seeded user');
-        submit.addEventListener('click', async () => {
-            submit.disabled = true;
-            errEl.style.display = 'none';
-            try {
-                const res = await sendMessage<{ ok: boolean; error?: string }>({
-                    action: 'AUTH_SIGN_IN_PASSWORD',
-                    email: email.value.trim(),
-                    password: password.value,
-                });
-                if (!res.ok) throw new Error(res.error ?? 'Sign-in failed');
-                closePanel();
-                await render(badge);
-            } catch (err) {
-                errEl.textContent = String(err instanceof Error ? err.message : err);
-                errEl.style.display = 'block';
-                submit.disabled = false;
-            }
-        });
-        panel.append(email, password, submit);
-    } else {
-        panel.append(divider('or'));
-        const googleBtn = ghostButton('Sign in with Google (native)');
-        googleBtn.addEventListener('click', async () => {
-            googleBtn.disabled = true;
-            errEl.style.display = 'none';
-            try {
-                const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN' });
-                if (!res.ok) throw new Error(res.error ?? 'Sign-in failed');
-                closePanel();
-                await render(badge);
-            } catch (err) {
-                errEl.textContent = String(err instanceof Error ? err.message : err);
-                errEl.style.display = 'block';
-                googleBtn.disabled = false;
-            }
-        });
-        panel.append(googleBtn);
-    }
-
-    panel.append(errEl);
+    panel.append(title, viaLingogram, errEl);
     badge.appendChild(panel);
 }
 
