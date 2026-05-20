@@ -1,4 +1,5 @@
 import { AppState, SidebarUI, parseVTT, LanguageUtils, AppInterface } from '@video-transcripts/shared';
+import { installQuickAddOverlay } from './quick-add-overlay';
 
 class VttApp implements AppInterface {
     state: AppState;
@@ -200,8 +201,9 @@ function bootstrap(): void {
         }
     }
 
-    if (!isRezka) return; 
+    if (!isRezka) return;
     new VttApp();
+    installQuickAddOverlay();
 }
 
 bootstrap();

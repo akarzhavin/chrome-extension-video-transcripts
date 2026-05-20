@@ -3,29 +3,40 @@
   "name": "Learn languages while watching Rezka",
   "version": "0.0.0",
   "description": "Interactive transcripts and dual subtitles to help you understand every word.",
+  "key": "REPLACE_WITH_BASE64_DER_PUBLIC_KEY",
   "icons": {
     "16": "src/assets/icons/icon16.png",
     "48": "src/assets/icons/icon48.png",
     "128": "src/assets/icons/icon128.png"
   },
   "action": {
-    "default_title": "Transcript Sidebar"
+    "default_title": "Lingogram",
+    "default_popup": "popup.html"
   },
-  "permissions": [],
+  "permissions": ["identity", "storage"],
   "host_permissions": [
     "*://*.rezka.ag/*",
     "*://*.hdrezka.ag/*",
     "*://*.hdrezka.org/*",
-    "*://*.voidboost.com/*"
+    "*://*.voidboost.com/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "http://localhost:9099/*",
+    "http://localhost:8080/*"
   ],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_GCP_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
+  },
   "content_scripts": [
     {
       "matches": [
-        "*://*.rezka.ag/*", 
-        "*://*.hdrezka.ag/*", 
+        "*://*.rezka.ag/*",
+        "*://*.hdrezka.ag/*",
         "*://*.hdrezka.org/*"
       ],
-      "all_frames": true, 
+      "all_frames": true,
       "js": ["src/content/index.js"],
       "css": ["src/assets/styles.css"]
     }

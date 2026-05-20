@@ -1,23 +1,46 @@
-// Mock chrome API
+function makeChromeStorage(): { local: chrome.storage.LocalStorageArea } {
+    const store: Record<string, unknown> = {};
+    const local: any = {
+        get: jest.fn((keys: string | string[] | Record<string, unknown> | null) => {
+            if (keys === null || keys === undefined) return Promise.resolve({ ...store });
+            const keyArr = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
+            const out: Record<string, unknown> = {};
+            for (const k of keyArr) if (k in store) out[k] = store[k];
+            return Promise.resolve(out);
+        }),
+        set: jest.fn((items: Record<string, unknown>) => {
+            Object.assign(store, items);
+            return Promise.resolve();
+        }),
+        remove: jest.fn((keys: string | string[]) => {
+            const arr = typeof keys === 'string' ? [keys] : keys;
+            for (const k of arr) delete store[k];
+            return Promise.resolve();
+        }),
+        _store: store,
+    };
+    return { local };
+}
+
 (global as any).chrome = {
-    webRequest: {
-        onCompleted: { addListener: jest.fn() }
-    },
+    webRequest: { onCompleted: { addListener: jest.fn() } },
     runtime: {
         onMessage: { addListener: jest.fn() },
-        sendMessage: jest.fn()
+        sendMessage: jest.fn(),
+        lastError: undefined,
     },
-    tabs: {
-        get: jest.fn(),
-        sendMessage: jest.fn()
-    }
+    tabs: { get: jest.fn(), sendMessage: jest.fn() },
+    storage: makeChromeStorage(),
+    identity: {
+        getAuthToken: jest.fn(),
+        clearAllCachedAuthTokens: jest.fn((cb: () => void) => cb()),
+    },
 };
 
 import { fetchWithRetry } from '../src/background/background';
 
 describe('background script', () => {
     beforeEach(() => {
-
         (global as any).fetch = jest.fn();
     });
 
@@ -52,6 +75,4 @@ describe('background script', () => {
         await expect(fetchWithRetry('http://example.com/subs.vtt', 2, 10))
             .rejects.toThrow('HTTP error! status: 404');
     });
-
-
 });

@@ -5,4 +5,5 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  setupFiles: ['<rootDir>/apps/rezka/tests/jest.setup.ts'],
 };

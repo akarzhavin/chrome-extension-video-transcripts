@@ -3,7 +3,8 @@
   "version": "1.0.2",
   "private": true,
   "scripts": {
-    "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor && npm run zip",
+    "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor && vite build --mode popup && npm run zip",
+    "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode interceptor && EXT_ENV=dev vite build --mode popup",
     "zip": "mkdir -p ../../releases && cd build && zip -r ../../../releases/rezka-v$npm_package_version.zip .",
     "dev": "vite",
     "type-check": "tsc --noEmit"

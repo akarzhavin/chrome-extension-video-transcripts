@@ -1,0 +1,94 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    color: #1f2937;
+    background: #fff;
+}
+
+#root {
+    min-width: 260px;
+    padding: 16px;
+}
+
+h1 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+input[type="email"],
+input[type="password"] {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+button.primary {
+    background: #2563eb;
+    color: #fff;
+}
+
+button.primary:hover { background: #1d4ed8; }
+
+button.secondary {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+button.secondary:hover { background: #e5e7eb; }
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.email {
+    font-weight: 500;
+    margin-bottom: 4px;
+    word-break: break-all;
+}
+
+.count {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.error {
+    margin-top: 8px;
+    color: #b91c1c;
+    font-size: 12px;
+}
+
+.env-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
