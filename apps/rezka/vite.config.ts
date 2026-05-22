@@ -88,6 +88,19 @@ export default defineConfig(({ command, mode }) => {
                 if (typeof manifest.key === 'string' && manifest.key.startsWith('REPLACE_WITH_')) {
                   delete manifest.key;
                 }
+                // Localhost host_permissions are only needed for the Firebase
+                // emulator + local frontend in dev. Strip them in prod so the
+                // Web Store warning doesn't list http://localhost URLs.
+                if (!isDev && Array.isArray(manifest.host_permissions)) {
+                  manifest.host_permissions = manifest.host_permissions.filter(
+                    (p) => !p.startsWith('http://localhost'),
+                  );
+                }
+                if (!isDev && manifest.externally_connectable?.matches) {
+                  manifest.externally_connectable.matches = manifest.externally_connectable.matches.filter(
+                    (p) => !p.startsWith('http://localhost'),
+                  );
+                }
                 return JSON.stringify(manifest, null, 2);
               }
             },
