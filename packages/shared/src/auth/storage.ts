@@ -89,15 +89,16 @@ export async function setPendingAuthNonce(nonce: string): Promise<void> {
     });
 }
 
-// Compare-and-clear: always wipes the stored nonce so a leaked value can't
-// be replayed even if it would otherwise match. Returns true only when both
-// the value matches AND the issue time is within NONCE_TTL_MS.
-export async function consumePendingAuthNonce(provided: string): Promise<boolean> {
+// Validate without mutating storage. Returns true iff a non-empty `provided`
+// matches the stored value AND the issue time is within NONCE_TTL_MS.
+// Callers must call clearPendingAuthNonce() themselves once the entire
+// handoff has succeeded — that keeps the nonce available for retries when
+// downstream steps (e.g. signInWithCustomToken) fail transiently.
+export async function validatePendingAuthNonce(provided: string): Promise<boolean> {
     const v = (await chrome.storage.session.get([
         NONCE_KEYS.value,
         NONCE_KEYS.issuedAt,
     ])) as Partial<Record<string, string | number>>;
-    await chrome.storage.session.remove([NONCE_KEYS.value, NONCE_KEYS.issuedAt]);
     const rawValue = v[NONCE_KEYS.value];
     const rawIssuedAt = v[NONCE_KEYS.issuedAt];
     const stored = typeof rawValue === 'string' ? rawValue : '';
@@ -105,4 +106,8 @@ export async function consumePendingAuthNonce(provided: string): Promise<boolean
     if (!stored || !provided) return false;
     if (Date.now() - issuedAt > NONCE_TTL_MS) return false;
     return stored === provided;
+}
+
+export async function clearPendingAuthNonce(): Promise<void> {
+    await chrome.storage.session.remove([NONCE_KEYS.value, NONCE_KEYS.issuedAt]);
 }

@@ -169,7 +169,7 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect(state?.idToken).toBe('fresh-id-token');
         expect(state?.refreshToken).toBe('fresh-refresh-token');
         expect(state?.email).toBe('a@b.com');
-        // Pending nonce is one-shot: consumed regardless of outcome.
+        // Successful handoff consumes the nonce — same URL cannot be replayed.
         const sessionStore = (global as any).chrome.storage.session._store;
         expect(sessionStore['auth.pendingNonce']).toBeUndefined();
     });
@@ -185,10 +185,10 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect(res.ok).toBe(false);
         expect(res.error).toMatch(/invalid or expired auth challenge/);
         expect(await getAuthState()).toBeNull();
-        // Even a missing nonce consumes the pending value — a leaked nonce
-        // can be replayed at most once, never indefinitely.
+        // Failed validation does NOT clear the legitimate value — a real
+        // tab that retries with the right nonce later still works.
         const sessionStore = (global as any).chrome.storage.session._store;
-        expect(sessionStore['auth.pendingNonce']).toBeUndefined();
+        expect(sessionStore['auth.pendingNonce']).toBe(PENDING_NONCE);
     });
 
     test('rejects handoff with mismatched nonce', async () => {
@@ -296,5 +296,42 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect(res.ok).toBe(false);
         expect(res.error).toMatch(/Firebase REST 400/);
         expect(await getAuthState()).toBeNull();
+    });
+
+    test('nonce survives a transient exchange failure so the user can retry without re-opening the popup', async () => {
+        // First attempt: exchange fails (e.g. backend rollout mid-flight,
+        // CREDENTIAL_MISMATCH while infra catches up, network blip).
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            status: 400,
+            statusText: 'Bad Request',
+            text: () => Promise.resolve('CREDENTIAL_MISMATCH'),
+        });
+        const res1 = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: { customToken: 'ct-1', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res1.ok).toBe(false);
+        // Nonce stays in storage — the legitimate URL can still be retried.
+        expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBe(PENDING_NONCE);
+
+        // Second attempt with the same nonce + customToken: exchange succeeds.
+        mockSignInWithCustomToken({
+            idToken: 'fresh-id', refreshToken: 'fresh-r', expiresIn: '3600', localId: 'uid-1',
+        });
+        const res2 = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: { customToken: 'ct-1', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res2).toEqual({ ok: true });
+        expect((await getAuthState())?.idToken).toBe('fresh-id');
+        // Now (post-success) the nonce is finally cleared.
+        expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBeUndefined();
     });
 });

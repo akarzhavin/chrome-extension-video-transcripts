@@ -55,7 +55,8 @@ import {
     setAuthState,
     clearAuthState,
     setPendingAuthNonce,
-    consumePendingAuthNonce,
+    validatePendingAuthNonce,
+    clearPendingAuthNonce,
 } from '@video-transcripts/shared';
 
 function mockJsonResponse(body: unknown, status = 200): any {
@@ -177,36 +178,43 @@ describe('storage', () => {
         expect(await getAuthState()).toBeNull();
     });
 
-    test('consumePendingAuthNonce: matching value within TTL → true, and clears', async () => {
+    test('validatePendingAuthNonce: matching value within TTL → true, does NOT clear', async () => {
         await setPendingAuthNonce('abc-123');
-        expect(await consumePendingAuthNonce('abc-123')).toBe(true);
-        // One-shot: second consume on the same value fails because storage is empty.
-        expect(await consumePendingAuthNonce('abc-123')).toBe(false);
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+        // Validate is idempotent — retries (e.g. after a transient exchange
+        // failure) must see the same value until the caller explicitly clears.
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
     });
 
-    test('consumePendingAuthNonce: mismatch → false, still clears (no replay)', async () => {
+    test('clearPendingAuthNonce: wipes storage so subsequent validate returns false', async () => {
         await setPendingAuthNonce('abc-123');
-        expect(await consumePendingAuthNonce('different')).toBe(false);
-        // The legitimate value can no longer be redeemed — a leaked nonce
-        // buys at most one mismatch attempt, never a later valid replay.
-        expect(await consumePendingAuthNonce('abc-123')).toBe(false);
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+        await clearPendingAuthNonce();
+        expect(await validatePendingAuthNonce('abc-123')).toBe(false);
     });
 
-    test('consumePendingAuthNonce: empty provided value → false even with a stored nonce', async () => {
+    test('validatePendingAuthNonce: mismatch → false, does NOT clear the legitimate value', async () => {
         await setPendingAuthNonce('abc-123');
-        expect(await consumePendingAuthNonce('')).toBe(false);
+        expect(await validatePendingAuthNonce('different')).toBe(false);
+        // Real value still redeemable — mismatched attempts don't destroy state.
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
     });
 
-    test('consumePendingAuthNonce: no pending nonce → false', async () => {
-        expect(await consumePendingAuthNonce('anything')).toBe(false);
+    test('validatePendingAuthNonce: empty provided value → false even with a stored nonce', async () => {
+        await setPendingAuthNonce('abc-123');
+        expect(await validatePendingAuthNonce('')).toBe(false);
     });
 
-    test('consumePendingAuthNonce: past TTL (>10 minutes) → false', async () => {
+    test('validatePendingAuthNonce: no pending nonce → false', async () => {
+        expect(await validatePendingAuthNonce('anything')).toBe(false);
+    });
+
+    test('validatePendingAuthNonce: past TTL (>10 minutes) → false', async () => {
         // Seed storage directly so we can backdate the issuedAt timestamp.
         const sessionStore = (chromeStorage.session as any)._store;
         sessionStore['auth.pendingNonce'] = 'abc-123';
         sessionStore['auth.pendingNonceAt'] = Date.now() - 11 * 60 * 1000;
-        expect(await consumePendingAuthNonce('abc-123')).toBe(false);
+        expect(await validatePendingAuthNonce('abc-123')).toBe(false);
     });
 });
 

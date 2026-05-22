@@ -4,11 +4,12 @@ import { addInboxWord } from './firestoreRest';
 import {
     bumpInboxCount,
     clearAuthState,
-    consumePendingAuthNonce,
+    clearPendingAuthNonce,
     getAuthState,
     getInboxCount,
     setAuthState,
     setPendingAuthNonce,
+    validatePendingAuthNonce,
 } from './storage';
 
 export type AuthAction =
@@ -191,10 +192,12 @@ export function installExternalAuthHandoff(): void {
             return false;
         }
         (async () => {
-            // Compare-and-clear the pending nonce first: a mismatch ends the
-            // handoff before we exchange anything. consumePendingAuthNonce
-            // also always clears, so a leaked value buys at most one attempt.
-            const nonceOk = await consumePendingAuthNonce(nonce);
+            // Validate the pending nonce up front but DON'T clear yet — a
+            // transient exchange failure (network blip, CREDENTIAL_MISMATCH
+            // during a backend rollout, etc.) would otherwise burn the nonce
+            // and force the user back through the popup. We clear only after
+            // the entire handoff has succeeded.
+            const nonceOk = await validatePendingAuthNonce(nonce);
             if (!nonceOk) {
                 sendResponse({
                     ok: false,
@@ -217,6 +220,8 @@ export function installExternalAuthHandoff(): void {
                     email,
                     uid: exchanged.uid,
                 });
+                // Success — burn the nonce so the same URL can't be replayed.
+                await clearPendingAuthNonce();
                 clearNeedsReauthBadge();
                 sendResponse({ ok: true });
             } catch (err) {
