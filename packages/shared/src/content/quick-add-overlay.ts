@@ -196,7 +196,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
             window.getSelection()?.removeAllRanges();
         } catch (err) {
             const msg = String(err instanceof Error ? err.message : err);
-            const friendly = /Not signed in/i.test(msg)
+            const friendly = /Not signed in|sign in via/i.test(msg)
                 ? 'Sign in via the Lingogram badge above the subtitle list.'
                 : /reloaded/i.test(msg)
                 ? msg
