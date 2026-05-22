@@ -38,7 +38,12 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         sendMessage: jest.fn(),
         lastError: undefined,
     },
-    tabs: { get: jest.fn(), sendMessage: jest.fn(), create: jest.fn().mockResolvedValue({ id: 1 }) },
+    tabs: {
+        get: jest.fn(),
+        sendMessage: jest.fn(),
+        create: jest.fn().mockResolvedValue({ id: 1 }),
+        remove: jest.fn().mockResolvedValue(undefined),
+    },
     storage: makeChromeStorage(),
     identity: {
         getAuthToken: jest.fn(),
@@ -47,7 +52,7 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
 };
 
 import { fetchWithRetry } from '../src/background/background';
-import { buildAllowedExternalOrigins, getAuthState } from '@video-transcripts/shared';
+import { buildAllowedExternalOrigins, getAuthState, isSilentHandoff } from '@video-transcripts/shared';
 
 describe('background script', () => {
     beforeEach(() => {
@@ -166,5 +171,102 @@ describe('onMessageExternal handoff', () => {
         );
         expect(res.ok).toBe(false);
         expect(res.error).toMatch(/idToken/);
+    });
+
+    test('payload silent=true ALONE does not close the tab — security: a trusted-origin tab we did not open cannot fake a silent handoff', async () => {
+        // If we trusted `payload.silent` alone, a compromised trusted-origin
+        // tab (e.g. an XSS in the SPA) could push attacker tokens AND
+        // auto-close the artifact. Tab auto-close must require the tab
+        // to be in silentReauthTabIds — i.e. opened by silentReauth() itself.
+        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
+        tabsRemove.mockClear();
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    idToken: 't-silent',
+                    refreshToken: '',
+                    expiresAt: Date.now() + 60_000,
+                    email: 'a@b.com',
+                    uid: 'uid-silent',
+                    silent: true,
+                },
+            },
+            {
+                origin: 'http://localhost:5173',
+                url: 'http://localhost:5173/extension-auth?ext=foo&silent=1',
+                tab: { id: 42 },
+            },
+        );
+        // Token still stored — handoff itself is accepted from a trusted
+        // origin; the only thing we refuse is the auto-close shortcut.
+        expect(res).toEqual({ ok: true });
+        expect((await getAuthState())?.uid).toBe('uid-silent');
+        expect(tabsRemove).not.toHaveBeenCalled();
+    });
+
+    describe('isSilentHandoff (nonce + tab-id challenge)', () => {
+        // The silent path (auto-close + resolve pending retry) must require
+        // BOTH that the tab is one we opened AND that the payload echoes the
+        // freshly-generated per-call nonce. Anything else (missing/mismatched
+        // nonce, foreign tab, no pending attempt) downgrades to the regular
+        // handoff path so it can't be abused as a covert token-swap channel.
+        const TABS: ReadonlySet<number> = new Set([42]);
+        const NONCE = 'nonce-abc';
+
+        test('tab match + nonce match → silent path', () => {
+            expect(isSilentHandoff(42, NONCE, TABS, NONCE)).toBe(true);
+        });
+
+        test('tab match + nonce mismatch → NOT silent', () => {
+            expect(isSilentHandoff(42, 'wrong-nonce', TABS, NONCE)).toBe(false);
+        });
+
+        test('tab match + payload nonce empty → NOT silent (defense-in-depth)', () => {
+            expect(isSilentHandoff(42, '', TABS, NONCE)).toBe(false);
+        });
+
+        test('tab match + no pending nonce (SW just restarted) → NOT silent', () => {
+            expect(isSilentHandoff(42, NONCE, TABS, null)).toBe(false);
+        });
+
+        test('foreign tab + valid nonce → NOT silent (rejects compromised SPA in user tab)', () => {
+            expect(isSilentHandoff(99, NONCE, TABS, NONCE)).toBe(false);
+        });
+
+        test('undefined senderTabId → NOT silent', () => {
+            expect(isSilentHandoff(undefined, NONCE, TABS, NONCE)).toBe(false);
+        });
+
+        test('empty pending nonce treated as no challenge → NOT silent', () => {
+            // Belt-and-braces: payloadNonce === '' === expectedNonce should
+            // still not satisfy the check, otherwise a missing-nonce flow
+            // would silently pass when both sides forgot to set it.
+            expect(isSilentHandoff(42, '', TABS, '')).toBe(false);
+        });
+    });
+
+    test('non-silent handoff does not close the originating tab', async () => {
+        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
+        tabsRemove.mockClear();
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    idToken: 't-visible',
+                    refreshToken: 'r-visible',
+                    expiresAt: Date.now() + 60_000,
+                    email: 'a@b.com',
+                    uid: 'uid-visible',
+                },
+            },
+            {
+                origin: 'http://localhost:5173',
+                url: 'http://localhost:5173/extension-auth?ext=foo',
+                tab: { id: 43 },
+            },
+        );
+        expect(res).toEqual({ ok: true });
+        expect(tabsRemove).not.toHaveBeenCalled();
     });
 });

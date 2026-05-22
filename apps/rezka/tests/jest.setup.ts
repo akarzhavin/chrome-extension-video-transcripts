@@ -11,6 +11,8 @@
 (global as any).__LIMIT_MIN_INTERVAL_MS__ = 1000;
 (global as any).__LIMIT_MAX_TERM_BYTES__ = 256;
 (global as any).__LIMIT_MAX_SOURCE_URL_BYTES__ = 2048;
+(global as any).__LIMIT_MAX_CONTEXT_BYTES__ = 2048;
+(global as any).__LIMIT_MAX_TITLE_BYTES__ = 512;
 
 // jsdom doesn't expose TextEncoder/Decoder by default; pull from Node util.
 if (typeof (global as any).TextEncoder === 'undefined') {

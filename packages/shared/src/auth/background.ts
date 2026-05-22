@@ -63,8 +63,30 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
         case 'ADD_WORD': {
             const term = String(request.term ?? '').trim();
             const sourceUrl = String(request.sourceUrl ?? '');
+            const context = typeof request.context === 'string' ? request.context : '';
+            const title = typeof request.title === 'string' ? request.title : '';
             if (!term) throw new Error('term required');
-            const r = await addInboxWord(config, { term, sourceUrl });
+            const input = { term, sourceUrl, context, title };
+            // Wrap only addInboxWord — if it succeeded but bumpInboxCount
+                // later fails (transient 401/5xx), retrying addInboxWord with
+                // a fresh token would write the word twice (wordId is
+                // generated per call). bumpInboxCount stays outside so its
+                // failures propagate cleanly.
+            let r;
+            try {
+                r = await addInboxWord(config, input);
+            } catch (err) {
+                // Post-handoff steady state: refresh token is empty (the web
+                // SSO flow ships ID tokens only), so once the cached token
+                // hits its 1h expiry refreshIdToken('') fails. Re-acquire a
+                // fresh ID token via a hidden /extension-auth?silent=1 tab
+                // and retry once. If the user has fully signed out of
+                // Lingogram, silentReauth() rejects after a timeout and
+                // clears auth state so the badge can prompt them to sign in.
+                if (!(await canSilentReauth())) throw err;
+                await silentReauth();
+                r = await addInboxWord(config, input);
+            }
             const inboxCount = await bumpInboxCount();
             return { ok: true, wordId: r.wordId, inboxCount };
         }
@@ -79,6 +101,13 @@ interface ExternalAuthPayload {
     expiresAt?: unknown;
     email?: unknown;
     uid?: unknown;
+    // Echo of the one-time `nonce` URL param the extension passed to
+    // silentReauth's hidden tab. Required to take the silent path
+    // (auto-close + resolve pending retry) — without it, the handoff
+    // falls back to the regular path even from a tab we opened, so a
+    // hijacked silent tab (e.g. XSS) can't push attacker tokens via
+    // silent=true.
+    nonce?: unknown;
 }
 
 interface ExternalAuthMessage {
@@ -115,6 +144,122 @@ function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean 
     return !!origin && ALLOWED_EXTERNAL_ORIGINS.has(origin);
 }
 
+// Hidden background tab(s) opened by silentReauth() — the listener uses this
+// set to decide whether to close the tab + resolve the pending reauth after
+// the handoff arrives.
+const silentReauthTabIds = new Set<number>();
+// Singleton: multiple ADD_WORDs racing on an expired token must share one
+// reauth attempt (one tab, one round-trip).
+let pendingSilentReauth: Promise<void> | null = null;
+let silentReauthResolvers:
+    | { resolve: () => void; reject: (err: Error) => void }
+    | null = null;
+let silentReauthTimeoutId: ReturnType<typeof setTimeout> | null = null;
+// One-time challenge for the silent path. Generated per silentReauth() call,
+// passed in the hidden tab's URL, must be echoed in payload.nonce. The
+// listener requires this match (in addition to tab-id) before taking the
+// silent auto-close path. Cleared in silentReauth()'s finally so a leaked
+// nonce only buys one window.
+let pendingSilentReauthNonce: string | null = null;
+const SILENT_REAUTH_TIMEOUT_MS = 30_000;
+const REFRESH_LEEWAY_MS = 60_000;
+
+// Pure helper, exported for tests. The silent path (auto-close, resolve
+// pending retry) requires BOTH:
+//   • the handoff came from a tab silentReauth() opened, AND
+//   • the payload echoes the current per-call nonce.
+// Without the nonce, an XSS in a tab we opened would still satisfy tab-id
+// tracking — the nonce closes that gap because the XSS can't read the
+// freshly-generated value out of the URL of the tab it's running in faster
+// than a legitimate page handler. (More realistically, a hijacked SPA in a
+// USER-opened tab can't reach this branch at all because tab-id won't match.)
+export function isSilentHandoff(
+    senderTabId: number | undefined,
+    payloadNonce: string,
+    silentTabs: ReadonlySet<number>,
+    expectedNonce: string | null,
+): boolean {
+    if (senderTabId === undefined) return false;
+    if (!silentTabs.has(senderTabId)) return false;
+    if (expectedNonce === null || payloadNonce === '') return false;
+    return payloadNonce === expectedNonce;
+}
+
+// True iff the cached token can't be refreshed via Google's secure token
+// endpoint (no refresh token shipped, or it's already invalid) AND the token
+// is at/past its expiry. Anything else is a different failure mode — let the
+// original error propagate so we don't silently mask bugs.
+async function canSilentReauth(): Promise<boolean> {
+    const state = await getAuthState();
+    if (!state) return false;
+    if (state.refreshToken) return false;
+    return state.expiresAt <= Date.now() + REFRESH_LEEWAY_MS;
+}
+
+async function silentReauth(): Promise<void> {
+    if (pendingSilentReauth) return pendingSilentReauth;
+
+    pendingSilentReauth = (async () => {
+        // Fresh nonce per attempt — see isSilentHandoff() for the threat
+        // model. crypto.randomUUID() is available in MV3 service workers.
+        pendingSilentReauthNonce = crypto.randomUUID();
+        const url = `${config.frontendBaseUrl}/extension-auth?ext=${encodeURIComponent(chrome.runtime.id)}&silent=1&nonce=${encodeURIComponent(pendingSilentReauthNonce)}`;
+        const tab = await chrome.tabs.create({ url, active: false });
+        const tabId = tab.id;
+        if (tabId === undefined) {
+            pendingSilentReauthNonce = null;
+            throw new Error('silent reauth: tabs.create returned no id');
+        }
+        silentReauthTabIds.add(tabId);
+
+        try {
+            await new Promise<void>((resolve, reject) => {
+                silentReauthResolvers = { resolve, reject };
+                silentReauthTimeoutId = setTimeout(() => {
+                    silentReauthTimeoutId = null;
+                    // Listener may have resolved already; check before
+                    // rejecting so we don't double-settle.
+                    if (silentReauthResolvers) {
+                        const r = silentReauthResolvers;
+                        silentReauthResolvers = null;
+                        r.reject(
+                            new Error(
+                                'silent reauth timed out — sign in via the Lingogram badge',
+                            ),
+                        );
+                    }
+                }, SILENT_REAUTH_TIMEOUT_MS);
+            });
+        } finally {
+            // Invalidate nonce as soon as the attempt settles — a late or
+            // replayed handoff can't take the silent path on a stale value.
+            pendingSilentReauthNonce = null;
+            if (silentReauthTimeoutId !== null) {
+                clearTimeout(silentReauthTimeoutId);
+                silentReauthTimeoutId = null;
+            }
+            silentReauthTabIds.delete(tabId);
+            try {
+                await chrome.tabs.remove(tabId);
+            } catch {
+                // Tab may already be gone (closed by listener or user).
+            }
+        }
+    })();
+
+    try {
+        await pendingSilentReauth;
+    } catch (err) {
+        // Either the user is fully signed out of Lingogram or the page
+        // couldn't reach us. Clearing auth state lets the badge prompt for
+        // a fresh sign-in and stops further token-hopeful Firestore writes.
+        await clearAuthState();
+        throw err;
+    } finally {
+        pendingSilentReauth = null;
+    }
+}
+
 export function installExternalAuthHandoff(): void {
     chrome.runtime.onMessageExternal.addListener((message: ExternalAuthMessage, sender, sendResponse) => {
         if (!isAllowedExternalSender(sender)) {
@@ -135,13 +280,45 @@ export function installExternalAuthHandoff(): void {
             sendResponse({ ok: false, error: 'idToken and uid required' });
             return false;
         }
+        const senderTabId = sender.tab?.id;
+        const payloadNonce = typeof p.nonce === 'string' ? p.nonce : '';
+        // Silent path requires BOTH the tab to be one we opened AND the
+        // payload to echo our per-call nonce — see isSilentHandoff() for
+        // the threat model. Anything else falls through to the regular
+        // (accept-tokens, leave-tab-open) path.
+        const fromSilentTab = isSilentHandoff(
+            senderTabId,
+            payloadNonce,
+            silentReauthTabIds,
+            pendingSilentReauthNonce,
+        );
         (async () => {
             try {
                 await setAuthState({ idToken, refreshToken, expiresAt, email, uid });
                 console.log('[Lingogram] external auth handoff accepted for', email || uid);
                 sendResponse({ ok: true });
+                if (fromSilentTab) {
+                    // Resolve before closing the tab so the awaiting ADD_WORD
+                    // retry can proceed even if tabs.remove takes a moment.
+                    silentReauthResolvers?.resolve();
+                    silentReauthResolvers = null;
+                    if (senderTabId !== undefined) {
+                        silentReauthTabIds.delete(senderTabId);
+                        try {
+                            await chrome.tabs.remove(senderTabId);
+                        } catch {
+                            // Tab already gone.
+                        }
+                    }
+                }
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
+                if (fromSilentTab) {
+                    silentReauthResolvers?.reject(
+                        err instanceof Error ? err : new Error(String(err)),
+                    );
+                    silentReauthResolvers = null;
+                }
             }
         })();
         return true;

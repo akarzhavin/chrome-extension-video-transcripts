@@ -10,3 +10,5 @@ declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_SOURCE_URL_BYTES__: number;
+declare const __LIMIT_MAX_CONTEXT_BYTES__: number;
+declare const __LIMIT_MAX_TITLE_BYTES__: number;

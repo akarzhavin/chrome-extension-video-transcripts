@@ -36,6 +36,9 @@ class VttApp implements AppInterface {
                     console.log("VTT Sidebar: Attached timeupdate to a video element.");
                     
                     video.addEventListener('timeupdate', () => {
+                        // Extension reloaded → stale content scripts lose runtime.id.
+                        // Bail silently so we don't spam the console every tick.
+                        if (!chrome?.runtime?.id) return;
                         try {
                             chrome.runtime.sendMessage({ action: "TIME_UPDATE", time: video.currentTime });
                         } catch (e: any) {
@@ -80,10 +83,12 @@ class VttApp implements AppInterface {
     }
 
     seekVideo(time: number): void {
-        try {
-            chrome.runtime.sendMessage({ action: "SEEK_VIDEO", time });
-        } catch (e: any) {
-            if (!e.message.includes("Extension context invalidated")) console.error(e);
+        if (chrome?.runtime?.id) {
+            try {
+                chrome.runtime.sendMessage({ action: "SEEK_VIDEO", time });
+            } catch (e: any) {
+                if (!e.message.includes("Extension context invalidated")) console.error(e);
+            }
         }
         this.seekVideoLocal(time);
     }

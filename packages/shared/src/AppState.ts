@@ -78,11 +78,12 @@ export class AppState {
     }
 
     toggleDualMode(): boolean {
-        if (this.hasMultipleTracks()) {
-            this.displayMode = this.displayMode === 'single' ? 'dual' : 'single';
-            return true;
-        }
-        return false;
+        if (!this.hasMultipleTracks()) return false;
+        // Always land on `dual` unless we're already there — otherwise clicking
+        // Dual from `guess` would silently fall through to `single`, leaving
+        // the user wondering where the secondary translation went.
+        this.displayMode = this.displayMode === 'dual' ? 'single' : 'dual';
+        return true;
     }
 
     toggleGuessMode(): boolean {

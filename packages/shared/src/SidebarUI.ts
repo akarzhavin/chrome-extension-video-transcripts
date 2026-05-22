@@ -8,6 +8,12 @@ const NEARBY_SUBTITLE_THRESHOLD = 20;
 
 type ScrollMode = 'smooth' | 'instant';
 
+function hasSelectionInside(el: Element): boolean {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return false;
+    return el.contains(sel.getRangeAt(0).commonAncestorContainer);
+}
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
@@ -292,22 +298,46 @@ export class SidebarUI {
     buildMaskedContent(text: string, revealedCount: number): HTMLElement {
         const container = document.createElement('div');
         container.className = 'vtt-main-text';
-        const words = text.split(/\s+/);
+        this.fillMaskedWordsInto(container, text, revealedCount);
+        return container;
+    }
 
+    // Both sidebar and on-screen overlay share this layout so the quick-add
+    // selection extractor can recover the real word from data-word — even when
+    // the visible glyphs are ***.
+    private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
+        const words = text.split(/\s+/);
+        words.forEach((word, i) => {
+            if (i > 0) container.appendChild(document.createTextNode(' '));
+            container.appendChild(this.makeMaskedSpan(word, i < revealedCount));
+        });
+    }
+
+    private makeMaskedSpan(word: string, revealed: boolean): HTMLSpanElement {
+        const span = document.createElement('span');
+        span.dataset.word = word;
+        if (revealed) {
+            span.className = 'vtt-revealed-word';
+            span.textContent = word;
+        } else {
+            span.className = 'vtt-masked-word';
+            span.textContent = '***';
+        }
+        return span;
+    }
+
+    // Non-guess subtitles still wrap each word in a span carrying data-word
+    // so the quick-add selection can snap to whole-word boundaries. Inline
+    // spans without a class read identically to the previous text node.
+    private fillPlainWordsInto(container: HTMLElement, text: string): void {
+        const words = text.split(/\s+/);
         words.forEach((word, i) => {
             if (i > 0) container.appendChild(document.createTextNode(' '));
             const span = document.createElement('span');
-            if (i < revealedCount) {
-                span.className = 'vtt-revealed-word';
-                span.textContent = word;
-            } else {
-                span.className = 'vtt-masked-word';
-                span.textContent = '***';
-            }
+            span.dataset.word = word;
+            span.textContent = word;
             container.appendChild(span);
         });
-
-        return container;
     }
 
     getMaskedText(text: string, revealedCount: number): string {
@@ -323,15 +353,25 @@ export class SidebarUI {
         const mainTrack = this.state.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return;
 
-        // Replace main text
-        const oldMain = item.querySelector('.vtt-main-text');
-        const revealedCount = this.state.getRevealedCount(index);
-        const newMain = this.buildMaskedContent(mainTrack[index].text, revealedCount);
-        if (oldMain) {
-            item.replaceChild(newMain, oldMain);
-        }
+        const main = item.querySelector('.vtt-main-text');
+        if (!main) return;
 
-        // Add translation if fully revealed
+        // Patch spans in place so an active selection inside the item survives
+        // the reveal — replacing the parent would orphan the user's Range.
+        const revealedCount = this.state.getRevealedCount(index);
+        const spans = main.querySelectorAll<HTMLSpanElement>('span[data-word]');
+        spans.forEach((span, i) => {
+            const word = span.dataset.word ?? '';
+            const shouldReveal = i < revealedCount;
+            if (shouldReveal && !span.classList.contains('vtt-revealed-word')) {
+                span.className = 'vtt-revealed-word';
+                span.textContent = word;
+            } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
+                span.className = 'vtt-masked-word';
+                span.textContent = '***';
+            }
+        });
+
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
             if (!item.querySelector('.vtt-sub-text')) {
@@ -363,6 +403,14 @@ export class SidebarUI {
         const item = document.createElement('div');
         item.className = 'vtt-item';
         item.dataset.index = index.toString();
+        // Rapid replay-clicks would otherwise hit the browser's
+        // double-click-selects-word / triple-click-selects-line behavior,
+        // and the resulting selection then blocks our click→seek handler.
+        // Drag-select still fires with detail === 1, so this only kills the
+        // multi-click auto-selection.
+        item.addEventListener('mousedown', (e) => {
+            if (e.detail > 1) e.preventDefault();
+        });
         return item;
     }
 
@@ -377,6 +425,9 @@ export class SidebarUI {
         }
 
         item.addEventListener('click', () => {
+            // Drag-selecting inside the item fires this click; skip reveal/seek
+            // so the quick-add pill (from selection) stays usable.
+            if (hasSelectionInside(item)) return;
             this.state.revealNextWord(index);
             this.updateGuessItem(index);
             this.app.seekVideo(sub.startTime);
@@ -389,7 +440,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        mainText.textContent = sub.text;
+        this.fillPlainWordsInto(mainText, sub.text);
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
@@ -397,7 +448,10 @@ export class SidebarUI {
             if (subText) item.appendChild(subText);
         }
 
-        item.addEventListener('click', () => this.app.seekVideo(sub.startTime));
+        item.addEventListener('click', () => {
+            if (hasSelectionInside(item)) return;
+            this.app.seekVideo(sub.startTime);
+        });
         return item;
     }
 
@@ -437,6 +491,10 @@ export class SidebarUI {
             return;
         }
 
+        // Preserve an in-progress selection inside the overlay. timeupdate
+        // ticks every ~250ms; rebuilding would destroy the user's Range.
+        if (existing && hasSelectionInside(existing)) return;
+
         const desiredParent = this.app.getOverlayParent?.() ?? document.querySelector('video')?.parentElement ?? null;
         if (existing && desiredParent && existing.parentElement !== desiredParent) {
             existing.remove();
@@ -469,9 +527,12 @@ export class SidebarUI {
     private buildOverlayMain(sub: Subtitle, index: number): HTMLDivElement {
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
-        mainDiv.textContent = this.state.displayMode === 'guess'
-            ? this.getMaskedText(sub.text, this.state.getRevealedCount(index))
-            : sub.text;
+        mainDiv.dataset.index = String(index);
+        if (this.state.displayMode === 'guess') {
+            this.fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index));
+        } else {
+            this.fillPlainWordsInto(mainDiv, sub.text);
+        }
         return mainDiv;
     }
 
