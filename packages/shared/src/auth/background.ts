@@ -1,5 +1,5 @@
 import { config } from './config';
-import { signInWithPassword } from './firebaseRest';
+import { exchangeCustomToken } from './firebaseRest';
 import { addInboxWord } from './firestoreRest';
 import {
     bumpInboxCount,
@@ -11,14 +11,12 @@ import {
 
 export type AuthAction =
     | 'AUTH_STATUS'
-    | 'AUTH_SIGN_IN_PASSWORD'
     | 'AUTH_SIGN_IN_VIA_LINGOGRAM'
     | 'AUTH_SIGN_OUT'
     | 'ADD_WORD';
 
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
-    'AUTH_SIGN_IN_PASSWORD',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
     'AUTH_SIGN_OUT',
     'ADD_WORD',
@@ -33,6 +31,42 @@ export interface AuthMessage {
     [k: string]: unknown;
 }
 
+// Surface "the extension needs to be re-authorized" via the toolbar badge.
+// Refresh-token failures (revoked session, very long inactivity) now require
+// the user to open a normal /extension-auth tab — no silent recovery path.
+function setNeedsReauthBadge(): void {
+    try {
+        chrome.action?.setBadgeText({ text: '!' });
+        chrome.action?.setBadgeBackgroundColor?.({ color: '#dc2626' });
+    } catch {
+        // chrome.action unavailable in some test contexts; silent ignore.
+    }
+}
+
+function clearNeedsReauthBadge(): void {
+    try {
+        chrome.action?.setBadgeText({ text: '' });
+    } catch {
+        // see setNeedsReauthBadge.
+    }
+}
+
+function isAuthFailure(err: unknown): boolean {
+    if (!(err instanceof Error)) return false;
+    const m = err.message;
+    return (
+        m.includes('Not signed in') ||
+        m.includes('Firebase REST 400') ||
+        m.includes('Firebase REST 401') ||
+        m.includes('Firebase REST 403') ||
+        m.includes('Firestore commit 401') ||
+        m.includes('Firestore commit 403') ||
+        m.includes('Firestore sentinel 401') ||
+        m.includes('INVALID_REFRESH_TOKEN') ||
+        m.includes('TOKEN_EXPIRED')
+    );
+}
+
 export async function handleAuthMessage(request: AuthMessage): Promise<unknown> {
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
@@ -42,14 +76,6 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 ? { signedIn: true, email: state.email, uid: state.uid, inboxCount }
                 : { signedIn: false, inboxCount };
         }
-        case 'AUTH_SIGN_IN_PASSWORD': {
-            const email = String(request.email ?? '');
-            const password = String(request.password ?? '');
-            if (!email || !password) throw new Error('email and password required');
-            const state = await signInWithPassword(config, email, password);
-            await setAuthState(state);
-            return { ok: true };
-        }
         case 'AUTH_SIGN_IN_VIA_LINGOGRAM': {
             const extId = chrome.runtime.id;
             const url = `${config.frontendBaseUrl}/extension-auth?ext=${encodeURIComponent(extId)}`;
@@ -58,6 +84,7 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
         }
         case 'AUTH_SIGN_OUT': {
             await clearAuthState();
+            clearNeedsReauthBadge();
             return { ok: true };
         }
         case 'ADD_WORD': {
@@ -67,28 +94,21 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             const title = typeof request.title === 'string' ? request.title : '';
             if (!term) throw new Error('term required');
             const input = { term, sourceUrl, context, title };
-            // Wrap only addInboxWord — if it succeeded but bumpInboxCount
-                // later fails (transient 401/5xx), retrying addInboxWord with
-                // a fresh token would write the word twice (wordId is
-                // generated per call). bumpInboxCount stays outside so its
-                // failures propagate cleanly.
-            let r;
             try {
-                r = await addInboxWord(config, input);
+                const r = await addInboxWord(config, input);
+                const inboxCount = await bumpInboxCount();
+                return { ok: true, wordId: r.wordId, inboxCount };
             } catch (err) {
-                // Post-handoff steady state: refresh token is empty (the web
-                // SSO flow ships ID tokens only), so once the cached token
-                // hits its 1h expiry refreshIdToken('') fails. Re-acquire a
-                // fresh ID token via a hidden /extension-auth?silent=1 tab
-                // and retry once. If the user has fully signed out of
-                // Lingogram, silentReauth() rejects after a timeout and
-                // clears auth state so the badge can prompt them to sign in.
-                if (!(await canSilentReauth())) throw err;
-                await silentReauth();
-                r = await addInboxWord(config, input);
+                // Refresh-token revoked / Firestore rejected the token —
+                // wipe state and prompt the user to re-authorize via a
+                // normal visible tab. No silent recovery: the scoped
+                // session is gone and a fresh handoff is the only path.
+                if (isAuthFailure(err)) {
+                    await clearAuthState();
+                    setNeedsReauthBadge();
+                }
+                throw err;
             }
-            const inboxCount = await bumpInboxCount();
-            return { ok: true, wordId: r.wordId, inboxCount };
         }
         default:
             throw new Error(`unknown action: ${request.action}`);
@@ -96,18 +116,9 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
 }
 
 interface ExternalAuthPayload {
-    idToken?: unknown;
-    refreshToken?: unknown;
-    expiresAt?: unknown;
+    customToken?: unknown;
     email?: unknown;
     uid?: unknown;
-    // Echo of the one-time `nonce` URL param the extension passed to
-    // silentReauth's hidden tab. Required to take the silent path
-    // (auto-close + resolve pending retry) — without it, the handoff
-    // falls back to the regular path even from a tab we opened, so a
-    // hijacked silent tab (e.g. XSS) can't push attacker tokens via
-    // silent=true.
-    nonce?: unknown;
 }
 
 interface ExternalAuthMessage {
@@ -144,122 +155,6 @@ function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean 
     return !!origin && ALLOWED_EXTERNAL_ORIGINS.has(origin);
 }
 
-// Hidden background tab(s) opened by silentReauth() — the listener uses this
-// set to decide whether to close the tab + resolve the pending reauth after
-// the handoff arrives.
-const silentReauthTabIds = new Set<number>();
-// Singleton: multiple ADD_WORDs racing on an expired token must share one
-// reauth attempt (one tab, one round-trip).
-let pendingSilentReauth: Promise<void> | null = null;
-let silentReauthResolvers:
-    | { resolve: () => void; reject: (err: Error) => void }
-    | null = null;
-let silentReauthTimeoutId: ReturnType<typeof setTimeout> | null = null;
-// One-time challenge for the silent path. Generated per silentReauth() call,
-// passed in the hidden tab's URL, must be echoed in payload.nonce. The
-// listener requires this match (in addition to tab-id) before taking the
-// silent auto-close path. Cleared in silentReauth()'s finally so a leaked
-// nonce only buys one window.
-let pendingSilentReauthNonce: string | null = null;
-const SILENT_REAUTH_TIMEOUT_MS = 30_000;
-const REFRESH_LEEWAY_MS = 60_000;
-
-// Pure helper, exported for tests. The silent path (auto-close, resolve
-// pending retry) requires BOTH:
-//   • the handoff came from a tab silentReauth() opened, AND
-//   • the payload echoes the current per-call nonce.
-// Without the nonce, an XSS in a tab we opened would still satisfy tab-id
-// tracking — the nonce closes that gap because the XSS can't read the
-// freshly-generated value out of the URL of the tab it's running in faster
-// than a legitimate page handler. (More realistically, a hijacked SPA in a
-// USER-opened tab can't reach this branch at all because tab-id won't match.)
-export function isSilentHandoff(
-    senderTabId: number | undefined,
-    payloadNonce: string,
-    silentTabs: ReadonlySet<number>,
-    expectedNonce: string | null,
-): boolean {
-    if (senderTabId === undefined) return false;
-    if (!silentTabs.has(senderTabId)) return false;
-    if (expectedNonce === null || payloadNonce === '') return false;
-    return payloadNonce === expectedNonce;
-}
-
-// True iff the cached token can't be refreshed via Google's secure token
-// endpoint (no refresh token shipped, or it's already invalid) AND the token
-// is at/past its expiry. Anything else is a different failure mode — let the
-// original error propagate so we don't silently mask bugs.
-async function canSilentReauth(): Promise<boolean> {
-    const state = await getAuthState();
-    if (!state) return false;
-    if (state.refreshToken) return false;
-    return state.expiresAt <= Date.now() + REFRESH_LEEWAY_MS;
-}
-
-async function silentReauth(): Promise<void> {
-    if (pendingSilentReauth) return pendingSilentReauth;
-
-    pendingSilentReauth = (async () => {
-        // Fresh nonce per attempt — see isSilentHandoff() for the threat
-        // model. crypto.randomUUID() is available in MV3 service workers.
-        pendingSilentReauthNonce = crypto.randomUUID();
-        const url = `${config.frontendBaseUrl}/extension-auth?ext=${encodeURIComponent(chrome.runtime.id)}&silent=1&nonce=${encodeURIComponent(pendingSilentReauthNonce)}`;
-        const tab = await chrome.tabs.create({ url, active: false });
-        const tabId = tab.id;
-        if (tabId === undefined) {
-            pendingSilentReauthNonce = null;
-            throw new Error('silent reauth: tabs.create returned no id');
-        }
-        silentReauthTabIds.add(tabId);
-
-        try {
-            await new Promise<void>((resolve, reject) => {
-                silentReauthResolvers = { resolve, reject };
-                silentReauthTimeoutId = setTimeout(() => {
-                    silentReauthTimeoutId = null;
-                    // Listener may have resolved already; check before
-                    // rejecting so we don't double-settle.
-                    if (silentReauthResolvers) {
-                        const r = silentReauthResolvers;
-                        silentReauthResolvers = null;
-                        r.reject(
-                            new Error(
-                                'silent reauth timed out — sign in via the Lingogram badge',
-                            ),
-                        );
-                    }
-                }, SILENT_REAUTH_TIMEOUT_MS);
-            });
-        } finally {
-            // Invalidate nonce as soon as the attempt settles — a late or
-            // replayed handoff can't take the silent path on a stale value.
-            pendingSilentReauthNonce = null;
-            if (silentReauthTimeoutId !== null) {
-                clearTimeout(silentReauthTimeoutId);
-                silentReauthTimeoutId = null;
-            }
-            silentReauthTabIds.delete(tabId);
-            try {
-                await chrome.tabs.remove(tabId);
-            } catch {
-                // Tab may already be gone (closed by listener or user).
-            }
-        }
-    })();
-
-    try {
-        await pendingSilentReauth;
-    } catch (err) {
-        // Either the user is fully signed out of Lingogram or the page
-        // couldn't reach us. Clearing auth state lets the badge prompt for
-        // a fresh sign-in and stops further token-hopeful Firestore writes.
-        await clearAuthState();
-        throw err;
-    } finally {
-        pendingSilentReauth = null;
-    }
-}
-
 export function installExternalAuthHandoff(): void {
     chrome.runtime.onMessageExternal.addListener((message: ExternalAuthMessage, sender, sendResponse) => {
         if (!isAllowedExternalSender(sender)) {
@@ -271,54 +166,31 @@ export function installExternalAuthHandoff(): void {
             return false;
         }
         const p = message.payload ?? {};
-        const idToken = typeof p.idToken === 'string' ? p.idToken : '';
-        const refreshToken = typeof p.refreshToken === 'string' ? p.refreshToken : '';
-        const expiresAt = typeof p.expiresAt === 'number' ? p.expiresAt : 0;
+        const customToken = typeof p.customToken === 'string' ? p.customToken : '';
         const email = typeof p.email === 'string' ? p.email : '';
         const uid = typeof p.uid === 'string' ? p.uid : '';
-        if (!idToken || !uid) {
-            sendResponse({ ok: false, error: 'idToken and uid required' });
+        if (!customToken || !uid) {
+            sendResponse({ ok: false, error: 'customToken and uid required' });
             return false;
         }
-        const senderTabId = sender.tab?.id;
-        const payloadNonce = typeof p.nonce === 'string' ? p.nonce : '';
-        // Silent path requires BOTH the tab to be one we opened AND the
-        // payload to echo our per-call nonce — see isSilentHandoff() for
-        // the threat model. Anything else falls through to the regular
-        // (accept-tokens, leave-tab-open) path.
-        const fromSilentTab = isSilentHandoff(
-            senderTabId,
-            payloadNonce,
-            silentReauthTabIds,
-            pendingSilentReauthNonce,
-        );
         (async () => {
             try {
-                await setAuthState({ idToken, refreshToken, expiresAt, email, uid });
-                console.log('[Lingogram] external auth handoff accepted for', email || uid);
+                // Exchange the scoped Firebase custom token for our own
+                // id+refresh pair. The `scopes` claim rides along through
+                // refresh, so the extension stays restricted to inbox writes
+                // even after the initial id token expires.
+                const exchanged = await exchangeCustomToken(config, customToken, uid);
+                await setAuthState({
+                    idToken: exchanged.idToken,
+                    refreshToken: exchanged.refreshToken,
+                    expiresAt: exchanged.expiresAt,
+                    email,
+                    uid: exchanged.uid,
+                });
+                clearNeedsReauthBadge();
                 sendResponse({ ok: true });
-                if (fromSilentTab) {
-                    // Resolve before closing the tab so the awaiting ADD_WORD
-                    // retry can proceed even if tabs.remove takes a moment.
-                    silentReauthResolvers?.resolve();
-                    silentReauthResolvers = null;
-                    if (senderTabId !== undefined) {
-                        silentReauthTabIds.delete(senderTabId);
-                        try {
-                            await chrome.tabs.remove(senderTabId);
-                        } catch {
-                            // Tab already gone.
-                        }
-                    }
-                }
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
-                if (fromSilentTab) {
-                    silentReauthResolvers?.reject(
-                        err instanceof Error ? err : new Error(String(err)),
-                    );
-                    silentReauthResolvers = null;
-                }
             }
         })();
         return true;
@@ -341,7 +213,20 @@ export function installAuthMessageHandler(): void {
     });
 }
 
+// One-shot migration: installs that signed in before the scoped-token rollout
+// have `refreshToken === ''` and rely on the now-removed silent reauth path.
+// Wipe their cached state on startup so the next ADD_WORD asks the user to
+// re-authorize through the normal visible tab instead of failing silently.
+export async function migrateLegacyAuthState(): Promise<void> {
+    const state = await getAuthState();
+    if (state && !state.refreshToken) {
+        await clearAuthState();
+        setNeedsReauthBadge();
+    }
+}
+
 export function installAuthBackground(): void {
     installAuthMessageHandler();
     installExternalAuthHandoff();
+    void migrateLegacyAuthState();
 }
