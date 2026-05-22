@@ -1,6 +1,6 @@
-function makeChromeStorage(): { local: chrome.storage.LocalStorageArea } {
+function makeStorageArea(): any {
     const store: Record<string, unknown> = {};
-    const local: any = {
+    return {
         get: jest.fn((keys: string | string[] | Record<string, unknown> | null) => {
             if (keys === null || keys === undefined) return Promise.resolve({ ...store });
             const keyArr = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
@@ -19,7 +19,10 @@ function makeChromeStorage(): { local: chrome.storage.LocalStorageArea } {
         }),
         _store: store,
     };
-    return { local };
+}
+
+function makeChromeStorage(): { local: any; session: any } {
+    return { local: makeStorageArea(), session: makeStorageArea() };
 }
 
 // Capture the onMessageExternal listener so we can invoke it directly in tests.
@@ -123,14 +126,25 @@ function mockSignInWithCustomToken(payload: {
 }
 
 describe('onMessageExternal handoff (custom-token exchange)', () => {
-    beforeEach(() => {
-        const store = ((global as any).chrome.storage.local as any)._store;
-        Object.keys(store).forEach((k) => delete store[k]);
+    // Tests below open the handoff path directly; pre-seed the matching
+    // pending nonce in storage.session so the listener accepts the payload.
+    // The nonce-mismatch / missing branches live in their own tests.
+    const PENDING_NONCE = 'test-nonce-aaa';
+
+    beforeEach(async () => {
+        const localStore = (global as any).chrome.storage.local._store;
+        const sessionStore = (global as any).chrome.storage.session._store;
+        Object.keys(localStore).forEach((k) => delete localStore[k]);
+        Object.keys(sessionStore).forEach((k) => delete sessionStore[k]);
         (global as any).fetch = jest.fn();
         ((global as any).chrome.action.setBadgeText as jest.Mock).mockClear();
+        await (global as any).chrome.storage.session.set({
+            'auth.pendingNonce': PENDING_NONCE,
+            'auth.pendingNonceAt': Date.now(),
+        });
     });
 
-    test('accepts a well-formed customToken from localhost:5173, exchanges, stores tokens', async () => {
+    test('accepts a well-formed customToken with matching nonce, exchanges, stores tokens', async () => {
         mockSignInWithCustomToken({
             idToken: 'fresh-id-token',
             refreshToken: 'fresh-refresh-token',
@@ -144,9 +158,10 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
                     customToken: 'ct-1',
                     email: 'a@b.com',
                     uid: 'uid-1',
+                    nonce: PENDING_NONCE,
                 },
             },
-            { origin: 'http://localhost:5173', url: 'http://localhost:5173/extension-auth?ext=foo' },
+            { origin: 'http://localhost:5173', url: `http://localhost:5173/extension-auth?ext=foo&nonce=${PENDING_NONCE}` },
         );
         expect(res).toEqual({ ok: true });
         const state = await getAuthState();
@@ -154,6 +169,69 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect(state?.idToken).toBe('fresh-id-token');
         expect(state?.refreshToken).toBe('fresh-refresh-token');
         expect(state?.email).toBe('a@b.com');
+        // Pending nonce is one-shot: consumed regardless of outcome.
+        const sessionStore = (global as any).chrome.storage.session._store;
+        expect(sessionStore['auth.pendingNonce']).toBeUndefined();
+    });
+
+    test('rejects handoff with no nonce — an XSS in a trusted-origin tab cannot push tokens', async () => {
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: { customToken: 'ct', email: 'a@b.com', uid: 'uid-1' },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
+        // Even a missing nonce consumes the pending value — a leaked nonce
+        // can be replayed at most once, never indefinitely.
+        const sessionStore = (global as any).chrome.storage.session._store;
+        expect(sessionStore['auth.pendingNonce']).toBeUndefined();
+    });
+
+    test('rejects handoff with mismatched nonce', async () => {
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    customToken: 'ct',
+                    email: 'a@b.com',
+                    uid: 'uid-1',
+                    nonce: 'wrong-nonce',
+                },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
+    });
+
+    test('rejects handoff when the stored nonce is expired (>10 minutes old)', async () => {
+        // Re-seed with a stale timestamp so consumePendingAuthNonce treats
+        // the pending value as expired even though the string matches.
+        const elevenMinutesAgo = Date.now() - 11 * 60 * 1000;
+        await (global as any).chrome.storage.session.set({
+            'auth.pendingNonce': PENDING_NONCE,
+            'auth.pendingNonceAt': elevenMinutesAgo,
+        });
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    customToken: 'ct',
+                    email: 'a@b.com',
+                    uid: 'uid-1',
+                    nonce: PENDING_NONCE,
+                },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
     });
 
     test('derives prod allowlist from frontend base URL, including .firebaseapp.com mirror', () => {
@@ -211,7 +289,7 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         const res = await invokeExternal(
             {
                 type: 'lingogram-extension-auth',
-                payload: { customToken: 'ct-bad', email: 'a@b.com', uid: 'uid-1' },
+                payload: { customToken: 'ct-bad', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
             },
             { origin: 'http://localhost:5173' },
         );

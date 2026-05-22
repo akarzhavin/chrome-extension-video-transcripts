@@ -4,9 +4,11 @@ import { addInboxWord } from './firestoreRest';
 import {
     bumpInboxCount,
     clearAuthState,
+    consumePendingAuthNonce,
     getAuthState,
     getInboxCount,
     setAuthState,
+    setPendingAuthNonce,
 } from './storage';
 
 export type AuthAction =
@@ -78,7 +80,17 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
         }
         case 'AUTH_SIGN_IN_VIA_LINGOGRAM': {
             const extId = chrome.runtime.id;
-            const url = `${config.frontendBaseUrl}/extension-auth?ext=${encodeURIComponent(extId)}`;
+            // Fresh one-shot challenge: SPA reads it from the URL and echoes
+            // it in the handoff payload, so an XSS in a trusted-origin tab
+            // that we did NOT open can't push a token at us (it doesn't know
+            // the value). Stored in chrome.storage.session because the MV3
+            // service worker may recycle before the user finishes signing in.
+            const nonce = crypto.randomUUID();
+            await setPendingAuthNonce(nonce);
+            const url =
+                `${config.frontendBaseUrl}/extension-auth` +
+                `?ext=${encodeURIComponent(extId)}` +
+                `&nonce=${encodeURIComponent(nonce)}`;
             await chrome.tabs.create({ url });
             return { ok: true };
         }
@@ -119,6 +131,10 @@ interface ExternalAuthPayload {
     customToken?: unknown;
     email?: unknown;
     uid?: unknown;
+    // Echo of the one-shot challenge the extension placed in the auth URL
+    // when it opened the tab. Required — handoffs without a matching nonce
+    // are rejected to block XSS-initiated unsolicited token pushes.
+    nonce?: unknown;
 }
 
 interface ExternalAuthMessage {
@@ -169,11 +185,25 @@ export function installExternalAuthHandoff(): void {
         const customToken = typeof p.customToken === 'string' ? p.customToken : '';
         const email = typeof p.email === 'string' ? p.email : '';
         const uid = typeof p.uid === 'string' ? p.uid : '';
+        const nonce = typeof p.nonce === 'string' ? p.nonce : '';
         if (!customToken || !uid) {
             sendResponse({ ok: false, error: 'customToken and uid required' });
             return false;
         }
         (async () => {
+            // Compare-and-clear the pending nonce first: a mismatch ends the
+            // handoff before we exchange anything. consumePendingAuthNonce
+            // also always clears, so a leaked value buys at most one attempt.
+            const nonceOk = await consumePendingAuthNonce(nonce);
+            if (!nonceOk) {
+                sendResponse({
+                    ok: false,
+                    error:
+                        'invalid or expired auth challenge — open the extension popup ' +
+                        'and start the sign-in flow from there',
+                });
+                return;
+            }
             try {
                 // Exchange the scoped Firebase custom token for our own
                 // id+refresh pair. The `scopes` claim rides along through
