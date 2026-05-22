@@ -49,10 +49,22 @@ describe('AppState', () => {
     test('toggleDualMode should switch modes if multiple tracks exist', () => {
         state.addTrack('English', []);
         expect(state.toggleDualMode()).toBe(false); // Only 1 track
-        
+
         state.addTrack('Russian', []);
         expect(state.toggleDualMode()).toBe(true);
         expect(state.displayMode).toBe('single'); // Switched from dual to single
+    });
+
+    test('toggleDualMode from guess lands on dual, not single (regression)', () => {
+        // Prior bug: `dual = current === 'single' ? 'dual' : 'single'` meant
+        // hitting Dual from guess sent you to single, hiding the secondary
+        // translation. The fix flips the operand so Dual always means "go to
+        // dual unless already there".
+        state.addTrack('English', []);
+        state.addTrack('Russian', []);
+        state.displayMode = 'guess';
+        expect(state.toggleDualMode()).toBe(true);
+        expect(state.displayMode).toBe('dual');
     });
 
     test('swapTracks should swap active and secondary tracks', () => {

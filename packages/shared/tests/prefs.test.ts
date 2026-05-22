@@ -35,7 +35,7 @@ function makeChromeStorage() {
 }
 
 const chromeStorage = makeChromeStorage();
-(global as any).chrome = { storage: chromeStorage };
+(global as any).chrome = { storage: chromeStorage, runtime: { id: 'test-extension-id' } };
 
 import { loadPrefs, onPrefsChanged, savePrefs } from '../src/prefs';
 
@@ -87,5 +87,22 @@ describe('prefs', () => {
             overlayEnabled: true,
             sidebarCollapsed: false,
         });
+    });
+
+    test('savePrefs skips silently when extension context is invalidated', async () => {
+        // After an extension reload, stale content scripts lose chrome.runtime.id.
+        // savePrefs should no-op rather than logging warnings for every toggle.
+        const realRuntime = (global as any).chrome.runtime;
+        (global as any).chrome.runtime = {}; // no id
+        (chromeStorage.local.set as jest.Mock).mockClear();
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            await savePrefs({ displayMode: 'single' });
+            expect(chromeStorage.local.set).not.toHaveBeenCalled();
+            expect(warn).not.toHaveBeenCalled();
+        } finally {
+            warn.mockRestore();
+            (global as any).chrome.runtime = realRuntime;
+        }
     });
 });

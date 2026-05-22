@@ -63,9 +63,12 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
         case 'ADD_WORD': {
             const term = String(request.term ?? '').trim();
             const sourceUrl = String(request.sourceUrl ?? '');
+            const context = typeof request.context === 'string' ? request.context : '';
+            const title = typeof request.title === 'string' ? request.title : '';
             if (!term) throw new Error('term required');
+            const input = { term, sourceUrl, context, title };
             try {
-                const r = await addInboxWord(config, { term, sourceUrl });
+                const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();
                 return { ok: true, wordId: r.wordId, inboxCount };
             } catch (err) {
@@ -78,7 +81,7 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 // clears auth state so the badge can prompt them to sign in.
                 if (!(await canSilentReauth())) throw err;
                 await silentReauth();
-                const r = await addInboxWord(config, { term, sourceUrl });
+                const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();
                 return { ok: true, wordId: r.wordId, inboxCount };
             }

@@ -296,6 +296,11 @@
     text-shadow: 1px 1px 3px #000;
     max-width: 80%;
     word-wrap: break-word;
+    /* Container has pointer-events: none so the video stays clickable —
+       re-enable just on the text box so the user can drag-select words. */
+    pointer-events: auto;
+    cursor: text;
+    user-select: text;
 }
 
 .vtt-overlay-sub {

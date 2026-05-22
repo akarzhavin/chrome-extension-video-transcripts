@@ -35,12 +35,17 @@ export async function loadPrefs(): Promise<Prefs> {
 
 export async function savePrefs(partial: Partial<Prefs>): Promise<void> {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+    // Skip silently if the extension was reloaded and this content script is
+    // now orphaned — chrome.storage would throw 'Extension context invalidated'.
+    if (!chrome.runtime?.id) return;
     try {
         const current = await loadPrefs();
         const next: Prefs = { ...current, ...partial };
         await chrome.storage.local.set({ [PREFS_KEY]: next });
-    } catch (err) {
-        console.warn('[Lingogram] savePrefs failed:', err);
+    } catch {
+        // Prefs persistence is best-effort. Failures here (invalidated context,
+        // quota exceeded) aren't actionable — next session falls back to
+        // defaults or last-persisted values. No warn to keep the console clean.
     }
 }
 

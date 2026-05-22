@@ -75,6 +75,64 @@ describe('SidebarUI', () => {
         expect(overlay?.textContent).toBe('Hello');
     });
 
+    describe('word-wrapping spans (data-word)', () => {
+        // Every word lives in its own <span data-word="..."> so the quick-add
+        // overlay can snap selection to word boundaries and resolve masked
+        // *** tokens back to the underlying word.
+
+        test('buildMaskedContent stores data-word on every span (masked + revealed)', () => {
+            const container = ui.buildMaskedContent('hello world foo', 1);
+            const spans = container.querySelectorAll('span');
+            expect(spans).toHaveLength(3);
+            expect(spans[0].dataset.word).toBe('hello');
+            expect(spans[0].className).toBe('vtt-revealed-word');
+            expect(spans[1].dataset.word).toBe('world');
+            expect(spans[1].className).toBe('vtt-masked-word');
+            expect(spans[1].textContent).toBe('***'); // glyph, but real word in data-word
+            expect(spans[2].dataset.word).toBe('foo');
+        });
+
+        test('buildPlainItem wraps each word in a data-word span without a class', () => {
+            const subs: Subtitle[] = [{ startTime: 0, endTime: 1, text: 'one two three' }];
+            state.addTrack('English', subs);
+            ui.renderSubtitles();
+
+            const item = ui.elements.list?.querySelector('.vtt-item[data-index="0"]');
+            const spans = item?.querySelectorAll('.vtt-main-text span[data-word]');
+            expect(spans?.length).toBe(3);
+            // Plain mode keeps class empty so existing CSS still styles the
+            // parent .vtt-main-text — only data-word enables word-snap.
+            expect(spans?.[0].className).toBe('');
+            expect(Array.from(spans ?? []).map((s) => (s as HTMLElement).dataset.word)).toEqual([
+                'one', 'two', 'three',
+            ]);
+        });
+
+        test('updateGuessItem mutates spans in place, preserving DOM nodes (regression)', () => {
+            // Critical for quick-add selection: replacing the .vtt-main-text
+            // parent would orphan an active Range. We patch class/textContent
+            // on the existing span elements instead.
+            const subs: Subtitle[] = [{ startTime: 0, endTime: 1, text: 'alpha beta gamma' }];
+            state.addTrack('English', subs);
+            state.displayMode = 'guess';
+            ui.renderSubtitles();
+
+            const item = ui.elements.list?.querySelector('.vtt-item[data-index="0"]') as HTMLDivElement;
+            const beta = item.querySelectorAll('span[data-word]')[1] as HTMLSpanElement;
+            expect(beta.className).toBe('vtt-masked-word');
+            expect(beta.textContent).toBe('***');
+
+            // Reveal one more word so index 1 ("beta") flips revealed.
+            state.revealNextWord(0);
+            ui.updateGuessItem(0);
+
+            const sameBeta = item.querySelectorAll('span[data-word]')[1];
+            expect(sameBeta).toBe(beta); // exact same node — not a replacement
+            expect((sameBeta as HTMLSpanElement).className).toBe('vtt-revealed-word');
+            expect(sameBeta.textContent).toBe('beta');
+        });
+    });
+
     describe('pickScrollMode', () => {
         // Private method — accessed via `as any` to keep the API surface clean.
         const pickScrollMode = (target: number, from: number): 'smooth' | 'instant' =>

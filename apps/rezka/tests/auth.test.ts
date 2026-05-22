@@ -47,6 +47,7 @@ import {
     signInWithPassword,
     refreshIdToken,
     addInboxWord,
+    truncateBytes,
     getAuthState,
     setAuthState,
     clearAuthState,
@@ -194,7 +195,12 @@ describe('addInboxWord', () => {
         expect(wordWrite.update.fields.source.stringValue).toBe('rezka-extension');
         expect(wordWrite.update.fields.sourceUrl.stringValue).toBe('https://rezka.ag/x');
         expect(wordWrite.update.fields.processed.booleanValue).toBe(false);
-        expect(typeof wordWrite.update.fields.addedAt.timestampValue).toBe('string');
+        // addedAt comes from a server transform — Firestore rule pins it to
+        // request.time, which a client-supplied timestamp can't match.
+        expect(wordWrite.update.fields.addedAt).toBeUndefined();
+        expect(wordWrite.updateTransforms).toEqual([
+            { fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' },
+        ]);
 
         const sentinelWrite = body.writes[1];
         expect(sentinelWrite.update.name).toBe('projects/demo-lingogram/databases/(default)/documents/inbox/uid-X');
@@ -282,5 +288,39 @@ describe('addInboxWord', () => {
         expect(getSentinelInit.headers['Authorization']).toBe('Bearer new');
         const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[2];
         expect(commitInit.headers['Authorization']).toBe('Bearer new');
+    });
+});
+
+describe('truncateBytes', () => {
+    const utf8 = (s: string) => new TextEncoder().encode(s).length;
+
+    test('returns input unchanged when already within limit', () => {
+        expect(truncateBytes('hello', 100)).toBe('hello');
+        expect(truncateBytes('hello', 5)).toBe('hello'); // exactly at boundary
+    });
+
+    test('truncates ASCII to the requested byte budget', () => {
+        const out = truncateBytes('abcdefghij', 4);
+        expect(out).toBe('abcd');
+        expect(utf8(out)).toBe(4);
+    });
+
+    test('never splits a multi-byte UTF-8 sequence', () => {
+        // Each Cyrillic char is 2 bytes; "Привет" = 12 bytes.
+        // Requesting 5 bytes must yield "Пр" (4 bytes) — not "Пр\x?" garbage.
+        const out = truncateBytes('Привет', 5);
+        expect(out).toBe('Пр');
+        expect(utf8(out)).toBeLessThanOrEqual(5);
+    });
+
+    test('preserves astral codepoints (surrogate pairs)', () => {
+        // 😀 is 4 UTF-8 bytes. Budget 3 must drop it entirely, not half it.
+        expect(truncateBytes('😀a', 3)).toBe('');
+        expect(truncateBytes('😀a', 4)).toBe('😀');
+        expect(truncateBytes('😀a', 5)).toBe('😀a');
+    });
+
+    test('returns empty string for zero budget', () => {
+        expect(truncateBytes('hello', 0)).toBe('');
     });
 });
