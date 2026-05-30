@@ -1,26 +1,28 @@
-function makeChromeStorage() {
+function makeStorageArea(): any {
     const store: Record<string, unknown> = {};
     return {
-        local: {
-            get: jest.fn((keys: any) => {
-                if (keys === null || keys === undefined) return Promise.resolve({ ...store });
-                const keyArr = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
-                const out: Record<string, unknown> = {};
-                for (const k of keyArr) if (k in store) out[k] = store[k];
-                return Promise.resolve(out);
-            }),
-            set: jest.fn((items: Record<string, unknown>) => {
-                Object.assign(store, items);
-                return Promise.resolve();
-            }),
-            remove: jest.fn((keys: string | string[]) => {
-                const arr = typeof keys === 'string' ? [keys] : keys;
-                for (const k of arr) delete store[k];
-                return Promise.resolve();
-            }),
-            _store: store,
-        } as any,
+        get: jest.fn((keys: any) => {
+            if (keys === null || keys === undefined) return Promise.resolve({ ...store });
+            const keyArr = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
+            const out: Record<string, unknown> = {};
+            for (const k of keyArr) if (k in store) out[k] = store[k];
+            return Promise.resolve(out);
+        }),
+        set: jest.fn((items: Record<string, unknown>) => {
+            Object.assign(store, items);
+            return Promise.resolve();
+        }),
+        remove: jest.fn((keys: string | string[]) => {
+            const arr = typeof keys === 'string' ? [keys] : keys;
+            for (const k of arr) delete store[k];
+            return Promise.resolve();
+        }),
+        _store: store,
     };
+}
+
+function makeChromeStorage() {
+    return { local: makeStorageArea(), session: makeStorageArea() };
 }
 
 const chromeStorage = makeChromeStorage();
@@ -46,11 +48,15 @@ import {
     config,
     signInWithPassword,
     refreshIdToken,
+    exchangeCustomToken,
     addInboxWord,
     truncateBytes,
     getAuthState,
     setAuthState,
     clearAuthState,
+    setPendingAuthNonce,
+    validatePendingAuthNonce,
+    clearPendingAuthNonce,
 } from '@video-transcripts/shared';
 
 function mockJsonResponse(body: unknown, status = 200): any {
@@ -76,6 +82,9 @@ function mockEmptyResponse(status: number): any {
 beforeEach(() => {
     Object.keys((chromeStorage.local as any)._store).forEach(
         (k) => delete (chromeStorage.local as any)._store[k]
+    );
+    Object.keys((chromeStorage.session as any)._store).forEach(
+        (k) => delete (chromeStorage.session as any)._store[k]
     );
     getAuthTokenMock.mockReset();
     (global as any).fetch = jest.fn();
@@ -117,6 +126,44 @@ describe('firebaseRest', () => {
         expect(init.body).toContain('grant_type=refresh_token');
         expect(init.body).toContain('refresh_token=r-1');
     });
+
+    test('exchangeCustomToken posts to signInWithCustomToken and maps response', async () => {
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
+            idToken: 'id-ext', refreshToken: 'r-ext', expiresIn: '3600', localId: 'uid-ext',
+        }));
+
+        const r = await exchangeCustomToken(config, 'custom-token-xyz', 'fallback-uid');
+        expect(r.idToken).toBe('id-ext');
+        expect(r.refreshToken).toBe('r-ext');
+        expect(r.uid).toBe('uid-ext');
+        expect(r.expiresAt).toBeGreaterThan(Date.now());
+
+        const [url, init] = ((global as any).fetch as jest.Mock).mock.calls[0];
+        expect(url).toContain('/v1/accounts:signInWithCustomToken');
+        expect(JSON.parse(init.body)).toEqual({
+            token: 'custom-token-xyz', returnSecureToken: true,
+        });
+    });
+
+    test('exchangeCustomToken falls back to provided uid when localId is missing', async () => {
+        // Some emulator builds omit localId on signInWithCustomToken — the
+        // caller already knows the uid from the handoff payload, so we use
+        // that rather than failing the exchange.
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
+            idToken: 'id-ext', refreshToken: 'r-ext', expiresIn: '3600',
+        }));
+        const r = await exchangeCustomToken(config, 'ct', 'fallback-uid');
+        expect(r.uid).toBe('fallback-uid');
+    });
+
+    test('exchangeCustomToken surfaces non-OK responses as Firebase REST errors', async () => {
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false, status: 400, statusText: 'Bad Request',
+            text: () => Promise.resolve('INVALID_CUSTOM_TOKEN'),
+        });
+        await expect(exchangeCustomToken(config, 'expired-ct', 'uid-1'))
+            .rejects.toThrow(/Firebase REST 400/);
+    });
 });
 
 describe('storage', () => {
@@ -129,6 +176,45 @@ describe('storage', () => {
         expect(got?.uid).toBe('u');
         await clearAuthState();
         expect(await getAuthState()).toBeNull();
+    });
+
+    test('validatePendingAuthNonce: matching value within TTL → true, does NOT clear', async () => {
+        await setPendingAuthNonce('abc-123');
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+        // Validate is idempotent — retries (e.g. after a transient exchange
+        // failure) must see the same value until the caller explicitly clears.
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+    });
+
+    test('clearPendingAuthNonce: wipes storage so subsequent validate returns false', async () => {
+        await setPendingAuthNonce('abc-123');
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+        await clearPendingAuthNonce();
+        expect(await validatePendingAuthNonce('abc-123')).toBe(false);
+    });
+
+    test('validatePendingAuthNonce: mismatch → false, does NOT clear the legitimate value', async () => {
+        await setPendingAuthNonce('abc-123');
+        expect(await validatePendingAuthNonce('different')).toBe(false);
+        // Real value still redeemable — mismatched attempts don't destroy state.
+        expect(await validatePendingAuthNonce('abc-123')).toBe(true);
+    });
+
+    test('validatePendingAuthNonce: empty provided value → false even with a stored nonce', async () => {
+        await setPendingAuthNonce('abc-123');
+        expect(await validatePendingAuthNonce('')).toBe(false);
+    });
+
+    test('validatePendingAuthNonce: no pending nonce → false', async () => {
+        expect(await validatePendingAuthNonce('anything')).toBe(false);
+    });
+
+    test('validatePendingAuthNonce: past TTL (>10 minutes) → false', async () => {
+        // Seed storage directly so we can backdate the issuedAt timestamp.
+        const sessionStore = (chromeStorage.session as any)._store;
+        sessionStore['auth.pendingNonce'] = 'abc-123';
+        sessionStore['auth.pendingNonceAt'] = Date.now() - 11 * 60 * 1000;
+        expect(await validatePendingAuthNonce('abc-123')).toBe(false);
     });
 });
 

@@ -1,6 +1,6 @@
-function makeChromeStorage(): { local: chrome.storage.LocalStorageArea } {
+function makeStorageArea(): any {
     const store: Record<string, unknown> = {};
-    const local: any = {
+    return {
         get: jest.fn((keys: string | string[] | Record<string, unknown> | null) => {
             if (keys === null || keys === undefined) return Promise.resolve({ ...store });
             const keyArr = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
@@ -19,7 +19,10 @@ function makeChromeStorage(): { local: chrome.storage.LocalStorageArea } {
         }),
         _store: store,
     };
-    return { local };
+}
+
+function makeChromeStorage(): { local: any; session: any } {
+    return { local: makeStorageArea(), session: makeStorageArea() };
 }
 
 // Capture the onMessageExternal listener so we can invoke it directly in tests.
@@ -44,6 +47,10 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         create: jest.fn().mockResolvedValue({ id: 1 }),
         remove: jest.fn().mockResolvedValue(undefined),
     },
+    action: {
+        setBadgeText: jest.fn(),
+        setBadgeBackgroundColor: jest.fn(),
+    },
     storage: makeChromeStorage(),
     identity: {
         getAuthToken: jest.fn(),
@@ -52,7 +59,7 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
 };
 
 import { fetchWithRetry } from '../src/background/background';
-import { buildAllowedExternalOrigins, getAuthState, isSilentHandoff } from '@video-transcripts/shared';
+import { buildAllowedExternalOrigins, getAuthState } from '@video-transcripts/shared';
 
 describe('background script', () => {
     beforeEach(() => {
@@ -102,30 +109,129 @@ function invokeExternal(message: any, sender: any): Promise<any> {
     });
 }
 
-describe('onMessageExternal handoff', () => {
-    beforeEach(() => {
-        const store = ((global as any).chrome.storage.local as any)._store;
-        Object.keys(store).forEach((k) => delete store[k]);
+// Mock the Firebase identityToolkit signInWithCustomToken response — that's
+// the call the handoff handler makes to exchange the scoped custom token
+// for the extension's own id+refresh pair.
+function mockSignInWithCustomToken(payload: {
+    idToken: string;
+    refreshToken: string;
+    expiresIn: string;
+    localId: string;
+}) {
+    ((global as any).fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(payload),
+        text: () => Promise.resolve(JSON.stringify(payload)),
+    });
+}
+
+describe('onMessageExternal handoff (custom-token exchange)', () => {
+    // Tests below open the handoff path directly; pre-seed the matching
+    // pending nonce in storage.session so the listener accepts the payload.
+    // The nonce-mismatch / missing branches live in their own tests.
+    const PENDING_NONCE = 'test-nonce-aaa';
+
+    beforeEach(async () => {
+        const localStore = (global as any).chrome.storage.local._store;
+        const sessionStore = (global as any).chrome.storage.session._store;
+        Object.keys(localStore).forEach((k) => delete localStore[k]);
+        Object.keys(sessionStore).forEach((k) => delete sessionStore[k]);
+        (global as any).fetch = jest.fn();
+        ((global as any).chrome.action.setBadgeText as jest.Mock).mockClear();
+        await (global as any).chrome.storage.session.set({
+            'auth.pendingNonce': PENDING_NONCE,
+            'auth.pendingNonceAt': Date.now(),
+        });
     });
 
-    test('accepts a well-formed message from localhost:5173 and stores tokens', async () => {
+    test('accepts a well-formed customToken with matching nonce, exchanges, stores tokens', async () => {
+        mockSignInWithCustomToken({
+            idToken: 'fresh-id-token',
+            refreshToken: 'fresh-refresh-token',
+            expiresIn: '3600',
+            localId: 'uid-1',
+        });
         const res = await invokeExternal(
             {
                 type: 'lingogram-extension-auth',
                 payload: {
-                    idToken: 't1',
-                    refreshToken: 'r1',
-                    expiresAt: Date.now() + 60_000,
+                    customToken: 'ct-1',
                     email: 'a@b.com',
                     uid: 'uid-1',
+                    nonce: PENDING_NONCE,
                 },
             },
-            { origin: 'http://localhost:5173', url: 'http://localhost:5173/extension-auth?ext=foo' },
+            { origin: 'http://localhost:5173', url: `http://localhost:5173/extension-auth?ext=foo&nonce=${PENDING_NONCE}` },
         );
         expect(res).toEqual({ ok: true });
         const state = await getAuthState();
         expect(state?.uid).toBe('uid-1');
-        expect(state?.idToken).toBe('t1');
+        expect(state?.idToken).toBe('fresh-id-token');
+        expect(state?.refreshToken).toBe('fresh-refresh-token');
+        expect(state?.email).toBe('a@b.com');
+        // Successful handoff consumes the nonce — same URL cannot be replayed.
+        const sessionStore = (global as any).chrome.storage.session._store;
+        expect(sessionStore['auth.pendingNonce']).toBeUndefined();
+    });
+
+    test('rejects handoff with no nonce — an XSS in a trusted-origin tab cannot push tokens', async () => {
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: { customToken: 'ct', email: 'a@b.com', uid: 'uid-1' },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
+        // Failed validation does NOT clear the legitimate value — a real
+        // tab that retries with the right nonce later still works.
+        const sessionStore = (global as any).chrome.storage.session._store;
+        expect(sessionStore['auth.pendingNonce']).toBe(PENDING_NONCE);
+    });
+
+    test('rejects handoff with mismatched nonce', async () => {
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    customToken: 'ct',
+                    email: 'a@b.com',
+                    uid: 'uid-1',
+                    nonce: 'wrong-nonce',
+                },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
+    });
+
+    test('rejects handoff when the stored nonce is expired (>10 minutes old)', async () => {
+        // Re-seed with a stale timestamp so consumePendingAuthNonce treats
+        // the pending value as expired even though the string matches.
+        const elevenMinutesAgo = Date.now() - 11 * 60 * 1000;
+        await (global as any).chrome.storage.session.set({
+            'auth.pendingNonce': PENDING_NONCE,
+            'auth.pendingNonceAt': elevenMinutesAgo,
+        });
+        const res = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: {
+                    customToken: 'ct',
+                    email: 'a@b.com',
+                    uid: 'uid-1',
+                    nonce: PENDING_NONCE,
+                },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/invalid or expired auth challenge/);
+        expect(await getAuthState()).toBeNull();
     });
 
     test('derives prod allowlist from frontend base URL, including .firebaseapp.com mirror', () => {
@@ -146,7 +252,7 @@ describe('onMessageExternal handoff', () => {
 
     test('rejects unauthorized origin', async () => {
         const res = await invokeExternal(
-            { type: 'lingogram-extension-auth', payload: { idToken: 't', uid: 'u' } },
+            { type: 'lingogram-extension-auth', payload: { customToken: 'ct', uid: 'u' } },
             { origin: 'https://evil.example.com' },
         );
         expect(res.ok).toBe(false);
@@ -164,109 +270,68 @@ describe('onMessageExternal handoff', () => {
         expect(res.error).toMatch(/unknown/);
     });
 
-    test('rejects payload missing idToken', async () => {
+    test('rejects payload missing customToken', async () => {
         const res = await invokeExternal(
             { type: 'lingogram-extension-auth', payload: { uid: 'u' } },
             { origin: 'http://localhost:5173' },
         );
         expect(res.ok).toBe(false);
-        expect(res.error).toMatch(/idToken/);
+        expect(res.error).toMatch(/customToken/);
     });
 
-    test('payload silent=true ALONE does not close the tab — security: a trusted-origin tab we did not open cannot fake a silent handoff', async () => {
-        // If we trusted `payload.silent` alone, a compromised trusted-origin
-        // tab (e.g. an XSS in the SPA) could push attacker tokens AND
-        // auto-close the artifact. Tab auto-close must require the tab
-        // to be in silentReauthTabIds — i.e. opened by silentReauth() itself.
-        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
-        tabsRemove.mockClear();
+    test('exchange failure (e.g. expired custom token) is surfaced and no state is stored', async () => {
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            status: 400,
+            statusText: 'Bad Request',
+            text: () => Promise.resolve('INVALID_CUSTOM_TOKEN'),
+        });
         const res = await invokeExternal(
             {
                 type: 'lingogram-extension-auth',
-                payload: {
-                    idToken: 't-silent',
-                    refreshToken: '',
-                    expiresAt: Date.now() + 60_000,
-                    email: 'a@b.com',
-                    uid: 'uid-silent',
-                    silent: true,
-                },
+                payload: { customToken: 'ct-bad', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
             },
-            {
-                origin: 'http://localhost:5173',
-                url: 'http://localhost:5173/extension-auth?ext=foo&silent=1',
-                tab: { id: 42 },
-            },
+            { origin: 'http://localhost:5173' },
         );
-        // Token still stored — handoff itself is accepted from a trusted
-        // origin; the only thing we refuse is the auto-close shortcut.
-        expect(res).toEqual({ ok: true });
-        expect((await getAuthState())?.uid).toBe('uid-silent');
-        expect(tabsRemove).not.toHaveBeenCalled();
+        expect(res.ok).toBe(false);
+        expect(res.error).toMatch(/Firebase REST 400/);
+        expect(await getAuthState()).toBeNull();
     });
 
-    describe('isSilentHandoff (nonce + tab-id challenge)', () => {
-        // The silent path (auto-close + resolve pending retry) must require
-        // BOTH that the tab is one we opened AND that the payload echoes the
-        // freshly-generated per-call nonce. Anything else (missing/mismatched
-        // nonce, foreign tab, no pending attempt) downgrades to the regular
-        // handoff path so it can't be abused as a covert token-swap channel.
-        const TABS: ReadonlySet<number> = new Set([42]);
-        const NONCE = 'nonce-abc';
-
-        test('tab match + nonce match → silent path', () => {
-            expect(isSilentHandoff(42, NONCE, TABS, NONCE)).toBe(true);
+    test('nonce survives a transient exchange failure so the user can retry without re-opening the popup', async () => {
+        // First attempt: exchange fails (e.g. backend rollout mid-flight,
+        // CREDENTIAL_MISMATCH while infra catches up, network blip).
+        ((global as any).fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            status: 400,
+            statusText: 'Bad Request',
+            text: () => Promise.resolve('CREDENTIAL_MISMATCH'),
         });
-
-        test('tab match + nonce mismatch → NOT silent', () => {
-            expect(isSilentHandoff(42, 'wrong-nonce', TABS, NONCE)).toBe(false);
-        });
-
-        test('tab match + payload nonce empty → NOT silent (defense-in-depth)', () => {
-            expect(isSilentHandoff(42, '', TABS, NONCE)).toBe(false);
-        });
-
-        test('tab match + no pending nonce (SW just restarted) → NOT silent', () => {
-            expect(isSilentHandoff(42, NONCE, TABS, null)).toBe(false);
-        });
-
-        test('foreign tab + valid nonce → NOT silent (rejects compromised SPA in user tab)', () => {
-            expect(isSilentHandoff(99, NONCE, TABS, NONCE)).toBe(false);
-        });
-
-        test('undefined senderTabId → NOT silent', () => {
-            expect(isSilentHandoff(undefined, NONCE, TABS, NONCE)).toBe(false);
-        });
-
-        test('empty pending nonce treated as no challenge → NOT silent', () => {
-            // Belt-and-braces: payloadNonce === '' === expectedNonce should
-            // still not satisfy the check, otherwise a missing-nonce flow
-            // would silently pass when both sides forgot to set it.
-            expect(isSilentHandoff(42, '', TABS, '')).toBe(false);
-        });
-    });
-
-    test('non-silent handoff does not close the originating tab', async () => {
-        const tabsRemove = (global as any).chrome.tabs.remove as jest.Mock;
-        tabsRemove.mockClear();
-        const res = await invokeExternal(
+        const res1 = await invokeExternal(
             {
                 type: 'lingogram-extension-auth',
-                payload: {
-                    idToken: 't-visible',
-                    refreshToken: 'r-visible',
-                    expiresAt: Date.now() + 60_000,
-                    email: 'a@b.com',
-                    uid: 'uid-visible',
-                },
+                payload: { customToken: 'ct-1', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
             },
-            {
-                origin: 'http://localhost:5173',
-                url: 'http://localhost:5173/extension-auth?ext=foo',
-                tab: { id: 43 },
-            },
+            { origin: 'http://localhost:5173' },
         );
-        expect(res).toEqual({ ok: true });
-        expect(tabsRemove).not.toHaveBeenCalled();
+        expect(res1.ok).toBe(false);
+        // Nonce stays in storage — the legitimate URL can still be retried.
+        expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBe(PENDING_NONCE);
+
+        // Second attempt with the same nonce + customToken: exchange succeeds.
+        mockSignInWithCustomToken({
+            idToken: 'fresh-id', refreshToken: 'fresh-r', expiresIn: '3600', localId: 'uid-1',
+        });
+        const res2 = await invokeExternal(
+            {
+                type: 'lingogram-extension-auth',
+                payload: { customToken: 'ct-1', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
+            },
+            { origin: 'http://localhost:5173' },
+        );
+        expect(res2).toEqual({ ok: true });
+        expect((await getAuthState())?.idToken).toBe('fresh-id');
+        // Now (post-success) the nonce is finally cleared.
+        expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBeUndefined();
     });
 });
