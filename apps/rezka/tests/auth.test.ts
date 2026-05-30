@@ -46,7 +46,6 @@ const clearAllCachedAuthTokensMock = jest.fn((cb: () => void) => cb());
 
 import {
     config,
-    signInWithPassword,
     refreshIdToken,
     exchangeCustomToken,
     addInboxWord,
@@ -91,25 +90,6 @@ beforeEach(() => {
 });
 
 describe('firebaseRest', () => {
-    test('signInWithPassword stores token shape', async () => {
-        ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
-            idToken: 'id-1', refreshToken: 'r-1', expiresIn: '3600',
-            localId: 'uid-1', email: 'a@b.com',
-        }));
-
-        const state = await signInWithPassword(config, 'a@b.com', 'pwd');
-        expect(state.uid).toBe('uid-1');
-        expect(state.email).toBe('a@b.com');
-        expect(state.idToken).toBe('id-1');
-        expect(state.expiresAt).toBeGreaterThan(Date.now());
-
-        const [url, init] = ((global as any).fetch as jest.Mock).mock.calls[0];
-        expect(url).toContain('/v1/accounts:signInWithPassword');
-        expect(JSON.parse(init.body)).toEqual({
-            email: 'a@b.com', password: 'pwd', returnSecureToken: true,
-        });
-    });
-
     test('refreshIdToken hits secure token endpoint', async () => {
         ((global as any).fetch as jest.Mock).mockResolvedValueOnce(mockJsonResponse({
             id_token: 'new-id', refresh_token: 'new-r', expires_in: '3600',

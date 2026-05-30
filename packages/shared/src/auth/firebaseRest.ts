@@ -1,14 +1,6 @@
 import { AuthConfig } from './config';
 import { AuthState } from './storage';
 
-interface SignInResponse {
-    idToken: string;
-    refreshToken: string;
-    expiresIn: string; // seconds, as string
-    localId: string;
-    email: string;
-}
-
 interface RefreshResponse {
     id_token: string;
     refresh_token: string;
@@ -28,37 +20,19 @@ function expiresAtFromSeconds(secondsStr: string): number {
     return Date.now() + seconds * 1000;
 }
 
-async function postJson<T>(url: string, body: object | string, contentType = 'application/json'): Promise<T> {
-    const init: RequestInit = {
+export async function refreshIdToken(cfg: AuthConfig, refreshToken: string): Promise<Pick<AuthState, 'idToken' | 'refreshToken' | 'expiresAt' | 'uid'>> {
+    const url = `${cfg.secureTokenUrl}/v1/token?key=${encodeURIComponent(cfg.apiKey)}`;
+    const form = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
+    const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': contentType },
-        body: typeof body === 'string' ? body : JSON.stringify(body),
-    };
-    const res = await fetch(url, init);
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: form,
+    });
     if (!res.ok) {
         const text = await res.text().catch(() => '');
         throw new Error(`Firebase REST ${res.status}: ${text || res.statusText}`);
     }
-    return res.json() as Promise<T>;
-}
-
-export async function signInWithPassword(cfg: AuthConfig, email: string, password: string): Promise<AuthState> {
-    const url = `${cfg.identityToolkitUrl}/v1/accounts:signInWithPassword?key=${encodeURIComponent(cfg.apiKey)}`;
-    const body = { email, password, returnSecureToken: true };
-    const r = await postJson<SignInResponse>(url, body);
-    return {
-        idToken: r.idToken,
-        refreshToken: r.refreshToken,
-        expiresAt: expiresAtFromSeconds(r.expiresIn),
-        email: r.email,
-        uid: r.localId,
-    };
-}
-
-export async function refreshIdToken(cfg: AuthConfig, refreshToken: string): Promise<Pick<AuthState, 'idToken' | 'refreshToken' | 'expiresAt' | 'uid'>> {
-    const url = `${cfg.secureTokenUrl}/v1/token?key=${encodeURIComponent(cfg.apiKey)}`;
-    const form = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
-    const r = await postJson<RefreshResponse>(url, form, 'application/x-www-form-urlencoded');
+    const r = (await res.json()) as RefreshResponse;
     return {
         idToken: r.id_token,
         refreshToken: r.refresh_token,
