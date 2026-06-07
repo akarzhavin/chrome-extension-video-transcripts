@@ -14,12 +14,13 @@
 
 ## 🌟 Overview
 
-This repo ships **two Chrome extensions** that turn passive watching into active language learning:
+This repo ships **three Chrome extensions** that turn passive reading and watching into active language learning:
 
 - **Rezka** — for [rezka.ag](https://rezka.ag) / HDRezka. Intercepts native `.vtt` subtitle tracks.
 - **YouTube** — for [youtube.com](https://youtube.com). Captures auto-generated and uploaded captions.
+- **Web** — for **any website**. Select English text anywhere, right-click → **Add to Lingogram**, and the word goes straight to your inbox. No transcript sidebar — just one-click capture via the context menu.
 
-Both expose the same interactive transcript sidebar, dual-subtitle merging, and a "Sign in on Lingogram" flow that lets you save unknown words to your personal dictionary on [lingogram.app](https://lingogram-app.web.app) without leaving the video.
+The two video extensions expose the same interactive transcript sidebar and dual-subtitle merging. **All three** share the same "Sign in on Lingogram" flow that lets you save unknown words to your personal dictionary on [lingogram.app](https://lingogram-app.web.app) without leaving the page.
 
 ---
 
@@ -31,6 +32,8 @@ Both expose the same interactive transcript sidebar, dual-subtitle merging, and 
 4. **Sign in on Lingogram** (one click in the popup → tab opens, you sign in once, the tab closes itself). The extension's service worker holds the auth handoff for future word captures.
 5. **Highlight any word** in the transcript → the quick-add pill writes it to your Firestore inbox.
 6. Visit [/student/vocabulary](https://lingogram-app.web.app/student/vocabulary) on Lingogram → the **Rezka** collection card shows pending words and drains them into your dictionary topic with one click.
+
+> **Web extension (any site):** skip steps 1–3 — just select text, right-click → **Add to Lingogram**. Sign-in (step 4) and the inbox drain (step 6) are identical.
 
 ---
 
@@ -51,6 +54,9 @@ Click any sentence in the transcript to instantly jump to that specific moment i
 - **Dual Mode** — see both languages at once.
 - **Guess Mode (Blur)** — hide the primary language and reveal it word-by-word or on hover to test your listening skills.
 - Preferences persist across reloads via `chrome.storage`.
+
+### 🌍 Capture from Any Website (Web extension)
+No video, no transcript — just select English text on any page, right-click, and pick **Add to Lingogram**. The word (plus the surrounding sentence as context and the page title) is written to your inbox. If you're not signed in, the toolbar popup opens automatically so you can authorize in one click. Built with a context-menu item + `activeTab`/`scripting` — no broad host permissions, no in-page content script.
 
 ### 🔐 Lingogram Account Integration
 - "Sign in on Lingogram" opens the web app's `/extension-auth?ext=<extId>` route in a tab. After auth, the tab forwards the Firebase `idToken` + `refreshToken` to the extension via `chrome.runtime.sendMessage` (gated by `externally_connectable` and a build-time origin allowlist).
@@ -73,11 +79,12 @@ Click any sentence in the transcript to instantly jump to that specific moment i
 chrome-extension-video-transcripts/
 ├── apps/
 │   ├── rezka/              # Rezka.ag / HDRezka extension
-│   └── youtube/            # YouTube extension
+│   ├── youtube/            # YouTube extension
+│   └── web/                # Any-site right-click "Add to Lingogram" (no content script)
 ├── packages/
-│   └── shared/             # Code reused by both extensions
+│   └── shared/             # Code reused by all three extensions
 │       ├── src/auth/       # Firebase REST auth, Firestore inbox writer, MV3 SW handoff
-│       ├── src/content/    # In-page auth pill, highlight → quick-add overlay
+│       ├── src/content/    # In-page auth pill, highlight → quick-add overlay (video apps)
 │       ├── src/popup/      # "Sign in on Lingogram" popup (html + css + ts)
 │       ├── src/prefs.ts    # chrome.storage-backed preferences
 │       └── vite-limits.mjs # Build-time daily/term/url limit injection
@@ -89,6 +96,7 @@ chrome-extension-video-transcripts/
 - **Firebase Auth + Firestore** — auth lives in the Lingogram web app (no Firebase SDK in the service worker); tokens are handed to the extension via `externally_connectable`.
 - **Rezka-specific interceptor** — smart `.vtt` request capture for Rezka's player patterns.
 - **YouTube page-script** — captures `pot` parameters from network calls so VTT URLs can be re-fetched.
+- **Web extension** — no content script: a `contextMenus` item in the service worker, with `activeTab` + `scripting` to read the selection/context and show a confirmation toast only on user click.
 
 ---
 
@@ -105,9 +113,10 @@ chrome-extension-video-transcripts/
    ```
 3. **Build the extensions:**
    ```bash
-   npm run build                  # builds both, emits zips into releases/
+   npm run build                  # builds all, emits zips into releases/
    npm run build --workspace=@video-transcripts/rezka     # one app only
    npm run build --workspace=@video-transcripts/youtube
+   npm run build --workspace=@video-transcripts/web
    ```
    Dev builds (point at local Firebase emulators + `http://localhost:5173`):
    ```bash
@@ -117,7 +126,7 @@ chrome-extension-video-transcripts/
    - Open `chrome://extensions/`.
    - Enable **Developer mode**.
    - Click **Load unpacked**.
-   - Select `apps/rezka/build` or `apps/youtube/build`.
+   - Select `apps/rezka/build`, `apps/youtube/build`, or `apps/web/build`.
 
 ---
 

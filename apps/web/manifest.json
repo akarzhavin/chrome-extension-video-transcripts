@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Add words to Lingogram from any website",
+  "version": "0.0.0",
+  "description": "Select English text on any website, right-click, and add it to your Lingogram inbox.",
+  "key": "REPLACE_WITH_BASE64_DER_PUBLIC_KEY",
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Lingogram",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "contextMenus", "scripting", "activeTab"],
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "http://localhost:9099/*",
+    "http://localhost:8080/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:5173/*",
+      "https://lingogram-app.web.app/*",
+      "https://lingogram-app.firebaseapp.com/*"
+    ]
+  },
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  }
+}
