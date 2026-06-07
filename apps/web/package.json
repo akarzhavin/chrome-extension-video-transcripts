@@ -1,0 +1,15 @@
+{
+  "name": "@video-transcripts/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build --mode background && vite build --mode popup && npm run zip",
+    "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode popup",
+    "zip": "mkdir -p ../../releases && cd build && zip -r ../../../releases/web-v$npm_package_version.zip .",
+    "dev": "vite",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@video-transcripts/shared": "*"
+  }
+}
