@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube를 보며 언어 배우기",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "모든 단어를 이해하도록 돕는 대화형 대본과 이중 자막.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

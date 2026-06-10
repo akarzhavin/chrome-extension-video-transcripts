@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "看 YouTube 学语言",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "互动字幕稿和双语字幕，帮助你理解每一个单词。",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

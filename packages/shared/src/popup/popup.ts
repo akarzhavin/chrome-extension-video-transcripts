@@ -1,4 +1,9 @@
 import { isDev } from '../auth/config';
+import {
+    SUPPORTED_LANGUAGES,
+    loadLanguagePrefs,
+    saveLanguagePrefs,
+} from '../languages';
 
 interface AuthStatus {
     signedIn: boolean;
@@ -50,6 +55,8 @@ function render(root: HTMLElement, state: ViewState): void {
     } else {
         renderSignedOut(root);
     }
+
+    renderLanguageSettings(root);
 
     if (state.error) {
         const e = document.createElement('div');
@@ -112,6 +119,67 @@ function renderSignedOut(root: HTMLElement): void {
         }
     });
     root.appendChild(primary);
+}
+
+function makeLangRow(labelText: string): { row: HTMLElement; select: HTMLSelectElement } {
+    const row = document.createElement('label');
+    row.className = 'lang-row';
+
+    const span = document.createElement('span');
+    span.textContent = labelText;
+    row.appendChild(span);
+
+    const select = document.createElement('select');
+    select.className = 'lang-select';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select…';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    for (const lang of SUPPORTED_LANGUAGES) {
+        const opt = document.createElement('option');
+        opt.value = lang.code;
+        opt.textContent = lang.native === lang.label ? lang.label : `${lang.label} — ${lang.native}`;
+        select.appendChild(opt);
+    }
+
+    row.appendChild(select);
+    return { row, select };
+}
+
+function renderLanguageSettings(root: HTMLElement): void {
+    const section = document.createElement('div');
+    section.className = 'lang-settings';
+
+    const heading = document.createElement('div');
+    heading.className = 'lang-settings-title';
+    heading.textContent = 'Languages';
+    section.appendChild(heading);
+
+    const learning = makeLangRow("I'm learning");
+    const native = makeLangRow('My native language');
+    section.appendChild(learning.row);
+    section.appendChild(native.row);
+    root.appendChild(section);
+
+    // Prefill from storage (async — selects render immediately, fill on resolve).
+    void loadLanguagePrefs().then((prefs) => {
+        if (!prefs) return;
+        learning.select.value = prefs.learning;
+        native.select.value = prefs.native;
+    });
+
+    const persist = () => {
+        const l = learning.select.value;
+        const n = native.select.value;
+        if (!l || !n) return; // both required before we store anything
+        void saveLanguagePrefs({ learning: l, native: n });
+    };
+    learning.select.addEventListener('change', persist);
+    native.select.addEventListener('change', persist);
 }
 
 export function initPopup(): void {

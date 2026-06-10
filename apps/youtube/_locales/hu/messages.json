@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Tanulj nyelveket YouTube-nézés közben",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktív átiratok és kettős feliratok, hogy minden szót megérts.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

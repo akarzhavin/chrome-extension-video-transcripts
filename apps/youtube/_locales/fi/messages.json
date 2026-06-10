@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Opi kieliä YouTubea katsoessasi",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktiiviset tekstitykset ja kaksoistekstitykset auttavat ymmärtämään joka sanan.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

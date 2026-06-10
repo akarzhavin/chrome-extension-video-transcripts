@@ -1,6 +1,7 @@
 export * from './AppState';
 export * from './SidebarUI';
 export * from './LanguageUtils';
+export * from './languages';
 export * from './parser';
 export * from './prefs';
 export * from './types';

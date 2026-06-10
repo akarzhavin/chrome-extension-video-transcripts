@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Learn languages while watching Rezka",
+  "default_locale": "en",
+  "name": "__MSG_appName__",
   "version": "0.0.0",
-  "description": "Interactive transcripts and dual subtitles to help you understand every word.",
+  "description": "__MSG_appDesc__",
   "key": "REPLACE_WITH_BASE64_DER_PUBLIC_KEY",
   "icons": {
     "16": "src/assets/icons/icon16.png",

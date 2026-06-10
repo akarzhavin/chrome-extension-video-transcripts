@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Учете езици, докато гледате YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Интерактивни транскрипции и двойни субтитри, за да разбирате всяка дума.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Lær sprog, mens du ser YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktive udskrifter og dobbelte undertekster, der hjælper dig med at forstå hvert ord.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

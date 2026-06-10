@@ -238,7 +238,7 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockEmptyResponse(404)) // GET sentinel
             .mockResolvedValueOnce(mockCommitOk());        // POST :commit
 
-        const r = await addInboxWord(config, { term: 'ephemeral', sourceUrl: 'https://rezka.ag/x' });
+        const r = await addInboxWord(config, { term: 'ephemeral' });
         expect(r.wordId).toMatch(/^[A-Za-z0-9]{20}$/);
         expect(r.documentPath).toContain(`/documents/inbox/uid-X/words/${r.wordId}`);
 
@@ -259,7 +259,7 @@ describe('addInboxWord', () => {
         expect(wordWrite.currentDocument).toEqual({ exists: false });
         expect(wordWrite.update.fields.term.stringValue).toBe('ephemeral');
         expect(wordWrite.update.fields.source.stringValue).toBe('rezka-extension');
-        expect(wordWrite.update.fields.sourceUrl.stringValue).toBe('https://rezka.ag/x');
+        expect(wordWrite.update.fields.sourceUrl).toBeUndefined();
         expect(wordWrite.update.fields.processed.booleanValue).toBe(false);
         // addedAt comes from a server transform — Firestore rule pins it to
         // request.time, which a client-supplied timestamp can't match.
@@ -282,7 +282,7 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockSentinel(7, today()))
             .mockResolvedValueOnce(mockCommitOk());
 
-        await addInboxWord(config, { term: 'next', sourceUrl: '' });
+        await addInboxWord(config, { term: 'next' });
         const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
         const body = JSON.parse(commitInit.body);
         expect(body.writes[1].update.fields.dailyCount.integerValue).toBe('8');
@@ -294,7 +294,7 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockSentinel(420, today() - 1))
             .mockResolvedValueOnce(mockCommitOk());
 
-        await addInboxWord(config, { term: 'fresh', sourceUrl: '' });
+        await addInboxWord(config, { term: 'fresh' });
         const [, commitInit] = ((global as any).fetch as jest.Mock).mock.calls[1];
         const body = JSON.parse(commitInit.body);
         expect(body.writes[1].update.fields.dailyCount.integerValue).toBe('1');
@@ -305,7 +305,7 @@ describe('addInboxWord', () => {
         ((global as any).fetch as jest.Mock)
             .mockResolvedValueOnce(mockSentinel(500, today()));
 
-        await expect(addInboxWord(config, { term: 'over', sourceUrl: '' }))
+        await expect(addInboxWord(config, { term: 'over' }))
             .rejects.toThrow(/Daily limit/);
         // No :commit call — we refused client-side.
         expect(((global as any).fetch as jest.Mock).mock.calls.length).toBe(1);
@@ -320,7 +320,7 @@ describe('addInboxWord', () => {
             }))
             .mockResolvedValueOnce(mockCommitOk());        // retried :commit succeeds
 
-        await addInboxWord(config, { term: 'word', sourceUrl: '' });
+        await addInboxWord(config, { term: 'word' });
         expect(((global as any).fetch as jest.Mock).mock.calls.length).toBe(4);
         const [, refreshInit] = ((global as any).fetch as jest.Mock).mock.calls[2];
         expect(refreshInit.body).toContain('grant_type=refresh_token');
@@ -331,7 +331,7 @@ describe('addInboxWord', () => {
 
     test('throws when not signed in', async () => {
         await clearAuthState();
-        await expect(addInboxWord(config, { term: 'x', sourceUrl: '' }))
+        await expect(addInboxWord(config, { term: 'x' }))
             .rejects.toThrow(/Not signed in/);
     });
 
@@ -347,7 +347,7 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockEmptyResponse(404)) // GET sentinel
             .mockResolvedValueOnce(mockCommitOk());        // POST :commit
 
-        await addInboxWord(config, { term: 'soon', sourceUrl: '' });
+        await addInboxWord(config, { term: 'soon' });
         const [refreshUrl] = ((global as any).fetch as jest.Mock).mock.calls[0];
         expect(refreshUrl).toContain('/v1/token');
         const [, getSentinelInit] = ((global as any).fetch as jest.Mock).mock.calls[1];

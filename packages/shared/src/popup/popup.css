@@ -81,6 +81,44 @@ button:disabled {
     font-size: 12px;
 }
 
+.lang-settings {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.lang-settings-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+}
+
+.lang-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.lang-row span {
+    font-size: 12px;
+    color: #374151;
+}
+
+.lang-select {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    color: #1f2937;
+}
+
 .env-badge {
     display: inline-block;
     margin-left: 8px;

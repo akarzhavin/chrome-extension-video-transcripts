@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube ನೋಡುತ್ತಾ ಭಾಷೆ ಕಲಿಯಿರಿ",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "ಪ್ರತಿ ಪದವನ್ನೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಸಂವಾದಾತ್ಮಕ ಪ್ರತಿಲಿಪಿ ಮತ್ತು ಜೋಡಿ ಉಪಶೀರ್ಷಿಕೆಗಳು.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}
