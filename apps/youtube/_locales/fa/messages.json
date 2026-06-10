@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "هنگام تماشای YouTube زبان بیاموزید",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "رونوشت‌های تعاملی و زیرنویس دوگانه تا هر کلمه را بفهمید.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube చూస్తూ భాషలు నేర్చుకోండి",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "ప్రతి పదాన్ని అర్థం చేసుకోవడంలో సహాయపడే ఇంటరాక్టివ్ ట్రాన్‌స్క్రిప్ట్‌లు, జంట సబ్‌టైటిల్స్.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

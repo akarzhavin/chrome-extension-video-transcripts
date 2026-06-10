@@ -99,10 +99,10 @@ interface PlayerResponse {
 
     // ---------- player response reading ----------
 
-    function postTracks(player: PlayerResponse): void {
+    function postTracks(player: PlayerResponse): boolean {
         const rawTracks = player.captions?.playerCaptionsTracklistRenderer?.captionTracks;
         const videoId = player.videoDetails?.videoId;
-        if (!rawTracks || !videoId) return;
+        if (!videoId || !rawTracks || rawTracks.length === 0) return false;
         const tracks = rawTracks.map((t) => ({
             baseUrl: t.baseUrl,
             lang: t.languageCode,
@@ -111,6 +111,7 @@ interface PlayerResponse {
         }));
         console.log(TAG, 'sending tracks for', videoId, tracks.map((t) => t.lang));
         window.postMessage({ type: 'YT_CAPTIONS_FOUND', videoId, tracks }, '*');
+        return true;
     }
 
     function readPlayerResponseFromYtdApp(): PlayerResponse | null {
@@ -124,18 +125,47 @@ interface PlayerResponse {
         }
     }
 
-    async function readPlayerResponseWithRetry(maxAttempts = 50): Promise<PlayerResponse | null> {
-        for (let i = 0; i < maxAttempts; i++) {
-            const pr = readPlayerResponseFromYtdApp();
-            if (pr?.videoDetails?.videoId && pr.captions) return pr;
-            await new Promise((r) => setTimeout(r, 100));
+    function currentUrlVideoId(): string | null {
+        try {
+            const p = location.pathname;
+            if (p === '/watch') return new URLSearchParams(location.search).get('v');
+            if (p.startsWith('/shorts/')) return p.split('/')[2] || null;
+        } catch {
+            // ignore
         }
-        return readPlayerResponseFromYtdApp();
+        return null;
     }
 
+    // Resolve captions for whatever video the URL currently points at. Posts
+    // tracks the moment they appear (videoId + captions ship together). Only
+    // declares "no captions" once the player response has caught up to THIS
+    // video (matching id) and stayed caption-less briefly — so scrolling
+    // between Shorts, where the response lags the URL, never misfires.
     async function broadcastCurrent(): Promise<void> {
-        const pr = await readPlayerResponseWithRetry();
-        if (pr) postTracks(pr);
+        const target = currentUrlVideoId();
+        let caughtUpNoCap = 0;
+        for (let i = 0; i < 70; i++) {
+            // Bail if the user moved to a different video meanwhile.
+            if (target && currentUrlVideoId() !== target) return;
+
+            const pr = readPlayerResponseFromYtdApp();
+            const vid = pr?.videoDetails?.videoId;
+            const matches = !!vid && (!target || vid === target);
+
+            if (matches) {
+                if (postTracks(pr!)) return;
+                // Response is for this video but lists no captions. Captions ship
+                // with the response, so a brief stable confirmation is enough.
+                if (++caughtUpNoCap >= 8) {
+                    console.log(TAG, 'no caption tracks for', vid);
+                    window.postMessage({ type: 'YT_NO_CAPTIONS', videoId: vid }, '*');
+                    return;
+                }
+            } else {
+                caughtUpNoCap = 0; // player response hasn't caught up to this video yet
+            }
+            await new Promise((r) => setTimeout(r, 100));
+        }
     }
 
     document.addEventListener('yt-navigate-finish', () => {
@@ -144,8 +174,37 @@ interface PlayerResponse {
 
     // ---------- CC toggle to force pot generation ----------
 
+    // Finds the captions toggle to click for pot minting. Surfaces differ:
+    //  - Shorts uses `.ytmClosedCaptioningButtonButton`; its standard
+    //    `.ytp-subtitles-button` reports "unavailable" and does nothing.
+    //  - The watch player uses `.ytp-subtitles-button`.
+    // Buttons may be present-but-hidden (e.g. inside the Shorts "More actions"
+    // menu) — HTMLElement.click() still toggles them, so visibility is fine.
+    function isUnavailable(el: Element): boolean {
+        return /unavailable|недоступн|недосту?пні/i.test(el.getAttribute('aria-label') || '');
+    }
+
+    function findCcButton(): HTMLElement | null {
+        const shorts = document.querySelector('.ytmClosedCaptioningButtonButton') as HTMLElement | null;
+        if (shorts && !isUnavailable(shorts)) return shorts;
+
+        const std = document.querySelector('.ytp-subtitles-button') as HTMLElement | null;
+        if (std && !isUnavailable(std)) return std;
+
+        // Generic fallback by aria-label (covers localized labels), skipping any
+        // control that explicitly reports captions as unavailable.
+        const buttons = document.querySelectorAll('button[aria-label], [role="button"][aria-label]');
+        for (const el of Array.from(buttons)) {
+            if (isUnavailable(el)) continue;
+            if (/subtitle|caption|субтитр|субтитри/i.test(el.getAttribute('aria-label') || '')) {
+                return el as HTMLElement;
+            }
+        }
+        return null;
+    }
+
     function clickCcButton(): boolean {
-        const btn = document.querySelector('.ytp-subtitles-button') as HTMLElement | null;
+        const btn = findCcButton();
         if (btn) {
             btn.click();
             return true;
@@ -176,9 +235,9 @@ interface PlayerResponse {
     const inFlightEnsurePot = new Map<string, Promise<string | null>>();
 
     async function generatePotForVideo(videoId: string): Promise<string | null> {
-        // Wait briefly for the player UI to be ready
+        // Wait briefly for a captions toggle to exist (watch player or Shorts).
         for (let i = 0; i < 20; i++) {
-            if (document.querySelector('.ytp-subtitles-button')) break;
+            if (findCcButton()) break;
             await new Promise((r) => setTimeout(r, 200));
         }
 

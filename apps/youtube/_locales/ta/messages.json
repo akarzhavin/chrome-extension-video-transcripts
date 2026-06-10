@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube பார்க்கையில் மொழி கற்க",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "ஒவ்வொரு சொல்லையும் புரிந்துகொள்ள ஊடாடும் படியெடுப்புகள் மற்றும் இரட்டை வசன வரிகள்.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

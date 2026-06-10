@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube を見ながら言語を学ぶ",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "すべての単語を理解できるインタラクティブな文字起こしと二重字幕。",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

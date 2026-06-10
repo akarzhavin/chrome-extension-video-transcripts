@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Õpi keeli YouTube'i vaadates",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktiivsed transkriptsioonid ja topeltsubtiitrid, et mõistaksid iga sõna.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

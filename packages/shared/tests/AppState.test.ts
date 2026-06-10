@@ -187,3 +187,57 @@ describe('AppState', () => {
         });
     });
 });
+
+describe('AppState language-pair preferences', () => {
+    let state: AppState;
+    beforeEach(() => {
+        state = new AppState();
+    });
+
+    test('selects primary/secondary by the configured language labels', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('Spanish', [{ text: 'es' } as Subtitle]);
+        state.addTrack('English', [{ text: 'en' } as Subtitle]);
+        state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
+
+        expect(state.activeTrackIndex).toBe(1); // English
+        expect(state.secondaryTrackIndex).toBe(2); // Russian
+    });
+
+    test('overrides the legacy English-first heuristic', () => {
+        // Learner of Spanish: English must NOT become main just because it exists.
+        state.setLanguagePreferences('Spanish', 'German');
+        state.addTrack('English', [{ text: 'en' } as Subtitle]);
+        state.addTrack('Spanish', [{ text: 'es' } as Subtitle]);
+
+        expect(state.activeTrackIndex).toBe(1); // Spanish, not English
+    });
+
+    test('falls back to the native track when the learning track is absent', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('German', [{ text: 'de' } as Subtitle]);
+        state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
+
+        expect(state.activeTrackIndex).toBe(1); // Russian (native) becomes main
+        expect(state.secondaryTrackIndex).toBe(0); // German filler
+    });
+
+    test('falls back to first/second track when neither label matches', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('German', [{ text: 'de' } as Subtitle]);
+        state.addTrack('French', [{ text: 'fr' } as Subtitle]);
+
+        expect(state.activeTrackIndex).toBe(0);
+        expect(state.secondaryTrackIndex).toBe(1);
+    });
+
+    test('is order-independent (primary arrives after secondary)', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
+        expect(state.activeTrackIndex).toBe(0); // only track so far
+
+        state.addTrack('English', [{ text: 'en' } as Subtitle]);
+        expect(state.activeTrackIndex).toBe(1); // English takes over as main
+        expect(state.secondaryTrackIndex).toBe(0); // Russian becomes secondary
+    });
+});

@@ -123,6 +123,12 @@ export default defineConfig(({ command, mode }) => {
               src: '../../packages/shared/src/popup/popup.css',
               dest: 'src/popup',
               rename: { stripBase: true }
+            },
+            {
+              // _locales/<lang>/messages.json — localizes the extension name
+              // and store summary (referenced via __MSG_*__ in the manifest).
+              src: '_locales',
+              dest: '.'
             }
           ],
         }),

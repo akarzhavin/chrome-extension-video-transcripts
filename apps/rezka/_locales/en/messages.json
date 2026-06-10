@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Learn languages while watching HDrezka",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interactive transcripts and dual subtitles to help you understand every word.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

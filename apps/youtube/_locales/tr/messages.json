@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube izlerken dil öğrenin",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Her kelimeyi anlamanıza yardımcı olan etkileşimli dökümler ve çift altyazı.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

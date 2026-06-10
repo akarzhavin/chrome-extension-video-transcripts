@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "تعلّم اللغات أثناء مشاهدة YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "نصوص تفاعلية وترجمتان معًا لمساعدتك على فهم كل كلمة.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

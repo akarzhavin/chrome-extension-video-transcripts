@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube እየተመለከቱ ቋንቋ ይማሩ",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "እያንዳንዱን ቃል እንዲረዱ የሚረዱ መስተጋብራዊ ግልባጮችና ድርብ ንዑስ ጽሑፎች።",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

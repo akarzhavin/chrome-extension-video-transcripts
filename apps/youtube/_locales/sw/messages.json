@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Jifunze lugha unapotazama YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Manukuu shirikishi na manukuu mara mbili ili kukusaidia kuelewa kila neno.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

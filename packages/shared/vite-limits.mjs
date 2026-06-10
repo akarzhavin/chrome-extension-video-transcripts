@@ -19,7 +19,7 @@ const DEFAULTS = {
     MAX_SOURCE_URL_BYTES: 2048,
     MAX_CONTEXT_BYTES: 2048,
     MAX_TITLE_BYTES: 512,
-    ALLOWED_SOURCES: ['rezka-extension', 'youtube-extension'],
+    ALLOWED_SOURCES: ['rezka-extension', 'youtube-extension', 'web-extension'],
 };
 
 export function loadLingogramLimits() {

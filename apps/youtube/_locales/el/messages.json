@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Μάθετε γλώσσες βλέποντας YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Διαδραστικές μεταγραφές και διπλοί υπότιτλοι για να καταλαβαίνετε κάθε λέξη.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Учите језике гледајући YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Интерактивни транскрипти и двоструки титлови да бисте разумели сваку реч.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

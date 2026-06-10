@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Belajar bahasa sambil menonton YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Transkrip interaktif dan subtitel ganda untuk membantu Anda memahami setiap kata.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

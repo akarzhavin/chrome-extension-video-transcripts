@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Leer talen tijdens het YouTube-kijken",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interactieve transcripties en dubbele ondertitels om elk woord te begrijpen.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

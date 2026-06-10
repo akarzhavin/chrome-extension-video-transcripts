@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Impara le lingue guardando YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Trascrizioni interattive e sottotitoli doppi per aiutarti a capire ogni parola.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}

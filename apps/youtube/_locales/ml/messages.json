@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "YouTube കാണുമ്പോൾ ഭാഷകൾ പഠിക്കൂ",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "ഓരോ വാക്കും മനസ്സിലാക്കാൻ ഇന്ററാക്ടീവ് ട്രാൻസ്ക്രിപ്റ്റും ഇരട്ട സബ്ടൈറ്റിലുകളും.",
+    "description": "Short store summary (max 132 characters)."
+  }
+}
