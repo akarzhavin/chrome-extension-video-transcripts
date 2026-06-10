@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interactieve transcripties en dubbele ondertitels om elk woord te begrijpen.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Kies je talen",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Kies de taal die je leert en je moedertaal om te beginnen.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Ik leer",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Mijn moedertaal",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Selecteren…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Ondertitels zoeken…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Ondertitels voor deze video zoeken.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Geen ondertitels beschikbaar",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Deze video heeft geen ondertitels. Probeer een andere video — niet elke video op YouTube heeft ondertitels.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Opnieuw zoeken",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

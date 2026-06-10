@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Manukuu shirikishi na manukuu mara mbili ili kukusaidia kuelewa kila neno.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Chagua lugha zako",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Chagua lugha unayojifunza na lugha yako ya asili ili kuanza.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Ninajifunza",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Lugha yangu ya asili",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Chagua…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Inatafuta manukuu…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Inatafuta manukuu ya video hii.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Hakuna manukuu yanayopatikana",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Video hii haina manukuu. Jaribu video nyingine — si kila video kwenye YouTube ina manukuu.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Tafuta tena",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

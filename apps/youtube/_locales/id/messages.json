@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Transkrip interaktif dan subtitel ganda untuk membantu Anda memahami setiap kata.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Pilih bahasa Anda",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Pilih bahasa yang Anda pelajari dan bahasa ibu Anda untuk memulai.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Saya belajar",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Bahasa ibu saya",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Pilih…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Mencari subtitle…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Mencari subtitle untuk video ini.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Tidak ada subtitle tersedia",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Video ini tidak memiliki subtitle. Coba video lain — tidak semua video di YouTube memiliki subtitle.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Cari lagi",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

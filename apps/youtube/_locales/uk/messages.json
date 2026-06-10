@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Інтерактивні транскрипти та подвійні субтитри, щоб розуміти кожне слово.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Виберіть мови",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Вкажіть мову, яку вивчаєте, і вашу рідну мову, щоб почати.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Я вивчаю",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Моя рідна мова",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Виберіть…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Пошук субтитрів…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Шукаємо субтитри для цього відео.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Субтитри недоступні",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "У цього відео немає субтитрів. Спробуйте інше відео — не кожне відео на YouTube має субтитри.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Шукати знову",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

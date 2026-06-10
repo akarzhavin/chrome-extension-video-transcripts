@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Transcrições interativas e legendas duplas para ajudar você a entender cada palavra.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Escolha seus idiomas",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Escolha o idioma que você está aprendendo e seu idioma nativo para começar.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Estou aprendendo",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Meu idioma nativo",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Selecionar…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Procurando legendas…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Procurando legendas para este vídeo.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Nenhuma legenda disponível",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Este vídeo não tem legendas. Tente outro vídeo — nem todo vídeo no YouTube tem legendas.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Procurar novamente",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

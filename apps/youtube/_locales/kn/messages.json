@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "ಪ್ರತಿ ಪದವನ್ನೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಸಂವಾದಾತ್ಮಕ ಪ್ರತಿಲಿಪಿ ಮತ್ತು ಜೋಡಿ ಉಪಶೀರ್ಷಿಕೆಗಳು.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "ನಿಮ್ಮ ಭಾಷೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "ಪ್ರಾರಂಭಿಸಲು ನೀವು ಕಲಿಯುತ್ತಿರುವ ಭಾಷೆ ಮತ್ತು ನಿಮ್ಮ ಮಾತೃಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "ನಾನು ಕಲಿಯುತ್ತಿದ್ದೇನೆ",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "ನನ್ನ ಮಾತೃಭಾಷೆ",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "ಆಯ್ಕೆಮಾಡಿ…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "ಈ ವೀಡಿಯೊಗಾಗಿ ಉಪಶೀರ್ಷಿಕೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "ಯಾವುದೇ ಉಪಶೀರ್ಷಿಕೆಗಳು ಲಭ್ಯವಿಲ್ಲ",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "ಈ ವೀಡಿಯೊದಲ್ಲಿ ಉಪಶೀರ್ಷಿಕೆಗಳಿಲ್ಲ. ಬೇರೆ ವೀಡಿಯೊವನ್ನು ಪ್ರಯತ್ನಿಸಿ — YouTube ನಲ್ಲಿರುವ ಎಲ್ಲಾ ವೀಡಿಯೊಗಳಲ್ಲಿ ಉಪಶೀರ್ಷಿಕೆಗಳಿರುವುದಿಲ್ಲ.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "ಮತ್ತೆ ಹುಡುಕಿ",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

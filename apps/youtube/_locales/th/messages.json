@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "คำบรรยายแบบโต้ตอบและซับไตเติลคู่ ช่วยให้คุณเข้าใจทุกคำ",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "เลือกภาษาของคุณ",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "เลือกภาษาที่คุณกำลังเรียนและภาษาแม่ของคุณเพื่อเริ่มต้น",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "ฉันกำลังเรียน",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "ภาษาแม่ของฉัน",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "เลือก…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "กำลังค้นหาคำบรรยาย…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "กำลังค้นหาคำบรรยายสำหรับวิดีโอนี้",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "ไม่มีคำบรรยาย",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "วิดีโอนี้ไม่มีคำบรรยาย ลองวิดีโออื่น — ไม่ใช่ทุกวิดีโอบน YouTube ที่มีคำบรรยาย",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "ค้นหาอีกครั้ง",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

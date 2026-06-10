@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Her kelimeyi anlamanıza yardımcı olan etkileşimli dökümler ve çift altyazı.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Dillerinizi seçin",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Başlamak için öğrendiğiniz dili ve ana dilinizi seçin.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Öğreniyorum",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Ana dilim",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Seçin…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Altyazılar aranıyor…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Bu video için altyazılar aranıyor.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Kullanılabilir altyazı yok",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Bu videoda altyazı yok. Başka bir video deneyin — YouTube'daki her videoda altyazı bulunmaz.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Tekrar ara",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktiiviset tekstitykset ja kaksoistekstitykset auttavat ymmärtämään joka sanan.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Valitse kielesi",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Valitse opiskelemasi kieli ja äidinkielesi aloittaaksesi.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Opiskelen",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Äidinkieleni",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Valitse…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Etsitään tekstityksiä…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Etsitään tekstityksiä tälle videolle.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Ei tekstityksiä saatavilla",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Tällä videolla ei ole tekstityksiä. Kokeile toista videota — kaikissa YouTube-videoissa ei ole tekstityksiä.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Hae uudelleen",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

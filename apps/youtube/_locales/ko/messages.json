@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "모든 단어를 이해하도록 돕는 대화형 대본과 이중 자막.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "언어 선택",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "시작하려면 학습 중인 언어와 모국어를 선택하세요.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "학습 중인 언어",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "모국어",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "선택…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "자막 검색 중…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "이 동영상의 자막을 검색하는 중입니다.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "사용할 수 있는 자막 없음",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "이 동영상에는 자막이 없습니다. 다른 동영상을 시도해 보세요. YouTube의 모든 동영상에 자막이 있는 것은 아닙니다.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "다시 검색",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

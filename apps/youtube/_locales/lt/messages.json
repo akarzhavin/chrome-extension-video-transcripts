@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktyvūs transkriptai ir dvigubi subtitrai, padedantys suprasti kiekvieną žodį.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Pasirinkite kalbas",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Norėdami pradėti, pasirinkite mokomą kalbą ir savo gimtąją kalbą.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Mokausi",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Mano gimtoji kalba",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Pasirinkite…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Ieškoma subtitrų…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Ieškoma šio vaizdo įrašo subtitrų.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Subtitrų nėra",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Šis vaizdo įrašas neturi subtitrų. Išbandykite kitą vaizdo įrašą — ne visi „YouTube“ vaizdo įrašai turi subtitrus.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Ieškoti dar kartą",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "תמלולים אינטראקטיביים וכתוביות כפולות שיעזרו לכם להבין כל מילה.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "בחר את השפות שלך",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "בחר את השפה שאתה לומד ואת שפת האם שלך כדי להתחיל.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "אני לומד",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "שפת האם שלי",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "בחר…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "מחפש כתוביות…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "מחפש כתוביות לסרטון הזה.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "אין כתוביות זמינות",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "לסרטון הזה אין כתוביות. נסה סרטון אחר — לא לכל סרטון ב-YouTube יש כתוביות.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "חפש שוב",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

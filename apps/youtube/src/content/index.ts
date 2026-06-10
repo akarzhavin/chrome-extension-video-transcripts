@@ -14,6 +14,17 @@ import {
 import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
 
+// Localized UI string from _locales/<lang>/messages.json. Falls back to the
+// English default when the message isn't registered (non-extension contexts,
+// or a key missing from a locale) so the sidebar never shows a blank label.
+function t(key: string, fallback: string): string {
+    try {
+        return chrome.i18n?.getMessage(key) || fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 class YouTubeVttApp implements AppInterface {
     state: AppState;
     ui: SidebarUI;
@@ -79,16 +90,19 @@ class YouTubeVttApp implements AppInterface {
 
         const title = document.createElement('div');
         title.className = 'vtt-lang-onboarding-title';
-        title.textContent = 'Choose your languages';
+        title.textContent = t('ytOnboardingTitle', 'Choose your languages');
         banner.appendChild(title);
 
         const text = document.createElement('div');
         text.className = 'vtt-lang-onboarding-text';
-        text.textContent = "Pick the language you're learning and your native language to start.";
+        text.textContent = t(
+            'ytOnboardingText',
+            "Pick the language you're learning and your native language to start.",
+        );
         banner.appendChild(text);
 
-        const learning = this.buildOnboardingSelect("I'm learning");
-        const native = this.buildOnboardingSelect('My native language');
+        const learning = this.buildOnboardingSelect(t('ytLearningLabel', "I'm learning"));
+        const native = this.buildOnboardingSelect(t('ytNativeLabel', 'My native language'));
         banner.appendChild(learning.wrap);
         banner.appendChild(native.wrap);
 
@@ -119,7 +133,7 @@ class YouTubeVttApp implements AppInterface {
         const select = document.createElement('select');
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = 'Select…';
+        placeholder.textContent = t('ytSelectPlaceholder', 'Select…');
         placeholder.disabled = true;
         placeholder.selected = true;
         select.appendChild(placeholder);
@@ -151,7 +165,10 @@ class YouTubeVttApp implements AppInterface {
         if (this.detector.getVideoIdFromUrl() === null) return;
         if (this.state.tracks.length > 0) return; // already have something to show
 
-        this.showStatusBanner('Searching for subtitles…', 'Looking for captions for this video.');
+        this.showStatusBanner(
+            t('ytSearchingTitle', 'Searching for subtitles…'),
+            t('ytSearchingText', 'Looking for captions for this video.'),
+        );
 
         this.noSubsTimer = window.setTimeout(() => {
             this.noSubsTimer = null;
@@ -169,10 +186,16 @@ class YouTubeVttApp implements AppInterface {
         if (this.detector.getVideoIdFromUrl() === null) return;
         if (this.state.tracks.length > 0) return;
         this.showStatusBanner(
-            'No subtitles available',
-            "This video doesn't have subtitles. Try another video — not every " +
-                'video on YouTube has captions.',
-            { label: '↻ Search again', onClick: () => this.detector.reprocessCurrentVideo() },
+            t('ytNoSubsTitle', 'No subtitles available'),
+            t(
+                'ytNoSubsText',
+                "This video doesn't have subtitles. Try another video — not every " +
+                    'video on YouTube has captions.',
+            ),
+            {
+                label: '↻ ' + t('ytSearchAgain', 'Search again'),
+                onClick: () => this.detector.reprocessCurrentVideo(),
+            },
         );
     }
 

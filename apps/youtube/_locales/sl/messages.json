@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktivni prepisi in dvojni podnapisi, da boste razumeli vsako besedo.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Izberite jezike",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Izberite jezik, ki se ga učite, in svoj materni jezik za začetek.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Učim se",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Moj materni jezik",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Izberite…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Iskanje podnapisov…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Iskanje podnapisov za ta videoposnetek.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Podnapisi niso na voljo",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Ta videoposnetek nima podnapisov. Poskusite z drugim videoposnetkom — nimajo vsi videoposnetki na YouTubu podnapisov.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Iskanje znova",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

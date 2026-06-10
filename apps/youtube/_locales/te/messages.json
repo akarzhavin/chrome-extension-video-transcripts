@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "ప్రతి పదాన్ని అర్థం చేసుకోవడంలో సహాయపడే ఇంటరాక్టివ్ ట్రాన్‌స్క్రిప్ట్‌లు, జంట సబ్‌టైటిల్స్.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "మీ భాషలను ఎంచుకోండి",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "ప్రారంభించడానికి మీరు నేర్చుకుంటున్న భాషను మరియు మీ మాతృభాషను ఎంచుకోండి.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "నేను నేర్చుకుంటున్నాను",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "నా మాతృభాష",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "ఎంచుకోండి…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "ఉపశీర్షికల కోసం వెతుకుతోంది…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "ఈ వీడియో కోసం ఉపశీర్షికల కోసం వెతుకుతోంది.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "ఉపశీర్షికలు అందుబాటులో లేవు",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "ఈ వీడియోకి ఉపశీర్షికలు లేవు. మరో వీడియోని ప్రయత్నించండి — YouTubeలో ప్రతి వీడియోకి ఉపశీర్షికలు ఉండవు.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "మళ్లీ వెతకండి",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

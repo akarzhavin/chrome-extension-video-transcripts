@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktív átiratok és kettős feliratok, hogy minden szót megérts.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Válassza ki a nyelveket",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Válassza ki a tanult nyelvet és az anyanyelvét a kezdéshez.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Ezt tanulom",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Az anyanyelvem",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Válasszon…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Feliratok keresése…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Feliratok keresése ehhez a videóhoz.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Nincs elérhető felirat",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Ehhez a videóhoz nincs felirat. Próbáljon meg másik videót — nem minden YouTube-videóhoz van felirat.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Keresés újra",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

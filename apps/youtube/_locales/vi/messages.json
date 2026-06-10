@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Bản chép lời tương tác và phụ đề kép giúp bạn hiểu từng từ.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Chọn ngôn ngữ của bạn",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Chọn ngôn ngữ bạn đang học và tiếng mẹ đẻ của bạn để bắt đầu.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Tôi đang học",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Tiếng mẹ đẻ của tôi",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Chọn…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Đang tìm phụ đề…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Đang tìm phụ đề cho video này.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Không có phụ đề",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Video này không có phụ đề. Hãy thử video khác — không phải video nào trên YouTube cũng có phụ đề.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Tìm lại",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

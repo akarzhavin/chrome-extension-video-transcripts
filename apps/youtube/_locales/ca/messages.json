@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Transcripcions interactives i subtítols dobles per ajudar-te a entendre cada paraula.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Trieu els vostres idiomes",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Trieu l'idioma que esteu aprenent i la vostra llengua materna per començar.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Estic aprenent",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "La meva llengua materna",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Seleccioneu…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "S'estan cercant subtítols…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "S'estan cercant subtítols per a aquest vídeo.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "No hi ha subtítols disponibles",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Aquest vídeo no té subtítols. Proveu un altre vídeo: no tots els vídeos de YouTube tenen subtítols.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Torna a cercar",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

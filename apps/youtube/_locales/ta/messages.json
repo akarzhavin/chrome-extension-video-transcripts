@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "ஒவ்வொரு சொல்லையும் புரிந்துகொள்ள ஊடாடும் படியெடுப்புகள் மற்றும் இரட்டை வசன வரிகள்.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "உங்கள் மொழிகளைத் தேர்ந்தெடுக்கவும்",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "தொடங்க, நீங்கள் கற்கும் மொழியையும் உங்கள் தாய்மொழியையும் தேர்ந்தெடுக்கவும்.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "நான் கற்கிறேன்",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "எனது தாய்மொழி",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "தேர்ந்தெடுக்கவும்…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "வசன வரிகள் தேடப்படுகின்றன…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "இந்த வீடியோவுக்கான வசன வரிகள் தேடப்படுகின்றன.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "வசன வரிகள் எதுவும் இல்லை",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "இந்த வீடியோவில் வசன வரிகள் இல்லை. வேறு வீடியோவை முயற்சிக்கவும் — YouTube இல் உள்ள எல்லா வீடியோக்களிலும் வசன வரிகள் இருக்காது.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "மீண்டும் தேடு",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

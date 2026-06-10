@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Διαδραστικές μεταγραφές και διπλοί υπότιτλοι για να καταλαβαίνετε κάθε λέξη.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Επιλέξτε τις γλώσσες σας",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Επιλέξτε τη γλώσσα που μαθαίνετε και τη μητρική σας γλώσσα για να ξεκινήσετε.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Μαθαίνω",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Η μητρική μου γλώσσα",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Επιλέξτε…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Αναζήτηση υποτίτλων…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Αναζήτηση υποτίτλων για αυτό το βίντεο.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Δεν υπάρχουν διαθέσιμοι υπότιτλοι",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Αυτό το βίντεο δεν έχει υπότιτλους. Δοκιμάστε άλλο βίντεο — δεν έχουν όλα τα βίντεο στο YouTube υπότιτλους.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Αναζήτηση ξανά",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

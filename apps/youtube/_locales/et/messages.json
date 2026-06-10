@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktiivsed transkriptsioonid ja topeltsubtiitrid, et mõistaksid iga sõna.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Valige oma keeled",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Alustamiseks valige õpitav keel ja oma emakeel.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Õpin",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Minu emakeel",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Valige…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Subtiitrite otsimine…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Selle video subtiitrite otsimine.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Subtiitreid pole saadaval",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Sellel videol pole subtiitreid. Proovige teist videot — kõigil YouTube'i videotel pole subtiitreid.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Otsi uuesti",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

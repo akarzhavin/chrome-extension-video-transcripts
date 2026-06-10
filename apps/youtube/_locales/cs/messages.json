@@ -6,5 +6,45 @@
   "appDesc": {
     "message": "Interaktivní přepisy a dvojité titulky, které vám pomohou porozumět každému slovu.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Vyberte jazyky",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Vyberte jazyk, který se učíte, a svůj rodný jazyk, abyste mohli začít.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Učím se",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Můj rodný jazyk",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Vybrat…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Hledání titulků…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Hledání titulků k tomuto videu.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Žádné titulky nejsou k dispozici",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Toto video nemá titulky. Zkuste jiné video — ne každé video na YouTube má titulky.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Hledat znovu",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }
