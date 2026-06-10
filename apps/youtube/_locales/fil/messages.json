@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Matuto ng wika habang nanonood ng YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interactive na transcript at dobleng subtitle para maintindihan ang bawat salita.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Piliin ang iyong mga wika",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Piliin ang wikang pinag-aaralan mo at ang iyong katutubong wika para magsimula.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Nag-aaral ako ng",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Aking katutubong wika",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Pumili…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Naghahanap ng mga subtitle…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Naghahanap ng mga subtitle para sa video na ito.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Walang available na subtitle",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Walang subtitle ang video na ito. Subukan ang ibang video — hindi lahat ng video sa YouTube ay may subtitle.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Maghanap muli",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

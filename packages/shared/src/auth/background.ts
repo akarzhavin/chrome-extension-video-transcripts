@@ -102,11 +102,9 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
         }
         case 'ADD_WORD': {
             const term = String(request.term ?? '').trim();
-            const sourceUrl = String(request.sourceUrl ?? '');
             const context = typeof request.context === 'string' ? request.context : '';
-            const title = typeof request.title === 'string' ? request.title : '';
             if (!term) throw new Error('term required');
-            const input = { term, sourceUrl, context, title };
+            const input = { term, context };
             try {
                 const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();

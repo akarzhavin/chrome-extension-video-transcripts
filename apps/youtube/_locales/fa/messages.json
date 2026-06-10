@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "هنگام تماشای YouTube زبان بیاموزید",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "رونوشت‌های تعاملی و زیرنویس دوگانه تا هر کلمه را بفهمید.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "زبان‌های خود را انتخاب کنید",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "برای شروع، زبانی که در حال یادگیری آن هستید و زبان مادری خود را انتخاب کنید.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "در حال یادگیری",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "زبان مادری من",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "انتخاب کنید…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "در حال جستجوی زیرنویس…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "در حال جستجوی زیرنویس برای این ویدیو.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "زیرنویسی موجود نیست",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "این ویدیو زیرنویس ندارد. ویدیوی دیگری را امتحان کنید — همه ویدیوهای YouTube زیرنویس ندارند.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "جستجوی دوباره",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

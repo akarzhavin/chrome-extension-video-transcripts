@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Mācieties valodas, skatoties YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktīvi transkripti un dubultie subtitri, lai saprastu katru vārdu.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Izvēlieties valodas",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Lai sāktu, izvēlieties valodu, kuru mācāties, un savu dzimto valodu.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Es mācos",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Mana dzimtā valoda",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Izvēlieties…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Notiek subtitru meklēšana…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Tiek meklēti subtitri šim videoklipam.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Nav pieejamu subtitru",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Šim videoklipam nav subtitru. Izmēģiniet citu videoklipu — ne visiem YouTube videoklipiem ir subtitri.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Meklēt vēlreiz",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Învață limbi vizionând YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Transcrieri interactive și subtitrări duble care te ajută să înțelegi fiecare cuvânt.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Alege limbile",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Alege limba pe care o înveți și limba ta maternă pentru a începe.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Învăț",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Limba mea maternă",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Selectează…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Se caută subtitrări…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Se caută subtitrări pentru acest videoclip.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Nicio subtitrare disponibilă",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Acest videoclip nu are subtitrări. Încearcă alt videoclip — nu toate videoclipurile de pe YouTube au subtitrări.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Caută din nou",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

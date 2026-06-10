@@ -10,6 +10,18 @@ export class AppState {
     isHovering: boolean = false;
     guessState: Map<number, number> = new Map();
 
+    // When set (YouTube, driven by the user's chosen language pair), track
+    // selection matches these display-name fragments instead of the legacy
+    // English/Russian heuristic. Left undefined for Rezka → legacy behavior.
+    primaryLangLabel?: string;
+    secondaryLangLabel?: string;
+
+    setLanguagePreferences(primary?: string, secondary?: string): void {
+        this.primaryLangLabel = primary;
+        this.secondaryLangLabel = secondary;
+        this.applyPreferences();
+    }
+
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
@@ -26,6 +38,37 @@ export class AppState {
     applyPreferences(): void {
         if (this.tracks.length === 0) return;
 
+        // Preferred path: the user picked a language pair (YouTube). Match the
+        // primary (language being learned) and secondary (native) tracks by the
+        // display-name fragments the caller assigned.
+        if (this.primaryLangLabel || this.secondaryLangLabel) {
+            const primIndex = this.primaryLangLabel
+                ? this.tracks.findIndex(t => t.name.includes(this.primaryLangLabel!))
+                : -1;
+            const secIndex = this.secondaryLangLabel
+                ? this.tracks.findIndex(t => t.name.includes(this.secondaryLangLabel!))
+                : -1;
+
+            if (primIndex !== -1) {
+                this.activeTrackIndex = primIndex;
+                if (secIndex !== -1 && secIndex !== primIndex) {
+                    this.secondaryTrackIndex = secIndex;
+                } else if (this.tracks.length > 1) {
+                    this.secondaryTrackIndex = (primIndex === 0) ? 1 : 0;
+                }
+            } else if (secIndex !== -1) {
+                this.activeTrackIndex = secIndex;
+                if (this.tracks.length > 1) {
+                    this.secondaryTrackIndex = (secIndex === 0) ? 1 : 0;
+                }
+            } else {
+                this.activeTrackIndex = 0;
+                if (this.tracks.length > 1) this.secondaryTrackIndex = 1;
+            }
+            return;
+        }
+
+        // Legacy heuristic (Rezka): assume an English/Russian-Ukrainian pair.
         // Find indices of key languages
         const engIndex = this.tracks.findIndex(t => t.name.includes('English'));
         const rusIndex = this.tracks.findIndex(t => t.name.includes('Russian') || t.name.includes('Ukrainian'));

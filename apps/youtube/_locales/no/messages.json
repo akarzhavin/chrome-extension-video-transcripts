@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Lær språk mens du ser på YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktive transkripsjoner og doble undertekster som hjelper deg å forstå hvert ord.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Velg språkene dine",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Velg språket du lærer og morsmålet ditt for å starte.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Jeg lærer",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Morsmålet mitt",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Velg…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Søker etter undertekster…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Søker etter undertekster for denne videoen.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Ingen undertekster tilgjengelig",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Denne videoen har ingen undertekster. Prøv en annen video — ikke alle videoer på YouTube har undertekster.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Søk igjen",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

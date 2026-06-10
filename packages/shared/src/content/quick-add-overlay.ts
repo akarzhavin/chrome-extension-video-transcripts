@@ -184,9 +184,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
             const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string }>({
                 action: 'ADD_WORD',
                 term,
-                sourceUrl: location.href,
                 context,
-                title: document.title,
             });
             console.log('[Lingogram] ADD_WORD ←', res);
             if (!res.ok) throw new Error(res.error ?? 'add failed');

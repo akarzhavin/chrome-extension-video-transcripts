@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Impara le lingue guardando YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Trascrizioni interattive e sottotitoli doppi per aiutarti a capire ogni parola.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Scegli le tue lingue",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Scegli la lingua che stai imparando e la tua lingua madre per iniziare.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Sto imparando",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "La mia lingua madre",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Seleziona…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Ricerca dei sottotitoli…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Ricerca dei sottotitoli per questo video.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Nessun sottotitolo disponibile",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Questo video non ha sottotitoli. Prova un altro video: non tutti i video su YouTube hanno i sottotitoli.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Cerca di nuovo",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

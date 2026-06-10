@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "YouTube እየተመለከቱ ቋንቋ ይማሩ",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "እያንዳንዱን ቃል እንዲረዱ የሚረዱ መስተጋብራዊ ግልባጮችና ድርብ ንዑስ ጽሑፎች።",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "ቋንቋዎችዎን ይምረጡ",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "ለመጀመር የሚማሩትን ቋንቋ እና የአፍ መፍቻ ቋንቋዎን ይምረጡ።",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "እየተማርኩ ነው",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "የአፍ መፍቻ ቋንቋዬ",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "ይምረጡ…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "የትርጉም ጽሑፎችን በመፈለግ ላይ…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "ለዚህ ቪዲዮ የትርጉም ጽሑፎችን በመፈለግ ላይ።",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "ምንም የትርጉም ጽሑፍ የለም",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "ይህ ቪዲዮ የትርጉም ጽሑፍ የለውም። ሌላ ቪዲዮ ይሞክሩ — በYouTube ላይ ያሉ ሁሉም ቪዲዮዎች የትርጉም ጽሑፍ የላቸውም።",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "እንደገና ፈልግ",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

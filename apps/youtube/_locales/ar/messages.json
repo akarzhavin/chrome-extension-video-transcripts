@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "تعلّم اللغات أثناء مشاهدة YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "نصوص تفاعلية وترجمتان معًا لمساعدتك على فهم كل كلمة.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "اختر لغاتك",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "اختر اللغة التي تتعلمها ولغتك الأم للبدء.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "أنا أتعلم",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "لغتي الأم",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "اختر…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "جارٍ البحث عن الترجمة…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "جارٍ البحث عن ترجمة لهذا الفيديو.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "لا تتوفر ترجمة",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "لا يحتوي هذا الفيديو على ترجمة. جرّب فيديو آخر — ليست كل مقاطع الفيديو على YouTube تحتوي على ترجمة.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "ابحث مرة أخرى",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

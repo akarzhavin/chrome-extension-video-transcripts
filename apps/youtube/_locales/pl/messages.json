@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Ucz się języków, oglądając YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Interaktywne transkrypcje i podwójne napisy, które pomogą zrozumieć każde słowo.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Wybierz języki",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Wybierz język, którego się uczysz, oraz swój język ojczysty, aby rozpocząć.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Uczę się",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Mój język ojczysty",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Wybierz…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Wyszukiwanie napisów…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Wyszukiwanie napisów do tego filmu.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Brak dostępnych napisów",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Ten film nie ma napisów. Spróbuj innego filmu — nie każdy film w YouTube ma napisy.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Szukaj ponownie",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "YouTube দেখার সময় ভাষা শিখুন",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "প্রতিটি শব্দ বুঝতে সাহায্য করতে ইন্টারঅ্যাকটিভ ট্রান্সক্রিপ্ট ও দ্বৈত সাবটাইটেল।",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "আপনার ভাষা নির্বাচন করুন",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "শুরু করতে আপনি যে ভাষা শিখছেন এবং আপনার মাতৃভাষা নির্বাচন করুন।",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "আমি শিখছি",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "আমার মাতৃভাষা",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "নির্বাচন করুন…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "সাবটাইটেল খোঁজা হচ্ছে…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "এই ভিডিওর জন্য সাবটাইটেল খোঁজা হচ্ছে।",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "কোনো সাবটাইটেল উপলব্ধ নেই",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "এই ভিডিওতে কোনো সাবটাইটেল নেই। অন্য একটি ভিডিও চেষ্টা করুন — YouTube-এর সব ভিডিওতে সাবটাইটেল থাকে না।",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "আবার খুঁজুন",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}

@@ -6,9 +6,7 @@ import { AuthState, getAuthState, setAuthState } from './storage';
 // file the Firestore rule generator consumes. Single source of truth.
 const MAX_WORDS_PER_DAY = __LIMIT_MAX_WORDS_PER_DAY__;
 const MAX_TERM_BYTES = __LIMIT_MAX_TERM_BYTES__;
-const MAX_SOURCE_URL_BYTES = __LIMIT_MAX_SOURCE_URL_BYTES__;
 const MAX_CONTEXT_BYTES = __LIMIT_MAX_CONTEXT_BYTES__;
-const MAX_TITLE_BYTES = __LIMIT_MAX_TITLE_BYTES__;
 
 const REFRESH_LEEWAY_MS = 60_000;
 
@@ -84,13 +82,10 @@ interface CommitWrite {
 
 interface AddInboxWordInput {
     term: string;
-    sourceUrl: string;
     // prev + current + next subtitle lines, main language only. Empty when the
     // pill was created outside of a subtitle item (defensive — quick-add only
     // ever fires inside one today).
     context?: string;
-    // document.title at capture time, useful for the inbox UI in Lingogram.
-    title?: string;
 }
 
 interface AddInboxWordResult {
@@ -121,13 +116,11 @@ function buildWrites(
     const wordFields: Record<string, unknown> = {
         term: { stringValue: input.term },
         source: { stringValue: cfg.source },
-        sourceUrl: { stringValue: input.sourceUrl },
         processed: { booleanValue: false },
     };
-    // Only emit context/title when non-empty — Firestore rules treat them as
-    // optional and writing an empty string would burn bytes for nothing.
+    // Only emit context when non-empty — Firestore rules treat it as optional
+    // and writing an empty string would burn bytes for nothing.
     if (input.context) wordFields.context = { stringValue: input.context };
-    if (input.title) wordFields.title = { stringValue: input.title };
 
     const writes: CommitWrite[] = [
         {
@@ -192,16 +185,10 @@ export async function addInboxWord(cfg: AuthConfig, input: AddInboxWordInput): P
     if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
         throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
     }
-    if (utf8Bytes(input.sourceUrl) > MAX_SOURCE_URL_BYTES) {
-        throw new Error(`sourceUrl exceeds ${MAX_SOURCE_URL_BYTES} bytes`);
-    }
     if (input.context && utf8Bytes(input.context) > MAX_CONTEXT_BYTES) {
         // Truncating silently keeps the term submission going. Trim from the
         // end so the keyword's own subtitle (in the middle) survives.
         input = { ...input, context: truncateBytes(input.context, MAX_CONTEXT_BYTES) };
-    }
-    if (input.title && utf8Bytes(input.title) > MAX_TITLE_BYTES) {
-        input = { ...input, title: truncateBytes(input.title, MAX_TITLE_BYTES) };
     }
 
     let state = await ensureFreshToken(cfg);

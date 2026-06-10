@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "Belajar bahasa sambil menonton YouTube",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "appDesc": {
+    "message": "Transkrip interaktif dan sari kata berganda untuk membantu anda memahami setiap perkataan.",
+    "description": "Short store summary (max 132 characters)."
+  },
+  "ytOnboardingTitle": {
+    "message": "Pilih bahasa anda",
+    "description": "Onboarding banner heading (YouTube sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Pilih bahasa yang anda pelajari dan bahasa ibunda anda untuk bermula.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Saya belajar",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Bahasa ibunda saya",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Pilih…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Mencari sari kata…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Mencari sari kata untuk video ini.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Tiada sari kata tersedia",
+    "description": "Status banner heading when a video has no subtitles."
+  },
+  "ytNoSubsText": {
+    "message": "Video ini tiada sari kata. Cuba video lain — bukan semua video di YouTube mempunyai sari kata.",
+    "description": "Status banner body when a video has no subtitles."
+  },
+  "ytSearchAgain": {
+    "message": "Cari semula",
+    "description": "Retry button label on the no-subtitles banner."
+  }
+}
