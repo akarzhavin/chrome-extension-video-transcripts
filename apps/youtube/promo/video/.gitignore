@@ -1,0 +1,5 @@
+node_modules/
+out/
+# Backdrop source + derived clip for record-screencast.mjs (large; regenerated locally)
+*.mov
+bbb-clip.mp4
