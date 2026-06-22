@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  /* ---- Frame: 1280x800 canvas evoking the extension on a YouTube watch page.
+     Brand-neutral backdrop (no copyrighted YouTube imagery); the sidebar panel
+     uses the extension's REAL CSS so the captured UI is pixel-faithful. ---- */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 800px; overflow: hidden; }
+  body {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, system-ui, sans-serif;
+    background: #0f0f0f;
+    display: flex;
+  }
+  /* faux watch page (left) */
+  .stage { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .stage .topbar { display: flex; align-items: center; gap: 12px; height: 32px; }
+  .stage .logo { width: 90px; height: 20px; border-radius: 4px;
+    background: linear-gradient(90deg, #ff0033, #cc0029); }
+  .stage .searchbar { flex: 1; max-width: 460px; height: 28px; border-radius: 14px;
+    background: #1f1f1f; border: 1px solid #303030; }
+  .stage .player { aspect-ratio: 16/9; width: 100%; border-radius: 12px;
+    background: radial-gradient(120% 120% at 30% 20%, #2a2a40 0%, #14141f 55%, #0c0c12 100%);
+    position: relative; overflow: hidden; }
+  .stage .player .play { position: absolute; inset: 0; margin: auto; width: 84px; height: 84px;
+    border-radius: 50%; background: rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center; }
+  .stage .player .play::after { content: ''; border-left: 26px solid #fff;
+    border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 6px; }
+  .stage .player .ccstrip { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: rgba(0,0,0,0.65); color: #fff; font-size: 18px; padding: 4px 10px; border-radius: 4px; }
+  .stage .meta .ttl { height: 18px; width: 70%; border-radius: 5px; background: #272727; margin-bottom: 10px; }
+  .stage .meta .sub { height: 12px; width: 40%; border-radius: 5px; background: #1d1d1d; }
+
+  /* ---- The extension sidebar (right). Shell mimics styles.css; the inner
+     onboarding/status blocks use the EXACT CSS from index.ts injectLayoutOverrides. ---- */
+  #vtt-sidebar {
+    width: 380px; height: 800px; background: #0f0f0f; border-left: 1px solid #272727;
+    display: flex; flex-direction: column;
+  }
+  #vtt-sidebar .vtt-header { height: 52px; display: flex; align-items: center; gap: 10px;
+    padding: 0 16px; border-bottom: 1px solid #272727; }
+  #vtt-sidebar .vtt-header .mark { width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  #vtt-sidebar .vtt-header .name { color: #f3f4f6; font-size: 14px; font-weight: 600; }
+  #vtt-list { flex: 1; }
+
+  /* === verbatim from apps/youtube/src/content/index.ts === */
+  #vtt-lang-onboarding { margin: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px; background: rgba(255,255,255,0.04); color: #e5e7eb; }
+  #vtt-lang-onboarding .vtt-lang-onboarding-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  #vtt-lang-onboarding .vtt-lang-onboarding-text { font-size: 12px; line-height: 1.5; color: #9ca3af; margin-bottom: 14px; }
+  #vtt-lang-onboarding .vtt-lang-onboarding-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  #vtt-lang-onboarding .vtt-lang-onboarding-row span { font-size: 12px; color: #cbd5e1; }
+  #vtt-lang-onboarding select { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.18); background: #1f1f1f; color: #f3f4f6; font-size: 13px; }
+  #vtt-status { margin: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px; background: rgba(255,255,255,0.04); color: #e5e7eb; }
+  #vtt-status .vtt-empty-state-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  #vtt-status .vtt-empty-state-text { font-size: 12px; line-height: 1.5; color: #9ca3af; }
+  #vtt-status .vtt-empty-state-action { margin-top: 12px; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px; background: rgba(255,255,255,0.06); color: #f3f4f6; font-size: 12px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="topbar"><div class="logo"></div><div class="searchbar"></div></div>
+    <div class="player">
+      <div class="play"></div>
+      <div class="ccstrip" id="cc-sample">Hello, and welcome back to the channel.</div>
+    </div>
+    <div class="meta"><div class="ttl"></div><div class="sub"></div></div>
+  </div>
+
+  <div id="vtt-sidebar">
+    <div class="vtt-header"><div class="mark"></div><div class="name">Lingogram</div></div>
+    <div id="vtt-list"></div>
+  </div>
+
+<script>
+// Rebuilds the same DOM the content script builds, from localized strings.
+// Called by capture.mjs via page.evaluate(render, payload).
+function render(payload) {
+  const { scene, s, options, picks, rtl } = payload;
+  const list = document.getElementById('vtt-list');
+  list.innerHTML = '';
+  const sb = document.getElementById('vtt-sidebar');
+  sb.dir = rtl ? 'rtl' : 'ltr';
+
+  const mk = (tag, cls, txt) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (txt != null) el.textContent = txt;
+    return el;
+  };
+
+  if (scene === 'onboarding') {
+    const b = mk('div'); b.id = 'vtt-lang-onboarding'; b.className = 'vtt-lang-onboarding';
+    b.appendChild(mk('div', 'vtt-lang-onboarding-title', s.ytOnboardingTitle));
+    b.appendChild(mk('div', 'vtt-lang-onboarding-text', s.ytOnboardingText));
+    const row = (label, picked) => {
+      const wrap = mk('label', 'vtt-lang-onboarding-row');
+      wrap.appendChild(mk('span', null, label));
+      const sel = document.createElement('select');
+      const ph = mk('option', null, s.ytSelectPlaceholder); ph.value = '';
+      sel.appendChild(ph);
+      for (const o of options) {
+        const opt = mk('option', null, o.label === o.native ? o.label : (o.label + ' — ' + o.native));
+        opt.value = o.code; if (o.code === picked) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      wrap.appendChild(sel); return wrap;
+    };
+    b.appendChild(row(s.ytLearningLabel, picks && picks.learning));
+    b.appendChild(row(s.ytNativeLabel, picks && picks.native));
+    list.appendChild(b);
+  } else if (scene === 'nosubs' || scene === 'searching') {
+    const b = mk('div'); b.id = 'vtt-status'; b.className = 'vtt-empty-state';
+    const isNo = scene === 'nosubs';
+    b.appendChild(mk('div', 'vtt-empty-state-title', isNo ? s.ytNoSubsTitle : s.ytSearchingTitle));
+    b.appendChild(mk('div', 'vtt-empty-state-text', isNo ? s.ytNoSubsText : s.ytSearchingText));
+    if (isNo) {
+      const btn = mk('button', 'vtt-empty-state-action', '↻ ' + s.ytSearchAgain);
+      btn.type = 'button'; b.appendChild(btn);
+    }
+    list.appendChild(b);
+  }
+  return true;
+}
+window.render = render;
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8">
+<title>LingoGram — оформления карточки</title>
+<style>
+  :root{ --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font);background:#202024;color:#e8e8ea;padding:30px 16px 70px;}
+  h1{text-align:center;font-size:22px;margin-bottom:6px;}
+  .lead{text-align:center;color:#9a9aa2;font-size:14px;margin-bottom:30px;}
+  .item{max-width:820px;margin:0 auto 34px;}
+  .cap{font-size:13px;color:#9a9aa2;margin-bottom:10px;}
+  .cap b{color:#fff;}
+  /* scale a real 1280x800 slide down to fit */
+  .frame{width:800px;height:500px;overflow:hidden;border-radius:14px;}
+  .scaler{transform:scale(.625);transform-origin:top left;}
+
+  .slide{position:relative;width:1280px;height:800px;overflow:hidden;
+    display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:40px;padding:0 90px;}
+  .bg{position:absolute;inset:0;z-index:0;}
+  .copy{position:relative;z-index:2;max-width:560px;}
+  .eyebrow{display:inline-block;font-size:14px;font-weight:800;letter-spacing:.18em;
+    padding:8px 16px;border-radius:999px;}
+  .copy h1{margin-top:24px;font-size:58px;line-height:1.04;font-weight:850;letter-spacing:-.03em;}
+  .copy p{margin-top:22px;font-size:21px;line-height:1.5;font-weight:450;max-width:520px;}
+  .cta{margin-top:28px;display:inline-block;font-size:19px;font-weight:800;padding:14px 26px;border-radius:12px;}
+
+  .stage{position:relative;z-index:2;display:grid;place-items:center;}
+  .stage::before{content:"";position:absolute;z-index:-1;width:460px;height:560px;border-radius:50%;filter:blur(24px);}
+  .panel{position:relative;width:360px;height:600px;border-radius:22px;overflow:hidden;background:#0f1115;}
+  .panel .shot{position:absolute;width:1418px;height:886px;
+    background-image:url('/Users/aliaksandrkarzhavin/workspace/chrome-extentions/lingogram/apps/youtube/screenshots/out-live/live-demo-en.png');
+    background-repeat:no-repeat;background-size:1418px 886px;left:-1058px;top:0;}
+  .panel::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.10) 0%,transparent 18%);}
+
+  /* ============ THEMES ============ */
+
+  /* 0 · OLD (purple mesh) — старое, оставляем для сравнения */
+  .t-cur .bg{background:
+    radial-gradient(120% 120% at 88% 10%,rgba(139,92,246,.55),transparent 44%),
+    radial-gradient(120% 120% at 8% 90%,rgba(99,102,241,.45),transparent 46%),
+    linear-gradient(135deg,#0c0a24,#160b2c 60%,#0a0a1d);}
+  .t-cur .eyebrow{color:#fff;background:linear-gradient(90deg,#6366f1,#d946ef);}
+  .t-cur .copy h1{color:#fff;} .t-cur .hl{color:#c4b5fd;}
+  .t-cur .copy p{color:rgba(226,228,245,.82);}
+  .t-cur .cta{background:#8b5cf6;color:#fff;}
+  .t-cur .stage::before{background:radial-gradient(circle,rgba(139,92,246,.55),rgba(99,102,241,.25) 45%,transparent 70%);}
+  .t-cur .panel{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 30px 80px rgba(79,70,229,.45),0 12px 32px rgba(0,0,0,.5);}
+
+  /* 0b · CURRENT REAL (violet→emerald mesh) — то, что сейчас в проде (promo.css v4c) */
+  .t-now .bg{background:
+    radial-gradient(120% 120% at 8% 6%,rgba(124,58,237,.64),transparent 50%),
+    radial-gradient(120% 120% at 96% 96%,rgba(5,150,105,.64),transparent 52%),
+    radial-gradient(100% 100% at 52% 102%,rgba(16,185,129,.42),transparent 48%),
+    linear-gradient(150deg,#170d33 0%,#0f1230 46%,#08241f 100%);}
+  /* виньетка + плёночное зерно — как в продовом promo.css */
+  .t-now .bg::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.45) 100%);}
+  .t-now .bg::before{content:"";position:absolute;inset:0;pointer-events:none;
+    opacity:.14;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:220px 220px;}
+  .t-now .eyebrow{color:#fff;background:linear-gradient(90deg,rgba(124,58,237,.95),rgba(16,185,129,.95));
+    box-shadow:0 6px 20px rgba(5,150,105,.4);}
+  .t-now .copy h1{color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.35);}
+  .t-now .hl{background:linear-gradient(90deg,#a78bfa 0%,#10b981 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+  .t-now .copy p{color:rgba(226,228,245,.82);}
+  .t-now .cta{background:linear-gradient(90deg,#7c3aed,#10b981);color:#fff;}
+  .t-now .stage::before{background:radial-gradient(circle,rgba(139,92,246,.55),rgba(99,102,241,.25) 45%,transparent 70%);}
+  .t-now .panel{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 30px 80px rgba(79,70,229,.45),0 12px 32px rgba(0,0,0,.5);}
+
+  /* A · EDITORIAL CREAM + COBALT (light) */
+  .t-cream{background:#F4EEE2;}
+  .t-cream .bg{background:
+    radial-gradient(120% 120% at 90% 8%,rgba(31,79,224,.10),transparent 50%),
+    radial-gradient(100% 100% at 0% 100%,rgba(31,79,224,.06),transparent 50%);}
+  .t-cream .eyebrow{color:#fff;background:#1F4FE0;}
+  .t-cream .copy h1{color:#16140f;} .t-cream .hl{color:#1F4FE0;}
+  .t-cream .copy p{color:#6b665c;}
+  .t-cream .cta{background:#1F4FE0;color:#fff;}
+  .t-cream .stage::before{background:radial-gradient(circle,rgba(31,79,224,.22),transparent 68%);}
+  .t-cream .panel{box-shadow:0 0 0 1px rgba(0,0,0,.06),0 30px 70px rgba(31,79,224,.22),0 12px 30px rgba(60,50,30,.18);}
+
+  /* B · DEEP EMERALD + MINT (dark) */
+  .t-emerald .bg{background:
+    radial-gradient(120% 120% at 88% 10%,rgba(80,230,170,.28),transparent 46%),
+    radial-gradient(120% 120% at 6% 92%,rgba(14,140,107,.5),transparent 48%),
+    linear-gradient(135deg,#07140f,#0c2c20 60%,#06120d);}
+  .t-emerald .eyebrow{color:#04231a;background:#56e6aa;}
+  .t-emerald .copy h1{color:#eafff5;} .t-emerald .hl{color:#56e6aa;}
+  .t-emerald .copy p{color:#7fae9c;}
+  .t-emerald .cta{background:#56e6aa;color:#04231a;}
+  .t-emerald .stage::before{background:radial-gradient(circle,rgba(80,230,170,.4),transparent 68%);}
+  .t-emerald .panel{box-shadow:0 0 0 1px rgba(120,255,210,.18),0 30px 80px rgba(14,140,107,.5),0 12px 32px rgba(0,0,0,.5);}
+
+  /* C · WARM TERRACOTTA (light) */
+  .t-terra{background:#FBF3EA;}
+  .t-terra .bg{background:
+    radial-gradient(120% 120% at 92% 6%,rgba(232,96,44,.12),transparent 50%),
+    radial-gradient(100% 100% at 0% 100%,rgba(232,96,44,.07),transparent 50%);}
+  .t-terra .eyebrow{color:#fff;background:#E8602C;}
+  .t-terra .copy h1{color:#2a1d15;} .t-terra .hl{color:#E8602C;}
+  .t-terra .copy p{color:#8a7568;}
+  .t-terra .cta{background:#E8602C;color:#fff;}
+  .t-terra .stage::before{background:radial-gradient(circle,rgba(232,96,44,.22),transparent 68%);}
+  .t-terra .panel{box-shadow:0 0 0 1px rgba(0,0,0,.06),0 30px 70px rgba(232,96,44,.25),0 12px 30px rgba(80,40,20,.2);}
+
+  /* D · INK & AMBER (dark) */
+  .t-amber .bg{background:
+    radial-gradient(130% 130% at 50% -10%,rgba(255,193,69,.22),transparent 50%),
+    radial-gradient(120% 120% at 92% 96%,rgba(255,193,69,.14),transparent 48%),
+    linear-gradient(160deg,#121116,#1a1820 55%,#0e0d12);}
+  .t-amber .eyebrow{color:#241a00;background:#FFC145;}
+  .t-amber .copy h1{color:#f6f1e7;} .t-amber .hl{color:#FFC145;}
+  .t-amber .copy p{color:#9a958a;}
+  .t-amber .cta{background:#FFC145;color:#241a00;}
+  .t-amber .stage::before{background:radial-gradient(circle,rgba(255,193,69,.34),transparent 68%);}
+  .t-amber .panel{box-shadow:0 0 0 1px rgba(255,210,120,.18),0 30px 80px rgba(180,130,30,.4),0 12px 32px rgba(0,0,0,.55);}
+
+  /* E · CORAL ON PLUM (dark) */
+  .t-coral .bg{background:
+    radial-gradient(120% 120% at 80% 8%,rgba(255,93,143,.32),transparent 46%),
+    radial-gradient(120% 120% at 6% 94%,rgba(120,30,90,.5),transparent 50%),
+    linear-gradient(135deg,#1c0a17,#3a1330 60%,#160812);}
+  .t-coral .eyebrow{color:#33001a;background:#FF5D8F;}
+  .t-coral .copy h1{color:#ffeaf4;} .t-coral .hl{color:#FF5D8F;}
+  .t-coral .copy p{color:#c498ad;}
+  .t-coral .cta{background:#FF5D8F;color:#33001a;}
+  .t-coral .stage::before{background:radial-gradient(circle,rgba(255,93,143,.42),transparent 68%);}
+  .t-coral .panel{box-shadow:0 0 0 1px rgba(255,150,190,.2),0 30px 80px rgba(180,40,110,.45),0 12px 32px rgba(0,0,0,.5);}
+</style></head>
+<body>
+  <h1>LingoGram — оформления карточки стора</h1>
+  <div class="lead">Один и тот же реальный скриншот, 7 оформлений. Скрины не менялись.</div>
+
+  <!-- macro that repeats per theme -->
+  <div class="item">
+    <div class="cap"><b>0 · Старое</b> (фиолетовый меш) — оставляем, тоже нравится</div>
+    <div class="frame"><div class="scaler"><div class="slide t-cur">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>0b · Текущее</b> (violet→emerald меш) — то, что сейчас в проде (promo.css)</div>
+    <div class="frame"><div class="scaler"><div class="slide t-now">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>A · Editorial Cream + кобальт</b> — светлый, выделяется среди тёмных тайлов</div>
+    <div class="frame"><div class="scaler"><div class="slide t-cream">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>B · Deep Emerald + мята</b> — тёмный, но «язык/рост», не AI-фиолетовый</div>
+    <div class="frame"><div class="scaler"><div class="slide t-emerald">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>C · Warm Terracotta</b> — светлый, тёплый, человечный</div>
+    <div class="frame"><div class="scaler"><div class="slide t-terra">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>D · Ink &amp; Amber</b> — чёрный + тёплый янтарь, премиально</div>
+    <div class="frame"><div class="scaler"><div class="slide t-amber">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+  <div class="item">
+    <div class="cap"><b>E · Coral on Plum</b> — слива + коралл, энергично</div>
+    <div class="frame"><div class="scaler"><div class="slide t-coral">
+      <div class="bg"></div>
+      <div class="copy"><span class="eyebrow">READ IN TWO LANGUAGES</span>
+        <h1>Every line,<br>in <span class="hl">both languages</span></h1>
+        <p>The original and the translation, side by side. Catch every word.</p>
+        <span class="cta">Add to Chrome ▸</span></div>
+      <div class="stage"><div class="panel"><div class="shot"></div></div></div>
+    </div></div></div>
+  </div>
+
+</body></html>
