@@ -5,3 +5,19 @@ build/
 *.log
 
 .claude/
+graphify-out/
+
+# Vendored unpacked extensions for screenshot capture (AdBlock Plus, etc.)
+apps/*/screenshots/vendor/
+
+# Promo render intermediates / previews (regenerate via apps/*/promo/render*.mjs)
+apps/*/promo/shots/
+apps/*/promo/out/
+apps/*/screenshots/out-live/
+
+# Video assets (promo clips, screencasts, source footage)
+*.mp4
+*.mov
+
+# Backup files
+*.bak
