@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="apps/rezka/src/assets/icons/icon128.png" width="128" height="128" alt="Logo" />
+  <img src="assets/icon-128.png" width="128" height="128" alt="Lingogram logo" />
   <h1>Learn languages while watching Rezka & YouTube</h1>
   <p><b>Interactive transcripts, dual subtitles, and one-click word capture into your Lingogram dictionary.</b></p>
 
