@@ -16,8 +16,7 @@ stored, and the choices you have.
   you visit and no browsing tracking.
 * Saving a word requires you to be **signed in** (the word goes to your Lingogram
   inbox). Signing in collects your **email address**. Each saved item also stores the
-  selected text, its surrounding sentence, and the **URL and title of the page** you
-  saved it from.
+  selected text and its surrounding sentence.
 * We do **not** sell your data, show ads, run third-party advertising or analytics
   trackers, or monitor your browsing.
 
@@ -53,7 +52,6 @@ process:
   each item we store:
   * the **word or phrase** you selected;
   * the **surrounding sentence or block** of text for context (when available);
-  * the **URL and title of the page** you saved it from;
   * a **source tag** indicating the Extension that saved it;
   * a **timestamp** and a per-day counter used only to enforce a daily save limit.
 
@@ -92,7 +90,7 @@ operated by the developer on Google Cloud infrastructure. Google processes this 
 as our service provider; see Google's Privacy Policy at
 https://policies.google.com/privacy. Access is restricted by Firestore security
 rules so that you can only read and write your own data. The Extension makes no other
-network requests beyond Firebase and the page you explicitly save from.
+network requests beyond Firebase.
 
 ## 6. Data Sharing and Sale
 
