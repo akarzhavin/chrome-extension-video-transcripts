@@ -56,7 +56,7 @@ Click any sentence in the transcript to instantly jump to that specific moment i
 - Preferences persist across reloads via `chrome.storage`.
 
 ### 🌍 Capture from Any Website (Web extension)
-No video, no transcript — just select English text on any page, right-click, and pick **Add to Lingogram**. The word (plus the surrounding sentence as context and the page title) is written to your inbox. If you're not signed in, the toolbar popup opens automatically so you can authorize in one click. Built with a context-menu item + `activeTab`/`scripting` — no broad host permissions, no in-page content script.
+No video, no transcript — just select English text on any page, right-click, and pick **Add to Lingogram**. The word (plus the surrounding sentence as context) is written to your inbox. If you're not signed in, the toolbar popup opens automatically so you can authorize in one click. Built with a context-menu item + `activeTab`/`scripting` — no broad host permissions, no in-page content script.
 
 ### 🔐 Lingogram Account Integration
 - "Sign in on Lingogram" opens the web app's `/extension-auth?ext=<extId>` route in a tab. After auth, the tab forwards the Firebase `idToken` + `refreshToken` to the extension via `chrome.runtime.sendMessage` (gated by `externally_connectable` and a build-time origin allowlist).
