@@ -20,7 +20,7 @@ This repo ships **three Chrome extensions** that turn passive reading and watchi
 - **YouTube** — for [youtube.com](https://youtube.com). Captures auto-generated and uploaded captions.
 - **Web** — for **any website**. Select English text anywhere, right-click → **Add to Lingogram**, and the word goes straight to your inbox. No transcript sidebar — just one-click capture via the context menu.
 
-The two video extensions expose the same interactive transcript sidebar and dual-subtitle merging. **All three** share the same "Sign in on Lingogram" flow that lets you save unknown words to your personal dictionary on [lingogram.app](https://lingogram-app.web.app) without leaving the page.
+The two video extensions expose the same interactive transcript sidebar and dual-subtitle merging. **All three** share the same "Sign in on Lingogram" flow that lets you save unknown words to your personal dictionary on [lingogram.ai](https://lingogram.ai) without leaving the page.
 
 ---
 
@@ -31,7 +31,7 @@ The two video extensions expose the same interactive transcript sidebar and dual
 3. **Load a second language** in the player to merge tracks into **Dual Mode**.
 4. **Sign in on Lingogram** (one click in the popup → tab opens, you sign in once, the tab closes itself). The extension's service worker holds the auth handoff for future word captures.
 5. **Highlight any word** in the transcript → the quick-add pill writes it to your Firestore inbox.
-6. Visit [/student/vocabulary](https://lingogram-app.web.app/student/vocabulary) on Lingogram → the **Rezka** collection card shows pending words and drains them into your dictionary topic with one click.
+6. Visit [/student/vocabulary](https://lingogram.ai/student/vocabulary) on Lingogram → the **Rezka** collection card shows pending words and drains them into your dictionary topic with one click.
 
 > **Web extension (any site):** skip steps 1–3 — just select text, right-click → **Add to Lingogram**. Sign-in (step 4) and the inbox drain (step 6) are identical.
 

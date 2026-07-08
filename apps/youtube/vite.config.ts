@@ -20,12 +20,12 @@ assertSourceAllowed(limits, EXT_SOURCE);
 
 const buildDefines = {
   __EXT_ENV__: JSON.stringify(env),
-  __FIREBASE_PROJECT_ID__: JSON.stringify(isDev ? 'demo-lingogram' : 'project-51896e3c-eb11-40-4279f'),
-  __FIREBASE_API_KEY__: JSON.stringify(isDev ? 'demo' : 'AIzaSyDeUTNMiBpHeP1Ay52IA_S0jNQjTVny68s'),
+  __FIREBASE_PROJECT_ID__: JSON.stringify(isDev ? 'demo-lingogram' : 'lingogram-prod'),
+  __FIREBASE_API_KEY__: JSON.stringify(isDev ? 'demo' : 'AIzaSyCHQt2zwkO-x8qm7wM5IwWAWrl_n8mlQLI'),
   __IDENTITY_TOOLKIT_URL__: JSON.stringify(isDev ? 'http://localhost:9099/identitytoolkit.googleapis.com' : 'https://identitytoolkit.googleapis.com'),
   __SECURE_TOKEN_URL__: JSON.stringify(isDev ? 'http://localhost:9099/securetoken.googleapis.com' : 'https://securetoken.googleapis.com'),
   __FIRESTORE_URL__: JSON.stringify(isDev ? 'http://localhost:8080' : 'https://firestore.googleapis.com'),
-  __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? (isDev ? 'http://localhost:5173' : 'https://lingogram-app.web.app')),
+  __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? (isDev ? 'http://localhost:5173' : 'https://lingogram.ai')),
   __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
   ...limitDefines(limits),
 };
