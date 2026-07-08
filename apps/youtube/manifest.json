@@ -26,8 +26,7 @@
   "externally_connectable": {
     "matches": [
       "http://localhost:5173/*",
-      "https://lingogram-app.web.app/*",
-      "https://lingogram-app.firebaseapp.com/*"
+      "https://lingogram.ai/*"
     ]
   },
   "content_scripts": [

@@ -230,7 +230,14 @@ export class SidebarUI {
                 if (!isTopWindow) {
                     sidebar.style.display = 'none';
                 } else {
-                    sidebar.classList.remove('collapsed');
+                    // Entering fullscreen collapses the sidebar transiently (not
+                    // persisted), so the stored pref still reflects the user's
+                    // last manual toggle. Restore it instead of force-opening —
+                    // otherwise leaving fullscreen always re-expands a sidebar
+                    // the user had deliberately collapsed.
+                    loadPrefs().then((prefs) => {
+                        sidebar.classList.toggle('collapsed', prefs.sidebarCollapsed);
+                    }).catch(() => {});
                 }
             }
 

@@ -6,12 +6,26 @@ import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 
-// Mock chrome API
+// Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
+// the fullscreen-exit restore path) reads from this backing store.
+const prefsStore: Record<string, unknown> = {};
 (global as any).chrome = {
     runtime: {
+        id: 'test-extension-id',
         onMessage: { addListener: jest.fn() },
         sendMessage: jest.fn()
-    }
+    },
+    storage: {
+        local: {
+            get: jest.fn((key: string) =>
+                Promise.resolve(key in prefsStore ? { [key]: prefsStore[key] } : {})),
+            set: jest.fn((items: Record<string, unknown>) => {
+                Object.assign(prefsStore, items);
+                return Promise.resolve();
+            }),
+        },
+        onChanged: { addListener: jest.fn(), removeListener: jest.fn() },
+    },
 };
 
 (window as any).HTMLElement.prototype.scrollIntoView = jest.fn();
@@ -154,6 +168,56 @@ describe('SidebarUI', () => {
             expect(pickScrollMode(26, 5)).toBe('instant');  // forward by 21
             expect(pickScrollMode(5, 26)).toBe('instant');  // backward by 21
             expect(pickScrollMode(1000, 0)).toBe('instant');
+        });
+    });
+
+    describe('setupFullscreenHandling', () => {
+        // Drives a fullscreen enter→exit cycle by toggling document.fullscreenElement
+        // and dispatching the event the handler listens for.
+        const fireFullscreen = (el: Element | null): void => {
+            Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: el });
+            document.dispatchEvent(new Event('fullscreenchange'));
+        };
+        const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+        beforeEach(() => {
+            for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+        });
+
+        // Regression: leaving fullscreen used to unconditionally remove 'collapsed',
+        // re-opening a sidebar the user had deliberately collapsed.
+        test('exiting fullscreen keeps the sidebar collapsed when the pref says so', async () => {
+            prefsStore['prefs.v1'] = { displayMode: 'dual', overlayEnabled: true, sidebarCollapsed: true };
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+
+            fireFullscreen(fsEl); // enter → transient collapse
+            expect(sidebar.classList.contains('fullscreen')).toBe(true);
+            expect(sidebar.classList.contains('collapsed')).toBe(true);
+
+            fireFullscreen(null); // exit → restore persisted state
+            await flush();
+            expect(sidebar.classList.contains('fullscreen')).toBe(false);
+            expect(sidebar.classList.contains('collapsed')).toBe(true);
+        });
+
+        test('exiting fullscreen expands the sidebar when the pref is not collapsed', async () => {
+            prefsStore['prefs.v1'] = { displayMode: 'dual', overlayEnabled: true, sidebarCollapsed: false };
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+
+            fireFullscreen(fsEl);
+            expect(sidebar.classList.contains('collapsed')).toBe(true);
+
+            fireFullscreen(null);
+            await flush();
+            expect(sidebar.classList.contains('collapsed')).toBe(false);
         });
     });
 });
