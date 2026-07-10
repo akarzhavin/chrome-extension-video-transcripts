@@ -1,3 +1,5 @@
+import { msg as i18nMsg } from '../i18n';
+
 const BADGE_ID = 'lingogram-auth-badge';
 const PANEL_ID = 'lingogram-auth-panel';
 
@@ -146,10 +148,21 @@ function showSignedInPanel(badge: HTMLElement, status: AuthStatus): void {
 
 async function render(badge: HTMLElement): Promise<void> {
     let status: AuthStatus;
-    try {
-        status = await sendMessage<AuthStatus>({ action: 'AUTH_STATUS' });
-    } catch {
-        status = { signedIn: false };
+    // Promo demo: the content script sets __vttDemo (mode switched in-page without
+    // a URL change); fall back to the URL for fresh-loaded demo URLs.
+    const demo = (window as unknown as { __vttDemo?: { onboarding: boolean } }).__vttDemo;
+    const onboarding = demo ? demo.onboarding : location.href.includes('vtt-demo-onboarding');
+    if (demo || location.href.includes('vtt-demo')) {
+        // Onboarding shows a sign-in prompt; the rest show a clean signed-in chip
+        // that advertises the save-words feature (localized, never the real email).
+        const savedLabel = i18nMsg('ytWordsSaved', '{count} words saved').replace('{count}', '142');
+        status = onboarding ? { signedIn: false } : { signedIn: true, email: savedLabel, inboxCount: 142 };
+    } else {
+        try {
+            status = await sendMessage<AuthStatus>({ action: 'AUTH_STATUS' });
+        } catch {
+            status = { signedIn: false };
+        }
     }
     badge.innerHTML = '';
 
@@ -196,7 +209,7 @@ async function render(badge: HTMLElement): Promise<void> {
         row.append(dot, text);
         row.title = `Signed in as ${status.email} — ${status.inboxCount ?? 0} words added · click to manage`;
     } else {
-        const text = el('span', { textContent: 'Sign in to save words' }, {
+        const text = el('span', { textContent: i18nMsg('ytSignInToSave', 'Sign in to save words') }, {
             color: 'rgba(255, 255, 255, 0.75)',
             textDecoration: 'underline',
             textDecorationColor: 'rgba(255, 255, 255, 0.2)',
@@ -208,7 +221,7 @@ async function render(badge: HTMLElement): Promise<void> {
             textOverflow: 'ellipsis',
         });
         row.append(text);
-        row.title = 'Sign in to save words to Lingogram';
+        row.title = i18nMsg('ytSignInToSave', 'Sign in to save words');
     }
 
     row.addEventListener('mouseenter', () => {
@@ -244,6 +257,13 @@ function ensureHostStyles(host: HTMLElement): void {
     host.style.width = '100%';
     host.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
     host.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
+}
+
+// Re-render the badge against the current state (used by the promo demo when it
+// switches mode via the hash: onboarding shows a sign-in prompt, others a chip).
+export function refreshAuthStatusBadge(): void {
+    const badge = document.getElementById(BADGE_ID);
+    if (badge) void render(badge);
 }
 
 export function installAuthStatusBadge(): void {

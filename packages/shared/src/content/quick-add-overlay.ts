@@ -1,3 +1,5 @@
+import { msg as i18nMsg } from '../i18n';
+
 const PILL_ID = 'lingogram-quick-add-pill';
 const TOAST_ID = 'lingogram-quick-add-toast';
 const MAX_TERM_LEN = 256;
@@ -126,6 +128,55 @@ function removePill(): void {
     document.getElementById(PILL_ID)?.remove();
 }
 
+// ── "✓ saved" marker ──────────────────────────────────────────────────────
+// After a word is saved we tag it inline in the transcript so the action has
+// visible feedback (until the list next re-renders). Same classes are reused by
+// the promo demo so the screenshots reflect a real feature.
+function injectSavedWordStyles(): void {
+    if (document.getElementById('lingogram-saved-style')) return;
+    const style = document.createElement('style');
+    style.id = 'lingogram-saved-style';
+    style.textContent = `
+        .vtt-saved-word {
+            border-radius: 4px; padding: 0 2px;
+            background: rgba(77,163,255,0.18);
+            box-shadow: inset 0 -2px 0 rgba(77,163,255,0.85);
+        }
+        .vtt-saved-badge {
+            margin-left: 7px; padding: 1px 7px; border-radius: 999px;
+            font-size: 10px; font-weight: 700; vertical-align: middle;
+            white-space: nowrap;
+            color: #86efac;
+            background: rgba(34,197,94,0.16);
+            border: 1px solid rgba(34,197,94,0.4);
+        }
+    `;
+    (document.head ?? document.documentElement).appendChild(style);
+}
+
+function selectionWordSpans(): HTMLElement[] {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return [];
+    const range = sel.getRangeAt(0);
+    const scope = scopeFor(range.startContainer);
+    if (!scope) return [];
+    return Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]')).filter((s) =>
+        range.intersectsNode(s),
+    );
+}
+
+/** Tag the given word spans as saved (highlight + a single "✓ saved" badge). */
+export function markSpansSaved(spans: HTMLElement[]): void {
+    if (!spans.length) return;
+    spans.forEach((s) => s.classList.add('vtt-saved-word'));
+    const last = spans[spans.length - 1];
+    if (last.nextElementSibling?.classList.contains('vtt-saved-badge')) return;
+    const badge = document.createElement('span');
+    badge.className = 'vtt-saved-badge';
+    badge.textContent = `✓ ${i18nMsg('ytSavedBadge', 'saved')}`;
+    last.insertAdjacentElement('afterend', badge);
+}
+
 function showToast(text: string, ok: boolean): void {
     document.getElementById(TOAST_ID)?.remove();
     const t = document.createElement('div');
@@ -177,6 +228,8 @@ function showPill(rect: DOMRect, term: string, context: string): void {
 
     pill.addEventListener('click', async (e) => {
         e.stopPropagation();
+        // Snapshot the selected spans now — the click may clear the selection.
+        const savedSpans = selectionWordSpans();
         pill.disabled = true;
         pill.textContent = '…';
         console.log('[Lingogram] ADD_WORD →', term);
@@ -189,6 +242,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
             console.log('[Lingogram] ADD_WORD ←', res);
             if (!res.ok) throw new Error(res.error ?? 'add failed');
             showToast(`Added: ${term}`, true);
+            markSpansSaved(savedSpans);
             // Drop the range so the overlay's selection-guard releases and
             // resumes timeupdate rebuilds.
             window.getSelection()?.removeAllRanges();
@@ -232,6 +286,7 @@ function sendMessage<T>(msg: object): Promise<T> {
 }
 
 export function installQuickAddOverlay(): void {
+    injectSavedWordStyles();
     document.addEventListener('mouseup', () => {
         // Defer so that selection is finalized after click on existing pill clearing it.
         setTimeout(() => {

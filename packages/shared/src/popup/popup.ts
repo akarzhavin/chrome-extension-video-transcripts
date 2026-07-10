@@ -1,9 +1,23 @@
 import { isDev } from '../auth/config';
 import {
     SUPPORTED_LANGUAGES,
+    SupportedLanguage,
     loadLanguagePrefs,
     saveLanguagePrefs,
 } from '../languages';
+
+// Optional allow-list of language codes for the pickers. Set by initPopup; null
+// means "all supported languages". Used so apps whose source only ships a few
+// subtitle languages (e.g. Rezka) don't offer ones no title carries.
+let allowedLanguageCodes: string[] | null = null;
+
+function pickerLanguages(): SupportedLanguage[] {
+    if (!allowedLanguageCodes) return SUPPORTED_LANGUAGES;
+    const byCode = new Map(SUPPORTED_LANGUAGES.map((l) => [l.code, l]));
+    return allowedLanguageCodes
+        .map((c) => byCode.get(c))
+        .filter((l): l is SupportedLanguage => !!l);
+}
 
 interface AuthStatus {
     signedIn: boolean;
@@ -139,7 +153,7 @@ function makeLangRow(labelText: string): { row: HTMLElement; select: HTMLSelectE
     placeholder.selected = true;
     select.appendChild(placeholder);
 
-    for (const lang of SUPPORTED_LANGUAGES) {
+    for (const lang of pickerLanguages()) {
         const opt = document.createElement('option');
         opt.value = lang.code;
         opt.textContent = lang.native === lang.label ? lang.label : `${lang.label} — ${lang.native}`;
@@ -182,7 +196,8 @@ function renderLanguageSettings(root: HTMLElement): void {
     native.select.addEventListener('change', persist);
 }
 
-export function initPopup(): void {
+export function initPopup(opts?: { languages?: string[] }): void {
+    allowedLanguageCodes = opts?.languages ?? null;
     const root = document.getElementById('root');
     if (!root) {
         console.error('[Lingogram] popup: #root not found');
