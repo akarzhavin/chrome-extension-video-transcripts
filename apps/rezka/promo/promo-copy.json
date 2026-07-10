@@ -1,0 +1,84 @@
+{
+  "_note": "Localized marketing copy for the 5 HDrezka promo screenshots. Each slide has: eyebrow (short, ALL-CAPS-style label), title (HTML — may contain <br> and exactly one <span class=\"hl\">…</span> highlighting the key phrase with the gradient), sub (one sentence). English is the fallback for any missing field. Rezka ships only en/ru/uk. Keep titles short; the hl span wraps the most meaningful phrase.",
+  "en": {
+    "slide1": {
+      "eyebrow": "MOVIE NIGHT = LANGUAGE LESSON",
+      "title": "learn a language while you<br><span class=\"hl\">actually enjoy films</span>",
+      "sub": "dual subtitles right on HDrezka — the language you're learning and your own, on the film and in a side panel that keeps up with the scene."
+    },
+    "slide2": {
+      "eyebrow": "TWO LANGUAGES, ONE SCREEN",
+      "title": "every line,<br>in <span class=\"hl\">both languages</span>",
+      "sub": "original and translation side by side — catch every word without pausing the film to look things up."
+    },
+    "slide3": {
+      "eyebrow": "SETUP TAKES LIKE 5 SECONDS",
+      "title": "pick your<br><span class=\"hl\">languages</span> and go",
+      "sub": "tell it the language you're learning and your own — Lingogram handles the rest on every title."
+    },
+    "slide4": {
+      "eyebrow": "RIGHT ON THE FILM",
+      "title": "subtitles on the<br><span class=\"hl\">video</span> too",
+      "sub": "dual lines pop up over the player while it's running — read along without looking away from the screen."
+    },
+    "slide5": {
+      "eyebrow": "LISTEN, DON'T JUST READ",
+      "title": "<span class=\"hl\">listening mode</span><br>that actually sticks",
+      "sub": "words start hidden — catch the line by ear first, then reveal to check. that's real practice, not passive reading."
+    }
+  },
+  "ru": {
+    "slide1": {
+      "eyebrow": "КИНОВЕЧЕР = УРОК ЯЗЫКА",
+      "title": "учи язык, пока реально<br><span class=\"hl\">кайфуешь от кино</span>",
+      "sub": "двойные субтитры прямо на HDrezka — язык, который учишь, и твой родной: на самом фильме и в боковой панели, что успевает за сценой."
+    },
+    "slide2": {
+      "eyebrow": "ДВА ЯЗЫКА, ОДИН ЭКРАН",
+      "title": "каждая строка —<br>сразу на <span class=\"hl\">двух языках</span>",
+      "sub": "оригинал и перевод рядом — ловишь каждое слово и не ставишь на паузу, чтобы лезть в словарь."
+    },
+    "slide3": {
+      "eyebrow": "НАСТРОЙКА — СЕКУНД ПЯТЬ",
+      "title": "выбери <span class=\"hl\">языки</span><br>и погнали",
+      "sub": "укажи язык, который учишь, и свой родной — остальное Lingogram сделает на каждом фильме."
+    },
+    "slide4": {
+      "eyebrow": "ПРЯМО НА ФИЛЬМЕ",
+      "title": "субтитры и на<br>самом <span class=\"hl\">видео</span>",
+      "sub": "двойные строки появляются поверх плеера, пока он играет — читай, не отрываясь от экрана."
+    },
+    "slide5": {
+      "eyebrow": "СЛУШАЙ, А НЕ ПРОСТО ЧИТАЙ",
+      "title": "<span class=\"hl\">режим аудирования</span>,<br>который реально качает",
+      "sub": "слова сперва скрыты — поймай фразу на слух, потом открой и проверь. вот это настоящая практика, а не пассивное чтение."
+    }
+  },
+  "uk": {
+    "slide1": {
+      "eyebrow": "КІНОВЕЧІР = УРОК МОВИ",
+      "title": "вивчай мову, поки реально<br><span class=\"hl\">кайфуєш від кіно</span>",
+      "sub": "подвійні субтитри просто на HDrezka — мова, яку вчиш, і твоя рідна: на самому фільмі та в бічній панелі, що встигає за сценою."
+    },
+    "slide2": {
+      "eyebrow": "ДВІ МОВИ, ОДИН ЕКРАН",
+      "title": "кожен рядок —<br>одразу <span class=\"hl\">двома мовами</span>",
+      "sub": "оригінал і переклад поруч — ловиш кожне слово й не ставиш на паузу, щоб лізти в словник."
+    },
+    "slide3": {
+      "eyebrow": "НАЛАШТУВАННЯ — СЕКУНД П'ЯТЬ",
+      "title": "обери <span class=\"hl\">мови</span><br>і вперед",
+      "sub": "вкажи мову, яку вчиш, і свою рідну — решту Lingogram зробить на кожному фільмі."
+    },
+    "slide4": {
+      "eyebrow": "ПРОСТО НА ФІЛЬМІ",
+      "title": "субтитри й на<br>самому <span class=\"hl\">відео</span>",
+      "sub": "подвійні рядки з'являються поверх плеєра, поки він грає — читай, не відриваючись від екрана."
+    },
+    "slide5": {
+      "eyebrow": "СЛУХАЙ, А НЕ ПРОСТО ЧИТАЙ",
+      "title": "<span class=\"hl\">режим аудіювання</span>,<br>що реально працює",
+      "sub": "слова спершу приховані — впіймай фразу на слух, потім відкрий і перевір. ось це справжня практика, а не пасивне читання."
+    }
+  }
+}

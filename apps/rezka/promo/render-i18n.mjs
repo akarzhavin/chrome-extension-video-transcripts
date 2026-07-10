@@ -1,0 +1,217 @@
+// Render the LOCALIZED HDrezka promo screenshot series for every store locale.
+//
+//   node render-i18n.mjs                # all locales in promo-copy.json (en, ru, uk)
+//   node render-i18n.mjs ru uk          # only the given locales
+//   node render-i18n.mjs -j 2 ru uk     # cap parallelism at 2 concurrent pages
+//
+// For each locale it writes self-contained slide1-5.html into build/<locale>/
+// (absolute file:// asset paths so locales render in parallel without clobbering
+// each other), screenshots them at deviceScaleFactor 2 (2560×1600), then
+// downscales each to 1280×800 (Chrome Web Store size, alpha stripped by sips)
+// into out/<locale>/screenshot-N.png — the folder layout the CWS autofill
+// snippet expects (out/<lang>/… → language code from the subfolder name).
+//
+// Imagery: the SIDEBAR panel (slides 2/3/5) is the shared SidebarUI component —
+// byte-identical across the YouTube and HDrezka extensions — so it reuses the
+// localized demo captures live-demo-<loc>.png / -onboarding / -guess (English
+// fallback per locale). The HOST slides (1 full window, 4 on-video) use the real
+// HDrezka captures host-hero.png / host-overlay.png (locale-independent — refresh
+// them with self-captured HDrezka shots; see README).
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+// Playwright isn't a dep of this repo — reuse the copy installed in the sibling
+// "Disable automatic tab discarding" project (where the promo tooling lives).
+const PW_FALLBACK =
+  '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
+let chromium;
+try { ({ chromium } = await import('playwright')); }
+catch { ({ chromium } = require(PW_FALLBACK)); }
+
+const COPY = JSON.parse(fs.readFileSync(path.join(HERE, 'promo-copy.json'), 'utf8'));
+const SHOT_DIR = path.join(HERE, '..', 'screenshots', 'out-live');
+const CSS_HREF = pathToFileURL(path.join(HERE, 'promo.css')).href;
+const MASCOT = pathToFileURL(path.join(HERE, 'mascot-cutout.png')).href;
+const BRAND = `<img class="cornermark" src="${MASCOT}" alt="" />`;
+const shotUrl = (name) => pathToFileURL(path.join(SHOT_DIR, name)).href;
+
+// Per-locale sidebar captures, falling back to the English demo capture when a
+// locale hasn't been captured yet. kind: 'demo' | 'onboarding' | 'guess'.
+function shotFor(loc, kind) {
+  const name = kind === 'demo' ? `live-demo-${loc}.png` : `live-demo-${kind}-${loc}.png`;
+  const en = kind === 'demo' ? 'live-demo-en.png' : `live-demo-${kind}-en.png`;
+  return shotUrl(fs.existsSync(path.join(SHOT_DIR, name)) ? name : en);
+}
+function shotsFor(loc) {
+  return {
+    demo: shotFor(loc, 'demo'),
+    onboarding: shotFor(loc, 'onboarding'),
+    guess: shotFor(loc, 'guess'),
+    // Real HDrezka host captures (same for every locale).
+    host: shotUrl('host-hero.png'),
+    hostOverlay: shotUrl('host-overlay.png'),
+  };
+}
+
+const SLIDES = [1, 2, 3, 4, 5];
+
+// Localized copy with English fallback per field.
+function copyFor(loc) {
+  const en = COPY.en;
+  const l = COPY[loc] || {};
+  return (slide, field) =>
+    (l[slide] && l[slide][field] != null ? l[slide][field] : en[slide][field]);
+}
+
+function head(loc) {
+  const lang = loc.replace('_', '-');
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8" />
+<link rel="stylesheet" href="${CSS_HREF}" /></head>`;
+}
+
+// slide1 — stack layout, full HDrezka window (dual subtitles hero)
+const slide1 = (p, loc, s) => `${head(loc)}
+<body class="theme-1">
+  <div class="slide slide--stack">
+    <div class="bg"></div>${BRAND}
+    <div class="copy">
+      <span class="eyebrow">${p('slide1', 'eyebrow')}</span>
+      <h1>${p('slide1', 'title')}</h1>
+      <p>${p('slide1', 'sub')}</p>
+    </div>
+    <div class="window">
+      <div class="window__bar"><span class="d red"></span><span class="d yel"></span><span class="d grn"></span><span class="window__url">hdrezka.ag</span></div>
+      <div class="window__view">
+        <div class="shot" style="background-image:url('${s.host}')"></div>
+      </div>
+    </div>
+  </div>
+</body></html>`;
+
+// slide2 — side layout, sidebar panel crop
+const slide2 = (p, loc, s) => `${head(loc)}
+<body class="theme-2">
+  <div class="slide slide--side">
+    <div class="bg"></div>${BRAND}
+    <div class="copy">
+      <span class="eyebrow">${p('slide2', 'eyebrow')}</span>
+      <h1>${p('slide2', 'title')}</h1>
+      <p>${p('slide2', 'sub')}</p>
+    </div>
+    <div class="stage">
+      <div class="panel">
+        <div class="shot" style="background-image:url('${s.demo}'); left:-1058px; top:0;"></div>
+      </div>
+    </div>
+  </div>
+</body></html>`;
+
+// slide3 — side layout, onboarding panel crop
+const slide3 = (p, loc, s) => `${head(loc)}
+<body class="theme-3">
+  <div class="slide slide--side">
+    <div class="bg"></div>${BRAND}
+    <div class="copy">
+      <span class="eyebrow">${p('slide3', 'eyebrow')}</span>
+      <h1>${p('slide3', 'title')}</h1>
+      <p>${p('slide3', 'sub')}</p>
+    </div>
+    <div class="stage">
+      <div class="panel">
+        <div class="shot" style="background-image:url('${s.onboarding}'); left:-1058px; top:0;"></div>
+      </div>
+    </div>
+  </div>
+</body></html>`;
+
+// slide4 — side layout, on-video crop (real HDrezka player + dual overlay)
+const slide4 = (p, loc, s) => `${head(loc)}
+<body class="theme-2">
+  <div class="slide slide--side">
+    <div class="bg"></div>${BRAND}
+    <div class="copy">
+      <span class="eyebrow">${p('slide4', 'eyebrow')}</span>
+      <h1>${p('slide4', 'title')}</h1>
+      <p>${p('slide4', 'sub')}</p>
+    </div>
+    <div class="stage">
+      <div class="videoframe">
+        <div class="shot" style="background-image:url('${s.hostOverlay}'); width:720px; height:405px; background-size:cover; background-position:center; left:0; top:0;"></div>
+      </div>
+    </div>
+  </div>
+</body></html>`;
+
+// slide5 — side layout, listening-mode panel crop
+const slide5 = (p, loc, s) => `${head(loc)}
+<body class="theme-3">
+  <div class="slide slide--side">
+    <div class="bg"></div>${BRAND}
+    <div class="copy">
+      <span class="eyebrow">${p('slide5', 'eyebrow')}</span>
+      <h1>${p('slide5', 'title')}</h1>
+      <p>${p('slide5', 'sub')}</p>
+    </div>
+    <div class="stage">
+      <div class="panel">
+        <div class="shot" style="background-image:url('${s.guess}'); left:-1058px; top:0;"></div>
+      </div>
+    </div>
+  </div>
+</body></html>`;
+
+const TEMPLATES = { 1: slide1, 2: slide2, 3: slide3, 4: slide4, 5: slide5 };
+
+let argv = process.argv.slice(2);
+let jobs = Math.min(os.cpus().length, 8);
+if (argv[0] === '-j') { jobs = parseInt(argv[1], 10); argv = argv.slice(2); }
+const locales = argv.length
+  ? argv
+  : Object.keys(COPY).filter((k) => !k.startsWith('_'));
+
+const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
+
+async function renderLocale(loc) {
+  const build = path.join(HERE, 'build', loc);
+  fs.rmSync(build, { recursive: true, force: true });
+  fs.mkdirSync(build, { recursive: true });
+  fs.mkdirSync(path.join(HERE, 'shots', loc), { recursive: true });
+  fs.mkdirSync(path.join(HERE, 'out', loc), { recursive: true });
+  const p = copyFor(loc);
+  const shots = shotsFor(loc);
+
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+  const page = await ctx.newPage();
+  for (const n of SLIDES) {
+    const file = path.join(build, `slide${n}.html`);
+    fs.writeFileSync(file, TEMPLATES[n](p, loc, shots));
+    await page.goto(pathToFileURL(file).href, { waitUntil: 'networkidle' });
+    const shot = path.join(HERE, 'shots', loc, `slide${n}.png`);
+    await page.screenshot({ path: shot });
+    execFileSync('sips', ['-z', '800', '1280', shot, '--out',
+      path.join(HERE, 'out', loc, `screenshot-${n}.png`)], { stdio: 'ignore' });
+  }
+  await ctx.close();
+  fs.rmSync(build, { recursive: true, force: true });
+  console.log('✓ ' + loc);
+}
+
+console.log(`rendering ${locales.length} locale(s) with ${jobs} parallel pages…`);
+let next = 0;
+async function worker() {
+  while (next < locales.length) {
+    const loc = locales[next++];
+    try { await renderLocale(loc); }
+    catch (e) { console.error('✗ ' + loc + ': ' + e.message); }
+  }
+}
+await Promise.all(Array.from({ length: Math.min(jobs, locales.length) }, worker));
+await browser.close();
+try { fs.rmdirSync(path.join(HERE, 'build')); } catch {}
+console.log('done → out/<locale>/screenshot-N.png');
