@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "மீண்டும் தேடு",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "வசன வரிகள்",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "சொற்களைச் சேமிக்க உள்நுழையவும்",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "சேமிக்கப்பட்டது",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} சொற்கள் சேமிக்கப்பட்டன",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

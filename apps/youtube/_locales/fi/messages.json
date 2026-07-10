@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "Hae uudelleen",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "Tekstitykset",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "Kirjaudu sisään tallentaaksesi sanoja",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "tallennettu",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} sanaa tallennettu",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

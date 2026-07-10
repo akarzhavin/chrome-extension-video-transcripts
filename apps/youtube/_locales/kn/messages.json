@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "ಮತ್ತೆ ಹುಡುಕಿ",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳು",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "ಪದಗಳನ್ನು ಉಳಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "ಉಳಿಸಲಾಗಿದೆ",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} ಪದಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

@@ -6,5 +6,61 @@
   "appDesc": {
     "message": "Інтерактивні транскрипти та подвійні субтитри, щоб розуміти кожне слово.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytSidebarTitle": {
+    "message": "Субтитри",
+    "description": "Sidebar panel header title."
+  },
+  "ytOnboardingTitle": {
+    "message": "Оберіть мови",
+    "description": "Onboarding banner heading (sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Оберіть мову, яку вивчаєте, і рідну мову, щоб почати.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Я вивчаю",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Моя рідна мова",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Оберіть…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Пошук субтитрів…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Шукаємо субтитри для цього відео.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Субтитри не завантажились",
+    "description": "Status banner heading when no subtitles were found."
+  },
+  "ytNoSubsText": {
+    "message": "Якщо у відео є субтитри, завантажте їх вручну:",
+    "description": "Status banner intro before the manual how-to steps."
+  },
+  "ytNoSubsStep1": {
+    "message": "Відкрийте меню субтитрів (CC) у плеєрі.",
+    "description": "Manual subtitle how-to, step 1."
+  },
+  "ytNoSubsStep2": {
+    "message": "Виберіть по черзі кожну мову — вони з'являться тут.",
+    "description": "Manual subtitle how-to, step 2."
+  },
+  "ytNoSubsStep3": {
+    "message": "Потім поверніть субтитри плеєра на «вимк.».",
+    "description": "Manual subtitle how-to, step 3."
+  },
+  "ytSearchAgain": {
+    "message": "Шукати знову",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }

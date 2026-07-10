@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "Søg igen",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "Undertekster",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "Log ind for at gemme ord",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "gemt",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} ord gemt",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "Caută din nou",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "Subtitrări",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "Conectează-te pentru a salva cuvinte",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "salvat",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} cuvinte salvate",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

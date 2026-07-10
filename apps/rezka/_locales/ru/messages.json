@@ -6,5 +6,61 @@
   "appDesc": {
     "message": "Интерактивные транскрипты и двойные субтитры, чтобы понимать каждое слово.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytSidebarTitle": {
+    "message": "Субтитры",
+    "description": "Sidebar panel header title."
+  },
+  "ytOnboardingTitle": {
+    "message": "Выберите языки",
+    "description": "Onboarding banner heading (sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Выберите изучаемый и родной язык, чтобы начать.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "Я учу",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "Мой родной язык",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Выберите…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Поиск субтитров…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Ищем субтитры для этого видео.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Субтитры не загрузились",
+    "description": "Status banner heading when no subtitles were found."
+  },
+  "ytNoSubsText": {
+    "message": "Если у видео есть субтитры, загрузите их вручную:",
+    "description": "Status banner intro before the manual how-to steps."
+  },
+  "ytNoSubsStep1": {
+    "message": "Откройте меню субтитров (CC) в плеере.",
+    "description": "Manual subtitle how-to, step 1."
+  },
+  "ytNoSubsStep2": {
+    "message": "Выберите по очереди каждый язык — они появятся здесь.",
+    "description": "Manual subtitle how-to, step 2."
+  },
+  "ytNoSubsStep3": {
+    "message": "Затем верните субтитры плеера на «откл.».",
+    "description": "Manual subtitle how-to, step 3."
+  },
+  "ytSearchAgain": {
+    "message": "Искать снова",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }
