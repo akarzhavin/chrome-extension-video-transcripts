@@ -13,7 +13,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
+// Playwright isn't a dep of this repo — override via $PLAYWRIGHT_PATH; the
+// fallback points at the sibling project where this tooling was originally run.
 const PW_FALLBACK =
+  process.env.PLAYWRIGHT_PATH ||
   '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
 let chromium;
 try { ({ chromium } = await import('playwright')); }

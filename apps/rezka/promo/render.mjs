@@ -14,10 +14,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-// Playwright isn't a dep of this repo — reuse the copy installed in the sibling
-// "Disable automatic tab discarding" project (where the promo tooling lives).
+// Playwright isn't a dep of this repo. We try a normal import first, then fall
+// back to a copy resolved from $PLAYWRIGHT_PATH (or the sibling "Disable
+// automatic tab discarding" project where this tooling was originally run).
 const require = createRequire(import.meta.url);
 const PW_FALLBACK =
+  process.env.PLAYWRIGHT_PATH ||
   '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
 let chromium;
 try {
