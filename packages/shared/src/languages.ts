@@ -68,10 +68,40 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
 
 const LANG_KEY = 'lang.v1';
 
-/** English label for a track `lang` code (strips region, e.g. 'en-US' → English). */
+/** English label for a track `lang` code (strips region, e.g. 'en-US'/'pt_BR' → English/Portuguese). */
 export function labelForLanguage(code: string): string {
-    const norm = (code || '').split('-')[0].toLowerCase();
+    const norm = (code || '').split(/[-_]/)[0].toLowerCase();
     return SUPPORTED_LANGUAGES.find((l) => l.code === norm)?.label ?? code;
+}
+
+/** Endonym (native name) for a code, falling back to the English label / code. */
+export function nativeForLanguage(code: string): string {
+    const norm = (code || '').split(/[-_]/)[0].toLowerCase();
+    const lang = SUPPORTED_LANGUAGES.find((l) => l.code === norm);
+    return lang?.native ?? lang?.label ?? code;
+}
+
+// Representative flag per supported language (language ≠ country, so these are
+// the conventional "best fit" choices). Used for the sidebar language-pair chip.
+const LANGUAGE_FLAGS: Record<string, string> = {
+    en: '🇬🇧', es: '🇪🇸', pt: '🇵🇹', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹', nl: '🇳🇱',
+    uk: '🇺🇦', pl: '🇵🇱', cs: '🇨🇿', sk: '🇸🇰', bg: '🇧🇬', sr: '🇷🇸',
+    hr: '🇭🇷', sl: '🇸🇮', ro: '🇷🇴', hu: '🇭🇺', el: '🇬🇷', tr: '🇹🇷', sv: '🇸🇪',
+    no: '🇳🇴', da: '🇩🇰', fi: '🇫🇮', et: '🇪🇪', lv: '🇱🇻', lt: '🇱🇹', ar: '🇸🇦',
+    he: '🇮🇱', fa: '🇮🇷', hi: '🇮🇳', bn: '🇧🇩', ta: '🇮🇳', te: '🇮🇳', th: '🇹🇭',
+    vi: '🇻🇳', id: '🇮🇩', ms: '🇲🇾', fil: '🇵🇭', ja: '🇯🇵', ko: '🇰🇷', zh: '🇨🇳',
+};
+
+// Region-specific overrides where the base-language flag would be wrong for a
+// store locale (e.g. Brazilian Portuguese should not show the Portugal flag).
+const REGION_FLAGS: Record<string, string> = {
+    pt_br: '🇧🇷', en_us: '🇺🇸', en_au: '🇦🇺', zh_tw: '🇹🇼', es_419: '🌎',
+};
+
+/** Flag emoji for a language/locale code (region-aware), or '' when none is mapped. */
+export function flagForLanguage(code: string): string {
+    const c = (code || '').toLowerCase().replace('-', '_');
+    return REGION_FLAGS[c] ?? LANGUAGE_FLAGS[c.split('_')[0]] ?? '';
 }
 
 function parsePrefs(raw: unknown): LanguagePrefs | null {

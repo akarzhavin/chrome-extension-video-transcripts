@@ -1,6 +1,7 @@
 import { AppState } from './AppState';
 import { loadPrefs, onPrefsChanged, savePrefs } from './prefs';
 import { SidebarElements, AppInterface, Subtitle } from './types';
+import { msg } from './i18n';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -45,7 +46,9 @@ export class SidebarUI {
 
         const headerTop = document.createElement('div');
         headerTop.id = 'vtt-header-top';
-        headerTop.innerHTML = `<h2>Subtitles</h2>`;
+        // Localized via the shared i18n helper (honors the demo override, then
+        // chrome.i18n, then the English fallback).
+        headerTop.innerHTML = `<h2>${msg('ytSidebarTitle', 'Subtitles')}</h2>`;
         
         const settingsBtn = document.createElement('div');
         settingsBtn.id = 'vtt-settings-btn';
@@ -309,26 +312,56 @@ export class SidebarUI {
         return container;
     }
 
+    // Split a subtitle line into maskable units. Space-delimited scripts split
+    // on whitespace; spaceless scripts (Chinese/Japanese/Thai) are segmented
+    // with Intl.Segmenter (word granularity), falling back to per-character —
+    // otherwise the whole line is one token and "guess mode" masks nothing.
+    private tokenizeForGuess(text: string): { tokens: string[]; sep: string } {
+        const trimmed = text.trim();
+        if (/\s/.test(trimmed)) return { tokens: trimmed.split(/\s+/), sep: ' ' };
+        const Seg = (Intl as unknown as {
+            Segmenter?: new (l?: string, o?: { granularity: string }) => { segment(s: string): Iterable<{ segment: string }> };
+        }).Segmenter;
+        if (Seg) {
+            try {
+                const seg = new Seg(undefined, { granularity: 'word' });
+                const toks = Array.from(seg.segment(trimmed), (s) => s.segment).filter((w) => w.trim().length);
+                if (toks.length > 1) return { tokens: toks, sep: '' };
+            } catch {
+                /* Segmenter unavailable — fall through to per-character */
+            }
+        }
+        return { tokens: Array.from(trimmed), sep: '' };
+    }
+
+    // Mask glyphs for a hidden token: dots in spaceless scripts scale to the
+    // token length so a 2-char word reads as "••", not a fixed "***".
+    private maskGlyphs(token: string, spaced: boolean): string {
+        return spaced ? '***' : '•'.repeat(Math.min(Math.max(token.length, 1), 6));
+    }
+
     // Both sidebar and on-screen overlay share this layout so the quick-add
     // selection extractor can recover the real word from data-word — even when
-    // the visible glyphs are ***.
+    // the visible glyphs are masked.
     private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
-        const words = text.split(/\s+/);
-        words.forEach((word, i) => {
-            if (i > 0) container.appendChild(document.createTextNode(' '));
-            container.appendChild(this.makeMaskedSpan(word, i < revealedCount));
+        const { tokens, sep } = this.tokenizeForGuess(text);
+        const spaced = sep === ' ';
+        tokens.forEach((word, i) => {
+            if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
+            container.appendChild(this.makeMaskedSpan(word, i < revealedCount, this.maskGlyphs(word, spaced)));
         });
     }
 
-    private makeMaskedSpan(word: string, revealed: boolean): HTMLSpanElement {
+    private makeMaskedSpan(word: string, revealed: boolean, maskText: string): HTMLSpanElement {
         const span = document.createElement('span');
         span.dataset.word = word;
+        span.dataset.mask = maskText;
         if (revealed) {
             span.className = 'vtt-revealed-word';
             span.textContent = word;
         } else {
             span.className = 'vtt-masked-word';
-            span.textContent = '***';
+            span.textContent = maskText;
         }
         return span;
     }
@@ -337,9 +370,9 @@ export class SidebarUI {
     // so the quick-add selection can snap to whole-word boundaries. Inline
     // spans without a class read identically to the previous text node.
     private fillPlainWordsInto(container: HTMLElement, text: string): void {
-        const words = text.split(/\s+/);
-        words.forEach((word, i) => {
-            if (i > 0) container.appendChild(document.createTextNode(' '));
+        const { tokens, sep } = this.tokenizeForGuess(text);
+        tokens.forEach((word, i) => {
+            if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
             const span = document.createElement('span');
             span.dataset.word = word;
             span.textContent = word;
@@ -348,8 +381,9 @@ export class SidebarUI {
     }
 
     getMaskedText(text: string, revealedCount: number): string {
-        const words = text.split(/\s+/);
-        return words.map((w, i) => i < revealedCount ? w : '***').join(' ');
+        const { tokens, sep } = this.tokenizeForGuess(text);
+        const spaced = sep === ' ';
+        return tokens.map((w, i) => (i < revealedCount ? w : this.maskGlyphs(w, spaced))).join(sep);
     }
 
     updateGuessItem(index: number): void {
@@ -375,7 +409,7 @@ export class SidebarUI {
                 span.textContent = word;
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
                 span.className = 'vtt-masked-word';
-                span.textContent = '***';
+                span.textContent = span.dataset.mask ?? '***';
             }
         });
 

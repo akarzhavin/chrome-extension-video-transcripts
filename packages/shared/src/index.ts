@@ -1,4 +1,5 @@
 export * from './AppState';
+export * from './i18n';
 export * from './SidebarUI';
 export * from './LanguageUtils';
 export * from './languages';
