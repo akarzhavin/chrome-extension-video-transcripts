@@ -40,6 +40,17 @@
         "*://*.hdrezka.org/*"
       ],
       "all_frames": true,
+      "js": ["src/content/network-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "*://*.rezka.ag/*",
+        "*://*.hdrezka.ag/*",
+        "*://*.hdrezka.org/*"
+      ],
+      "all_frames": true,
       "js": ["src/content/index.js"],
       "css": ["src/assets/styles.css"]
     }
@@ -47,11 +58,5 @@
   "background": {
     "service_worker": "src/background/background.js",
     "type": "module"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["src/content/network-interceptor.js"],
-      "matches": ["*://*.rezka.ag/*", "*://*.hdrezka.ag/*", "*://*.hdrezka.org/*"]
-    }
-  ]
+  }
 }

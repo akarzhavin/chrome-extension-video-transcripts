@@ -315,3 +315,169 @@
     max-width: 80%;
     word-wrap: break-word;
 }
+
+/* ── Language-pair chip ─────────────────────────────────────────────────── */
+#vtt-langpair {
+    display: flex;
+    justify-content: center;
+    padding: 10px 16px 6px;
+}
+
+#vtt-langpair .vtt-langpair-inner {
+    display: inline-flex;
+    align-items: center;
+    /* Always read learning → native left-to-right, even in an RTL sidebar. */
+    direction: ltr;
+    gap: 8px;
+    padding: 5px 13px;
+    border-radius: 999px;
+    background: rgba(0, 122, 204, 0.18);
+    border: 1px solid rgba(77, 163, 255, 0.32);
+    font-size: 12px;
+    font-weight: 600;
+    color: #dbeafe;
+}
+
+#vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
+
+/* ── Onboarding picker & status banner ──────────────────────────────────── */
+#vtt-lang-onboarding,
+#vtt-status {
+    margin: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e7eb;
+}
+
+#vtt-lang-onboarding .vtt-lang-onboarding-title,
+#vtt-status .vtt-empty-state-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+#vtt-lang-onboarding .vtt-lang-onboarding-text,
+#vtt-status .vtt-empty-state-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #9ca3af;
+}
+
+#vtt-lang-onboarding .vtt-lang-onboarding-text {
+    margin-bottom: 14px;
+}
+
+#vtt-lang-onboarding .vtt-lang-onboarding-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+#vtt-lang-onboarding .vtt-lang-onboarding-row span {
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+#vtt-lang-onboarding select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: #1f1f1f;
+    color: #f3f4f6;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+#vtt-lang-onboarding select:focus {
+    outline: none;
+    border-color: #4da3ff;
+}
+
+/* Rich "Subtitles didn't load" banner with the player-menu illustration.
+   Selectors are scoped with #vtt-status to outweigh the plain banner's
+   id-specificity rules (background/button colors). */
+#vtt-status.vtt-status--rich {
+    border-color: rgba(124, 90, 255, 0.32);
+    background: linear-gradient(180deg, rgba(124, 90, 255, 0.12), rgba(34, 211, 238, 0.04) 55%, rgba(255, 255, 255, 0.03));
+}
+
+#vtt-status.vtt-status--rich .vtt-empty-state-title {
+    background: linear-gradient(90deg, #b39dff, #5fe3f5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+#vtt-status .vtt-empty-state-figure {
+    margin: 12px 0 2px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(124, 90, 255, 0.22);
+    background: radial-gradient(120% 120% at 50% 0%, rgba(124, 90, 255, 0.20), rgba(34, 211, 238, 0.05) 60%, transparent);
+}
+
+#vtt-status .vtt-empty-state-figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+}
+
+#vtt-status.vtt-status--rich .vtt-empty-state-action {
+    margin-top: 14px;
+    border: none;
+    color: #06121b;
+    font-weight: 700;
+    background: linear-gradient(90deg, #7c5aff, #22d3ee);
+}
+
+#vtt-status.vtt-status--rich .vtt-empty-state-action:hover {
+    background: linear-gradient(90deg, #7c5aff, #22d3ee);
+    filter: brightness(1.08);
+}
+
+#vtt-status .vtt-empty-state-steps {
+    margin: 12px 0 0;
+    padding-left: 22px;
+    list-style: decimal;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+#vtt-status .vtt-empty-state-steps li {
+    padding-left: 2px;
+}
+
+#vtt-status .vtt-empty-state-steps li + li {
+    margin-top: 8px;
+}
+
+#vtt-status .vtt-empty-state-steps li::marker {
+    color: #4da3ff;
+    font-weight: 600;
+}
+
+#vtt-status .vtt-empty-state-action {
+    margin-top: 14px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f3f4f6;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#vtt-status .vtt-empty-state-action:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
