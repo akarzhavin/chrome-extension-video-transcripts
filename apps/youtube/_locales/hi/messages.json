@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "फिर से खोजें",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "उपशीर्षक",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "शब्द सहेजने के लिए साइन इन करें",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "सहेजा गया",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} शब्द सहेजे गए",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

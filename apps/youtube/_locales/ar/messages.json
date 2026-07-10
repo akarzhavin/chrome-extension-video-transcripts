@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "ابحث مرة أخرى",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "الترجمة",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "سجّل الدخول لحفظ الكلمات",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "تم الحفظ",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "تم حفظ {count} كلمة",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

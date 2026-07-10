@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "Hľadať znova",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "Titulky",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "Prihláste sa pre ukladanie slov",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "uložené",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "Uložených slov: {count}",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

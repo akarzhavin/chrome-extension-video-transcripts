@@ -46,5 +46,21 @@
   "ytSearchAgain": {
     "message": "Cari lagi",
     "description": "Retry button label on the no-subtitles banner."
+  },
+  "ytSidebarTitle": {
+    "message": "Subtitel",
+    "description": "Sidebar panel header title."
+  },
+  "ytSignInToSave": {
+    "message": "Masuk untuk menyimpan kata",
+    "description": "Account prompt to sign in and save vocabulary."
+  },
+  "ytSavedBadge": {
+    "message": "tersimpan",
+    "description": "Inline badge shown after a word is saved."
+  },
+  "ytWordsSaved": {
+    "message": "{count} kata tersimpan",
+    "description": "Saved-words counter; {count} is the number."
   }
 }

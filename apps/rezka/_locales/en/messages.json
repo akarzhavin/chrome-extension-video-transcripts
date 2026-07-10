@@ -6,5 +6,61 @@
   "appDesc": {
     "message": "Interactive transcripts and dual subtitles to help you understand every word.",
     "description": "Short store summary (max 132 characters)."
+  },
+  "ytSidebarTitle": {
+    "message": "Subtitles",
+    "description": "Sidebar panel header title."
+  },
+  "ytOnboardingTitle": {
+    "message": "Choose your languages",
+    "description": "Onboarding banner heading (sidebar)."
+  },
+  "ytOnboardingText": {
+    "message": "Pick the language you're learning and your native language to start.",
+    "description": "Onboarding banner body asking the user to pick languages."
+  },
+  "ytLearningLabel": {
+    "message": "I'm learning",
+    "description": "Label for the \"language I am learning\" picker."
+  },
+  "ytNativeLabel": {
+    "message": "My native language",
+    "description": "Label for the \"my native language\" picker."
+  },
+  "ytSelectPlaceholder": {
+    "message": "Select…",
+    "description": "Placeholder option in a language dropdown."
+  },
+  "ytSearchingTitle": {
+    "message": "Searching for subtitles…",
+    "description": "Status banner heading while looking for subtitles."
+  },
+  "ytSearchingText": {
+    "message": "Looking for subtitles for this video.",
+    "description": "Status banner body while looking for subtitles."
+  },
+  "ytNoSubsTitle": {
+    "message": "Subtitles didn't load",
+    "description": "Status banner heading when no subtitles were found."
+  },
+  "ytNoSubsText": {
+    "message": "If this title has subtitles, load them by hand:",
+    "description": "Status banner intro before the manual how-to steps."
+  },
+  "ytNoSubsStep1": {
+    "message": "Open the subtitles menu (CC) in the player.",
+    "description": "Manual subtitle how-to, step 1."
+  },
+  "ytNoSubsStep2": {
+    "message": "Click each language once — they load here.",
+    "description": "Manual subtitle how-to, step 2."
+  },
+  "ytNoSubsStep3": {
+    "message": "Then set the player subtitles back to Off.",
+    "description": "Manual subtitle how-to, step 3."
+  },
+  "ytSearchAgain": {
+    "message": "Search again",
+    "description": "Retry button label on the no-subtitles banner."
   }
 }
