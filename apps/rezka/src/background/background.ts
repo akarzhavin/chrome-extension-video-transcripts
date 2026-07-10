@@ -22,13 +22,30 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 installAuthBackground();
 
 interface VttMessage {
-    action: 'TIME_UPDATE' | 'SEEK_VIDEO' | 'VTT_LOADED' | 'FETCH_VTT';
+    action: 'TIME_UPDATE' | 'SEEK_VIDEO' | 'VTT_LOADED' | 'FETCH_VTT' | 'RESCAN' | 'DEV_LOAD_LOCALE';
     [k: string]: unknown;
 }
 
 // Message Relay for data exchange between frames + VTT download requests.
-chrome.runtime.onMessage.addListener((request: VttMessage, sender) => {
-    if (request.action === "TIME_UPDATE" || request.action === "SEEK_VIDEO" || request.action === "VTT_LOADED") {
+// RESCAN is fanned out to every frame so the top-window "Search again" button
+// reaches the player iframe's detector.
+chrome.runtime.onMessage.addListener((request: VttMessage, sender, sendResponse) => {
+    // DEV-ONLY: read a locale's messages.json (the SW can fetch extension
+    // resources without web_accessible_resources) so the content script can force
+    // that locale via setI18nOverride. Compiled out of prod via __EXT_ENV__.
+    if (__EXT_ENV__ === 'dev' && request.action === "DEV_LOAD_LOCALE") {
+        const loc = String(request.locale || '').replace(/[^a-z_-]/gi, '');
+        fetch(chrome.runtime.getURL(`_locales/${loc}/messages.json`))
+            .then(r => r.json())
+            .then((json: Record<string, { message: string }>) => {
+                const map: Record<string, string> = {};
+                for (const k in json) map[k] = json[k].message;
+                sendResponse({ ok: true, map });
+            })
+            .catch(err => sendResponse({ ok: false, error: String(err) }));
+        return true; // keep the channel open for the async sendResponse
+    }
+    if (request.action === "TIME_UPDATE" || request.action === "SEEK_VIDEO" || request.action === "VTT_LOADED" || request.action === "RESCAN") {
         if (sender.tab && sender.tab.id) {
             chrome.tabs.sendMessage(sender.tab.id, request);
         }
