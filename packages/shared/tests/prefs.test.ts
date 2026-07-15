@@ -52,7 +52,27 @@ describe('prefs', () => {
             displayMode: 'dual',
             overlayEnabled: true,
             sidebarCollapsed: false,
+            overlayFontSize: 'medium',
+            overlayColor: '#ffffff',
+            overlayBottomOffset: 'medium',
+            overlayBgOpacity: 'medium',
+            overlayEdgeStyle: 'shadow',
         });
+    });
+
+    test('overlay style prefs round-trip and merge independently', async () => {
+        await savePrefs({ overlayFontSize: 'large', overlayColor: '#ffd700' });
+        let p = await loadPrefs();
+        expect(p.overlayFontSize).toBe('large');
+        expect(p.overlayColor).toBe('#ffd700');
+        // Untouched style fields keep their defaults.
+        expect(p.overlayBottomOffset).toBe('medium');
+        expect(p.overlayBgOpacity).toBe('medium');
+
+        await savePrefs({ overlayBottomOffset: 'high' });
+        p = await loadPrefs();
+        expect(p.overlayBottomOffset).toBe('high');
+        expect(p.overlayFontSize).toBe('large'); // earlier change preserved
     });
 
     test('savePrefs merges with existing values', async () => {
@@ -86,6 +106,11 @@ describe('prefs', () => {
             displayMode: 'dual',
             overlayEnabled: true,
             sidebarCollapsed: false,
+            overlayFontSize: 'medium',
+            overlayColor: '#ffffff',
+            overlayBottomOffset: 'medium',
+            overlayBgOpacity: 'medium',
+            overlayEdgeStyle: 'shadow',
         });
     });
 

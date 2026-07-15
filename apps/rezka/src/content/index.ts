@@ -10,7 +10,7 @@ import {
     saveLanguagePrefs,
     onLanguagePrefsChanged,
     labelForLanguage,
-    nativeForLanguage,
+    shortCodeForLanguage,
     msg as i18nMsg,
     setI18nOverride,
     SUPPORTED_LANGUAGES,
@@ -34,10 +34,17 @@ const NO_SUBS_GRACE_MS = 3000;
 class VttApp implements AppInterface {
     state: AppState;
     ui: SidebarUI;
+    // False when another copy of the extension owns the sidebar on this page.
+    // Public so the bootstrap can also gate page-level installers (auth badge).
+    uiOwned = true;
     isTopWindow: boolean;
     detector: VttDetector;
     langPrefs: LanguagePrefs | null = null;
     noSubsTimer: number | null = null;
+    // How many times the user hit "Search again" for the current no-subs banner
+    // without a track loading. Once they've retried and it's still empty we offer
+    // a page reload as the next fallback. Reset when a track finally loads.
+    noSubsRetries: number = 0;
 
     constructor() {
         this.isTopWindow = window === window.top;
@@ -46,14 +53,17 @@ class VttApp implements AppInterface {
         this.detector = new VttDetector(this);
 
         console.log("VTT Sidebar: Running in " + (this.isTopWindow ? "top window." : "iframe."));
-        this.ui.init();
+        // False → a #vtt-sidebar from another installed copy of the extension
+        // already owns this page; keep our UI writers off it (shared ids would
+        // otherwise let us graft controls into a sidebar we didn't build).
+        this.uiOwned = this.ui.init();
         this.setupListeners();
         this.startVideoPolling();
         this.detector.start();
         // The onboarding picker, language-pair chip and status banners belong to
         // the visible sidebar, which only renders in the top window (iframes get
         // a hidden one). Subtitle detection still runs in every frame.
-        if (this.isTopWindow) void this.initLanguagePrefs();
+        if (this.isTopWindow && this.uiOwned) void this.initLanguagePrefs();
     }
 
     startVideoPolling(): void {
@@ -116,6 +126,7 @@ class VttApp implements AppInterface {
         if (this.isTopWindow) {
             this.clearNoSubtitlesTimer();
             this.hideStatusBanner();
+            this.noSubsRetries = 0;
         }
     }
 
@@ -197,6 +208,7 @@ class VttApp implements AppInterface {
     }
 
     updateOnboardingState(): void {
+        if (!this.uiOwned) return; // sidebar belongs to another extension copy
         if (!this.isWatchPage()) return; // not a player page → keep the sidebar quiet
         this.updateLanguagePairChip();
         if (this.langPrefs) {
@@ -212,23 +224,52 @@ class VttApp implements AppInterface {
     // A "🇪🇸 Español → 🇬🇧 English" chip under the header reflecting the chosen
     // pair, so it's always clear which two languages are in play.
     updateLanguagePairChip(): void {
-        const headerTop = document.getElementById('vtt-header-top');
+        // Mount ONLY into our own sub-header slot. No header-top fallback: the
+        // ids are shared across extension versions, so a fallback would graft
+        // the chip into a sidebar built by another installed copy.
+        const subheader = document.getElementById('vtt-subheader');
         const existing = document.getElementById('vtt-langpair');
         if (!this.langPrefs) {
             existing?.remove();
             return;
         }
         const { learning, native } = this.langPrefs;
-        const chip = existing ?? document.createElement('div');
+        const chip = (existing as HTMLElement) ?? document.createElement('div');
         chip.id = 'vtt-langpair';
-        // Language names only — no country flags in the Rezka chip.
+        // Compact abbreviations (EN ⇄ RU); each language is one span so the
+        // .vtt-swapped row-reverse flip reorders them cleanly. The
+        // bidirectional arrow advertises that the chip itself swaps.
         chip.innerHTML =
             '<span class="vtt-langpair-inner">' +
-            nativeForLanguage(learning) +
-            '<span class="vtt-langpair-arrow">→</span>' +
-            nativeForLanguage(native) +
+            `<span class="vtt-langpair-lang">${shortCodeForLanguage(learning)}</span>` +
+            '<span class="vtt-langpair-arrow">⇄</span>' +
+            `<span class="vtt-langpair-lang">${shortCodeForLanguage(native)}</span>` +
             '</span>';
-        if (!existing && headerTop) headerTop.insertAdjacentElement('afterend', chip);
+        // The chip IS the swap control: tapping the pair swaps which track is
+        // primary, and .vtt-swapped (set in updateControls) flips the visual
+        // order to match. Language changes live behind the settings gear.
+        if (!existing) {
+            const label = `${t('ytModeSwap', 'Swap')} (Shift+S)`;
+            chip.setAttribute('role', 'button');
+            chip.setAttribute('tabindex', '0');
+            chip.setAttribute('aria-label', t('ytModeSwap', 'Swap'));
+            chip.title = label;
+            const swap = () => {
+                if (!this.state.swapTracks()) return;
+                chip.classList.remove('vtt-pulse');
+                void chip.offsetWidth;
+                chip.classList.add('vtt-pulse');
+                this.ui.refresh();
+            };
+            chip.addEventListener('click', swap);
+            chip.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    swap();
+                }
+            });
+        }
+        if (!existing && subheader) subheader.prepend(chip);
     }
 
     showLanguageOnboarding(): void {
@@ -335,13 +376,34 @@ class VttApp implements AppInterface {
         // Auto-search came up empty. The player only fetches a track when it's
         // picked in the CC menu, so walk the user through loading them by hand —
         // the (always-on) interceptor grabs each one as it's selected.
-        this.showStatusBanner(
-            t('ytNoSubsTitle', "Subtitles didn't load"),
-            t('ytNoSubsText', 'If this title has subtitles, load them by hand:'),
+        // The manual how-to (illustration + steps) is the primary recovery path
+        // and stays in every failure state. After a failed "Search again" the
+        // banner additionally grows a quiet, red "Reload page" emergency button —
+        // a last-resort escape hatch, deliberately NOT styled as a feature. The
+        // body text switches to acknowledge the failed retry and point at it.
+        const retried = this.noSubsRetries > 0;
+        const actions: Array<{ label: string; onClick: () => void; emergency?: boolean }> = [
             {
                 label: '↻ ' + t('ytSearchAgain', 'Search again'),
                 onClick: () => this.searchAgain(),
             },
+        ];
+        if (retried) {
+            actions.push({
+                label: '⟳ ' + t('ytReloadPage', 'Reload page'),
+                onClick: () => void this.reportNoSubsAndReload(),
+                emergency: true,
+            });
+        }
+        this.showStatusBanner(
+            t('ytNoSubsTitle', "Subtitles didn't load"),
+            retried
+                ? t(
+                      'ytNoSubsRetryText',
+                      "Still no subtitles. If loading them by hand doesn't help, reload the page.",
+                  )
+                : t('ytNoSubsText', 'If this title has subtitles, load them by hand:'),
+            actions,
             [
                 t('ytNoSubsStep1', 'Open the subtitles menu (CC) in the player.'),
                 t('ytNoSubsStep2', 'Click each language once — they load here.'),
@@ -403,7 +465,42 @@ class VttApp implements AppInterface {
     // Re-arm "Searching…" and ask every frame's detector to re-scan. The player's
     // subtitle requests are also caught passively, so a fresh grace window is
     // usually enough once playback has started.
+    // Emergency "Reload page" handler. The banner copy qualifies the click
+    // ("this video HAS subtitles but we aren't showing them"), so it doubles as
+    // a bug report: fire a best-effort diagnostic to the background worker, then
+    // reload no matter what. The 400ms race caps how long a slow/dead worker can
+    // delay the reload the user actually asked for.
+    async reportNoSubsAndReload(): Promise<void> {
+        try {
+            if (chrome?.runtime?.id) {
+                await Promise.race([
+                    chrome.runtime
+                        .sendMessage({
+                            action: 'REPORT_NO_SUBS',
+                            site: location.hostname,
+                            videoRef: location.href,
+                            version: chrome.runtime.getManifest().version,
+                            locale: chrome.i18n.getUILanguage(),
+                            // The chosen pair tells triage which subtitle
+                            // languages failed to materialize. Always set:
+                            // the no-subs banner only renders with prefs.
+                            learning: this.langPrefs?.learning ?? '',
+                            native: this.langPrefs?.native ?? '',
+                        })
+                        .catch(() => undefined),
+                    new Promise((resolve) => setTimeout(resolve, 400)),
+                ]);
+            }
+        } catch {
+            // Extension context invalidated — the reload below fixes that too.
+        }
+        location.reload();
+    }
+
     searchAgain(): void {
+        // Remember the retry so the next empty result can escalate to a reload
+        // prompt rather than looping on "Search again".
+        this.noSubsRetries++;
         this.detector.rescan();
         try {
             if (chrome?.runtime?.id) chrome.runtime.sendMessage({ action: 'RESCAN' });
@@ -423,7 +520,9 @@ class VttApp implements AppInterface {
     showStatusBanner(
         titleText: string,
         bodyText: string,
-        action?: { label: string; onClick: () => void },
+        action?:
+            | { label: string; onClick: () => void; emergency?: boolean }
+            | Array<{ label: string; onClick: () => void; emergency?: boolean }>,
         steps?: string[],
         illustration?: string,
     ): void {
@@ -478,16 +577,25 @@ class VttApp implements AppInterface {
             anchor.insertAdjacentElement('afterend', ol);
         }
 
-        // Rebuild the action button each call so stale labels/handlers don't linger
-        // (e.g. the "Searching…" banner reuses this element without an action).
+        // Rebuild the action button(s) each call so stale labels/handlers don't
+        // linger (e.g. the "Searching…" banner reuses this element with none).
+        banner.querySelector('.vtt-empty-state-actions')?.remove();
         banner.querySelector('.vtt-empty-state-action')?.remove();
-        if (action) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'vtt-empty-state-action';
-            btn.textContent = action.label;
-            btn.addEventListener('click', action.onClick);
-            banner.appendChild(btn);
+        const actions = action ? (Array.isArray(action) ? action : [action]) : [];
+        if (actions.length) {
+            const row = document.createElement('div');
+            row.className = 'vtt-empty-state-actions';
+            for (const a of actions) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = a.emergency
+                    ? 'vtt-empty-state-action vtt-empty-state-action--emergency'
+                    : 'vtt-empty-state-action';
+                btn.textContent = a.label;
+                btn.addEventListener('click', a.onClick);
+                row.appendChild(btn);
+            }
+            banner.appendChild(row);
         }
     }
 
@@ -661,9 +769,12 @@ function bootstrap(): void {
     }
 
     if (!isRezka) return;
-    new VttApp();
+    const app = new VttApp();
     installQuickAddOverlay();
-    if (window === window.top) installAuthStatusBadge();
+    // The badge self-attaches to any #vtt-header-top (with an observer retry),
+    // so gate it on owning the sidebar — otherwise it grafts into a sidebar
+    // built by another installed copy of the extension.
+    if (window === window.top && app.uiOwned) installAuthStatusBadge();
 }
 
 bootstrap();

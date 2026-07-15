@@ -89,6 +89,184 @@ describe('SidebarUI', () => {
         expect(overlay?.textContent).toBe('Hello');
     });
 
+    test('settings takeover: hides list via class, swaps header title, restores on exit', () => {
+        const panel = document.createElement('div');
+        const title = document.createElement('h2');
+        title.textContent = 'Subtitles';
+        ui.elements.settingsPanel = panel as HTMLDivElement;
+        ui.elements.titleEl = title as HTMLHeadingElement;
+
+        ui.toggleSettingsPanel();
+        expect(panel.classList.contains('open')).toBe(true);
+        expect(ui.elements.sidebar?.classList.contains('vtt-settings-open')).toBe(true);
+        expect(title.textContent).toBe('Settings');
+
+        ui.toggleSettingsPanel();
+        expect(panel.classList.contains('open')).toBe(false);
+        expect(ui.elements.sidebar?.classList.contains('vtt-settings-open')).toBe(false);
+        expect(title.textContent).toBe('Subtitles');
+    });
+
+    test('back chip and Done button both exit settings mode', () => {
+        // Full init() so the real header/panel wiring is exercised.
+        document.body.innerHTML = '';
+        const freshUi = new SidebarUI(new AppState(), mockApp);
+        expect(freshUi.init()).toBe(true);
+
+        const sidebar = document.getElementById('vtt-sidebar')!;
+        const panel = document.getElementById('vtt-settings-panel')!;
+        const backBtn = document.getElementById('vtt-back-btn')!;
+        const doneBtn = document.getElementById('vtt-done-btn')!;
+        expect(backBtn.textContent).toContain('Subtitles'); // labeled destination
+
+        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        expect(panel.classList.contains('open')).toBe(true);
+        backBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(panel.classList.contains('open')).toBe(false);
+        expect(sidebar.classList.contains('vtt-settings-open')).toBe(false);
+
+        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        expect(panel.classList.contains('open')).toBe(true);
+        (doneBtn as HTMLButtonElement).click();
+        expect(panel.classList.contains('open')).toBe(false);
+    });
+
+    test('collapsing the sidebar exits settings, re-expanding shows the transcript', () => {
+        document.body.innerHTML = '';
+        const freshUi = new SidebarUI(new AppState(), mockApp);
+        expect(freshUi.init()).toBe(true);
+
+        const sidebar = document.getElementById('vtt-sidebar')!;
+        const panel = document.getElementById('vtt-settings-panel')!;
+
+        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        expect(panel.classList.contains('open')).toBe(true);
+
+        freshUi.toggleCollapsed();
+        expect(sidebar.classList.contains('collapsed')).toBe(true);
+        expect(panel.classList.contains('open')).toBe(false);
+        expect(sidebar.classList.contains('vtt-settings-open')).toBe(false);
+
+        // Re-expanding lands on the transcript, not a stale settings panel.
+        freshUi.toggleCollapsed();
+        expect(sidebar.classList.contains('collapsed')).toBe(false);
+        expect(panel.classList.contains('open')).toBe(false);
+
+        // Expanding must NOT close settings (only collapsing does): open
+        // settings on the expanded sidebar and collapse via fullscreen enter.
+        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        expect(panel.classList.contains('open')).toBe(true);
+        freshUi.setupFullscreenHandling();
+        const fsEl = document.createElement('div');
+        document.body.appendChild(fsEl);
+        Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: fsEl });
+        document.dispatchEvent(new Event('fullscreenchange'));
+        expect(panel.classList.contains('open')).toBe(false);
+        Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: null });
+    });
+
+    describe('overlay style presets', () => {
+        const buildOverlay = () => {
+            state.overlayEnabled = true;
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hi' } as Subtitle]);
+            const video = document.createElement('video');
+            const container = document.createElement('div');
+            container.appendChild(video);
+            document.body.appendChild(container);
+            ui.updateOverlay(0);
+            return document.getElementById('vtt-video-overlay') as HTMLElement;
+        };
+
+        test('applyOverlayStyle sets --vtt-overlay-* custom props from defaults', () => {
+            const overlay = buildOverlay();
+            // Defaults: medium size/offset/bg, white color.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('80px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0.7');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-color')).toBe('#ffffff');
+        });
+
+        test('a size preset setter restyles the live overlay and persists the pref', async () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayFontSize('large');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('32px');
+            // Persisted via savePrefs (load→merge→set chain) → storage.local backing store.
+            await new Promise((r) => setTimeout(r, 0));
+            expect((prefsStore['prefs.v1'] as any).overlayFontSize).toBe('large');
+        });
+
+        test('an offset preset setter maps low/high tokens to px', () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayBottomOffset('low');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('40px');
+            (ui as any).setOverlayBottomOffset('high');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('140px');
+        });
+
+        test('edge style maps tokens to text-shadow values', () => {
+            const overlay = buildOverlay();
+            // Default is 'shadow' (the pre-redesign hard-coded look).
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('1px 1px 3px #000');
+            (ui as any).setOverlayEdgeStyle('none');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('none');
+            (ui as any).setOverlayEdgeStyle('outline');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('-1px -1px 0 #000');
+        });
+
+        test('applyOverlayStyle also styles the sidebar preview element', () => {
+            const preview = document.createElement('div');
+            ui.elements.previewEl = preview;
+            (ui as any).setOverlayFontSize('large');
+            expect(preview.style.getPropertyValue('--vtt-overlay-font-size')).toBe('32px');
+            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('1px 1px 3px #000');
+        });
+
+        test('reset restores all five defaults with a single storage write', async () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayFontSize('large');
+            (ui as any).setOverlayEdgeStyle('outline');
+            await new Promise((r) => setTimeout(r, 0));
+
+            ((global as any).chrome.storage.local.set as jest.Mock).mockClear();
+            (ui as any).resetOverlayStyle();
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect((global as any).chrome.storage.local.set).toHaveBeenCalledTimes(1);
+            const stored = prefsStore['prefs.v1'] as any;
+            expect(stored).toMatchObject({
+                overlayFontSize: 'medium',
+                overlayColor: '#ffffff',
+                overlayBottomOffset: 'medium',
+                overlayBgOpacity: 'medium',
+                overlayEdgeStyle: 'shadow',
+            });
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
+        });
+
+        test('updateOverlayPreview falls back to sample text and honors dual mode', () => {
+            const preview = document.createElement('div');
+            const main = document.createElement('div');
+            const sub = document.createElement('div');
+            ui.elements.previewEl = preview;
+            ui.elements.previewMain = main;
+            ui.elements.previewSub = sub;
+
+            state.displayMode = 'dual';
+            (ui as any).updateOverlayPreview();
+            expect(main.textContent).toBe('The quick brown fox');
+            expect(sub.textContent).toBe('Translation preview');
+            expect(sub.style.display).toBe('');
+
+            state.displayMode = 'single';
+            (ui as any).updateOverlayPreview();
+            expect(sub.style.display).toBe('none');
+
+            state.overlayEnabled = false;
+            (ui as any).updateOverlayPreview();
+            expect(preview.classList.contains('vtt-preview-disabled')).toBe(true);
+        });
+    });
+
     describe('word-wrapping spans (data-word)', () => {
         // Every word lives in its own <span data-word="..."> so the quick-add
         // overlay can snap selection to word boundaries and resolve masked
