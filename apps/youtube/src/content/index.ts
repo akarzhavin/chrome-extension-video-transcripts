@@ -15,6 +15,7 @@ import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
 import { bootstrapNetflix } from './netflix/app';
 import { watchControlsFloor } from './controlsFloor';
+import { installPlayerMenu } from './player-menu';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -648,71 +649,6 @@ function watchSidebarState(): void {
     setTimeout(fire, 500);
 }
 
-// Injects a toggle into YouTube's own native player control bar
-// (.ytp-right-controls, alongside CC/settings/fullscreen) so the on-video
-// overlay can be switched without opening the sidebar. Idempotent and
-// self-healing: safe to call repeatedly, re-inserts if YouTube tears down
-// and rebuilds the control bar (SPA navigation), no-ops once the button
-// already exists. State stays in sync via SidebarUI.updateControls() —
-// see registerExternalElement() — not a separate listener here.
-const YTP_OVERLAY_BTN_ID = 'vtt-ytp-overlay-btn';
-
-function installPlayerControlButton(app: BaseVttApp): void {
-    const tryInsert = (): boolean => {
-        if (document.getElementById(YTP_OVERLAY_BTN_ID)) return true;
-        if (!app.uiOwned) return true; // second-copy guard, matches SidebarUI.init()
-
-        const controls = document.querySelector('.ytp-right-controls');
-        if (!controls) return false;
-
-        const btn = document.createElement('button');
-        btn.id = YTP_OVERLAY_BTN_ID;
-        // Deliberately NOT YouTube's own ytp-button class — this custom class
-        // is self-sufficient (size/hover/active all defined in styles.css)
-        // and avoids any chance of inheriting YouTube's own delegated
-        // tooltip/hover JS meant for its own buttons.
-        btn.className = 'vtt-ytp-overlay-btn';
-        btn.type = 'button';
-        btn.setAttribute('aria-pressed', String(app.state.overlayEnabled));
-        // Name the brand in the tooltip: among YouTube's own controls, an
-        // unlabeled glyph gives no clue whose it is or what it does.
-        btn.title = `Lingogram — ${t('ytModeOnScreen', 'On-screen')} (Shift+O)`;
-        // The mascot itself, not a generic glyph — it's the same mark the user
-        // already knows from the Chrome toolbar, so the button reads as "this
-        // is that extension" at a glance. Colour = on, greyscale = off (CSS).
-        const img = document.createElement('img');
-        img.src = chrome.runtime.getURL('src/assets/icons/player-btn.png');
-        img.alt = '';
-        img.draggable = false;
-        btn.appendChild(img);
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // don't let it bubble into YouTube's player click handling
-            app.ui.toggleOverlay();
-        });
-
-        // Insert as a sibling of the CC button specifically — YouTube nests the
-        // control row a level deeper in some layouts (e.g. an
-        // .ytp-right-controls-left wrapper), so .ytp-right-controls itself
-        // isn't always the CC button's direct parent.
-        const ccBtn = controls.querySelector('.ytp-subtitles-button');
-        if (ccBtn?.parentElement) ccBtn.parentElement.insertBefore(btn, ccBtn);
-        else controls.appendChild(btn); // fallback if CC button is absent this session
-
-        app.ui.registerExternalElement('ytpOverlayBtn', btn);
-        return true;
-    };
-
-    if (tryInsert()) return;
-    // .ytp-right-controls may not exist yet on first script run (player still
-    // mounting) — retry briefly, then give up rather than polling forever on
-    // a page where it never appears.
-    let attempts = 0;
-    const iv = setInterval(() => {
-        attempts++;
-        if (tryInsert() || attempts >= 150) clearInterval(iv); // ~30s cap
-    }, 200);
-}
-
 function bootstrap(): void {
     const host = window.location.hostname;
     let app: BaseVttApp;
@@ -722,13 +658,13 @@ function bootstrap(): void {
         injectLayoutOverrides();
         app = new YouTubeVttApp();
         watchSidebarState();
-        installPlayerControlButton(app);
+        installPlayerMenu(app);
         // Keep the overlay's control-bar clearance (--vtt-yt-controls-floor)
         // in sync with the real bar geometry; see controlsFloor.ts.
         watchControlsFloor();
         // YouTube tears down/rebuilds its player chrome on SPA navigation;
         // re-run (idempotent) so the button survives it.
-        document.addEventListener('yt-navigate-finish', () => installPlayerControlButton(app));
+        document.addEventListener('yt-navigate-finish', () => installPlayerMenu(app));
     } else {
         return;
     }

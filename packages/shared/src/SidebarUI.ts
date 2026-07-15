@@ -111,12 +111,25 @@ export class SidebarUI {
         const sidebar = document.createElement('div');
         sidebar.id = 'vtt-sidebar';
 
-        // Toggle Button
+        // Toggle Button. A div rather than a button (it predates the rest), so
+        // it has to borrow button semantics by hand — without these it's
+        // unreachable by keyboard and anonymous to a screen reader.
         const toggleBtn = document.createElement('div');
         toggleBtn.id = 'vtt-toggle-btn';
         toggleBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+        toggleBtn.setAttribute('role', 'button');
+        toggleBtn.setAttribute('tabindex', '0');
+        toggleBtn.setAttribute('aria-label', msg('ytTogglePanel', 'Toggle panel'));
+        toggleBtn.setAttribute('aria-controls', 'vtt-sidebar');
         toggleBtn.addEventListener('click', () => this.toggleCollapsed());
+        toggleBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault(); // Space would scroll the page
+                this.toggleCollapsed();
+            }
+        });
         sidebar.appendChild(toggleBtn);
+        this.elements = { ...this.elements, toggleBtn };
 
         // Header Container
         const header = document.createElement('div');
@@ -650,7 +663,7 @@ export class SidebarUI {
             this.state.displayMode = prefs.displayMode;
             this.state.overlayEnabled = prefs.overlayEnabled;
             this.adoptOverlayStyle(prefs);
-            this.elements.sidebar?.classList.toggle('collapsed', prefs.sidebarCollapsed);
+            this.applyCollapsed(prefs.sidebarCollapsed);
             this.refresh();
         }).catch(() => {});
 
@@ -665,9 +678,8 @@ export class SidebarUI {
                 changed = true;
             }
             this.adoptOverlayStyle(prefs);
-            const sidebar = this.elements.sidebar;
-            if (sidebar && sidebar.classList.contains('collapsed') !== prefs.sidebarCollapsed) {
-                sidebar.classList.toggle('collapsed', prefs.sidebarCollapsed);
+            if (this.isCollapsed() !== prefs.sidebarCollapsed) {
+                this.applyCollapsed(prefs.sidebarCollapsed);
                 if (prefs.sidebarCollapsed) this.closeSettingsPanel();
             }
             if (changed) this.refresh();
@@ -722,12 +734,43 @@ export class SidebarUI {
     }
 
     toggleCollapsed(): void {
+        this.setCollapsed(!this.isCollapsed());
+    }
+
+    /** Whether the sidebar is currently slid off-screen. */
+    isCollapsed(): boolean {
+        return this.elements.sidebar?.classList.contains('collapsed') ?? false;
+    }
+
+    // Expand the sidebar, whatever state it's in. toggleCollapsed() means
+    // "flip", so a caller that means "open" (the player menu) can't use it
+    // blind — on an already-open sidebar it would collapse it.
+    openPanel(): void {
+        this.setCollapsed(false);
+    }
+
+    // Paint the collapsed state onto the DOM. Split from setCollapsed() so the
+    // prefs-hydration paths can reuse it without writing straight back the
+    // value they just read.
+    private applyCollapsed(collapsed: boolean): void {
         const sidebar = this.elements.sidebar;
         if (!sidebar) return;
-        sidebar.classList.toggle('collapsed');
-        const collapsed = sidebar.classList.contains('collapsed');
+        sidebar.classList.toggle('collapsed', collapsed);
+        this.elements.toggleBtn?.setAttribute('aria-expanded', String(!collapsed));
+    }
+
+    private setCollapsed(collapsed: boolean): void {
+        if (!this.elements.sidebar) return;
+        this.applyCollapsed(collapsed);
         if (collapsed) this.closeSettingsPanel();
         savePrefs({ sidebarCollapsed: collapsed });
+    }
+
+    // Expand straight into settings. Same reasoning as openPanel(), squared:
+    // toggleSettingsPanel() is also a toggle, so it needs the same guard.
+    openSettings(): void {
+        this.openPanel();
+        if (!this.elements.settingsPanel?.classList.contains('open')) this.toggleSettingsPanel();
     }
 
     toggleDualMode(): void {
@@ -765,7 +808,7 @@ export class SidebarUI {
             if (document.fullscreenElement) {
                 sidebar.style.display = 'flex';
                 sidebar.classList.add('fullscreen');
-                sidebar.classList.add('collapsed');
+                this.applyCollapsed(true); // transient — deliberately not persisted
                 this.closeSettingsPanel();
                 document.fullscreenElement.appendChild(sidebar);
             } else {
@@ -781,7 +824,7 @@ export class SidebarUI {
                     // otherwise leaving fullscreen always re-expands a sidebar
                     // the user had deliberately collapsed.
                     loadPrefs().then((prefs) => {
-                        sidebar.classList.toggle('collapsed', prefs.sidebarCollapsed);
+                        this.applyCollapsed(prefs.sidebarCollapsed);
                     }).catch(() => {});
                 }
             }
@@ -810,12 +853,30 @@ export class SidebarUI {
         return div;
     }
 
+    // Satellite UIs that live outside the sidebar DOM (the YouTube player menu)
+    // and are too transient to register elements with updateControls(). They
+    // repaint themselves from state whenever anything changes it — a hotkey
+    // pressed while the menu is open, say.
+    private refreshHooks: Array<() => void> = [];
+
+    /** Subscribe to state changes; returns an unsubscribe function. */
+    onRefresh(fn: () => void): () => void {
+        this.refreshHooks.push(fn);
+        return () => {
+            this.refreshHooks = this.refreshHooks.filter(f => f !== fn);
+        };
+    }
+
     refresh(): void {
         this.updateControls();
         this.updateOverlayPreview();
         this.renderSubtitles();
         this.syncNativeSubtitles();
         this.app.updateHighlight();
+        // A throwing subscriber must not take the sidebar's own refresh down.
+        this.refreshHooks.forEach(fn => {
+            try { fn(); } catch (e) { console.warn('[Lingogram] refresh hook failed', e); }
+        });
     }
 
     // Whether we've already turned the site's native captions off for the
@@ -904,13 +965,10 @@ export class SidebarUI {
             qmOverlayBtn.classList.toggle('active', this.state.overlayEnabled);
             qmOverlayBtn.setAttribute('aria-pressed', String(this.state.overlayEnabled));
         }
-        // Native YouTube control-bar button (if installed) — same state, its
-        // own BEM modifier class since it lives outside the sidebar's styling.
-        const { ytpOverlayBtn } = this.elements;
-        if (ytpOverlayBtn) {
-            ytpOverlayBtn.classList.toggle('vtt-ytp-overlay-btn--active', this.state.overlayEnabled);
-            ytpOverlayBtn.setAttribute('aria-pressed', String(this.state.overlayEnabled));
-        }
+        // The YouTube control-bar button (if installed) needs nothing here: it
+        // opens the menu, which is always available, so it has no on/off to
+        // mirror. The overlay's state shows on the CC button beside it, which
+        // player-menu.ts paints from this same state on open and on refresh.
         if (qmDualBtn) qmDualBtn.disabled = !hasMultiple;
 
         // The language chip doubles as the swap control: its visual order

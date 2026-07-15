@@ -37,6 +37,30 @@ export class AppState {
         this.applyPreferences();
     }
 
+    /**
+     * Whether a track matching the given preference label actually loaded.
+     *
+     * Finding one language but not the other is a normal outcome, not a
+     * failure: plenty of videos caption the spoken language only. Callers use
+     * this to say which half is missing instead of reporting a blanket "no
+     * subtitles" while a track is visibly playing. Mirrors the matching in
+     * applyPreferences() rather than restating it.
+     */
+    private hasTrackFor(label?: string): boolean {
+        if (!label) return false;
+        return this.tracks.some(t => t.name.includes(label));
+    }
+
+    /** A track for the language being learned loaded. */
+    hasLearningTrack(): boolean {
+        return this.hasTrackFor(this.primaryLangLabel);
+    }
+
+    /** A track for the user's native language loaded (the translation half). */
+    hasNativeTrack(): boolean {
+        return this.hasTrackFor(this.secondaryLangLabel);
+    }
+
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();

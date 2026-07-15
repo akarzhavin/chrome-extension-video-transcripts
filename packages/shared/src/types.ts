@@ -60,16 +60,22 @@ export interface SidebarElements {
   qmDualBtn?: HTMLButtonElement;
   qmGuessBtn?: HTMLButtonElement;
   qmOverlayBtn?: HTMLButtonElement;
-  // YouTube-only: the toggle injected into YouTube's own native player
-  // control bar (.ytp-right-controls), registered via registerExternalElement
-  // and kept in sync by updateControls() like every other overlay chip.
-  ytpOverlayBtn?: HTMLButtonElement;
+  // The tab at the screen edge that slides the sidebar in and out; the only
+  // part of it still visible while collapsed.
+  toggleBtn?: HTMLDivElement;
 }
 
 export interface AppInterface {
   updateHighlight(): void;
   seekVideo(time: number): void;
   getOverlayParent?(): HTMLElement | null;
+  /**
+   * The chosen learning/native languages, or null when the user hasn't picked
+   * yet — nothing renders in that state, whatever the overlay pref says.
+   * Structurally identical to LanguagePrefs (languages.ts); spelled out here
+   * because this module deliberately has no imports.
+   */
+  langPrefs?: { learning: string; native: string } | null;
   /**
    * Turn the site's own native captions on/off at the source (in addition to
    * the CSS overlay-hide). Called with `false` while our overlay is enabled so

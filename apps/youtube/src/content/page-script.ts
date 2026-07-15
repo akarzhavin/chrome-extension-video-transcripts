@@ -242,6 +242,21 @@ function installYouTubeHook() {
         if (attempt < 10) setTimeout(() => turnCcOffIfOn(attempt + 1), 300);
     }
 
+    // Keep the control bar up while our player menu is open, the same way
+    // YouTube's own settings menu does. wakeUpControls() is the player's own
+    // API — it restarts the autohide timer from the inside, so nothing here
+    // touches #movie_player's classes (which controlsFloor.ts observes: writing
+    // them fed back through YouTube's observers into a loop).
+    function wakeUpControls(): void {
+        const player = document.getElementById('movie_player') as (HTMLElement & { wakeUpControls?: () => void }) | null;
+        try {
+            player?.wakeUpControls?.();
+        } catch {
+            // Player API shape is not a contract; a missing method just means
+            // the bar autohides as usual.
+        }
+    }
+
     function fireCcKey(): void {
         const video = document.querySelector('video');
         if (!video) return;
@@ -360,6 +375,10 @@ function installYouTubeHook() {
         if (data.type === 'YT_SET_NATIVE_SUBS' && data.enabled === false) {
             // Only the "turn off" direction — never force captions back on.
             turnCcOffIfOn();
+            return;
+        }
+        if (data.type === 'YT_WAKE_CONTROLS') {
+            wakeUpControls();
             return;
         }
         if (

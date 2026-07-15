@@ -107,7 +107,11 @@ describe('SidebarUI', () => {
         expect(title.textContent).toBe('Subtitles');
     });
 
-    test('back chip and Done button both exit settings mode', () => {
+    // Exits from settings are the header back chip and the gear toggle; the
+    // Done button this test also covered was removed (see the comment above
+    // header.appendChild(settingsPanel) in SidebarUI.init), leaving the test
+    // asserting on a null element.
+    test('back chip and gear toggle both exit settings mode', () => {
         // Full init() so the real header/panel wiring is exercised.
         document.body.innerHTML = '';
         const freshUi = new SidebarUI(new AppState(), mockApp);
@@ -116,18 +120,18 @@ describe('SidebarUI', () => {
         const sidebar = document.getElementById('vtt-sidebar')!;
         const panel = document.getElementById('vtt-settings-panel')!;
         const backBtn = document.getElementById('vtt-back-btn')!;
-        const doneBtn = document.getElementById('vtt-done-btn')!;
+        const gear = document.getElementById('vtt-settings-btn') as HTMLElement;
         expect(backBtn.textContent).toContain('Subtitles'); // labeled destination
 
-        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        gear.click();
         expect(panel.classList.contains('open')).toBe(true);
         backBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(panel.classList.contains('open')).toBe(false);
         expect(sidebar.classList.contains('vtt-settings-open')).toBe(false);
 
-        (document.getElementById('vtt-settings-btn') as HTMLElement).click();
+        gear.click();
         expect(panel.classList.contains('open')).toBe(true);
-        (doneBtn as HTMLButtonElement).click();
+        gear.click();
         expect(panel.classList.contains('open')).toBe(false);
     });
 
@@ -398,4 +402,80 @@ describe('SidebarUI', () => {
             expect(sidebar.classList.contains('collapsed')).toBe(false);
         });
     });
+
+    // The player menu needs "open", not "flip": both toggleCollapsed() and
+    // toggleSettingsPanel() would close an already-open panel.
+    describe('openPanel / openSettings are not toggles', () => {
+        let sidebar: HTMLElement;
+
+        beforeEach(() => {
+            document.body.innerHTML = '';
+            ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+            sidebar = document.getElementById('vtt-sidebar')!;
+        });
+
+        test('openPanel expands a collapsed sidebar and persists it', () => {
+            ui.toggleCollapsed();
+            expect(ui.isCollapsed()).toBe(true);
+            ui.openPanel();
+            expect(ui.isCollapsed()).toBe(false);
+            expect(prefsStore['prefs.v1']).toMatchObject({ sidebarCollapsed: false });
+        });
+
+        test('openPanel on an already-open sidebar leaves it open', () => {
+            expect(ui.isCollapsed()).toBe(false);
+            ui.openPanel();
+            expect(ui.isCollapsed()).toBe(false);
+        });
+
+        test('openSettings expands and opens settings from collapsed', () => {
+            ui.toggleCollapsed();
+            ui.openSettings();
+            expect(ui.isCollapsed()).toBe(false);
+            expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
+        });
+
+        test('openSettings on already-open settings keeps them open', () => {
+            ui.openSettings();
+            ui.openSettings();
+            expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
+        });
+
+        test('the collapse tab is keyboard-operable and announces its state', () => {
+            const tab = document.getElementById('vtt-toggle-btn')!;
+            expect(tab.getAttribute('role')).toBe('button');
+            expect(tab.getAttribute('tabindex')).toBe('0');
+            expect(tab.getAttribute('aria-label')).toBeTruthy();
+
+            tab.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            expect(ui.isCollapsed()).toBe(true);
+            expect(tab.getAttribute('aria-expanded')).toBe('false');
+
+            tab.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+            expect(ui.isCollapsed()).toBe(false);
+            expect(tab.getAttribute('aria-expanded')).toBe('true');
+        });
+    });
+
+    describe('onRefresh hooks', () => {
+        test('fire on refresh, stop after unsubscribe, and survive a throwing peer', () => {
+            const bad = jest.fn(() => { throw new Error('boom'); });
+            const good = jest.fn();
+            ui.onRefresh(bad);
+            const off = ui.onRefresh(good);
+
+            expect(() => ui.refresh()).not.toThrow();
+            expect(good).toHaveBeenCalledTimes(1);
+
+            off();
+            ui.refresh();
+            expect(good).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    // The player-bar button no longer mirrors overlay state — it opens a menu,
+    // which is always available. The CC button beside it carries the overlay's
+    // on/off and paints itself from an onRefresh hook; that's covered in
+    // apps/youtube/tests/player-menu.test.ts.
 });

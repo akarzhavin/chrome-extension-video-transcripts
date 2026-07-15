@@ -37,6 +37,9 @@
     z-index: 10;
 }
 
+/* A permanent fixture on every watch page: full-size so it stays an easy mouse
+   target, but dimmed at rest so it doesn't nag. It's no longer the only way in
+   — the player menu has a panel row — which is what lets it be this quiet. */
 #vtt-toggle-btn {
     position: absolute;
     top: 50%;
@@ -55,8 +58,16 @@
     align-items: center;
     justify-content: center;
     color: #fff;
+    opacity: 0.7;
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+/* Full strength when the user is anywhere near it, or tabbing through. */
+#vtt-sidebar:hover #vtt-toggle-btn,
+#vtt-toggle-btn:hover,
+#vtt-toggle-btn:focus-visible {
+    opacity: 1;
 }
 
 #vtt-toggle-btn:hover {
@@ -1250,19 +1261,17 @@
 
 /* Native player control-bar button (YouTube's own .ytp-right-controls row).
    Carries the Lingogram mascot — the same mark as the Chrome toolbar icon —
-   so it's identifiable as ours among YouTube's generic white glyphs. It sits
-   in a 48px box like every native control; the art is 26px so its visual
-   weight matches YouTube's own 24px glyphs (the mascot is a filled shape,
-   which reads heavier than an outline at equal size).
-   ON  = full brand colour. OFF = desaturated + dimmed (the overlay is off,
-   so the mark goes "camouflaged" — fitting for a chameleon). */
+   so it's identifiable as ours among YouTube's generic white glyphs.
+   Always full colour: it opens the menu, which is always available. The
+   overlay's on/off now shows on the CC button beside it, so camouflaging the
+   mascot too would read as "the extension is off" — it never is. */
 .vtt-ytp-overlay-btn {
-    /* Match the row's own button box exactly. YouTube's current control bar
-       uses 40px buttons (not the 48px of its older layout); an oversized box
-       makes this button ride higher than its neighbours, since the row centres
-       each child on its own height. */
+    /* Mirrors .vtt-ytp-cc-btn: 40px wide (two of us share the space one native
+       48px control would take), full row height so both sit on YouTube's own
+       optical centre line. position for the ::after hover backdrop. */
+    position: relative;
     width: 40px;
-    height: 40px;
+    height: 100%;
     padding: 0;
     border: none;
     background: transparent;
@@ -1270,21 +1279,345 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    vertical-align: top;
     flex: none;
 }
+/* 26px, not the row's 24px: the mascot is a filled shape with rounded edges,
+   so it reads lighter than an outline glyph at matching size. */
 .vtt-ytp-overlay-btn img {
     width: 26px;
     height: 26px;
     display: block;
     object-fit: contain;
-    filter: grayscale(1) opacity(0.62);
-    transition: filter 0.12s ease;
+    opacity: 0.9;
+    transition: opacity 0.12s ease;
+    position: relative; /* above the ::after backdrop */
+    z-index: 1;
 }
-.vtt-ytp-overlay-btn:hover img {
-    filter: grayscale(1) opacity(0.95);
+.vtt-ytp-overlay-btn:hover img,
+.vtt-ytp-menu-open .vtt-ytp-overlay-btn img {
+    opacity: 1;
 }
-.vtt-ytp-overlay-btn.vtt-ytp-overlay-btn--active img,
-.vtt-ytp-overlay-btn.vtt-ytp-overlay-btn--active:hover img {
-    filter: none;
+
+/* ── Player menu ─────────────────────────────────────────────────────────────
+   Anchored by containment, not coordinates: .ytp-right-controls sits inside
+   #movie_player, which IS YouTube's fullscreen element, so a menu nested in the
+   button's wrapper survives fullscreen with no re-parenting. Everything here is
+   scoped to .vtt-ytp-* / #vtt-ytp-menu, which never exist on Rezka or Netflix —
+   this stylesheet ships to both. */
+/* Mascot + CC as ONE unit, not two neighbours: a subtle pill behind the pair
+   binds them, so it reads as "this extension: open it / turn it on" rather than
+   two unrelated glyphs that happen to sit together in YouTube's row. */
+.vtt-ytp-anchor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    /* height:100% + align-items:center on each button is how YouTube's own
+       controls sit on the row's optical line; anything shorter rides high. */
+    height: 100%;
+}
+/* The pill is a backdrop, not a box: drawn behind the pair with ::before so it
+   binds them visually without shrinking either button below YouTube's 48px
+   click target or pushing them off the row's centre line.
+
+   Dark fill + a light hairline, not the translucent white the rest of the bar
+   uses: the control bar is see-through, and white-on-white vanishes completely
+   over a bright frame no matter how far the alpha is pushed. Dark-plus-rim
+   holds on light, dark and busy footage alike. */
+.vtt-ytp-anchor::before {
+    content: '';
+    position: absolute;
+    inset: 5px 2px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.38);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+    transition: background-color 0.12s ease;
+}
+/* The pill itself doesn't react to hover — each half lights its own backdrop
+   (see .vtt-ytp-overlay-btn::after / .vtt-ytp-cc-btn::after). Lighting the
+   whole pill would suggest one control, and they do different things. */
+
+/* Hover/active backdrop, the same idiom YouTube uses on its own controls
+   (.ytp-delhi-modern … .ytp-button:hover::before → rgba(255,255,255,.1)).
+   It highlights the AREA, never the glyph: brightening an already-white
+   inverted CC just turns it into a solid white block. */
+.vtt-ytp-overlay-btn::after,
+.vtt-ytp-cc-btn::after {
+    content: '';
+    position: absolute;
+    /* Sits inside the pill (which is inset 6px 2px) so the highlight never
+       spills past its edge. */
+    inset: 7px 3px;
+    border-radius: 8px;
+    background: transparent;
+    transition: background-color 0.15s ease;
+    pointer-events: none;
+}
+/* Round the outer ends to follow the pill; the inner ends stay square so the
+   two halves meet flush at the hairline. */
+.vtt-ytp-overlay-btn::after {
+    border-radius: 999px 4px 4px 999px;
+}
+.vtt-ytp-cc-btn::after {
+    border-radius: 4px 999px 999px 4px;
+}
+/* Nudged above YouTube's own 0.1/0.2: theirs sit on the bare bar, ours on the
+   pill's dark fill, which swallows a tenth of white. */
+.vtt-ytp-overlay-btn:hover::after,
+.vtt-ytp-cc-btn:hover:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.16);
+}
+.vtt-ytp-overlay-btn:active::after,
+.vtt-ytp-cc-btn:active:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.26);
+}
+/* Keyboard focus gets the same affordance as hover. */
+.vtt-ytp-overlay-btn:focus-visible::after,
+.vtt-ytp-cc-btn:focus-visible::after {
+    background: rgba(255, 255, 255, 0.22);
+}
+.vtt-ytp-overlay-btn:focus-visible,
+.vtt-ytp-cc-btn:focus-visible {
+    outline: none;
+}
+/* Hairline between the two halves: same unit, two distinct actions. */
+.vtt-ytp-cc-btn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 18px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    z-index: 1; /* above the hover backdrop */
+}
+
+.vtt-ytp-cc-btn {
+    position: relative;
+    /* 40px rather than YouTube's 48px because there are two of us in the row's
+       space; height:100% + centring matches their vertical rhythm exactly. */
+    width: 40px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    /* State lives on the glyph's opacity (see below), so nothing dims the
+       button itself — the two would compound. */
+    color: #fff;
+}
+/* Same 24px as every native glyph in this row. */
+.vtt-ytp-cc-btn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+    position: relative; /* above the ::after backdrop */
+    z-index: 1;
+}
+
+/* All white — this control sits in YouTube's row and means what theirs means;
+   the mascot beside it is what says whose it is. State is the INVERT, not a
+   brightness step: off is the outline, on adds the fill that turns it into a
+   plate (frame kept). Brightness alone — YouTube's own approach — is nearly
+   invisible once their red indicator bar is gone, which it is in the modern
+   player. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-glyph,
+.vtt-ytp-cc-btn .vtt-ytp-cc-fill {
+    transition: opacity 0.12s ease;
+}
+/* Exactly one of the two shows at a time. They can't overlap: the outline drawn
+   over the inverted path fills its knocked-out lines right back in.
+   Hover does NOT touch these — it lights the backdrop instead (see ::after
+   above), because brightening the inverted plate makes it a solid white slab. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-glyph {
+    opacity: 0.9;
+}
+/* Off: outline only. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-fill {
+    opacity: 0;
+}
+/* On: inverted only. */
+.vtt-ytp-cc-btn--on .vtt-ytp-cc-glyph {
+    opacity: 0;
+}
+.vtt-ytp-cc-btn--on .vtt-ytp-cc-fill {
+    opacity: 1;
+}
+/* Nothing to switch on (no languages, or no track for this video). */
+.vtt-ytp-cc-btn:disabled .vtt-ytp-cc-glyph {
+    opacity: 0.3;
+}
+.vtt-ytp-cc-btn:disabled {
+    cursor: default;
+}
+
+#vtt-ytp-menu {
+    position: absolute;
+    /* Anchored to #movie_player, not to the button — see mount() in
+       player-menu.ts. Same geometry YouTube gives its own settings menu
+       (right:12px; bottom:62px = clear of the control bar). */
+    bottom: 62px;
+    right: 12px;
+    min-width: 260px;
+    max-width: 320px;
+    background: rgba(28, 28, 28, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 6px;
+    /* Above the subtitle overlay (1000) and the control bar (59), matching the
+       2300 YouTube gives its own popups. A bigger number buys nothing: this is
+       #movie_player's stacking context, not the page's. */
+    z-index: 2300;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #e8e8ea;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    text-align: left;
+}
+
+#vtt-ytp-menu[hidden] {
+    display: none;
+}
+
+/* Both levels live in one box: swapping pages by attribute keeps the menu from
+   jumping in size or colliding with the viewport edge. */
+.vtt-ytp-page {
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+}
+#vtt-ytp-menu[data-page='root'] .vtt-ytp-page[data-page='root'],
+#vtt-ytp-menu[data-page='modes'] .vtt-ytp-page[data-page='modes'] {
+    display: flex;
+}
+
+.vtt-ytp-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+.vtt-ytp-row:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+}
+.vtt-ytp-row:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(77, 163, 255, 0.6);
+}
+.vtt-ytp-row:disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
+.vtt-ytp-row-label {
+    flex: 1;
+    min-width: 0;
+}
+/* The row's own text is the label when there's no dedicated span (panel row). */
+.vtt-ytp-row-value {
+    color: #9aa0b4;
+    white-space: nowrap;
+}
+.vtt-ytp-row-key {
+    color: #8d92a8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.vtt-ytp-chev {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    opacity: 0.5;
+}
+
+/* Account row: an email can easily outrun the menu width. */
+.vtt-ytp-row--account {
+    color: #c9cede;
+    font-size: 12px;
+}
+.vtt-ytp-row--account,
+.vtt-ytp-row--panel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Subtitle health in one line. Amber + a ↻ affordance when there's something to
+   retry; grey and inert when the missing track simply doesn't exist (a normal
+   outcome, not an error to shout about). */
+.vtt-ytp-row--status {
+    color: #f0b429;
+    font-size: 12px;
+}
+.vtt-ytp-row--status .vtt-ytp-status-action {
+    flex: none;
+    opacity: 0.75;
+    font-size: 13px;
+}
+.vtt-ytp-row--status-info {
+    color: #9aa0b4;
+}
+/* :disabled would dim it to unreadable — this row is informational, and the
+   base .vtt-ytp-row:disabled opacity is meant for controls you can't use. */
+.vtt-ytp-row--status-info:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+/* Separators between groups, drawn on the boundaries rather than as nodes:
+   account | mode | panel+settings. */
+#vtt-ytp-menu-modes,
+#vtt-ytp-menu-panel {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 0;
+    margin-top: 3px;
+    padding-top: 11px;
+}
+
+/* Modes page */
+.vtt-ytp-row--back {
+    color: #c9cede;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 0;
+    margin-bottom: 3px;
+    padding-bottom: 11px;
+}
+
+.vtt-ytp-check {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    opacity: 0;
+    color: #4da3ff;
+}
+.vtt-ytp-row--radio[aria-checked='true'] .vtt-ytp-check {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-ytp-row,
+    .vtt-ytp-row--switch .vtt-ytp-switch,
+    .vtt-ytp-row--switch .vtt-ytp-switch::after {
+        transition: none;
+    }
 }

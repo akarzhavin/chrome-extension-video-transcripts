@@ -20,6 +20,7 @@ export type AuthAction =
     | 'AUTH_STATUS'
     | 'AUTH_SIGN_IN_VIA_LINGOGRAM'
     | 'AUTH_SIGN_OUT'
+    | 'OPEN_LINGOGRAM'
     | 'ADD_WORD'
     | 'REPORT_NO_SUBS';
 
@@ -27,6 +28,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
     'AUTH_SIGN_OUT',
+    'OPEN_LINGOGRAM',
     'ADD_WORD',
     'REPORT_NO_SUBS',
 ]);
@@ -99,6 +101,14 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 `?ext=${encodeURIComponent(extId)}` +
                 `&nonce=${encodeURIComponent(nonce)}`;
             await chrome.tabs.create({ url });
+            return { ok: true };
+        }
+        case 'OPEN_LINGOGRAM': {
+            // Plain visit to the signed-in site (saved words, profile, sign-out)
+            // — no nonce, no handoff: that's AUTH_SIGN_IN_VIA_LINGOGRAM's job.
+            // Lives here because chrome.tabs is background-only; the player menu
+            // is a content script and can't open a tab itself.
+            await chrome.tabs.create({ url: config.frontendBaseUrl });
             return { ok: true };
         }
         case 'AUTH_SIGN_OUT': {
