@@ -1,6 +1,6 @@
 {
   "name": "@video-transcripts/youtube",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "scripts": {
     "build": "vite build --mode background && vite build --mode content && vite build --mode page-script && vite build --mode popup && npm run zip",
