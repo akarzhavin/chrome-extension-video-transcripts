@@ -61,7 +61,15 @@ class NetflixVttApp extends BaseVttApp {
     reprocessCurrentVideo(): void {
         this.loadedForMovie = null;
         this.resetForNewVideo();
-        window.postMessage({ type: 'NFLX_QUERY' }, '*');
+        this.queryManifest();
+    }
+
+    // Ask the MAIN-world hook for THIS title's manifest. Naming the movieId
+    // matters: without it the hook can only offer its most recent capture, which
+    // on a slow-loading title is still the previous title's manifest — handleManifest
+    // would discard it and the retry would be a no-op (see the hook's cache note).
+    queryManifest(): void {
+        window.postMessage({ type: 'NFLX_QUERY', movieId: this.getVideoId() }, '*');
     }
 
     setNativeSubtitlesEnabled(enabled: boolean): void {
@@ -98,13 +106,13 @@ class NetflixVttApp extends BaseVttApp {
                 this.resetNoSubsRetries();
                 this.resetForNewVideo();
                 this.updateSidebarVisibility();
-                window.postMessage({ type: 'NFLX_QUERY' }, '*');
+                this.queryManifest();
             }
         }, 1000);
 
         // Ask the hook for any manifest already captured (direct load onto /watch,
         // where the manifest may have been parsed before this script attached).
-        window.postMessage({ type: 'NFLX_QUERY' }, '*');
+        this.queryManifest();
     }
 
     // ── manifest → track fetch ──────────────────────────────────────────────

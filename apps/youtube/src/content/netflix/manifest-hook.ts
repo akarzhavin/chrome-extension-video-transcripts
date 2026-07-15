@@ -175,16 +175,53 @@ export function installNetflixHook(): void {
 
     const TAG = '[NFLX-VTT hook]';
     const originalFetch = window.fetch.bind(window);
-    // Cache the most recent manifest so a content script that attaches AFTER the
+    // Cache manifests BY movieId so a content script that attaches AFTER the
     // manifest was parsed (direct load onto /watch) can still get the tracks by
     // sending NFLX_QUERY — mirrors YouTube's YT_QUERY_CAPTIONS.
-    let lastManifest: { movieId: string; tracks: unknown[] } | null = null;
-    function broadcastManifest(): void {
-        if (lastManifest) {
-            window.postMessage(
-                { type: 'NFLX_MANIFEST', movieId: lastManifest.movieId, tracks: lastManifest.tracks },
-                '*',
-            );
+    //
+    // Keyed by id, not a single "last" slot: on a slow-loading title the URL
+    // flips to the new /watch/<id> before Netflix parses the new manifest, so a
+    // single slot still holds the PREVIOUS title's manifest. The content script
+    // rejects it (movieId != url id) and every later NFLX_QUERY replays that same
+    // stale entry — "Search again" could never recover, only a page reload could.
+    // A map also fixes the mirror-image race: a manifest parsed before the URL
+    // settles stays available for the query that arrives moments later.
+    const manifests = new Map<string, unknown[]>();
+    // Bound the map — a long binge session shouldn't accumulate manifests. Netflix
+    // only ever needs the current title plus the next-episode prefetch.
+    const MAX_CACHED = 8;
+
+    function cacheManifest(movieId: string, tracks: unknown[]): void {
+        // Re-insert so the most recently seen id is last in insertion order.
+        manifests.delete(movieId);
+        manifests.set(movieId, tracks);
+        while (manifests.size > MAX_CACHED) {
+            const oldest = manifests.keys().next().value as string | undefined;
+            if (oldest === undefined) break;
+            manifests.delete(oldest);
+        }
+    }
+
+    // Answer a query. When the content script names a movieId we ONLY reply with
+    // that title's manifest — never a stale one it would just discard. Replying
+    // with nothing is the honest answer: it leaves the request unsatisfied until
+    // the real manifest is parsed, which then broadcasts on its own.
+    function broadcastManifest(movieId?: unknown): void {
+        if (typeof movieId === 'string' && movieId) {
+            const tracks = manifests.get(movieId);
+            if (tracks) {
+                window.postMessage({ type: 'NFLX_MANIFEST', movieId, tracks }, '*');
+            } else {
+                console.log(TAG, 'query for', movieId, '— not captured yet');
+            }
+            return;
+        }
+        // No id given (content script has no /watch id yet): reply with the most
+        // recently captured manifest, if any.
+        const ids = [...manifests.keys()];
+        const latest = ids[ids.length - 1];
+        if (latest !== undefined) {
+            window.postMessage({ type: 'NFLX_MANIFEST', movieId: latest, tracks: manifests.get(latest)! }, '*');
         }
     }
 
@@ -214,7 +251,7 @@ export function installNetflixHook(): void {
         try {
             const result = findManifestResult(value);
             if (result) {
-                lastManifest = result;
+                cacheManifest(result.movieId, result.tracks);
                 console.log(TAG, 'manifest captured for', result.movieId, '— tracks:', result.tracks.length);
                 window.postMessage(
                     { type: 'NFLX_MANIFEST', movieId: result.movieId, tracks: result.tracks },
@@ -249,7 +286,7 @@ export function installNetflixHook(): void {
         const data = event.data;
         if (!data) return;
         if (data.type === 'NFLX_QUERY') {
-            broadcastManifest();
+            broadcastManifest(data.movieId);
             return;
         }
         if (data.type === 'NFLX_FETCH_VTT' && typeof data.key === 'string' && typeof data.url === 'string') {
