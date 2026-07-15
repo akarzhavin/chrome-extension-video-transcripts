@@ -1,3 +1,5 @@
+import { installNetflixHook } from './netflix/manifest-hook';
+
 interface RawCaptionTrack {
     baseUrl: string;
     languageCode: string;
@@ -14,7 +16,17 @@ interface PlayerResponse {
     videoDetails?: { videoId?: string };
 }
 
-(function () {
+// This MAIN-world script is injected on both youtube.com and netflix.com. The
+// two sites capture subtitles in completely different ways, so branch up front:
+// Netflix hooks JSON.parse/stringify (see netflix/manifest-hook.ts); YouTube
+// sniffs the timedtext network calls below.
+if (location.hostname.includes('netflix.com')) {
+    installNetflixHook();
+} else {
+    installYouTubeHook();
+}
+
+function installYouTubeHook() {
     const TAG = '[YT-VTT page-script]';
     const originalFetch = window.fetch.bind(window);
     const potByVideoId = new Map<string, string>();
@@ -212,6 +224,24 @@ interface PlayerResponse {
         return false;
     }
 
+    // Turn YouTube's own captions OFF once, only if they're currently on. Used
+    // to keep native captions from stacking behind our dual-subtitle overlay.
+    // One-shot per request: it never turns captions back on, so a user who
+    // re-enables CC afterwards keeps them. The CC button reports its state via
+    // aria-pressed; if that's absent we leave captions untouched (clicking blind
+    // could turn them ON). Retries briefly because the player chrome can be late.
+    function turnCcOffIfOn(attempt = 0): void {
+        const btn = findCcButton();
+        if (btn) {
+            if (btn.getAttribute('aria-pressed') === 'true') {
+                btn.click();
+                console.log(TAG, 'native captions -> Off');
+            }
+            return;
+        }
+        if (attempt < 10) setTimeout(() => turnCcOffIfOn(attempt + 1), 300);
+    }
+
     function fireCcKey(): void {
         const video = document.querySelector('video');
         if (!video) return;
@@ -327,6 +357,11 @@ interface PlayerResponse {
             broadcastCurrent();
             return;
         }
+        if (data.type === 'YT_SET_NATIVE_SUBS' && data.enabled === false) {
+            // Only the "turn off" direction — never force captions back on.
+            turnCcOffIfOn();
+            return;
+        }
         if (
             data.type === 'YT_FETCH_VTT' &&
             typeof data.url === 'string' &&
@@ -338,4 +373,4 @@ interface PlayerResponse {
     });
 
     console.log(TAG, 'installed');
-})();
+}
