@@ -1,15 +1,19 @@
 /* Lingogram — Chrome Web Store promo tiles · fixed 1280×800 canvas
  *
- * v2 — high-contrast "premium" look: dark mesh-gradient backdrops, bold
- * typography with gradient keyword highlights, glowing device mockups.
- * Reuses the REAL product captures from ../screenshots/out-live/ as hero
- * imagery. */
+ * v4 — "daylight utility" for portrait B (docs/slides-spec.md §1.1):
+ * light indigo-tinted canvas, ink headlines, brand violet #483090 as the
+ * single accent. The premium-dark gradient stays in the icon/promo video —
+ * NOT here: B trusts a clean light tool, the CWS shelf is white, and the
+ * dark product panels/subtitle blocks pop hardest on a light frame.
+ * Geometry (crops, offsets, layouts) is unchanged from v3, so the inline
+ * offsets in the slides and render-i18n.mjs templates keep working. */
 :root {
-  --indigo: #6366f1;
-  --violet: #8b5cf6;
-  --fuchsia: #d946ef;
-  --cyan: #22d3ee;
-  --red: #f43f5e;
+  --ink: #1d1b2e;
+  --muted: #5c5870;
+  --violet: #483090;
+  --violet-soft: #8b7be8;
+  --emerald: #1e8e4d;
+  --line: #e3e2f0;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,91 +28,129 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   overflow: hidden;
 }
 
-/* brand mark — chameleon mascot pinned to the top-left corner of every slide */
+/* brand — mascot + wordmark pinned to the top-left corner of every slide */
+.brand {
+  position: absolute; top: 38px; left: 46px; z-index: 5;
+  display: flex; align-items: center; gap: 13px;
+}
+.brand img {
+  width: 46px; height: 46px;
+  filter: drop-shadow(0 4px 10px rgba(33,28,48,0.22));
+}
+.brand span {
+  font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+/* legacy class (v2) — bare mascot, kept so older templates still render */
 .cornermark {
-  position: absolute; top: 40px; left: 40px;
-  width: 76px; height: 76px; z-index: 5;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.40));
+  position: absolute; top: 40px; left: 46px;
+  width: 46px; height: 46px; z-index: 5;
+  filter: drop-shadow(0 4px 10px rgba(33,28,48,0.22));
 }
 
-/* ── Backgrounds: layered radial mesh on a deep base, per-theme accents ──── */
+/* ── Background: light indigo-tinted canvas — the "daylight utility" ground.
+ *    Not sterile white: the faint tint + violet dot grid keep brand kinship. ── */
 .bg { position: absolute; inset: 0; z-index: 0; }
-
-/* v4c — violet→emerald "premium" gradient. All slides share one diagonal
- * backdrop: deep violet (top-left, matches the product panel's purple accent)
- * transitioning into emerald (bottom-right) for a fresh, ownable look. */
 .theme-1 .bg, .theme-2 .bg, .theme-3 .bg, .theme-4 .bg {
   background:
-    radial-gradient(120% 120% at 8% 6%,    rgba(124,58,237,0.64) 0%, transparent 50%),
-    radial-gradient(120% 120% at 96% 96%,   rgba(5,150,105,0.64) 0%, transparent 52%),
-    radial-gradient(100% 100% at 52% 102%,  rgba(16,185,129,0.42) 0%, transparent 48%),
-    linear-gradient(150deg, #170d33 0%, #0f1230 46%, #08241f 100%);
+    radial-gradient(55% 48% at 90% -8%, rgba(72,48,144,0.10) 0%, transparent 62%),
+    radial-gradient(45% 40% at -6% 104%, rgba(30,142,77,0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #fbfbfe 0%, #f6f6fb 55%, #eeedf7 100%);
 }
-
-/* fine grid texture + vignette for depth (sits above the mesh) */
-.bg::after {
-  content: ""; position: absolute; inset: 0;
-  background:
-    radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.45) 100%);
-}
-
-/* film grain over the mesh — breaks the smooth "corporate gradient" look */
+/* faint dot grid — reads "product / engineering" */
 .bg::before {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  opacity: 0.14; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 220px 220px;
+  background-image: radial-gradient(rgba(72,48,144,0.55) 1px, transparent 1.4px);
+  background-size: 30px 30px;
+  opacity: 0.09;
+  -webkit-mask-image: radial-gradient(90% 80% at 50% 42%, #000 25%, transparent 100%);
+          mask-image: radial-gradient(90% 80% at 50% 42%, #000 25%, transparent 100%);
+}
+/* whisper of depth at the edges — light theme, no dark vignette */
+.bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(125% 95% at 50% 45%, transparent 72%, rgba(72,48,144,0.06) 100%);
 }
 
 /* ── Copy ───────────────────────────────────────────────────────────────── */
 .copy { position: relative; z-index: 2; }
 .eyebrow {
-  display: inline-block;
-  font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
-  color: #fff;
-  background: linear-gradient(90deg, rgba(124,58,237,0.95), rgba(16,185,129,0.95));
-  padding: 8px 16px; border-radius: 999px;
-  box-shadow: 0 6px 20px rgba(5,150,105,0.40);
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13.5px; font-weight: 700; letter-spacing: 0.15em;
+  color: var(--violet);
+  background: rgba(72,48,144,0.07);
+  border: 1px solid rgba(72,48,144,0.35);
+  padding: 9px 17px; border-radius: 999px;
+}
+.eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--violet);
 }
 .copy h1 {
-  margin-top: 24px;
-  font-size: 58px; line-height: 1.04; font-weight: 900; letter-spacing: -0.045em;
-  color: #ffffff;
-  text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+  margin-top: 26px;
+  font-size: 56px; line-height: 1.08; font-weight: 800; letter-spacing: -0.035em;
+  color: var(--ink);
+  text-wrap: balance;
 }
 .copy p {
   margin-top: 22px;
-  font-size: 21px; line-height: 1.5; font-weight: 450;
-  color: rgba(226,228,245,0.82);
-  max-width: 520px;
+  font-size: 20px; line-height: 1.58; font-weight: 450;
+  color: var(--muted);
+  max-width: 480px;
 }
-/* gradient keyword highlight */
-.hl {
-  background: linear-gradient(90deg, #a78bfa 0%, #10b981 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-}
+/* keyword highlight — solid brand violet (single accent, no gradient text) */
+.hl { color: var(--violet); }
 
-/* ── Side layout (copy + glowing panel device) ──────────────────────────── */
+/* ── Feature callout chips (glassy, near the device) ────────────────────── */
+.callout {
+  position: absolute; z-index: 3;
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--ink); white-space: nowrap;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--line);
+  padding: 11px 17px; border-radius: 13px;
+  box-shadow: 0 10px 28px rgba(33,28,48,0.16), 0 2px 8px rgba(33,28,48,0.08);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.callout::before {
+  content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--emerald);
+}
+.callout kbd {
+  font-family: var(--font); font-size: 14px; font-weight: 650; line-height: 1;
+  color: var(--ink);
+  background: #f1f1f4;
+  border: 1px solid #d5cee4; border-bottom-width: 2.5px;
+  border-radius: 7px; padding: 6px 9px;
+}
+.callout .plus { color: var(--muted); font-weight: 600; margin: 0 -3px; }
+
+/* ── Side layout (copy + floating panel device) ─────────────────────────── */
 .slide--side {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
   gap: 40px;
-  padding: 0 90px;
+  padding: 0 92px;
 }
 .slide--side .copy { max-width: 560px; }
 .stage { position: relative; z-index: 2; display: grid; place-items: center; }
-/* colored glow pooled behind the device */
+/* quiet tint pooled behind the device — light-theme volume */
 .stage::before {
   content: ""; position: absolute; z-index: -1;
-  width: 460px; height: 560px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(139,92,246,0.55) 0%, rgba(99,102,241,0.25) 45%, transparent 70%);
-  filter: blur(20px);
+  width: 600px; height: 680px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(72,48,144,0.14) 0%, rgba(30,142,77,0.05) 48%, transparent 70%);
+  filter: blur(30px);
 }
+/* the panel device reads small on the light canvas — scale the whole device
+ * (shadows included) instead of resizing, so the capture crop offsets hold */
+.stage .panel { transform: scale(1.07); transform-origin: 50% 46%; }
+/* callout sits ON the device edge, not floating beside it */
+.stage .callout { z-index: 4; }
 
 /* Panel device = a cropped slice of the real capture, framed & floating.
- * The full 1280×800 capture is scaled up (≈1.12×) and shifted so only the
+ * The full 1280×800 capture is scaled up (≈1.108×) and shifted so only the
  * dark sidebar panel (orig x≈955→1280) fills the frame. Offsets set inline. */
 .panel {
   position: relative;
@@ -117,9 +159,10 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   overflow: hidden;
   background: #0f1115;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.10),
-    0 30px 80px rgba(79,70,229,0.45),
-    0 12px 32px rgba(0,0,0,0.5);
+    0 0 0 1px rgba(33,28,48,0.10),
+    0 32px 80px rgba(33,28,48,0.24),
+    0 12px 28px rgba(33,28,48,0.14),
+    0 2px 6px rgba(33,28,48,0.12);
 }
 .panel .shot {
   position: absolute;
@@ -127,10 +170,10 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   background-repeat: no-repeat;
   background-size: 1418px 886px;
 }
-/* glossy top highlight on the device */
+/* subtle glass top highlight on the device */
 .panel::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 18%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 16%);
 }
 
 /* Video card = a crop of the player region (with the on-video subtitle overlay)
@@ -142,9 +185,9 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   overflow: hidden;
   background: #000;
   box-shadow:
-    0 0 0 1px rgba(160,140,255,0.40),
-    -10px 22px 90px rgba(130,95,255,0.5),
-    0 14px 44px rgba(0,0,0,0.5);
+    0 0 0 1px rgba(33,28,48,0.12),
+    0 26px 72px rgba(33,28,48,0.30),
+    0 10px 30px rgba(33,28,48,0.18);
 }
 .videoframe .shot {
   position: absolute;
@@ -153,32 +196,34 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   background-size: 1440px 900px;
 }
 
-/* ── Stack layout (centered copy + glowing browser-window capture) ──────── */
+/* ── Stack layout (centered copy + browser-window capture) ──────────────── */
 .slide--stack {
   display: flex; flex-direction: column; align-items: center;
-  padding: 52px 70px 0;
+  padding: 54px 70px 0;
 }
-.slide--stack .copy { text-align: center; max-width: 960px; }
-.slide--stack .copy p { max-width: 800px; margin-left: auto; margin-right: auto; }
-.slide--stack .copy h1 { font-size: 60px; }
+.slide--stack .copy { text-align: center; max-width: 980px; }
+.slide--stack .copy p { max-width: 760px; margin-left: auto; margin-right: auto; }
+.slide--stack .copy h1 { font-size: 56px; }
 
+/* straight-on browser window with macOS chrome — authentic-tool cue
+ * (v2's frameless tilt read "phone-first"; the adult audience trusts a
+ * desktop browser window). Bleeds off the bottom edge by design. */
 .window {
   position: relative; z-index: 2;
-  margin-top: 30px;
+  margin-top: 34px;
   width: 1140px;
   background: #fff;
-  border-radius: 20px;
-  transform: perspective(1800px) rotateX(3deg) rotateZ(-1.2deg);
+  border-radius: 18px;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.10),
-    0 50px 120px rgba(139,92,246,0.55),
-    0 18px 50px rgba(0,0,0,0.5);
+    0 0 0 1px rgba(33,28,48,0.10),
+    0 40px 100px rgba(33,28,48,0.24),
+    0 16px 40px rgba(72,48,144,0.12),
+    0 3px 8px rgba(33,28,48,0.10);
   overflow: hidden;
 }
-/* macOS window chrome removed for the phone-first / frameless hero look */
 .window__bar {
-  display: none;
-  height: 46px; align-items: center; gap: 8px;
+  display: flex;
+  height: 44px; align-items: center; gap: 8px;
   padding: 0 18px; background: #f3f4f6; border-bottom: 1px solid #e6e8ec;
 }
 .window__bar .d { width: 12px; height: 12px; border-radius: 50%; }
@@ -198,7 +243,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   background-position: top center;
 }
 
-/* ── Summary slide (glowing icon + tagline + feature pills) ─────────────── */
+/* ── Summary slide (icon + tagline + feature pills) ─────────────────────── */
 .slide--summary {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 0 90px;
@@ -207,12 +252,12 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   position: relative; z-index: 2;
   width: 116px; height: 116px; border-radius: 27px;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.12),
-    0 22px 60px rgba(139,92,246,0.6),
-    0 8px 22px rgba(0,0,0,0.4);
+    0 0 0 1px rgba(33,28,48,0.10),
+    0 18px 48px rgba(33,28,48,0.26),
+    0 6px 18px rgba(33,28,48,0.16);
 }
-.slide--summary h1 { margin-top: 30px; font-size: 52px; }
-.slide--summary p { margin-top: 16px; color: rgba(226,228,245,0.85); }
+.slide--summary h1 { margin-top: 30px; font-size: 50px; }
+.slide--summary p { margin-top: 16px; color: var(--muted); }
 .pills {
   position: relative; z-index: 2;
   margin-top: 42px;
@@ -221,17 +266,16 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 }
 .pill {
   display: inline-flex; align-items: center; gap: 10px;
-  font-size: 18px; font-weight: 650; color: #f2f3fb;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.16);
+  font-size: 18px; font-weight: 600; color: var(--ink);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--line);
   padding: 13px 22px; border-radius: 999px;
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  box-shadow: 0 6px 18px rgba(33,28,48,0.12);
 }
 .pill .dot {
   width: 10px; height: 10px; border-radius: 50%;
-  background: var(--indigo); box-shadow: 0 0 10px 1px rgba(99,102,241,0.9);
+  background: var(--violet);
 }
-.pill .dot--red { background: var(--red); box-shadow: 0 0 10px 1px rgba(244,63,94,0.9); }
-.pill .dot--cyan { background: var(--cyan); box-shadow: 0 0 10px 1px rgba(34,211,238,0.9); }
-.pill .dot--fuchsia { background: var(--fuchsia); box-shadow: 0 0 10px 1px rgba(217,70,239,0.9); }
+.pill .dot--cyan { background: var(--violet-soft); }
+.pill .dot--mint { background: var(--emerald); }

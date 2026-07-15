@@ -1,1461 +1,1625 @@
 {
-  "_note": "Localized marketing copy for the 5 promo screenshots. Each slide has: eyebrow (short, ALL CAPS-style label), title (HTML — may contain <br> and exactly one <span class=\"hl\">…</span> highlighting the key phrase with the gradient), sub (one sentence). English is the fallback for any missing field. Keep titles short (they sit on a slide); the hl span should wrap the most meaningful phrase.",
+  "_note": "Localized marketing copy for the 5 promo screenshots. v3 'credible tool' register: sentence-case titles, NO slang — the audience is motivated adult learners (exam prep, expats, professionals), tone = competent friend, not hype. Each slide has: eyebrow (short ALL-CAPS label), title (HTML — may contain <br> and exactly one <span class=\"hl\">…</span> highlighting the key phrase with the gradient), sub (one sentence), and optionally callout (short feature chip near the device; slide3's callout is prefixed by Shift+G keycaps in the template). English is the fallback for any missing field. Slide order (v3): 1 hero promise, 2 dual subtitles, 3 guess/active-recall (capture: guess), 4 on-video overlay, 5 setup/zero-friction (capture: onboarding).",
+  "_stale": "All locales re-localized from the v3 en block (credible-tool register, current slide order: 1 hero, 2 dual subtitles, 3 guess, 4 on-video overlay, 5 setup). Re-localize from en whenever the en block changes.",
+  "_l10n": "TRANSCREATION, NOT TRANSLATION (2026-07-14 pass). English is the reference for MEANING only — do not mirror its syntax, em-dashes or word choices. Per-locale rules: (1) slide1/2 eyebrow = the locale's native 'dual subtitles' search term from docs/keywords-by-language.md (slide 1 mirrors the query the user typed, e.g. fr SOUS-TITRES BILINGUES, hu DUPLA FELIRAT, th ซับสองภาษา, fa دوزبانه, id SUBTITLE DUA BAHASA); (2) 'one tap' → the locale's native desktop CLICK idiom (это десктопное расширение: клик/Klick/clic/clique/kliknięcie/一键/ワンクリック…), never touchscreen 'tap' calques; (3) slide3 callout + any in-copy mode name must match the product UI string ytModeGuess in _locales/<loc>/messages.json (ru «Угадай», bg „Познай“, zh_CN 猜词, hi अनुमान, sw kukisia…); (4) keep register: sentence case, no slang, adult credible tool; (5) layout budgets — title ≤ ~22 chars per <br>-line (slide1 ≤ ~36 total, slide4 ≤ ~45 total), sub ≤ ~130 chars, callout ≤ ~30 chars (white-space: nowrap), eyebrow is NOT auto-uppercased by CSS so caps live here in the JSON.",
   "en": {
     "slide1": {
-      "eyebrow": "LEARN FROM WHAT YOU LOVE",
-      "title": "learn from the videos<br><span class=\"hl\">you actually love</span>",
-      "sub": "dual subtitles + one tap to save words — your vocab grows from the videos you already love, not a textbook."
+      "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+      "title": "See <span class=\"hl\">both languages</span> at once",
+      "sub": "Your target language and your native one on any video with captions — and every new word saved in one tap."
     },
     "slide2": {
-      "eyebrow": "TWO LANGUAGES, ONE SCREEN",
-      "title": "every line,<br>in <span class=\"hl\">both languages</span>",
-      "sub": "original and translation side by side — catch every word and stack up vocab with zero cramming."
+      "eyebrow": "DUAL SUBTITLES",
+      "title": "Every spoken word,<br><span class=\"hl\">right in front of you</span>",
+      "sub": "Every line stays in the panel — original and translation together. Reread it any time without pausing the video.",
+      "callout": "One tap saves a word"
     },
     "slide3": {
-      "eyebrow": "SETUP TAKES LIKE 5 SECONDS",
-      "title": "pick your<br><span class=\"hl\">languages</span> and go",
-      "sub": "tell it the language you're learning and your own — Lingogram handles the rest on every video."
+      "eyebrow": "ACTIVE RECALL, BUILT IN",
+      "title": "Listen first,<br><span class=\"hl\">then check yourself</span>",
+      "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+      "callout": "guess mode"
     },
     "slide4": {
-      "eyebrow": "RIGHT ON THE VIDEO",
-      "title": "subtitles on the<br><span class=\"hl\">video</span> too",
-      "sub": "dual lines pop up over the player while it's running — read along without looking away from the screen."
+      "eyebrow": "FULLSCREEN INCLUDED",
+      "title": "Works on <span class=\"hl\">any&nbsp;video</span> with&nbsp;subtitles",
+      "sub": "Both languages render right on the player — regular videos, Shorts, and fullscreen alike. Nothing to switch on twice.",
+      "callout": "Works in fullscreen"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS BUT NOT BORING",
-      "title": "<span class=\"hl\">guess mode</span><br>actually slaps",
-      "sub": "words start hidden — reveal them one tap at a time and turn plain scrolling into real practice."
+      "eyebrow": "FREE · NO ACCOUNT TO START",
+      "title": "Set up once,<br>then just <span class=\"hl\">press play</span>",
+      "sub": "Pick the language you're learning and your own — Lingogram works on any YouTube video with captions."
     }
   },
   "ru": {
     "slide1": {
-      "eyebrow": "УЧИСЬ НА ТОМ, ЧТО ЛЮБИШЬ",
-      "title": "учи язык по видео,<br><span class=\"hl\">которые реально любишь</span>",
-      "sub": "двойные субтитры + тап, чтобы сохранить слово — словарь растёт из видео, которые ты и так любишь, а не из учебника."
+      "eyebrow": "ДВОЙНЫЕ СУБТИТРЫ · YOUTUBE &amp; NETFLIX",
+      "title": "Сразу <span class=\"hl\">два языка</span> на экране",
+      "sub": "Смотрите любое видео с субтитрами сразу на двух языках — изучаемом и родном, а новые слова сохраняйте в один клик."
     },
     "slide2": {
-      "eyebrow": "ДВА ЯЗЫКА, ОДИН ЭКРАН",
-      "title": "каждая строка —<br>сразу на <span class=\"hl\">двух языках</span>",
-      "sub": "оригинал и перевод рядом — ловишь каждое слово и набираешь словарь без зубрёжки."
+      "eyebrow": "ДВОЙНЫЕ СУБТИТРЫ",
+      "title": "Вся речь из видео —<br><span class=\"hl\">перед глазами</span>",
+      "sub": "Каждая фраза остаётся в панели — с оригиналом и переводом. Перечитайте в любой момент, не останавливая видео.",
+      "callout": "Слово сохраняется в один клик"
     },
     "slide3": {
-      "eyebrow": "НАСТРОЙКА — СЕКУНД ПЯТЬ",
-      "title": "выбери <span class=\"hl\">языки</span><br>и погнали",
-      "sub": "укажи язык, который учишь, и свой родной — остальное Lingogram сделает на каждом видео."
+      "eyebrow": "АКТИВНОЕ ПРИПОМИНАНИЕ",
+      "title": "Сначала слушайте,<br><span class=\"hl\">потом проверяйте себя</span>",
+      "sub": "Режим «Угадай» скрывает реплику, пока вы её не откроете: тренируйте понимание живой речи на слух, а не чтение с листа.",
+      "callout": "режим «Угадай»"
     },
     "slide4": {
-      "eyebrow": "ПРЯМО НА ВИДЕО",
-      "title": "субтитры и на<br>самом <span class=\"hl\">видео</span>",
-      "sub": "двойные строки появляются поверх плеера, пока он играет — читай, не отрываясь от экрана."
+      "eyebrow": "И В ПОЛНОЭКРАННОМ РЕЖИМЕ",
+      "title": "Работает на <span class=\"hl\">любом&nbsp;видео</span> с&nbsp;субтитрами",
+      "sub": "Обе строки выводятся прямо в плеере — в обычных роликах, Shorts и на полном экране. Настроили раз — работает везде.",
+      "callout": "Работает в полном экране"
     },
     "slide5": {
-      "eyebrow": "КАРТОЧКИ, НО НЕ СКУЧНО",
-      "title": "<span class=\"hl\">режим угадай</span><br>реально заходит",
-      "sub": "слова сперва скрыты — открывай по одному. и обычный скролл превращается в настоящую практику."
+      "eyebrow": "БЕСПЛАТНО · БЕЗ РЕГИСТРАЦИИ",
+      "title": "Настройте один раз —<br>дальше просто <span class=\"hl\">смотрите</span>",
+      "sub": "Укажите изучаемый язык и родной — Lingogram заработает на любом видео YouTube с субтитрами."
     }
   },
   "es": {
     "slide1": {
-      "eyebrow": "APRENDE DE LO QUE TE GUSTA",
-      "title": "aprende con los vídeos<br><span class=\"hl\">que de verdad te molan</span>",
-      "sub": "subtítulos dobles + un toque para guardar palabras — tu vocabulario crece con los vídeos que ya te gustan, no con un libro de texto."
+      "eyebrow": "SUBTÍTULOS DOBLES · YOUTUBE &amp; NETFLIX",
+      "title": "Ve <span class=\"hl\">los dos idiomas</span> a la vez",
+      "sub": "El idioma que estudias y el tuyo, en cualquier vídeo con subtítulos — y cada palabra nueva se guarda con un clic."
     },
     "slide2": {
-      "eyebrow": "DOS IDIOMAS, UNA PANTALLA",
-      "title": "cada línea,<br>en <span class=\"hl\">los dos idiomas</span>",
-      "sub": "original y traducción lado a lado — pillas cada palabra y sumas vocabulario sin empollar."
+      "eyebrow": "SUBTÍTULOS DOBLES",
+      "title": "Todo lo que se dice,<br><span class=\"hl\">ante tus ojos</span>",
+      "sub": "Cada frase se queda en el panel — original y traducción juntos. Reléela cuando quieras, sin pausar el vídeo.",
+      "callout": "Un clic guarda la palabra"
     },
     "slide3": {
-      "eyebrow": "SE PONE EN CINCO SEGUNDOS",
-      "title": "elige tus<br><span class=\"hl\">idiomas</span> y dale",
-      "sub": "dile qué idioma aprendes y cuál es el tuyo — Lingogram se encarga del resto en cada vídeo."
+      "eyebrow": "REPASO ACTIVO INCLUIDO",
+      "title": "Escucha primero,<br><span class=\"hl\">luego compruébalo</span>",
+      "sub": "El modo Adivinar oculta cada frase hasta que la destapas: entrenas el oído con habla real, no solo leyendo.",
+      "callout": "modo Adivinar"
     },
     "slide4": {
-      "eyebrow": "JUSTO SOBRE EL VÍDEO",
-      "title": "subtítulos también<br>en el <span class=\"hl\">vídeo</span>",
-      "sub": "las líneas dobles salen sobre el reproductor mientras corre — lee sin despegar la vista de la pantalla."
+      "eyebrow": "TAMBIÉN A PANTALLA COMPLETA",
+      "title": "Funciona en <span class=\"hl\">cualquier&nbsp;vídeo</span> con&nbsp;subtítulos",
+      "sub": "Los dos idiomas aparecen sobre el propio reproductor — vídeos normales, Shorts y pantalla completa. Nada que activar dos veces.",
+      "callout": "Funciona a pantalla completa"
     },
     "slide5": {
-      "eyebrow": "TARJETAS, PERO SIN ABURRIR",
-      "title": "el <span class=\"hl\">modo adivina</span><br>engancha de verdad",
-      "sub": "las palabras empiezan ocultas — ábrelas una a una y convierte el scroll de siempre en práctica real."
+      "eyebrow": "GRATIS · SIN CUENTA PARA EMPEZAR",
+      "title": "Configúralo una vez,<br>y solo <span class=\"hl\">dale al play</span>",
+      "sub": "Elige el idioma que aprendes y el tuyo — Lingogram funciona en cualquier vídeo de YouTube con subtítulos."
     }
   },
   "de": {
     "slide1": {
-      "eyebrow": "LERN MIT DEM, WAS DU LIEBST",
-      "title": "lern mit den Videos,<br><span class=\"hl\">die du echt feierst</span>",
-      "sub": "doppelte Untertitel + ein Tipp zum Wörter speichern — dein Wortschatz wächst aus den Videos, die du eh schon liebst, nicht aus dem Lehrbuch."
+      "eyebrow": "DOPPELTE UNTERTITEL · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">Beide Sprachen</span> auf einen Blick",
+      "sub": "Lernsprache und Muttersprache gleichzeitig, in jedem Video mit Untertiteln — und neue Wörter speicherst du mit einem Klick."
     },
     "slide2": {
-      "eyebrow": "ZWEI SPRACHEN, EIN SCREEN",
-      "title": "jede Zeile,<br>in <span class=\"hl\">beiden Sprachen</span>",
-      "sub": "Original und Übersetzung nebeneinander — du schnappst jedes Wort und baust Vokabeln auf ohne Pauken."
+      "eyebrow": "DOPPELTE UNTERTITEL",
+      "title": "Alles Gesagte —<br><span class=\"hl\">direkt vor Augen</span>",
+      "sub": "Jede Zeile bleibt im Panel stehen — Original und Übersetzung zusammen. Lies jederzeit nach, ohne das Video anzuhalten.",
+      "callout": "Ein Klick speichert das Wort"
     },
     "slide3": {
-      "eyebrow": "SETUP DAUERT FÜNF SEKUNDEN",
-      "title": "wähl deine<br><span class=\"hl\">Sprachen</span> und los",
-      "sub": "sag, welche Sprache du lernst und welche deine ist — den Rest macht Lingogram in jedem Video."
+      "eyebrow": "AKTIVES ABRUFEN, EINGEBAUT",
+      "title": "Erst hören,<br><span class=\"hl\">dann selbst prüfen</span>",
+      "sub": "Der Rate-Modus blendet jede Zeile aus, bis du sie aufdeckst — so trainierst du dein Ohr an echter Sprache, statt nur mitzulesen.",
+      "callout": "Rate-Modus"
     },
     "slide4": {
-      "eyebrow": "DIREKT AUFS VIDEO",
-      "title": "Untertitel auch<br>aufs <span class=\"hl\">Video</span>",
-      "sub": "doppelte Zeilen ploppen während der Wiedergabe über dem Player auf — lies mit, ohne wegzuschauen."
+      "eyebrow": "AUCH IM VOLLBILD",
+      "title": "Funktioniert in <span class=\"hl\">jedem&nbsp;Video</span> mit&nbsp;Untertiteln",
+      "sub": "Beide Sprachen erscheinen direkt im Player — bei normalen Videos, Shorts und im Vollbild. Nichts muss doppelt aktiviert werden.",
+      "callout": "Funktioniert im Vollbild"
     },
     "slide5": {
-      "eyebrow": "KARTEIKARTEN, ABER NICHT ÖDE",
-      "title": "der <span class=\"hl\">Rate-Modus</span><br>geht echt ab",
-      "sub": "wörter sind erst verdeckt — deck sie einzeln auf und mach aus normalem Scrollen echte Praxis."
+      "eyebrow": "KOSTENLOS · OHNE KONTO STARTEN",
+      "title": "Einmal einrichten,<br>dann einfach <span class=\"hl\">Play drücken</span>",
+      "sub": "Wähle deine Lernsprache und deine Muttersprache — Lingogram funktioniert in jedem YouTube-Video mit Untertiteln."
     }
   },
   "fr": {
     "slide1": {
-      "eyebrow": "APPRENDS AVEC CE QUE TU AIMES",
-      "title": "apprends avec les vidéos<br><span class=\"hl\">que tu kiffes vraiment</span>",
-      "sub": "sous-titres doubles + un tap pour sauver les mots — ton vocabulaire vient des vidéos que tu aimes déjà, pas d'un manuel."
+      "eyebrow": "SOUS-TITRES BILINGUES · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">Les deux langues</span>, en un coup d'œil",
+      "sub": "La langue que vous apprenez et la vôtre, sur n'importe quelle vidéo sous-titrée — chaque nouveau mot s'enregistre en un clic."
     },
     "slide2": {
-      "eyebrow": "DEUX LANGUES, UN ÉCRAN",
-      "title": "chaque ligne,<br>dans <span class=\"hl\">les deux langues</span>",
-      "sub": "l'original et la traduction côte à côte — tu choppes chaque mot et tu fais le plein de vocabulaire sans bachoter."
+      "eyebrow": "SOUS-TITRES BILINGUES",
+      "title": "Tout ce qui se dit,<br><span class=\"hl\">sous vos yeux</span>",
+      "sub": "Chaque réplique reste dans le panneau — V.O. et traduction ensemble. Relisez à tout moment, sans mettre la vidéo en pause.",
+      "callout": "Un clic enregistre le mot"
     },
     "slide3": {
-      "eyebrow": "RÉGLAGE EN CINQ SECONDES",
-      "title": "choisis tes<br><span class=\"hl\">langues</span> et c'est parti",
-      "sub": "dis-lui la langue que tu apprends et la tienne — Lingogram gère le reste sur chaque vidéo."
+      "eyebrow": "RAPPEL ACTIF INTÉGRÉ",
+      "title": "Écoutez d'abord,<br><span class=\"hl\">vérifiez ensuite</span>",
+      "sub": "Le mode Deviner masque chaque réplique jusqu'à ce que vous la révéliez — entraînez votre oreille sur de la parole authentique, pas seulement du texte.",
+      "callout": "mode Deviner"
     },
     "slide4": {
-      "eyebrow": "DIRECT SUR LA VIDÉO",
-      "title": "des sous-titres aussi<br>sur la <span class=\"hl\">vidéo</span>",
-      "sub": "les lignes doubles s'affichent sur le lecteur pendant la lecture — lis sans lâcher l'écran des yeux."
+      "eyebrow": "MÊME EN PLEIN ÉCRAN",
+      "title": "Fonctionne sur <span class=\"hl\">toute&nbsp;vidéo</span> sous-titrée",
+      "sub": "Les deux langues s'affichent directement sur le lecteur — vidéos classiques, Shorts et plein écran. Rien à réactiver.",
+      "callout": "Fonctionne en plein écran"
     },
     "slide5": {
-      "eyebrow": "DES CARTES, MAIS PAS CHIANTES",
-      "title": "le <span class=\"hl\">mode devine</span><br>c'est trop bien",
-      "sub": "les mots sont d'abord cachés — révèle-les un par un et transforme le scroll habituel en vraie pratique."
+      "eyebrow": "GRATUIT · SANS COMPTE POUR COMMENCER",
+      "title": "Configurez une fois,<br>puis <span class=\"hl\">lancez la lecture</span>",
+      "sub": "Choisissez la langue que vous apprenez et la vôtre — Lingogram fonctionne sur toutes les vidéos YouTube sous-titrées."
     }
   },
   "it": {
     "slide1": {
-      "eyebrow": "IMPARA DA CIÒ CHE AMI",
-      "title": "impara dai video<br><span class=\"hl\">che ami davvero</span>",
-      "sub": "sottotitoli doppi + un tap per salvare le parole — il vocabolario cresce dai video che già ami, non da un libro di testo."
+      "eyebrow": "DOPPI SOTTOTITOLI · YOUTUBE &amp; NETFLIX",
+      "title": "Vedi <span class=\"hl\">entrambe le lingue</span> insieme",
+      "sub": "La lingua che studi e la tua, su qualsiasi video con i sottotitoli — e ogni parola nuova si salva con un clic."
     },
     "slide2": {
-      "eyebrow": "DUE LINGUE, UNO SCHERMO",
-      "title": "ogni battuta,<br>in <span class=\"hl\">due lingue</span>",
-      "sub": "originale e traduzione affiancati — afferri ogni parola e ti fai il vocabolario senza sbattimenti."
+      "eyebrow": "DOPPI SOTTOTITOLI",
+      "title": "Tutto il parlato,<br><span class=\"hl\">sotto i tuoi occhi</span>",
+      "sub": "Ogni battuta resta nel pannello — originale e traduzione insieme. Rileggila quando vuoi, senza mettere in pausa il video.",
+      "callout": "Un clic salva la parola"
     },
     "slide3": {
-      "eyebrow": "SI IMPOSTA IN CINQUE SECONDI",
-      "title": "scegli le tue<br><span class=\"hl\">lingue</span> e via",
-      "sub": "digli la lingua che impari e la tua — al resto pensa Lingogram, su ogni video."
+      "eyebrow": "RIPASSO ATTIVO INTEGRATO",
+      "title": "Prima ascolta,<br><span class=\"hl\">poi verifica</span>",
+      "sub": "La modalità Indovina nasconde ogni battuta finché non la sveli: alleni l'orecchio sul parlato vero, non solo sulla lettura.",
+      "callout": "modalità Indovina"
     },
     "slide4": {
-      "eyebrow": "DIRETTO SUL VIDEO",
-      "title": "sottotitoli anche<br>sul <span class=\"hl\">video</span>",
-      "sub": "le doppie righe spuntano sul player mentre scorre — leggi senza staccare gli occhi dallo schermo."
+      "eyebrow": "ANCHE A SCHERMO INTERO",
+      "title": "Funziona su <span class=\"hl\">ogni&nbsp;video</span> con&nbsp;sottotitoli",
+      "sub": "Le due lingue compaiono direttamente sul player — video normali, Shorts e schermo intero. Niente da riattivare.",
+      "callout": "Funziona a schermo intero"
     },
     "slide5": {
-      "eyebrow": "FLASHCARD, MA NON NOIOSE",
-      "title": "la <span class=\"hl\">modalità indovina</span><br>spacca davvero",
-      "sub": "le parole partono nascoste — scoprile una alla volta e trasforma il solito scroll in pratica vera."
+      "eyebrow": "GRATIS · SENZA ACCOUNT PER INIZIARE",
+      "title": "Imposta una volta,<br>poi premi <span class=\"hl\">play</span>",
+      "sub": "Scegli la lingua che impari e la tua — Lingogram funziona su ogni video di YouTube con i sottotitoli."
     }
   },
   "pt_PT": {
     "slide1": {
-      "eyebrow": "APRENDE COM O QUE GOSTAS",
-      "title": "aprende com os vídeos<br><span class=\"hl\">que adoras mesmo</span>",
-      "sub": "legendas duplas + um toque para guardar palavras — o teu vocabulário cresce com os vídeos que já adoras, não com um manual."
+      "eyebrow": "LEGENDAS DUPLAS · YOUTUBE &amp; NETFLIX",
+      "title": "Vê <span class=\"hl\">as duas línguas</span> ao mesmo tempo",
+      "sub": "A língua que estudas e a tua, em qualquer vídeo com legendas — e cada palavra nova fica guardada num clique."
     },
     "slide2": {
-      "eyebrow": "DUAS LÍNGUAS, UM ECRÃ",
-      "title": "cada linha,<br>nas <span class=\"hl\">duas línguas</span>",
-      "sub": "original e tradução lado a lado — apanhas cada palavra e ganhas vocabulário sem decorar à força."
+      "eyebrow": "LEGENDAS DUPLAS",
+      "title": "Tudo o que se diz,<br><span class=\"hl\">diante dos teus olhos</span>",
+      "sub": "Cada fala fica no painel — original e tradução juntos. Relê quando quiseres, sem parar o vídeo.",
+      "callout": "Um clique guarda a palavra"
     },
     "slide3": {
-      "eyebrow": "CONFIGURA-SE EM CINCO SEGUNDOS",
-      "title": "escolhe as tuas<br><span class=\"hl\">línguas</span> e bora",
-      "sub": "diz-lhe a língua que aprendes e a tua — o Lingogram trata do resto em cada vídeo."
+      "eyebrow": "EVOCAÇÃO ATIVA INCLUÍDA",
+      "title": "Ouve primeiro,<br><span class=\"hl\">depois confirma</span>",
+      "sub": "O modo Adivinhar esconde cada fala até a revelares — treinas o ouvido com fala real, em vez de apenas leres.",
+      "callout": "modo Adivinhar"
     },
     "slide4": {
-      "eyebrow": "MESMO NO VÍDEO",
-      "title": "legendas também<br>no <span class=\"hl\">vídeo</span>",
-      "sub": "as linhas duplas aparecem sobre o leitor enquanto corre — lê sem tirar os olhos do ecrã."
+      "eyebrow": "TAMBÉM EM ECRÃ INTEIRO",
+      "title": "Funciona em <span class=\"hl\">qualquer&nbsp;vídeo</span> com&nbsp;legendas",
+      "sub": "As duas línguas aparecem diretamente no leitor — vídeos normais, Shorts e ecrã inteiro. Não é preciso ativar nada duas vezes.",
+      "callout": "Funciona em ecrã inteiro"
     },
     "slide5": {
-      "eyebrow": "CARTÕES, MAS SEM SECA",
-      "title": "o <span class=\"hl\">modo adivinha</span><br>é mesmo viciante",
-      "sub": "as palavras começam escondidas — abre-as uma a uma e transforma o scroll do costume em prática a sério."
+      "eyebrow": "GRÁTIS · SEM CONTA PARA COMEÇAR",
+      "title": "Configura uma vez,<br>depois é só <span class=\"hl\">dar play</span>",
+      "sub": "Escolhe a língua que aprendes e a tua — o Lingogram funciona em qualquer vídeo do YouTube com legendas."
     }
   },
   "pt_BR": {
     "slide1": {
-      "eyebrow": "APRENDA COM O QUE VOCÊ CURTE",
-      "title": "aprenda com os vídeos<br><span class=\"hl\">que você curte de verdade</span>",
-      "sub": "legendas duplas + um toque pra salvar palavras — seu vocabulário cresce com os vídeos que você já ama, não com um livro didático."
+      "eyebrow": "LEGENDAS DUPLAS · YOUTUBE &amp; NETFLIX",
+      "title": "Veja <span class=\"hl\">os dois idiomas</span> de uma vez",
+      "sub": "O idioma que você estuda e o seu, em qualquer vídeo com legenda — e cada palavra nova é salva com um clique."
     },
     "slide2": {
-      "eyebrow": "DOIS IDIOMAS, UMA TELA",
-      "title": "cada frase,<br>nos <span class=\"hl\">dois idiomas</span>",
-      "sub": "original e tradução lado a lado — você capta cada palavra e enche o vocabulário sem decoreba."
+      "eyebrow": "LEGENDAS DUPLAS",
+      "title": "Tudo o que é falado,<br><span class=\"hl\">diante dos seus olhos</span>",
+      "sub": "Cada fala fica no painel — original e tradução juntos. Releia quando quiser, sem pausar o vídeo.",
+      "callout": "Um clique salva a palavra"
     },
     "slide3": {
-      "eyebrow": "CONFIGURA EM UNS CINCO SEGUNDOS",
-      "title": "escolha seus<br><span class=\"hl\">idiomas</span> e bora",
-      "sub": "fala o idioma que você aprende e o seu — o Lingogram resolve o resto em cada vídeo."
+      "eyebrow": "RECORDAÇÃO ATIVA INCLUÍDA",
+      "title": "Ouça primeiro,<br><span class=\"hl\">depois confira</span>",
+      "sub": "O modo Adivinhar esconde cada fala até você revelar — treine o ouvido com fala de verdade, não só lendo junto.",
+      "callout": "modo Adivinhar"
     },
     "slide4": {
-      "eyebrow": "BEM NO VÍDEO",
-      "title": "legendas também<br>no <span class=\"hl\">vídeo</span>",
-      "sub": "as linhas duplas aparecem sobre o player enquanto ele roda — leia sem tirar os olhos da tela."
+      "eyebrow": "ATÉ EM TELA CHEIA",
+      "title": "Funciona em <span class=\"hl\">qualquer&nbsp;vídeo</span> com&nbsp;legenda",
+      "sub": "Os dois idiomas aparecem direto no player — vídeos normais, Shorts e tela cheia. Nada precisa ser ativado de novo.",
+      "callout": "Funciona em tela cheia"
     },
     "slide5": {
-      "eyebrow": "FLASHCARD, MAS SEM TÉDIO",
-      "title": "o <span class=\"hl\">modo adivinhar</span><br>vicia mesmo",
-      "sub": "as palavras começam escondidas — abra uma por vez e transforme o scroll de sempre em prática de verdade."
+      "eyebrow": "GRÁTIS · SEM CONTA PARA COMEÇAR",
+      "title": "Configure uma vez,<br>depois é só <span class=\"hl\">dar play</span>",
+      "sub": "Escolha o idioma que você aprende e o seu — o Lingogram funciona em qualquer vídeo do YouTube com legenda."
     }
   },
   "ca": {
     "slide1": {
-      "eyebrow": "APRÈN DEL QUE T'AGRADA",
-      "title": "aprèn amb els vídeos<br><span class=\"hl\">que t'agraden de debò</span>",
-      "sub": "subtítols dobles + un toc per desar paraules — el teu vocabulari creix amb els vídeos que ja t'agraden, no amb un llibre de text."
+      "eyebrow": "SUBTÍTOLS DOBLES · YOUTUBE &amp; NETFLIX",
+      "title": "Mira <span class=\"hl\">els dos idiomes</span> alhora",
+      "sub": "L'idioma que aprens i el teu, a qualsevol vídeo amb subtítols — i cada paraula nova es desa amb un clic."
     },
     "slide2": {
-      "eyebrow": "DUES LLENGÜES, UNA PANTALLA",
-      "title": "cada línia,<br>en <span class=\"hl\">dues llengües</span>",
-      "sub": "original i traducció de costat — caces cada paraula i fas vocabulari sense empollar."
+      "eyebrow": "SUBTÍTOLS DOBLES",
+      "title": "Tot el que es diu,<br><span class=\"hl\">davant dels teus ulls</span>",
+      "sub": "Cada frase es queda al panell — original i traducció junts. Rellegeix-la quan vulguis, sense aturar el vídeo.",
+      "callout": "Un clic desa la paraula"
     },
     "slide3": {
-      "eyebrow": "ES POSA EN CINC SEGONS",
-      "title": "tria les teves<br><span class=\"hl\">llengües</span> i som-hi",
-      "sub": "digues-li quina llengua aprens i la teva — la resta la fa el Lingogram a cada vídeo."
+      "eyebrow": "REPÀS ACTIU INCLÒS",
+      "title": "Escolta primer,<br><span class=\"hl\">després comprova-ho</span>",
+      "sub": "El mode Endevina amaga cada frase fins que la destapes: entrenes l'oïda amb parla real, no només llegint.",
+      "callout": "mode Endevina"
     },
     "slide4": {
-      "eyebrow": "JUST AL VÍDEO",
-      "title": "subtítols també<br>al <span class=\"hl\">vídeo</span>",
-      "sub": "les línies dobles surten sobre el reproductor mentre va — llegeix sense apartar els ulls de la pantalla."
+      "eyebrow": "TAMBÉ A PANTALLA COMPLETA",
+      "title": "Funciona a <span class=\"hl\">qualsevol&nbsp;vídeo</span> amb&nbsp;subtítols",
+      "sub": "Els dos idiomes surten sobre el reproductor mateix — vídeos normals, Shorts i pantalla completa. Res a activar dues vegades.",
+      "callout": "Funciona a pantalla completa"
     },
     "slide5": {
-      "eyebrow": "TARGETES, PERÒ SENSE AVORRIR",
-      "title": "el <span class=\"hl\">mode endevina</span><br>enganxa de debò",
-      "sub": "les paraules comencen amagades — obre-les una a una i converteix l'scroll de sempre en pràctica real."
+      "eyebrow": "GRATIS · SENSE COMPTE PER COMENÇAR",
+      "title": "Configura-ho un cop,<br>i només <span class=\"hl\">dona-li al play</span>",
+      "sub": "Tria l'idioma que aprens i el teu — Lingogram funciona a qualsevol vídeo de YouTube amb subtítols."
     }
   },
   "nl": {
     "slide1": {
-      "eyebrow": "LEER VAN WAT JE LEUK VINDT",
-      "title": "leer van de video's<br><span class=\"hl\">die je echt vet vindt</span>",
-      "sub": "dubbele ondertitels + één tik om woorden op te slaan — je woordenschat groeit uit de video's die je toch al leuk vindt, niet uit een lesboek."
+      "eyebrow": "DUBBELE ONDERTITELING · YOUTUBE &amp; NETFLIX",
+      "title": "Zie <span class=\"hl\">beide talen</span> tegelijk",
+      "sub": "De taal die je leert en je eigen taal, bij elke video met ondertiteling — en elk nieuw woord sla je op met één klik."
     },
     "slide2": {
-      "eyebrow": "TWEE TALEN, ÉÉN SCHERM",
-      "title": "elke regel,<br>in <span class=\"hl\">twee talen</span>",
-      "sub": "origineel en vertaling naast elkaar — je pikt elk woord op en bouwt woordenschat op zonder stampen."
+      "eyebrow": "DUBBELE ONDERTITELING",
+      "title": "Elk gesproken woord,<br><span class=\"hl\">altijd in beeld</span>",
+      "sub": "Elke regel blijft in het paneel staan — origineel en vertaling samen. Lees terug wanneer je wilt, zonder de video te pauzeren.",
+      "callout": "Eén klik bewaart het woord"
     },
     "slide3": {
-      "eyebrow": "INSTELLEN DUURT VIJF SECONDEN",
-      "title": "kies je<br><span class=\"hl\">talen</span> en gaan",
-      "sub": "zeg welke taal je leert en je eigen taal — de rest doet Lingogram bij elke video."
+      "eyebrow": "ACTIEF OPHALEN, INGEBOUWD",
+      "title": "Eerst luisteren,<br><span class=\"hl\">dan jezelf testen</span>",
+      "sub": "De raadmodus verbergt elke regel tot je hem onthult — zo train je je oor op echte spraak in plaats van alleen mee te lezen.",
+      "callout": "raadmodus"
     },
     "slide4": {
-      "eyebrow": "GEWOON OP DE VIDEO",
-      "title": "ondertitels ook<br>op de <span class=\"hl\">video</span>",
-      "sub": "de dubbele regels poppen over de speler op terwijl die loopt — lees mee zonder je ogen van het scherm te halen."
+      "eyebrow": "OOK IN VOLLEDIG SCHERM",
+      "title": "Werkt bij <span class=\"hl\">elke&nbsp;video</span> met&nbsp;ondertiteling",
+      "sub": "Beide talen verschijnen direct op de speler — gewone video's, Shorts en volledig scherm. Niets hoeft twee keer aan.",
+      "callout": "Werkt in volledig scherm"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS, MAAR NIET SAAI",
-      "title": "de <span class=\"hl\">raadmodus</span><br>is echt top",
-      "sub": "woorden beginnen verborgen — onthul ze één tik per keer en maak van gewoon scrollen echte oefening."
+      "eyebrow": "GRATIS · BEGINNEN ZONDER ACCOUNT",
+      "title": "Eén keer instellen,<br>daarna gewoon <span class=\"hl\">afspelen</span>",
+      "sub": "Kies de taal die je leert en je eigen taal — Lingogram werkt bij elke YouTube-video met ondertiteling."
     }
   },
   "sv": {
     "slide1": {
-      "eyebrow": "LÄR AV DET DU GILLAR",
-      "title": "lär dig av videorna<br><span class=\"hl\">du faktiskt gillar</span>",
-      "sub": "dubbla undertexter + en tryckning för att spara ord — ditt ordförråd växer av videorna du redan gillar, inte av en lärobok."
+      "eyebrow": "DUBBLA UNDERTEXTER · YOUTUBE &amp; NETFLIX",
+      "title": "Se <span class=\"hl\">båda språken</span> samtidigt",
+      "sub": "Språket du lär dig och ditt eget, på alla videor med undertexter — och varje nytt ord sparas med ett klick."
     },
     "slide2": {
-      "eyebrow": "TVÅ SPRÅK, EN SKÄRM",
-      "title": "varje replik,<br>på <span class=\"hl\">båda språken</span>",
-      "sub": "original och översättning sida vid sida — du fångar varje ord och bygger ordförråd utan plugg."
+      "eyebrow": "DUBBLA UNDERTEXTER",
+      "title": "Allt som sägs,<br><span class=\"hl\">rakt framför dig</span>",
+      "sub": "Varje replik ligger kvar i panelen — original och översättning ihop. Läs om när du vill, utan att pausa videon.",
+      "callout": "Ett klick sparar ordet"
     },
     "slide3": {
-      "eyebrow": "TAR TYPE FEM SEKUNDER",
-      "title": "välj dina<br><span class=\"hl\">språk</span> och kör",
-      "sub": "säg vilket språk du lär dig och ditt eget — resten fixar Lingogram på varje video."
+      "eyebrow": "ACTIVE RECALL, INBYGGT",
+      "title": "Lyssna först,<br><span class=\"hl\">kolla sedan facit</span>",
+      "sub": "Gissningsläget döljer varje replik tills du visar den — du tränar örat på riktigt tal i stället för att bara läsa med.",
+      "callout": "gissningsläge"
     },
     "slide4": {
-      "eyebrow": "DIREKT PÅ VIDEON",
-      "title": "undertexter på<br>själva <span class=\"hl\">videon</span> med",
-      "sub": "dubbla rader dyker upp över spelaren medan den körs — läs med utan att släppa blicken från skärmen."
+      "eyebrow": "ÄVEN I HELSKÄRM",
+      "title": "Fungerar på <span class=\"hl\">alla&nbsp;videor</span> med&nbsp;undertext",
+      "sub": "Båda språken visas direkt i spelaren — vanliga videor, Shorts och helskärm. Inget behöver slås på två gånger.",
+      "callout": "Fungerar i helskärm"
     },
     "slide5": {
-      "eyebrow": "PLUGGKORT, MEN INTE TRÅKIGT",
-      "title": "<span class=\"hl\">gissningsläget</span><br>är faktiskt grymt",
-      "sub": "orden börjar dolda — visa dem ett tryck i taget och gör vanligt scrollande till riktig träning."
+      "eyebrow": "GRATIS · INGET KONTO BEHÖVS",
+      "title": "Ställ in en gång,<br>sedan bara <span class=\"hl\">trycka på play</span>",
+      "sub": "Välj språket du lär dig och ditt eget — Lingogram fungerar på alla YouTube-videor med undertexter."
     }
   },
   "da": {
     "slide1": {
-      "eyebrow": "LÆR AF DET, DU ELSKER",
-      "title": "lær af de videoer<br><span class=\"hl\">du virkelig elsker</span>",
-      "sub": "dobbelte undertekster + ét tryk for at gemme ord — dit ordforråd vokser af de videoer, du allerede elsker, ikke af en lærebog."
+      "eyebrow": "DOBBELTE UNDERTEKSTER · YOUTUBE &amp; NETFLIX",
+      "title": "Se <span class=\"hl\">begge sprog</span> på én gang",
+      "sub": "Det sprog, du lærer, og dit eget på enhver video med undertekster — og hvert nyt ord gemmes med ét klik."
     },
     "slide2": {
-      "eyebrow": "TO SPROG, ÉN SKÆRM",
-      "title": "hver linje,<br>på <span class=\"hl\">begge sprog</span>",
-      "sub": "original og oversættelse side om side — du fanger hvert ord og bygger ordforråd uden terpning."
+      "eyebrow": "DOBBELTE UNDERTEKSTER",
+      "title": "Alt det, der siges,<br><span class=\"hl\">lige foran dig</span>",
+      "sub": "Hver replik bliver i panelet — original og oversættelse sammen. Læs igen når som helst, uden at pause videoen.",
+      "callout": "Ét klik gemmer ordet"
     },
     "slide3": {
-      "eyebrow": "TAGER FEM SEKUNDER",
-      "title": "vælg dine<br><span class=\"hl\">sprog</span>, og kør",
-      "sub": "sig hvilket sprog du lærer, og dit eget — resten klarer Lingogram på hver video."
+      "eyebrow": "AKTIV GENKALDELSE INDBYGGET",
+      "title": "Lyt først,<br><span class=\"hl\">tjek så dig selv</span>",
+      "sub": "Gættetilstanden skjuler hver replik, til du afslører den — du træner øret på rigtig tale i stedet for bare at læse med.",
+      "callout": "gættetilstand"
     },
     "slide4": {
-      "eyebrow": "DIREKTE PÅ VIDEOEN",
-      "title": "undertekster på<br>selve <span class=\"hl\">videoen</span> med",
-      "sub": "dobbelte linjer dukker op over afspilleren, mens den kører — læs med uden at slippe blikket fra skærmen."
+      "eyebrow": "OGSÅ I FULD SKÆRM",
+      "title": "Virker på <span class=\"hl\">enhver&nbsp;video</span> med&nbsp;undertekster",
+      "sub": "Begge sprog vises direkte i afspilleren — almindelige videoer, Shorts og fuld skærm. Intet skal slås til to gange.",
+      "callout": "Virker i fuld skærm"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS, MEN IKKE KEDELIGT",
-      "title": "<span class=\"hl\">gættetilstand</span><br>er faktisk fed",
-      "sub": "ordene starter skjult — afslør dem ét tryk ad gangen og lav almindelig scrolling om til rigtig træning."
+      "eyebrow": "GRATIS · INGEN KONTO FOR AT STARTE",
+      "title": "Sæt op én gang,<br>og tryk så bare <span class=\"hl\">play</span>",
+      "sub": "Vælg det sprog, du lærer, og dit eget — Lingogram virker på enhver YouTube-video med undertekster."
     }
   },
   "no": {
     "slide1": {
-      "eyebrow": "LÆR AV DET DU ELSKER",
-      "title": "lær av videoene<br><span class=\"hl\">du faktisk elsker</span>",
-      "sub": "doble undertekster + ett trykk for å lagre ord — ordforrådet vokser av videoene du allerede elsker, ikke av en lærebok."
+      "eyebrow": "DOBLE UNDERTEKSTER · YOUTUBE &amp; NETFLIX",
+      "title": "Se <span class=\"hl\">begge språk</span> samtidig",
+      "sub": "Språket du lærer og ditt eget, på alle videoer med undertekster — og hvert nytt ord lagres med ett klikk."
     },
     "slide2": {
-      "eyebrow": "TO SPRÅK, ÉN SKJERM",
-      "title": "hver linje,<br>på <span class=\"hl\">begge språk</span>",
-      "sub": "original og oversettelse side om side — du fanger hvert ord og bygger ordforråd uten pugging."
+      "eyebrow": "DOBLE UNDERTEKSTER",
+      "title": "Alt som blir sagt,<br><span class=\"hl\">rett foran deg</span>",
+      "sub": "Hver replikk blir liggende i panelet — original og oversettelse sammen. Les på nytt når du vil, uten å pause videoen.",
+      "callout": "Ett klikk lagrer ordet"
     },
     "slide3": {
-      "eyebrow": "TAR FEM SEKUNDER",
-      "title": "velg <span class=\"hl\">språkene</span><br>dine, og kjør",
-      "sub": "si hvilket språk du lærer og ditt eget — resten fikser Lingogram på hver video."
+      "eyebrow": "AKTIV GJENKALLING INNEBYGD",
+      "title": "Lytt først,<br><span class=\"hl\">sjekk så deg selv</span>",
+      "sub": "Gjettemodus skjuler hver replikk til du avslører den — du trener øret på ekte tale i stedet for bare å lese med.",
+      "callout": "gjettemodus"
     },
     "slide4": {
-      "eyebrow": "RETT PÅ VIDEOEN",
-      "title": "undertekster på<br>selve <span class=\"hl\">videoen</span> òg",
-      "sub": "doble linjer dukker opp over spilleren mens den går — les med uten å slippe blikket fra skjermen."
+      "eyebrow": "OGSÅ I FULLSKJERM",
+      "title": "Virker på <span class=\"hl\">enhver&nbsp;video</span> med&nbsp;undertekst",
+      "sub": "Begge språk vises rett i spilleren — vanlige videoer, Shorts og fullskjerm. Ingenting må slås på to ganger.",
+      "callout": "Virker i fullskjerm"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS, MEN IKKE KJEDELIG",
-      "title": "<span class=\"hl\">gjettemodus</span><br>er faktisk digg",
-      "sub": "ordene starter skjult — avslør dem ett trykk om gangen og gjør vanlig scrolling til ekte øving."
+      "eyebrow": "GRATIS · INGEN KONTO FOR Å STARTE",
+      "title": "Sett opp én gang,<br>og bare <span class=\"hl\">trykk play</span>",
+      "sub": "Velg språket du lærer og ditt eget — Lingogram virker på enhver YouTube-video med undertekster."
     }
   },
   "fi": {
     "slide1": {
-      "eyebrow": "OPI SIITÄ, MISTÄ TYKKÄÄT",
-      "title": "opi videoista,<br><span class=\"hl\">joista oikeasti tykkäät</span>",
-      "sub": "kaksoistekstitys + napautus sanan tallennukseen — sanavarasto kasvaa videoista, joista jo tykkäät, ei oppikirjasta."
+      "eyebrow": "KAKSOISTEKSTITYS · YOUTUBE &amp; NETFLIX",
+      "title": "Näe <span class=\"hl\">molemmat kielet</span> kerralla",
+      "sub": "Opiskelemasi kieli ja oma kielesi missä tahansa tekstitetyssä videossa — ja jokainen uusi sana talteen yhdellä klikkauksella."
     },
     "slide2": {
-      "eyebrow": "KAKSI KIELTÄ, YKSI RUUTU",
-      "title": "joka rivi<br><span class=\"hl\">kahdella kielellä</span>",
-      "sub": "alkuperäinen ja käännös rinnakkain — nappaat joka sanan ja kartutat sanastoa ilman pänttäämistä."
+      "eyebrow": "KAKSOISTEKSTITYS",
+      "title": "Kaikki puhe videosta —<br><span class=\"hl\">silmiesi edessä</span>",
+      "sub": "Jokainen repliikki jää paneeliin — alkuteksti ja käännös yhdessä. Lue uudelleen milloin vain, pysäyttämättä videota.",
+      "callout": "Klikkaus tallentaa sanan"
     },
     "slide3": {
-      "eyebrow": "ASETUS VIE VIISI SEKUNTIA",
-      "title": "valitse<br><span class=\"hl\">kielesi</span> ja menoksi",
-      "sub": "kerro opettelemasi kieli ja oma kielesi — lopun hoitaa Lingogram joka videolla."
+      "eyebrow": "AKTIIVINEN MIELEENPALAUTUS",
+      "title": "Kuuntele ensin,<br><span class=\"hl\">tarkista sitten itse</span>",
+      "sub": "Arvaustila piilottaa repliikin, kunnes paljastat sen — korva harjaantuu aitoon puheeseen, ei vain lukemiseen.",
+      "callout": "arvaustila"
     },
     "slide4": {
-      "eyebrow": "SUORAAN VIDEOSSA",
-      "title": "tekstitys myös<br>itse <span class=\"hl\">videossa</span>",
-      "sub": "kaksoisrivit ilmestyvät soittimen päälle toiston aikana — lue mukana irrottamatta katsetta ruudusta."
+      "eyebrow": "MYÖS KOKO NÄYTÖLLÄ",
+      "title": "Toimii <span class=\"hl\">kaikissa&nbsp;videoissa</span>, joissa&nbsp;on tekstitys",
+      "sub": "Molemmat kielet näkyvät suoraan soittimessa — tavalliset videot, Shorts ja koko näyttö. Mitään ei tarvitse kytkeä kahdesti.",
+      "callout": "Toimii koko näytöllä"
     },
     "slide5": {
-      "eyebrow": "KORTTEJA, MUTTA EI TYLSÄÄ",
-      "title": "<span class=\"hl\">arvausmoodi</span><br>on oikeasti kova",
-      "sub": "sanat ovat aluksi piilossa — paljasta ne yksi napautus kerrallaan ja muuta tavallinen selailu aidoksi harjoitteluksi."
+      "eyebrow": "ILMAINEN · ALOITA ILMAN TILIÄ",
+      "title": "Aseta kerran,<br>sitten vain <span class=\"hl\">paina play</span>",
+      "sub": "Valitse opiskelemasi kieli ja oma kielesi — Lingogram toimii kaikissa tekstitetyissä YouTube-videoissa."
     }
   },
   "et": {
     "slide1": {
-      "eyebrow": "ÕPI SELLEST, MIDA ARMASTAD",
-      "title": "õpi videotest,<br><span class=\"hl\">mida sa tõesti armastad</span>",
-      "sub": "topeltsubtiitrid + üks puudutus sõna salvestamiseks — su sõnavara kasvab videotest, mida sa niigi armastad, mitte õpikust."
+      "eyebrow": "TOPELTSUBTIITRID · YOUTUBE &amp; NETFLIX",
+      "title": "Näe <span class=\"hl\">mõlemat keelt</span> korraga",
+      "sub": "Õpitav keel ja emakeel koos igal subtiitritega videol — ja iga uus sõna salvestub ühe klõpsuga."
     },
     "slide2": {
-      "eyebrow": "KAKS KEELT, ÜKS EKRAAN",
-      "title": "iga rida<br><span class=\"hl\">mõlemas keeles</span>",
-      "sub": "originaal ja tõlge kõrvuti — püüad iga sõna ja kogud sõnavara ilma tuupimiseta."
+      "eyebrow": "TOPELTSUBTIITRID",
+      "title": "Kogu videos räägitav —<br><span class=\"hl\">silme ees</span>",
+      "sub": "Iga fraas jääb paneelile alles — originaal ja tõlge koos. Loe igal hetkel üle, videot peatamata.",
+      "callout": "Üks klõps salvestab sõna"
     },
     "slide3": {
-      "eyebrow": "SEADISTUS VÕTAB VIIS SEKUNDIT",
-      "title": "vali oma<br><span class=\"hl\">keeled</span> ja läki",
-      "sub": "ütle, mis keelt õpid ja oma keel — ülejäänu teeb Lingogram igal videol."
+      "eyebrow": "AKTIIVNE MEENUTAMINE",
+      "title": "Kuula esmalt,<br><span class=\"hl\">siis kontrolli end</span>",
+      "sub": "Arvamisrežiim peidab rea, kuni selle avad — treenid kõrva päris kõnega, mitte ainult lugedes.",
+      "callout": "arvamisrežiim"
     },
     "slide4": {
-      "eyebrow": "OTSE VIDEOL",
-      "title": "subtiitrid ka<br>videol <span class=\"hl\">endal</span>",
-      "sub": "topeltread ilmuvad mängija peale taasesituse ajal — loe kaasa, võtmata pilku ekraanilt."
+      "eyebrow": "KA TÄISEKRAANIL",
+      "title": "Töötab <span class=\"hl\">igal&nbsp;videol</span>, millel&nbsp;on subtiitrid",
+      "sub": "Mõlemad keeled ilmuvad otse mängijasse — tavalised videod, Shorts ja täisekraan. Midagi pole vaja kaks korda sisse lülitada.",
+      "callout": "Töötab täisekraanil"
     },
     "slide5": {
-      "eyebrow": "KAARDID, AGA POLE IGAV",
-      "title": "<span class=\"hl\">äraarvamisrežiim</span><br>on tegelt mõnus",
-      "sub": "sõnad on alguses peidus — too need nähtavale ükshaaval ja muuda tavaline kerimine päris harjutuseks."
+      "eyebrow": "TASUTA · KONTOT POLE VAJA",
+      "title": "Seadista korra,<br>siis lihtsalt <span class=\"hl\">vajuta play</span>",
+      "sub": "Vali keel, mida õpid, ja oma emakeel — Lingogram töötab igal subtiitritega YouTube'i videol."
     }
   },
   "lv": {
     "slide1": {
-      "eyebrow": "MĀCIES NO TĀ, KO MĪLI",
-      "title": "mācies no video,<br><span class=\"hl\">ko tiešām mīli</span>",
-      "sub": "dubultsubtitri + viens pieskāriens, lai saglabātu vārdu — tava vārdu krātuve aug no video, ko jau mīli, nevis no mācību grāmatas."
+      "eyebrow": "DUBULTI SUBTITRI · YOUTUBE &amp; NETFLIX",
+      "title": "Redzi <span class=\"hl\">abas valodas</span> uzreiz",
+      "sub": "Valoda, ko mācies, un dzimtā — kopā jebkurā video ar subtitriem, un katrs jaunais vārds saglabājas ar vienu klikšķi."
     },
     "slide2": {
-      "eyebrow": "DIVAS VALODAS, VIENS EKRĀNS",
-      "title": "katra rindiņa<br><span class=\"hl\">abās valodās</span>",
-      "sub": "oriģināls un tulkojums blakus — notver katru vārdu un krāj vārdus bez kalšanas."
+      "eyebrow": "DUBULTI SUBTITRI",
+      "title": "Visa runa no video —<br><span class=\"hl\">acu priekšā</span>",
+      "sub": "Katra frāze paliek panelī — oriģināls un tulkojums kopā. Pārlasi jebkurā brīdī, neapturot video.",
+      "callout": "Viens klikšķis saglabā vārdu"
     },
     "slide3": {
-      "eyebrow": "IESTATĪŠANA AIZŅEM PIECAS SEKUNDES",
-      "title": "izvēlies savas<br><span class=\"hl\">valodas</span> un brauc",
-      "sub": "pasaki, kuru valodu mācies un savējo — pārējo izdara Lingogram katrā video."
+      "eyebrow": "AKTĪVĀ ATCERĒŠANĀS",
+      "title": "Vispirms klausies,<br><span class=\"hl\">tad pārbaudi sevi</span>",
+      "sub": "Minēšanas režīms slēpj rindu, līdz to atklāj — dzirdi trenē īsta runa, nevis tikai lasīšana līdzi.",
+      "callout": "minēšanas režīms"
     },
     "slide4": {
-      "eyebrow": "TIEŠI UZ VIDEO",
-      "title": "subtitri arī uz<br>paša <span class=\"hl\">video</span>",
-      "sub": "dubultrindas parādās virs atskaņotāja tā atskaņošanas laikā — lasi līdzi, nenovēršot acis no ekrāna."
+      "eyebrow": "ARĪ PILNEKRĀNĀ",
+      "title": "Darbojas <span class=\"hl\">jebkurā&nbsp;video</span> ar&nbsp;subtitriem",
+      "sub": "Abas valodas parādās tieši atskaņotājā — parastie video, Shorts un pilnekrāns. Nekas nav jāieslēdz divreiz.",
+      "callout": "Darbojas pilnekrānā"
     },
     "slide5": {
-      "eyebrow": "KARTĪTES, BET NAV GARLAICĪGI",
-      "title": "<span class=\"hl\">minēšanas režīms</span><br>īsti aizrauj",
-      "sub": "vārdi sākumā ir paslēpti — atklāj tos pa vienam un pārvērt parasto skrollēšanu īstā praksē."
+      "eyebrow": "BEZ MAKSAS · BEZ KONTA",
+      "title": "Iestati vienreiz,<br>tad vienkārši <span class=\"hl\">skaties</span>",
+      "sub": "Izvēlies valodu, ko mācies, un savu dzimto — Lingogram darbojas jebkurā YouTube video ar subtitriem."
     }
   },
   "lt": {
     "slide1": {
-      "eyebrow": "MOKYKIS IŠ TO, KĄ MĖGSTI",
-      "title": "mokykis iš įrašų,<br><span class=\"hl\">kuriuos tikrai mėgsti</span>",
-      "sub": "dvigubi subtitrai + vienas bakstelėjimas žodžiui išsaugoti — žodynas auga iš įrašų, kuriuos jau mėgsti, o ne iš vadovėlio."
+      "eyebrow": "DVIGUBI SUBTITRAI · YOUTUBE &amp; NETFLIX",
+      "title": "Matyk <span class=\"hl\">abi kalbas</span> iš karto",
+      "sub": "Kalba, kurios mokaisi, ir gimtoji — kartu bet kuriame įraše su subtitrais, o nauji žodžiai išsaugomi vienu paspaudimu."
     },
     "slide2": {
-      "eyebrow": "DVI KALBOS, VIENAS EKRANAS",
-      "title": "kiekviena eilutė<br><span class=\"hl\">abiem kalbomis</span>",
-      "sub": "originalas ir vertimas greta — pagauni kiekvieną žodį ir kaupi žodyną be zubrinimo."
+      "eyebrow": "DVIGUBI SUBTITRAI",
+      "title": "Visa kalba iš vaizdo —<br><span class=\"hl\">prieš akis</span>",
+      "sub": "Kiekviena frazė lieka skydelyje — originalas ir vertimas kartu. Perskaityk bet kada, nestabdydamas įrašo.",
+      "callout": "Žodį išsaugai vienu paspaudimu"
     },
     "slide3": {
-      "eyebrow": "NUSTATYMAS UŽTRUNKA PENKIAS SEKUNDES",
-      "title": "pasirink savo<br><span class=\"hl\">kalbas</span> ir pirmyn",
-      "sub": "pasakyk, kurios kalbos mokaisi, ir savąją — visa kita Lingogram padaro kiekviename vaizde."
+      "eyebrow": "AKTYVUS PRISIMINIMAS",
+      "title": "Pirma klausyk,<br><span class=\"hl\">paskui pasitikrink</span>",
+      "sub": "Spėjimo režimas slepia eilutę, kol ją atskleidi — klausą treniruoji tikra kalba, o ne vien skaitydamas.",
+      "callout": "spėjimo režimas"
     },
     "slide4": {
-      "eyebrow": "TIESIAI ANT VAIZDO",
-      "title": "subtitrai ir ant<br>paties <span class=\"hl\">vaizdo</span>",
-      "sub": "dvigubos eilutės rodomos virš grotuvo atkūrimo metu — skaityk neatitraukdamas akių nuo ekrano."
+      "eyebrow": "IR PER VISĄ EKRANĄ",
+      "title": "Veikia <span class=\"hl\">bet kuriame&nbsp;vaizde</span> su&nbsp;subtitrais",
+      "sub": "Abi kalbos rodomos tiesiai grotuve — įprasti įrašai, Shorts ir visas ekranas. Nieko nereikia įjungti antrą kartą.",
+      "callout": "Veikia per visą ekraną"
     },
     "slide5": {
-      "eyebrow": "KORTELĖS, BET NENUOBODU",
-      "title": "<span class=\"hl\">spėjimo režimas</span><br>tikrai įtraukia",
-      "sub": "žodžiai iš pradžių paslėpti — atskleisk juos po vieną ir paversk įprastą slinkimą tikra praktika."
+      "eyebrow": "NEMOKAMA · BE PASKYROS",
+      "title": "Nustatyk kartą,<br>toliau tiesiog <span class=\"hl\">žiūrėk</span>",
+      "sub": "Pasirink kalbą, kurios mokaisi, ir gimtąją — Lingogram veikia bet kuriame YouTube įraše su subtitrais."
     }
   },
   "pl": {
     "slide1": {
-      "eyebrow": "UCZ SIĘ Z TEGO, CO KOCHASZ",
-      "title": "ucz się z filmów,<br><span class=\"hl\">które naprawdę kochasz</span>",
-      "sub": "podwójne napisy + jedno tknięcie, by zapisać słowo — słownictwo rośnie z filmów, które i tak kochasz, a nie z podręcznika."
+      "eyebrow": "PODWÓJNE NAPISY · YOUTUBE &amp; NETFLIX",
+      "title": "Zobacz <span class=\"hl\">oba języki</span> naraz",
+      "sub": "Język, którego się uczysz, i ojczysty — w każdym filmie z napisami, a nowe słowa zapisujesz jednym kliknięciem."
     },
     "slide2": {
-      "eyebrow": "DWA JĘZYKI, JEDEN EKRAN",
-      "title": "każda kwestia<br>w <span class=\"hl\">dwóch językach</span>",
-      "sub": "oryginał i tłumaczenie obok siebie — łapiesz każde słowo i robisz słownictwo bez wkuwania."
+      "eyebrow": "PODWÓJNE NAPISY",
+      "title": "Cała mowa z filmu —<br><span class=\"hl\">przed oczami</span>",
+      "sub": "Każda kwestia zostaje w panelu — oryginał i tłumaczenie razem. Wróć do niej w każdej chwili, nie zatrzymując filmu.",
+      "callout": "Jedno kliknięcie zapisuje słowo"
     },
     "slide3": {
-      "eyebrow": "USTAWIENIE ZAJMUJE PIĘĆ SEKUND",
-      "title": "wybierz<br><span class=\"hl\">języki</span> i ruszaj",
-      "sub": "podaj język, którego się uczysz, i swój — resztę Lingogram ogarnie przy każdym filmie."
+      "eyebrow": "AKTYWNE PRZYPOMINANIE",
+      "title": "Najpierw słuchaj,<br><span class=\"hl\">potem się sprawdź</span>",
+      "sub": "Tryb zgadywania ukrywa kwestię, dopóki jej nie odsłonisz — ćwiczysz słuch na prawdziwej mowie, a nie tylko czytasz.",
+      "callout": "tryb zgadywania"
     },
     "slide4": {
-      "eyebrow": "PROSTO NA FILMIE",
-      "title": "napisy także<br>na <span class=\"hl\">filmie</span>",
-      "sub": "podwójne linie wyskakują na odtwarzaczu podczas oglądania — czytaj, nie odrywając wzroku od ekranu."
+      "eyebrow": "TAKŻE NA PEŁNYM EKRANIE",
+      "title": "Działa w <span class=\"hl\">każdym&nbsp;filmie</span> z&nbsp;napisami",
+      "sub": "Oba języki wyświetlają się prosto na odtwarzaczu — zwykłe filmy, Shorts i pełny ekran. Niczego nie włączasz dwa razy.",
+      "callout": "Działa na pełnym ekranie"
     },
     "slide5": {
-      "eyebrow": "FISZKI, ALE BEZ NUDY",
-      "title": "<span class=\"hl\">tryb zgadywanki</span><br>naprawdę wciąga",
-      "sub": "słowa są na start ukryte — odsłaniaj je dotyk po dotyku i zamień zwykły scroll w prawdziwą praktykę."
+      "eyebrow": "ZA DARMO · BEZ KONTA NA START",
+      "title": "Ustaw raz,<br>potem po prostu <span class=\"hl\">włącz film</span>",
+      "sub": "Wybierz język, którego się uczysz, i swój ojczysty — Lingogram działa w każdym filmie na YouTube z napisami."
     }
   },
   "cs": {
     "slide1": {
-      "eyebrow": "UČ SE Z TOHO, CO MILUJEŠ",
-      "title": "uč se z videí,<br><span class=\"hl\">co fakt miluješ</span>",
-      "sub": "dvojité titulky + jedno ťuknutí pro uložení slova — slovní zásoba roste z videí, co už miluješ, ne z učebnice."
+      "eyebrow": "DVOJITÉ TITULKY · YOUTUBE &amp; NETFLIX",
+      "title": "Vidíte <span class=\"hl\">oba jazyky</span> naráz",
+      "sub": "Jazyk, který se učíte, i mateřština — u každého videa s titulky, a každé nové slovo uložíte jedním kliknutím."
     },
     "slide2": {
-      "eyebrow": "DVA JAZYKY, JEDNA OBRAZOVKA",
-      "title": "každá věta<br>ve <span class=\"hl\">dvou jazycích</span>",
-      "sub": "originál a překlad vedle sebe — chytíš každé slovo a naskládáš slovíčka bez biflování."
+      "eyebrow": "DVOJITÉ TITULKY",
+      "title": "Všechno, co zazní —<br><span class=\"hl\">před očima</span>",
+      "sub": "Každá replika zůstává v panelu — originál i překlad pohromadě. Kdykoli se k ní vraťte, bez zastavení videa.",
+      "callout": "Slovo uložíte jedním kliknutím"
     },
     "slide3": {
-      "eyebrow": "NASTAVENÍ ZABERE PĚT SEKUND",
-      "title": "vyber si<br><span class=\"hl\">jazyky</span> a jedem",
-      "sub": "řekni, jaký jazyk se učíš a svůj — zbytek zařídí Lingogram u každého videa."
+      "eyebrow": "AKTIVNÍ VYBAVOVÁNÍ",
+      "title": "Nejdřív poslouchejte,<br><span class=\"hl\">pak se zkontrolujte</span>",
+      "sub": "Režim hádání skryje repliku, dokud ji neodkryjete — sluch trénujete na skutečné řeči, ne jen na čtení.",
+      "callout": "režim hádání"
     },
     "slide4": {
-      "eyebrow": "PŘÍMO VE VIDEU",
-      "title": "titulky i<br>přímo ve <span class=\"hl\">videu</span>",
-      "sub": "dvojité řádky vyskočí přes přehrávač během sledování — čti, aniž bys spustil oči z obrazovky."
+      "eyebrow": "I NA CELÉ OBRAZOVCE",
+      "title": "Funguje u <span class=\"hl\">každého&nbsp;videa</span> s&nbsp;titulky",
+      "sub": "Oba jazyky se zobrazí přímo v přehrávači — běžná videa, Shorts i celá obrazovka. Nic nezapínáte dvakrát.",
+      "callout": "Funguje na celé obrazovce"
     },
     "slide5": {
-      "eyebrow": "KARTIČKY, ALE NE NUDA",
-      "title": "<span class=\"hl\">režim hádání</span><br>fakt baví",
-      "sub": "slova jsou nejdřív skrytá — odkrývej je po jednom ťuknutí a změň obyčejný scroll na opravdovou praxi."
+      "eyebrow": "ZDARMA · BEZ ÚČTU NA ZAČÁTEK",
+      "title": "Nastavte jednou,<br>pak už jen <span class=\"hl\">spusťte video</span>",
+      "sub": "Vyberte jazyk, který se učíte, a svou mateřštinu — Lingogram funguje u každého videa na YouTube s titulky."
     }
   },
   "sk": {
     "slide1": {
-      "eyebrow": "UČ SA Z TOHO, ČO MILUJEŠ",
-      "title": "uč sa z videí,<br><span class=\"hl\">čo fakt miluješ</span>",
-      "sub": "dvojité titulky + jedno ťuknutie na uloženie slova — slovná zásoba rastie z videí, čo už miluješ, nie z učebnice."
+      "eyebrow": "DVOJITÉ TITULKY · YOUTUBE &amp; NETFLIX",
+      "title": "Vidíte <span class=\"hl\">oba jazyky</span> naraz",
+      "sub": "Jazyk, ktorý sa učíte, aj materčina — pri každom videu s titulkami, a každé nové slovo uložíte jedným kliknutím."
     },
     "slide2": {
-      "eyebrow": "DVA JAZYKY, JEDNA OBRAZOVKA",
-      "title": "každá veta<br>v <span class=\"hl\">dvoch jazykoch</span>",
-      "sub": "originál a preklad vedľa seba — chytíš každé slovo a naskladáš slovíčka bez bifľovania."
+      "eyebrow": "DVOJITÉ TITULKY",
+      "title": "Všetko, čo zaznie —<br><span class=\"hl\">pred očami</span>",
+      "sub": "Každá replika zostáva v paneli — originál aj preklad pokope. Kedykoľvek sa k nej vráťte, bez zastavenia videa.",
+      "callout": "Slovo uložíte jedným kliknutím"
     },
     "slide3": {
-      "eyebrow": "NASTAVENIE ZABERIE PÄŤ SEKÚND",
-      "title": "vyber si<br><span class=\"hl\">jazyky</span> a ideme",
-      "sub": "povedz, aký jazyk sa učíš a svoj — zvyšok zariadi Lingogram pri každom videu."
+      "eyebrow": "AKTÍVNE VYBAVOVANIE",
+      "title": "Najprv počúvajte,<br><span class=\"hl\">potom sa skontrolujte</span>",
+      "sub": "Režim hádania skryje repliku, kým ju neodkryjete — sluch trénujete na skutočnej reči, nie iba na čítaní.",
+      "callout": "režim hádania"
     },
     "slide4": {
-      "eyebrow": "PRIAMO VO VIDEU",
-      "title": "titulky aj<br>priamo vo <span class=\"hl\">videu</span>",
-      "sub": "dvojité riadky vyskočia cez prehrávač počas sledovania — čítaj, bez toho aby si spustil oči z obrazovky."
+      "eyebrow": "AJ NA CELEJ OBRAZOVKE",
+      "title": "Funguje pri <span class=\"hl\">každom&nbsp;videu</span> s&nbsp;titulkami",
+      "sub": "Oba jazyky sa zobrazia priamo v prehrávači — bežné videá, Shorts aj celá obrazovka. Nič nezapínate dvakrát.",
+      "callout": "Funguje na celej obrazovke"
     },
     "slide5": {
-      "eyebrow": "KARTIČKY, ALE NIE NUDA",
-      "title": "<span class=\"hl\">režim hádania</span><br>fakt baví",
-      "sub": "slová sú najprv skryté — odkrývaj ich po jednom ťuknutí a zmeň obyčajný scroll na skutočnú prax."
+      "eyebrow": "ZADARMO · BEZ ÚČTU NA ZAČIATOK",
+      "title": "Nastavte raz,<br>potom už len <span class=\"hl\">spustite video</span>",
+      "sub": "Vyberte jazyk, ktorý sa učíte, a svoju materčinu — Lingogram funguje pri každom videu na YouTube s titulkami."
     }
   },
   "hu": {
     "slide1": {
-      "eyebrow": "TANULJ ABBÓL, AMIT SZERETSZ",
-      "title": "tanulj a videókból,<br><span class=\"hl\">amiket tényleg imádsz</span>",
-      "sub": "kettős felirat + egy koppintás a szavak mentéséhez — a szókincsed a videókból nő, amiket amúgy is imádsz, nem a tankönyvből."
+      "eyebrow": "DUPLA FELIRAT · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">Mindkét nyelv</span> egyszerre a képernyőn",
+      "sub": "A tanult nyelv és az anyanyelved együtt, minden feliratos videón — az új szavakat pedig egy kattintással elmented."
     },
     "slide2": {
-      "eyebrow": "KÉT NYELV, EGY KÉPERNYŐ",
-      "title": "minden sor<br><span class=\"hl\">két nyelven</span>",
-      "sub": "eredeti és fordítás egymás mellett — elkapsz minden szót, és magolás nélkül gyűjtöd a szókincset."
+      "eyebrow": "DUPLA FELIRAT",
+      "title": "Ami elhangzik,<br><span class=\"hl\">mind a szemed előtt</span>",
+      "sub": "Minden sor a panelen marad — az eredeti és a fordítás együtt. Bármikor visszaolvashatod, a videó megállítása nélkül.",
+      "callout": "Egy kattintás, és a szó elmentve"
     },
     "slide3": {
-      "eyebrow": "A BEÁLLÍTÁS ÖT MÁSODPERC",
-      "title": "válaszd ki a<br><span class=\"hl\">nyelveket</span>, mehet",
-      "sub": "mondd meg, melyik nyelvet tanulod és a sajátodat — a többit a Lingogram intézi minden videónál."
+      "eyebrow": "AKTÍV FELIDÉZÉS",
+      "title": "Előbb hallgasd,<br><span class=\"hl\">aztán ellenőrizd</span>",
+      "sub": "A találós mód addig rejti a sort, amíg fel nem feded — a füled valódi beszéden edződik, nem csak olvasáson.",
+      "callout": "találós mód"
     },
     "slide4": {
-      "eyebrow": "EGYENESEN A VIDEÓN",
-      "title": "felirat magán<br>a <span class=\"hl\">videón</span> is",
-      "sub": "a kettős sorok lejátszás közben jelennek meg a képen — olvasd, anélkül hogy levennéd a szemed a képernyőről."
+      "eyebrow": "TELJES KÉPERNYŐN IS",
+      "title": "Működik <span class=\"hl\">minden&nbsp;videón</span>, amin&nbsp;van felirat",
+      "sub": "Mindkét nyelv a lejátszón jelenik meg — normál videók, Shorts és teljes képernyő. Semmit sem kell kétszer bekapcsolni.",
+      "callout": "Teljes képernyőn is működik"
     },
     "slide5": {
-      "eyebrow": "KÁRTYÁK, DE NEM UNALMAS",
-      "title": "a <span class=\"hl\">találós mód</span><br>tényleg beszippant",
-      "sub": "a szavak rejtve indulnak — fedd fel őket egyesével, és a sima görgetésből csinálj igazi gyakorlást."
+      "eyebrow": "INGYENES · FIÓK NÉLKÜL INDULHATSZ",
+      "title": "Állítsd be egyszer,<br>aztán csak <span class=\"hl\">indítsd el</span>",
+      "sub": "Válaszd ki a tanult nyelvet és az anyanyelved — a Lingogram minden feliratos YouTube-videón működik."
     }
   },
   "ro": {
     "slide1": {
-      "eyebrow": "ÎNVAȚĂ DIN CE-ȚI PLACE",
-      "title": "învață din clipurile<br><span class=\"hl\">care chiar îți plac</span>",
-      "sub": "subtitrări duble + o atingere ca să salvezi cuvinte — vocabularul crește din clipurile care deja îți plac, nu dintr-un manual."
+      "eyebrow": "SUBTITRARE DUBLĂ · YOUTUBE &amp; NETFLIX",
+      "title": "Vezi <span class=\"hl\">ambele limbi</span> deodată",
+      "sub": "Limba pe care o înveți și a ta, pe orice videoclip cu subtitrare — iar fiecare cuvânt nou se salvează cu un clic."
     },
     "slide2": {
-      "eyebrow": "DOUĂ LIMBI, UN ECRAN",
-      "title": "fiecare replică,<br>în <span class=\"hl\">ambele limbi</span>",
-      "sub": "originalul și traducerea una lângă alta — prinzi fiecare cuvânt și aduni vocabular fără tocit."
+      "eyebrow": "SUBTITRARE DUBLĂ",
+      "title": "Tot ce se spune —<br><span class=\"hl\">sub ochii tăi</span>",
+      "sub": "Fiecare replică rămâne în panou — originalul și traducerea împreună. Recitește-o oricând, fără să oprești videoclipul.",
+      "callout": "Un clic salvează cuvântul"
     },
     "slide3": {
-      "eyebrow": "SE SETEAZĂ ÎN CINCI SECUNDE",
-      "title": "alege-ți<br><span class=\"hl\">limbile</span> și dă-i drumul",
-      "sub": "spune-i ce limbă înveți și pe a ta — restul îl face Lingogram la fiecare videoclip."
+      "eyebrow": "REAMINTIRE ACTIVĂ",
+      "title": "Ascultă întâi,<br><span class=\"hl\">apoi verifică-te</span>",
+      "sub": "Modul Ghicește ascunde fiecare replică până o dezvălui — îți antrenezi urechea cu vorbire reală, nu doar citind.",
+      "callout": "modul Ghicește"
     },
     "slide4": {
-      "eyebrow": "CHIAR PE VIDEOCLIP",
-      "title": "subtitrări și pe<br>chiar <span class=\"hl\">videoclip</span>",
-      "sub": "liniile duble apar peste player în timpul redării — citește fără să-ți iei ochii de pe ecran."
+      "eyebrow": "ȘI PE ECRAN COMPLET",
+      "title": "Merge pe <span class=\"hl\">orice&nbsp;videoclip</span> cu&nbsp;subtitrare",
+      "sub": "Ambele limbi apar direct pe player — videoclipuri obișnuite, Shorts și ecran complet. Nimic de activat a doua oară.",
+      "callout": "Merge pe ecran complet"
     },
     "slide5": {
-      "eyebrow": "CARDURI, DAR FĂRĂ PLICTIS",
-      "title": "<span class=\"hl\">modul ghicit</span><br>chiar prinde",
-      "sub": "cuvintele pornesc ascunse — dezvăluie-le pe rând și transformă scrollul obișnuit în exercițiu real."
+      "eyebrow": "GRATUIT · FĂRĂ CONT LA ÎNCEPUT",
+      "title": "Configurezi o dată,<br>apoi doar <span class=\"hl\">dai play</span>",
+      "sub": "Alege limba pe care o înveți și pe a ta — Lingogram merge pe orice videoclip YouTube cu subtitrare."
     }
   },
   "hr": {
     "slide1": {
-      "eyebrow": "UČI IZ ONOGA ŠTO VOLIŠ",
-      "title": "uči iz videa<br><span class=\"hl\">koje stvarno voliš</span>",
-      "sub": "dvostruki titlovi + jedan dodir za spremanje riječi — rječnik raste iz videa koje već voliš, a ne iz udžbenika."
+      "eyebrow": "DUPLI TITLOVI · YOUTUBE &amp; NETFLIX",
+      "title": "Vidi <span class=\"hl\">oba jezika</span> odjednom",
+      "sub": "Jezik koji učiš i materinski — zajedno na svakom videu s titlovima, a svaka nova riječ sprema se jednim klikom."
     },
     "slide2": {
-      "eyebrow": "DVA JEZIKA, JEDAN EKRAN",
-      "title": "svaki redak<br>na <span class=\"hl\">oba jezika</span>",
-      "sub": "izvornik i prijevod jedan uz drugi — uhvatiš svaku riječ i skupljaš rječnik bez bubanja."
+      "eyebrow": "DUPLI TITLOVI",
+      "title": "Sve što se izgovori —<br><span class=\"hl\">pred očima</span>",
+      "sub": "Svaki redak ostaje u panelu — izvornik i prijevod zajedno. Pročitaj ponovno bilo kada, bez zaustavljanja videa.",
+      "callout": "Jedan klik sprema riječ"
     },
     "slide3": {
-      "eyebrow": "POSTAVLJANJE TRAJE PET SEKUNDI",
-      "title": "odaberi<br><span class=\"hl\">jezike</span> i kreni",
-      "sub": "reci koji jezik učiš i svoj — ostalo Lingogram odradi na svakom videu."
+      "eyebrow": "AKTIVNO PRISJEĆANJE",
+      "title": "Prvo slušaj,<br><span class=\"hl\">pa provjeri sebe</span>",
+      "sub": "Način pogađanja skriva redak dok ga ne otkriješ — uho treniraš na stvarnom govoru, a ne samo čitanjem.",
+      "callout": "način pogađanja"
     },
     "slide4": {
-      "eyebrow": "IZRAVNO NA VIDEU",
-      "title": "titlovi i<br>na samom <span class=\"hl\">videu</span>",
-      "sub": "dvostruki redovi iskaču preko playera tijekom reprodukcije — čitaj ne skidajući pogled s ekrana."
+      "eyebrow": "I U PUNOM ZASLONU",
+      "title": "Radi na <span class=\"hl\">svakom&nbsp;videu</span> s&nbsp;titlovima",
+      "sub": "Oba se jezika prikazuju izravno na playeru — obični videi, Shorts i puni zaslon. Ništa ne uključuješ dvaput.",
+      "callout": "Radi u punom zaslonu"
     },
     "slide5": {
-      "eyebrow": "KARTICE, ALI NE DOSADNO",
-      "title": "<span class=\"hl\">način pogađanja</span><br>stvarno pali",
-      "sub": "riječi su isprva skrivene — otkrivaj ih jednu po jednu i pretvori obični skrol u pravu vježbu."
+      "eyebrow": "BESPLATNO · BEZ RAČUNA ZA POČETAK",
+      "title": "Postavi jednom,<br>pa samo <span class=\"hl\">pokreni video</span>",
+      "sub": "Odaberi jezik koji učiš i svoj materinski — Lingogram radi na svakom YouTube videu s titlovima."
     }
   },
   "sl": {
     "slide1": {
-      "eyebrow": "UČI SE IZ TEGA, KAR LJUBIŠ",
-      "title": "uči se iz videov,<br><span class=\"hl\">ki jih res obožuješ</span>",
-      "sub": "dvojni podnapisi + en dotik za shranjevanje besed — besedišče raste iz videov, ki jih že obožuješ, ne iz učbenika."
+      "eyebrow": "DVOJNI PODNAPISI · YOUTUBE &amp; NETFLIX",
+      "title": "Vidi <span class=\"hl\">oba jezika</span> hkrati",
+      "sub": "Jezik, ki se ga učiš, in materni — skupaj pri vsakem videu s podnapisi, vsaka nova beseda pa se shrani z enim klikom."
     },
     "slide2": {
-      "eyebrow": "DVA JEZIKA, EN ZASLON",
-      "title": "vsaka vrstica<br>v <span class=\"hl\">obeh jezikih</span>",
-      "sub": "izvirnik in prevod drug ob drugem — ujameš vsako besedo in nabiraš besedišče brez piflanja."
+      "eyebrow": "DVOJNI PODNAPISI",
+      "title": "Vse, kar je izrečeno —<br><span class=\"hl\">pred očmi</span>",
+      "sub": "Vsaka vrstica ostane v podoknu — izvirnik in prevod skupaj. Preberi znova kadar koli, brez ustavljanja videa.",
+      "callout": "En klik shrani besedo"
     },
     "slide3": {
-      "eyebrow": "NASTAVITEV VZAME PET SEKUND",
-      "title": "izberi<br><span class=\"hl\">jezika</span> in zaženi",
-      "sub": "povej, kateri jezik se učiš in svoj materni — ostalo uredi Lingogram pri vsakem videu."
+      "eyebrow": "AKTIVNI PRIKLIC",
+      "title": "Najprej poslušaj,<br><span class=\"hl\">nato se preveri</span>",
+      "sub": "Način ugibanja skrije vrstico, dokler je ne razkriješ — uho uriš na pravem govoru, ne le z branjem.",
+      "callout": "način ugibanja"
     },
     "slide4": {
-      "eyebrow": "NARAVNOST NA VIDEU",
-      "title": "podnapisi tudi<br>na samem <span class=\"hl\">videu</span>",
-      "sub": "dvojne vrstice se med predvajanjem pojavijo čez predvajalnik — beri, ne da bi umaknil pogled z zaslona."
+      "eyebrow": "TUDI V CELOZASLONSKEM NAČINU",
+      "title": "Deluje pri <span class=\"hl\">vsakem&nbsp;videu</span> s&nbsp;podnapisi",
+      "sub": "Oba jezika se izpišeta kar na predvajalniku — običajni videi, Shorts in celozaslonski način. Ničesar ne vklapljaš dvakrat.",
+      "callout": "Deluje v celozaslonskem načinu"
     },
     "slide5": {
-      "eyebrow": "KARTICE, A NI DOLGČAS",
-      "title": "<span class=\"hl\">način ugibanja</span><br>res potegne",
-      "sub": "besede so sprva skrite — razkrivaj jih eno po eno in spremeni običajno drsanje v pravo vajo."
+      "eyebrow": "BREZPLAČNO · BREZ RAČUNA ZA ZAČETEK",
+      "title": "Nastavi enkrat,<br>nato samo <span class=\"hl\">predvajaj</span>",
+      "sub": "Izberi jezik, ki se ga učiš, in maternega — Lingogram deluje pri vsakem videu na YouTubu s podnapisi."
     }
   },
   "uk": {
     "slide1": {
-      "eyebrow": "ВЧИСЬ НА ТОМУ, ЩО ЛЮБИШ",
-      "title": "вчи мову за відео,<br><span class=\"hl\">які реально любиш</span>",
-      "sub": "подвійні субтитри + тап, щоб зберегти слово — словник росте з відео, які ти й так любиш, а не з підручника."
+      "eyebrow": "ПОДВІЙНІ СУБТИТРИ · YOUTUBE &amp; NETFLIX",
+      "title": "Одразу <span class=\"hl\">дві мови</span> на екрані",
+      "sub": "Мова, яку вивчаєте, і рідна — разом на будь-якому відео із субтитрами, а нові слова зберігаються одним кліком."
     },
     "slide2": {
-      "eyebrow": "ДВІ МОВИ, ОДИН ЕКРАН",
-      "title": "кожен рядок —<br>одразу <span class=\"hl\">двома мовами</span>",
-      "sub": "оригінал і переклад поруч — ловиш кожне слово й набираєш словник без зубріння."
+      "eyebrow": "ПОДВІЙНІ СУБТИТРИ",
+      "title": "Уся мова з відео —<br><span class=\"hl\">перед очима</span>",
+      "sub": "Кожна фраза залишається в панелі — з оригіналом і перекладом. Перечитуйте будь-якої миті, не зупиняючи відео.",
+      "callout": "Слово зберігається одним кліком"
     },
     "slide3": {
-      "eyebrow": "НАЛАШТУВАННЯ — СЕКУНД П'ЯТЬ",
-      "title": "обери<br><span class=\"hl\">мови</span> й погнали",
-      "sub": "вкажи мову, яку вчиш, і свою рідну — решту Lingogram зробить на кожному відео."
+      "eyebrow": "АКТИВНЕ ПРИГАДУВАННЯ",
+      "title": "Спершу слухайте,<br><span class=\"hl\">потім перевіряйте себе</span>",
+      "sub": "Режим «Вгадай» ховає репліку, доки ви її не відкриєте: тренуйте розуміння живої мови на слух, а не читання з екрана.",
+      "callout": "режим «Вгадай»"
     },
     "slide4": {
-      "eyebrow": "ПРЯМО НА ВІДЕО",
-      "title": "субтитри й на<br>самому <span class=\"hl\">відео</span>",
-      "sub": "подвійні рядки з'являються поверх плеєра, поки воно грає — читай, не відриваючись від екрана."
+      "eyebrow": "І В ПОВНОЕКРАННОМУ РЕЖИМІ",
+      "title": "Працює на <span class=\"hl\">будь-якому&nbsp;відео</span> із&nbsp;субтитрами",
+      "sub": "Обидва рядки — просто в плеєрі: звичайні відео, Shorts і повний екран. Налаштували раз — працює всюди.",
+      "callout": "Працює в повному екрані"
     },
     "slide5": {
-      "eyebrow": "КАРТКИ, АЛЕ НЕ НУДНО",
-      "title": "<span class=\"hl\">режим вгадай</span><br>реально заходить",
-      "sub": "слова спершу приховані — відкривай по одному, і звичайний скрол перетворюється на справжню практику."
+      "eyebrow": "БЕЗКОШТОВНО · БЕЗ РЕЄСТРАЦІЇ",
+      "title": "Налаштуйте раз —<br>далі просто <span class=\"hl\">дивіться</span>",
+      "sub": "Оберіть мову, яку вивчаєте, і рідну — Lingogram запрацює на будь-якому відео YouTube із субтитрами."
     }
   },
   "bg": {
     "slide1": {
-      "eyebrow": "УЧИ ОТ ТОВА, КОЕТО ОБИЧАШ",
-      "title": "учи от видеата,<br><span class=\"hl\">които наистина обичаш</span>",
-      "sub": "двойни субтитри + едно докосване за запазване на дума — речникът ти расте от видеата, които вече обичаш, а не от учебник."
+      "eyebrow": "ДВОЙНИ СУБТИТРИ · YOUTUBE &amp; NETFLIX",
+      "title": "Виж <span class=\"hl\">двата езика</span> наведнъж",
+      "sub": "Езикът, който учиш, и родният — заедно на всяко видео със субтитри, а всяка нова дума се запазва с един клик."
     },
     "slide2": {
-      "eyebrow": "ДВА ЕЗИКА, ЕДИН ЕКРАН",
-      "title": "всеки ред —<br>на <span class=\"hl\">двата езика</span>",
-      "sub": "оригинал и превод един до друг — хващаш всяка дума и трупаш речник без зубрене."
+      "eyebrow": "ДВОЙНИ СУБТИТРИ",
+      "title": "Всичко изречено —<br><span class=\"hl\">пред очите ти</span>",
+      "sub": "Всяка фраза остава в панела — оригинал и превод заедно. Препрочети я по всяко време, без да спираш видеото.",
+      "callout": "Един клик запазва думата"
     },
     "slide3": {
-      "eyebrow": "НАСТРОЙКАТА Е ЗА ПЕТ СЕКУНДИ",
-      "title": "избери<br><span class=\"hl\">езиците</span> и давай",
-      "sub": "посочи езика, който учиш, и родния си — останалото Lingogram прави на всяко видео."
+      "eyebrow": "АКТИВНО ПРИПОМНЯНЕ",
+      "title": "Първо слушай,<br><span class=\"hl\">после се провери</span>",
+      "sub": "Режимът „Познай“ скрива реда, докато не го разкриеш — тренираш слуха си с истинска реч, а не само с четене.",
+      "callout": "режим „Познай“"
     },
     "slide4": {
-      "eyebrow": "ДИРЕКТНО ВЪРХУ ВИДЕОТО",
-      "title": "субтитри и върху<br>самото <span class=\"hl\">видео</span>",
-      "sub": "двойните редове изскачат върху плеъра, докато върви — чети, без да откъсваш поглед от екрана."
+      "eyebrow": "И НА ЦЯЛ ЕКРАН",
+      "title": "Работи на <span class=\"hl\">всяко&nbsp;видео</span> със&nbsp;субтитри",
+      "sub": "Двата езика се показват директно върху плейъра — обикновени видеа, Shorts и цял екран. Нищо не включваш два пъти.",
+      "callout": "Работи на цял екран"
     },
     "slide5": {
-      "eyebrow": "КАРТИЧКИ, НО НЕ СКУЧНО",
-      "title": "<span class=\"hl\">режим познай</span><br>наистина върви",
-      "sub": "думите са скрити в началото — разкривай ги една по една и превърни обикновения скрол в истинска практика."
+      "eyebrow": "БЕЗПЛАТНО · БЕЗ АКАУНТ ЗА СТАРТ",
+      "title": "Настрой веднъж,<br>после просто <span class=\"hl\">пусни видеото</span>",
+      "sub": "Избери езика, който учиш, и родния си — Lingogram работи на всяко видео в YouTube със субтитри."
     }
   },
   "sr": {
     "slide1": {
-      "eyebrow": "УЧИ ИЗ ОНОГА ШТО ВОЛИШ",
-      "title": "учи из снимака<br><span class=\"hl\">које стварно волиш</span>",
-      "sub": "двоструки титлови + један додир за чување речи — речник расте из снимака које већ волиш, а не из уџбеника."
+      "eyebrow": "ДУПЛИ ТИТЛОВИ · YOUTUBE &amp; NETFLIX",
+      "title": "Види <span class=\"hl\">оба језика</span> одједном",
+      "sub": "Језик који учиш и матерњи — заједно на сваком видеу са титловима, а свака нова реч чува се једним кликом."
     },
     "slide2": {
-      "eyebrow": "ДВА ЈЕЗИКА, ЈЕДАН ЕКРАН",
-      "title": "сваки ред —<br>на <span class=\"hl\">оба језика</span>",
-      "sub": "оригинал и превод један поред другог — ухватиш сваку реч и скупљаш речник без бубања."
+      "eyebrow": "ДУПЛИ ТИТЛОВИ",
+      "title": "Све што се изговори —<br><span class=\"hl\">пред очима</span>",
+      "sub": "Свака реплика остаје у панелу — оригинал и превод заједно. Прочитај поново било кад, без заустављања видеа.",
+      "callout": "Један клик чува реч"
     },
     "slide3": {
-      "eyebrow": "ПОДЕШАВАЊЕ ТРАЈЕ ПЕТ СЕКУНДИ",
-      "title": "изабери<br><span class=\"hl\">језике</span> и крени",
-      "sub": "реци који језик учиш и свој матерњи — остало Lingogram уради на сваком снимку."
+      "eyebrow": "АКТИВНО ПРИСЕЋАЊЕ",
+      "title": "Прво слушај,<br><span class=\"hl\">па провери себе</span>",
+      "sub": "Режим погађања крије ред док га не откријеш — ухо тренираш на правом говору, а не само читањем.",
+      "callout": "режим погађања"
     },
     "slide4": {
-      "eyebrow": "ДИРЕКТНО НА СНИМКУ",
-      "title": "титлови и на<br>самом <span class=\"hl\">снимку</span>",
-      "sub": "двоструки редови искачу преко плејера током гледања — читај не скидајући поглед са екрана."
+      "eyebrow": "И У ПУНОМ ЕКРАНУ",
+      "title": "Ради на <span class=\"hl\">сваком&nbsp;видеу</span> са&nbsp;титловима",
+      "sub": "Оба језика приказују се директно на плејеру — обични снимци, Shorts и пун екран. Ништа не укључујеш двапут.",
+      "callout": "Ради у пуном екрану"
     },
     "slide5": {
-      "eyebrow": "КАРТИЦЕ, АЛИ НИЈЕ ДОСАДНО",
-      "title": "<span class=\"hl\">режим погађања</span><br>стварно пали",
-      "sub": "речи су у почетку скривене — откривај их једну по једну и претвори обично скроловање у праву вежбу."
+      "eyebrow": "БЕСПЛАТНО · БЕЗ НАЛОГА ЗА ПОЧЕТАК",
+      "title": "Подеси једном,<br>па само <span class=\"hl\">пусти видео</span>",
+      "sub": "Изабери језик који учиш и свој матерњи — Lingogram ради на сваком YouTube видеу са титловима."
     }
   },
   "el": {
     "slide1": {
-      "eyebrow": "ΜΑΘΕ ΑΠ' ΟΣΑ ΑΓΑΠΑΣ",
-      "title": "μάθε από τα βίντεο<br><span class=\"hl\">που αγαπάς στ' αλήθεια</span>",
-      "sub": "διπλοί υπότιτλοι + ένα άγγιγμα για να σώζεις λέξεις — το λεξιλόγιο μεγαλώνει από τα βίντεο που ήδη αγαπάς, όχι από βιβλίο."
+      "eyebrow": "ΔΙΠΛΟΙ ΥΠΟΤΙΤΛΟΙ · YOUTUBE &amp; NETFLIX",
+      "title": "Δες <span class=\"hl\">και τις δύο γλώσσες</span> μαζί",
+      "sub": "Η γλώσσα που μαθαίνεις και η δική σου, σε κάθε βίντεο με υπότιτλους — και κάθε νέα λέξη αποθηκεύεται με ένα κλικ."
     },
     "slide2": {
-      "eyebrow": "ΔΥΟ ΓΛΩΣΣΕΣ, ΜΙΑ ΟΘΟΝΗ",
-      "title": "κάθε ατάκα,<br>στις <span class=\"hl\">δύο γλώσσες</span>",
-      "sub": "πρωτότυπο και μετάφραση δίπλα δίπλα — πιάνεις κάθε λέξη και μαζεύεις λεξιλόγιο χωρίς παπαγαλία."
+      "eyebrow": "ΔΙΠΛΟΙ ΥΠΟΤΙΤΛΟΙ",
+      "title": "Όλα όσα λέγονται,<br><span class=\"hl\">μπροστά στα μάτια σου</span>",
+      "sub": "Κάθε ατάκα μένει στο πάνελ — πρωτότυπο και μετάφραση μαζί. Ξαναδιάβασέ την όποτε θες, χωρίς να παύσεις το βίντεο.",
+      "callout": "Ένα κλικ αποθηκεύει τη λέξη"
     },
     "slide3": {
-      "eyebrow": "ΣΤΗΝΕΤΑΙ ΣΕ ΠΕΝΤΕ ΔΕΥΤΕΡΟΛΕΠΤΑ",
-      "title": "διάλεξε τις<br><span class=\"hl\">γλώσσες</span> και πάμε",
-      "sub": "πες του ποια γλώσσα μαθαίνεις και τη δική σου — τα υπόλοιπα τα κάνει το Lingogram σε κάθε βίντεο."
+      "eyebrow": "ΕΝΕΡΓΗ ΑΝΑΚΛΗΣΗ",
+      "title": "Άκου πρώτα,<br><span class=\"hl\">μετά έλεγξε τον εαυτό σου</span>",
+      "sub": "Η λειτουργία Μάντεψε κρύβει κάθε ατάκα μέχρι να την αποκαλύψεις — γυμνάζεις το αυτί σου σε αληθινό λόγο, όχι μόνο στο διάβασμα.",
+      "callout": "λειτουργία Μάντεψε"
     },
     "slide4": {
-      "eyebrow": "ΠΑΝΩ ΣΤΟ ΒΙΝΤΕΟ",
-      "title": "υπότιτλοι και πάνω<br>στο <span class=\"hl\">βίντεο</span>",
-      "sub": "οι διπλές γραμμές πετάγονται πάνω στον player καθώς παίζει — διάβαζε χωρίς να ξεκολλάς το βλέμμα από την οθόνη."
+      "eyebrow": "ΚΑΙ ΣΕ ΠΛΗΡΗ ΟΘΟΝΗ",
+      "title": "Δουλεύει σε <span class=\"hl\">κάθε&nbsp;βίντεο</span> με&nbsp;υπότιτλους",
+      "sub": "Και οι δύο γλώσσες εμφανίζονται πάνω στο player — κανονικά βίντεο, Shorts και πλήρης οθόνη. Τίποτα δεν ανάβεις δύο φορές.",
+      "callout": "Δουλεύει σε πλήρη οθόνη"
     },
     "slide5": {
-      "eyebrow": "ΚΑΡΤΕΛΕΣ, ΑΛΛΑ ΟΧΙ ΒΑΡΕΤΕΣ",
-      "title": "η <span class=\"hl\">λειτουργία μαντεψιάς</span><br>όντως σκίζει",
-      "sub": "οι λέξεις ξεκινούν κρυμμένες — αποκάλυψέ τες μία μία και κάνε το απλό scroll αληθινή εξάσκηση."
+      "eyebrow": "ΔΩΡΕΑΝ · ΧΩΡΙΣ ΛΟΓΑΡΙΑΣΜΟ",
+      "title": "Ρύθμισέ το μία φορά,<br>μετά απλώς <span class=\"hl\">πάτα play</span>",
+      "sub": "Διάλεξε τη γλώσσα που μαθαίνεις και τη δική σου — το Lingogram δουλεύει σε κάθε βίντεο του YouTube με υπότιτλους."
     }
   },
   "tr": {
     "slide1": {
-      "eyebrow": "SEVDİĞİNDEN ÖĞREN",
-      "title": "gerçekten sevdiğin<br><span class=\"hl\">videolarla öğren</span>",
-      "sub": "çift altyazı + kelimeyi kaydetmek için tek dokunuş — kelime dağarcığın zaten sevdiğin videolardan büyür, ders kitabından değil."
+      "eyebrow": "ÇİFT ALTYAZI · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">İki dili</span> aynı anda gör",
+      "sub": "Öğrendiğin dil ve ana dilin, altyazılı her videoda yan yana — yeni kelimeler tek tıkla kaydedilir."
     },
     "slide2": {
-      "eyebrow": "İKİ DİL, TEK EKRAN",
-      "title": "her satır,<br><span class=\"hl\">iki dilde</span> birden",
-      "sub": "orijinali ve çevirisi yan yana — her kelimeyi yakalar, ezber yapmadan kelime dağarcığını büyütürsün."
+      "eyebrow": "ÇİFT ALTYAZI",
+      "title": "Söylenen her şey,<br><span class=\"hl\">gözünün önünde</span>",
+      "sub": "Her replik panelde kalır — orijinal ve çeviri bir arada. Videoyu durdurmadan istediğin an yeniden oku.",
+      "callout": "Tek tıkla kelime kaydı"
     },
     "slide3": {
-      "eyebrow": "KURULUM BEŞ SANİYE SÜRER",
-      "title": "<span class=\"hl\">dilleri</span> seç,<br>başla",
-      "sub": "öğrendiğin dili ve ana dilini söyle — gerisini her videoda Lingogram halleder."
+      "eyebrow": "AKTİF HATIRLAMA DAHİL",
+      "title": "Önce dinle,<br><span class=\"hl\">sonra kendini sına</span>",
+      "sub": "Tahmin modu, sen açana kadar her repliği gizler — kulağını gerçek konuşmayla eğitirsin, sadece okuyarak değil.",
+      "callout": "tahmin modu"
     },
     "slide4": {
-      "eyebrow": "TAM VİDEONUN ÜZERİNDE",
-      "title": "altyazılar<br><span class=\"hl\">video</span> üzerinde de",
-      "sub": "çift satırlar oynatılırken oynatıcının üzerinde belirir — gözünü ekrandan ayırmadan oku."
+      "eyebrow": "TAM EKRAN DAHİL",
+      "title": "<span class=\"hl\">Altyazılı&nbsp;her videoda</span> çalışır",
+      "sub": "İki dil de doğrudan oynatıcıda görünür — normal videolar, Shorts ve tam ekran. Hiçbir şeyi iki kez açman gerekmez.",
+      "callout": "Tam ekranda çalışır"
     },
     "slide5": {
-      "eyebrow": "KART AMA SIKICI DEĞİL",
-      "title": "<span class=\"hl\">tahmin modu</span><br>cidden iyi",
-      "sub": "kelimeler önce gizli gelir — tek dokunuşla birer birer aç ve sıradan kaydırmayı gerçek pratiğe çevir."
+      "eyebrow": "ÜCRETSİZ · HESAPSIZ BAŞLA",
+      "title": "Bir kez ayarla,<br>sonra sadece <span class=\"hl\">oynat'a bas</span>",
+      "sub": "Öğrendiğin dili ve ana dilini seç — Lingogram altyazılı her YouTube videosunda çalışır."
     }
   },
   "ar": {
     "slide1": {
-      "eyebrow": "اتعلّم من اللي بتحبّه",
-      "title": "اتعلّم من الفيديوهات<br><span class=\"hl\">اللي بتحبّها فعلًا</span>",
-      "sub": "ترجمة مزدوجة + لمسة واحدة عشان تحفظ الكلمة — حصيلتك بتكبر من الفيديوهات اللي بتحبّها أصلًا، مش من كتاب."
+      "eyebrow": "ترجمة مزدوجة · YOUTUBE &amp; NETFLIX",
+      "title": "شاهد <span class=\"hl\">اللغتين</span> في وقت واحد",
+      "sub": "اللغة التي تتعلّمها ولغتك الأم معًا على أي فيديو به ترجمة — وكل كلمة جديدة تُحفظ بنقرة واحدة."
     },
     "slide2": {
-      "eyebrow": "لغتين، شاشة وحدة",
-      "title": "كل سطر،<br>في <span class=\"hl\">اللغتين معًا</span>",
-      "sub": "الأصل والترجمة جنب بعض — تلقّط كل كلمة وتكبّر حصيلتك من غير حفظ ولا تلقين."
+      "eyebrow": "ترجمة مزدوجة",
+      "title": "كل ما يُقال —<br><span class=\"hl\">أمام عينيك</span>",
+      "sub": "كل سطر يبقى في اللوحة — النص الأصلي والترجمة معًا. أعد قراءته متى شئت دون إيقاف الفيديو.",
+      "callout": "نقرة واحدة تحفظ الكلمة"
     },
     "slide3": {
-      "eyebrow": "الإعداد بياخد خمس ثوانٍ",
-      "title": "اختر<br><span class=\"hl\">لغتيك</span> ويلا بينا",
-      "sub": "قول اللغة اللي بتتعلّمها ولغتك الأم، والباقي بيعمله Lingogram في كل فيديو."
+      "eyebrow": "استرجاع نشط مدمج",
+      "title": "استمع أولًا،<br><span class=\"hl\">ثم اختبر نفسك</span>",
+      "sub": "وضع التخمين يخفي كل سطر حتى تكشفه — درّب أذنك على الكلام الحقيقي، لا على القراءة فقط.",
+      "callout": "وضع التخمين"
     },
     "slide4": {
-      "eyebrow": "على الفيديو مباشرةً",
-      "title": "ترجمة على<br>الفيديو <span class=\"hl\">كمان</span>",
-      "sub": "السطور المزدوجة بتظهر فوق المشغّل وهو شغّال — اقرأ من غير ما ترفع عينيك عن الشاشة."
+      "eyebrow": "حتى في ملء الشاشة",
+      "title": "يعمل على <span class=\"hl\">أي&nbsp;فيديو</span> به&nbsp;ترجمة",
+      "sub": "تظهر اللغتان مباشرة على المشغّل — الفيديوهات العادية وShorts وملء الشاشة. لا شيء تفعّله مرتين.",
+      "callout": "يعمل بملء الشاشة"
     },
     "slide5": {
-      "eyebrow": "كروت، بس مش مملّة",
-      "title": "<span class=\"hl\">وضع التخمين</span><br>بيكسّر فعلًا",
-      "sub": "الكلمات بتبدأ مخفيّة فتكشفها وحدة وحدة، وتحوّل السكرول العادي لتمرين حقيقي."
+      "eyebrow": "مجاني · بلا حساب للبدء",
+      "title": "اضبطه مرة واحدة،<br>ثم <span class=\"hl\">اضغط تشغيل</span> فقط",
+      "sub": "اختر اللغة التي تتعلّمها ولغتك الأم — يعمل Lingogram على أي فيديو يوتيوب به ترجمة."
     }
   },
   "fa": {
     "slide1": {
-      "eyebrow": "از چیزی که دوست داری یاد بگیر",
-      "title": "از ویدیوهایی یاد بگیر<br><span class=\"hl\">که واقعاً دوستشون داری</span>",
-      "sub": "زیرنویس دوزبانه + یک لمس برای ذخیره‌ی کلمه — دایره‌ی واژگانت از ویدیوهایی که همین الان دوست داری بزرگ می‌شه، نه از کتاب درسی."
+      "eyebrow": "زیرنویس دوزبانه · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">هر دو زبان</span> را همزمان ببینید",
+      "sub": "زبانی که یاد می‌گیرید و زبان مادری‌تان، روی هر ویدیوی زیرنویس‌دار — و هر واژهٔ تازه با یک کلیک ذخیره می‌شود."
     },
     "slide2": {
-      "eyebrow": "دو زبان، یک صفحه",
-      "title": "هر جمله،<br>به <span class=\"hl\">هر دو زبان</span>",
-      "sub": "متن اصلی و ترجمه کنار هم — هر کلمه رو می‌گیری و بدون حفظ کردن دایره واژگانت رو بزرگ می‌کنی."
+      "eyebrow": "زیرنویس دوزبانه",
+      "title": "هر چه گفته می‌شود —<br><span class=\"hl\">جلوی چشم شما</span>",
+      "sub": "هر جمله در پنل می‌ماند — متن اصلی و ترجمه کنار هم. هر وقت خواستید دوباره بخوانید، بی‌آنکه ویدیو را نگه دارید.",
+      "callout": "ذخیرهٔ واژه با یک کلیک"
     },
     "slide3": {
-      "eyebrow": "تنظیمش پنج ثانیه‌ست",
-      "title": "<span class=\"hl\">زبان‌هات</span> رو<br>انتخاب کن و بزن بریم",
-      "sub": "زبانی که یاد می‌گیری و زبان مادری‌ت رو بگو، بقیه‌اش با Lingogram تو هر ویدیو."
+      "eyebrow": "یادآوری فعال",
+      "title": "اول گوش کنید،<br><span class=\"hl\">بعد خودتان را بسنجید</span>",
+      "sub": "حالت حدس هر جمله را پنهان می‌کند تا خودتان آشکارش کنید — گوش‌تان با گفتار واقعی تمرین می‌کند، نه فقط با خواندن.",
+      "callout": "حالت حدس"
     },
     "slide4": {
-      "eyebrow": "درست روی ویدیو",
-      "title": "زیرنویس روی<br><span class=\"hl\">ویدیو</span> هم",
-      "sub": "خط‌های دوزبانه موقع پخش روی پلیر ظاهر می‌شن — بخون بدون اینکه چشم از صفحه برداری."
+      "eyebrow": "حتی در تمام‌صفحه",
+      "title": "روی <span class=\"hl\">هر&nbsp;ویدیوی</span> زیرنویس‌دار کار می‌کند",
+      "sub": "هر دو زبان مستقیم روی پخش‌کننده نمایش داده می‌شوند — ویدیوهای معمولی، Shorts و تمام‌صفحه. لازم نیست چیزی را دوبار روشن کنید.",
+      "callout": "در تمام‌صفحه کار می‌کند"
     },
     "slide5": {
-      "eyebrow": "فلش‌کارت، ولی نه خسته‌کننده",
-      "title": "<span class=\"hl\">حالت حدس</span><br>واقعاً می‌چسبه",
-      "sub": "کلمات اول مخفی‌ان و با هر لمس یکی‌یکی بازشون می‌کنی، تا اسکرول معمولی به تمرین واقعی تبدیل شه."
+      "eyebrow": "رایگان · بدون نیاز به حساب",
+      "title": "یک‌بار تنظیم کنید،<br>بعد فقط <span class=\"hl\">پخش را بزنید</span>",
+      "sub": "زبانی که یاد می‌گیرید و زبان خودتان را انتخاب کنید — Lingogram روی هر ویدیوی زیرنویس‌دار یوتیوب کار می‌کند."
     }
   },
   "he": {
     "slide1": {
-      "eyebrow": "תלמד ממה שאתה אוהב",
-      "title": "תלמד מהסרטונים<br><span class=\"hl\">שאתה באמת אוהב</span>",
-      "sub": "כתוביות כפולות + נגיעה אחת לשמירת מילה — אוצר המילים גדל מהסרטונים שאתה כבר אוהב, לא מספר לימוד."
+      "eyebrow": "כתוביות כפולות · YOUTUBE &amp; NETFLIX",
+      "title": "רואים <span class=\"hl\">את שתי השפות</span> בבת אחת",
+      "sub": "שפת היעד ושפת האם, בכל סרטון עם כתוביות — וכל מילה חדשה נשמרת בקליק אחד."
     },
     "slide2": {
-      "eyebrow": "שתי שפות, מסך אחד",
-      "title": "כל שורה,<br>ב<span class=\"hl\">שתי השפות</span>",
-      "sub": "המקור והתרגום זה לצד זה — תופס כל מילה ואוסף אוצר מילים בלי לדחוס בעל פה."
+      "eyebrow": "כתוביות כפולות",
+      "title": "כל מה שנאמר —<br><span class=\"hl\">מול העיניים</span>",
+      "sub": "כל שורה נשארת בפאנל — מקור ותרגום יחד. אפשר לקרוא שוב בכל רגע, בלי לעצור את הסרטון.",
+      "callout": "קליק אחד שומר מילה"
     },
     "slide3": {
-      "eyebrow": "ההגדרה לוקחת חמש שניות",
-      "title": "תבחר את<br><span class=\"hl\">השפות</span> ויאללה",
-      "sub": "תגיד איזו שפה אתה לומד ואת שלך, ו-Lingogram עושה את השאר בכל סרטון."
+      "eyebrow": "היזכרות פעילה מובנית",
+      "title": "קודם מקשיבים,<br><span class=\"hl\">ואז בודקים את עצמך</span>",
+      "sub": "מצב הניחוש מסתיר כל שורה עד שחושפים אותה — מאמנים את האוזן על דיבור אמיתי, לא רק קוראים.",
+      "callout": "מצב ניחוש"
     },
     "slide4": {
-      "eyebrow": "ישר על הסרטון",
-      "title": "כתוביות גם<br>על <span class=\"hl\">הסרטון</span>",
-      "sub": "השורות הכפולות קופצות מעל הנגן תוך כדי הניגון — קרא בלי להוריד את העיניים מהמסך."
+      "eyebrow": "גם במסך מלא",
+      "title": "עובד בכל <span class=\"hl\">סרטון&nbsp;עם&nbsp;כתוביות</span>",
+      "sub": "שתי השפות מוצגות ישירות על הנגן — סרטונים רגילים, Shorts ומסך מלא. שום דבר לא מפעילים פעמיים.",
+      "callout": "עובד במסך מלא"
     },
     "slide5": {
-      "eyebrow": "כרטיסיות, אבל לא משעמם",
-      "title": "<span class=\"hl\">מצב ניחוש</span><br>ממש קורע",
-      "sub": "המילים מתחילות מוסתרות ואתה חושף אותן אחת-אחת, והופך גלילה רגילה לתרגול אמיתי."
+      "eyebrow": "בחינם · בלי חשבון להתחלה",
+      "title": "מגדירים פעם אחת,<br>ואז פשוט <span class=\"hl\">לוחצים play</span>",
+      "sub": "בוחרים את השפה שלומדים ואת שפת האם — Lingogram עובד בכל סרטון ביוטיוב עם כתוביות."
     }
   },
   "hi": {
     "slide1": {
-      "eyebrow": "जो पसंद है उसी से सीखो",
-      "title": "उन वीडियो से सीखो<br><span class=\"hl\">जो तुम्हें सच में पसंद हैं</span>",
-      "sub": "दोहरे सबटाइटल + शब्द सेव करने के लिए एक टैप — तुम्हारी शब्दावली उन्हीं वीडियो से बढ़ती है जो तुम्हें पहले से पसंद हैं, किसी किताब से नहीं।"
+      "eyebrow": "डुअल सबटाइटल · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">दोनों भाषाएँ</span> एक साथ देखें",
+      "sub": "सबटाइटल वाले किसी भी वीडियो पर आपकी सीखने वाली भाषा और आपकी अपनी, साथ-साथ — और हर नया शब्द एक क्लिक में सेव।"
     },
     "slide2": {
-      "eyebrow": "दो भाषाएँ, एक स्क्रीन",
-      "title": "हर लाइन,<br><span class=\"hl\">दोनों भाषाओं</span> में",
-      "sub": "ओरिजिनल और अनुवाद साथ-साथ — हर शब्द पकड़ो और बिना रटे शब्दभंडार बढ़ाओ।"
+      "eyebrow": "डुअल सबटाइटल",
+      "title": "वीडियो की हर बात,<br><span class=\"hl\">आँखों के सामने</span>",
+      "sub": "हर पंक्ति पैनल में बनी रहती है — मूल और अनुवाद साथ-साथ। जब चाहें दोबारा पढ़ें, वीडियो रोके बिना।",
+      "callout": "एक क्लिक में शब्द सेव"
     },
     "slide3": {
-      "eyebrow": "सेटअप में बस पाँच सेकंड",
-      "title": "अपनी <span class=\"hl\">भाषाएँ</span><br>चुनो और चलो",
-      "sub": "जो भाषा सीख रहे हो और अपनी भाषा बताओ — बाकी हर वीडियो पर Lingogram कर देगा।"
+      "eyebrow": "एक्टिव रिकॉल बिल्ट-इन",
+      "title": "पहले सुनें,<br><span class=\"hl\">फिर खुद जाँचें</span>",
+      "sub": "अनुमान मोड हर पंक्ति तब तक छिपाए रखता है जब तक आप उसे न खोलें — कान असली बोलचाल पर तैयार होता है, सिर्फ़ पढ़ने पर नहीं।",
+      "callout": "अनुमान मोड"
     },
     "slide4": {
-      "eyebrow": "सीधे वीडियो पर",
-      "title": "सबटाइटल<br><span class=\"hl\">वीडियो</span> पर भी",
-      "sub": "वीडियो चलते वक्त प्लेयर के ऊपर दोहरी लाइनें आ जाती हैं — नज़र हटाए बिना साथ पढ़ो।"
+      "eyebrow": "फ़ुलस्क्रीन में भी",
+      "title": "<span class=\"hl\">सबटाइटल&nbsp;वाले</span> हर&nbsp;वीडियो पर चलता है",
+      "sub": "दोनों भाषाएँ सीधे प्लेयर पर दिखती हैं — आम वीडियो, Shorts और फ़ुलस्क्रीन। कुछ भी दोबारा चालू नहीं करना पड़ता।",
+      "callout": "फ़ुलस्क्रीन में चलता है"
     },
     "slide5": {
-      "eyebrow": "फ्लैशकार्ड, पर बोरिंग नहीं",
-      "title": "<span class=\"hl\">गेस मोड</span><br>सच में मज़ेदार है",
-      "sub": "शब्द पहले छिपे रहते हैं, एक-एक टैप से खोलो और आम स्क्रॉल को असली प्रैक्टिस में बदलो।"
+      "eyebrow": "मुफ़्त · बिना अकाउंट शुरू करें",
+      "title": "एक बार सेट करें,<br>फिर बस <span class=\"hl\">प्ले दबाएँ</span>",
+      "sub": "जो भाषा सीख रहे हैं और अपनी भाषा चुनें — Lingogram सबटाइटल वाले हर YouTube वीडियो पर चलता है।"
     }
   },
   "bn": {
     "slide1": {
-      "eyebrow": "যা ভালোবাসো তা থেকেই শেখো",
-      "title": "সেই ভিডিও থেকে শেখো<br><span class=\"hl\">যা সত্যিই ভালোবাসো</span>",
-      "sub": "দ্বৈত সাবটাইটেল + শব্দ সেভ করতে এক ট্যাপ — তোমার শব্দভাণ্ডার বাড়ে সেই ভিডিও থেকে যা তুমি এমনিতেই ভালোবাসো, বই থেকে নয়।"
+      "eyebrow": "ডুয়াল সাবটাইটেল · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">দুই ভাষাই</span> একসঙ্গে দেখুন",
+      "sub": "সাবটাইটেল আছে এমন যেকোনো ভিডিওতে আপনার শেখার ভাষা আর মাতৃভাষা পাশাপাশি — প্রতিটি নতুন শব্দ এক ক্লিকে সেভ।"
     },
     "slide2": {
-      "eyebrow": "দুই ভাষা, এক স্ক্রিন",
-      "title": "প্রতিটি লাইন,<br><span class=\"hl\">দুই ভাষাতেই</span>",
-      "sub": "মূল আর অনুবাদ পাশাপাশি—প্রতিটি শব্দ ধরো আর মুখস্থ ছাড়াই শব্দভাণ্ডার বাড়াও।"
+      "eyebrow": "ডুয়াল সাবটাইটেল",
+      "title": "ভিডিওর সব কথা,<br><span class=\"hl\">চোখের সামনে</span>",
+      "sub": "প্রতিটি লাইন প্যানেলে থেকে যায় — মূল আর অনুবাদ একসঙ্গে। ভিডিও না থামিয়ে যখন খুশি আবার পড়ুন।",
+      "callout": "এক ক্লিকে শব্দ সেভ"
     },
     "slide3": {
-      "eyebrow": "সেটআপে লাগে পাঁচ সেকেন্ড",
-      "title": "তোমার <span class=\"hl\">ভাষা</span><br>বেছে নাও, চলো",
-      "sub": "যে ভাষা শিখছ আর নিজের ভাষা বলো, বাকিটা প্রতিটি ভিডিওতে Lingogram করে দেবে।"
+      "eyebrow": "অ্যাকটিভ রিকল, বিল্ট-ইন",
+      "title": "আগে শুনুন,<br><span class=\"hl\">তারপর নিজেকে যাচাই করুন</span>",
+      "sub": "অনুমান মোড প্রতিটি লাইন লুকিয়ে রাখে যতক্ষণ না আপনি খোলেন — কান তৈরি হয় সত্যিকারের কথায়, শুধু পড়ায় নয়।",
+      "callout": "অনুমান মোড"
     },
     "slide4": {
-      "eyebrow": "সরাসরি ভিডিওতে",
-      "title": "সাবটাইটেল<br><span class=\"hl\">ভিডিওতেও</span>",
-      "sub": "ভিডিও চলার সময় প্লেয়ারের উপরেই দ্বৈত লাইন ভেসে ওঠে—চোখ না সরিয়ে সঙ্গে সঙ্গে পড়ো।"
+      "eyebrow": "ফুলস্ক্রিনেও",
+      "title": "<span class=\"hl\">সাবটাইটেলযুক্ত&nbsp;যেকোনো</span> ভিডিওতে&nbsp;চলে",
+      "sub": "দুই ভাষাই সরাসরি প্লেয়ারে দেখায় — সাধারণ ভিডিও, Shorts আর ফুলস্ক্রিন। কিছুই দুবার চালু করতে হয় না।",
+      "callout": "ফুলস্ক্রিনে চলে"
     },
     "slide5": {
-      "eyebrow": "ফ্ল্যাশকার্ড, কিন্তু বোরিং নয়",
-      "title": "<span class=\"hl\">গেস মোড</span><br>সত্যিই দারুণ",
-      "sub": "শব্দগুলো প্রথমে লুকানো থাকে, এক ট্যাপে একটি করে খোলো আর সাধারণ স্ক্রলকে সত্যিকারের অনুশীলনে বদলে দাও।"
+      "eyebrow": "ফ্রি · অ্যাকাউন্ট ছাড়াই শুরু",
+      "title": "একবার সেট করুন,<br>তারপর শুধু <span class=\"hl\">প্লে চাপুন</span>",
+      "sub": "যে ভাষা শিখছেন আর নিজের ভাষা বেছে নিন — Lingogram সাবটাইটেলযুক্ত প্রতিটি YouTube ভিডিওতে কাজ করে।"
     }
   },
   "gu": {
     "slide1": {
-      "eyebrow": "જે ગમે તેમાંથી શીખો",
-      "title": "એ વિડિયોમાંથી શીખો<br><span class=\"hl\">જે ખરેખર ગમે છે</span>",
-      "sub": "બેવડા સબટાઈટલ + શબ્દ સેવ કરવા એક ટૅપ — તમારી શબ્દભંડોળ એ વિડિયોમાંથી વધે છે જે તમને પહેલેથી ગમે છે, પુસ્તકમાંથી નહીં."
+      "eyebrow": "ડ્યુઅલ સબટાઈટલ · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">બંને ભાષાઓ</span> એકસાથે જુઓ",
+      "sub": "સબટાઈટલવાળા કોઈપણ વીડિયોમાં તમારી શીખવાની ભાષા અને માતૃભાષા સાથે સાથે — દરેક નવો શબ્દ એક ક્લિકમાં સેવ."
     },
     "slide2": {
-      "eyebrow": "બે ભાષા, એક સ્ક્રીન",
-      "title": "દરેક લાઇન,<br><span class=\"hl\">બંને ભાષામાં</span>",
-      "sub": "મૂળ અને અનુવાદ બાજુબાજુમાં — દરેક શબ્દ પકડો અને ગોખ્યા વગર શબ્દભંડોળ વધારો."
+      "eyebrow": "ડ્યુઅલ સબટાઈટલ",
+      "title": "વીડિયોની બધી વાત,<br><span class=\"hl\">નજર સામે</span>",
+      "sub": "દરેક લાઈન પેનલમાં રહે છે — મૂળ અને અનુવાદ સાથે. વીડિયો રોક્યા વગર જ્યારે ઈચ્છો ત્યારે ફરી વાંચો.",
+      "callout": "એક ક્લિકમાં શબ્દ સેવ"
     },
     "slide3": {
-      "eyebrow": "સેટઅપમાં પાંચ સેકન્ડ",
-      "title": "તમારી <br><span class=\"hl\">ભાષાઓ</span> પસંદ કરો",
-      "sub": "જે ભાષા શીખો છો અને તમારી ભાષા કહો — બાકીનું દરેક વિડિયો પર Lingogram સંભાળે છે."
+      "eyebrow": "એક્ટિવ રિકોલ, બિલ્ટ-ઇન",
+      "title": "પહેલાં સાંભળો,<br><span class=\"hl\">પછી જાતે ચકાસો</span>",
+      "sub": "અનુમાન મોડ દરેક પંક્તિ ત્યાં સુધી છુપાવે છે જ્યાં સુધી તમે ન ખોલો — કાન સાચી બોલી પર કેળવાય છે, માત્ર વાંચન પર નહીં.",
+      "callout": "અનુમાન મોડ"
     },
     "slide4": {
-      "eyebrow": "સીધા વિડિયો પર",
-      "title": "સબટાઈટલ <br><span class=\"hl\">વિડિયો</span> પર પણ",
-      "sub": "વિડિયો ચાલે ત્યારે પ્લેયર પર બેવડી લાઇન દેખાય — સ્ક્રીનથી નજર હટાવ્યા વગર સાથે વાંચો."
+      "eyebrow": "ફુલસ્ક્રીનમાં પણ",
+      "title": "<span class=\"hl\">સબટાઈટલવાળા&nbsp;કોઈપણ</span> વીડિયો&nbsp;પર ચાલે છે",
+      "sub": "બંને ભાષાઓ સીધી પ્લેયર પર દેખાય છે — સામાન્ય વીડિયો, Shorts અને ફુલસ્ક્રીન. કંઈ બે વાર ચાલુ કરવાનું નથી.",
+      "callout": "ફુલસ્ક્રીનમાં ચાલે છે"
     },
     "slide5": {
-      "eyebrow": "ફ્લેશકાર્ડ, પણ કંટાળાજનક નહીં",
-      "title": "<span class=\"hl\">ગેસ મોડ</span> <br>ખરેખર મજાનો છે",
-      "sub": "શબ્દો પહેલા છુપાયેલા હોય — એક એક ટેપથી ખોલો અને સામાન્ય સ્ક્રોલને સાચી પ્રેક્ટિસમાં ફેરવો."
+      "eyebrow": "મફત · એકાઉન્ટ વગર શરૂ કરો",
+      "title": "એક વાર સેટ કરો,<br>પછી બસ <span class=\"hl\">પ્લે દબાવો</span>",
+      "sub": "જે ભાષા શીખો છો અને તમારી પોતાની પસંદ કરો — Lingogram સબટાઈટલવાળા દરેક YouTube વીડિયોમાં કામ કરે છે."
     }
   },
   "kn": {
     "slide1": {
-      "eyebrow": "ಇಷ್ಟಪಡುವುದರಿಂದ ಕಲಿ",
-      "title": "ನೀ ಇಷ್ಟಪಡುವ ವಿಡಿಯೋಗಳಿಂದ<br><span class=\"hl\">ನಿಜವಾಗಿ ಕಲಿ</span>",
-      "sub": "ಜೋಡಿ ಸಬ್‌ಟೈಟಲ್ + ಪದ ಉಳಿಸಲು ಒಂದು ಟ್ಯಾಪ್ — ನಿನ್ನ ಶಬ್ದಭಂಡಾರ ನೀ ಈಗಾಗಲೇ ಇಷ್ಟಪಡುವ ವಿಡಿಯೋಗಳಿಂದ ಬೆಳೆಯುತ್ತೆ, ಪುಸ್ತಕದಿಂದಲ್ಲ."
+      "eyebrow": "ಡ್ಯುಯಲ್ ಸಬ್‌ಟೈಟಲ್ · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">ಎರಡೂ ಭಾಷೆಗಳನ್ನು</span> ಒಟ್ಟಿಗೆ ನೋಡಿ",
+      "sub": "ಸಬ್‌ಟೈಟಲ್ ಇರುವ ಯಾವುದೇ ವೀಡಿಯೊದಲ್ಲಿ ನೀವು ಕಲಿಯುವ ಭಾಷೆ ಮತ್ತು ಮಾತೃಭಾಷೆ ಜೊತೆಜೊತೆಗೆ — ಪ್ರತಿ ಹೊಸ ಪದ ಒಂದೇ ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಸೇವ್."
     },
     "slide2": {
-      "eyebrow": "ಎರಡು ಭಾಷೆ, ಒಂದು ಸ್ಕ್ರೀನ್",
-      "title": "ಪ್ರತಿ ಸಾಲೂ,<br><span class=\"hl\">ಎರಡೂ ಭಾಷೆಗಳಲ್ಲಿ</span>",
-      "sub": "ಮೂಲ ಮತ್ತು ಅನುವಾದ ಪಕ್ಕಪಕ್ಕದಲ್ಲಿ — ಪ್ರತಿ ಪದ ಹಿಡಿ ಮತ್ತು ಬಾಯಿಪಾಠ ಇಲ್ಲದೆ ಪದಸಂಪತ್ತು ಬೆಳೆಸು."
+      "eyebrow": "ಡ್ಯುಯಲ್ ಸಬ್‌ಟೈಟಲ್",
+      "title": "ವೀಡಿಯೊದ ಎಲ್ಲ ಮಾತೂ,<br><span class=\"hl\">ಕಣ್ಣೆದುರೇ</span>",
+      "sub": "ಪ್ರತಿ ಸಾಲೂ ಪ್ಯಾನೆಲ್‌ನಲ್ಲಿ ಉಳಿಯುತ್ತದೆ — ಮೂಲ ಮತ್ತು ಅನುವಾದ ಜೊತೆಗೆ. ವೀಡಿಯೊ ನಿಲ್ಲಿಸದೆ ಬೇಕಾದಾಗ ಮತ್ತೆ ಓದಿ.",
+      "callout": "ಒಂದು ಕ್ಲಿಕ್‌ನಲ್ಲಿ ಪದ ಸೇವ್"
     },
     "slide3": {
-      "eyebrow": "ಸೆಟಪ್‌ಗೆ ಐದು ಸೆಕೆಂಡು",
-      "title": "ನಿನ್ನ <br><span class=\"hl\">ಭಾಷೆಗಳನ್ನು</span> ಆಯ್ಕೆ ಮಾಡು",
-      "sub": "ಕಲಿಯುವ ಭಾಷೆ ಮತ್ತು ನಿನ್ನ ಭಾಷೆ ಹೇಳು — ಉಳಿದದ್ದನ್ನು ಪ್ರತಿ ವಿಡಿಯೋದಲ್ಲಿ Lingogram ಮಾಡುತ್ತೆ."
+      "eyebrow": "ಆ್ಯಕ್ಟಿವ್ ರೀಕಾಲ್, ಬಿಲ್ಟ್-ಇನ್",
+      "title": "ಮೊದಲು ಕೇಳಿ,<br><span class=\"hl\">ನಂತರ ನಿಮ್ಮನ್ನೇ ಪರಿಶೀಲಿಸಿ</span>",
+      "sub": "ಊಹೆ ಮೋಡ್ ನೀವು ತೆರೆಯುವವರೆಗೆ ಪ್ರತಿ ಸಾಲನ್ನು ಮರೆಮಾಡುತ್ತದೆ — ಕಿವಿ ನಿಜವಾದ ಮಾತಿನಲ್ಲಿ ಪಳಗುತ್ತದೆ, ಬರೀ ಓದಿನಲ್ಲಿ ಅಲ್ಲ.",
+      "callout": "ಊಹೆ ಮೋಡ್"
     },
     "slide4": {
-      "eyebrow": "ನೇರವಾಗಿ ವಿಡಿಯೋ ಮೇಲೆ",
-      "title": "ಸಬ್‌ಟೈಟಲ್ <br><span class=\"hl\">ವಿಡಿಯೋ</span> ಮೇಲೂ",
-      "sub": "ವಿಡಿಯೋ ಚಲಿಸುವಾಗ ಪ್ಲೇಯರ್ ಮೇಲೆ ಜೋಡಿ ಸಾಲುಗಳು ಕಾಣಿಸುತ್ತವೆ — ಪರದೆಯಿಂದ ನೋಟ ಬಿಡದೆ ಜೊತೆಯಲ್ಲೇ ಓದು."
+      "eyebrow": "ಫುಲ್‌ಸ್ಕ್ರೀನ್‌ನಲ್ಲೂ",
+      "title": "<span class=\"hl\">ಸಬ್‌ಟೈಟಲ್&nbsp;ಇರುವ</span> ಯಾವುದೇ&nbsp;ವೀಡಿಯೊದಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+      "sub": "ಎರಡೂ ಭಾಷೆಗಳು ನೇರವಾಗಿ ಪ್ಲೇಯರ್‌ನಲ್ಲಿ ಕಾಣುತ್ತವೆ — ಸಾಮಾನ್ಯ ವೀಡಿಯೊ, Shorts ಮತ್ತು ಫುಲ್‌ಸ್ಕ್ರೀನ್. ಯಾವುದನ್ನೂ ಎರಡು ಬಾರಿ ಆನ್ ಮಾಡಬೇಕಿಲ್ಲ.",
+      "callout": "ಫುಲ್‌ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ"
     },
     "slide5": {
-      "eyebrow": "ಕಾರ್ಡ್, ಆದರೆ ಬೋರ್ ಅಲ್ಲ",
-      "title": "<span class=\"hl\">ಗೆಸ್ ಮೋಡ್</span> <br>ನಿಜಕ್ಕೂ ಮಜಾ",
-      "sub": "ಪದಗಳು ಮೊದಲು ಮರೆಯಾಗಿರುತ್ತವೆ — ಒಂದೊಂದು ಟ್ಯಾಪ್‌ನಲ್ಲಿ ತೆರೆದು ಸಾಮಾನ್ಯ ಸ್ಕ್ರೋಲ್ ಅನ್ನು ನಿಜವಾದ ಅಭ್ಯಾಸವಾಗಿ ಬದಲಿಸು."
+      "eyebrow": "ಉಚಿತ · ಖಾತೆ ಇಲ್ಲದೆ ಶುರು",
+      "title": "ಒಮ್ಮೆ ಹೊಂದಿಸಿ,<br>ಆಮೇಲೆ ಬರೀ <span class=\"hl\">ಪ್ಲೇ ಒತ್ತಿ</span>",
+      "sub": "ಕಲಿಯುವ ಭಾಷೆ ಮತ್ತು ನಿಮ್ಮ ಭಾಷೆ ಆರಿಸಿ — ಸಬ್‌ಟೈಟಲ್ ಇರುವ ಪ್ರತಿ YouTube ವೀಡಿಯೊದಲ್ಲಿ Lingogram ಕೆಲಸ ಮಾಡುತ್ತದೆ."
     }
   },
   "ml": {
     "slide1": {
-      "eyebrow": "ഇഷ്ടമുള്ളതിൽ നിന്ന് പഠിക്കൂ",
-      "title": "നിനക്ക് ഇഷ്ടമുള്ള വീഡിയോകളിൽ നിന്ന്<br><span class=\"hl\">ശരിക്കും പഠിക്കൂ</span>",
-      "sub": "ഇരട്ട സബ്‌ടൈറ്റിൽ + വാക്ക് സേവ് ചെയ്യാൻ ഒരു ടാപ്പ് — നിന്റെ പദസമ്പത്ത് നീ ഇപ്പോൾ തന്നെ ഇഷ്ടപ്പെടുന്ന വീഡിയോകളിൽ നിന്ന് വളരും, പുസ്തകത്തിൽ നിന്നല്ല."
+      "eyebrow": "ഡ്യുവൽ സബ്‌ടൈറ്റിൽ · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">രണ്ട് ഭാഷകളും</span> ഒരുമിച്ച് കാണൂ",
+      "sub": "സബ്‌ടൈറ്റിലുള്ള ഏത് വീഡിയോയിലും പഠിക്കുന്ന ഭാഷയും മാതൃഭാഷയും ഒരുമിച്ച് — ഓരോ പുതിയ വാക്കും ഒറ്റ ക്ലിക്കിൽ സേവ്."
     },
     "slide2": {
-      "eyebrow": "രണ്ട് ഭാഷ, ഒരു സ്ക്രീൻ",
-      "title": "ഓരോ വരിയും,<br><span class=\"hl\">രണ്ട് ഭാഷയിലും</span>",
-      "sub": "മൂലവും വിവർത്തനവും അരികോടരികായി — ഓരോ വാക്കും പിടിച്ച് കാണാപ്പാഠം ഇല്ലാതെ പദസമ്പത്ത് കൂട്ടൂ."
+      "eyebrow": "ഡ്യുവൽ സബ്‌ടൈറ്റിൽ",
+      "title": "വീഡിയോയിലെ ഓരോ വാക്കും<br><span class=\"hl\">കൺമുന്നിൽ</span>",
+      "sub": "ഓരോ വരിയും പാനലിൽ നിൽക്കും — മൂലവും വിവർത്തനവും ഒരുമിച്ച്. വീഡിയോ നിർത്താതെ എപ്പോൾ വേണമെങ്കിലും വീണ്ടും വായിക്കൂ.",
+      "callout": "ഒറ്റ ക്ലിക്കിൽ വാക്ക് സേവ്"
     },
     "slide3": {
-      "eyebrow": "സെറ്റപ്പിന് അഞ്ച് സെക്കൻഡ്",
-      "title": "നിന്റെ <br><span class=\"hl\">ഭാഷകൾ</span> തിരഞ്ഞെടുക്കൂ",
-      "sub": "പഠിക്കുന്ന ഭാഷയും നിന്റെ ഭാഷയും പറയൂ — ബാക്കിയെല്ലാം ഓരോ വീഡിയോയിലും Lingogram ചെയ്യും."
+      "eyebrow": "ആക്ടീവ് റീകോൾ, ബിൽറ്റ്-ഇൻ",
+      "title": "ആദ്യം കേൾക്കൂ,<br><span class=\"hl\">പിന്നെ സ്വയം പരിശോധിക്കൂ</span>",
+      "sub": "ഊഹ മോഡ് നിങ്ങൾ വെളിപ്പെടുത്തും വരെ ഓരോ വരിയും മറയ്ക്കും — ചെവി പരിശീലിക്കുന്നത് യഥാർത്ഥ സംസാരത്തിലാണ്, വെറും വായനയിലല്ല.",
+      "callout": "ഊഹ മോഡ്"
     },
     "slide4": {
-      "eyebrow": "നേരിട്ട് വീഡിയോയിൽ",
-      "title": "സബ്‌ടൈറ്റിൽ <br><span class=\"hl\">വീഡിയോയിലും</span>",
-      "sub": "വീഡിയോ പ്ലേ ചെയ്യുമ്പോൾ പ്ലെയറിന് മുകളിൽ ഇരട്ട വരികൾ വരും — സ്ക്രീനിൽ നിന്ന് കണ്ണ് മാറ്റാതെ ഒപ്പം വായിക്കൂ."
+      "eyebrow": "ഫുൾസ്ക്രീനിലും",
+      "title": "<span class=\"hl\">സബ്‌ടൈറ്റിലുള്ള&nbsp;ഏത്</span> വീഡിയോയിലും&nbsp;പ്രവർത്തിക്കും",
+      "sub": "രണ്ട് ഭാഷകളും നേരിട്ട് പ്ലെയറിൽ കാണാം — സാധാരണ വീഡിയോകൾ, Shorts, ഫുൾസ്ക്രീൻ. ഒന്നും രണ്ടുതവണ ഓൺ ചെയ്യേണ്ട.",
+      "callout": "ഫുൾസ്ക്രീനിൽ പ്രവർത്തിക്കും"
     },
     "slide5": {
-      "eyebrow": "കാർഡ്, പക്ഷേ ബോറല്ല",
-      "title": "<span class=\"hl\">ഗെസ് മോഡ്</span> <br>ശരിക്കും കിടിലൻ",
-      "sub": "വാക്കുകൾ ആദ്യം മറഞ്ഞിരിക്കും — ഓരോ ടാപ്പിലും തുറന്ന് സാധാരണ സ്ക്രോളിനെ ശരിക്കുള്ള പരിശീലനമാക്കൂ."
+      "eyebrow": "സൗജന്യം · അക്കൗണ്ട് ഇല്ലാതെ തുടങ്ങാം",
+      "title": "ഒരിക്കൽ സെറ്റ് ചെയ്യൂ,<br>പിന്നെ വെറും <span class=\"hl\">പ്ലേ അമർത്തൂ</span>",
+      "sub": "പഠിക്കുന്ന ഭാഷയും സ്വന്തം ഭാഷയും തിരഞ്ഞെടുക്കൂ — സബ്‌ടൈറ്റിലുള്ള ഏത് YouTube വീഡിയോയിലും Lingogram പ്രവർത്തിക്കും."
     }
   },
   "mr": {
     "slide1": {
-      "eyebrow": "जे आवडतं त्यातून शिक",
-      "title": "तुला आवडणाऱ्या व्हिडिओतून<br><span class=\"hl\">खरंच शिक</span>",
-      "sub": "दुहेरी सबटायटल + शब्द सेव्ह करायला एक टॅप — तुझा शब्दसंग्रह तुला आधीच आवडणाऱ्या व्हिडिओतून वाढतो, पुस्तकातून नाही."
+      "eyebrow": "ड्युअल सबटायटल · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">दोन्ही भाषा</span> एकाच वेळी पाहा",
+      "sub": "सबटायटल असलेल्या कोणत्याही व्हिडिओवर तुमची शिकण्याची भाषा आणि मातृभाषा एकत्र — प्रत्येक नवा शब्द एका क्लिकमध्ये सेव्ह."
     },
     "slide2": {
-      "eyebrow": "दोन भाषा, एक स्क्रीन",
-      "title": "प्रत्येक ओळ,<br><span class=\"hl\">दोन्ही भाषांत</span>",
-      "sub": "मूळ आणि भाषांतर शेजारी शेजारी — प्रत्येक शब्द टिप आणि घोकंपट्टीशिवाय शब्दसंग्रह वाढव."
+      "eyebrow": "ड्युअल सबटायटल",
+      "title": "व्हिडिओतील प्रत्येक वाक्य,<br><span class=\"hl\">नजरेसमोर</span>",
+      "sub": "प्रत्येक ओळ पॅनेलमध्ये राहते — मूळ आणि अनुवाद एकत्र. व्हिडिओ न थांबवता कधीही पुन्हा वाचा.",
+      "callout": "एका क्लिकमध्ये शब्द सेव्ह"
     },
     "slide3": {
-      "eyebrow": "सेटअपला पाच सेकंद",
-      "title": "तुझ्या <br><span class=\"hl\">भाषा</span> निवड",
-      "sub": "शिकत असलेली भाषा आणि तुझी भाषा सांग — बाकीचं प्रत्येक व्हिडिओवर Lingogram करतं."
+      "eyebrow": "अ‍ॅक्टिव्ह रिकॉल, बिल्ट-इन",
+      "title": "आधी ऐका,<br><span class=\"hl\">मग स्वतः तपासा</span>",
+      "sub": "अंदाज मोड तुम्ही उघडेपर्यंत प्रत्येक ओळ लपवतो — कान खऱ्या बोलण्यावर तयार होतो, नुसत्या वाचनावर नाही.",
+      "callout": "अंदाज मोड"
     },
     "slide4": {
-      "eyebrow": "थेट व्हिडिओवर",
-      "title": "सबटायटल <br><span class=\"hl\">व्हिडिओवर</span> सुद्धा",
-      "sub": "व्हिडिओ सुरू असताना प्लेयरवर दुहेरी ओळी दिसतात — स्क्रीनवरून नजर न हटवता सोबत वाच."
+      "eyebrow": "फुलस्क्रीनमध्येही",
+      "title": "<span class=\"hl\">सबटायटल&nbsp;असलेल्या</span> प्रत्येक&nbsp;व्हिडिओवर चालतं",
+      "sub": "दोन्ही भाषा थेट प्लेयरवर दिसतात — नेहमीचे व्हिडिओ, Shorts आणि फुलस्क्रीन. काहीही दोनदा चालू करावं लागत नाही.",
+      "callout": "फुलस्क्रीनमध्ये चालतं"
     },
     "slide5": {
-      "eyebrow": "कार्ड, पण कंटाळवाणं नाही",
-      "title": "<span class=\"hl\">गेस मोड</span> <br>खरंच भारी आहे",
-      "sub": "शब्द आधी लपलेले असतात — एकेक टॅपने उघड आणि नेहमीचा स्क्रोल खऱ्या सरावात बदल."
+      "eyebrow": "मोफत · अकाउंटशिवाय सुरुवात",
+      "title": "एकदा सेट करा,<br>मग फक्त <span class=\"hl\">प्ले दाबा</span>",
+      "sub": "शिकत असलेली भाषा आणि तुमची स्वतःची निवडा — Lingogram सबटायटल असलेल्या प्रत्येक YouTube व्हिडिओवर चालतं."
     }
   },
   "ta": {
     "slide1": {
-      "eyebrow": "பிடிச்சதிலிருந்து கத்துக்கோ",
-      "title": "நீ விரும்பும் வீடியோக்களில் இருந்து<br><span class=\"hl\">உண்மையா கத்துக்கோ</span>",
-      "sub": "இரட்டை வசனம் + வார்த்தையை சேமிக்க ஒரு டேப் — உன் சொல்வளம் நீ ஏற்கனவே விரும்பும் வீடியோக்களில் இருந்து வளரும், புத்தகத்தில் இருந்து இல்ல."
+      "eyebrow": "டூயல் சப்டைட்டில் · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">இரு மொழிகளும்</span> ஒரே நேரத்தில்",
+      "sub": "வசனம் உள்ள எந்த வீடியோவிலும் நீங்கள் கற்கும் மொழியும் தாய்மொழியும் சேர்ந்தே — ஒவ்வொரு புதிய சொல்லும் ஒரே கிளிக்கில் சேவ்."
     },
     "slide2": {
-      "eyebrow": "இரு மொழி, ஒரு திரை",
-      "title": "ஒவ்வொரு வரியும்,<br><span class=\"hl\">இரு மொழியிலும்</span>",
-      "sub": "மூலமும் மொழிபெயர்ப்பும் அருகருகே — ஒவ்வொரு சொல்லையும் பிடிச்சு மனப்பாடம் இல்லாம சொல்வளம் வளர்த்துக்கோ."
+      "eyebrow": "டூயல் சப்டைட்டில்",
+      "title": "பேசும் ஒவ்வொரு சொல்லும்<br><span class=\"hl\">கண்முன்னே</span>",
+      "sub": "ஒவ்வொரு வரியும் பேனலில் இருக்கும் — மூலமும் மொழிபெயர்ப்பும் சேர்ந்தே. வீடியோவை நிறுத்தாமல் மீண்டும் படியுங்கள்.",
+      "callout": "ஒரே கிளிக்கில் சொல் சேவ்"
     },
     "slide3": {
-      "eyebrow": "செட்அப் ஐந்து வினாடி",
-      "title": "உன் <br><span class=\"hl\">மொழிகளைத்</span> தேர்வுசெய்",
-      "sub": "கற்கும் மொழியையும் உன் மொழியையும் சொல்லு — மீதியை ஒவ்வொரு வீடியோவிலும் Lingogram பார்த்துக்கும்."
+      "eyebrow": "ஆக்டிவ் ரீகால், உள்ளேயே",
+      "title": "முதலில் கேளுங்கள்,<br><span class=\"hl\">பிறகு சரிபாருங்கள்</span>",
+      "sub": "யூகப் பயன்முறை நீங்கள் காட்டும் வரை ஒவ்வொரு வரியையும் மறைக்கும் — காது பழகுவது உண்மையான பேச்சில், வெறும் வாசிப்பில் அல்ல.",
+      "callout": "யூகப் பயன்முறை"
     },
     "slide4": {
-      "eyebrow": "நேரடியா வீடியோவில்",
-      "title": "வசனம் <br><span class=\"hl\">வீடியோவிலும்</span>",
-      "sub": "வீடியோ ஓடும்போது பிளேயர் மேல இரட்டை வரிகள் தோன்றும் — திரையை விடாம உடன் படி."
+      "eyebrow": "ஃபுல்ஸ்கிரீனிலும்",
+      "title": "<span class=\"hl\">வசனம்&nbsp;உள்ள</span> எந்த&nbsp;வீடியோவிலும் இயங்கும்",
+      "sub": "இரு மொழிகளும் நேரடியாக பிளேயரில் தெரியும் — வழக்கமான வீடியோக்கள், Shorts, ஃபுல்ஸ்கிரீன். எதையும் இருமுறை ஆன் செய்ய வேண்டாம்.",
+      "callout": "ஃபுல்ஸ்கிரீனில் இயங்கும்"
     },
     "slide5": {
-      "eyebrow": "கார்டு, ஆனா போரடிக்காது",
-      "title": "<span class=\"hl\">கெஸ் மோடு</span> <br>ரொம்ப மாஸ்",
-      "sub": "சொற்கள் முதல்ல மறைஞ்சு இருக்கும் — ஒவ்வொரு தட்டலிலும் திறந்து சாதாரண ஸ்க்ரோலை உண்மையான பயிற்சியா மாத்து."
+      "eyebrow": "இலவசம் · கணக்கு இல்லாமல் தொடங்கலாம்",
+      "title": "ஒருமுறை அமையுங்கள்,<br>பிறகு <span class=\"hl\">பிளே அழுத்துங்கள்</span>",
+      "sub": "கற்கும் மொழியையும் தாய்மொழியையும் தேர்ந்தெடுங்கள் — வசனம் உள்ள ஒவ்வொரு YouTube வீடியோவிலும் Lingogram இயங்கும்."
     }
   },
   "te": {
     "slide1": {
-      "eyebrow": "నచ్చిన దాని నుంచే నేర్చుకో",
-      "title": "నీకు నచ్చే వీడియోల నుంచి<br><span class=\"hl\">నిజంగా నేర్చుకో</span>",
-      "sub": "జంట సబ్‌టైటిల్స్ + పదాన్ని సేవ్ చేయడానికి ఒక్క ట్యాప్ — నీ పదజాలం నీకు ఇప్పటికే నచ్చే వీడియోల నుంచి పెరుగుతుంది, పుస్తకం నుంచి కాదు."
+      "eyebrow": "డ్యూయల్ సబ్‌టైటిల్స్ · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">రెండు భాషలనూ</span> ఒకేసారి చూడండి",
+      "sub": "సబ్‌టైటిల్స్ ఉన్న ఏ వీడియోలోనైనా మీరు నేర్చుకునే భాష, మాతృభాష కలిసి — ప్రతి కొత్త పదం ఒక్క క్లిక్‌లో సేవ్."
     },
     "slide2": {
-      "eyebrow": "రెండు భాషలు, ఒక స్క్రీన్",
-      "title": "ప్రతి లైనూ,<br><span class=\"hl\">రెండు భాషల్లో</span>",
-      "sub": "మూలం, అనువాదం పక్కపక్కనే — ప్రతి పదాన్ని పట్టుకుని బట్టీ లేకుండా పదజాలం పెంచుకో."
+      "eyebrow": "డ్యూయల్ సబ్‌టైటిల్స్",
+      "title": "మాట్లాడే ప్రతి మాటా<br><span class=\"hl\">కళ్లముందే</span>",
+      "sub": "ప్రతి పంక్తీ ప్యానెల్‌లో ఉండిపోతుంది — మూలం, అనువాదం కలిసి. వీడియో ఆపకుండా ఎప్పుడైనా మళ్లీ చదవండి.",
+      "callout": "ఒక్క క్లిక్‌లో పదం సేవ్"
     },
     "slide3": {
-      "eyebrow": "సెటప్‌కి ఐదు సెకన్లు",
-      "title": "నీ <br><span class=\"hl\">భాషలను</span> ఎంచుకో",
-      "sub": "నేర్చుకునే భాష, నీ భాష చెప్పు — మిగతాది ప్రతి వీడియోలో Lingogram చేస్తుంది."
+      "eyebrow": "యాక్టివ్ రీకాల్, బిల్ట్-ఇన్",
+      "title": "ముందు వినండి,<br><span class=\"hl\">తర్వాత మిమ్మల్ని పరీక్షించుకోండి</span>",
+      "sub": "ఊహ మోడ్ మీరు తెరిచే వరకు ప్రతి పంక్తిని దాచి ఉంచుతుంది — చెవి నిజమైన మాటలతో సిద్ధమవుతుంది, కేవలం చదవడంతో కాదు.",
+      "callout": "ఊహ మోడ్"
     },
     "slide4": {
-      "eyebrow": "నేరుగా వీడియోపై",
-      "title": "సబ్‌టైటిల్స్ <br><span class=\"hl\">వీడియోపై</span> కూడా",
-      "sub": "వీడియో ఆడుతున్నప్పుడు ప్లేయర్‌పై జంట లైన్లు కనిపిస్తాయి — స్క్రీన్ నుంచి చూపు మరల్చకుండా పాటు చదువు."
+      "eyebrow": "ఫుల్‌స్క్రీన్‌లోనూ",
+      "title": "<span class=\"hl\">సబ్‌టైటిల్స్&nbsp;ఉన్న</span> ఏ&nbsp;వీడియోలోనైనా పనిచేస్తుంది",
+      "sub": "రెండు భాషలూ నేరుగా ప్లేయర్‌పై కనిపిస్తాయి — మామూలు వీడియోలు, Shorts, ఫుల్‌స్క్రీన్. ఏదీ రెండుసార్లు ఆన్ చేయనవసరం లేదు.",
+      "callout": "ఫుల్‌స్క్రీన్‌లో పనిచేస్తుంది"
     },
     "slide5": {
-      "eyebrow": "కార్డులు, కానీ బోర్ కాదు",
-      "title": "<span class=\"hl\">గెస్ మోడ్</span> <br>నిజంగా అదిరిపోతుంది",
-      "sub": "పదాలు ముందు దాగి ఉంటాయి — ఒక్కో ట్యాప్‌తో తెరిచి మామూలు స్క్రోల్‌ను నిజమైన ప్రాక్టీస్‌గా మార్చు."
+      "eyebrow": "ఉచితం · ఖాతా లేకుండా మొదలుపెట్టండి",
+      "title": "ఒకసారి సెట్ చేయండి,<br>తర్వాత <span class=\"hl\">ప్లే నొక్కండి</span>",
+      "sub": "నేర్చుకునే భాషను, మీ భాషను ఎంచుకోండి — సబ్‌టైటిల్స్ ఉన్న ప్రతి YouTube వీడియోలో Lingogram పనిచేస్తుంది."
     }
   },
   "th": {
     "slide1": {
-      "eyebrow": "เรียนจากสิ่งที่รัก",
-      "title": "เรียนจากคลิป<br><span class=\"hl\">ที่เธอรักจริง ๆ</span>",
-      "sub": "ซับสองภาษา + แตะเดียวเซฟคำศัพท์ — คลังคำโตจากคลิปที่เธอชอบอยู่แล้ว ไม่ใช่จากตำรา"
+      "eyebrow": "ซับสองภาษา · YOUTUBE &amp; NETFLIX",
+      "title": "เห็น<span class=\"hl\">สองภาษา</span>พร้อมกัน",
+      "sub": "ภาษาที่คุณเรียนกับภาษาของคุณเอง บนวิดีโอที่มีซับทุกคลิป — คำศัพท์ใหม่บันทึกได้ในคลิกเดียว"
     },
     "slide2": {
-      "eyebrow": "สองภาษา จอเดียว",
-      "title": "ทุกประโยค<br>ครบ<span class=\"hl\">สองภาษา</span>",
-      "sub": "ต้นฉบับกับคำแปลอยู่ข้างกัน เก็บได้ทุกคำ สะสมศัพท์แบบไม่ต้องท่อง"
+      "eyebrow": "ซับสองภาษา",
+      "title": "ทุกคำพูดในวิดีโอ<br><span class=\"hl\">อยู่ตรงหน้าคุณ</span>",
+      "sub": "ทุกบรรทัดยังอยู่ในแผง — ต้นฉบับกับคำแปลคู่กัน อ่านซ้ำได้ทุกเมื่อโดยไม่ต้องหยุดวิดีโอ",
+      "callout": "คลิกเดียวก็บันทึกคำศัพท์"
     },
     "slide3": {
-      "eyebrow": "ตั้งค่าแค่ห้าวินาที",
-      "title": "เลือก<br><span class=\"hl\">ภาษา</span> แล้วลุยเลย",
-      "sub": "บอกภาษาที่กำลังเรียนกับภาษาของเธอ ที่เหลือ Lingogram จัดให้ทุกวิดีโอ"
+      "eyebrow": "ทบทวนเชิงรุกในตัว",
+      "title": "ฟังก่อน<br><span class=\"hl\">แล้วค่อยตรวจคำตอบ</span>",
+      "sub": "โหมดทายจะซ่อนแต่ละบรรทัดไว้จนกว่าคุณจะเปิดดู — ฝึกหูกับเสียงพูดจริง ไม่ใช่แค่อ่านตาม",
+      "callout": "โหมดทาย"
     },
     "slide4": {
-      "eyebrow": "อยู่บนวิดีโอเลย",
-      "title": "ซับขึ้นบน<br><span class=\"hl\">วิดีโอ</span>ด้วย",
-      "sub": "ซับสองภาษาเด้งขึ้นบนตัวเล่นขณะเล่น — อ่านตามได้โดยไม่ละสายตาจากจอ"
+      "eyebrow": "รวมถึงเต็มจอ",
+      "title": "ใช้ได้กับ<span class=\"hl\">ทุกวิดีโอ</span>ที่มี&nbsp;ซับ",
+      "sub": "ทั้งสองภาษาแสดงบนตัวเล่นโดยตรง — วิดีโอทั่วไป Shorts และเต็มจอ ไม่ต้องเปิดอะไรซ้ำ",
+      "callout": "ใช้ได้ในโหมดเต็มจอ"
     },
     "slide5": {
-      "eyebrow": "การ์ดคำ แต่ไม่น่าเบื่อ",
-      "title": "<span class=\"hl\">โหมดเดาคำ</span><br>มันส์จริง",
-      "sub": "คำศัพท์ซ่อนไว้ก่อน — แตะเปิดทีละคำ เปลี่ยนการเลื่อนดูธรรมดาให้เป็นการฝึกจริง"
+      "eyebrow": "ฟรี · เริ่มได้โดยไม่ต้องมีบัญชี",
+      "title": "ตั้งค่าครั้งเดียว<br>จากนั้นแค่<span class=\"hl\">กดเล่น</span>",
+      "sub": "เลือกภาษาที่เรียนกับภาษาของคุณเอง — Lingogram ใช้ได้กับวิดีโอ YouTube ที่มีซับทุกคลิป"
     }
   },
   "vi": {
     "slide1": {
-      "eyebrow": "HỌC TỪ THỨ BẠN MÊ",
-      "title": "học từ những video<br><span class=\"hl\">bạn thật sự mê</span>",
-      "sub": "phụ đề song ngữ + một chạm để lưu từ — vốn từ lớn lên từ những video bạn vốn đã mê, chứ không phải từ sách giáo khoa."
+      "eyebrow": "PHỤ ĐỀ SONG NGỮ · YOUTUBE &amp; NETFLIX",
+      "title": "Thấy <span class=\"hl\">cả hai ngôn ngữ</span> cùng lúc",
+      "sub": "Ngôn ngữ bạn học và tiếng mẹ đẻ cùng hiện trên mọi video có phụ đề — từ mới lưu lại chỉ bằng một cú nhấp."
     },
     "slide2": {
-      "eyebrow": "HAI NGÔN NGỮ, MỘT MÀN HÌNH",
-      "title": "mỗi câu thoại,<br>trong <span class=\"hl\">cả hai ngôn ngữ</span>",
-      "sub": "bản gốc và bản dịch cạnh nhau — bắt trọn từng chữ và tích từ vựng mà chẳng cần học vẹt."
+      "eyebrow": "PHỤ ĐỀ SONG NGỮ",
+      "title": "Mọi lời thoại,<br><span class=\"hl\">ngay trước mắt bạn</span>",
+      "sub": "Từng câu thoại vẫn nằm trong bảng — bản gốc và bản dịch cùng nhau. Đọc lại bất cứ lúc nào, không cần dừng video.",
+      "callout": "Một cú nhấp để lưu từ"
     },
     "slide3": {
-      "eyebrow": "CÀI XONG TRONG NĂM GIÂY",
-      "title": "chọn<br><span class=\"hl\">ngôn ngữ</span> rồi quẩy",
-      "sub": "nói cho nó biết ngôn ngữ bạn đang học và tiếng của bạn — phần còn lại Lingogram lo trên mọi video."
+      "eyebrow": "GỢI NHỚ CHỦ ĐỘNG",
+      "title": "Nghe trước,<br><span class=\"hl\">rồi tự kiểm tra</span>",
+      "sub": "Chế độ Đoán ẩn từng câu thoại cho đến khi bạn mở ra — luyện tai bằng lời nói thật, thay vì chỉ đọc theo.",
+      "callout": "chế độ Đoán"
     },
     "slide4": {
-      "eyebrow": "NGAY TRÊN VIDEO",
-      "title": "phụ đề ngay<br>trên <span class=\"hl\">video</span>",
-      "sub": "hai dòng phụ đề hiện trên trình phát khi video chạy — đọc theo mà không rời mắt khỏi màn hình."
+      "eyebrow": "GỒM CẢ TOÀN MÀN HÌNH",
+      "title": "Chạy trên <span class=\"hl\">mọi&nbsp;video</span> có&nbsp;phụ đề",
+      "sub": "Cả hai ngôn ngữ hiện ngay trên trình phát — video thường, Shorts và toàn màn hình. Không phải bật lại thứ gì lần hai.",
+      "callout": "Chạy ở chế độ toàn màn hình"
     },
     "slide5": {
-      "eyebrow": "THẺ TỪ NHƯNG KHÔNG CHÁN",
-      "title": "<span class=\"hl\">chế độ đoán từ</span><br>cuốn thật sự",
-      "sub": "từ vựng ẩn đi lúc đầu — chạm mở từng từ một và biến việc lướt như mọi khi thành luyện tập thật."
+      "eyebrow": "MIỄN PHÍ · KHÔNG CẦN TÀI KHOẢN",
+      "title": "Cài một lần,<br>rồi cứ thế <span class=\"hl\">bấm phát</span>",
+      "sub": "Chọn ngôn ngữ bạn học và tiếng của bạn — Lingogram chạy trên mọi video YouTube có phụ đề."
     }
   },
   "id": {
     "slide1": {
-      "eyebrow": "BELAJAR DARI YANG KAMU SUKA",
-      "title": "belajar dari video<br><span class=\"hl\">yang kamu suka banget</span>",
-      "sub": "subtitle dwibahasa + satu ketuk buat simpan kata — kosakata tumbuh dari video yang emang kamu suka, bukan dari buku pelajaran."
+      "eyebrow": "SUBTITLE DUA BAHASA · YOUTUBE &amp; NETFLIX",
+      "title": "Lihat <span class=\"hl\">dua bahasa</span> sekaligus",
+      "sub": "Bahasa yang kamu pelajari dan bahasamu sendiri, di setiap video bersubtitle — kata baru tersimpan dengan sekali klik."
     },
     "slide2": {
-      "eyebrow": "DUA BAHASA, SATU LAYAR",
-      "title": "setiap baris,<br>dalam <span class=\"hl\">dua bahasa</span>",
-      "sub": "teks asli dan terjemahan berdampingan — tangkap tiap kata dan tambah kosakata tanpa ngapalin."
+      "eyebrow": "SUBTITLE DUA BAHASA",
+      "title": "Semua yang diucapkan,<br><span class=\"hl\">di depan matamu</span>",
+      "sub": "Tiap baris tetap ada di panel — teks asli dan terjemahan bersama. Baca ulang kapan saja tanpa menjeda video.",
+      "callout": "Sekali klik, kata tersimpan"
     },
     "slide3": {
-      "eyebrow": "SETUP CUMA LIMA DETIK",
-      "title": "pilih<br><span class=\"hl\">bahasamu</span>, gas",
-      "sub": "kasih tau bahasa yang kamu pelajari dan bahasamu, sisanya Lingogram yang urus di tiap video."
+      "eyebrow": "ACTIVE RECALL BAWAAN",
+      "title": "Dengar dulu,<br><span class=\"hl\">baru periksa sendiri</span>",
+      "sub": "Mode Tebak menyembunyikan tiap baris sampai kamu buka — telinga terlatih dengan ucapan asli, bukan cuma membaca.",
+      "callout": "mode Tebak"
     },
     "slide4": {
-      "eyebrow": "LANGSUNG DI VIDEO",
-      "title": "subtitle juga<br>di <span class=\"hl\">video</span>",
-      "sub": "dua baris muncul di atas pemutar pas video jalan — baca tanpa lepasin pandangan dari layar."
+      "eyebrow": "TERMASUK LAYAR PENUH",
+      "title": "Jalan di <span class=\"hl\">video&nbsp;apa pun</span> yang&nbsp;bersubtitle",
+      "sub": "Dua bahasa tampil langsung di pemutar — video biasa, Shorts, dan layar penuh. Tak ada yang perlu dinyalakan dua kali.",
+      "callout": "Jalan di layar penuh"
     },
     "slide5": {
-      "eyebrow": "KARTU, TAPI NGGAK NGEBOSENIN",
-      "title": "<span class=\"hl\">mode tebak</span><br>beneran seru",
-      "sub": "kata-kata ketutup dulu di awal — buka satu-satu sekali ketuk dan ubah scroll biasa jadi latihan beneran."
+      "eyebrow": "GRATIS · TANPA AKUN UNTUK MULAI",
+      "title": "Atur sekali,<br>lalu tinggal <span class=\"hl\">tekan play</span>",
+      "sub": "Pilih bahasa yang kamu pelajari dan bahasamu — Lingogram jalan di setiap video YouTube bersubtitle."
     }
   },
   "ms": {
     "slide1": {
-      "eyebrow": "BELAJAR DARI YANG KAU MINAT",
-      "title": "belajar dari video<br><span class=\"hl\">yang kau betul-betul minat</span>",
-      "sub": "sari kata dwibahasa + satu ketik untuk simpan perkataan — perbendaharaan kata membesar dari video yang kau memang minat, bukan dari buku teks."
+      "eyebrow": "SARI KATA DWIBAHASA · YOUTUBE &amp; NETFLIX",
+      "title": "Lihat <span class=\"hl\">dua bahasa</span> serentak",
+      "sub": "Bahasa yang anda pelajari dan bahasa ibunda, pada mana-mana video bersari kata — setiap perkataan baharu disimpan dengan satu klik."
     },
     "slide2": {
-      "eyebrow": "DUA BAHASA, SATU SKRIN",
-      "title": "setiap baris,<br>dalam <span class=\"hl\">dua bahasa</span>",
-      "sub": "teks asal dan terjemahan bersebelahan — tangkap setiap perkataan dan tambah kosa kata tanpa menghafal."
+      "eyebrow": "SARI KATA DWIBAHASA",
+      "title": "Semua yang dituturkan,<br><span class=\"hl\">di depan mata anda</span>",
+      "sub": "Setiap baris kekal dalam panel — teks asal dan terjemahan bersama. Baca semula bila-bila masa tanpa menjeda video.",
+      "callout": "Satu klik simpan perkataan"
     },
     "slide3": {
-      "eyebrow": "SETUP LIMA SAAT JE",
-      "title": "pilih<br><span class=\"hl\">bahasa</span> kau, jom",
-      "sub": "bagitahu bahasa yang kau belajar dan bahasa kau, selebihnya Lingogram uruskan pada setiap video."
+      "eyebrow": "INGAT KEMBALI AKTIF",
+      "title": "Dengar dahulu,<br><span class=\"hl\">kemudian semak sendiri</span>",
+      "sub": "Mod Teka menyembunyikan setiap baris sehingga anda dedahkan — telinga terlatih dengan pertuturan sebenar, bukan sekadar membaca.",
+      "callout": "mod Teka"
     },
     "slide4": {
-      "eyebrow": "TERUS PADA VIDEO",
-      "title": "sari kata juga<br>pada <span class=\"hl\">video</span>",
-      "sub": "dua baris muncul atas pemain masa video main — baca tanpa alih pandangan dari skrin."
+      "eyebrow": "TERMASUK SKRIN PENUH",
+      "title": "Berfungsi pada <span class=\"hl\">mana-mana&nbsp;video</span> bersari&nbsp;kata",
+      "sub": "Kedua-dua bahasa dipaparkan terus pada pemain — video biasa, Shorts dan skrin penuh. Tiada apa yang perlu dihidupkan dua kali.",
+      "callout": "Berfungsi dalam skrin penuh"
     },
     "slide5": {
-      "eyebrow": "KAD, TAPI TAK BOSAN",
-      "title": "<span class=\"hl\">mod teka</span><br>memang best",
-      "sub": "perkataan tersembunyi dulu pada mulanya — dedah satu demi satu dengan satu ketik dan ubah scroll biasa jadi latihan betul."
+      "eyebrow": "PERCUMA · TANPA AKAUN UNTUK MULA",
+      "title": "Tetapkan sekali,<br>kemudian <span class=\"hl\">tekan main</span> sahaja",
+      "sub": "Pilih bahasa yang anda pelajari dan bahasa anda — Lingogram berfungsi pada setiap video YouTube bersari kata."
     }
   },
   "fil": {
     "slide1": {
-      "eyebrow": "MATUTO SA GUSTO MO",
-      "title": "matuto sa mga video<br><span class=\"hl\">na talagang gusto mo</span>",
-      "sub": "dobleng subtitle + isang tap para i-save ang salita — lumalago ang vocab mo mula sa mga video na gusto mo na, hindi mula sa libro."
+      "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+      "title": "Tingnan ang <span class=\"hl\">dalawang wika</span> nang sabay",
+      "sub": "Ang wikang inaaral mo at ang sarili mong wika, sa kahit anong video na may subtitle — at bawat bagong salita, na-se-save sa isang click."
     },
     "slide2": {
-      "eyebrow": "DALAWANG WIKA, ISANG SCREEN",
-      "title": "bawat linya,<br>sa <span class=\"hl\">dalawang wika</span>",
-      "sub": "magkatabi ang orihinal at salin — masasalo mo ang bawat salita at dadami ang bokabularyo nang walang memorize."
+      "eyebrow": "DUAL SUBTITLES",
+      "title": "Lahat ng sinasabi,<br><span class=\"hl\">nasa harap mo</span>",
+      "sub": "Bawat linya ay nananatili sa panel — magkasama ang orihinal at ang salin. Basahin muli anumang oras, nang hindi nagpa-pause.",
+      "callout": "Isang click, save na ang salita"
     },
     "slide3": {
-      "eyebrow": "LIMANG SEGUNDO LANG ANG SETUP",
-      "title": "piliin ang<br><span class=\"hl\">mga wika</span>, tara",
-      "sub": "sabihin ang wikang inaaral mo at ang sariling wika mo, bahala na ang Lingogram sa bawat video."
+      "eyebrow": "ACTIVE RECALL, KASAMA NA",
+      "title": "Makinig muna,<br><span class=\"hl\">saka mo tingnan</span>",
+      "sub": "Itinatago ng Hulaan mode ang bawat linya hanggang buksan mo — nasasanay ang tainga sa totoong pananalita, hindi puro basa.",
+      "callout": "Hulaan mode"
     },
     "slide4": {
-      "eyebrow": "MISMO SA VIDEO",
-      "title": "may subtitle din<br>sa <span class=\"hl\">video</span>",
-      "sub": "lumalabas ang dobleng linya sa player habang tumatakbo — basahin nang hindi inaalis ang tingin sa screen."
+      "eyebrow": "KASAMA ANG FULLSCREEN",
+      "title": "Gumagana sa <span class=\"hl\">kahit&nbsp;anong video</span> na&nbsp;may subtitle",
+      "sub": "Lumalabas ang dalawang wika mismo sa player — karaniwang video, Shorts at fullscreen. Walang kailangang buksan nang dalawang beses.",
+      "callout": "Gumagana sa fullscreen"
     },
     "slide5": {
-      "eyebrow": "CARDS PERO HINDI NAKAKABORE",
-      "title": "<span class=\"hl\">guess mode</span><br>solid talaga",
-      "sub": "nakatago muna ang mga salita — buksan isa-isa sa bawat tap at gawing tunay na practice ang dating scroll lang."
+      "eyebrow": "LIBRE · WALANG ACCOUNT SA SIMULA",
+      "title": "Isang beses lang i-set,<br>tapos <span class=\"hl\">pindutin ang play</span>",
+      "sub": "Piliin ang wikang inaaral mo at ang sarili mo — gumagana ang Lingogram sa bawat YouTube video na may subtitle."
     }
   },
   "sw": {
     "slide1": {
-      "eyebrow": "JIFUNZE KUTOKA UNACHOPENDA",
-      "title": "jifunze kutoka video<br><span class=\"hl\">unazozipenda kweli</span>",
-      "sub": "manukuu ya lugha mbili + gusa mara moja kuhifadhi neno — msamiati wako unakua kutoka video unazozipenda tayari, si kutoka kitabu."
+      "eyebrow": "MANUKUU MAWILI · YOUTUBE &amp; NETFLIX",
+      "title": "Ona <span class=\"hl\">lugha zote mbili</span> kwa pamoja",
+      "sub": "Lugha unayojifunza na lugha yako, pamoja kwenye video yoyote yenye manukuu — kila neno jipya huhifadhiwa kwa kubofya mara moja."
     },
     "slide2": {
-      "eyebrow": "LUGHA MBILI, SKRINI MOJA",
-      "title": "kila mstari,<br>katika <span class=\"hl\">lugha zote mbili</span>",
-      "sub": "maandishi halisi na tafsiri bega kwa bega — nasa kila neno na ongeza msamiati bila kukariri."
+      "eyebrow": "MANUKUU MAWILI",
+      "title": "Kila kinachosemwa,<br><span class=\"hl\">mbele ya macho yako</span>",
+      "sub": "Kila mstari hubaki kwenye paneli — asili na tafsiri pamoja. Soma tena wakati wowote bila kusimamisha video.",
+      "callout": "Bofya mara moja kuhifadhi neno"
     },
     "slide3": {
-      "eyebrow": "USANIDI WA SEKUNDE TANO",
-      "title": "chagua<br><span class=\"hl\">lugha</span>, anza",
-      "sub": "sema lugha unayojifunza na yako mwenyewe, mengine Lingogram inashughulikia kwa kila video."
+      "eyebrow": "UKUMBUSHO AMILIFU",
+      "title": "Sikiliza kwanza,<br><span class=\"hl\">kisha jipime mwenyewe</span>",
+      "sub": "Hali ya kukisia huficha kila mstari hadi uufunue — sikio lako linazoea mazungumzo halisi, si kusoma tu.",
+      "callout": "hali ya kukisia"
     },
     "slide4": {
-      "eyebrow": "MOJA KWA MOJA KWENYE VIDEO",
-      "title": "manukuu pia<br>kwenye <span class=\"hl\">video</span>",
-      "sub": "mistari miwili huibuka juu ya kicheza video kinapocheza — soma bila kuondoa macho kwenye skrini."
+      "eyebrow": "HATA KWENYE SKRINI NZIMA",
+      "title": "Hufanya kazi kwenye <span class=\"hl\">video&nbsp;yoyote</span> yenye&nbsp;manukuu",
+      "sub": "Lugha zote mbili huonekana moja kwa moja kwenye kichezaji — video za kawaida, Shorts na skrini nzima. Hakuna cha kuwasha mara mbili.",
+      "callout": "Hufanya kazi kwa skrini nzima"
     },
     "slide5": {
-      "eyebrow": "KADI, LAKINI SI MELANISI",
-      "title": "<span class=\"hl\">hali ya kubahatisha</span><br>inavutia kweli",
-      "sub": "maneno yamefichwa mwanzoni — fichua moja baada ya jingine na geuza kuteleza kwa kawaida kuwa mazoezi halisi."
+      "eyebrow": "BILA MALIPO · HAKUNA AKAUNTI",
+      "title": "Sanidi mara moja,<br>kisha <span class=\"hl\">bonyeza cheza</span>",
+      "sub": "Chagua lugha unayojifunza na yako mwenyewe — Lingogram hufanya kazi kwenye kila video ya YouTube yenye manukuu."
     }
   },
   "ja": {
     "slide1": {
-      "eyebrow": "好きなものから学ぶ",
-      "title": "好きな動画から<br><span class=\"hl\">そのまま学ぶ</span>",
-      "sub": "2言語字幕＋ワンタップで単語保存。語彙は、もともと好きな動画から増える。教科書じゃない。"
+      "eyebrow": "二か国語字幕 · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">2つの言語</span>を同時に表示",
+      "sub": "字幕付きの動画なら、学習中の言語と母語を並べて表示。新しい単語はワンクリックで保存できます。"
     },
     "slide2": {
-      "eyebrow": "2言語、1画面",
-      "title": "どのセリフも<br><span class=\"hl\">2言語で</span>",
-      "sub": "原文と訳が並ぶから、一語も逃さず暗記なしで語彙が増えてく。"
+      "eyebrow": "二か国語字幕",
+      "title": "話された言葉は、<br><span class=\"hl\">すべて目の前に</span>",
+      "sub": "セリフはパネルに残ります。原文と訳文が並んだまま、動画を止めずにいつでも読み返せます。",
+      "callout": "ワンクリックで単語を保存"
     },
     "slide3": {
-      "eyebrow": "設定は5秒",
-      "title": "<span class=\"hl\">言語</span>を選んで<br>はい開始",
-      "sub": "学習中の言語と自分の言語を選ぶだけ。あとは動画ごとにLingogramがやってくれる。"
+      "eyebrow": "アクティブリコール内蔵",
+      "title": "まず聞いて、<br><span class=\"hl\">それから答え合わせ</span>",
+      "sub": "推測モードは表示するまで各行を隠します。読むだけでなく、本物の音声で耳を鍛えられます。",
+      "callout": "推測モード"
     },
     "slide4": {
-      "eyebrow": "動画の上にも",
-      "title": "字幕は<br><span class=\"hl\">動画の上</span>にも",
-      "sub": "再生中の画面に2言語の字幕が重なるから、目を離さず読める。"
+      "eyebrow": "全画面にも対応",
+      "title": "<span class=\"hl\">字幕付きの動画</span>ならどれでも",
+      "sub": "2つの言語がプレーヤー上に直接表示されます。通常の動画もShortsも全画面も同じ。二度切り替える必要はありません。",
+      "callout": "全画面でも動作"
     },
     "slide5": {
-      "eyebrow": "単語カード、でも退屈じゃない",
-      "title": "<span class=\"hl\">推測モード</span>が<br>マジで楽しい",
-      "sub": "最初は単語が隠れてて、タップで一つずつ表示。いつものスクロールが本物の練習に変わる。"
+      "eyebrow": "無料 · アカウント登録不要",
+      "title": "最初に一度設定、<br>あとは<span class=\"hl\">再生するだけ</span>",
+      "sub": "学習中の言語と母語を選ぶだけ。Lingogramは字幕付きのYouTube動画すべてで動作します。"
     }
   },
   "ko": {
     "slide1": {
-      "eyebrow": "좋아하는 걸로 배우기",
-      "title": "네가 진짜 좋아하는<br><span class=\"hl\">영상으로 배워</span>",
-      "sub": "이중 자막 + 한 번 탭으로 단어 저장 — 어휘는 네가 원래 좋아하던 영상에서 늘어나, 교과서가 아니라."
+      "eyebrow": "이중자막 · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">두 언어</span>를 한 번에 보기",
+      "sub": "자막이 있는 모든 영상에서 배우는 언어와 모국어를 나란히 — 새 단어는 클릭 한 번으로 저장됩니다."
     },
     "slide2": {
-      "eyebrow": "두 언어, 한 화면",
-      "title": "모든 대사를<br><span class=\"hl\">두 언어로</span>",
-      "sub": "원문이랑 번역이 나란히 떠서 한 단어도 안 놓치고 외우지 않아도 어휘가 쌓여요."
+      "eyebrow": "이중자막",
+      "title": "영상 속 모든 말이<br><span class=\"hl\">눈앞에 그대로</span>",
+      "sub": "모든 대사가 패널에 남습니다 — 원문과 번역이 함께. 영상을 멈추지 않고 언제든 다시 읽어보세요.",
+      "callout": "클릭 한 번으로 단어 저장"
     },
     "slide3": {
-      "eyebrow": "설정 5초면 끝",
-      "title": "<span class=\"hl\">언어</span> 고르고<br>바로 고고",
-      "sub": "배우는 언어랑 네 언어만 고르면 여는 영상마다 Lingogram이 알아서 다 해줘요."
+      "eyebrow": "액티브 리콜 기본 제공",
+      "title": "먼저 듣고,<br><span class=\"hl\">그다음 확인하세요</span>",
+      "sub": "추측 모드는 직접 열기 전까지 각 줄을 가립니다 — 눈으로만 읽지 않고 실제 발화로 귀를 훈련하세요.",
+      "callout": "추측 모드"
     },
     "slide4": {
-      "eyebrow": "영상 위에도",
-      "title": "자막을<br><span class=\"hl\">영상 위</span>에도",
-      "sub": "재생되는 화면에 두 언어 자막이 같이 떠서 화면에서 눈 안 떼고 읽을 수 있어요."
+      "eyebrow": "전체 화면 포함",
+      "title": "<span class=\"hl\">자막 있는 영상</span>이면 어디서나",
+      "sub": "두 언어가 플레이어 위에 바로 표시됩니다 — 일반 영상, Shorts, 전체 화면 모두. 두 번 켤 필요가 없습니다.",
+      "callout": "전체 화면에서도 작동"
     },
     "slide5": {
-      "eyebrow": "단어 카드, 근데 안 지루함",
-      "title": "<span class=\"hl\">추측 모드</span><br>진짜 꿀잼",
-      "sub": "단어가 가려진 채로 시작해서 한 번에 하나씩 탭으로 열며 평소 스크롤을 진짜 연습으로 바꿔요."
+      "eyebrow": "무료 · 계정 없이 시작",
+      "title": "한 번만 설정하고,<br>그다음엔 <span class=\"hl\">재생만</span>",
+      "sub": "배우는 언어와 모국어를 고르세요 — Lingogram은 자막이 있는 모든 YouTube 영상에서 작동합니다."
     }
   },
   "zh_CN": {
     "slide1": {
-      "eyebrow": "看你爱的，学语言",
-      "title": "用你真正喜欢的视频<br><span class=\"hl\">学语言</span>",
-      "sub": "双语字幕 + 一键存生词 —— 你的词汇来自你本来就爱看的视频，而不是课本。"
+      "eyebrow": "双语字幕 · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">两种语言</span>同时呈现",
+      "sub": "任何带字幕的视频，都能同时显示你在学的语言和母语——生词一键保存。"
     },
     "slide2": {
-      "eyebrow": "两种语言，一块屏幕",
-      "title": "每一句<br>都有<span class=\"hl\">双语对照</span>",
-      "sub": "原文和译文并排，每个词都接得住，不用死记硬背也能攒词汇。"
+      "eyebrow": "双语字幕",
+      "title": "视频里说的每句话，<br><span class=\"hl\">都在眼前</span>",
+      "sub": "每一句都留在面板里——原文与译文并排。随时回看，不用暂停视频。",
+      "callout": "一键保存生词"
     },
     "slide3": {
-      "eyebrow": "五秒就设置好",
-      "title": "选好<br><span class=\"hl\">语言</span>就开冲",
-      "sub": "告诉它你在学哪种语言和你的母语，剩下的每个视频都交给 Lingogram。"
+      "eyebrow": "内置主动回忆",
+      "title": "先听，<br><span class=\"hl\">再自我检验</span>",
+      "sub": "猜词模式会先藏起每一句，等你自己揭晓——用真实语音练听力，而不只是跟着读。",
+      "callout": "猜词模式"
     },
     "slide4": {
-      "eyebrow": "就在视频上",
-      "title": "字幕也显示在<br><span class=\"hl\">视频上</span>",
-      "sub": "双语字幕随播放叠在画面上，眼睛不离屏也能轻松跟读。"
+      "eyebrow": "全屏同样支持",
+      "title": "适用于<span class=\"hl\">任何带字幕</span>的视频",
+      "sub": "两种语言直接显示在播放器上——普通视频、Shorts 和全屏都一样。无需重复开启。",
+      "callout": "全屏下同样可用"
     },
     "slide5": {
-      "eyebrow": "背单词，但不无聊",
-      "title": "<span class=\"hl\">猜词模式</span><br>是真的上头",
-      "sub": "单词一开始藏着，一个个点开，把平时的刷屏变成真正的练习。"
+      "eyebrow": "免费 · 无需注册即可开始",
+      "title": "设置一次，<br>之后只需<span class=\"hl\">点击播放</span>",
+      "sub": "选择你在学的语言和母语——Lingogram 适用于任何带字幕的 YouTube 视频。"
     }
   },
   "zh_TW": {
     "slide1": {
-      "eyebrow": "看你愛的，學語言",
-      "title": "用你真正喜歡的影片<br><span class=\"hl\">學語言</span>",
-      "sub": "雙語字幕 + 一鍵存生詞 —— 你的詞彙來自你本來就愛看的影片，而不是課本。"
+      "eyebrow": "雙語字幕 · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">兩種語言</span>同時呈現",
+      "sub": "任何有字幕的影片，都能同時顯示你正在學的語言和母語——生字一鍵儲存。"
     },
     "slide2": {
-      "eyebrow": "兩種語言，一塊螢幕",
-      "title": "每一句<br>都有<span class=\"hl\">雙語對照</span>",
-      "sub": "原文與譯文並排，每個字都接得住，不用死背也能累積詞彙。"
+      "eyebrow": "雙語字幕",
+      "title": "影片裡的每句話，<br><span class=\"hl\">都在眼前</span>",
+      "sub": "每一句都留在面板裡——原文與譯文並排。隨時回看，不必暫停影片。",
+      "callout": "一鍵儲存生字"
     },
     "slide3": {
-      "eyebrow": "五秒就設定好",
-      "title": "選好<br><span class=\"hl\">語言</span>就開衝",
-      "sub": "告訴它你在學哪種語言和你的母語，其餘每支影片都交給 Lingogram。"
+      "eyebrow": "內建主動回想",
+      "title": "先聽，<br><span class=\"hl\">再自我檢驗</span>",
+      "sub": "猜詞模式會先藏起每一句，等你自己揭曉——用真實語音練聽力，而不只是跟著唸。",
+      "callout": "猜詞模式"
     },
     "slide4": {
-      "eyebrow": "就在影片上",
-      "title": "字幕也顯示在<br><span class=\"hl\">影片上</span>",
-      "sub": "雙語字幕隨播放疊在畫面上，眼睛不離螢幕也能輕鬆跟讀。"
+      "eyebrow": "全螢幕同樣支援",
+      "title": "適用於<span class=\"hl\">任何有字幕</span>的影片",
+      "sub": "兩種語言直接顯示在播放器上——一般影片、Shorts 和全螢幕都一樣。不必重複開啟。",
+      "callout": "全螢幕下同樣可用"
     },
     "slide5": {
-      "eyebrow": "背單字，但不無聊",
-      "title": "<span class=\"hl\">猜詞模式</span><br>真的很上頭",
-      "sub": "單字一開始藏著，一個個點開，把平常的滑手機變成真正的練習。"
+      "eyebrow": "免費 · 免註冊即可開始",
+      "title": "設定一次，<br>之後只要<span class=\"hl\">按下播放</span>",
+      "sub": "選擇你正在學的語言和母語——Lingogram 適用於任何有字幕的 YouTube 影片。"
     }
   },
   "am": {
     "slide1": {
-      "eyebrow": "ከምትወደው ተማር",
-      "title": "ከምትወዳቸው ቪዲዮዎች<br><span class=\"hl\">ቋንቋ ተማር</span>",
-      "sub": "ድርብ ትርጉም + ቃል ለማስቀመጥ አንድ ንክኪ — የቃላት ሀብትህ ካስቀድሞ ከምትወዳቸው ቪዲዮዎች ያድጋል እንጂ ከመጽሐፍ አይደለም።"
+      "eyebrow": "ሁለት ቋንቋ ሰብታይትል · YOUTUBE &amp; NETFLIX",
+      "title": "<span class=\"hl\">ሁለቱንም ቋንቋዎች</span> በአንድ ጊዜ ይዩ",
+      "sub": "የትርጉም ጽሑፍ ባለው ማንኛውም ቪዲዮ ላይ የሚማሩት ቋንቋና የአፍ መፍቻዎ አብረው — እያንዳንዱ አዲስ ቃል በአንድ ጠቅታ ይቀመጣል።"
     },
     "slide2": {
-      "eyebrow": "ሁለት ቋንቋ፣ አንድ ስክሪን",
-      "title": "እያንዳንዱ መስመር<br>በ<span class=\"hl\">ሁለቱም ቋንቋ</span>",
-      "sub": "ዋናውና ትርጉሙ ጎን ለጎን — እያንዳንዱን ቃል ትይዛለህ፣ ሳትሸመድድ የቃላት ችሎታህን ታሳድጋለህ።"
+      "eyebrow": "ሁለት ቋንቋ ሰብታይትል",
+      "title": "የሚነገረው ሁሉ —<br><span class=\"hl\">ዓይንዎ ፊት</span>",
+      "sub": "እያንዳንዱ መስመር በፓነሉ ውስጥ ይቆያል — ዋናውና ትርጉሙ አብረው። ቪዲዮውን ሳያቆሙ በማንኛውም ጊዜ መልሰው ያንብቡ።",
+      "callout": "አንድ ጠቅታ ቃሉን ያስቀምጣል"
     },
     "slide3": {
-      "eyebrow": "ማዘጋጀት አምስት ሰከንድ ይወስዳል",
-      "title": "<span class=\"hl\">ቋንቋዎችን</span> ምረጥ<br>እና ጀምር",
-      "sub": "የምትማረውንና የራስህን ቋንቋ ንገረው፣ ቀሪውን በእያንዳንዱ ቪዲዮ Lingogram ይሰራዋል።"
+      "eyebrow": "ንቁ ማስታወስ ተካቷል",
+      "title": "መጀመሪያ ያዳምጡ፣<br><span class=\"hl\">ከዚያ ራስዎን ይፈትሹ</span>",
+      "sub": "የግምት ሁነታ እርስዎ እስኪከፍቱት ድረስ እያንዳንዱን መስመር ይሸፍናል — ጆሮዎ በእውነተኛ ንግግር ይለማመዳል፣ በንባብ ብቻ አይደለም።",
+      "callout": "የግምት ሁነታ"
     },
     "slide4": {
-      "eyebrow": "በቪዲዮው ላይም",
-      "title": "ትርጉሞች<br>በ<span class=\"hl\">ቪዲዮው</span> ላይም",
-      "sub": "ቪዲዮው ሲጫወት ሁለቱም መስመሮች በማያ ገጹ ላይ ይታያሉ፣ ከስክሪኑ ዓይንህን ሳትነቅል አብረህ አንብብ።"
+      "eyebrow": "ሙሉ ማያ ገጽንም ጨምሮ",
+      "title": "<span class=\"hl\">የትርጉም ጽሑፍ ባለው</span> ማንኛውም&nbsp;ቪዲዮ ላይ ይሠራል",
+      "sub": "ሁለቱም ቋንቋዎች በቀጥታ በማጫወቻው ላይ ይታያሉ — መደበኛ ቪዲዮዎች፣ Shorts እና ሙሉ ማያ ገጽ። ሁለት ጊዜ የሚበራ ነገር የለም።",
+      "callout": "በሙሉ ማያ ገጽ ይሠራል"
     },
     "slide5": {
-      "eyebrow": "ካርዶች፣ ግን አያሰለቹም",
-      "title": "<span class=\"hl\">የመገመቻ ሁነታ</span><br>እውነትም ያስደስታል",
-      "sub": "ቃላት መጀመሪያ ተደብቀው ይጀምራሉ — በአንድ ንካ አንድ በአንድ ግለጣቸውና ተራውን ስክሮል ወደ እውነተኛ ልምምድ ቀይረው።"
+      "eyebrow": "ነጻ · ለመጀመር መለያ አያስፈልግም",
+      "title": "አንድ ጊዜ ያዋቅሩ፣<br>ከዚያ <span class=\"hl\">አጫውት ይጫኑ</span>",
+      "sub": "የሚማሩትን ቋንቋና የራስዎን ይምረጡ — Lingogram የትርጉም ጽሑፍ ባለው እያንዳንዱ የYouTube ቪዲዮ ላይ ይሠራል።"
     }
   },
   "en_GB": {
     "slide1": {
-      "eyebrow": "LEARN FROM WHAT YOU LOVE",
-      "title": "learn from the videos<br><span class=\"hl\">you actually love</span>",
-      "sub": "dual subtitles + one tap to save words — your vocab grows from the videos you already love, not a textbook."
+      "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+      "title": "See <span class=\"hl\">both languages</span> at once",
+      "sub": "Your target language and your native one on any video with subtitles — and every new word saved in one tap."
     },
     "slide2": {
-      "eyebrow": "TWO LANGUAGES, ONE SCREEN",
-      "title": "every line,<br>in <span class=\"hl\">both languages</span>",
-      "sub": "original and translation side by side — catch every word and stack up vocab with zero cramming."
+      "eyebrow": "DUAL SUBTITLES",
+      "title": "Every spoken word,<br><span class=\"hl\">right in front of you</span>",
+      "sub": "Every line stays in the panel — original and translation together. Reread it any time without pausing the video.",
+      "callout": "One tap saves a word"
     },
     "slide3": {
-      "eyebrow": "SETUP TAKES LIKE 5 SECONDS",
-      "title": "pick your<br><span class=\"hl\">languages</span> and go",
-      "sub": "tell it the language you're learning and your own — Lingogram sorts the rest on every video."
+      "eyebrow": "ACTIVE RECALL, BUILT IN",
+      "title": "Listen first,<br><span class=\"hl\">then check yourself</span>",
+      "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+      "callout": "guess mode"
     },
     "slide4": {
-      "eyebrow": "RIGHT ON THE VIDEO",
-      "title": "subtitles on the<br><span class=\"hl\">video</span> too",
-      "sub": "dual lines pop up over the player while it's running — read along without looking away from the screen."
+      "eyebrow": "FULLSCREEN INCLUDED",
+      "title": "Works on <span class=\"hl\">any&nbsp;video</span> with&nbsp;subtitles",
+      "sub": "Both languages render right on the player — regular videos, Shorts and fullscreen alike. Nothing to switch on twice.",
+      "callout": "Works in fullscreen"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS BUT NOT BORING",
-      "title": "<span class=\"hl\">guess mode</span><br>actually slaps",
-      "sub": "words start hidden — reveal them one tap at a time and turn plain scrolling into real practice."
+      "eyebrow": "FREE · NO ACCOUNT TO START",
+      "title": "Set up once,<br>then just <span class=\"hl\">press play</span>",
+      "sub": "Choose the language you're learning and your own — Lingogram works on any YouTube video with subtitles."
     }
   },
   "en_US": {
     "slide1": {
-      "eyebrow": "LEARN FROM WHAT YOU LOVE",
-      "title": "learn from the videos<br><span class=\"hl\">you actually love</span>",
-      "sub": "dual subtitles + one tap to save words — your vocab grows from the videos you already love, not a textbook."
+      "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+      "title": "See <span class=\"hl\">both languages</span> at once",
+      "sub": "Your target language and your native one on any video with captions — and every new word saved in one tap."
     },
     "slide2": {
-      "eyebrow": "TWO LANGUAGES, ONE SCREEN",
-      "title": "every line,<br>in <span class=\"hl\">both languages</span>",
-      "sub": "original and translation side by side — catch every word and stack up vocab with zero cramming."
+      "eyebrow": "DUAL SUBTITLES",
+      "title": "Every spoken word,<br><span class=\"hl\">right in front of you</span>",
+      "sub": "Every line stays in the panel — original and translation together. Reread it any time without pausing the video.",
+      "callout": "One tap saves a word"
     },
     "slide3": {
-      "eyebrow": "SETUP TAKES LIKE 5 SECONDS",
-      "title": "pick your<br><span class=\"hl\">languages</span> and go",
-      "sub": "tell it the language you're learning and your own — Lingogram handles the rest on every video."
+      "eyebrow": "ACTIVE RECALL, BUILT IN",
+      "title": "Listen first,<br><span class=\"hl\">then check yourself</span>",
+      "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+      "callout": "guess mode"
     },
     "slide4": {
-      "eyebrow": "RIGHT ON THE VIDEO",
-      "title": "subtitles on the<br><span class=\"hl\">video</span> too",
-      "sub": "dual lines pop up over the player while it's running — read along without looking away from the screen."
+      "eyebrow": "FULLSCREEN INCLUDED",
+      "title": "Works on <span class=\"hl\">any&nbsp;video</span> with&nbsp;subtitles",
+      "sub": "Both languages render right on the player — regular videos, Shorts, and fullscreen alike. Nothing to switch on twice.",
+      "callout": "Works in fullscreen"
     },
     "slide5": {
-      "eyebrow": "FLASHCARDS BUT NOT BORING",
-      "title": "<span class=\"hl\">guess mode</span><br>actually slaps",
-      "sub": "words start hidden — reveal them one tap at a time and turn plain scrolling into real practice."
+      "eyebrow": "FREE · NO ACCOUNT TO START",
+      "title": "Set up once,<br>then just <span class=\"hl\">press play</span>",
+      "sub": "Pick the language you're learning and your own — Lingogram works on any YouTube video with captions."
     }
   },
   "es_419": {
     "slide1": {
-      "eyebrow": "APRENDE DE LO QUE TE GUSTA",
-      "title": "aprende con los videos<br><span class=\"hl\">que de verdad te gustan</span>",
-      "sub": "subtítulos dobles + un toque para guardar palabras — tu vocabulario crece con los videos que ya te gustan, no con un libro de texto."
+      "eyebrow": "SUBTÍTULOS DOBLES · YOUTUBE &amp; NETFLIX",
+      "title": "Ve <span class=\"hl\">los dos idiomas</span> a la vez",
+      "sub": "El idioma que aprendes y el tuyo, en cualquier video con subtítulos — y cada palabra nueva se guarda con un clic."
     },
     "slide2": {
-      "eyebrow": "DOS IDIOMAS, UNA PANTALLA",
-      "title": "cada línea,<br>en <span class=\"hl\">los dos idiomas</span>",
-      "sub": "original y traducción lado a lado — pescas cada palabra y juntas vocabulario sin memorizar a la fuerza."
+      "eyebrow": "SUBTÍTULOS DOBLES",
+      "title": "Todo lo que se dice,<br><span class=\"hl\">ante tus ojos</span>",
+      "sub": "Cada frase se queda en el panel — original y traducción juntos. Reléela cuando quieras, sin pausar el video.",
+      "callout": "Un clic guarda la palabra"
     },
     "slide3": {
-      "eyebrow": "SE ARMA EN CINCO SEGUNDOS",
-      "title": "elige tus<br><span class=\"hl\">idiomas</span> y dale",
-      "sub": "dile qué idioma aprendes y cuál es el tuyo — Lingogram hace el resto en cada video."
+      "eyebrow": "REPASO ACTIVO INCLUIDO",
+      "title": "Escucha primero,<br><span class=\"hl\">luego compruébalo</span>",
+      "sub": "El modo Adivinar oculta cada frase hasta que la destapas: entrenas el oído con habla real, no solo leyendo.",
+      "callout": "modo Adivinar"
     },
     "slide4": {
-      "eyebrow": "JUSTO SOBRE EL VIDEO",
-      "title": "subtítulos también<br>sobre el <span class=\"hl\">video</span>",
-      "sub": "las líneas dobles salen sobre el reproductor mientras corre — lee sin despegar la vista de la pantalla."
+      "eyebrow": "TAMBIÉN EN PANTALLA COMPLETA",
+      "title": "Funciona en <span class=\"hl\">cualquier&nbsp;video</span> con&nbsp;subtítulos",
+      "sub": "Los dos idiomas aparecen sobre el propio reproductor — videos normales, Shorts y pantalla completa. Nada que activar dos veces.",
+      "callout": "Funciona en pantalla completa"
     },
     "slide5": {
-      "eyebrow": "TARJETAS, PERO SIN ABURRIR",
-      "title": "el <span class=\"hl\">modo adivina</span><br>está buenísimo",
-      "sub": "las palabras empiezan ocultas — ábrelas una por una y convierte el scroll de siempre en práctica de verdad."
+      "eyebrow": "GRATIS · SIN CUENTA PARA EMPEZAR",
+      "title": "Configúralo una vez,<br>y solo <span class=\"hl\">dale play</span>",
+      "sub": "Elige el idioma que aprendes y el tuyo — Lingogram funciona en cualquier video de YouTube con subtítulos."
     }
   }
 }

@@ -13,8 +13,12 @@
 //
 // Both the marketing copy (eyebrow / title / sub) and the embedded product
 // shots are localized: each locale uses live-demo-<loc>.png etc. when present
-// (captured via screenshots/capture-demo.mjs --locale <loc>), falling back to
-// the English demo capture for any locale not yet captured.
+// (captured via screenshots/capture-backdrop.mjs --locale <loc>), falling back
+// to the English demo capture for any locale not yet captured.
+//
+// capture-backdrop.mjs covers the bot-walled YouTube player with our own CC-BY
+// clip, so every locale now has a real playing frame + on-video dual subtitles.
+// The hand-built live-demo-en-composite.png is therefore no longer needed here.
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -33,8 +37,8 @@ catch { ({ chromium } = require(PW_FALLBACK)); }
 const COPY = JSON.parse(fs.readFileSync(path.join(HERE, 'promo-copy.json'), 'utf8'));
 const SHOT_DIR = path.join(HERE, '..', 'screenshots', 'out-live');
 const CSS_HREF = pathToFileURL(path.join(HERE, 'promo.css')).href;
-const MASCOT = pathToFileURL(path.join(HERE, 'mascot-cutout.png')).href;
-const BRAND = `<img class="cornermark" src="${MASCOT}" alt="" />`;
+const BRAND_TILE = pathToFileURL(path.join(HERE, 'brand-tile.png')).href;
+const BRAND = `<div class="brand"><img src="${BRAND_TILE}" alt="" /><span>Lingogram</span></div>`;
 const shotUrl = (name) => pathToFileURL(path.join(SHOT_DIR, name)).href;
 
 // Per-locale product shots, falling back to the English demo capture when a
@@ -104,11 +108,12 @@ const slide2 = (p, loc, s) => `${head(loc)}
       <div class="panel">
         <div class="shot" style="background-image:url('${s.demo}'); left:-1058px; top:0;"></div>
       </div>
+      <div class="callout" style="left:48px; bottom:-18px;">${p('slide2', 'callout')}</div>
     </div>
   </div>
 </body></html>`;
 
-// slide3 — side layout, onboarding panel crop
+// slide3 — side layout, guess-mode panel crop (active recall)
 const slide3 = (p, loc, s) => `${head(loc)}
 <body class="theme-3">
   <div class="slide slide--side">
@@ -120,8 +125,9 @@ const slide3 = (p, loc, s) => `${head(loc)}
     </div>
     <div class="stage">
       <div class="panel">
-        <div class="shot" style="background-image:url('${s.onboarding}'); left:-1058px; top:0;"></div>
+        <div class="shot" style="background-image:url('${s.guess}'); left:-1058px; top:0;"></div>
       </div>
+      <div class="callout" style="left:48px; bottom:-18px;"><kbd>Shift</kbd><span class="plus">+</span><kbd>G</kbd> ${p('slide3', 'callout')}</div>
     </div>
   </div>
 </body></html>`;
@@ -133,18 +139,19 @@ const slide4 = (p, loc, s) => `${head(loc)}
     <div class="bg"></div>${BRAND}
     <div class="copy">
       <span class="eyebrow">${p('slide4', 'eyebrow')}</span>
-      <h1>${p('slide4', 'title')}</h1>
+      <h1 style="font-size:45px;">${p('slide4', 'title')}</h1>
       <p>${p('slide4', 'sub')}</p>
     </div>
     <div class="stage">
       <div class="videoframe">
-        <div class="shot" style="background-image:url('${s.demo}'); left:-18px; top:-76px;"></div>
+        <div class="shot" style="background-image:url('${s.demo}'); left:-15px; top:-74px;"></div>
       </div>
+      <div class="callout" style="left:6px; bottom:-26px;">${p('slide4', 'callout')}</div>
     </div>
   </div>
 </body></html>`;
 
-// slide5 — side layout, guess-mode panel crop
+// slide5 — side layout, onboarding panel crop (setup / zero-friction close)
 const slide5 = (p, loc, s) => `${head(loc)}
 <body class="theme-3">
   <div class="slide slide--side">
@@ -155,8 +162,8 @@ const slide5 = (p, loc, s) => `${head(loc)}
       <p>${p('slide5', 'sub')}</p>
     </div>
     <div class="stage">
-      <div class="panel">
-        <div class="shot" style="background-image:url('${s.guess}'); left:-1058px; top:0;"></div>
+      <div class="panel" style="height:500px;">
+        <div class="shot" style="background-image:url('${s.onboarding}'); left:-1058px; top:0;"></div>
       </div>
     </div>
   </div>
