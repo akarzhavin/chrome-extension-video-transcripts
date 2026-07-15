@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** June 22, 2026
+**Last updated:** July 13, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -18,6 +18,11 @@ used, where it is stored, and the choices you have.
   devices. If you choose to sign in, we collect your **email address** and store the
   **words you explicitly save** (with the surrounding subtitle lines) in our cloud
   database.
+* **Diagnostics are opt-in, one click.** If subtitles fail to load, an emergency
+  **"Reload page"** button (shown only after a failed retry) sends us a one-click
+  diagnostic report — the video's address plus technical details — so we can fix
+  the problem. The banner says so right next to the button; nothing is reported
+  automatically.
 * We do **not** sell your data, show ads, run third-party advertising or analytics
   trackers, or track your browsing history.
 
@@ -44,9 +49,19 @@ collect and process:
     immediately before and after it, in the video's primary subtitle language only;
   * a **source tag** indicating the Extension that saved it;
   * a **timestamp** and a per-day counter used only to enforce a daily save limit.
+* **Diagnostic reports** — only if subtitles fail to load and you explicitly press
+  the **"Reload page"** button on the error banner (which states that a report will
+  be sent). Each report contains: the website's hostname, the address (URL) or ID of
+  the video the failure happened on, the subtitle language pair you selected (the
+  language you are learning and your native language), the Extension version, your
+  browser's interface language, a source tag identifying the Extension, and a server
+  timestamp. Reports
+  are sent only while you are signed in, are capped at one per account per day, and
+  are used solely to investigate the failure.
 
 We do **not** collect: your browsing history, the videos you watch (beyond the
-subtitle text you explicitly save), IP-based location tracking, advertising
+subtitle text you explicitly save and the single video address included in a
+diagnostic report you explicitly trigger), IP-based location tracking, advertising
 identifiers, cookies for tracking, or any analytics about how you use the Extension.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
@@ -59,10 +74,12 @@ We use the information above **only** to:
 * authenticate you and keep you signed in across sessions;
 * store your saved vocabulary and sync it across your devices so you can review it
   later;
-* enforce a reasonable daily limit on saved words to prevent abuse.
+* enforce a reasonable daily limit on saved words to prevent abuse;
+* investigate the subtitle-loading failures you explicitly report via the
+  **"Reload page"** button, so we can fix them.
 
 We do not use your information for advertising, profiling, or any purpose beyond
-providing the sync feature described here.
+providing the sync and diagnostics features described here.
 
 ## 3. Local Storage (On Your Device)
 
@@ -107,9 +124,12 @@ Section 4, or where required by law. We do not use your data for advertising.
 
 * **Saved vocabulary** is retained in the cloud until you delete it or request
   account deletion.
+* **Diagnostic reports** are kept only for troubleshooting and are covered by
+  account deletion requests (they are keyed to your user ID).
 * **Local data** can be cleared at any time by signing out (removes your tokens,
   email, and user ID) or by removing the Extension from your browser.
-* To **delete your account and all associated cloud data** (email and saved words),
+* To **delete your account and all associated cloud data** (email, saved words, and
+  diagnostic reports),
   contact the developer using Section 9. We will delete it within a reasonable
   period.
 
