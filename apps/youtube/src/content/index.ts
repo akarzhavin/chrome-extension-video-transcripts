@@ -22,6 +22,7 @@ import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
 import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
+import { watchControlsFloor } from './controlsFloor';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -1035,6 +1036,9 @@ function bootstrap(): void {
     injectLayoutOverrides();
     new YouTubeVttApp();
     watchSidebarState();
+    // Keep the overlay's control-bar clearance (--vtt-yt-controls-floor)
+    // in sync with the real bar geometry; see controlsFloor.ts.
+    watchControlsFloor();
     installQuickAddOverlay();
     if (window === window.top) installAuthStatusBadge();
 }

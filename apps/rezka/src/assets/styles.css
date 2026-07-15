@@ -931,8 +931,16 @@
     position: absolute;
     /* Overlay appearance is user-tunable from the sidebar settings panel.
        SidebarUI sets these --vtt-overlay-* custom properties inline from the
-       persisted prefs; the fallbacks here are the defaults. */
-    bottom: var(--vtt-overlay-bottom, 80px);
+       persisted prefs; the fallbacks here are the defaults.
+
+       --vtt-overlay-floor is the minimum clearance a player's control bar needs
+       (see the YouTube block below). It's a FLOOR, not an offset we add: the
+       overlay sits wherever the user asked, unless that would put it under the
+       bar — then it rests on top of the bar instead. An offset already above
+       the bar is left exactly where it is, since raising it further would be
+       motion with no purpose. Defaults to 0, so players whose controls don't
+       overlap the video are unaffected. */
+    bottom: max(var(--vtt-overlay-bottom, 80px), var(--vtt-overlay-floor, 0px));
     left: 0;
     width: 100%;
     text-align: center;
@@ -943,6 +951,44 @@
     align-items: center;
     justify-content: flex-end;
     transition: opacity 0.2s;
+}
+
+/* Ride YouTube's control bar exactly like YouTube's own captions do.
+
+   The clearance is NOT a constant: YouTube's own caption margin varies by
+   player mode (61px normal, 70px .ytp-big-mode, 86px .ytp-delhi-modern via a
+   CSS variable, 53px embeds, ...), so any hardcoded value is wrong in most
+   modes. The YouTube content script measures the live control-bar geometry
+   and publishes it as --vtt-yt-controls-floor (see watchControlsFloor() in
+   apps/youtube/src/content/index.ts); the 61px fallback is the normal-mode
+   value, used only until the first measurement lands.
+
+   The RAISED state is the default and the lowered state is the special case —
+   matching YouTube's own rule ordering means we settle down with the bar
+   rather than fighting it. Both classes matter: `ytp-hide-controls` (mouse
+   away from the player entirely) is a distinct state from `ytp-autohide`
+   (idle over it), and handling only the latter would leave us floating with
+   no bar underneath. #vtt-video-overlay is a child of #movie_player, which
+   carries these classes.
+
+   This is a floor, not a lift: max() in `bottom` above means the bar only
+   ever pushes the overlay *up to* the clearance, never past it. The user's
+   "high" (140px) offset already clears the bar, so it stays put and the bar's
+   appearance costs it no movement at all — only offsets that would collide
+   react.
+
+   Transitions mirror native captions per direction: rise 0.25s decelerating
+   (YouTube's raised-state rule), drop 0.1s accelerating (its autohide rule).
+   The overlay's own `transition: opacity` is extended rather than overridden —
+   opacity still needs to animate on show/hide. */
+#movie_player #vtt-video-overlay {
+    --vtt-overlay-floor: var(--vtt-yt-controls-floor, 61px);
+    transition: opacity 0.2s, bottom 0.25s cubic-bezier(0, 0, 0.2, 1);
+}
+#movie_player.ytp-autohide #vtt-video-overlay,
+#movie_player.ytp-hide-controls #vtt-video-overlay {
+    --vtt-overlay-floor: 0px;
+    transition: opacity 0.2s, bottom 0.1s cubic-bezier(0.4, 0, 1, 1);
 }
 
 .vtt-overlay-main {
