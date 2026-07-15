@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "تعلّم اللغات أثناء مشاهدة YouTube",
+    "message": "Dual Subtitles — Lingogram: تعلّم اللغات على YouTube وNetflix",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "نصوص تفاعلية وترجمتان معًا لمساعدتك على فهم كل كلمة.",
+    "message": "ترجمة مزدوجة بلغتين معًا على YouTube و Netflix. تعلم الانجليزية مما تشاهده واحفظ الكلمات بنقرة واحدة. مجانًا.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "ابحث مرة أخرى",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "إعادة تحميل الصفحة",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "إذا كان هذا الفيديو يحتوي على ترجمات لكننا لا نعرضها، فأعد تحميل الصفحة — غالبًا ما يساعد ذلك، وسنتلقى تقريرًا للتحقيق في المشكلة.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "الترجمة",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "تم حفظ {count} كلمة",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "الحجم",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "اللون",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "الموضع",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "الخلفية",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "اللغات",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "وضع القراءة",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "الأوضاع",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "مظهر الترجمة",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "تبديل",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "مزدوج",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "تخمين",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "على الفيديو",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "خفيف",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "متوسط",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "معتم",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "الحواف",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "بدون",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "ظل",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "حدود",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "إعادة تعيين",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "الترجمة على الفيديو متوقفة",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "الثعلب البني السريع",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "معاينة الترجمة",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "الإعدادات",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Učte se jazyky při sledování YouTube",
+    "message": "Dual Subtitles — Lingogram: učte se jazyky na YouTube a Netflixu",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Interaktivní přepisy a dvojité titulky, které vám pomohou porozumět každému slovu.",
+    "message": "Dvojité titulky ve dvou jazycích najednou na YouTube a Netflixu. Uč se angličtinu z videí, která sleduješ. Zdarma.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "Hledat znovu",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "Znovu načíst stránku",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "Pokud toto video má titulky, ale my je nezobrazujeme, znovu načtěte stránku — často to pomůže a my dostaneme hlášení, abychom to prošetřili.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "Titulky",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "Uloženo slov: {count}",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "Velikost",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "Barva",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "Poloha",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "Pozadí",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "Jazyky",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "Režim čtení",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "Režimy",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "Vzhled titulků",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "Prohodit",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "Duální",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "Hádej",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "Na videu",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "Lehké",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "Střední",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "Plné",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "Okraj",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "Žádný",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "Stín",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "Obrys",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "Obnovit",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "Titulky na videu jsou vypnuté",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "Rychlá hnědá liška",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "Náhled překladu",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "Nastavení",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

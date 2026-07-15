@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Lær språk mens du ser på YouTube",
+    "message": "Dual Subtitles — Lingogram: lær språk på YouTube og Netflix",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Interaktive transkripsjoner og doble undertekster som hjelper deg å forstå hvert ord.",
+    "message": "Doble undertekster på to språk samtidig på YouTube og Netflix. Lær engelsk av det du ser. Lagre ord med ett trykk. Gratis.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "Søk igjen",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "Last inn siden på nytt",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "Hvis denne videoen har undertekster, men vi ikke viser dem, last inn siden på nytt — det hjelper ofte, og vi får en rapport slik at vi kan undersøke saken.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "Undertekster",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "{count} ord lagret",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "Størrelse",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "Farge",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "Posisjon",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "Bakgrunn",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "Språk",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "Lesemodus",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "Moduser",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "Undertekstutseende",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "Bytt",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "Dobbel",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "Gjett",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "På videoen",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "Lys",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "Middels",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "Dekkende",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "Kant",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "Ingen",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "Skygge",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "Omriss",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "Tilbakestill",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "Undertekster på videoen er av",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "Den raske brune reven",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "Forhåndsvisning av oversettelse",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "Innstillinger",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Mācieties valodas, skatoties YouTube",
+    "message": "Dual Subtitles — Lingogram: mācies valodas YouTube un Netflix",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Interaktīvi transkripti un dubultie subtitri, lai saprastu katru vārdu.",
+    "message": "Dubulti subtitri divās valodās vienlaikus YouTube un Netflix. Mācies angļu valodu no tā, ko skaties. Bez maksas.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "Meklēt vēlreiz",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "Pārlādēt lapu",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "Ja šim video ir subtitri, bet mēs tos nerādām, pārlādējiet lapu — tas bieži palīdz, un mēs saņemsim ziņojumu, lai to izmeklētu.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "Subtitri",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "Saglabāti {count} vārdi",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "Izmērs",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "Krāsa",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "Pozīcija",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "Fons",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "Valodas",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "Lasīšanas režīms",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "Režīmi",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "Subtitru izskats",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "Mainīt vietām",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "Dubults",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "Uzmini",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "Uz video",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "Gaišs",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "Vidējs",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "Blīvs",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "Mala",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "Nav",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "Ēna",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "Kontūra",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "Atiestatīt",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "Subtitri uz video ir izslēgti",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "Ātrā brūnā lapsa",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "Tulkojuma priekšskatījums",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "Iestatījumi",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

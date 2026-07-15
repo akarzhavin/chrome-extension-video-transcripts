@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Вивчайте мови за переглядом YouTube",
+    "message": "Dual Subtitles — Lingogram: вивчайте мови на YouTube і Netflix",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Інтерактивні транскрипти та подвійні субтитри, щоб розуміти кожне слово.",
+    "message": "Подвійні субтитри двома мовами на YouTube і Netflix. Вчіть англійську з відео, які дивитесь. Слова — в одне торкання. Безкоштовно.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "Шукати знову",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "Оновити сторінку",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "Якщо це відео має субтитри, але ми їх не показуємо, перезавантажте сторінку — це часто допомагає, а ми отримаємо звіт, щоб розібратися в проблемі.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "Субтитри",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "Збережено слів: {count}",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "Розмір",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "Колір",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "Положення",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "Фон",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "Мови",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "Режим читання",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "Режими",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "Вигляд субтитрів",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "Поміняти",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "Подвійні",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "Вгадай",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "На відео",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "Легкий",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "Середній",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "Щільний",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "Контур",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "Немає",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "Тінь",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "Обведення",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "Скинути",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "Субтитри на відео вимкнено",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "Швидка руда лисиця",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "Приклад перекладу",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "Налаштування",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

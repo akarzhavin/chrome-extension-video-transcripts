@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "YouTube ನೋಡುತ್ತಾ ಭಾಷೆ ಕಲಿಯಿರಿ",
+    "message": "Dual Subtitles — Lingogram: YouTube ಮತ್ತು Netflix ನಲ್ಲಿ ಭಾಷೆ ಕಲಿಯಿರಿ",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "ಪ್ರತಿ ಪದವನ್ನೂ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಸಂವಾದಾತ್ಮಕ ಪ್ರತಿಲಿಪಿ ಮತ್ತು ಜೋಡಿ ಉಪಶೀರ್ಷಿಕೆಗಳು.",
+    "message": "YouTube ಮತ್ತು Netflix ನಲ್ಲಿ ಡ್ಯುಯಲ್ ಸಬ್ಟೈಟಲ್ — ಎರಡು ಭಾಷೆ ಒಟ್ಟಿಗೆ. ನೋಡುತ್ತಿರುವುದರಿಂದಲೇ ಇಂಗ್ಲಿಷ್ ಕಲಿಯಿರಿ. ಉಚಿತ.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "ಮತ್ತೆ ಹುಡುಕಿ",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "ಈ ವೀಡಿಯೊದಲ್ಲಿ ಉಪಶೀರ್ಷಿಕೆಗಳಿದ್ದರೂ ನಾವು ಅವನ್ನು ತೋರಿಸದಿದ್ದರೆ, ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ — ಇದು ಹೆಚ್ಚಾಗಿ ಸಹಾಯ ಮಾಡುತ್ತದೆ, ಮತ್ತು ತನಿಖೆಗಾಗಿ ನಮಗೆ ವರದಿ ಸಿಗುತ್ತದೆ.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "ಉಪಶೀರ್ಷಿಕೆಗಳು",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "{count} ಪದಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "ಗಾತ್ರ",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "ಬಣ್ಣ",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "ಸ್ಥಾನ",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "ಹಿನ್ನೆಲೆ",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "ಭಾಷೆಗಳು",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "ಓದುವ ಮೋಡ್",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "ಮೋಡ್‌ಗಳು",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆ ನೋಟ",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "ಅದಲುಬದಲು",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "ಜೋಡಿ",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "ಊಹೆ",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "ವೀಡಿಯೊದಲ್ಲಿ",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "ತಿಳಿ",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "ಮಧ್ಯಮ",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "ದಟ್ಟ",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "ಅಂಚು",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "ಯಾವುದೂ ಇಲ್ಲ",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "ನೆರಳು",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "ಔಟ್‌ಲೈನ್",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "ಮರುಹೊಂದಿಸಿ",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "ವೀಡಿಯೊದಲ್ಲಿ ಉಪಶೀರ್ಷಿಕೆ ಆಫ್ ಆಗಿದೆ",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "ವೇಗದ ಕಂದು ನರಿ",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "ಅನುವಾದ ಮುನ್ನೋಟ",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }

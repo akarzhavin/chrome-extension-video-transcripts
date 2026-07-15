@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "YouTube കാണുമ്പോൾ ഭാഷകൾ പഠിക്കൂ",
+    "message": "Dual Subtitles — Lingogram: YouTube, Netflix എന്നിവയിൽ ഭാഷ പഠിക്കൂ",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "ഓരോ വാക്കും മനസ്സിലാക്കാൻ ഇന്ററാക്ടീവ് ട്രാൻസ്ക്രിപ്റ്റും ഇരട്ട സബ്ടൈറ്റിലുകളും.",
+    "message": "YouTube, Netflix എന്നിവയിൽ ഡ്യുവൽ സബ്ടൈറ്റിൽ — രണ്ട് ഭാഷ ഒരുമിച്ച്. കാണുന്നതിൽ നിന്ന് ഇംഗ്ലീഷ് പഠിക്കാം. സൗജന്യം.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "വീണ്ടും തിരയുക",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "പേജ് വീണ്ടും ലോഡ് ചെയ്യുക",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "ഈ വീഡിയോയിൽ സബ്ടൈറ്റിലുകൾ ഉണ്ടായിട്ടും ഞങ്ങൾ അവ കാണിക്കുന്നില്ലെങ്കിൽ, പേജ് വീണ്ടും ലോഡ് ചെയ്യുക — അത് പലപ്പോഴും സഹായിക്കും, കൂടാതെ അന്വേഷിക്കാനായി ഞങ്ങൾക്ക് ഒരു റിപ്പോർട്ട് ലഭിക്കും.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "സബ്‌ടൈറ്റിലുകൾ",
     "description": "Sidebar panel header title."
@@ -62,5 +70,101 @@
   "ytWordsSaved": {
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "വലുപ്പം",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "നിറം",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "സ്ഥാനം",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "പശ്ചാത്തലം",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "ഭാഷകൾ",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "വായനാ മോഡ്",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "മോഡുകൾ",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "സബ്ടൈറ്റിൽ രൂപം",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "പരസ്പരം മാറ്റുക",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "ഇരട്ട",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "ഊഹം",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "വീഡിയോയിൽ",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "നേർത്ത",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "ഇടത്തരം",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "കട്ടിയുള്ള",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "അരിക്",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "ഒന്നുമില്ല",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "നിഴൽ",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "ഔട്ട്‌ലൈൻ",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "പുനഃസജ്ജമാക്കുക",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "വീഡിയോയിലെ സബ്ടൈറ്റിൽ ഓഫാണ്",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "വേഗതയുള്ള തവിട്ട് കുറുക്കൻ",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "വിവർത്തന പ്രിവ്യൂ",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "ക്രമീകരണം",
+    "description": "Sidebar header title while the settings panel is open."
   }
 }
