@@ -166,5 +166,81 @@
   "ytSettingsTitle": {
     "message": "ቅንብሮች",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "በዚህ ቪዲዮ ውስጥ ያሉ",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "ሌሎች ቋንቋዎች",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Lingogram ወደውታል? በድር መደብር ላይ ፈጣን ደረጃ መስጠት ሌሎችም እንዲያገኙት ይረዳል።",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "ደረጃ ስጥ",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "አሁን አይደለም",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "የLingogram ምናሌ",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "ሁነታ",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "ዋናው ብቻ",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "ሁለቱም ቋንቋዎች",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "ቃሉን ገምት",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "ተመለስ",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "ፓነል አሳይ",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "ፓነል ደብቅ",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "ቅንብሮች",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "በቪዲዮ ላይ ያሉ የትርጉም ጽሑፎች",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "ቋንቋዎች ምረጥ",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "ለዚህ ቪዲዮ የትርጉም ጽሑፍ የለም",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "በቋንቋህ የትርጉም ጽሑፍ የለም — ዋናው ብቻ",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "ፓነል ክፈት/ዝጋ",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }

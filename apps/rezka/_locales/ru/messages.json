@@ -166,5 +166,17 @@
   "ytSettingsTitle": {
     "message": "Настройки",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytRatePromptText": {
+    "message": "Нравится Lingogram? Быстрая оценка в Web Store поможет другим его найти.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "Оценить",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "Не сейчас",
+    "description": "Dismiss button on the rating prompt."
   }
 }

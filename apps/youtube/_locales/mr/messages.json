@@ -166,5 +166,81 @@
   "ytSettingsTitle": {
     "message": "सेटिंग्ज",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "या व्हिडिओमध्ये उपलब्ध",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "इतर भाषा",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Lingogram आवडले? वेब स्टोअरवर एक छोटे रेटिंग इतरांना ते शोधण्यात मदत करते.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "रेटिंग द्या",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "आता नको",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "Lingogram मेनू",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "मोड",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "फक्त मूळ भाषा",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "दोन्ही भाषा",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "शब्दाचा अंदाज लावा",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "मागे",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "पॅनेल दाखवा",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "पॅनेल लपवा",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "सेटिंग्ज",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "व्हिडिओवर उपशीर्षके",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "भाषा निवडा",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "या व्हिडिओसाठी उपशीर्षके नाहीत",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "तुमच्या भाषेत उपशीर्षके नाहीत, फक्त मूळ भाषा",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "पॅनेल दाखवा किंवा लपवा",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }

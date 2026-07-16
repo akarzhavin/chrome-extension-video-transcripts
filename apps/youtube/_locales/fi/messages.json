@@ -166,5 +166,81 @@
   "ytSettingsTitle": {
     "message": "Asetukset",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "Saatavilla tässä videossa",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "Muut kielet",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Pidätkö Lingogramista? Nopea arvio Web Storessa auttaa muita löytämään sen.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "Arvioi",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "Ei nyt",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "Lingogram-valikko",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "Tila",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "Vain alkuperäinen",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "Molemmat kielet",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "Arvaa sana",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "Takaisin",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "Näytä paneeli",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "Piilota paneeli",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "Asetukset",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "Tekstitykset videolla",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "Valitse kielet",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "Tälle videolle ei ole tekstityksiä",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "Tekstityksiä ei ole omalla kielelläsi, vain alkuperäinen",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "Näytä tai piilota paneeli",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }

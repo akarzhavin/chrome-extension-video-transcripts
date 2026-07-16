@@ -166,5 +166,81 @@
   "ytSettingsTitle": {
     "message": "ക്രമീകരണം",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "ഈ വീഡിയോയിൽ ലഭ്യം",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "മറ്റ് ഭാഷകൾ",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ? വെബ് സ്റ്റോറിലെ ഒരു ചെറിയ റേറ്റിംഗ് മറ്റുള്ളവർക്ക് ഇത് കണ്ടെത്താൻ സഹായിക്കും.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "റേറ്റ് ചെയ്യുക",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "ഇപ്പോൾ വേണ്ട",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "Lingogram മെനു",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "മോഡ്",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "മൂലഭാഷ മാത്രം",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "രണ്ട് ഭാഷകളും",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "വാക്ക് ഊഹിക്കുക",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "തിരികെ",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "പാനൽ കാണിക്കുക",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "പാനൽ മറയ്ക്കുക",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "ക്രമീകരണം",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "വീഡിയോയിൽ സബ്‌ടൈറ്റിലുകൾ",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "ഭാഷകൾ തിരഞ്ഞെടുക്കുക",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "ഈ വീഡിയോയ്ക്ക് സബ്‌ടൈറ്റിലുകൾ ഇല്ല",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "നിങ്ങളുടെ ഭാഷയിൽ സബ്‌ടൈറ്റിലുകൾ ഇല്ല, മൂലഭാഷ മാത്രം",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "പാനൽ കാണിക്കുക അല്ലെങ്കിൽ മറയ്ക്കുക",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }
