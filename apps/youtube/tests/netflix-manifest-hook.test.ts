@@ -197,4 +197,71 @@ describe('netflix manifest hook cache', () => {
 
         expect(l.seen.map((m) => m.movieId)).toEqual(['m2', 'm9']);
     });
+
+    // The parse hook runs on EVERY JSON.parse on the page, and Netflix's SPA
+    // parses constantly, so a text pre-filter skips the node walk for payloads
+    // that provably carry no tracks. These pin the filter's two failure modes:
+    // skipping a real manifest (subtitles silently never load) and being so
+    // permissive it defeats the point.
+    describe('parse pre-filter', () => {
+        it('still captures a manifest whose tracks sit under an unexpected key', async () => {
+            // findTracksArray accepts a track array under ANY key, recognizing it
+            // by its ELEMENTS. Filtering on the property name (timedtexttracks /
+            // textTracks) would silently kill this fallback, so the marker has to
+            // be the element fields — this is the test that catches that mistake.
+            JSON.parse(
+                JSON.stringify({
+                    result: { movieId: '777', someRenamedTrackKey: [{ language: 'en', ttDownloadables: {} }] },
+                }),
+            );
+            const l = await listenForManifests();
+            stop = l.stop;
+
+            query('777');
+            await flush();
+
+            expect(l.seen.map((m) => m.movieId)).toEqual(['777']);
+        });
+
+        it('ignores a payload that carries no track marker', async () => {
+            // A browse-grid-shaped payload: plenty of nodes, no track fields.
+            JSON.parse(JSON.stringify({ movieId: '888', videos: [{ title: 'x', boxart: [{ url: 'u' }] }] }));
+            const l = await listenForManifests();
+            stop = l.stop;
+
+            query('888');
+            await flush();
+
+            expect(l.seen).toHaveLength(0);
+        });
+
+        it('does not walk a payload with no marker', () => {
+            // The filter's whole purpose is skipping the walk, and the capture
+            // assertions above can't tell "walked, found nothing" from "never
+            // walked". Observe the walk through the tree it enumerates: a getter
+            // on a child property fires only if something reads that property,
+            // and the BFS reads every child via Object.keys/obj[k].
+            //
+            // Parse with a reviver that rebuilds the node with a tripwire getter.
+            // (The hook forwards the reviver, and getters are the one way to see a
+            // read without spying on a global as hot as Object.keys — Jest's own
+            // matchers call that, which is what defeated the obvious approach.)
+            let read = false;
+            const json = JSON.stringify({ videos: [{ title: 'x' }] });
+            JSON.parse(json, function (key, value) {
+                if (key !== 'videos') return value;
+                const probe = {};
+                Object.defineProperty(probe, 'tripwire', {
+                    enumerable: true,
+                    get() {
+                        read = true;
+                        return 'x';
+                    },
+                });
+                return [probe];
+            });
+
+            expect(read).toBe(false);
+        });
+    });
 });

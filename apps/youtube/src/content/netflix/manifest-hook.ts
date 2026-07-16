@@ -78,6 +78,29 @@ function injectProfileIntoString(json: string, profile = WEBVTT_PROFILE): string
     return json.replace(/("profiles":\[)(")/, `$1"${profile}",$2`);
 }
 
+// Cheap pre-filter for the JSON.parse hook. findManifestResult walks up to 2000
+// nodes, and Netflix's SPA parses constantly (the browse grid parses large
+// payloads on every row), so paying for the walk on every parse is real cost on
+// a hot path. Scanning the raw text for a marker is orders of magnitude cheaper
+// than building and walking the object tree.
+//
+// The marker has to be what looksLikeTracks actually keys off — the ELEMENT
+// fields — not the property name: findTracksArray accepts a track array under
+// any key, so filtering on `timedtexttracks`/`textTracks` would silently kill
+// that fallback. A track array whose elements carry none of these fields
+// wouldn't be recognized by looksLikeTracks either, so the walk it skips would
+// have found nothing.
+//
+// Deliberately permissive: a false positive costs one wasted walk, a false
+// negative silently loses subtitle capture. Non-string input (a reviver payload,
+// say) falls through to the walk rather than being filtered out.
+const TRACK_MARKER_RE = /ttDownloadables|downloadables|isNoneTrack/;
+
+function mayCarryTracks(text: unknown): boolean {
+    if (typeof text !== 'string') return true;
+    return TRACK_MARKER_RE.test(text);
+}
+
 // Does this array look like a `timedtexttracks` list?
 function looksLikeTracks(arr: unknown): boolean {
     if (!Array.isArray(arr) || arr.length === 0) return false;
@@ -248,6 +271,7 @@ export function installNetflixHook(): void {
     JSON.parse = function (text: string, reviver?: unknown) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const value = originalParse.call(this, text, reviver as any);
+        if (!mayCarryTracks(text)) return value;
         try {
             const result = findManifestResult(value);
             if (result) {
