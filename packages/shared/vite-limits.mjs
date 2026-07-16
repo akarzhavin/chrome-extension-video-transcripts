@@ -9,8 +9,17 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-// packages/shared/ → packages/ → video-transcripts/ → chrome-extensions/ → english/
-const LIMITS_PATH = resolve(HERE, '../../../../infrastructure/lingogram-limits.json');
+// Candidate locations, first hit wins:
+//  1. explicit override for CI / unusual layouts;
+//  2. monorepo layout — packages/shared/ → … → english/infrastructure/
+//     (this repo checked out at english/chrome-extensions/video-transcripts);
+//  3. sibling layout — this repo and the `english` monorepo checked out next
+//     to each other under the same workspace dir (the current dev setup).
+const LIMITS_CANDIDATES = [
+    process.env.LINGOGRAM_LIMITS_PATH,
+    resolve(HERE, '../../../../infrastructure/lingogram-limits.json'),
+    resolve(HERE, '../../../../english/infrastructure/lingogram-limits.json'),
+].filter(Boolean);
 
 const DEFAULTS = {
     MAX_WORDS_PER_DAY: 500,
@@ -23,11 +32,15 @@ const DEFAULTS = {
 };
 
 export function loadLingogramLimits() {
-    if (!existsSync(LIMITS_PATH)) {
-        console.warn(`[vite-limits] ${LIMITS_PATH} not found — using fallback defaults (standalone build).`);
+    const path = LIMITS_CANDIDATES.find((p) => existsSync(p));
+    if (!path) {
+        console.warn(
+            `[vite-limits] lingogram-limits.json not found (tried: ${LIMITS_CANDIDATES.join(', ')}) ` +
+                '— using fallback defaults (standalone build).',
+        );
         return DEFAULTS;
     }
-    const json = JSON.parse(readFileSync(LIMITS_PATH, 'utf8'));
+    const json = JSON.parse(readFileSync(path, 'utf8'));
     // Drop the JSON-with-comments sentinel field if present.
     delete json['$comment'];
     return { ...DEFAULTS, ...json };

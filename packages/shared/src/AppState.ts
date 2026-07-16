@@ -1,9 +1,24 @@
-import { Subtitle, Track } from './types';
+import { LanguageChoice, Subtitle, Track } from './types';
 
 export class AppState {
     tracks: Track[] = [];
     activeTrackIndex: number = 0;
     secondaryTrackIndex: number = 0;
+    // True while the display order is manually inverted relative to the
+    // learning→native preference (any swap entry point toggles it). Drives the
+    // language chip's visual order; reset whenever applyPreferences re-derives
+    // the indexes from the preference.
+    swapped: boolean = false;
+
+    // When set (Netflix), the settings-panel dropdowns become language pickers
+    // driven by this catalog — available languages first, then the rest of the
+    // supported catalog shown disabled — instead of track pickers over `tracks`.
+    // `selectedLearningCode` / `selectedNativeCode` track the chosen language for
+    // each slot so the dropdown reflects the pick immediately, even while the
+    // track is still being fetched. Left undefined for YouTube/Rezka.
+    languageCatalog?: LanguageChoice[];
+    selectedLearningCode?: string;
+    selectedNativeCode?: string;
     displayMode: 'single' | 'dual' | 'guess' = 'dual';
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
@@ -22,6 +37,30 @@ export class AppState {
         this.applyPreferences();
     }
 
+    /**
+     * Whether a track matching the given preference label actually loaded.
+     *
+     * Finding one language but not the other is a normal outcome, not a
+     * failure: plenty of videos caption the spoken language only. Callers use
+     * this to say which half is missing instead of reporting a blanket "no
+     * subtitles" while a track is visibly playing. Mirrors the matching in
+     * applyPreferences() rather than restating it.
+     */
+    private hasTrackFor(label?: string): boolean {
+        if (!label) return false;
+        return this.tracks.some(t => t.name.includes(label));
+    }
+
+    /** A track for the language being learned loaded. */
+    hasLearningTrack(): boolean {
+        return this.hasTrackFor(this.primaryLangLabel);
+    }
+
+    /** A track for the user's native language loaded (the translation half). */
+    hasNativeTrack(): boolean {
+        return this.hasTrackFor(this.secondaryLangLabel);
+    }
+
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
@@ -31,11 +70,19 @@ export class AppState {
         this.tracks = [];
         this.activeTrackIndex = 0;
         this.secondaryTrackIndex = 0;
+        this.swapped = false;
         this.currentIndex = -1;
         this.guessState.clear();
+        // The language catalog is per-title — the next title's manifest rebuilds
+        // it. The user's selected learning/native codes persist (they're the
+        // language pair, not video state) so the picker keeps its selection.
+        this.languageCatalog = undefined;
     }
 
     applyPreferences(): void {
+        // Re-deriving indexes from the preference undoes any manual swap, so
+        // the flag must follow.
+        this.swapped = false;
         if (this.tracks.length === 0) return;
 
         // Preferred path: the user picked a language pair (YouTube). Match the
@@ -115,6 +162,7 @@ export class AppState {
     swapTracks(): boolean {
         if (this.hasMultipleTracks()) {
             [this.activeTrackIndex, this.secondaryTrackIndex] = [this.secondaryTrackIndex, this.activeTrackIndex];
+            this.swapped = !this.swapped;
             return true;
         }
         return false;

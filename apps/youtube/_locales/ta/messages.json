@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "YouTube பார்க்கையில் மொழி கற்க",
+    "message": "Dual Subtitles — Lingogram: YouTube, Netflix இல் மொழி கற்கவும்",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "ஒவ்வொரு சொல்லையும் புரிந்துகொள்ள ஊடாடும் படியெடுப்புகள் மற்றும் இரட்டை வசன வரிகள்.",
+    "message": "YouTube, Netflix-இல் டூயல் சப்டைட்டில் — இரு மொழி ஒரே நேரத்தில். பார்ப்பதிலிருந்தே ஆங்கிலம் கற்க, ஒரே தட்டலில் சொல் சேமிப்பு.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "மீண்டும் தேடு",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "பக்கத்தை மீண்டும் ஏற்று",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "இந்த வீடியோவில் வசனங்கள் இருந்தும் நாங்கள் அவற்றைக் காட்டவில்லை என்றால், பக்கத்தை மீண்டும் ஏற்றவும் — இது பெரும்பாலும் உதவும், மேலும் விசாரிக்க எங்களுக்கு ஒரு அறிக்கை கிடைக்கும்.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "வசன வரிகள்",
     "description": "Sidebar panel header title."
@@ -62,5 +70,177 @@
   "ytWordsSaved": {
     "message": "{count} சொற்கள் சேமிக்கப்பட்டன",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "அளவு",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "நிறம்",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "இடம்",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "பின்னணி",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "மொழிகள்",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "படிக்கும் பயன்முறை",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "முறைகள்",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "வசன தோற்றம்",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "இடமாற்று",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "இரட்டை",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "யூகம்",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "வீடியோவில்",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "மெல்லிய",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "நடுத்தர",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "அடர்",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "விளிம்பு",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "ஏதுமில்லை",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "நிழல்",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "அவுட்லைன்",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "மீட்டமை",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "வீடியோவில் வசனங்கள் அணைக்கப்பட்டுள்ளன",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "வேகமான பழுப்பு நரி",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "மொழிபெயர்ப்பு முன்னோட்டம்",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "அமைப்புகள்",
+    "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "இந்த வீடியோவில் உள்ளவை",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "பிற மொழிகள்",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Lingogram பிடித்திருக்கிறதா? வெப் ஸ்டோரில் ஒரு சிறு மதிப்பீடு மற்றவர்களுக்கு இதைக் கண்டறிய உதவும்.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "மதிப்பிடு",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "இப்போது வேண்டாம்",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "Lingogram மெனு",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "முறை",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "மூல மொழி மட்டும்",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "இரு மொழிகளும்",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "சொல்லை யூகி",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "பின்செல்",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "பேனலைக் காட்டு",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "பேனலை மறை",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "அமைப்புகள்",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "வீடியோவில் வசன வரிகள்",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "மொழிகளைத் தேர்வுசெய்",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "இந்த வீடியோவுக்கு வசன வரிகள் இல்லை",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "உங்கள் மொழியில் வசன வரிகள் இல்லை, மூல மொழி மட்டும்",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "பேனலைக் காட்டு அல்லது மறை",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }

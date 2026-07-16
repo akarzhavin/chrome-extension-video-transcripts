@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "YouTube കാണുമ്പോൾ ഭാഷകൾ പഠിക്കൂ",
+    "message": "Dual Subtitles — Lingogram: YouTube, Netflix എന്നിവയിൽ ഭാഷ പഠിക്കൂ",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "ഓരോ വാക്കും മനസ്സിലാക്കാൻ ഇന്ററാക്ടീവ് ട്രാൻസ്ക്രിപ്റ്റും ഇരട്ട സബ്ടൈറ്റിലുകളും.",
+    "message": "YouTube, Netflix എന്നിവയിൽ ഡ്യുവൽ സബ്ടൈറ്റിൽ — രണ്ട് ഭാഷ ഒരുമിച്ച്. കാണുന്നതിൽ നിന്ന് ഇംഗ്ലീഷ് പഠിക്കാം. സൗജന്യം.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -47,6 +47,14 @@
     "message": "വീണ്ടും തിരയുക",
     "description": "Retry button label on the no-subtitles banner."
   },
+  "ytReloadPage": {
+    "message": "പേജ് വീണ്ടും ലോഡ് ചെയ്യുക",
+    "description": "Fallback button on the no-subtitles banner, shown after a retry still found no subtitles, that reloads the page."
+  },
+  "ytNoSubsRetryText": {
+    "message": "ഈ വീഡിയോയിൽ സബ്ടൈറ്റിലുകൾ ഉണ്ടായിട്ടും ഞങ്ങൾ അവ കാണിക്കുന്നില്ലെങ്കിൽ, പേജ് വീണ്ടും ലോഡ് ചെയ്യുക — അത് പലപ്പോഴും സഹായിക്കും, കൂടാതെ അന്വേഷിക്കാനായി ഞങ്ങൾക്ക് ഒരു റിപ്പോർട്ട് ലഭിക്കും.",
+    "description": "Status banner body after a failed retry. Qualifies the emergency reload click ('video HAS subtitles, extension failed') so it doubles as a bug report to the admins, and discloses that a report is sent."
+  },
   "ytSidebarTitle": {
     "message": "സബ്‌ടൈറ്റിലുകൾ",
     "description": "Sidebar panel header title."
@@ -62,5 +70,177 @@
   "ytWordsSaved": {
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
     "description": "Saved-words counter; {count} is the number."
+  },
+  "ytStyleSizeLabel": {
+    "message": "വലുപ്പം",
+    "description": "Label for the subtitle overlay font-size preset buttons."
+  },
+  "ytStyleColorLabel": {
+    "message": "നിറം",
+    "description": "Label for the subtitle overlay text-color swatches."
+  },
+  "ytStyleOffsetLabel": {
+    "message": "സ്ഥാനം",
+    "description": "Label for the subtitle overlay vertical-position presets."
+  },
+  "ytStyleBgLabel": {
+    "message": "പശ്ചാത്തലം",
+    "description": "Label for the subtitle overlay background-opacity presets."
+  },
+  "ytGroupLanguages": {
+    "message": "ഭാഷകൾ",
+    "description": "Settings panel group header for subtitle track language pickers."
+  },
+  "ytGroupReadingMode": {
+    "message": "വായനാ മോഡ്",
+    "description": "Settings panel group header for reading-mode toggles."
+  },
+  "ytModesLabel": {
+    "message": "മോഡുകൾ",
+    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
+  },
+  "ytGroupOverlay": {
+    "message": "സബ്ടൈറ്റിൽ രൂപം",
+    "description": "Settings panel group header for on-video subtitle styling."
+  },
+  "ytModeSwap": {
+    "message": "പരസ്പരം മാറ്റുക",
+    "description": "Button that swaps the learning and native subtitle tracks."
+  },
+  "ytModeDual": {
+    "message": "ഇരട്ട",
+    "description": "Toggle that shows both languages at once."
+  },
+  "ytModeGuess": {
+    "message": "ഊഹം",
+    "description": "Toggle for the word-guessing practice mode."
+  },
+  "ytModeOnScreen": {
+    "message": "വീഡിയോയിൽ",
+    "description": "Toggle that shows subtitles on the video itself."
+  },
+  "ytBackdropLight": {
+    "message": "നേർത്ത",
+    "description": "Backdrop opacity preset: mostly transparent."
+  },
+  "ytBackdropMedium": {
+    "message": "ഇടത്തരം",
+    "description": "Backdrop opacity preset: semi-transparent."
+  },
+  "ytBackdropSolid": {
+    "message": "കട്ടിയുള്ള",
+    "description": "Backdrop opacity preset: nearly opaque."
+  },
+  "ytStyleEdgeLabel": {
+    "message": "അരിക്",
+    "description": "Label for the subtitle text edge-style presets."
+  },
+  "ytEdgeNone": {
+    "message": "ഒന്നുമില്ല",
+    "description": "Edge style preset: no text shadow or outline."
+  },
+  "ytEdgeShadow": {
+    "message": "നിഴൽ",
+    "description": "Edge style preset: drop shadow behind the text."
+  },
+  "ytEdgeOutline": {
+    "message": "ഔട്ട്‌ലൈൻ",
+    "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytStyleReset": {
+    "message": "പുനഃസജ്ജമാക്കുക",
+    "description": "Button that restores the default overlay appearance."
+  },
+  "ytOverlayOffNote": {
+    "message": "വീഡിയോയിലെ സബ്ടൈറ്റിൽ ഓഫാണ്",
+    "description": "Note shown in the style preview when the on-video overlay is disabled."
+  },
+  "ytPreviewSampleMain": {
+    "message": "വേഗതയുള്ള തവിട്ട് കുറുക്കൻ",
+    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
+  },
+  "ytPreviewSampleSub": {
+    "message": "വിവർത്തന പ്രിവ്യൂ",
+    "description": "Sample translation line shown in the style preview."
+  },
+  "ytSettingsTitle": {
+    "message": "ക്രമീകരണം",
+    "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytLangGroupAvailable": {
+    "message": "ഈ വീഡിയോയിൽ ലഭ്യം",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "മറ്റ് ഭാഷകൾ",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
+  "ytRatePromptText": {
+    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ? വെബ് സ്റ്റോറിലെ ഒരു ചെറിയ റേറ്റിംഗ് മറ്റുള്ളവർക്ക് ഇത് കണ്ടെത്താൻ സഹായിക്കും.",
+    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
+  },
+  "ytRateButton": {
+    "message": "റേറ്റ് ചെയ്യുക",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateLater": {
+    "message": "ഇപ്പോൾ വേണ്ട",
+    "description": "Dismiss button on the rating prompt."
+  },
+  "ytMenuLabel": {
+    "message": "Lingogram മെനു",
+    "description": "Accessible name of the menu opened from the button in YouTube's player controls."
+  },
+  "ytMenuModes": {
+    "message": "മോഡ്",
+    "description": "Player-menu row that opens the reading-mode submenu; shows the current mode next to it."
+  },
+  "ytMenuModeSingle": {
+    "message": "മൂലഭാഷ മാത്രം",
+    "description": "Reading mode: one subtitle line, no translation. Menu wording of the neither-dual-nor-guess state."
+  },
+  "ytMenuModeDual": {
+    "message": "രണ്ട് ഭാഷകളും",
+    "description": "Reading mode: original and translation at once. Menu wording of ytModeDual, which is icon-sized."
+  },
+  "ytMenuModeGuess": {
+    "message": "വാക്ക് ഊഹിക്കുക",
+    "description": "Reading mode: some words hidden until clicked. Menu wording of ytModeGuess, which is icon-sized."
+  },
+  "ytMenuBack": {
+    "message": "തിരികെ",
+    "description": "Player-menu control returning from a submenu to the main list."
+  },
+  "ytMenuOpenPanel": {
+    "message": "പാനൽ കാണിക്കുക",
+    "description": "Player-menu row that expands the sidebar."
+  },
+  "ytMenuHidePanel": {
+    "message": "പാനൽ മറയ്ക്കുക",
+    "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
+  },
+  "ytMenuSettings": {
+    "message": "ക്രമീകരണം",
+    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+  },
+  "ytMenuOverlay": {
+    "message": "വീഡിയോയിൽ സബ്‌ടൈറ്റിലുകൾ",
+    "description": "Player-menu toggle for the on-video subtitle overlay."
+  },
+  "ytMenuChooseLanguages": {
+    "message": "ഭാഷകൾ തിരഞ്ഞെടുക്കുക",
+    "description": "Player-menu button shown before any languages are picked; opens the sidebar onboarding."
+  },
+  "ytMenuNoSubtitles": {
+    "message": "ഈ വീഡിയോയ്ക്ക് സബ്‌ടൈറ്റിലുകൾ ഇല്ല",
+    "description": "Player-menu status line when no caption track was found. The line doubles as a retry button."
+  },
+  "ytMenuNoTranslation": {
+    "message": "നിങ്ങളുടെ ഭാഷയിൽ സബ്‌ടൈറ്റിലുകൾ ഇല്ല, മൂലഭാഷ മാത്രം",
+    "description": "Player-menu status line when the video is captioned in the language being learned but not in the user's native language. Informational, not an error: this is a normal outcome and there is nothing to retry."
+  },
+  "ytTogglePanel": {
+    "message": "പാനൽ കാണിക്കുക അല്ലെങ്കിൽ മറയ്ക്കുക",
+    "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
   }
 }

@@ -4,10 +4,22 @@
 // fires across tabs of the same profile, so opening two YouTube tabs keeps
 // the sidebar state in sync.
 
+export type OverlaySizeToken = 'small' | 'medium' | 'large';
+export type OverlayLevelToken = 'low' | 'medium' | 'high';
+export type OverlayEdgeToken = 'none' | 'shadow' | 'outline';
+
 export interface Prefs {
     displayMode: 'single' | 'dual' | 'guess';
     overlayEnabled: boolean;
     sidebarCollapsed: boolean;
+    // On-video overlay appearance. Stored as preset tokens (not raw px) so the
+    // sidebar can drive them with a fixed set of preset buttons and the values
+    // stay validated. SidebarUI maps these to concrete CSS custom properties.
+    overlayFontSize: OverlaySizeToken;
+    overlayColor: string; // hex, applies to the main line only
+    overlayBottomOffset: OverlayLevelToken;
+    overlayBgOpacity: OverlayLevelToken;
+    overlayEdgeStyle: OverlayEdgeToken;
 }
 
 const PREFS_KEY = 'prefs.v1';
@@ -16,6 +28,12 @@ const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
     overlayEnabled: true,
     sidebarCollapsed: false,
+    overlayFontSize: 'medium',
+    overlayColor: '#ffffff',
+    overlayBottomOffset: 'medium',
+    overlayBgOpacity: 'medium',
+    // 'shadow' matches the pre-existing hard-coded text-shadow.
+    overlayEdgeStyle: 'shadow',
 };
 
 function isPrefs(value: unknown): value is Partial<Prefs> {

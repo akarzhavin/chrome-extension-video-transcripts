@@ -199,6 +199,84 @@ function showToast(text: string, ok: boolean): void {
     setTimeout(() => t.remove(), 2500);
 }
 
+// Value-moment rating prompt (P1.8). Shown once, ever, when the background
+// reports the saved-word threshold was crossed. Rendered over the current
+// surface (fullscreen-aware) so it's visible right where the value happened.
+// "Rate" opens the extension's own Web Store review page — the URL is built
+// from chrome.runtime.id at runtime, so it's correct for whichever edition
+// this bundle ships in without hardcoding a store id.
+const RATE_ID = 'lingogram-rate-prompt';
+
+function reviewUrl(): string | null {
+    try {
+        const id = chrome?.runtime?.id;
+        if (!id) return null;
+        return `https://chromewebstore.google.com/detail/${id}/reviews`;
+    } catch {
+        return null;
+    }
+}
+
+function showRatePrompt(): void {
+    const url = reviewUrl();
+    if (!url) return; // no runtime id (e.g. promo demo) — silently skip
+    document.getElementById(RATE_ID)?.remove();
+
+    const card = document.createElement('div');
+    card.id = RATE_ID;
+    Object.assign(card.style, {
+        position: 'fixed',
+        right: '20px',
+        bottom: '20px',
+        zIndex: '2147483647',
+        maxWidth: '300px',
+        padding: '14px 16px',
+        borderRadius: '12px',
+        background: 'rgba(30,27,75,0.97)',
+        color: '#fff',
+        fontSize: '13px',
+        lineHeight: '1.45',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        border: '1px solid rgba(129,140,248,0.35)',
+    } as CSSStyleDeclaration);
+
+    const text = document.createElement('div');
+    text.textContent = i18nMsg(
+        'ytRatePromptText',
+        'Enjoying Lingogram? A quick rating on the Web Store helps others find it.',
+    );
+    text.style.marginBottom = '12px';
+
+    const row = document.createElement('div');
+    Object.assign(row.style, { display: 'flex', gap: '8px', justifyContent: 'flex-end' } as CSSStyleDeclaration);
+
+    const later = document.createElement('button');
+    later.textContent = i18nMsg('ytRateLater', 'Not now');
+    Object.assign(later.style, {
+        padding: '6px 12px', borderRadius: '8px', border: '0', cursor: 'pointer',
+        background: 'transparent', color: 'rgba(255,255,255,0.75)',
+        fontSize: '13px', fontFamily: 'inherit',
+    } as CSSStyleDeclaration);
+    later.addEventListener('click', () => card.remove());
+
+    const rate = document.createElement('a');
+    rate.textContent = i18nMsg('ytRateButton', 'Rate it');
+    rate.href = url;
+    rate.target = '_blank';
+    rate.rel = 'noopener noreferrer';
+    Object.assign(rate.style, {
+        padding: '6px 14px', borderRadius: '8px', cursor: 'pointer',
+        background: '#818cf8', color: '#1e1b4b', textDecoration: 'none',
+        fontSize: '13px', fontWeight: '700', fontFamily: 'inherit',
+    } as CSSStyleDeclaration);
+    rate.addEventListener('click', () => card.remove());
+
+    row.append(later, rate);
+    card.append(text, row);
+    (document.fullscreenElement ?? document.body).appendChild(card);
+}
+
 function showPill(rect: DOMRect, term: string, context: string): void {
     removePill();
     const pill = document.createElement('button');
@@ -234,7 +312,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
         pill.textContent = '…';
         console.log('[Lingogram] ADD_WORD →', term);
         try {
-            const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string }>({
+            const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
                 action: 'ADD_WORD',
                 term,
                 context,
@@ -246,6 +324,8 @@ function showPill(rect: DOMRect, term: string, context: string): void {
             // Drop the range so the overlay's selection-guard releases and
             // resumes timeupdate rebuilds.
             window.getSelection()?.removeAllRanges();
+            // Value-moment rating ask (P1.8) — background signals the one-shot.
+            if (res.promptRate) showRatePrompt();
         } catch (err) {
             const msg = String(err instanceof Error ? err.message : err);
             const friendly = /Not signed in|sign in via/i.test(msg)

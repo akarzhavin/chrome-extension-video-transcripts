@@ -40,11 +40,11 @@ for (const t of TILES) {
   await page.screenshot({ path: shot });                     // 2× of the canvas
   const out = path.join(HERE, 'out', t.out);
   execFileSync('sips', ['-z', String(t.h), String(t.w), shot, '--out', out], { stdio: 'ignore' });
-  // Strip alpha → opaque 24-bit PNG (composite on black to match the dark bg).
+  // Strip alpha → opaque 24-bit PNG (composite on white to match the light bg).
   execFileSync('python3', ['-c',
     `from PIL import Image;` +
     `im=Image.open(${JSON.stringify(out)}).convert('RGBA');` +
-    `bg=Image.new('RGB',im.size,(10,10,31));bg.paste(im,mask=im.split()[3]);` +
+    `bg=Image.new('RGB',im.size,(255,255,255));bg.paste(im,mask=im.split()[3]);` +
     `bg.save(${JSON.stringify(out)})`], { stdio: 'ignore' });
   await ctx.close();
   console.log(`✓ ${t.out} (${t.w}×${t.h})`);

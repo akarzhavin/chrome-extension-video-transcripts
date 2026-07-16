@@ -117,6 +117,23 @@ Valid subtitle`;
         expect(result[0].text).toBe('Valid subtitle');
     });
 
+    test('should strip WebVTT cue settings appended to the timecode line (Netflix)', () => {
+        const vtt = `WEBVTT
+
+00:00:10.000 --> 00:00:12.800 position:50.00%,middle align:middle size:80.00% line:79.33%
+♪ I'm fighting so we be equal ♪
+
+00:00:13.000 --> 00:00:15.000 align:start position:10%
+Second line`;
+
+        const result = parseVTT(vtt);
+        expect(result).toHaveLength(2);
+        expect(result[0].text).toBe("♪ I'm fighting so we be equal ♪");
+        expect(result[0].startTime).toBe(10.0);
+        expect(result[0].endTime).toBe(12.8);
+        expect(result[1].text).toBe('Second line');
+    });
+
     test('should handle Cyrillic text correctly', () => {
         const vtt = `WEBVTT
 

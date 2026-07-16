@@ -81,6 +81,11 @@ export function nativeForLanguage(code: string): string {
     return lang?.native ?? lang?.label ?? code;
 }
 
+/** Compact uppercase abbreviation for the language chip ('en-US' → EN, 'pt_BR' → PT). */
+export function shortCodeForLanguage(code: string): string {
+    return (code || '').split(/[-_]/)[0].toUpperCase();
+}
+
 // Representative flag per supported language (language ≠ country, so these are
 // the conventional "best fit" choices). Used for the sidebar language-pair chip.
 const LANGUAGE_FLAGS: Record<string, string> = {

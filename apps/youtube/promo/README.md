@@ -12,16 +12,23 @@ discarding" extension.
 
 | File | Layout | Copy | Imagery |
 | --- | --- | --- | --- |
-| `slide1.html` | full window (frameless, tilted) | *just vibe on YouTube — the language sticks* | `live-demo-en` (full page) |
-| `slide2.html` | side + panel crop | *every line, in both languages* | demo sidebar panel detail |
-| `slide3.html` | side + panel crop | *pick your languages and go* | demo onboarding panel detail |
-| `slide4.html` | side + video card | *subtitles on the video too* | demo player-region crop (on-video overlay) |
-| `slide5.html` | side + panel crop | *guess mode actually slaps* | demo guess-mode panel detail |
+| `slide1.html` | full window (straight, macOS chrome) | *Turn YouTube into language practice* | `live-demo-en` (full page) |
+| `slide2.html` | side + panel crop | *Every line, in both languages* | demo sidebar panel detail |
+| `slide3.html` | side + panel crop | *Listen first, then check yourself* | demo guess-mode panel detail |
+| `slide4.html` | side + video card | *Subtitles right on the video* | demo player-region crop (on-video overlay) |
+| `slide5.html` | side + panel crop | *Set up once, then just press play* | demo onboarding panel detail |
 
-> **Style:** "zoomer" treatment — lowercase punchy headlines, dark mesh + film
-> grain, and a frameless tilted hero on slide 1 (the macOS window chrome was
-> dropped). The static `slideN.html` carry the English copy; localized casual
-> copy for every locale lives in `promo-copy.json`.
+> **Style (v3, "credible tool"):** sentence-case editorial headlines, calm
+> violet→teal backdrop with a faint dot grid, ghost-chip eyebrows, glassy
+> feature callouts (incl. Shift+G keycaps), and a straight-on browser window
+> with macOS chrome on slide 1. Replaced the v2 "zoomer" treatment (lowercase
+> hype copy, loud mesh + film grain, tilted frameless hero) after repositioning
+> toward the motivated-adult-learner audience. Slide order also changed in v3:
+> guess/active-recall moved up to slide 3 (it's the differentiator), onboarding
+> moved to slide 5 as the zero-friction close. The static `slideN.html` carry
+> the English copy; localized copy for every locale lives in `promo-copy.json`
+> (all locales re-localized from the v3 en block — re-localize from `en`
+> whenever the English copy changes).
 
 All product shots come from the extension's **demo mode** (spotlit panel,
 canned content, no network → can't be rate-limited), captured at 2×

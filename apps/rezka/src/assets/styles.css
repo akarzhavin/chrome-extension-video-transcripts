@@ -19,6 +19,12 @@
     font-size: 14px;
     box-sizing: border-box;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Netflix sets `user-select: none` on its player/app root, which the sidebar
+       inherits (it lives on <body>, and is re-parented into the fullscreen
+       player element in fullscreen). Force text selection back on so words can
+       be dragged out of the transcript for quick-add. */
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 #vtt-sidebar.collapsed {
@@ -31,6 +37,9 @@
     z-index: 10;
 }
 
+/* A permanent fixture on every watch page: full-size so it stays an easy mouse
+   target, but dimmed at rest so it doesn't nag. It's no longer the only way in
+   — the player menu has a panel row — which is what lets it be this quiet. */
 #vtt-toggle-btn {
     position: absolute;
     top: 50%;
@@ -49,8 +58,16 @@
     align-items: center;
     justify-content: center;
     color: #fff;
+    opacity: 0.7;
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+/* Full strength when the user is anywhere near it, or tabbing through. */
+#vtt-sidebar:hover #vtt-toggle-btn,
+#vtt-toggle-btn:hover,
+#vtt-toggle-btn:focus-visible {
+    opacity: 1;
 }
 
 #vtt-toggle-btn:hover {
@@ -120,61 +137,713 @@
     display: flex;
 }
 
+/* Settings is a takeover state: while open, the transcript list is hidden and
+   the panel gets the full sidebar height (scrolling on its own if needed).
+   The exit is a "‹ Subtitles" back chip that replaces the gear in the header;
+   the header stays pinned while the panel below it scrolls. */
+#vtt-sidebar.vtt-settings-open #vtt-list {
+    display: none;
+}
+
+#vtt-sidebar.vtt-settings-open #vtt-header {
+    flex: 1;
+    min-height: 0;
+}
+
+#vtt-sidebar.vtt-settings-open #vtt-settings-panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* JS keeps an inline display:flex on the gear, so the takeover needs !important. */
+#vtt-sidebar.vtt-settings-open #vtt-settings-btn {
+    display: none !important;
+}
+
+#vtt-back-btn {
+    position: absolute;
+    left: 12px;
+    display: none;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    color: #4da3ff;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 4px 8px 4px 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+#vtt-back-btn:hover {
+    background: rgba(77, 163, 255, 0.12);
+}
+
+#vtt-back-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+#vtt-sidebar.vtt-settings-open #vtt-back-btn {
+    display: flex;
+}
+
+/* ===== Settings panel v2: labeled groups (Languages / Reading mode /
+   Overlay appearance), segmented controls, live preview. ===== */
+
+.vtt-group {
+    padding: 12px 16px 14px;
+}
+
+.vtt-group + .vtt-group {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vtt-group-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 2px 10px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.36);
+}
+
+.vtt-group-head svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+}
+
+.vtt-group-spacer {
+    flex: 1;
+}
+
+.vtt-reset {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.36);
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.vtt-reset:hover {
+    color: #4da3ff;
+}
+
+/* -- Languages group: labeled select fields -- */
 #vtt-track-selectors {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 0 15px 10px 15px;
+    gap: 8px;
+}
+
+.vtt-field-row {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.vtt-field-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.56);
+}
+
+.vtt-select-wrap {
+    position: relative;
+}
+
+.vtt-select-chevron {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.36);
+    display: flex;
+}
+
+.vtt-select-chevron svg {
+    width: 13px;
+    height: 13px;
 }
 
 .vtt-select {
-    background: rgba(25, 25, 25, 0.5);
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e0e0e0;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 12px;
+    color: #e9eaee;
+    border-radius: 7px;
+    padding: 7px 26px 7px 10px;
+    font-size: 12.5px;
     font-family: inherit;
     outline: none;
     cursor: pointer;
-    width: 100%;
-    transition: border-color 0.2s;
+    transition: border-color 0.15s, background 0.15s;
 }
 
 .vtt-select:hover {
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.11);
 }
 
 .vtt-select:focus {
-    border-color: #4da3ff;
+    border-color: rgba(77, 163, 255, 0.55);
 }
 
+/* Grouped language picker (Netflix): the native popup lists an "available in
+   this video" optgroup over a disabled "other languages" one. On platforms that
+   honor CSS option colors (Windows/Linux Chrome) the popup inherits the dark
+   sidebar text color, so pin a dark background and dim the disabled entries so
+   the two groups read clearly. macOS renders an OS-native popup that ignores
+   most of this — harmless there. */
+.vtt-select optgroup {
+    background: #1b1c20;
+    color: #8b8f99;
+    font-weight: 600;
+}
+
+.vtt-select option {
+    background: #1b1c20;
+    color: #e9eaee;
+    font-weight: 400;
+}
+
+.vtt-select option:disabled {
+    color: #6b6f78;
+}
+
+/* -- Reading mode group: 2x2 stateful toggle chips -- */
 #vtt-controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 0 20px 15px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
-#vtt-controls button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
+.vtt-mode {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e9eaee;
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
     font-family: inherit;
 }
 
-#vtt-controls button:hover {
-    background: rgba(255, 255, 255, 0.2);
+.vtt-mode svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
 }
 
-#vtt-controls button.active {
-    background: rgba(0, 122, 204, 0.5);
-    border-color: #4da3ff;
+.vtt-mode:hover {
+    background: rgba(255, 255, 255, 0.11);
+}
+
+.vtt-mode:active {
+    transform: scale(0.97);
+}
+
+.vtt-mode:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+}
+
+.vtt-mode.active {
+    background: rgba(77, 163, 255, 0.15);
+    border-color: rgba(77, 163, 255, 0.55);
+    color: #dcebff;
+}
+
+.vtt-mode-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vtt-mode-dot {
+    margin-left: auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.36);
+    transition: all 0.2s;
+    flex: none;
+}
+
+.vtt-mode.active .vtt-mode-dot {
+    background: #4da3ff;
+    box-shadow: 0 0 7px #4da3ff;
+}
+
+/* Momentary swap feedback: half-turn of the arrows icon. */
+.vtt-mode.vtt-pulse svg {
+    animation: vtt-spin 0.45s ease;
+}
+
+@keyframes vtt-spin {
+    from { transform: rotate(0); }
+    to { transform: rotate(180deg); }
+}
+
+/* -- Sub-header row: language-pair chip left, quick-mode icons right — one
+   line under the title, so modes are switchable without opening settings and
+   without an extra row. Children carry their own vertical margins so the row
+   collapses when both are absent. -- */
+#vtt-subheader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 16px;
+}
+
+/* Icon-only mode cluster (Dual · Guess | On-screen) in a pill container so it
+   reads as one control group. Same .active semantics as .vtt-mode (both
+   synced by updateControls). */
+#vtt-quickmodes {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    /* margin-left:auto keeps the cluster pinned right even when it's the only
+       child of the space-between row (chip absent during onboarding). */
+    margin: 6px 0 10px auto;
+    flex: none;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 999px;
+    padding: 2px;
+}
+
+/* Visible micro-label: the cluster names itself without hover. */
+.vtt-qm-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8d92a8;
+    padding: 0 4px 0 9px;
+    flex: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* JS manages inline display (hidden until tracks load), so the settings
+   takeover needs !important — same pattern as #vtt-settings-btn. */
+#vtt-sidebar.vtt-settings-open #vtt-quickmodes {
+    display: none !important;
+}
+
+.vtt-qm {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: #a7adc2;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.vtt-qm svg {
+    width: 15px;
+    height: 15px;
+}
+
+.vtt-qm:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.vtt-qm:active {
+    transform: scale(0.92);
+}
+
+.vtt-qm:disabled {
+    opacity: 0.35;
+    cursor: default;
+    transform: none;
+}
+
+/* Segmented Dual/Guess control: mutually exclusive (both are displayMode
+   values), so an inset "well" track with one sliding thumb reads as
+   choose-one, not two independent checkboxes. Third state (neither → single):
+   the thumb hides. */
+.vtt-modeseg {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    background: rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+    border-radius: 999px;
+    padding: 2px;
+}
+
+.vtt-modeseg-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 27px;
+    height: 27px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #5aa8ff, #3d7fe6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.vtt-modeseg[data-sel="guess"] .vtt-modeseg-thumb {
+    opacity: 1;
+    transform: translateX(27px); /* second 27px button, no gap between them */
+}
+
+/* Icons ride above the thumb; the thumb supplies the fill, so no hover bg. */
+.vtt-modeseg .vtt-qm {
+    width: 27px;
+    height: 27px;
+    z-index: 1;
+}
+
+.vtt-modeseg .vtt-qm.active {
+    color: #fff;
+}
+
+.vtt-modeseg .vtt-qm:not(.active) {
+    color: #9aa0b4;
+}
+
+.vtt-modeseg .vtt-qm:not(.active):hover {
+    color: #fff;
+}
+
+.vtt-modeseg .vtt-qm:hover {
+    background: transparent;
+}
+
+.vtt-modeseg .vtt-qm:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.7);
+}
+
+/* On-screen: independent toggle, so a standalone filled+ring button (not part
+   of the segment). Focus ring declared AFTER .active (equal specificity —
+   source order decides) so an active button keeps its ring. */
+.vtt-qm-toggle.active {
+    background: rgba(77, 163, 255, 0.26);
+    color: #eaf6ff;
+    box-shadow: inset 0 0 0 1px rgba(77, 163, 255, 0.4);
+}
+
+.vtt-qm-toggle.active:hover {
+    background: rgba(77, 163, 255, 0.34);
+}
+
+.vtt-qm-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.5);
+}
+
+.vtt-qm-toggle.active:focus-visible {
+    box-shadow: inset 0 0 0 1px rgba(77, 163, 255, 0.4), 0 0 0 2px rgba(77, 163, 255, 0.55);
+}
+
+/* Hairline: exclusive mode choice (left) vs. independent overlay toggle. */
+.vtt-qm-sep {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    margin: 0 4px;
+    flex: none;
+}
+
+/* Instant labeled tooltips (label + shortcut) for the mode cluster buttons:
+   the native title waits ~1s and never shows on keyboard focus. */
+#vtt-quickmodes [data-tip] {
+    position: relative;
+}
+
+#vtt-quickmodes [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 7px);
+    left: 50%;
+    transform: translate(-50%, -2px);
+    background: rgba(12, 13, 20, 0.95);
+    color: #dfe3f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+}
+
+#vtt-quickmodes [data-tip]:hover::after,
+#vtt-quickmodes [data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 0.35s;
+}
+
+/* Rightmost button: right-align its tooltip so it can't spill past the
+   sidebar (and viewport) edge. */
+#vtt-quickmodes .vtt-qm:last-child::after {
+    left: auto;
+    right: 0;
+    transform: translateY(-2px);
+}
+
+#vtt-quickmodes .vtt-qm:last-child:hover::after,
+#vtt-quickmodes .vtt-qm:last-child:focus-visible::after {
+    transform: translateY(0);
+}
+
+
+/* -- Overlay appearance group: live preview -- */
+#vtt-style-preview {
+    position: relative;
+    height: 148px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 13px;
+    background:
+        radial-gradient(340px 150px at 72% 18%, rgba(255, 196, 110, 0.28), transparent 70%),
+        linear-gradient(180deg, #2b3550 0%, #232c44 46%, #1b2438 62%, #141b2c 100%);
+}
+
+/* Fake film still: sun + dark hills, pure CSS so no bundled assets. */
+#vtt-style-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(46px 46px at 72% 22%, #ffd9a0 0 45%, transparent 48%),
+        radial-gradient(420px 190px at 18% 108%, #1d2a3d 0 60%, transparent 61%),
+        radial-gradient(520px 230px at 95% 118%, #16202f 0 60%, transparent 61%);
+}
+
+.vtt-preview-cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* Same position variable as the real overlay, scaled to preview height. */
+    bottom: calc(var(--vtt-overlay-bottom, 80px) * 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transition: bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
+}
+
+/* The preview reuses the real overlay classes, scaled down; the caption is a
+   sample, so text interactions are disabled inside the preview. */
+#vtt-style-preview .vtt-overlay-main {
+    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.62);
+    padding: 3px 10px;
+    margin-bottom: 0;
+    max-width: 88%;
+    pointer-events: none;
+    user-select: none;
+    cursor: default;
+}
+
+#vtt-style-preview .vtt-overlay-sub {
+    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.62 * 0.75);
+    padding: 2px 9px;
+    max-width: 88%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.vtt-preview-off {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+#vtt-style-preview.vtt-preview-disabled .vtt-preview-cap {
+    opacity: 0;
+}
+
+#vtt-style-preview.vtt-preview-disabled .vtt-preview-off {
+    opacity: 1;
+}
+
+/* -- Overlay appearance group: preset rows -- */
+#vtt-style-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.vtt-style-row {
+    display: grid;
+    grid-template-columns: 66px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.vtt-style-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.56);
+    white-space: nowrap;
+}
+
+/* Segmented control: equal-flex transparent buttons over a sliding thumb. */
+.vtt-seg {
+    position: relative;
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 3px;
+}
+
+.vtt-seg-thumb {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc((100% - 6px) / var(--vtt-seg-n, 3));
+    background: rgba(255, 255, 255, 0.11);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.vtt-seg-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.56);
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 5px 4px;
+    font-size: 11.5px;
+    font-family: inherit;
+    line-height: 1;
+    transition: color 0.15s;
+}
+
+.vtt-seg-btn:hover {
+    color: #e9eaee;
+}
+
+.vtt-seg-btn.active {
+    color: #fff;
+}
+
+.vtt-seg-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* Size presets: the "A" glyphs at real relative scale. */
+.vtt-a { font-weight: 600; }
+.vtt-a-s { font-size: 10px; }
+.vtt-a-m { font-size: 13px; }
+.vtt-a-l { font-size: 16px; }
+
+/* Color swatches: accent ring + dark check on the selected one. */
+.vtt-swatches {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+
+.vtt-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s, box-shadow 0.15s;
+}
+
+.vtt-swatch:hover {
+    transform: scale(1.14);
+}
+
+.vtt-swatch.active {
+    box-shadow: 0 0 0 2px #1b1c20, 0 0 0 4px #4da3ff;
+}
+
+.vtt-swatch svg {
+    width: 11px;
+    height: 11px;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.vtt-swatch.active svg {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-seg-thumb,
+    .vtt-modeseg-thumb,
+    .vtt-preview-cap,
+    .vtt-mode,
+    .vtt-mode svg,
+    .vtt-swatch,
+    .vtt-swatch svg {
+        transition: none !important;
+        animation: none !important;
+    }
 }
 
 #vtt-list {
@@ -271,7 +940,18 @@
 
 #vtt-video-overlay {
     position: absolute;
-    bottom: 80px;
+    /* Overlay appearance is user-tunable from the sidebar settings panel.
+       SidebarUI sets these --vtt-overlay-* custom properties inline from the
+       persisted prefs; the fallbacks here are the defaults.
+
+       --vtt-overlay-floor is the minimum clearance a player's control bar needs
+       (see the YouTube block below). It's a FLOOR, not an offset we add: the
+       overlay sits wherever the user asked, unless that would put it under the
+       bar — then it rests on top of the bar instead. An offset already above
+       the bar is left exactly where it is, since raising it further would be
+       motion with no purpose. Defaults to 0, so players whose controls don't
+       overlap the video are unaffected. */
+    bottom: max(var(--vtt-overlay-bottom, 80px), var(--vtt-overlay-floor, 0px));
     left: 0;
     width: 100%;
     text-align: center;
@@ -284,16 +964,54 @@
     transition: opacity 0.2s;
 }
 
+/* Ride YouTube's control bar exactly like YouTube's own captions do.
+
+   The clearance is NOT a constant: YouTube's own caption margin varies by
+   player mode (61px normal, 70px .ytp-big-mode, 86px .ytp-delhi-modern via a
+   CSS variable, 53px embeds, ...), so any hardcoded value is wrong in most
+   modes. The YouTube content script measures the live control-bar geometry
+   and publishes it as --vtt-yt-controls-floor (see watchControlsFloor() in
+   apps/youtube/src/content/index.ts); the 61px fallback is the normal-mode
+   value, used only until the first measurement lands.
+
+   The RAISED state is the default and the lowered state is the special case —
+   matching YouTube's own rule ordering means we settle down with the bar
+   rather than fighting it. Both classes matter: `ytp-hide-controls` (mouse
+   away from the player entirely) is a distinct state from `ytp-autohide`
+   (idle over it), and handling only the latter would leave us floating with
+   no bar underneath. #vtt-video-overlay is a child of #movie_player, which
+   carries these classes.
+
+   This is a floor, not a lift: max() in `bottom` above means the bar only
+   ever pushes the overlay *up to* the clearance, never past it. The user's
+   "high" (140px) offset already clears the bar, so it stays put and the bar's
+   appearance costs it no movement at all — only offsets that would collide
+   react.
+
+   Transitions mirror native captions per direction: rise 0.25s decelerating
+   (YouTube's raised-state rule), drop 0.1s accelerating (its autohide rule).
+   The overlay's own `transition: opacity` is extended rather than overridden —
+   opacity still needs to animate on show/hide. */
+#movie_player #vtt-video-overlay {
+    --vtt-overlay-floor: var(--vtt-yt-controls-floor, 61px);
+    transition: opacity 0.2s, bottom 0.25s cubic-bezier(0, 0, 0.2, 1);
+}
+#movie_player.ytp-autohide #vtt-video-overlay,
+#movie_player.ytp-hide-controls #vtt-video-overlay {
+    --vtt-overlay-floor: 0px;
+    transition: opacity 0.2s, bottom 0.1s cubic-bezier(0.4, 0, 1, 1);
+}
+
 .vtt-overlay-main {
-    background: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    font-size: 24px;
+    background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));
+    color: var(--vtt-overlay-color, #fff);
+    font-size: var(--vtt-overlay-font-size, 24px);
     font-weight: 600;
     padding: 6px 16px;
     border-radius: 8px;
     margin-bottom: 6px;
     display: inline-block;
-    text-shadow: 1px 1px 3px #000;
+    text-shadow: var(--vtt-overlay-edge, 1px 1px 3px #000);
     max-width: 80%;
     word-wrap: break-word;
     /* Container has pointer-events: none so the video stays clickable —
@@ -304,23 +1022,29 @@
 }
 
 .vtt-overlay-sub {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));
+    /* Translation accent stays fixed — user color applies to the main line only. */
     color: #ffd700;
-    font-size: 18px;
+    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.75);
     font-weight: 400;
     padding: 4px 12px;
     border-radius: 6px;
     display: inline-block;
-    text-shadow: 1px 1px 3px #000;
+    text-shadow: var(--vtt-overlay-edge, 1px 1px 3px #000);
     max-width: 80%;
     word-wrap: break-word;
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */
+/* Flex child of the sub-header row: shrinks (names ellipsize) rather than
+   pushing the quick-mode icons out. It's a button (swaps the pair), so block
+   the text selection the sidebar otherwise forces on for transcript quick-add. */
 #vtt-langpair {
     display: flex;
-    justify-content: center;
-    padding: 10px 16px 6px;
+    min-width: 0;
+    margin: 6px 0 10px;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #vtt-langpair .vtt-langpair-inner {
@@ -336,6 +1060,45 @@
     font-size: 12px;
     font-weight: 600;
     color: #dbeafe;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* One span per language abbreviation so the swapped flip below reorders
+   whole languages. */
+#vtt-langpair .vtt-langpair-lang {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* The chip is the swap control: when tracks are swapped, mirror the pair.
+   The arrow spins on click (same half-turn as the settings Swap chip). */
+#vtt-sidebar.vtt-swapped #vtt-langpair .vtt-langpair-inner {
+    flex-direction: row-reverse;
+}
+
+#vtt-langpair.vtt-pulse .vtt-langpair-arrow {
+    animation: vtt-spin 0.45s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #vtt-langpair.vtt-pulse .vtt-langpair-arrow {
+        animation: none;
+    }
+}
+
+#vtt-langpair .vtt-langpair-inner:hover {
+    background: rgba(0, 122, 204, 0.3);
+    border-color: rgba(77, 163, 255, 0.55);
+}
+
+#vtt-langpair:focus-visible { outline: none; }
+
+#vtt-langpair:focus-visible .vtt-langpair-inner {
+    border-color: rgba(77, 163, 255, 0.75);
+    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.35);
 }
 
 #vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
@@ -429,18 +1192,10 @@
     filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
 }
 
-#vtt-status.vtt-status--rich .vtt-empty-state-action {
-    margin-top: 14px;
-    border: none;
-    color: #06121b;
-    font-weight: 700;
-    background: linear-gradient(90deg, #7c5aff, #22d3ee);
-}
-
-#vtt-status.vtt-status--rich .vtt-empty-state-action:hover {
-    background: linear-gradient(90deg, #7c5aff, #22d3ee);
-    filter: brightness(1.08);
-}
+/* No gradient fill on failure-state buttons: this is an error banner, not a
+   promo — recovery actions stay neutral pills (base rule below), the reload
+   escape hatch is red (--emergency). The rich treatment is reserved for the
+   banner shell (title/border/illustration). */
 
 #vtt-status .vtt-empty-state-steps {
     margin: 12px 0 0;
@@ -464,8 +1219,15 @@
     font-weight: 600;
 }
 
-#vtt-status .vtt-empty-state-action {
+#vtt-status .vtt-empty-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
     margin-top: 14px;
+}
+
+#vtt-status .vtt-empty-state-action {
     padding: 6px 12px;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 6px;
@@ -480,4 +1242,382 @@
 
 #vtt-status .vtt-empty-state-action:hover {
     background: rgba(255, 255, 255, 0.12);
+}
+
+/* "Reload page" is an emergency escape hatch, not a feature: quiet red
+   outline, no brand accent. */
+#vtt-status .vtt-empty-state-action.vtt-empty-state-action--emergency {
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    color: #f87171;
+    font-weight: 600;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+#vtt-status .vtt-empty-state-action.vtt-empty-state-action--emergency:hover {
+    border-color: rgba(248, 113, 113, 0.6);
+    background: rgba(239, 68, 68, 0.16);
+    filter: none;
+}
+
+/* Native player control-bar button (YouTube's own .ytp-right-controls row).
+   Carries the Lingogram mascot — the same mark as the Chrome toolbar icon —
+   so it's identifiable as ours among YouTube's generic white glyphs.
+   Always full colour: it opens the menu, which is always available. The
+   overlay's on/off now shows on the CC button beside it, so camouflaging the
+   mascot too would read as "the extension is off" — it never is. */
+.vtt-ytp-overlay-btn {
+    /* Mirrors .vtt-ytp-cc-btn: 40px wide (two of us share the space one native
+       48px control would take), full row height so both sit on YouTube's own
+       optical centre line. position for the ::after hover backdrop. */
+    position: relative;
+    width: 40px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+/* 26px, not the row's 24px: the mascot is a filled shape with rounded edges,
+   so it reads lighter than an outline glyph at matching size. */
+.vtt-ytp-overlay-btn img {
+    width: 26px;
+    height: 26px;
+    display: block;
+    object-fit: contain;
+    opacity: 0.9;
+    transition: opacity 0.12s ease;
+    position: relative; /* above the ::after backdrop */
+    z-index: 1;
+}
+.vtt-ytp-overlay-btn:hover img,
+.vtt-ytp-menu-open .vtt-ytp-overlay-btn img {
+    opacity: 1;
+}
+
+/* ── Player menu ─────────────────────────────────────────────────────────────
+   Anchored by containment, not coordinates: .ytp-right-controls sits inside
+   #movie_player, which IS YouTube's fullscreen element, so a menu nested in the
+   button's wrapper survives fullscreen with no re-parenting. Everything here is
+   scoped to .vtt-ytp-* / #vtt-ytp-menu, which never exist on Rezka or Netflix —
+   this stylesheet ships to both. */
+/* Mascot + CC as ONE unit, not two neighbours: a subtle pill behind the pair
+   binds them, so it reads as "this extension: open it / turn it on" rather than
+   two unrelated glyphs that happen to sit together in YouTube's row. */
+.vtt-ytp-anchor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    /* height:100% + align-items:center on each button is how YouTube's own
+       controls sit on the row's optical line; anything shorter rides high. */
+    height: 100%;
+}
+/* The pill is a backdrop, not a box: drawn behind the pair with ::before so it
+   binds them visually without shrinking either button below YouTube's 48px
+   click target or pushing them off the row's centre line.
+
+   Dark fill + a light hairline, not the translucent white the rest of the bar
+   uses: the control bar is see-through, and white-on-white vanishes completely
+   over a bright frame no matter how far the alpha is pushed. Dark-plus-rim
+   holds on light, dark and busy footage alike. */
+.vtt-ytp-anchor::before {
+    content: '';
+    position: absolute;
+    inset: 5px 2px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.38);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+    transition: background-color 0.12s ease;
+}
+/* The pill itself doesn't react to hover — each half lights its own backdrop
+   (see .vtt-ytp-overlay-btn::after / .vtt-ytp-cc-btn::after). Lighting the
+   whole pill would suggest one control, and they do different things. */
+
+/* Hover/active backdrop, the same idiom YouTube uses on its own controls
+   (.ytp-delhi-modern … .ytp-button:hover::before → rgba(255,255,255,.1)).
+   It highlights the AREA, never the glyph: brightening an already-white
+   inverted CC just turns it into a solid white block. */
+.vtt-ytp-overlay-btn::after,
+.vtt-ytp-cc-btn::after {
+    content: '';
+    position: absolute;
+    /* Sits inside the pill (which is inset 6px 2px) so the highlight never
+       spills past its edge. */
+    inset: 7px 3px;
+    border-radius: 8px;
+    background: transparent;
+    transition: background-color 0.15s ease;
+    pointer-events: none;
+}
+/* Round the outer ends to follow the pill; the inner ends stay square so the
+   two halves meet flush at the hairline. */
+.vtt-ytp-overlay-btn::after {
+    border-radius: 999px 4px 4px 999px;
+}
+.vtt-ytp-cc-btn::after {
+    border-radius: 4px 999px 999px 4px;
+}
+/* Nudged above YouTube's own 0.1/0.2: theirs sit on the bare bar, ours on the
+   pill's dark fill, which swallows a tenth of white. */
+.vtt-ytp-overlay-btn:hover::after,
+.vtt-ytp-cc-btn:hover:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.16);
+}
+.vtt-ytp-overlay-btn:active::after,
+.vtt-ytp-cc-btn:active:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.26);
+}
+/* Keyboard focus gets the same affordance as hover. */
+.vtt-ytp-overlay-btn:focus-visible::after,
+.vtt-ytp-cc-btn:focus-visible::after {
+    background: rgba(255, 255, 255, 0.22);
+}
+.vtt-ytp-overlay-btn:focus-visible,
+.vtt-ytp-cc-btn:focus-visible {
+    outline: none;
+}
+/* Hairline between the two halves: same unit, two distinct actions. */
+.vtt-ytp-cc-btn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 18px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    z-index: 1; /* above the hover backdrop */
+}
+
+.vtt-ytp-cc-btn {
+    position: relative;
+    /* 40px rather than YouTube's 48px because there are two of us in the row's
+       space; height:100% + centring matches their vertical rhythm exactly. */
+    width: 40px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    /* State lives on the glyph's opacity (see below), so nothing dims the
+       button itself — the two would compound. */
+    color: #fff;
+}
+/* Same 24px as every native glyph in this row. */
+.vtt-ytp-cc-btn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+    position: relative; /* above the ::after backdrop */
+    z-index: 1;
+}
+
+/* All white — this control sits in YouTube's row and means what theirs means;
+   the mascot beside it is what says whose it is. State is the INVERT, not a
+   brightness step: off is the outline, on adds the fill that turns it into a
+   plate (frame kept). Brightness alone — YouTube's own approach — is nearly
+   invisible once their red indicator bar is gone, which it is in the modern
+   player. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-glyph,
+.vtt-ytp-cc-btn .vtt-ytp-cc-fill {
+    transition: opacity 0.12s ease;
+}
+/* Exactly one of the two shows at a time. They can't overlap: the outline drawn
+   over the inverted path fills its knocked-out lines right back in.
+   Hover does NOT touch these — it lights the backdrop instead (see ::after
+   above), because brightening the inverted plate makes it a solid white slab. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-glyph {
+    opacity: 0.9;
+}
+/* Off: outline only. */
+.vtt-ytp-cc-btn .vtt-ytp-cc-fill {
+    opacity: 0;
+}
+/* On: inverted only. */
+.vtt-ytp-cc-btn--on .vtt-ytp-cc-glyph {
+    opacity: 0;
+}
+.vtt-ytp-cc-btn--on .vtt-ytp-cc-fill {
+    opacity: 1;
+}
+/* Nothing to switch on (no languages, or no track for this video). */
+.vtt-ytp-cc-btn:disabled .vtt-ytp-cc-glyph {
+    opacity: 0.3;
+}
+.vtt-ytp-cc-btn:disabled {
+    cursor: default;
+}
+
+#vtt-ytp-menu {
+    position: absolute;
+    /* Anchored to #movie_player, not to the button — see mount() in
+       player-menu.ts. Same geometry YouTube gives its own settings menu
+       (right:12px; bottom:62px = clear of the control bar). */
+    bottom: 62px;
+    right: 12px;
+    min-width: 260px;
+    max-width: 320px;
+    background: rgba(28, 28, 28, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 6px;
+    /* Above the subtitle overlay (1000) and the control bar (59), matching the
+       2300 YouTube gives its own popups. A bigger number buys nothing: this is
+       #movie_player's stacking context, not the page's. */
+    z-index: 2300;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #e8e8ea;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    text-align: left;
+}
+
+#vtt-ytp-menu[hidden] {
+    display: none;
+}
+
+/* Both levels live in one box: swapping pages by attribute keeps the menu from
+   jumping in size or colliding with the viewport edge. */
+.vtt-ytp-page {
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+}
+#vtt-ytp-menu[data-page='root'] .vtt-ytp-page[data-page='root'],
+#vtt-ytp-menu[data-page='modes'] .vtt-ytp-page[data-page='modes'] {
+    display: flex;
+}
+
+.vtt-ytp-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+.vtt-ytp-row:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+}
+.vtt-ytp-row:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(77, 163, 255, 0.6);
+}
+.vtt-ytp-row:disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
+.vtt-ytp-row-label {
+    flex: 1;
+    min-width: 0;
+}
+/* The row's own text is the label when there's no dedicated span (panel row). */
+.vtt-ytp-row-value {
+    color: #9aa0b4;
+    white-space: nowrap;
+}
+.vtt-ytp-row-key {
+    color: #8d92a8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.vtt-ytp-chev {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    opacity: 0.5;
+}
+
+/* Account row: an email can easily outrun the menu width. */
+.vtt-ytp-row--account {
+    color: #c9cede;
+    font-size: 12px;
+}
+.vtt-ytp-row--account,
+.vtt-ytp-row--panel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Subtitle health in one line. Amber + a ↻ affordance when there's something to
+   retry; grey and inert when the missing track simply doesn't exist (a normal
+   outcome, not an error to shout about). */
+.vtt-ytp-row--status {
+    color: #f0b429;
+    font-size: 12px;
+}
+.vtt-ytp-row--status .vtt-ytp-status-action {
+    flex: none;
+    opacity: 0.75;
+    font-size: 13px;
+}
+.vtt-ytp-row--status-info {
+    color: #9aa0b4;
+}
+/* :disabled would dim it to unreadable — this row is informational, and the
+   base .vtt-ytp-row:disabled opacity is meant for controls you can't use. */
+.vtt-ytp-row--status-info:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+/* Separators between groups, drawn on the boundaries rather than as nodes:
+   account | mode | panel+settings. */
+#vtt-ytp-menu-modes,
+#vtt-ytp-menu-panel {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 0;
+    margin-top: 3px;
+    padding-top: 11px;
+}
+
+/* Modes page */
+.vtt-ytp-row--back {
+    color: #c9cede;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 0;
+    margin-bottom: 3px;
+    padding-bottom: 11px;
+}
+
+.vtt-ytp-check {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    opacity: 0;
+    color: #4da3ff;
+}
+.vtt-ytp-row--radio[aria-checked='true'] .vtt-ytp-check {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-ytp-row,
+    .vtt-ytp-row--switch .vtt-ytp-switch,
+    .vtt-ytp-row--switch .vtt-ytp-switch::after {
+        transition: none;
+    }
 }

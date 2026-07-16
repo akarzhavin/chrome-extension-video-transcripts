@@ -180,6 +180,70 @@ export function truncateBytes(s: string, maxBytes: number): string {
     return s.slice(0, lo);
 }
 
+export interface NoSubsReportInput {
+    /** Hostname the failure happened on (rezka mirror / youtube / netflix). */
+    site: string;
+    /** Video id when the site has one, else the page URL. */
+    videoRef: string;
+    /** Extension version (manifest). */
+    version: string;
+    /** Browser UI locale. */
+    locale: string;
+    /** The language the user is learning (their chosen pair; e.g. "es"). */
+    learning: string;
+    /** The user's native language from the same pair (e.g. "ru"). */
+    native: string;
+}
+
+// One-shot diagnostic written when the user hits the emergency "Reload page"
+// button on the no-subtitles banner — the qualifier copy ("this video HAS
+// subtitles but we aren't showing them") makes each click a meaningful bug
+// report for the admins. Best-effort: callers swallow failures (signed-out,
+// rules rejection, daily-dupe) — a report must never get in the way of the
+// reload. The doc id is pinned to `{uid}_{YYYYMMDD}` and the write is
+// create-only: the Firestore rules use that as a sentinel-free spam cap of
+// one report per user per UTC day (a same-day second click is rejected and
+// swallowed — systemic breakage shows up as many users, not many clicks).
+export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput): Promise<void> {
+    const state = await ensureFreshToken(cfg);
+    const reportId = `${state.uid}_${todayBucket()}`;
+    const name = `projects/${cfg.projectId}/databases/(default)/documents/diagnostics/${reportId}`;
+    const writes: CommitWrite[] = [
+        {
+            update: {
+                name,
+                fields: {
+                    kind: { stringValue: 'no_subs_after_retry' },
+                    site: { stringValue: truncateBytes(input.site, 100) },
+                    videoRef: { stringValue: truncateBytes(input.videoRef, 500) },
+                    version: { stringValue: truncateBytes(input.version, 32) },
+                    locale: { stringValue: truncateBytes(input.locale, 16) },
+                    learning: { stringValue: truncateBytes(input.learning, 16) },
+                    native: { stringValue: truncateBytes(input.native, 16) },
+                    source: { stringValue: cfg.source },
+                },
+            },
+            currentDocument: { exists: false },
+            updateTransforms: [{ fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' }],
+        },
+    ];
+    const res = await fetch(
+        `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents:commit`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.idToken}`,
+            },
+            body: JSON.stringify({ writes }),
+        },
+    );
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Firestore diagnostics commit ${res.status}: ${text || res.statusText}`);
+    }
+}
+
 export async function addInboxWord(cfg: AuthConfig, input: AddInboxWordInput): Promise<AddInboxWordResult> {
     const termBytes = utf8Bytes(input.term);
     if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {

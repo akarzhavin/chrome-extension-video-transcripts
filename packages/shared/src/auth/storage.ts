@@ -6,6 +6,12 @@ export interface AuthState {
     uid: string;
 }
 
+// Value-moment threshold for the store-rating prompt (P1.8): a user who has
+// saved this many words has clearly gotten value, and asking then — rather
+// than on install — is the ASO rating-flywheel play, not a UX nicety. Fires
+// exactly once per install (guarded by ratePromptShown).
+export const RATE_PROMPT_WORD_THRESHOLD = 30;
+
 const KEYS = {
     idToken: 'auth.idToken',
     refreshToken: 'auth.refreshToken',
@@ -13,6 +19,12 @@ const KEYS = {
     email: 'auth.email',
     uid: 'auth.uid',
     inboxCount: 'inbox.count',
+    // Lifetime count of words saved on this install, and a one-shot flag set
+    // once we've asked for a store rating. Both survive sign-out (the user is
+    // the same person) and drive the value-moment rating prompt — see
+    // RATE_PROMPT_WORD_THRESHOLD in firestoreRest.ts.
+    savedWordCount: 'rate.savedWordCount',
+    ratePromptShown: 'rate.promptShown',
 } as const;
 
 export async function getAuthState(): Promise<AuthState | null> {
@@ -64,6 +76,30 @@ export async function bumpInboxCount(): Promise<number> {
     const next = (await getInboxCount()) + 1;
     await chrome.storage.local.set({ [KEYS.inboxCount]: next });
     return next;
+}
+
+// Lifetime saved-word count driving the value-moment rating prompt. Bumped on
+// every successful save (background ADD_WORD handler); read to decide whether
+// the user has reached RATE_PROMPT_WORD_THRESHOLD.
+export async function getSavedWordCount(): Promise<number> {
+    const v = (await chrome.storage.local.get(KEYS.savedWordCount)) as Record<string, number | undefined>;
+    return v[KEYS.savedWordCount] ?? 0;
+}
+
+export async function bumpSavedWordCount(): Promise<number> {
+    const next = (await getSavedWordCount()) + 1;
+    await chrome.storage.local.set({ [KEYS.savedWordCount]: next });
+    return next;
+}
+
+// One-shot guard so the rating prompt fires exactly once per install, ever.
+export async function getRatePromptShown(): Promise<boolean> {
+    const v = (await chrome.storage.local.get(KEYS.ratePromptShown)) as Record<string, boolean | undefined>;
+    return v[KEYS.ratePromptShown] === true;
+}
+
+export async function markRatePromptShown(): Promise<void> {
+    await chrome.storage.local.set({ [KEYS.ratePromptShown]: true });
 }
 
 // One-shot challenge used to pin the extension-auth handoff to a sign-in

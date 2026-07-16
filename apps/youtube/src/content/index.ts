@@ -1,27 +1,22 @@
 import {
-    AppState,
-    SidebarUI,
-    AppInterface,
     installAuthStatusBadge,
     installQuickAddOverlay,
-    loadLanguagePrefs,
-    saveLanguagePrefs,
-    onLanguagePrefsChanged,
     labelForLanguage,
-    nativeForLanguage,
-    flagForLanguage,
     markSpansSaved,
     refreshAuthStatusBadge,
     msg as i18nMsg,
     setI18nOverride,
-    SUPPORTED_LANGUAGES,
-    LanguagePrefs,
     Subtitle,
 } from '@video-transcripts/shared';
+import { BaseVttApp, SIDEBAR_CHROME_CSS } from './app-base';
 import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
 import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
+import { bootstrapNetflix } from './netflix/app';
+import { watchControlsFloor } from './controlsFloor';
+import { installPlayerMenu } from './player-menu';
+import { isNetflix, isYouTube } from './site';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -71,37 +66,94 @@ if (DEMO_MODE) {
     if (ui0) setI18nOverride(ui0);
 }
 
-class YouTubeVttApp implements AppInterface {
-    state: AppState;
-    ui: SidebarUI;
+class YouTubeVttApp extends BaseVttApp {
     detector: YouTubeCaptionDetector;
-    pendingRequests: Map<string, string> = new Map();
-    langPrefs: LanguagePrefs | null = null;
-    noSubsTimer: number | null = null;
     demoGen = 0;   // bumped on each demo state apply; stale timeouts bail out
 
     constructor() {
-        this.state = new AppState();
-        this.ui = new SidebarUI(this.state, this);
+        super();
         this.detector = new YouTubeCaptionDetector(this);
 
         console.log('[YT-VTT] content script running');
-        this.ui.init();
-        this.updateSidebarVisibility();
-        this.setupListeners();
+        this.init();
         if (DEMO_MODE) {
             this.startDemoMode();
             return;
         }
         this.startVideoPolling();
-        this.detector.start();
+        this.startSite();
         void this.initLanguagePrefs();
     }
 
-    // Promo demo mode. Spotlights the panel (no network → can't be throttled).
-    // The state (picker / dual subs / guess + language pair) is driven by the
-    // URL hash and re-applied on hashchange, so the capture tool switches states
-    // instantly without reloading the page.
+    // ── site hooks ──────────────────────────────────────────────────────────
+    getVideoId(): string | null {
+        return this.detector.getVideoIdFromUrl();
+    }
+
+    reprocessCurrentVideo(): void {
+        this.detector.reprocessCurrentVideo();
+    }
+
+    getOverlayParent(): HTMLElement | null {
+        return document.querySelector('#movie_player') as HTMLElement | null
+            ?? document.querySelector('video')?.parentElement
+            ?? null;
+    }
+
+    isAdPlaying(): boolean {
+        const player = document.querySelector('#movie_player, .html5-video-player');
+        return !!player && player.classList.contains('ad-showing');
+    }
+
+    setNativeSubtitlesEnabled(enabled: boolean): void {
+        // Turn YouTube's own captions off (once per video, driven by SidebarUI)
+        // so they don't stack behind our overlay. Handled in the MAIN world by
+        // the page-script, which clicks the CC control only if captions are on.
+        window.postMessage({ type: 'YT_SET_NATIVE_SUBS', enabled }, '*');
+    }
+
+    seekVideo(time: number): void {
+        const video = document.querySelector('video');
+        if (video) {
+            video.currentTime = time;
+            video.play().catch(() => {});
+        }
+    }
+
+    startSite(): void {
+        window.addEventListener('message', (event) => {
+            if (event.source !== window) return;
+            if (event.data?.type === 'YT_VTT_RESULT') {
+                this.handleVttLoaded(event.data.url, event.data.text || '');
+            }
+        });
+        this.detector.start();
+    }
+
+    // ── YouTube caption fetch protocol ──────────────────────────────────────
+    requestVtt(req: TrackRequest, videoId: string): void {
+        this.pendingRequests.set(req.key, req.name);
+        console.log('[YT-VTT] FETCH_VTT ->', req.name);
+        window.postMessage(
+            { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang },
+            '*',
+        );
+    }
+
+    handleVttLoaded(url: string, vttText: string): void {
+        const name = this.takePending(url);
+        console.log('[YT-VTT] VTT_LOADED <-', name, 'bytes:', vttText?.length ?? 0);
+        if (!name) return;
+        const subs = parseJson3(vttText);
+        console.log('[YT-VTT] parsed subs:', subs.length, 'for', name);
+        this.addParsedTrack(name, subs);
+    }
+
+    // ── Promo demo mode ─────────────────────────────────────────────────────
+    // Spotlights the panel (no network → can't be throttled). The state (picker /
+    // dual subs / guess + language pair) is driven by the URL hash and re-applied
+    // on hashchange, so the capture tool switches states instantly without
+    // reloading the page.
     startDemoMode(): void {
         this.injectPromoStyles();
         document.body.classList.add('vtt-promo');
@@ -165,7 +217,7 @@ class YouTubeVttApp implements AppInterface {
         const nativeBase = baseLangCode(native);
         const learnLabel = labelForLanguage(learnBase);
         const nativeLabel = labelForLanguage(nativeBase);
-        // Full codes for the chip so it shows region-aware flags (pt_BR → 🇧🇷);
+        // Full codes for the chip (the abbreviation strips the region itself);
         // track labels stay base so AppState name-matching is unaffected.
         this.langPrefs = { learning: learn, native: native };
         this.state.setLanguagePreferences(learnLabel, nativeLabel);
@@ -433,348 +485,6 @@ class YouTubeVttApp implements AppInterface {
         setTimeout(run, 800);
         setTimeout(run, 1600);
     }
-
-    async initLanguagePrefs(): Promise<void> {
-        this.langPrefs = await loadLanguagePrefs();
-        this.applyLangPrefsToState();
-        this.updateOnboardingState();
-
-        onLanguagePrefsChanged((prefs) => {
-            this.langPrefs = prefs;
-            this.applyLangPrefsToState();
-            this.updateOnboardingState();
-            // Apply newly-chosen languages to the video already on screen.
-            if (prefs) this.detector.reprocessCurrentVideo();
-        });
-    }
-
-    applyLangPrefsToState(): void {
-        if (!this.langPrefs) return;
-        this.state.setLanguagePreferences(
-            labelForLanguage(this.langPrefs.learning),
-            labelForLanguage(this.langPrefs.native),
-        );
-    }
-
-    updateOnboardingState(): void {
-        this.updateLanguagePairChip();
-        if (this.langPrefs) {
-            this.hideLanguageOnboarding();
-            this.scheduleNoSubtitlesCheck();
-        } else {
-            this.clearNoSubtitlesTimer();
-            this.hideStatusBanner();
-            this.showLanguageOnboarding();
-        }
-    }
-
-    // A "🇪🇸 Español → 🇬🇧 English" chip under the header reflecting the chosen
-    // pair, so it's always clear which two languages are in play.
-    updateLanguagePairChip(): void {
-        const headerTop = document.getElementById('vtt-header-top');
-        const existing = document.getElementById('vtt-langpair');
-        if (!this.langPrefs) {
-            existing?.remove();
-            return;
-        }
-        const { learning, native } = this.langPrefs;
-        const chip = existing ?? document.createElement('div');
-        chip.id = 'vtt-langpair';
-        // Omit the flag span entirely when a language has no flag (e.g. Russian)
-        // so the flex gap doesn't leave a blank slot before the name.
-        const part = (code: string): string => {
-            const flag = flagForLanguage(code);
-            return (flag ? `<span class="vtt-langpair-flag">${flag}</span>` : '') + nativeForLanguage(code);
-        };
-        chip.innerHTML =
-            '<span class="vtt-langpair-inner">' +
-            part(learning) +
-            '<span class="vtt-langpair-arrow">→</span>' +
-            part(native) +
-            '</span>';
-        if (!existing && headerTop) headerTop.insertAdjacentElement('afterend', chip);
-    }
-
-    showLanguageOnboarding(): void {
-        const sidebar = document.getElementById('vtt-sidebar');
-        if (!sidebar || document.getElementById('vtt-lang-onboarding')) return;
-
-        const banner = document.createElement('div');
-        banner.id = 'vtt-lang-onboarding';
-        banner.className = 'vtt-lang-onboarding';
-
-        const title = document.createElement('div');
-        title.className = 'vtt-lang-onboarding-title';
-        title.textContent = t('ytOnboardingTitle', 'Choose your languages');
-        banner.appendChild(title);
-
-        const text = document.createElement('div');
-        text.className = 'vtt-lang-onboarding-text';
-        text.textContent = t(
-            'ytOnboardingText',
-            "Pick the language you're learning and your native language to start.",
-        );
-        banner.appendChild(text);
-
-        const learning = this.buildOnboardingSelect(t('ytLearningLabel', "I'm learning"));
-        const native = this.buildOnboardingSelect(t('ytNativeLabel', 'My native language'));
-        banner.appendChild(learning.wrap);
-        banner.appendChild(native.wrap);
-
-        const persist = () => {
-            const l = learning.select.value;
-            const n = native.select.value;
-            if (!l || !n) return; // both required
-            void saveLanguagePrefs({ learning: l, native: n });
-        };
-        learning.select.addEventListener('change', persist);
-        native.select.addEventListener('change', persist);
-
-        // Place it at the top of the content area (under the header) so it's the
-        // first thing the user sees, not pinned to the bottom of an empty list.
-        const list = document.getElementById('vtt-list');
-        if (list) sidebar.insertBefore(banner, list);
-        else sidebar.appendChild(banner);
-    }
-
-    buildOnboardingSelect(labelText: string): { wrap: HTMLElement; select: HTMLSelectElement } {
-        const wrap = document.createElement('label');
-        wrap.className = 'vtt-lang-onboarding-row';
-
-        const span = document.createElement('span');
-        span.textContent = labelText;
-        wrap.appendChild(span);
-
-        const select = document.createElement('select');
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = t('ytSelectPlaceholder', 'Select…');
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        select.appendChild(placeholder);
-        for (const lang of SUPPORTED_LANGUAGES) {
-            const opt = document.createElement('option');
-            opt.value = lang.code;
-            // Endonym only (e.g. "Español", "中文") so the picker reads naturally
-            // in any UI locale instead of prefixing the English language name.
-            opt.textContent = lang.native;
-            select.appendChild(opt);
-        }
-        wrap.appendChild(select);
-        return { wrap, select };
-    }
-
-    hideLanguageOnboarding(): void {
-        document.getElementById('vtt-lang-onboarding')?.remove();
-    }
-
-    // While fetching for a video we show a "Searching…" status so the sidebar is
-    // never blank. If nothing usable arrives within the grace period it flips to
-    // "No subtitles". Cleared as soon as a track loads, the video changes, or
-    // onboarding is showing.
-    // graceMs: how long to keep "Searching…" before declaring "no subtitles".
-    // Note: with CC off, fetching can need a pot token (~15s) — if it lands
-    // after this window the notice flashes then clears once subs arrive.
-    scheduleNoSubtitlesCheck(graceMs: number = 7000): void {
-        this.clearNoSubtitlesTimer();
-        this.hideStatusBanner();
-        if (!this.langPrefs) return;
-        if (this.detector.getVideoIdFromUrl() === null) return;
-        if (this.state.tracks.length > 0) return; // already have something to show
-
-        this.showStatusBanner(
-            t('ytSearchingTitle', 'Searching for subtitles…'),
-            t('ytSearchingText', 'Looking for captions for this video.'),
-        );
-
-        this.noSubsTimer = window.setTimeout(() => {
-            this.noSubsTimer = null;
-            if (!this.langPrefs) return;
-            if (this.detector.getVideoIdFromUrl() === null) return;
-            if (this.state.tracks.length === 0) this.declareNoSubtitles();
-        }, graceMs);
-    }
-
-    // Show the "no subtitles" notice now (used both by the grace-period timeout
-    // and when the page-script reports a video has no caption tracks at all).
-    declareNoSubtitles(): void {
-        this.clearNoSubtitlesTimer();
-        if (!this.langPrefs) return;
-        if (this.detector.getVideoIdFromUrl() === null) return;
-        if (this.state.tracks.length > 0) return;
-        this.showStatusBanner(
-            t('ytNoSubsTitle', 'No subtitles available'),
-            t(
-                'ytNoSubsText',
-                "This video doesn't have subtitles. Try another video — not every " +
-                    'video on YouTube has captions.',
-            ),
-            {
-                label: '↻ ' + t('ytSearchAgain', 'Search again'),
-                onClick: () => this.detector.reprocessCurrentVideo(),
-            },
-        );
-    }
-
-    clearNoSubtitlesTimer(): void {
-        if (this.noSubsTimer !== null) {
-            clearTimeout(this.noSubsTimer);
-            this.noSubsTimer = null;
-        }
-    }
-
-    showStatusBanner(
-        titleText: string,
-        bodyText: string,
-        action?: { label: string; onClick: () => void },
-    ): void {
-        if (document.getElementById('vtt-lang-onboarding')) return; // onboarding wins
-        const sidebar = document.getElementById('vtt-sidebar');
-        if (!sidebar) return;
-
-        let banner = document.getElementById('vtt-status');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'vtt-status';
-            banner.className = 'vtt-empty-state';
-            const title = document.createElement('div');
-            title.className = 'vtt-empty-state-title';
-            const text = document.createElement('div');
-            text.className = 'vtt-empty-state-text';
-            banner.appendChild(title);
-            banner.appendChild(text);
-            const list = document.getElementById('vtt-list');
-            if (list) sidebar.insertBefore(banner, list);
-            else sidebar.appendChild(banner);
-        }
-        (banner.querySelector('.vtt-empty-state-title') as HTMLElement).textContent = titleText;
-        (banner.querySelector('.vtt-empty-state-text') as HTMLElement).textContent = bodyText;
-
-        // Rebuild the action button each call so stale labels/handlers don't linger
-        // (e.g. the "Searching…" banner reuses this element without an action).
-        banner.querySelector('.vtt-empty-state-action')?.remove();
-        if (action) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'vtt-empty-state-action';
-            btn.textContent = action.label;
-            btn.addEventListener('click', action.onClick);
-            banner.appendChild(btn);
-        }
-    }
-
-    hideStatusBanner(): void {
-        document.getElementById('vtt-status')?.remove();
-    }
-
-    updateSidebarVisibility(): void {
-        if (window !== window.top) return;
-        const sidebar = document.getElementById('vtt-sidebar');
-        if (!sidebar) return;
-        const onVideoPage = this.detector.getVideoIdFromUrl() !== null;
-        if (onVideoPage) {
-            sidebar.style.display = '';
-            document.body.classList.add('vtt-sidebar-active');
-        } else {
-            sidebar.style.display = 'none';
-            document.body.classList.remove('vtt-sidebar-active');
-            this.clearNoSubtitlesTimer();
-            this.hideStatusBanner();
-        }
-    }
-
-    isAdPlaying(): boolean {
-        const player = document.querySelector('#movie_player, .html5-video-player');
-        return !!player && player.classList.contains('ad-showing');
-    }
-
-    startVideoPolling(): void {
-        setInterval(() => {
-            document.querySelectorAll('video').forEach((video) => {
-                if (!video.dataset.vttAttached) {
-                    video.dataset.vttAttached = 'true';
-                    video.addEventListener('timeupdate', () => {
-                        if (this.isAdPlaying()) return;
-                        this.ui.highlightSubtitle(video.currentTime);
-                    });
-                }
-            });
-        }, 1000);
-    }
-
-    setupListeners(): void {
-        window.addEventListener('message', (event) => {
-            if (event.source !== window) return;
-            if (event.data?.type === 'YT_VTT_RESULT') {
-                this.handleVttLoaded(event.data.url, event.data.text || '');
-            }
-        });
-
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.shiftKey && e.code === 'KeyS') {
-                if (this.state.swapTracks()) this.ui.refresh();
-            }
-            if (e.shiftKey && e.code === 'KeyD') this.ui.toggleDualMode();
-            if (e.shiftKey && e.code === 'KeyO') this.ui.toggleOverlay();
-            if (e.shiftKey && e.code === 'KeyG') this.ui.toggleGuessMode();
-        });
-    }
-
-    requestVtt(req: TrackRequest, videoId: string): void {
-        this.pendingRequests.set(req.key, req.name);
-        console.log('[YT-VTT] FETCH_VTT ->', req.name);
-        window.postMessage(
-            { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang },
-            '*',
-        );
-    }
-
-    handleVttLoaded(url: string, vttText: string): void {
-        const name = this.pendingRequests.get(url);
-        console.log('[YT-VTT] VTT_LOADED <-', name, 'bytes:', vttText?.length ?? 0);
-        if (!name) return;
-        this.pendingRequests.delete(url);
-
-        const subs = parseJson3(vttText);
-        console.log('[YT-VTT] parsed subs:', subs.length, 'for', name);
-        if (subs.length === 0) return;
-
-        if (!this.state.isDuplicate(subs)) {
-            this.state.addTrack(name, subs);
-        }
-        // Got something to show — drop any pending/visible "no subtitles" notice.
-        this.clearNoSubtitlesTimer();
-        this.hideStatusBanner();
-        this.ui.refresh();
-    }
-
-    resetForNewVideo(): void {
-        this.pendingRequests.clear();
-        this.state.reset();
-        this.ui.refresh();
-        // New video → re-arm the empty-state check (clears any stale notice).
-        this.scheduleNoSubtitlesCheck();
-    }
-
-    seekVideo(time: number): void {
-        const video = document.querySelector('video');
-        if (video) {
-            video.currentTime = time;
-            video.play().catch(() => {});
-        }
-    }
-
-    updateHighlight(): void {
-        if (this.isAdPlaying()) return;
-        const video = document.querySelector('video');
-        if (video) this.ui.highlightSubtitle(video.currentTime);
-    }
-
-    getOverlayParent(): HTMLElement | null {
-        return document.querySelector('#movie_player') as HTMLElement | null
-            ?? document.querySelector('video')?.parentElement
-            ?? null;
-    }
 }
 
 class YouTubeCaptionDetector {
@@ -832,6 +542,7 @@ class YouTubeCaptionDetector {
         if (!id || id === this.currentVideoId) return;
         this.currentVideoId = id;
         this.captionsLoadedForVideo = null;
+        this.app.resetNoSubsRetries();
         this.app.resetForNewVideo();
         window.postMessage({ type: 'YT_QUERY_CAPTIONS' }, '*');
     }
@@ -845,6 +556,7 @@ class YouTubeCaptionDetector {
         if (videoId !== this.currentVideoId) {
             this.currentVideoId = videoId;
             this.captionsLoadedForVideo = null;
+            this.app.resetNoSubsRetries();
             this.app.resetForNewVideo();
         }
 
@@ -908,99 +620,7 @@ function injectLayoutOverrides(): void {
         body.vtt-sidebar-active ytd-app {
             transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        #vtt-lang-onboarding {
-            margin: 16px;
-            padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            color: #e5e7eb;
-        }
-        #vtt-lang-onboarding .vtt-lang-onboarding-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-        #vtt-lang-onboarding .vtt-lang-onboarding-text {
-            font-size: 12px;
-            line-height: 1.5;
-            color: #9ca3af;
-            margin-bottom: 14px;
-        }
-        #vtt-lang-onboarding .vtt-lang-onboarding-row {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-bottom: 10px;
-        }
-        #vtt-lang-onboarding .vtt-lang-onboarding-row span {
-            font-size: 12px;
-            color: #cbd5e1;
-        }
-        #vtt-lang-onboarding select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            background: #1f1f1f;
-            color: #f3f4f6;
-            font-size: 13px;
-        }
-        #vtt-status {
-            margin: 16px;
-            padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            color: #e5e7eb;
-        }
-        #vtt-status .vtt-empty-state-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-        #vtt-status .vtt-empty-state-text {
-            font-size: 12px;
-            line-height: 1.5;
-            color: #9ca3af;
-        }
-        #vtt-status .vtt-empty-state-action {
-            margin-top: 12px;
-            padding: 6px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.06);
-            color: #f3f4f6;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #vtt-status .vtt-empty-state-action:hover {
-            background: rgba(255, 255, 255, 0.12);
-        }
-        #vtt-langpair {
-            display: flex;
-            justify-content: center;
-            padding: 10px 16px 6px;
-        }
-        #vtt-langpair .vtt-langpair-inner {
-            display: inline-flex;
-            align-items: center;
-            /* Always read learning → native left-to-right, even when the sidebar
-               is RTL (which would otherwise flip the flex order). */
-            direction: ltr;
-            gap: 8px;
-            padding: 5px 13px;
-            border-radius: 999px;
-            background: rgba(124, 90, 255, 0.16);
-            border: 1px solid rgba(124, 90, 255, 0.32);
-            font-size: 12px;
-            font-weight: 600;
-            color: #e3e5ff;
-        }
-        #vtt-langpair .vtt-langpair-flag { font-size: 14px; }
-        #vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
+        ${SIDEBAR_CHROME_CSS}
     `;
     (document.head || document.documentElement).appendChild(style);
 }
@@ -1031,12 +651,28 @@ function watchSidebarState(): void {
 }
 
 function bootstrap(): void {
-    if (!window.location.hostname.includes('youtube.com')) return;
-    injectLayoutOverrides();
-    new YouTubeVttApp();
-    watchSidebarState();
+    let app: BaseVttApp;
+    if (isNetflix()) {
+        app = bootstrapNetflix();
+    } else if (isYouTube()) {
+        injectLayoutOverrides();
+        app = new YouTubeVttApp();
+        watchSidebarState();
+        installPlayerMenu(app);
+        // Keep the overlay's control-bar clearance (--vtt-yt-controls-floor)
+        // in sync with the real bar geometry; see controlsFloor.ts.
+        watchControlsFloor();
+        // YouTube tears down/rebuilds its player chrome on SPA navigation;
+        // re-run (idempotent) so the button survives it.
+        document.addEventListener('yt-navigate-finish', () => installPlayerMenu(app));
+    } else {
+        return;
+    }
     installQuickAddOverlay();
-    if (window === window.top) installAuthStatusBadge();
+    // The badge self-attaches to any #vtt-header-top (with an observer retry),
+    // so gate it on owning the sidebar — otherwise it grafts into a sidebar
+    // built by another installed copy of the extension.
+    if (window === window.top && app.uiOwned) installAuthStatusBadge();
 }
 
 bootstrap();

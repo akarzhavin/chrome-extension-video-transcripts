@@ -3,16 +3,30 @@
 <body class="theme-1">
   <div class="slide slide--stack">
     <div class="bg"></div>
-    <img class="cornermark" src="mascot-cutout.png" alt="" />
+    <div class="brand"><img src="brand-tile.png" alt="" /><span>Lingogram</span></div>
     <div class="copy">
-      <span class="eyebrow">MOVIE NIGHT = LANGUAGE LESSON</span>
-      <h1>learn a language while you <span class="hl">actually enjoy films</span></h1>
-      <p>dual subtitles right on HDrezka — the language you're learning and your own, on the film and in a side panel that keeps up with the scene.</p>
+      <span class="eyebrow">DUAL SUBTITLES · ENGLISH + RUSSIAN</span>
+      <h1>See <span class="hl">both languages</span> at once</h1>
+      <p>English and Russian together on HDrezka — every line in a side panel that keeps up with the scene, every word saved in one tap.</p>
     </div>
     <div class="window">
       <div class="window__bar"><span class="d red"></span><span class="d yel"></span><span class="d grn"></span><span class="window__url">hdrezka.ag</span></div>
       <div class="window__view">
         <div class="shot" style="background-image:url('../screenshots/out-live/host-hero.png')"></div>
+      </div>
+      <!-- Clean-copy patches over two profane subtitle rows baked into the
+           hand-captured host-hero.png (Top Gear dialogue). HDrezka is
+           region-blocked so a re-capture isn't possible locally; these divs
+           re-render the rows with neutral lines in the sidebar's own style. -->
+      <div style="position:absolute; left:896px; top:266px; width:236px; height:60px; z-index:3;
+                  background:#3a3f46; border-radius:10px; padding:8px 12px; font-size:12.5px; line-height:1.35;">
+        <div style="color:#e8eaed;">Whoa! Look at it go.</div>
+        <div style="color:#9aa0a6; border-top:1px dashed rgba(255,255,255,0.14); margin-top:5px; padding-top:4px; font-size:11.5px;">Ого! Только посмотри.</div>
+      </div>
+      <div style="position:absolute; left:896px; top:334px; width:236px; height:118px; z-index:3;
+                  background:#2e4a66; border:1.5px solid #5b8fd0; border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.4;">
+        <div style="color:#ffffff; font-weight:600;">I didn't think it could grip the track like that.</div>
+        <div style="color:#c3d2e4; border-top:1px dashed rgba(255,255,255,0.18); margin-top:7px; padding-top:6px; font-size:11.5px;">Не думал, что она так держит трассу.</div>
       </div>
     </div>
   </div>

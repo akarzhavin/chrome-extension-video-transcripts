@@ -1,12 +1,16 @@
 import { config } from './config';
 import { exchangeCustomToken } from './firebaseRest';
-import { addInboxWord } from './firestoreRest';
+import { addInboxWord, addNoSubsReport } from './firestoreRest';
 import {
     bumpInboxCount,
+    bumpSavedWordCount,
     clearAuthState,
     clearPendingAuthNonce,
     getAuthState,
     getInboxCount,
+    getRatePromptShown,
+    markRatePromptShown,
+    RATE_PROMPT_WORD_THRESHOLD,
     setAuthState,
     setPendingAuthNonce,
     validatePendingAuthNonce,
@@ -16,13 +20,17 @@ export type AuthAction =
     | 'AUTH_STATUS'
     | 'AUTH_SIGN_IN_VIA_LINGOGRAM'
     | 'AUTH_SIGN_OUT'
-    | 'ADD_WORD';
+    | 'OPEN_LINGOGRAM'
+    | 'ADD_WORD'
+    | 'REPORT_NO_SUBS';
 
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
     'AUTH_SIGN_OUT',
+    'OPEN_LINGOGRAM',
     'ADD_WORD',
+    'REPORT_NO_SUBS',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -95,6 +103,14 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             await chrome.tabs.create({ url });
             return { ok: true };
         }
+        case 'OPEN_LINGOGRAM': {
+            // Plain visit to the signed-in site (saved words, profile, sign-out)
+            // — no nonce, no handoff: that's AUTH_SIGN_IN_VIA_LINGOGRAM's job.
+            // Lives here because chrome.tabs is background-only; the player menu
+            // is a content script and can't open a tab itself.
+            await chrome.tabs.create({ url: config.frontendBaseUrl });
+            return { ok: true };
+        }
         case 'AUTH_SIGN_OUT': {
             await clearAuthState();
             clearNeedsReauthBadge();
@@ -108,7 +124,17 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             try {
                 const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();
-                return { ok: true, wordId: r.wordId, inboxCount };
+                // Value-moment rating prompt (P1.8): once this install crosses
+                // the saved-word threshold, ask for a store rating — exactly
+                // once, ever. The content script renders the actual banner when
+                // it sees promptRate; here we only decide + burn the one-shot.
+                const savedWordCount = await bumpSavedWordCount();
+                let promptRate = false;
+                if (savedWordCount >= RATE_PROMPT_WORD_THRESHOLD && !(await getRatePromptShown())) {
+                    await markRatePromptShown();
+                    promptRate = true;
+                }
+                return { ok: true, wordId: r.wordId, inboxCount, promptRate };
             } catch (err) {
                 // Refresh-token revoked / Firestore rejected the token —
                 // wipe state and prompt the user to re-authorize via a
@@ -119,6 +145,27 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                     setNeedsReauthBadge();
                 }
                 throw err;
+            }
+        }
+        case 'REPORT_NO_SUBS': {
+            // Best-effort diagnostics from the emergency "Reload page" button —
+            // the page is about to reload, nobody is watching the result. Swallow
+            // every failure (signed-out user, rules rejection, network): a report
+            // must never surface an error or touch the auth state / badge.
+            const videoRef = String(request.videoRef ?? '');
+            if (!videoRef) return { ok: false };
+            try {
+                await addNoSubsReport(config, {
+                    site: String(request.site ?? ''),
+                    videoRef,
+                    version: String(request.version ?? ''),
+                    locale: String(request.locale ?? ''),
+                    learning: String(request.learning ?? ''),
+                    native: String(request.native ?? ''),
+                });
+                return { ok: true };
+            } catch {
+                return { ok: false };
             }
         }
         default:

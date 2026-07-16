@@ -1,10 +1,13 @@
 /* Chrome Web Store promo tiles — Small (440×280) & Marquee (1400×560).
- * White theme: clean white backdrop, dark ink copy, frameless chameleon icon. */
+ * Shares the "daylight utility" brand with the slides (see promo.css §v4):
+ * light indigo-tinted ground, ink copy, brand violet #483090 as the single
+ * accent — no gradient text. Tokens are kept in sync with promo.css. */
 :root {
-  --ink: #16182e;
-  --ink-soft: #5b6072;
-  --violet: #7c3aed;
-  --emerald: #059669;
+  --ink: #1d1b2e;
+  --ink-soft: #5c5870;
+  --violet: #483090;
+  --violet-soft: #8b7be8;
+  --emerald: #1e8e4d;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,34 +17,36 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .tile--small { width: 440px; height: 280px; }
 .tile--marquee { width: 1400px; height: 560px; }
 
-/* White backdrop with a whisper of brand tint so it isn't clinically flat. */
+/* Light indigo-tinted ground, matching the slides — not sterile white. */
 .bg { position: absolute; inset: 0; z-index: 0; }
 .bg {
   background:
-    radial-gradient(120% 120% at 8% 6%,   rgba(124,58,237,0.07) 0%, transparent 46%),
-    radial-gradient(120% 120% at 96% 96%,  rgba(16,185,129,0.07) 0%, transparent 48%),
-    #ffffff;
+    radial-gradient(120% 120% at 8% 6%,   rgba(72,48,144,0.10) 0%, transparent 46%),
+    radial-gradient(120% 120% at 96% 96%, rgba(30,142,77,0.06) 0%, transparent 48%),
+    linear-gradient(180deg, #fbfbfe 0%, #f6f6fb 55%, #eeedf7 100%);
 }
 
 .eyebrow {
-  display: inline-block;
-  font-weight: 800; letter-spacing: 0.18em; color: #fff;
-  background: linear-gradient(90deg, var(--violet), var(--emerald));
+  display: inline-flex; align-items: center; gap: 10px;
+  font-weight: 700; letter-spacing: 0.15em;
+  color: var(--violet);
+  background: rgba(72,48,144,0.07);
+  border: 1px solid rgba(72,48,144,0.35);
   border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(124,58,237,0.26);
+}
+.eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--violet);
 }
 h1 { color: var(--ink); font-weight: 850; letter-spacing: -0.03em; }
 .brand-suffix { font-weight: 600; color: var(--ink-soft); letter-spacing: -0.01em; white-space: nowrap; }
 .tile--small .brand-suffix { font-size: 0.6em; }
 .tile--marquee .brand-suffix { font-size: 0.66em; }
 p { color: var(--ink-soft); font-weight: 460; }
-.hl {
-  background: linear-gradient(90deg, #7c3aed 0%, #0d9488 55%, #059669 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-}
+/* keyword highlight — solid brand violet (single accent, no gradient text) */
+.hl { color: var(--violet); }
 /* Frameless icon (transparent PNG): no box, just a soft ground shadow. */
-.icon { filter: drop-shadow(0 12px 22px rgba(20,16,46,0.16)); }
+.icon { filter: drop-shadow(0 12px 22px rgba(33,28,48,0.16)); }
 
 /* ── Small tile: centred icon + wordmark + tagline ───────────────────────── */
 .tile--small .inner {
@@ -55,8 +60,8 @@ p { color: var(--ink-soft); font-weight: 460; }
 .tile--small p { font-size: 15px; line-height: 1.4; margin-top: 8px; max-width: 360px; }
 .tile--small .chip {
   margin-top: 14px; display: inline-flex; align-items: center; gap: 7px;
-  font-size: 13px; font-weight: 700; color: #4c3a9e;
-  background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.28);
+  font-size: 13px; font-weight: 700; color: var(--violet);
+  background: rgba(72,48,144,0.07); border: 1px solid rgba(72,48,144,0.35);
   padding: 5px 13px; border-radius: 999px;
 }
 
@@ -77,13 +82,17 @@ p { color: var(--ink-soft); font-weight: 460; }
 .tile--marquee .stage::before {
   content: ""; position: absolute; z-index: -1;
   width: 420px; height: 460px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.16) 0%, rgba(16,185,129,0.10) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(72,48,144,0.14) 0%, rgba(30,142,77,0.05) 48%, transparent 70%);
   filter: blur(20px);
 }
 .panel {
   position: relative; width: 340px; height: 440px;
   border-radius: 22px; overflow: hidden; background: #0f1115;
-  box-shadow: 0 0 0 1px rgba(20,16,46,0.06), -16px 0 70px rgba(124,58,237,0.18), 0 26px 60px rgba(20,16,46,0.22);
+  box-shadow:
+    0 0 0 1px rgba(33,28,48,0.10),
+    -16px 0 70px rgba(72,48,144,0.16),
+    0 26px 60px rgba(33,28,48,0.24),
+    0 12px 28px rgba(33,28,48,0.14);
   transform: rotate(-4deg);
 }
 .panel .shot {

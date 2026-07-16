@@ -26,11 +26,16 @@ export function parseVTT(vttString: string): Subtitle[] {
             const endMs = parseInt(match[8]);
             const endTime = (endH * 3600) + (endM * 60) + endS + (endMs / 1000);
 
-            // Extract text (everything after the timecode line)
+            // Extract text: the cue text starts on the line AFTER the timecode.
+            // Drop whatever remains on the timecode line — WebVTT cue settings
+            // (e.g. "position:50.00%,middle align:middle size:80.00% line:79.33%"),
+            // which streaming services like Netflix append after the timestamps.
             if (match.index === undefined) return;
-            const textPart = block.substring(match.index + match[0].length);
+            const afterTime = block.substring(match.index + match[0].length);
+            const newlineIdx = afterTime.indexOf('\n');
+            const textPart = newlineIdx === -1 ? '' : afterTime.substring(newlineIdx + 1);
             // also clean HTML tags (like <b>, <i>, <v Name>)
-            const text = textPart.trim().replace(/<[^>]+>/g, ''); 
+            const text = textPart.trim().replace(/<[^>]+>/g, '');
 
             if (text) {
                 subtitles.push({ startTime, endTime, text });
