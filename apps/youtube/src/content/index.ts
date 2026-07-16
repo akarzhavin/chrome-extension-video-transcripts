@@ -16,6 +16,7 @@ import { DEMO_UI_BY_LANG } from './demo-ui';
 import { bootstrapNetflix } from './netflix/app';
 import { watchControlsFloor } from './controlsFloor';
 import { installPlayerMenu } from './player-menu';
+import { isNetflix, isYouTube } from './site';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -650,11 +651,10 @@ function watchSidebarState(): void {
 }
 
 function bootstrap(): void {
-    const host = window.location.hostname;
     let app: BaseVttApp;
-    if (host.includes('netflix.com')) {
+    if (isNetflix()) {
         app = bootstrapNetflix();
-    } else if (host.includes('youtube.com')) {
+    } else if (isYouTube()) {
         injectLayoutOverrides();
         app = new YouTubeVttApp();
         watchSidebarState();

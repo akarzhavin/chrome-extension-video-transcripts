@@ -1,4 +1,5 @@
 import { installNetflixHook } from './netflix/manifest-hook';
+import { isNetflix } from './site';
 
 interface RawCaptionTrack {
     baseUrl: string;
@@ -20,7 +21,7 @@ interface PlayerResponse {
 // two sites capture subtitles in completely different ways, so branch up front:
 // Netflix hooks JSON.parse/stringify (see netflix/manifest-hook.ts); YouTube
 // sniffs the timedtext network calls below.
-if (location.hostname.includes('netflix.com')) {
+if (isNetflix()) {
     installNetflixHook();
 } else {
     installYouTubeHook();
