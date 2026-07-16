@@ -53,7 +53,7 @@
   "web_accessible_resources": [
     {
       "resources": ["src/assets/icons/player-btn.png"],
-      "matches": ["*://*.youtube.com/*"]
+      "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"]
     }
   ]
 }
