@@ -10,6 +10,20 @@ import {
 // exposes a WebVTT downloadable — the format the shared `parseVTT` understands.
 export const WEBVTT_PROFILE = 'webvtt-lssdh-ios8';
 
+// Is this manifest the one for what the user is watching right now?
+//
+// Netflix keeps the manifest's movieId and /watch/<id> in sync, so anything else
+// is a manifest for another title. `urlId` is null off a /watch page: that is a
+// mismatch, not a free pass — the hook answers an unnamed query with its newest
+// capture, so accepting a null urlId let a reply arriving just after the user
+// left a title strand currentMovieId on it and fetch its WebVTTs.
+export function isManifestForCurrentTitle(
+    movieId: string | null | undefined,
+    urlId: string | null | undefined,
+): boolean {
+    return !!movieId && movieId === urlId;
+}
+
 // A single downloadable inside a track's `ttDownloadables` map. Netflix has used
 // two shapes over time: a `downloadUrls` map keyed by CDN id, and a `urls` array.
 interface Downloadable {

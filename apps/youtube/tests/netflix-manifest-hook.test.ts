@@ -167,8 +167,11 @@ describe('netflix manifest hook cache', () => {
         expect(l.seen.map((m) => m.movieId)).toEqual(['111']);
     });
 
-    // A query with no id (content script has no /watch id yet) falls back to the
-    // most recent capture rather than going silent.
+    // A query with no id falls back to the most recent capture rather than going
+    // silent. The content script no longer sends one (queryManifest returns early
+    // off /watch, and handleManifest rejects a manifest whose id != the url id) —
+    // this stays the hook's documented contract for any other caller, but it is
+    // deliberately NOT the content script's stale-manifest defense.
     it('falls back to the newest manifest when the query names no title', async () => {
         JSON.parse(manifestJson('111'));
         JSON.parse(manifestJson('222'));

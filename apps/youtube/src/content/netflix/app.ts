@@ -9,7 +9,7 @@ import {
     buildLanguageCatalog,
     trackForBaseCode,
     baseLang,
-    pickWebvttUrl,
+    isManifestForCurrentTitle,
 } from './subtitles';
 
 /**
@@ -68,8 +68,14 @@ class NetflixVttApp extends BaseVttApp {
     // matters: without it the hook can only offer its most recent capture, which
     // on a slow-loading title is still the previous title's manifest — handleManifest
     // would discard it and the retry would be a no-op (see the hook's cache note).
+    //
+    // Off a /watch page there is no title to ask about, and an unnamed query is
+    // worse than none: the hook answers with its newest capture, i.e. the title
+    // the user just left.
     queryManifest(): void {
-        window.postMessage({ type: 'NFLX_QUERY', movieId: this.getVideoId() }, '*');
+        const movieId = this.getVideoId();
+        if (!movieId) return;
+        window.postMessage({ type: 'NFLX_QUERY', movieId }, '*');
     }
 
     setNativeSubtitlesEnabled(enabled: boolean): void {
@@ -120,9 +126,7 @@ class NetflixVttApp extends BaseVttApp {
         if (!movieId || !Array.isArray(rawTracks)) return;
         const urlId = this.getVideoId();
         console.log('[NFLX-VTT] manifest for', movieId, '(url id', urlId, ') raw tracks:', rawTracks.length);
-        // Netflix keeps the manifest movieId and /watch/<id> in sync; a mismatch
-        // means this is a stale manifest from a previously-played title.
-        if (urlId && movieId !== urlId) {
+        if (!isManifestForCurrentTitle(movieId, urlId)) {
             console.log('[NFLX-VTT] ignoring manifest — movieId != url id');
             return;
         }
@@ -136,22 +140,8 @@ class NetflixVttApp extends BaseVttApp {
             return;
         }
 
-        // TEMP DEBUG: dump the raw track shape so we can see why the picker fills
-        // with "Off" entries. Remove once the catalog builder is fixed.
-        console.log('[NFLX-VTT DEBUG] raw tracks:', rawTracks.map((t) => ({
-            language: t.language,
-            bcp47: t.bcp47,
-            languageDescription: t.languageDescription,
-            trackType: t.trackType,
-            isNoneTrack: t.isNoneTrack,
-            isForcedNarrative: t.isForcedNarrative,
-            hasWebvtt: !!pickWebvttUrl(t),
-        })));
-
         const tracks = normalizeTracks(rawTracks);
         this.currentTracks = tracks;
-        console.log('[NFLX-VTT DEBUG] normalized tracks:', tracks.map((t) => ({ language: t.language, base: t.base, label: t.label, isForced: t.isForced })));
-        console.log('[NFLX-VTT DEBUG] catalog:', buildLanguageCatalog(tracks).filter((l) => l.available));
         console.log('[NFLX-VTT] webvtt tracks:', tracks.map((t) => t.language), '| pair:', this.langPrefs);
 
         // Drive the settings-panel dropdowns as language pickers: full catalog

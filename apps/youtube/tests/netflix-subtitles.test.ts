@@ -7,6 +7,7 @@ import {
     decodeEntities,
     buildLanguageCatalog,
     trackForBaseCode,
+    isManifestForCurrentTitle,
     WEBVTT_PROFILE,
     NetflixRawTrack,
 } from '../src/content/netflix/subtitles';
@@ -280,5 +281,30 @@ describe('trackForBaseCode', () => {
     test('returns undefined for a language the title does not ship', () => {
         const tracks = normalizeTracks([raw('en')]);
         expect(trackForBaseCode(tracks, 'ja')).toBeUndefined();
+    });
+});
+
+describe('isManifestForCurrentTitle', () => {
+    test('accepts the manifest for the title in the url', () => {
+        expect(isManifestForCurrentTitle('111', '111')).toBe(true);
+    });
+
+    test('rejects a manifest for a different title', () => {
+        expect(isManifestForCurrentTitle('111', '222')).toBe(false);
+    });
+
+    // Regression: the guard used to short-circuit on a null urlId ("off /watch,
+    // so nothing to compare against — let it through"). Leaving a title made the
+    // url id null, and the hook answers an unnamed query with its newest capture,
+    // so the manifest for the title just left sailed through: currentMovieId was
+    // stranded on it and its WebVTTs were fetched.
+    test('rejects any manifest when the url names no title', () => {
+        expect(isManifestForCurrentTitle('111', null)).toBe(false);
+        expect(isManifestForCurrentTitle('111', undefined)).toBe(false);
+    });
+
+    test('rejects a manifest with no movieId', () => {
+        expect(isManifestForCurrentTitle(null, '111')).toBe(false);
+        expect(isManifestForCurrentTitle('', '')).toBe(false);
     });
 });
