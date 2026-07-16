@@ -85,11 +85,17 @@ const CC_ICON =
 
 type ModeKey = 'single' | 'dual' | 'guess';
 
-function row(id: string, className = ''): HTMLButtonElement {
+// Rows are menuitems: role="menu" only maps to a real menu for assistive tech if
+// its children carry menuitem roles, and a roving tabindex (one -1 by default,
+// the active row promoted to 0) is what makes arrow keys — not Tab — the way
+// through it, the way YouTube's own menus behave.
+function row(id: string, className = '', role = 'menuitem'): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.id = id;
     btn.type = 'button';
     btn.className = `vtt-ytp-row ${className}`.trim();
+    btn.setAttribute('role', role);
+    btn.tabIndex = -1;
     return btn;
 }
 
@@ -168,7 +174,7 @@ class PlayerMenu {
         // arrow-navigating the menu seeks the video.
         this.menu.addEventListener('keydown', (e) => {
             e.stopPropagation();
-            if (e.key === 'Escape') this.onEscape();
+            this.onKeyDown(e);
         });
 
         this.btn.addEventListener('click', (e) => {
@@ -266,7 +272,7 @@ class PlayerMenu {
         // Value on the right states the current mode, so the row explains
         // itself without opening (YouTube's own "Quality  1080p" pattern).
         this.modesRow = row('vtt-ytp-menu-modes');
-        this.modesRow.setAttribute('aria-haspopup', 'true');
+        this.modesRow.setAttribute('aria-haspopup', 'menu');
         const modesLabel = document.createElement('span');
         modesLabel.className = 'vtt-ytp-row-label';
         modesLabel.textContent = t('ytMenuModes', 'Mode');
@@ -315,13 +321,19 @@ class PlayerMenu {
         back.addEventListener('click', () => this.showPage('root'));
         page.appendChild(back);
 
+        // "group", not "radiogroup": the rows are menuitemradio now, and a
+        // radiogroup may only contain plain radios. group is the role that
+        // legally gathers menuitemradios inside a menu and still gives the set
+        // a name.
         const group = document.createElement('div');
-        group.setAttribute('role', 'radiogroup');
+        group.setAttribute('role', 'group');
         group.setAttribute('aria-label', t('ytMenuModes', 'Mode'));
 
         const make = (key: ModeKey, label: string, shortcut?: string): HTMLButtonElement => {
-            const btn = row(`vtt-ytp-mm-${key}`, 'vtt-ytp-row--radio');
-            btn.setAttribute('role', 'radio');
+            // menuitemradio, not radio: inside a menu the radio role is invalid
+            // (it wants a radiogroup parent that is not itself in a menu), and
+            // it costs nothing — aria-checked works identically on both.
+            const btn = row(`vtt-ytp-mm-${key}`, 'vtt-ytp-row--radio', 'menuitemradio');
             btn.setAttribute('aria-checked', 'false');
             btn.insertAdjacentHTML('afterbegin', CHECK);
             const text = document.createElement('span');
@@ -380,7 +392,14 @@ class PlayerMenu {
     }
 
     private showPage(page: 'root' | 'modes'): void {
+        const from = this.menu.dataset.page;
         this.menu.dataset.page = page;
+        // Follow the user across: the page they came from is gone, so leaving
+        // focus on its row would strand it on a display:none node. Only when the
+        // menu is already open and the page actually changed — open() calls this
+        // to reset to root before the menu is on screen, and focusing then would
+        // yank focus out of the video for a menu nobody opened yet.
+        if (!this.menu.hidden && from !== page) this.focusItem(this.activeItems()[0]);
     }
 
     // The CC button lives in the bar, so unlike the menu it's on screen all the
@@ -509,6 +528,11 @@ class PlayerMenu {
         this.btn.setAttribute('aria-expanded', 'true');
         this.anchor.classList.add('vtt-ytp-menu-open');
         this.render();
+        // After render(): it decides which rows exist this open (status and
+        // onboard come and go), so the first row isn't known until it has run.
+        // Focus goes INTO the menu — an opened menu the keyboard can't reach is
+        // the half that was missing; onEscape already hands focus back.
+        this.focusItem(this.activeItems()[0]);
         void this.renderAccount();
         const wake = (): void => window.postMessage({ type: 'YT_WAKE_CONTROLS' }, '*');
         wake();
@@ -523,6 +547,77 @@ class PlayerMenu {
         if (this.wakeTimer !== null) {
             clearInterval(this.wakeTimer);
             this.wakeTimer = null;
+        }
+    }
+
+    /** The rows a keyboard can reach on the page that's showing. */
+    private activeItems(): HTMLButtonElement[] {
+        const page = this.menu.querySelector<HTMLDivElement>(
+            `.vtt-ytp-page[data-page="${this.menu.dataset.page}"]`);
+        if (!page) return [];
+        return [...page.querySelectorAll<HTMLButtonElement>('[role^="menuitem"]')]
+            // hidden rows are real here (the status/onboard rows come and go),
+            // and a disabled row is skipped like YouTube skips its own.
+            .filter((el) => !el.hidden && !el.disabled);
+    }
+
+    // Roving tabindex: exactly one row is tabbable at a time, and it's the one
+    // with focus. Tab then leaves the menu instead of walking it — arrows walk.
+    private focusItem(item: HTMLButtonElement | undefined): void {
+        if (!item) return;
+        for (const el of this.activeItems()) el.tabIndex = el === item ? 0 : -1;
+        item.focus();
+    }
+
+    private moveFocus(delta: 1 | -1): void {
+        const items = this.activeItems();
+        if (!items.length) return;
+        const i = items.indexOf(document.activeElement as HTMLButtonElement);
+        // Wrap, and treat "focus isn't in the menu yet" as starting before the
+        // first row, so ArrowDown enters at the top and ArrowUp at the bottom.
+        const next = i === -1
+            ? (delta === 1 ? 0 : items.length - 1)
+            : (i + delta + items.length) % items.length;
+        this.focusItem(items[next]);
+    }
+
+    private onKeyDown(e: KeyboardEvent): void {
+        switch (e.key) {
+            case 'Escape':
+                this.onEscape();
+                return;
+            case 'ArrowDown':
+                e.preventDefault();
+                this.moveFocus(1);
+                return;
+            case 'ArrowUp':
+                e.preventDefault();
+                this.moveFocus(-1);
+                return;
+            case 'Home':
+                e.preventDefault();
+                this.focusItem(this.activeItems()[0]);
+                return;
+            case 'End': {
+                e.preventDefault();
+                const items = this.activeItems();
+                this.focusItem(items[items.length - 1]);
+                return;
+            }
+            // Left closes a submenu the way Escape does — the arrow that opened
+            // the way in (Right, on the Mode row) is the arrow that backs out.
+            case 'ArrowLeft':
+                if (this.menu.dataset.page === 'modes') {
+                    e.preventDefault();
+                    this.onEscape();
+                }
+                return;
+            case 'ArrowRight':
+                if (document.activeElement === this.modesRow) {
+                    e.preventDefault();
+                    this.showPage('modes');
+                }
+                return;
         }
     }
 
@@ -546,15 +641,28 @@ class PlayerMenu {
 }
 
 let current: PlayerMenu | null = null;
+let retryTimer: number | null = null;
 
 // Injects the mascot button + its menu into YouTube's own control bar
 // (.ytp-right-controls, alongside CC/settings/fullscreen). Idempotent and
 // self-healing: safe to call repeatedly, re-inserts if YouTube tears down and
 // rebuilds the control bar (SPA navigation), no-ops once present.
 export function installPlayerMenu(app: BaseVttApp): void {
+    // A control bar that's gone (SPA navigation to a player-less page) orphans
+    // the previous instance just as surely as a rebuilt one does — and unlike a
+    // rebuild there's no re-insert to carry the teardown, so it has to happen
+    // here or the subscription paints a detached button forever.
+    if (current && !document.getElementById(BTN_ID)) {
+        current.destroy();
+        current = null;
+    }
+
     const tryInsert = (): boolean => {
         if (document.getElementById(BTN_ID)) return true;
-        if (!app.uiOwned) return true; // second-copy guard, matches SidebarUI.init()
+        // Not ours to draw (a second copy owns the UI) — but ownership can
+        // resolve later, so this is "not yet", not "done". Reporting success
+        // here would retire the retry and the button would never appear.
+        if (!app.uiOwned) return false;
 
         const controls = document.querySelector('.ytp-right-controls');
         if (!controls) return false;
@@ -599,14 +707,26 @@ export function installPlayerMenu(app: BaseVttApp): void {
         return true;
     };
 
+    // Re-arming replaces the pending attempt rather than racing it: this runs on
+    // every yt-navigate-finish, including the home/search/channel pages where
+    // the player never appears, so an un-cleared timer per navigation would pile
+    // up (same store-and-clear shape as controlsFloor.watchControlsFloor).
+    if (retryTimer !== null) {
+        clearInterval(retryTimer);
+        retryTimer = null;
+    }
+
     if (!tryInsert()) {
         // .ytp-right-controls may not exist yet on first script run (player
         // still mounting) — retry briefly, then give up rather than polling
         // forever on a page where it never appears.
         let attempts = 0;
-        const iv = setInterval(() => {
+        retryTimer = window.setInterval(() => {
             attempts++;
-            if (tryInsert() || attempts >= 150) clearInterval(iv); // ~30s cap
+            if (tryInsert() || attempts >= 150) { // ~30s cap
+                clearInterval(retryTimer!);
+                retryTimer = null;
+            }
         }, 200);
     }
 

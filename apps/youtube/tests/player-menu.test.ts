@@ -215,8 +215,10 @@ describe('escape is stepwise', () => {
 });
 
 describe('reading mode', () => {
+    // menuitemradio, not radio: the rows live inside role="menu", where the
+    // plain radio role is invalid (it wants a radiogroup parent).
     const checked = () =>
-        Array.from(menu().querySelectorAll('[role=radio]'))
+        Array.from(menu().querySelectorAll('[role=menuitemradio]'))
             .filter(b => b.getAttribute('aria-checked') === 'true')
             .map(b => b.id);
 
@@ -531,5 +533,134 @@ describe('account row', () => {
         openMenu();
         const root = menu().querySelector('.vtt-ytp-page[data-page=root]')!;
         expect(root.firstElementChild!.id).toBe('vtt-ytp-menu-account');
+    });
+});
+
+// A player-less page (home/search/channel) is not a rebuild: there is no bar to
+// re-insert into, so nothing carries the teardown or retires the retry unless
+// install does it itself. installPlayerMenu runs on EVERY yt-navigate-finish.
+describe('navigation without a player', () => {
+    const noBar = () => { document.body.innerHTML = `<div id="movie_player"></div>`; };
+
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    test('repeated installs leave only one retry timer running', () => {
+        const setSpy = jest.spyOn(global, 'setInterval');
+        const clearSpy = jest.spyOn(global, 'clearInterval');
+        noBar();
+
+        for (let i = 0; i < 5; i++) installPlayerMenu(makeApp());
+
+        // Count LIVE timers (armed minus cleared), not cumulative arms: re-arming
+        // after clearing the previous is the intended shape, and it calls
+        // setInterval each time. Five browsed pages used to mean five concurrent
+        // pollers, each hitting the DOM 5x/s for 30s.
+        const live = setSpy.mock.results
+            .map((r) => r.value)
+            .filter((id) => !clearSpy.mock.calls.some(([c]) => c === id));
+        expect(live).toHaveLength(1);
+        setSpy.mockRestore();
+        clearSpy.mockRestore();
+    });
+
+    test('leaving a watch page drops the old menu subscription', () => {
+        const unsub = jest.fn();
+        const app = makeApp();
+        app.ui.onRefresh = jest.fn(() => unsub);
+
+        installPlayerMenu(app);          // watch page: mounts
+        noBar();                         // → home: bar gone, nothing to re-insert
+        installPlayerMenu(app);
+
+        // Without this the hook survives on a detached button and SidebarUI
+        // .refresh() paints it forever — one orphan per round trip.
+        expect(unsub).toHaveBeenCalled();
+    });
+});
+
+// uiOwned is the two-copies guard (an old CWS build + a dev build share #vtt-*
+// ids). It can flip to true after install — reporting "inserted" while not
+// owning the UI retires the retry and the button never appears.
+test('an install made while a second copy owns the UI retries once it lets go', () => {
+    jest.useFakeTimers();
+    const app = makeApp();
+    app.uiOwned = false;
+
+    installPlayerMenu(app);
+    expect(document.getElementById('vtt-ytp-overlay-btn')).toBeNull();
+
+    app.uiOwned = true;
+    jest.advanceTimersByTime(5000);
+    expect(document.getElementById('vtt-ytp-overlay-btn')).toBeTruthy();
+    jest.useRealTimers();
+});
+
+// role="menu" only maps to a menu for assistive tech if its children are
+// menuitems; arrow keys — not Tab — are how a menu is walked.
+describe('keyboard and ARIA', () => {
+    const items = () => Array.from(
+        menu().querySelectorAll<HTMLButtonElement>('.vtt-ytp-page[data-page=root] [role^=menuitem]'))
+        .filter((el) => !el.hidden && !el.disabled);
+    const key = (k: string) =>
+        menu().dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+
+    test('rows are menuitems and the menu is reachable', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        expect(items().length).toBeGreaterThan(0);
+        expect(menu().getAttribute('role')).toBe('menu');
+    });
+
+    test('opening moves focus to the first row', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        expect(document.activeElement).toBe(items()[0]);
+    });
+
+    test('arrows walk the rows and wrap', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        const rows = items();
+
+        key('ArrowDown');
+        expect(document.activeElement).toBe(rows[1]);
+        key('ArrowUp');
+        expect(document.activeElement).toBe(rows[0]);
+        key('ArrowUp'); // wraps to the end
+        expect(document.activeElement).toBe(rows[rows.length - 1]);
+    });
+
+    test('Home and End jump to the ends', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        const rows = items();
+        key('End');
+        expect(document.activeElement).toBe(rows[rows.length - 1]);
+        key('Home');
+        expect(document.activeElement).toBe(rows[0]);
+    });
+
+    // Roving tabindex: Tab leaves the menu, arrows walk it. Two tabbable rows
+    // would put the menu in the page's tab order twice.
+    test('exactly one row is tabbable, and it is the focused one', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        key('ArrowDown');
+        const tabbable = items().filter((el) => el.tabIndex === 0);
+        expect(tabbable).toEqual([document.activeElement]);
+    });
+
+    test('focus follows the page switch into the submenu and back', () => {
+        installPlayerMenu(makeApp());
+        openMenu();
+        document.getElementById('vtt-ytp-menu-modes')!
+            .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        // Focus must not stay on a row that is now display:none.
+        expect(menu().querySelector('.vtt-ytp-page[data-page=modes]')!
+            .contains(document.activeElement)).toBe(true);
+
+        key('Escape');   // stepwise: back to root, focus returns to its row
+        expect(document.activeElement!.id).toBe('vtt-ytp-menu-modes');
     });
 });
