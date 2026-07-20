@@ -1,0 +1,13 @@
+{
+  "name": "@video-transcripts/site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs && vite build",
+    "dev": "node build.mjs --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@video-transcripts/embed": "*"
+  }
+}

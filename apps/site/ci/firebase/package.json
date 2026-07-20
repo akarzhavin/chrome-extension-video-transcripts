@@ -1,0 +1,12 @@
+{
+  "name": "lingogram-site-ci-firebase",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinned firebase-tools toolchain for the landing page's Hosting deploy (installed via `npm ci`). Kept in its own directory so `npm ci` freezes the WHOLE dep tree — pinning firebase-tools alone would still let a transitive dep float. gaxios is pinned to 7.1.5 because 7.1.6 (2026-07-06) broke firebase's WIF STS token exchange (`Premature close`); google-auth-library@10.x requires gaxios ^7.1.4 so a fresh resolve would pull the broken 7.1.6. Mirrors frontend/ci/firebase in the english repo — update both together, and drop the override once gaxios ships a fix.",
+  "dependencies": {
+    "firebase-tools": "15.22.3"
+  },
+  "overrides": {
+    "gaxios": "7.1.5"
+  }
+}

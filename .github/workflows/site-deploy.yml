@@ -1,0 +1,105 @@
+# Deploys the landing page (apps/site) to Firebase Hosting.
+#
+# The landing page lives in this repo — not in the product repo it markets —
+# because its hero demo mounts the REAL extension sidebar via
+# packages/embed -> packages/shared. Moving it would fork the sidebar away from
+# the extensions that are its source of truth.
+#
+# It publishes to its OWN Hosting site (lingogram-web) in the lingogram-prod
+# project. The React app publishes to that project's DEFAULT site from a
+# separate GitLab pipeline. Two sites, because `firebase deploy` replaces a
+# site's contents wholesale — sharing one would make each deploy wipe the other.
+name: Deploy landing site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/site/**'
+      - 'packages/embed/**'
+      - 'packages/shared/**'
+      - '.github/workflows/site-deploy.yml'
+  # Manual re-deploy (e.g. to re-publish after a Hosting-side change).
+  workflow_dispatch:
+
+# Hosting deploys are not commutative — the last one to finish wins. Let a newer
+# commit supersede an in-flight deploy, but never cancel one midway.
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # required to mint the OIDC token for WIF
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # firebase-tools' superstatic requires node 20/22/24 — not latest.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install workspace deps
+        run: npm ci
+
+      # Order matters: apps/site imports the BUILT @video-transcripts/embed
+      # (its package main points at dist/), so the site build fails outright if
+      # embed hasn't been built first. dist/ is a build artifact, not committed.
+      - name: Build embed
+        run: npm run build -w @video-transcripts/embed
+
+      - name: Build site
+        run: npm run build -w @video-transcripts/site
+
+      # Keyless via Workload Identity Federation — no service-account JSON key
+      # exists to leak. The SA behind GCP_DEPLOY_SA holds ONLY
+      # roles/firebasehosting.admin, so a compromise of this workflow cannot
+      # reach Firestore, Secret Manager or project IAM.
+      #
+      # Deliberately no `audience:` input: the action defaults to sending the
+      # WIF provider's own resource name, which is what the provider (whose
+      # allowed_audiences is unset) requires. Do not add a fixed audience here
+      # to chase an aud mismatch — see infrastructure/bootstrap/hosting.tf.
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: lingogram-prod
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      # firebase-tools comes from the committed lockfile in apps/site/ci/firebase
+      # rather than `npm i -g`: `npm ci` freezes the WHOLE dep tree. gaxios is
+      # held at 7.1.5 there because 7.1.6 broke firebase's WIF STS token
+      # exchange ("Premature close"). See that package.json before bumping.
+      - name: Install pinned firebase-tools
+        working-directory: apps/site/ci/firebase
+        run: npm ci
+
+      - name: Deploy to Firebase Hosting
+        working-directory: apps/site
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+        run: |
+          # Redeploying content identical to the live version is a no-op, not a
+          # failure — firebase exits non-zero for it, so treat that one case as
+          # success. set +e keeps the exit code for inspection instead of
+          # letting the shell abort on it.
+          set +e
+          ./ci/firebase/node_modules/.bin/firebase deploy \
+            --only hosting:lingogram-web \
+            --project lingogram-prod \
+            --non-interactive > /tmp/fb_deploy.log 2>&1
+          ec=$?
+          cat /tmp/fb_deploy.log
+          if [ "$ec" -ne 0 ] && grep -q "is the current active version" /tmp/fb_deploy.log; then
+            echo ">> Build identical to the live version — nothing to release; treating as success."
+            exit 0
+          fi
+          exit "$ec"

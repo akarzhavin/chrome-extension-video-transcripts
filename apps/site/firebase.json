@@ -1,0 +1,76 @@
+{
+  "hosting": {
+    "site": "lingogram-web",
+    "public": "build",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "redirects": [
+      {
+        "source": "/words{,/**}",
+        "destination": "/app/",
+        "type": 301
+      },
+      {
+        "source": "/login",
+        "destination": "/app/login",
+        "type": 301
+      },
+      {
+        "source": "/register",
+        "destination": "/app/register",
+        "type": 301
+      },
+      {
+        "source": "/pricing",
+        "destination": "/app/pricing",
+        "type": 301
+      },
+      {
+        "source": "/extension-auth",
+        "destination": "/app/extension-auth",
+        "type": 301
+      },
+      {
+        "source": "/tutor{,/**}",
+        "destination": "/app/tutor",
+        "type": 301
+      },
+      {
+        "source": "/student{,/**}",
+        "destination": "/app/student",
+        "type": 301
+      },
+      {
+        "source": "/admin{,/**}",
+        "destination": "/app/admin",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/app{,/**}",
+        "site": "lingogram-prod"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(css|js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=0, must-revalidate"
+          }
+        ]
+      }
+    ]
+  }
+}

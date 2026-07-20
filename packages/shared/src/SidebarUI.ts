@@ -98,6 +98,15 @@ export class SidebarUI {
     // Presentation-only overlay style prefs. Held locally (AppState owns
     // playback/track state); mirrored to chrome.storage.local via savePrefs.
     private overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
+    // Where the sidebar lives outside fullscreen; captured on the way in so it
+    // can be put back exactly there (see setupFullscreenHandling).
+    private homeParent: HTMLElement | null = null;
+    // Teardown for everything bound outside the sidebar's own subtree —
+    // document/chrome.storage listeners that removing the DOM would not undo.
+    // The extensions live for the page's lifetime and never call destroy(), but
+    // an embed (packages/embed) can remount, and a stale instance still
+    // listening for `fullscreenchange` would resurrect its own sidebar.
+    private teardown: Array<() => void> = [];
 
     constructor(state: AppState, app: AppInterface) {
         this.state = state;
@@ -667,7 +676,7 @@ export class SidebarUI {
             this.refresh();
         }).catch(() => {});
 
-        onPrefsChanged((prefs) => {
+        this.teardown.push(onPrefsChanged((prefs) => {
             let changed = false;
             if (this.state.displayMode !== prefs.displayMode) {
                 this.state.displayMode = prefs.displayMode;
@@ -683,7 +692,7 @@ export class SidebarUI {
                 if (prefs.sidebarCollapsed) this.closeSettingsPanel();
             }
             if (changed) this.refresh();
-        });
+        }));
     }
 
     // Copies overlay-style fields from a Prefs snapshot into local state, then
@@ -800,19 +809,35 @@ export class SidebarUI {
         this.updateControls();
     }
 
+    /**
+     * Unbind everything outside the sidebar's own DOM and drop the elements it
+     * owns. Safe to call more than once.
+     */
+    destroy(): void {
+        for (const off of this.teardown.splice(0)) off();
+        this.elements.sidebar?.remove();
+        document.getElementById('vtt-video-overlay')?.remove();
+        this.elements = {};
+    }
+
     setupFullscreenHandling(): void {
-        document.addEventListener('fullscreenchange', () => {
+        const onFullscreenChange = (): void => {
             const sidebar = this.elements.sidebar;
             if (!sidebar) return;
 
             if (document.fullscreenElement) {
+                // Remember where it came from: in the extensions that's <body>,
+                // but embedded in a page (packages/embed) it's the layout column
+                // it belongs to. Returning it to <body> there would leave it
+                // fixed against the whole document instead of the demo block.
+                this.homeParent = sidebar.parentElement;
                 sidebar.style.display = 'flex';
                 sidebar.classList.add('fullscreen');
                 this.applyCollapsed(true); // transient — deliberately not persisted
                 this.closeSettingsPanel();
                 document.fullscreenElement.appendChild(sidebar);
             } else {
-                document.body.appendChild(sidebar);
+                (this.homeParent ?? document.body).appendChild(sidebar);
                 sidebar.classList.remove('fullscreen');
                 const isTopWindow = window === window.top;
                 if (!isTopWindow) {
@@ -832,7 +857,12 @@ export class SidebarUI {
             // Re-parenting resets list scroll to 0. state.currentIndex is unchanged,
             // so highlightSubtitle wouldn't re-scroll on its own — do it explicitly.
             this.scrollActiveIntoView('instant');
-        });
+        };
+
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        this.teardown.push(() =>
+            document.removeEventListener('fullscreenchange', onFullscreenChange),
+        );
     }
 
     private pickScrollMode(targetIndex: number, fromIndex: number): ScrollMode {
@@ -840,9 +870,21 @@ export class SidebarUI {
         return Math.abs(targetIndex - fromIndex) <= NEARBY_SUBTITLE_THRESHOLD ? 'smooth' : 'instant';
     }
 
+    // Scroll the list itself rather than calling scrollIntoView on the item:
+    // scrollIntoView walks up and scrolls EVERY scrollable ancestor, including
+    // the page. The sidebar is fixed in the extensions so nothing above it can
+    // scroll, but embedded in a page (packages/embed) that would yank the
+    // document back to the player on every new line, fighting the reader.
     private scrollActiveIntoView(mode: ScrollMode): void {
-        const active = this.elements.list?.querySelector('.vtt-item.active-sub');
-        active?.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
+        const list = this.elements.list;
+        const active = list?.querySelector<HTMLElement>('.vtt-item.active-sub');
+        if (!list || !active) return;
+        // Measured, not offsetTop: #vtt-list is not a positioned ancestor, so
+        // offsetTop would be relative to something further up the tree.
+        const listBox = list.getBoundingClientRect();
+        const itemBox = active.getBoundingClientRect();
+        const delta = itemBox.top - listBox.top - (listBox.height - itemBox.height) / 2;
+        list.scrollTo({ top: list.scrollTop + delta, behavior: mode as ScrollBehavior });
     }
 
     private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
@@ -1222,7 +1264,13 @@ export class SidebarUI {
         const mainTrack = this.state.getMainTrack();
         if (!mainTrack || !this.elements.list) return;
 
-        const activeIndex = mainTrack.findIndex(s => currentTime >= s.startTime && currentTime <= s.endTime);
+        // End-exclusive: adjacent cues share a boundary (one's endTime is the
+        // next's startTime), so `<= endTime` would match BOTH at that instant
+        // and findIndex returns the earlier one. Clicking a line seeks to its
+        // startTime — exactly a shared boundary — which would flash the
+        // previous line active for a frame before playback moved on. `<` makes
+        // the boundary belong to the cue that starts there.
+        const activeIndex = mainTrack.findIndex(s => currentTime >= s.startTime && currentTime < s.endTime);
 
         if (activeIndex !== this.state.currentIndex) {
             this.moveActiveSubtitleClass(activeIndex);
@@ -1241,8 +1289,10 @@ export class SidebarUI {
 
         newActive.classList.add('active-sub');
         if (!this.state.isHovering) {
-            const mode = this.pickScrollMode(newIndex, this.state.currentIndex);
-            newActive.scrollIntoView({ behavior: mode as ScrollBehavior, block: 'center' });
+            // Via scrollActiveIntoView, which scrolls the list alone: this runs
+            // on every subtitle change, so scrollIntoView here would drag the
+            // whole page back to the player throughout playback.
+            this.scrollActiveIntoView(this.pickScrollMode(newIndex, this.state.currentIndex));
         }
     }
 
@@ -1284,6 +1334,24 @@ export class SidebarUI {
         if (!parent) return null;
         const overlay = document.createElement('div');
         overlay.id = 'vtt-video-overlay';
+        // In guess mode, the overlay reveals words one at a time exactly like a
+        // click on the sidebar line does: same reveal, same seek, same reach of
+        // the full translation once every word is out. The listener lives on the
+        // container (not the inner div, which updateOverlay rebuilds every
+        // ~250ms) so it survives those rebuilds.
+        overlay.addEventListener('click', () => {
+            if (this.state.displayMode !== 'guess') return;
+            // A drag-select inside the overlay fires this click too; skip the
+            // reveal so the quick-add pill from a selection stays usable.
+            if (hasSelectionInside(overlay)) return;
+            const index = this.state.currentIndex;
+            const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+            if (!sub) return;
+            this.state.revealNextWord(index);
+            this.updateGuessItem(index);
+            this.updateOverlay(index);
+            this.app.seekVideo(sub.startTime);
+        });
         parent.appendChild(overlay);
         this.applyOverlayStyle();
         return overlay;
