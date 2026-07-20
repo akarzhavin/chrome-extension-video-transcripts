@@ -612,10 +612,15 @@ function build() {
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
 
+  // Counted rather than recomputed: a hardcoded total silently drifts the
+  // moment a page is added or dropped, which is how it came to claim 9 while
+  // writing 8.
+  let pages = 0;
   const write = (rel, html) => {
     const file = path.join(OUT, rel);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, html);
+    pages += 1;
   };
 
   write('index.html', homePage());
@@ -642,7 +647,6 @@ function build() {
   if (fs.existsSync(clip)) fs.copyFileSync(clip, path.join(OUT, 'demo-clip.mp4'));
   else console.warn('warning: src/assets/demo-clip.mp4 missing — the demo\'s fallback video will 404 (see comment above for the ffmpeg command)');
 
-  const pages = 6 + EDITIONS.editions.length;
   console.log(`built ${pages} pages → ${path.relative(process.cwd(), OUT)}`);
 }
 

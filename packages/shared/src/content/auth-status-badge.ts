@@ -266,7 +266,13 @@ export function refreshAuthStatusBadge(): void {
     if (badge) void render(badge);
 }
 
-export function installAuthStatusBadge(): void {
+/**
+ * Returns a teardown. The extensions never call it — they live for the page's
+ * lifetime — but an embed (packages/embed) can remount, and a second install
+ * would stack another outside-click handler and another storage subscriber on
+ * top of the first.
+ */
+export function installAuthStatusBadge(): () => void {
     let attached = false;
 
     const tryAttach = (): void => {
@@ -289,25 +295,32 @@ export function installAuthStatusBadge(): void {
     };
 
     tryAttach();
+    // Held so teardown can disconnect it even if the sidebar never appeared —
+    // otherwise this observer walks every DOM mutation for the page's lifetime.
+    let observer: MutationObserver | null = null;
     if (!attached) {
-        const observer = new MutationObserver(() => {
+        observer = new MutationObserver(() => {
             tryAttach();
-            if (attached) observer.disconnect();
+            if (attached) observer?.disconnect();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
     // Close panel on outside click.
-    document.addEventListener('mousedown', (e) => {
+    const onMouseDown = (e: MouseEvent): void => {
         const panel = document.getElementById(PANEL_ID);
         const badge = document.getElementById(BADGE_ID);
         if (!panel) return;
         if (badge && (badge === e.target || badge.contains(e.target as Node))) return;
         closePanel();
-    });
+    };
+    document.addEventListener('mousedown', onMouseDown);
 
     // React to background-side auth changes (sign-in from popup, sign-out, ADD_WORD counter).
-    chrome.storage.onChanged.addListener((changes, areaName) => {
+    const onStorageChanged = (
+        changes: Record<string, unknown>,
+        areaName: string,
+    ): void => {
         if (areaName !== 'local') return;
         if (
             'auth.idToken' in changes ||
@@ -318,5 +331,12 @@ export function installAuthStatusBadge(): void {
             const badge = document.getElementById(BADGE_ID);
             if (badge) render(badge);
         }
-    });
+    };
+    chrome.storage.onChanged.addListener(onStorageChanged);
+
+    return () => {
+        observer?.disconnect();
+        document.removeEventListener('mousedown', onMouseDown);
+        chrome.storage.onChanged.removeListener(onStorageChanged);
+    };
 }

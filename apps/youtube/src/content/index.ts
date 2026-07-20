@@ -16,6 +16,7 @@ import { DEMO_UI_BY_LANG } from './demo-ui';
 import { bootstrapNetflix } from './netflix/app';
 import { watchControlsFloor } from './controlsFloor';
 import { installPlayerMenu } from './player-menu';
+import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
@@ -673,6 +674,10 @@ function bootstrap(): void {
     // so gate it on owning the sidebar — otherwise it grafts into a sidebar
     // built by another installed copy of the extension.
     if (window === window.top && app.uiOwned) installAuthStatusBadge();
+    // Dev-only, URL-gated: dump the parsed tracks as demo-subs.json for the
+    // site's hero demo. Inert without `#vtt-export` in the URL; watches for the
+    // flag being appended to an already-open tab.
+    watchSubsExport(app.state);
 }
 
 bootstrap();

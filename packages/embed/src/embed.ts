@@ -181,14 +181,18 @@ export function mount(options: EmbedOptions): EmbedInstance {
     document.addEventListener('fullscreenchange', onFullscreen);
 
     // The extension's own content modules, unmodified: selection → save pill
-    // with its toast, and the account/word-count badge.
-    installQuickAddOverlay();
-    installAuthStatusBadge();
+    // with its toast, and the account/word-count badge. Both bind document-level
+    // listeners, so their teardowns are collected — a remount (the YouTube→file
+    // fallback) would otherwise stack a second set and fire each twice.
+    const pageTeardown: Array<() => void> = [
+        installQuickAddOverlay(),
+        installAuthStatusBadge(),
+    ];
     refreshAuthStatusBadge();
 
     renderLanguagePairChip(state, ui, tracks);
 
-    if (ownChrome) renderPlayerChrome(container, player, state, ui);
+    if (ownChrome) pageTeardown.push(renderPlayerChrome(container, player, state, ui));
     // The YouTube source has no fullscreen at all: its native button is
     // removed (player.ts, fs: 0) because it would full-screen the cross-origin
     // iframe, where the transcript cannot follow, and a stage-level substitute
@@ -248,6 +252,7 @@ export function mount(options: EmbedOptions): EmbedInstance {
             document.getElementById('lingogram-quick-add-toast')?.remove();
             document.getElementById('lingogram-auth-badge')?.remove();
             document.getElementById('lingogram-auth-panel')?.remove();
+            for (const off of pageTeardown.splice(0)) off();
             container.innerHTML = '';
             container.classList.remove('lingogram-embed', 'lge-no-tab', 'lge-collapsed');
             restoreChrome();
@@ -361,9 +366,10 @@ const LINGOGRAM_PILL = `
 // A minimal player bar so the embed reads as a video player: progress, time,
 // and a Lingogram button next to CC — the same affordance the YouTube edition
 // adds to the real player toolbar.
-function renderPlayerChrome(container: HTMLElement, player: PlayerHandle, state: AppState, ui: SidebarUI): void {
+// Returns a teardown for the document-level listeners wireLingogramPill binds.
+function renderPlayerChrome(container: HTMLElement, player: PlayerHandle, state: AppState, ui: SidebarUI): () => void {
     const bar = container.querySelector<HTMLElement>('[data-lge-controls]');
-    if (!bar) return;
+    if (!bar) return () => {}; // nothing rendered, nothing to unbind
 
     // A replica of YouTube's control bar. The real one is unreachable (it lives
     // in a cross-origin iframe), so the demo rebuilds it: same 48px row, same
@@ -544,12 +550,12 @@ function renderPlayerChrome(container: HTMLElement, player: PlayerHandle, state:
         player.paused() ? player.play() : player.pause();
     });
 
-    wireLingogramPill(bar, state, ui);
+    return wireLingogramPill(bar, state, ui);
 }
 
 // Wires the shared pill: the mascot's menu and the subtitle toggle. `root` is
 // whatever element the pill was rendered into.
-function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): void {
+function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): () => void {
     // The mascot opens the menu — the same affordance as the YouTube edition's
     // player button. The extension's own menu also carries account and
     // subtitle-health rows; both are meaningless here (no sign-in, tracks are
@@ -597,10 +603,14 @@ function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): v
         menuBtn.setAttribute('aria-expanded', 'true');
     });
 
-    document.addEventListener('click', () => { if (!menu.hidden) closeMenu(); });
-    document.addEventListener('keydown', (e) => {
+    // Held for teardown: these close over `menu`, which destroy() detaches, so
+    // a remount would leave them poking a dead element on every page click.
+    const onDocClick = (): void => { if (!menu.hidden) closeMenu(); };
+    const onDocKeydown = (e: KeyboardEvent): void => {
         if (e.key === 'Escape' && !menu.hidden) closeMenu();
-    });
+    };
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onDocKeydown);
 
     menu.addEventListener('click', (e) => {
         // Any click on the stage plays/pauses the video, and the document
@@ -630,5 +640,10 @@ function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): v
         ui.toggleOverlay();
         subs.setAttribute('aria-checked', String(state.overlayEnabled));
     });
+
+    return () => {
+        document.removeEventListener('click', onDocClick);
+        document.removeEventListener('keydown', onDocKeydown);
+    };
 }
 

@@ -816,7 +816,15 @@ export class SidebarUI {
     destroy(): void {
         for (const off of this.teardown.splice(0)) off();
         this.elements.sidebar?.remove();
+        // The toggle tab is BORN inside the sidebar but a host may re-parent it
+        // (packages/embed moves it onto its own tab slot, and fullscreen moves
+        // it again), so removing the sidebar no longer takes it along. It is not
+        // kept in `elements`, so go by id — otherwise a remount leaves a dead
+        // tab behind.
+        document.getElementById('vtt-toggle-btn')?.remove();
         document.getElementById('vtt-video-overlay')?.remove();
+        // Nothing may outlive this instance holding a detached node.
+        this.homeParent = null;
         this.elements = {};
     }
 

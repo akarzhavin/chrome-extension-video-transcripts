@@ -5,13 +5,13 @@ scratchpad for editing the English copy. After editing here, sync changes
 INTO store-descriptions.i18n.json — do not paste this file into the store.
 ==================================================================
 
-Dual subtitles for HDrezka in English and Russian — and every word you look up
-can stay with you. Catch a line, save it in one tap, and build a vocabulary as
-you watch.
+Dual subtitles for HDrezka — the original and your language side by side — and
+every word you look up can stay with you. Catch a line, save it in one tap, and
+build a vocabulary as you watch.
 
 Watch on HDrezka in the original and Lingogram turns the subtitles into an
-active lesson. When a title carries two subtitle tracks — English plus Russian
-is the common pair — it shows both at the same time as dual subtitles (also
+active lesson. When a title carries two subtitle tracks — the original plus a
+translation — it shows both at the same time as dual subtitles (also
 called bilingual or double subtitles), so you match every line to your own
 language without pausing. Add an interactive transcript, a listen-first
 challenge, and one-tap word saving, and those movie nights start teaching you
@@ -33,16 +33,16 @@ HOW IT WORKS
 
 Most HDrezka titles carry a single subtitle track — usually English — and that
 alone powers the transcript, listening challenge, and word saving. When a title
-also offers a track in your other language (English plus Russian is the usual
-pair), Lingogram shows both as dual subtitles. There's no machine translation
+also offers a track in a second language (English plus Russian, for example),
+Lingogram shows both as dual subtitles. There's no machine translation
 here: Lingogram only ever shows the subtitle tracks a title actually has.
 
 
 WHY IT STICKS
 
 DUAL SUBTITLES
-Some HDrezka titles carry more than one subtitle track — English plus Russian is
-the common pair. When they do, Lingogram puts both on screen at once, so you can
+Some HDrezka titles carry more than one subtitle track — the original plus a
+translation. When they do, Lingogram puts both on screen at once, so you can
 match every line to your own language, then hide the translation once you're
 ready to really listen. Only one track on a title? The transcript, listening
 challenge, and word saving all still work on it.
@@ -111,7 +111,7 @@ already enjoy. Works across single movies and full multi-season series alike.
 WHO IT'S FOR
 • If you watch HDrezka in the original and want to understand it without pausing
   for the dictionary — this is built for you.
-• Russian speakers who watch films in the original to level up their English.
+• Anyone who watches HDrezka in the original to level up their English.
 • People learning Russian from the movies and series everyone's streaming.
 • Students preparing for IELTS, TOEFL, or TORFL.
 • Self-learners who'd rather learn from movies than grind a textbook.

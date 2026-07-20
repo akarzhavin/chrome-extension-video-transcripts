@@ -753,14 +753,18 @@ function bootstrap(): void {
     let isRezka = false;
     const isTopWindow = window === window.top;
 
+    // The manifest matches <all_urls> so we catch every rezka/hdrezka mirror
+    // (rotating hash hosts, standby-*, arbitrary TLDs) without maintaining a
+    // domain list. Any host containing "rezka" — which also covers "hdrezka" —
+    // qualifies; everything else bails out here.
     if (isTopWindow) {
-        if (window.location.hostname.includes('rezka.ag') || window.location.hostname.includes('hdrezka')) {
+        if (window.location.hostname.includes('rezka')) {
             isRezka = true;
         }
     } else {
         if (window.location.ancestorOrigins) {
             for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
-                if (window.location.ancestorOrigins[i].includes('rezka.ag') || window.location.ancestorOrigins[i].includes('hdrezka')) {
+                if (window.location.ancestorOrigins[i].includes('rezka')) {
                     isRezka = true;
                     break;
                 }
