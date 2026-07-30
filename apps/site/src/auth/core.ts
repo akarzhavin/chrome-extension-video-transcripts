@@ -102,7 +102,12 @@ async function backend(
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error('Could not reach your account (' + res.status + '). ' + text);
+    // Carry the HTTP status as a firebaseCode so callers can branch (e.g.
+    // registerUser distinguishes "account created but profile setup failed").
+    throw new AuthError(
+      'Could not reach your account (' + res.status + '). ' + text,
+      'backend/' + res.status,
+    );
   }
   return res.json().catch(() => ({}));
 }
@@ -130,12 +135,28 @@ export async function registerUser(
   } catch (err) {
     throw toAuthError(err);
   }
+  // The Firebase account now EXISTS. If the profile call fails past this point,
+  // the account is created but has no app profile — don't surface the raw
+  // backend/network error (that's how a gateway 500 or CORS failure reached the
+  // user as "Failed to fetch"). Give an actionable message: the account is made,
+  // so signing in will finish setup (GET /auth/me auto-creates the profile).
   const fullName = opts.fullName || opts.email.split('@')[0];
-  const user = await backend(cfg, 'POST', '/auth/register', cred.idToken, {
-    email: opts.email,
-    password: opts.password,
-    full_name: fullName,
-  });
+  let user;
+  try {
+    user = await backend(cfg, 'POST', '/auth/register', cred.idToken, {
+      email: opts.email,
+      password: opts.password,
+      full_name: fullName,
+    });
+  } catch (err) {
+    // Stable code (not the raw HTTP status) so entry.ts can reliably route this
+    // to "log in instead" — the account exists, login (GET /auth/me) finishes setup.
+    throw new AuthError(
+      'Your account was created, but we could not finish setting up your ' +
+        'profile. Please try logging in — it will complete automatically.',
+      'backend/register-failed',
+    );
+  }
   return { uid: cred.uid, user };
 }
 

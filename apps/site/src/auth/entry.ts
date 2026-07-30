@@ -153,6 +153,13 @@ function initRegister(): void {
         offerLoginInstead(errEl, email);
         throw new Error(''); // suppress the generic line; we showed a better one
       }
+      // Profile setup failed AFTER the Firebase account was created (see
+      // registerUser). The account exists, so logging in finishes setup — route
+      // to the same "log in instead" path rather than a dead-end error.
+      if (code === 'backend/register-failed') {
+        offerLoginInstead(errEl, email);
+        throw new Error('');
+      }
       throw err;
     }
     rememberEmail('');

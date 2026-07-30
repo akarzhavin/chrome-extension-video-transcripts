@@ -163,6 +163,22 @@ describe('registerUser', () => {
       registerUser(ops, CFG, { email: 'dup@example.com', password: 'testpass123' }),
     ).rejects.toThrow(/already exists/i);
   });
+
+  it('when the profile call fails after the account is created, throws an actionable AuthError (not the raw backend/network error)', async () => {
+    // The Firebase account is created (SDK ok), but /auth/register returns 500 —
+    // the exact preprod failure (SA lacked firebaseauth.admin) that reached users
+    // as "Failed to fetch". The account exists, so the message must point to login.
+    mockFetch([{ ok: false, body: 'Internal Server Error' }]);
+    const err: any = await registerUser(fakeOps(), CFG, { email: 'new@example.com', password: 'testpass123' })
+      .then(() => { throw new Error('expected rejection'); }, (e) => e);
+    // Actionable message pointing to login; the raw "Could not reach" is suppressed.
+    expect(err.message).toMatch(/account was created.*try logging in/i);
+    expect(err.message).not.toMatch(/could not reach/i);
+    // Carries the stable code entry.ts routes to offerLoginInstead (not a bare
+    // Error, and not the raw HTTP status which would miss the guard).
+    expect(err).toBeInstanceOf(AuthError);
+    expect(err.firebaseCode).toBe('backend/register-failed');
+  });
 });
 
 describe('loginUser', () => {
