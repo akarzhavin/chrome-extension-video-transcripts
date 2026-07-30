@@ -9,5 +9,5 @@
     "noEmit": true,
     "types": ["chrome"]
   },
-  "include": ["src/demo/**/*.ts"]
+  "include": ["src/demo/**/*.ts", "src/auth/**/*.ts"]
 }

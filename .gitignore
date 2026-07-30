@@ -36,3 +36,7 @@ competitor-extensions/
 # Root docs: strategy / keyword-research / listing working notes (leading slash
 # so app docs like apps/rezka/docs/ stay tracked)
 /docs/
+
+# Local-only dev server that stitches the landing + SPA on one origin (mirrors
+# the prod firebase.json rewrite). Not shipped — CI builds and deploys the site.
+apps/site/dev-serve.mjs

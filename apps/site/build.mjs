@@ -63,7 +63,8 @@ const header = () => `
     Lingogram
   </a>
   <nav class="top">${navLinks}</nav>
-  <a class="btn btn-ghost btn-login" href="${SITE.appUrl}">Log in</a>
+  <a class="btn btn-ghost btn-login" href="/login/">Log in</a>
+  <a class="btn btn-primary btn-login" href="/register/">Sign up</a>
   <details class="mnav">
     <summary aria-label="Menu">☰</summary>
     <div class="mnav-panel">${navLinks}</div>
@@ -295,7 +296,10 @@ const qa = (items) => items.map((f) => `
     <p>${esc(f.a)}</p>
   </details>`).join('');
 
-const layout = ({ title, description, pathName, body }) => `<!doctype html>
+// `scripts` overrides the default page scripts (main.js + demo.js). The auth
+// pages pass their own set so they don't pull the demo bundle. `extraHead`
+// injects extra <head> markup (auth pages set window.LINGOGRAM_APP_URL).
+const layout = ({ title, description, pathName, body, scripts, extraHead }) => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -309,11 +313,11 @@ const layout = ({ title, description, pathName, body }) => `<!doctype html>
 <meta property="og:type" content="website">
 <link rel="icon" href="/logo.png" type="image/png">
 <link rel="stylesheet" href="/site.css?v=${BUST}">
-</head>
+${extraHead || ''}</head>
 <body>
 ${body}
-<script src="/main.js?v=${BUST}" defer></script>
-<script src="/demo.js?v=${BUST}" defer></script>
+${scripts || `<script src="/main.js?v=${BUST}" defer></script>
+<script src="/demo.js?v=${BUST}" defer></script>`}
 </body>
 </html>`;
 
@@ -592,6 +596,114 @@ ${footer()}
 // shipped. SITE.appUrl now points at /app/, served by the React SPA on its own
 // Hosting site, and firebase.json 301s the old /words/ path onto it.
 
+// ---------------------------------------------------------------- auth pages
+//
+// login/register live on the marketing site (not the SPA) so a visitor can
+// sign up without loading the app bundle. The password never touches our
+// backend: src/js/auth.js runs signUp / signInWithPassword against Firebase's
+// REST surface, then calls auth-service (/auth/register, /auth/me) with the
+// resulting ID token — the same model the extension uses.
+//
+// Google is different: signInWithPopup lives only in the Firebase Web SDK, so
+// it ships as a separate ES-module bundle (auth-google.js, built by
+// vite.auth.config.ts) loaded with type="module". auth-config.js runs first so
+// window.LINGOGRAM_AUTH is set before either script reads it.
+// auth.js and auth-google.js are ES-module bundles (built by vite.auth.config.ts
+// from src/auth/*). auth-config.js runs first (classic script) so
+// window.LINGOGRAM_AUTH is set before the modules read it.
+const authScripts = `<script>window.LINGOGRAM_APP_URL=${JSON.stringify(SITE.appUrl)};</script>
+<script src="/auth-config.js?v=${BUST}" defer></script>
+<script src="/main.js?v=${BUST}" defer></script>
+<script type="module" src="/auth.js?v=${BUST}"></script>
+<script type="module" src="/auth-google.js?v=${BUST}"></script>`;
+
+// Google button + "or" divider, shared by both forms. The button carries
+// data-google-auth; auth-google.js finds it and wires signInWithPopup.
+const googleAuth = (label) => `
+    <button type="button" class="btn btn-ghost auth-google" data-google-auth>
+      <svg class="auth-google-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1 .7-2.4 1.1-4 1.1-3 0-5.6-2-6.6-4.8H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.8v-3H1.4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.4 6.8 9 4.8 12 4.8z"/></svg>
+      ${label}
+    </button>
+    <div class="auth-divider"><span>or</span></div>`;
+
+// Eye toggle SVG for the show/hide-password control.
+const EYE_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="eye-open" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle class="eye-open" cx="12" cy="12" r="3"/><path class="eye-off" d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.4 5.2A9.6 9.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.4 3.3M6.1 6.1A17 17 0 0 0 2 12s3.5 7 10 7a9.6 9.6 0 0 0 3.9-.8" style="display:none"/></svg>`;
+
+// A labelled field. `hint` renders a per-field error slot the JS fills on blur.
+const field = (name, label, attrs) => `
+      <label class="auth-field">
+        <span>${label}</span>
+        <input name="${name}" ${attrs}>
+        <p class="auth-field-error" data-field-error="${name}"></p>
+      </label>`;
+
+// Password field with a show/hide toggle, a Caps-Lock hint, and (on register)
+// an optional strength meter. The JS wires all three by data-attrs.
+const passwordField = (label, attrs, withStrength) => `
+      <label class="auth-field auth-pw">
+        <span>${label}</span>
+        <span class="auth-pw-wrap">
+          <input name="password" type="password" ${attrs}>
+          <button type="button" class="auth-pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">${EYE_ICON}</button>
+        </span>
+        <p class="auth-caps" data-caps-hint hidden>⇪ Caps Lock is on</p>
+        ${withStrength ? `<span class="auth-strength" data-strength hidden><span class="auth-strength-bar"><span data-strength-fill></span></span><span class="auth-strength-label" data-strength-label></span></span>` : ''}
+        <p class="auth-field-error" data-field-error="password"></p>
+      </label>`;
+
+const authShell = (eyebrow, inner) => `
+${header()}
+<main class="auth-wrap">
+  <div class="auth-card">
+    <span class="logo-mark auth-logo">${CHAMELEON(40)}</span>
+    <span class="auth-eyebrow">${eyebrow}</span>
+    ${inner}
+  </div>
+</main>
+${footer()}`;
+
+const registerPage = () => layout({
+  title: 'Create your account — Lingogram',
+  description: 'Sign up to sync your saved words across every device and edition.',
+  pathName: '/register/',
+  scripts: authScripts,
+  body: authShell('Free account', `
+    <h1 class="auth-title">Start your <span class="pop">word list</span></h1>
+    <p class="auth-sub">Save words from anything you watch — synced across every device and edition.</p>
+    <form id="register-form" class="auth-form" novalidate>
+      ${googleAuth('Sign up with Google')}
+      ${field('name', 'Your name <span class="auth-optional">optional</span>', 'type="text" autocomplete="name" placeholder="Jane"')}
+      ${field('email', 'Email', 'type="email" autocomplete="email" inputmode="email" placeholder="jane@example.com" required')}
+      ${passwordField('Password', 'autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required', true)}
+      <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Creating account…">Create account</button>
+    </form>
+    <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
+    <p class="auth-fine">By continuing you agree to our <a href="/privacy/">Privacy policy</a>.</p>`),
+});
+
+const loginPage = () => layout({
+  title: 'Log in — Lingogram',
+  description: 'Log in to your Lingogram dictionary.',
+  pathName: '/login/',
+  scripts: authScripts,
+  body: authShell('Welcome back', `
+    <h1 class="auth-title">Your <span class="pop">dictionary</span> awaits</h1>
+    <p class="auth-sub">Log in to pick up right where you left off.</p>
+    <form id="login-form" class="auth-form" novalidate>
+      ${googleAuth('Log in with Google')}
+      ${field('email', 'Email', 'type="email" autocomplete="email" inputmode="email" placeholder="jane@example.com" required')}
+      ${passwordField('Password', 'autocomplete="current-password" placeholder="Your password" required', false)}
+      <div class="auth-row-end">
+        <a href="#" id="reset-link" class="auth-link">Forgot password?</a>
+      </div>
+      <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
+      <p class="auth-note" id="reset-note">Check your inbox — a password reset link is on its way.</p>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Logging in…">Log in</button>
+    </form>
+    <p class="auth-alt">New to Lingogram? <a href="/register/">Create an account</a></p>`),
+});
+
 const notFoundPage = () => layout({
   title: 'Page not found — Lingogram',
   description: 'This page does not exist.',
@@ -628,10 +740,14 @@ function build() {
   write(path.join('privacy', 'index.html'), privacyPage());
   write(path.join('welcome', 'index.html'), welcomePage());
   write(path.join('uninstall', 'index.html'), uninstallPage());
+  write(path.join('login', 'index.html'), loginPage());
+  write(path.join('register', 'index.html'), registerPage());
   write('404.html', notFoundPage());
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));
+  fs.copyFileSync(path.join(SRC, 'js', 'auth-config.js'), path.join(OUT, 'auth-config.js'));
+  // auth.js is emitted by vite.auth.config.ts (from src/auth/entry.ts), not copied.
   fs.copyFileSync(path.join(SRC, 'assets', 'favicon.svg'), path.join(OUT, 'favicon.svg'));
   fs.copyFileSync(path.join(SRC, 'assets', 'logo.png'), path.join(OUT, 'logo.png'));
   // The demo's fallback clip (*.mp4 is gitignored). It is the same NASA
