@@ -78,7 +78,16 @@ function bindSubmit(
     try {
       await onSubmit(form);
     } catch (err) {
-      setError(errEl, err instanceof Error && err.message ? err.message : 'Something went wrong.');
+      // An Error with an empty message is the "already handled" sentinel: a flow
+      // (e.g. register's EMAIL_EXISTS → offerLoginInstead) already wrote a richer
+      // message into errEl and threw Error('') to stop the submit — leave errEl
+      // as-is. Anything else with no usable message gets the generic fallback.
+      if (err instanceof Error) {
+        if (err.message) setError(errEl, err.message);
+        // else: handled sentinel — keep whatever the flow already displayed
+      } else {
+        setError(errEl, 'Something went wrong.');
+      }
       if (btn) {
         btn.disabled = false;
         btn.textContent = btnText;
