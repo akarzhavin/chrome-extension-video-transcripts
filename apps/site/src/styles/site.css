@@ -874,8 +874,8 @@ footer.site {
   nav.top { gap: 16px; font-size: 14px; }
   header.site { gap: 12px; }
   .btn-login { padding: 9px 14px; font-size: 13.5px; white-space: nowrap; }
-  /* Three narrow columns force ~8-word wraps; two reads better at this width. */
-  .steps { grid-template-columns: repeat(2, 1fr); }
+  /* .steps stays at 3 columns: it holds exactly 3 cards, so dropping to 2
+     strands the third next to a column of dead space. */
   .pillars { gap: 8px 20px; }
   section { padding: 60px 0 0; }
   /* Four columns get cramped here; give the brand its own full-width row. */
