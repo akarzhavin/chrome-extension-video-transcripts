@@ -19,6 +19,12 @@ apps/*/promo/shots/
 apps/*/promo/out/
 apps/*/screenshots/out-live/
 
+# Responsive-audit captures (regenerate via
+# apps/site/screenshots/responsive/shoot.mjs against a local build). Image
+# output only — the script itself stays tracked.
+apps/site/screenshots/responsive/screens/
+apps/site/screenshots/responsive/crops/
+
 # Video assets (promo clips, screencasts, source footage)
 *.mp4
 *.mov
