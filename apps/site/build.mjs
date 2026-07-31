@@ -56,15 +56,19 @@ const navLinks = `
   <a href="/#dictionary">Your dictionary</a>
   <a href="/#faq">FAQ</a>`;
 
-const header = () => `
+// `here` names the auth page we are ON ('login' | 'register'), so its own
+// button can be dropped: offering "Log in" on /login/ is a link back to the
+// page you are already reading, and following it wipes anything typed into
+// the form. Dropping one also frees header room on narrow screens.
+const header = (here) => `
 <header class="site wrap">
   <a class="logo" href="/">
     <span class="logo-mark">${CHAMELEON(24)}</span>
     Lingogram
   </a>
   <nav class="top">${navLinks}</nav>
-  <a class="btn btn-ghost btn-login" href="/login/">Log in</a>
-  <a class="btn btn-primary btn-login" href="/register/">Sign up</a>
+  ${here === 'login' ? '' : '<a class="btn btn-ghost btn-login" href="/login/">Log in</a>'}
+  ${here === 'register' ? '' : '<a class="btn btn-primary btn-login" href="/register/">Sign up</a>'}
   <details class="mnav">
     <summary aria-label="Menu">☰</summary>
     <div class="mnav-panel">${navLinks}</div>
@@ -651,8 +655,8 @@ const passwordField = (label, attrs, withStrength) => `
         <p class="auth-field-error" data-field-error="password"></p>
       </label>`;
 
-const authShell = (eyebrow, inner) => `
-${header()}
+const authShell = (eyebrow, inner, here) => `
+${header(here)}
 <main class="auth-wrap">
   <div class="auth-card">
     <span class="logo-mark auth-logo">${CHAMELEON(40)}</span>
@@ -679,7 +683,7 @@ const registerPage = () => layout({
       <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Creating account…">Create account</button>
     </form>
     <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
-    <p class="auth-fine">By continuing you agree to our <a href="/privacy/">Privacy policy</a>.</p>`),
+    <p class="auth-fine">By continuing you agree to our <a href="/privacy/">Privacy policy</a>.</p>`, 'register'),
 });
 
 const loginPage = () => layout({
@@ -701,7 +705,7 @@ const loginPage = () => layout({
       <p class="auth-note" id="reset-note">Check your inbox — a password reset link is on its way.</p>
       <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Logging in…">Log in</button>
     </form>
-    <p class="auth-alt">New to Lingogram? <a href="/register/">Create an account</a></p>`),
+    <p class="auth-alt">New to Lingogram? <a href="/register/">Create an account</a></p>`, 'login'),
 });
 
 const notFoundPage = () => layout({
