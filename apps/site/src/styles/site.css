@@ -711,7 +711,15 @@ details.qa p { color: var(--muted); font-size: 15px; margin: 0 0 16px; max-width
 .final h2 { max-width: 22ch; margin-inline: auto; }
 .final .proof { margin-top: 18px; }
 
-footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px 0 44px; display: flex; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+/* Grid, not `flex + space-between + wrap`: with flex the columns are spaced by
+   their own content width, so they never line up, and a wrap drops a lone
+   column onto its own row hard against the left edge (LEGAL used to orphan
+   that way at 768–1024px). The brand column gets ~1.6× the link columns. */
+footer.site {
+  border-top: 1px solid var(--line); margin-top: 60px; padding: 30px 0 44px;
+  display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 24px 40px;
+  font-size: 13.5px; color: var(--muted);
+}
 .f-col b { display: block; color: var(--ink); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
 .f-col a { display: block; color: var(--muted); text-decoration: none; margin-top: 6px; }
 .f-col a:hover { color: var(--ink); }
@@ -870,6 +878,9 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
   .steps { grid-template-columns: repeat(2, 1fr); }
   .pillars { gap: 8px 20px; }
   section { padding: 60px 0 0; }
+  /* Four columns get cramped here; give the brand its own full-width row. */
+  footer.site { grid-template-columns: repeat(3, 1fr); }
+  footer.site .f-col:first-child { grid-column: 1 / -1; }
 }
 
 /* Touch pointers: bring the interactive text to a 44px-tall target. These are
@@ -878,11 +889,13 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
    default `display: inline` of an <a>. */
 @media (pointer: coarse) {
   nav.top a,
-  .f-col a,
   .auth-link,
   .auth-alt a,
   .auth-fine a { display: inline-flex; align-items: center; min-height: 44px; }
   .btn-login, .auth-google, .auth-submit, .logo { min-height: 44px; }
+  /* `flex`, not `inline-flex`: these are stacked one per line (display: block
+     above), and going inline would run the whole column onto a single line. */
+  .f-col a { display: flex; align-items: center; min-height: 44px; margin-top: 0; }
   /* Sits in a text run — grow the hit area without moving the surrounding copy. */
   .auth-alt a, .auth-fine a { margin-block: -10px; }
 }
@@ -926,7 +939,9 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
   section { padding: 56px 0 0; }
   .band { margin-top: 56px; padding: 56px 0; }
   details.qa summary { padding: 18px 0; }
-  .f-col a { padding: 4px 0; }
+  /* Brand block above, then the three link columns two-up. */
+  footer.site { grid-template-columns: repeat(2, 1fr); gap: 20px 24px; }
+  footer.site .f-col:first-child { grid-column: 1 / -1; }
 }
 
 /* Small phones (iPhone SE and friends, ≤400px). The 24px gutters eat 13% of a
