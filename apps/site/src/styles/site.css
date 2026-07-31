@@ -55,7 +55,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible, textarea:focus-vis
 .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
 
 /* ---------- header ---------- */
-header.site { display: flex; align-items: center; gap: 18px; padding: 20px 0; }
+/* The element is `class="site wrap"`, and `header.site` outranks `.wrap`, so
+   a `padding: 20px 0` shorthand here silently drops .wrap's 24px gutter —
+   below 1060px there is no leftover margin to hide it and the logo/buttons
+   sit flush against both screen edges. Set the block padding only. */
+header.site { display: flex; align-items: center; gap: 18px; padding-block: 20px; }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; margin-right: auto; color: var(--ink); text-decoration: none; }
 .logo-mark {
   width: 38px; height: 38px; border-radius: 11px; flex: none;
@@ -716,7 +720,10 @@ details.qa p { color: var(--muted); font-size: 15px; margin: 0 0 16px; max-width
    column onto its own row hard against the left edge (LEGAL used to orphan
    that way at 768–1024px). The brand column gets ~1.6× the link columns. */
 footer.site {
-  border-top: 1px solid var(--line); margin-top: 60px; padding: 30px 0 44px;
+  border-top: 1px solid var(--line); margin-top: 60px;
+  /* padding-block, not a shorthand: `footer.site` outranks the `.wrap` on the
+     same element, so `padding: 30px 0 44px` would zero its 24px gutter. */
+  padding-block: 30px 44px;
   display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 24px 40px;
   font-size: 13.5px; color: var(--muted);
 }
