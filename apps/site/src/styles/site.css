@@ -55,7 +55,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible, textarea:focus-vis
 .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
 
 /* ---------- header ---------- */
-header.site { display: flex; align-items: center; gap: 18px; padding: 20px 0; }
+/* The element is `class="site wrap"`, and `header.site` outranks `.wrap`, so
+   a `padding: 20px 0` shorthand here silently drops .wrap's 24px gutter —
+   below 1060px there is no leftover margin to hide it and the logo/buttons
+   sit flush against both screen edges. Set the block padding only. */
+header.site { display: flex; align-items: center; gap: 18px; padding-block: 20px; }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; margin-right: auto; color: var(--ink); text-decoration: none; }
 .logo-mark {
   width: 38px; height: 38px; border-radius: 11px; flex: none;
@@ -73,6 +77,30 @@ nav.top a:hover { color: var(--ink); }
 .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-login { padding: 9px 18px; font-size: 14px; }
+/* The demo-language switcher (filled by demo.js; [hidden] on pages without
+   the demo). The .lang-face pill is what the visitor sees; the real 42-item
+   <select> lies transparent on top of it, so a tap opens the platform's own
+   picker — and the pill's width stays ours: a native select can't shrink
+   below its selected option's text, which broke the phone header. */
+.lang-wrap { position: relative; display: inline-flex; flex: none; }
+.lang-wrap[hidden] { display: none; }
+.lang-face {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 8px 26px 8px 13px;
+  font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+  max-width: 132px; overflow: hidden;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23697086' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+.lang-face .lf-name { overflow: hidden; text-overflow: ellipsis; }
+.lang-face .lf-code { display: none; }
+.lang-wrap select {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; border: 0;
+}
+.lang-wrap:hover .lang-face,
+.lang-wrap:focus-within .lang-face { border-color: var(--accent); }
 .mnav { display: none; position: relative; }
 
 /* ---------- hero ---------- */
@@ -164,7 +192,9 @@ h1 .pop { color: var(--accent); }
 .mtab.is-active::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
   border-radius: 2px; background: var(--accent);
-  transform-origin: left; animation: tabAuto 6.5s linear forwards;
+  /* --tab-auto is set from JS on phones, where each tab's film has its own
+     length and the countdown must fill over exactly one loop of it. */
+  transform-origin: left; animation: tabAuto var(--tab-auto, 6.5s) linear forwards;
 }
 .mslider.m-no-auto .mtab.is-active::after { animation: none; }
 @keyframes tabAuto { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -711,7 +741,18 @@ details.qa p { color: var(--muted); font-size: 15px; margin: 0 0 16px; max-width
 .final h2 { max-width: 22ch; margin-inline: auto; }
 .final .proof { margin-top: 18px; }
 
-footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px 0 44px; display: flex; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+/* Grid, not `flex + space-between + wrap`: with flex the columns are spaced by
+   their own content width, so they never line up, and a wrap drops a lone
+   column onto its own row hard against the left edge (LEGAL used to orphan
+   that way at 768–1024px). The brand column gets ~1.6× the link columns. */
+footer.site {
+  border-top: 1px solid var(--line); margin-top: 60px;
+  /* padding-block, not a shorthand: `footer.site` outranks the `.wrap` on the
+     same element, so `padding: 30px 0 44px` would zero its 24px gutter. */
+  padding-block: 30px 44px;
+  display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 24px 40px;
+  font-size: 13.5px; color: var(--muted);
+}
 .f-col b { display: block; color: var(--ink); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
 .f-col a { display: block; color: var(--muted); text-decoration: none; margin-top: 6px; }
 .f-col a:hover { color: var(--ink); }
@@ -733,7 +774,7 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
 .narrow textarea {
   width: 100%; min-height: 120px; margin-top: 18px; resize: vertical;
   background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 12px;
-  padding: 14px; font: inherit; font-size: 15px;
+  padding: 14px; font: inherit; font-size: 16px; /* 16px: see .auth-field input */
 }
 .keys { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
 .keys span { font-size: 13.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; }
@@ -773,9 +814,11 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
 .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .auth-field { display: flex; flex-direction: column; gap: 5px; }
 .auth-field > span { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+/* 16px, not 15: iOS Safari zooms the page in on focus whenever a field's text
+   is under 16px, which yanks the layout around on the first tap of the form. */
 .auth-field input {
   width: 100%; background: var(--ground); color: var(--ink); border: 1px solid var(--line);
-  border-radius: 12px; padding: 11px 15px; font: inherit; font-size: 15px; transition: border-color .15s, box-shadow .15s;
+  border-radius: 12px; padding: 11px 15px; font: inherit; font-size: 16px; transition: border-color .15s, box-shadow .15s;
 }
 .auth-field input::placeholder { color: var(--muted); opacity: 0.7; }
 .auth-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -800,12 +843,15 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
 /* password field: input + show/hide toggle */
 .auth-pw-wrap { position: relative; display: block; }
 .auth-pw-wrap input { width: 100%; padding-right: 46px; }
+/* 44px square: the minimum comfortable touch target (Apple HIG / WCAG 2.5.8).
+   The hover chip stays 34px via background-clip so the button grows only in
+   hit area, not in looks. */
 .auth-pw-toggle {
-  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  position: absolute; right: 1px; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 5px; box-sizing: border-box;
   background: none; border: none; border-radius: 8px; cursor: pointer; color: var(--muted);
 }
-.auth-pw-toggle:hover { color: var(--accent); background: var(--accent-soft); }
+.auth-pw-toggle:hover { color: var(--accent); background: var(--accent-soft); background-clip: content-box; }
 /* per-field inline error (blur validation) */
 .auth-field-error { display: none; margin: 0; color: #d13b3b; font-size: 12.5px; font-weight: 600; }
 .auth-field.is-invalid input { border-color: #d13b3b; }
@@ -850,13 +896,54 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
   .auth-form { gap: 8px; }
 }
 
+/* Tablets in portrait (iPad mini 768 → iPad Pro 1024). Above 760 the phone
+   rules below don't apply, so this range used to get the full desktop layout
+   squeezed into ~800px: the nav, both auth buttons and the 2–3 column grids
+   all competing for one header row. Relax the columns and tighten the nav
+   instead of switching to the burger — there is room for the links, just not
+   at desktop spacing. */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .wrap { padding: 0 32px; }
+  nav.top { gap: 16px; font-size: 14px; }
+  header.site { gap: 12px; }
+  .btn-login { padding: 9px 14px; font-size: 13.5px; white-space: nowrap; }
+  /* .steps stays at 3 columns: it holds exactly 3 cards, so dropping to 2
+     strands the third next to a column of dead space. */
+  .pillars { gap: 8px 20px; }
+  section { padding: 60px 0 0; }
+  /* Four columns get cramped here; give the brand its own full-width row. */
+  footer.site { grid-template-columns: repeat(3, 1fr); }
+  footer.site .f-col:first-child { grid-column: 1 / -1; }
+}
+
+/* Touch pointers: bring the interactive text to a 44px-tall target. These are
+   all sized for a mouse otherwise, so scope it to coarse pointers and leave
+   desktop spacing alone. `inline-flex` because min-height is ignored on the
+   default `display: inline` of an <a>. */
+@media (pointer: coarse) {
+  nav.top a,
+  .auth-link,
+  .auth-alt a,
+  .auth-fine a { display: inline-flex; align-items: center; min-height: 44px; }
+  .btn-login, .auth-google, .auth-submit, .logo { min-height: 44px; }
+  /* `flex`, not `inline-flex`: these are stacked one per line (display: block
+     above), and going inline would run the whole column onto a single line. */
+  .f-col a { display: flex; align-items: center; min-height: 44px; margin-top: 0; }
+  /* Sits in a text run — grow the hit area without moving the surrounding copy. */
+  .auth-alt a, .auth-fine a { margin-block: -10px; }
+}
+
 @media (max-width: 760px) {
   nav.top { display: none; }
   .mnav { display: block; }
   .mnav summary { list-style: none; cursor: pointer; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; font-size: 18px; line-height: 1; }
   .mnav summary::-webkit-details-marker { display: none; }
+  /* max-width as well as min-: at 320px a bare min-width:210px panel is wider
+     than the space left of the burger, and since it is laid out even while the
+     <details> is closed it dragged the page into a horizontal scroll. */
   .mnav-panel {
-    position: absolute; right: 0; top: 46px; z-index: 20; min-width: 210px;
+    position: absolute; right: 0; top: 46px; z-index: 20;
+    min-width: min(210px, calc(100vw - 32px)); max-width: calc(100vw - 32px);
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
     box-shadow: var(--shadow); padding: 8px; display: flex; flex-direction: column;
   }
@@ -864,17 +951,79 @@ footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px
   .mnav-panel a:hover { background: var(--accent-soft); }
   header.site { gap: 10px; }
   .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
-  .demo-body { grid-template-columns: 1fr; }
+  /* The switcher matters MOST here (the phone demo has no in-panel picker),
+     but the header is at its tightest: the pill shows the bare code ("DE")
+     instead of the autonym, and below 480px the wordmark yields too — the
+     chameleon mark carries the brand alone. */
+  .lang-face { padding: 7px 20px 7px 10px; background-position: right 8px center; }
+  .lang-face .lf-name { display: none; }
+  .lang-face .lf-code { display: inline; }
+  /* 44px touch target for the burger (see the coarse-pointer block above). */
+  .mnav summary { min-height: 44px; display: grid; place-items: center; padding: 8px 12px; }
+  /* Phones show the active tab's film instead of the live embed
+     (demo/index.ts); the select-a-word hint promises an interaction that
+     isn't there. The mode slider stays for its tabs and benefit copy, but
+     the slides' animated miniatures go: the card above already plays the
+     same story with the real product — two animations telling it at once
+     compete for the eye. */
+  .demo-still { display: block; width: 100%; height: auto; }
+  .demo-hint { display: none; }
   .mtabs { gap: 14px; }
   .mtab { font-size: 13px; gap: 6px; }
   .mslide { flex-direction: column; align-items: stretch; gap: 14px; }
-  .mviz { width: 100%; }
-  .sidebar { display: none; }
-  .stage { min-height: 300px; }
-  .sub-line { font-size: 14.5px; white-space: normal; max-width: 92%; }
-  .sub-line.trans { font-size: 13px; }
+  .mviz { display: none; }
+  /* The full video URL is wider than the pill at this width — one ellipsized
+     line, never a wrap. min-width:0 lets the flex item actually shrink. */
+  .url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .steps, .features, .privacy, .editions { grid-template-columns: 1fr; }
   .pillars { grid-template-columns: 1fr; gap: 10px; max-width: 340px; }
   .auth-card { padding: 24px 20px; }
   .auth-row { grid-template-columns: 1fr; }
+  /* Full-width CTAs: side-by-side buttons wrap to one per row on a phone
+     anyway, and a half-width button next to a wrapped one looks accidental. */
+  .cta-row .btn { width: 100%; }
+  section { padding: 56px 0 0; }
+  .band { margin-top: 56px; padding: 56px 0; }
+  details.qa summary { padding: 18px 0; }
+  /* Brand block above, then the three link columns two-up. */
+  footer.site { grid-template-columns: repeat(2, 1fr); gap: 20px 24px; }
+  footer.site .f-col:first-child { grid-column: 1 / -1; }
+}
+
+/* Below 480px the header can't seat the wordmark, the language pill and both
+   auth buttons — the chameleon mark carries the brand alone. */
+@media (max-width: 480px) {
+  .logo-name { display: none; }
+}
+
+/* Small phones (iPhone SE and friends, ≤400px). The 24px gutters eat 13% of a
+   375px screen, so cards lose more width to padding than they can spare. */
+@media (max-width: 400px) {
+  .wrap { padding: 0 16px; }
+  .ed, .step, .feat { padding: 18px; }
+  .privacy { padding: 22px 18px; }
+  .dict-head, .dict-card, .dict-foot { padding-left: 16px; padding-right: 16px; }
+  details.qa { padding: 0 16px; }
+  .auth-wrap { padding-left: 14px; padding-right: 14px; }
+  .auth-card { padding: 22px 16px; }
+  /* The eyebrow's 0.14em tracking pushes it onto three lines at this width. */
+  .eyebrow { letter-spacing: 0.08em; font-size: 11px; }
+}
+
+/* Very narrow phones (320px: iPhone SE 1st gen, Android S-sizes). The header
+   runs logo + Log in + Sign up + burger, which needs ~364px — the surplus used
+   to push the burger off-screen and force a horizontal scroll on the whole
+   page. Shrink the row to fit rather than dropping a control: the burger menu
+   carries no login link, so hiding "Log in" here would strip the only way in
+   at this width. Hiding the *wordmark* is safe — the logo image still links
+   home right beside it. */
+@media (max-width: 380px) {
+  /* Clip the wordmark instead of `font-size: 0` / `display: none` so the link
+     keeps its accessible name for screen readers. */
+  .logo { gap: 0; overflow: hidden; max-width: 34px; white-space: nowrap; }
+  .logo-mark { width: 34px; height: 34px; }
+  header.site { gap: 8px; }
+  .btn-login { padding: 8px 10px; font-size: 13px; }
+  .mnav summary { padding: 8px 10px; min-width: 40px; }
+  .mnav-panel { top: 50px; }
 }

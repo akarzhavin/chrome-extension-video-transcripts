@@ -30,6 +30,54 @@ const esc = (s) => String(s)
 
 const href = (url) => url || '#';
 
+// ---------------------------------------------------------------- i18n
+//
+// UI copy lives in src/data/i18n/<lang>.json (checked-in, not editions.json —
+// editions.json is the extension family's data, not page strings). `en` is
+// the source of truth: every OTHER locale is validated against its key set
+// at build time, so a translator adding a key to ru.json without adding it
+// to en.json (or a build after an en.json rename) fails loudly instead of
+// serving `undefined` on a live page. Each locale renders its own full page
+// tree — this is NOT a runtime i18n switch, it is 42 independent builds.
+const I18N_DIR = path.join(SRC, 'data', 'i18n');
+const EN_STRINGS = JSON.parse(fs.readFileSync(path.join(I18N_DIR, 'en.json'), 'utf8'));
+const LOCALE_FILES = fs.readdirSync(I18N_DIR).filter((f) => f.endsWith('.json'));
+
+const flattenKeys = (obj, prefix = '') =>
+  Object.entries(obj).flatMap(([k, v]) =>
+    v && typeof v === 'object' ? flattenKeys(v, `${prefix}${k}.`) : [`${prefix}${k}`]);
+const EN_KEYS = new Set(flattenKeys(EN_STRINGS));
+
+const LOCALES = LOCALE_FILES.map((f) => {
+  const code = f.replace(/\.json$/, '');
+  const strings = code === 'en' ? EN_STRINGS : JSON.parse(fs.readFileSync(path.join(I18N_DIR, f), 'utf8'));
+  if (code !== 'en') {
+    const keys = new Set(flattenKeys(strings));
+    const missing = [...EN_KEYS].filter((k) => !keys.has(k));
+    const extra = [...keys].filter((k) => !EN_KEYS.has(k));
+    if (missing.length || extra.length) {
+      throw new Error(
+        `i18n/${f} is out of sync with en.json` +
+        (missing.length ? `\n  missing: ${missing.join(', ')}` : '') +
+        (extra.length ? `\n  extra: ${extra.join(', ')}` : ''),
+      );
+    }
+  }
+  return { code, strings };
+});
+
+// `t('home.h1Lead')` → nested lookup; `{name}` placeholders filled from the
+// second arg. Missing keys throw at build time (see LOCALES validation
+// above) rather than rendering "undefined" on a live page — the one runtime
+// exception is a translator's raw JSON edit bypassing that check, so this
+// stays a hard error too, not a silent fallback to English.
+const makeT = (strings) => (key, vars) => {
+  let v = key.split('.').reduce((o, k) => o?.[k], strings);
+  if (v === undefined) throw new Error(`i18n: missing key "${key}"`);
+  if (vars) for (const [k, val] of Object.entries(vars)) v = v.replaceAll(`{${k}}`, val);
+  return v;
+};
+
 // ---------------------------------------------------------------- fragments
 
 // The brand mark is the shipped extension icon (apps/rezka/src/assets/icons/
@@ -50,65 +98,86 @@ const mark = (kind, small = false) => {
   return `<span class="${cls}" aria-hidden="true">${glyph}</span>`;
 };
 
-const navLinks = `
-  <a href="/#platforms">Editions</a>
-  <a href="/#how">How it works</a>
-  <a href="/#dictionary">Your dictionary</a>
-  <a href="/#faq">FAQ</a>`;
+// `root` is the locale's URL prefix: '' for English (unprefixed, at /), or
+// '/ru' etc. for every other locale — every internal href is built from it
+// so a translated page never links back out to the English tree.
+const navLinks = (t, root) => `
+  <a href="${root}/#platforms">${esc(t('nav.editions'))}</a>
+  <a href="${root}/#how">${esc(t('nav.how'))}</a>
+  <a href="${root}/#dictionary">${esc(t('nav.dictionary'))}</a>
+  <a href="${root}/#faq">${esc(t('nav.faq'))}</a>`;
 
-const header = () => `
+// `here` names the auth page we are ON ('login' | 'register'), so its own
+// button can be dropped: offering "Log in" on /login/ is a link back to the
+// page you are already reading, and following it wipes anything typed into
+// the form. Dropping one also frees header room on narrow screens.
+const header = (t, root, here) => `
 <header class="site wrap">
-  <a class="logo" href="/">
+  <a class="logo" href="${root}/">
     <span class="logo-mark">${CHAMELEON(24)}</span>
-    Lingogram
+    <span class="logo-name">Lingogram</span>
   </a>
-  <nav class="top">${navLinks}</nav>
-  <a class="btn btn-ghost btn-login" href="/login/">Log in</a>
-  <a class="btn btn-primary btn-login" href="/register/">Sign up</a>
+  <nav class="top">${navLinks(t, root)}</nav>
+  <!-- Switches the LOCALE: a full navigation to the equivalent /<lang>/ page
+       (see src/demo/index.ts wireLangSwitch), which also repaints the demo's
+       language pair — the live demo's second track, the phone films, the
+       miniatures' sample line all key off the same page locale. Filled and
+       unhidden by demo.js so pages without the demo (auth) never show an
+       empty control. The visible pill is .lang-face (full autonym on
+       desktop, bare code on phones, where the header has no room for
+       "Português"); the real <select> lies transparent on top so a tap still
+       opens the platform's own picker — the right UI for a 42-item list on a
+       touch screen. -->
+  <span class="lang-wrap" hidden>
+    <span class="lang-face" aria-hidden="true"><span class="lf-name"></span><span class="lf-code"></span></span>
+    <select id="lang-switch" aria-label="Site language"></select>
+  </span>
+  ${here === 'login' ? '' : `<a class="btn btn-ghost btn-login" href="${root}/login/">${esc(t('nav.logIn'))}</a>`}
+  ${here === 'register' ? '' : `<a class="btn btn-primary btn-login" href="${root}/register/">${esc(t('nav.signUp'))}</a>`}
   <details class="mnav">
-    <summary aria-label="Menu">☰</summary>
-    <div class="mnav-panel">${navLinks}</div>
+    <summary aria-label="${esc(t('nav.menu'))}">☰</summary>
+    <div class="mnav-panel">${navLinks(t, root)}</div>
   </details>
 </header>`;
 
-const footer = () => `
+const footer = (t, root) => `
 <footer class="site wrap">
   <div class="f-col">
     <b>Lingogram</b>
-    <span>© ${new Date().getFullYear()} Lingogram<br>Learn languages from what you watch.</span>
+    <span>© ${new Date().getFullYear()} Lingogram<br>${esc(t('footer.tagline'))}</span>
   </div>
   <div class="f-col">
-    <b>Product</b>
-    <a href="/#platforms">All editions</a>
-    <a href="${SITE.appUrl}">Your dictionary</a>
-    <a href="/#how">How it works</a>
+    <b>${esc(t('footer.product'))}</b>
+    <a href="${root}/#platforms">${esc(t('footer.allEditions'))}</a>
+    <a href="${SITE.appUrl}">${esc(t('footer.yourDictionary'))}</a>
+    <a href="${root}/#how">${esc(t('footer.howItWorks'))}</a>
   </div>
   <div class="f-col">
-    <b>Help</b>
-    <a href="/#faq">FAQ</a>
-    <a href="mailto:${SITE.supportEmail}">Support</a>
-    <a href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent('Site suggestion for Lingogram')}">Suggest a site</a>
+    <b>${esc(t('footer.help'))}</b>
+    <a href="${root}/#faq">${esc(t('footer.faq'))}</a>
+    <a href="mailto:${SITE.supportEmail}">${esc(t('footer.support'))}</a>
+    <a href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent(t('footer.suggestSubject'))}">${esc(t('footer.suggestSite'))}</a>
   </div>
   <div class="f-col">
-    <b>Legal</b>
-    <a href="/privacy/">Privacy policy</a>
+    <b>${esc(t('footer.legal'))}</b>
+    <a href="${root}/privacy/">${esc(t('footer.privacyPolicy'))}</a>
   </div>
 </footer>`;
 
 // Proof strip renders only when the numbers are real (principle: page truth =
 // product truth — no placeholder ratings on a public page).
-const proof = () => {
+const proof = (t) => {
   const p = SITE.proof || {};
   if (!p.rating || !p.users) return '';
   return `
   <p class="proof">
-    <span><span class="stars">★★★★★</span> <b>${esc(p.rating)}</b> on Chrome Web Store</span>
-    <span class="sep">•</span><span><b>${esc(p.users)}</b> learners</span>
-    <span class="sep">•</span><span>Free, no ads</span>
+    <span><span class="stars">★★★★★</span> <b>${esc(p.rating)}</b> ${esc(t('proof.rating'))}</span>
+    <span class="sep">•</span><span><b>${esc(p.users)}</b> ${esc(t('proof.learners'))}</span>
+    <span class="sep">•</span><span>${esc(t('proof.free'))}</span>
   </p>`;
 };
 
-const demo = (url) => `
+const demo = (t, url) => `
 <div class="demo" id="demo">
   <div class="demo-chrome">
     <span class="dot" style="background:#ff5f57"></span>
@@ -119,8 +188,8 @@ const demo = (url) => `
   <!-- @video-transcripts/embed mounts the extension UI here. -->
   <div id="demo-embed"></div>
 </div>
-<p class="demo-hint">This is the extension itself, running here — <b>select a word</b> to save it, or try a mode below.<br><span class="demo-credit">Clip: NASA — <a href="https://www.nasa.gov/cosmic-dawn/" rel="noopener">Cosmic Dawn</a> (public domain)</span></p>
-${modes()}`;
+<p class="demo-hint">${esc(t('demo.hintPrefix'))} <b>${esc(t('demo.hintBold'))}</b> ${esc(t('demo.hintSuffix'))}<br><span class="demo-credit">${esc(t('demo.credit'))} <a href="https://www.nasa.gov/cosmic-dawn/" rel="noopener">${esc(t('demo.creditLink'))}</a> ${esc(t('demo.creditSuffix'))}</span></p>
+${modes(t)}`;
 
 // One compact slider explaining the modes, sitting right under the demo. Each
 // slide opens with an ANIMATED miniature of the player in that state — the
@@ -162,6 +231,10 @@ const OS_GLYPH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 // panel, so the On-screen miniature taps THIS, not an invented control.
 const TAB_CHEVRON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
 
+// The miniatures show one sample caption line, always in English + a Russian
+// placeholder (src/demo/index.ts swaps the translation to the visitor's own
+// language at runtime, same as the live demo) — the sample is illustrative,
+// not page copy, so it does not localize per site language.
 const viz = {
   dual: `
       ${PANEL_GHOST}
@@ -239,23 +312,20 @@ const viz = {
       <span class="viz-toast anim-toast">Added: process</span>`,
 };
 
-const SLIDES = [
-  // "Dual subtitles" over plain "Dual": the tab is crawlable page copy, and
-  // dual subtitles is the keyword the family is positioned on.
-  { id: 'dual', tab: 'Dual subtitles', title: 'Both languages, at once',
-    body: 'The line you hear next to the line you understand — no pausing, no switching tracks.' },
-  { id: 'guess', tab: 'Guess', title: 'Click to reveal — and train your ear',
-    body: 'The line stays hidden until you click it. Guess from listening first, then check yourself: the gap between the two is exactly where hearing improves.' },
-  // The tab, not a mode switch: this slide narrates the overlay toggle, and
-  // forcing displayMode 'single' unlit both mode chips in the demo's panel —
-  // reading as "everything deactivated" while the miniature shows the mode
-  // chip staying lit. demo/index.ts keeps the mode and pulses the on-video
-  // captions instead (showOnScreen).
-  { id: 'single', tab: 'On-screen', title: 'On screen, or in the sidebar — your call',
-    body: 'Keep both lines over the film, where your eyes already are. Or take them off with one button and read from the panel instead, at your own pace. The subtitles never disappear — they just move.' },
-  { id: 'save', tab: 'Dictionary', title: 'Keep every word you meet',
-    body: 'Select a word — one tap saves it with the sentence it came from, straight to your dictionary on lingogram.ai.' },
-];
+// "Dual subtitles" over plain "Dual" in the tab: it is crawlable page copy,
+// and dual subtitles is the keyword the family is positioned on. The tab,
+// not a mode switch, drives the On-screen slide: forcing displayMode
+// 'single' unlit both mode chips in the demo's panel — reading as "everything
+// deactivated" while the miniature shows the mode chip staying lit.
+// demo/index.ts keeps the mode and pulses the on-video captions instead
+// (showOnScreen).
+const SLIDE_IDS = ['dual', 'guess', 'single', 'save'];
+const slides = (t) => SLIDE_IDS.map((id) => ({
+  id,
+  tab: t(`modes.${id}.tab`),
+  title: t(`modes.${id}.h`),
+  body: t(`modes.${id}.p`),
+}));
 
 // Tab glyphs are the extension's own mode icons (SidebarUI ICONS), plus a
 // bookmark for the dictionary — the same shapes the visitor will meet in the
@@ -267,17 +337,17 @@ const TAB_ICON = {
   save: '<path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4.5L6 20V5a1 1 0 0 1 1-1z"/>',
 };
 
-const modes = () => `
+const modes = (t) => `
 <div class="mslider" id="mode-slider" aria-label="Reading modes">
   <div class="mtabs" role="tablist">
-    ${SLIDES.map((s) => `
+    ${slides(t).map((s) => `
     <button type="button" class="mtab" role="tab" data-slide="${s.id}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TAB_ICON[s.id]}</svg>
       <span>${esc(s.tab)}</span>
     </button>`).join('')}
   </div>
   <div class="mslides">
-    ${SLIDES.map((s) => `
+    ${slides(t).map((s) => `
     <article class="mslide" data-slide="${s.id}">
       <span class="mviz" aria-hidden="true">${viz[s.id]}
         <span class="viz-progress"><i></i></span>
@@ -296,17 +366,26 @@ const qa = (items) => items.map((f) => `
     <p>${esc(f.a)}</p>
   </details>`).join('');
 
+const globalFaq = (t) => ['free', 'languages', 'edition', 'words'].map((k) => ({
+  q: t(`faq.${k}.q`), a: t(`faq.${k}.a`),
+}));
+
 // `scripts` overrides the default page scripts (main.js + demo.js). The auth
 // pages pass their own set so they don't pull the demo bundle. `extraHead`
 // injects extra <head> markup (auth pages set window.LINGOGRAM_APP_URL).
-const layout = ({ title, description, pathName, body, scripts, extraHead }) => `<!doctype html>
-<html lang="en">
+// `hrefLang`: every OTHER locale's URL for this same page, keyed by BCP-47
+// tag — self-referencing hreflang plus x-default (English) tell search
+// engines these paths are translations of one another rather than duplicate
+// content, and to default unmatched visitors to English.
+const layout = ({ lang, htmlLang, title, description, pathName, body, scripts, extraHead, hrefLang }) => `<!doctype html>
+<html lang="${htmlLang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${SITE.domain}${pathName}">
+${Object.entries(hrefLang || {}).map(([tag, href]) => `<link rel="alternate" hreflang="${tag}" href="${SITE.domain}${href}">`).join('\n')}
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${SITE.domain}${pathName}">
@@ -323,144 +402,151 @@ ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
 
 // ---------------------------------------------------------------- pages
 
-const GLOBAL_FAQ = [
-  { q: 'Is it free?', a: 'Yes. Dual subtitles, the transcript, and Guess mode are free. A free account is only needed if you want your saved words synced across devices.' },
-  { q: 'Which languages does it support?', a: "Any pair the video has captions for. On YouTube, if one of your two languages is missing, Lingogram fills it with YouTube's automatic translation so you still get the dual view. On Netflix and HDrezka it shows the subtitle tracks the title actually has — no machine translation." },
-  { q: 'Which edition do I install?', a: 'The one for the site you watch on. There are two extensions: one covers YouTube and Netflix together, the other covers HDrezka. Install both if you watch on both — they share the same learning tools and the same account, so your saved words stay in one place.' },
-  { q: 'Where do my saved words live?', a: "In your personal dictionary, right here on lingogram.ai. Log in and every word you've saved is there with the scene it came from — whichever edition or device you saved it on." },
-];
-
 // The cards are install links: they go straight to the Chrome Web Store, not
 // to the /<slug>/ landing pages. Netflix and YouTube share one listing (the
 // YouTube extension matches netflix.com too), so both cards resolve to the
 // same URL — which is correct, not a bug: either card installs what its site
-// needs.
-const editionCards = () => EDITIONS.editions.map((ed) => `
+// needs. Edition name/card copy (editions.json) is English-only for now —
+// see the i18n rollout note at the top of this file.
+const editionCards = (t) => EDITIONS.editions.map((ed) => `
   <a class="ed" href="${href(ed.storeUrl)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
     ${mark(ed.mark)}
-    <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(ed.card)}</span><span class="go">Add to Chrome →</span></span>
+    <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(ed.card)}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
   </a>`).join('') + `
   <a class="ed ed-soon" href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent('Site suggestion for Lingogram')}">
     <span class="mark" aria-hidden="true">＋</span>
-    <span class="ed-t"><b>Your site next</b><span>New dedicated editions ship regularly — tell us where you watch.</span><span class="go">Suggest a site →</span></span>
+    <span class="ed-t"><b>${esc(t('home.editionSoonTitle'))}</b><span>${esc(t('home.editionSoonBody'))}</span><span class="go">${esc(t('home.editionSoonCta'))}</span></span>
   </a>`;
 
-const homePage = () => layout({
-  title: SITE.title,
-  description: SITE.description,
-  pathName: '/',
-  body: `
+const homePage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: SITE.title,
+    description: SITE.description,
+    pathName: `${root}/`,
+    body: `
 <div class="wrap-outer">
-${header()}
+${header(t, root)}
 <main>
   <div class="wrap">
     <section class="hero" style="padding-top:32px">
-      <span class="eyebrow">Free · YouTube · Netflix · HDrezka</span>
-      <h1>You've watched with subtitles before.<br><span class="pop">This time you'll get more out of it.</span></h1>
+      <span class="eyebrow">${esc(t('home.eyebrow'))}</span>
+      <h1>${esc(t('home.h1Lead'))}<br><span class="pop">${esc(t('home.h1Pop'))}</span></h1>
       <!-- No feature list here: the demo below shows the product, and the
            feature cards under it (Watch. Catch. Keep.) both claim AND prove
            the same three points — a text-only copy above would just duplicate
            them at their weakest. -->
       <div class="cta-row">
-        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}Add to Chrome — it's free</a>
-        <a class="btn btn-ghost" href="#platforms">Pick the edition for your site ↓</a>
+        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
+        <a class="btn btn-ghost" href="#platforms">${esc(t('home.ctaSecondary'))}</a>
       </div>
-      ${proof()}
-      ${demo(EDITIONS.primary.demoUrl)}
+      ${proof(t)}
+      ${demo(t, EDITIONS.primary.demoUrl)}
     </section>
 
     <section id="platforms">
-      <span class="kicker">Editions</span>
-      <h2>One Lingogram, tuned for the site you watch on</h2>
-      <p class="lede">Each edition is built for its site's player — native subtitle tracks, fullscreen overlay, the fixes that site needs. They share the same learning tools and the same account, so your saved words are in one place whichever you use. Two extensions cover all three sites: the YouTube one handles Netflix as well.</p>
-      <div class="editions">${editionCards()}</div>
+      <span class="kicker">${esc(t('home.platformsKicker'))}</span>
+      <h2>${esc(t('home.platformsH2'))}</h2>
+      <p class="lede">${esc(t('home.platformsLede'))}</p>
+      <div class="editions">${editionCards(t)}</div>
     </section>
 
     <section id="how">
-      <span class="kicker">How it works</span>
-      <h2>From install to first saved word in one video</h2>
+      <span class="kicker">${esc(t('home.howKicker'))}</span>
+      <h2>${esc(t('home.howH2'))}</h2>
       <div class="steps">
-        <div class="step"><span class="step-n">1</span><b>Install and pick your languages</b><p>Choose the language you're learning and your own. A quick one-time setup — no account needed.</p></div>
-        <div class="step"><span class="step-n">2</span><b>Open any video with captions</b><p>Press play — both languages appear together, on the video and in a transcript that scrolls with the scene.</p></div>
-        <div class="step"><span class="step-n">3</span><b>Save words, review them here</b><p>Keep a word in one tap while you watch — then open your dictionary on lingogram.ai and review it with the scene it came from.</p></div>
+        <div class="step"><span class="step-n">1</span><b>${esc(t('home.step1T'))}</b><p>${esc(t('home.step1D'))}</p></div>
+        <div class="step"><span class="step-n">2</span><b>${esc(t('home.step2T'))}</b><p>${esc(t('home.step2D'))}</p></div>
+        <div class="step"><span class="step-n">3</span><b>${esc(t('home.step3T'))}</b><p>${esc(t('home.step3D'))}</p></div>
       </div>
     </section>
   </div>
 
   <div class="band" id="dictionary">
     <div class="wrap">
-      <span class="kicker">Your dictionary</span>
-      <h2>Every word you save builds a dictionary that's actually yours</h2>
-      <p class="lede">Not a frequency list from a textbook — words you met in scenes you chose, kept with the lines they came from. Whatever edition you watch with, everything lands in one account, and it's waiting for you here after you log in.</p>
+      <span class="kicker">${esc(t('home.dictKicker'))}</span>
+      <h2>${esc(t('home.dictH2'))}</h2>
+      <p class="lede">${esc(t('home.dictLede'))}</p>
       <div class="dict">
-        <div class="dict-head"><b>My words</b><span class="dict-count">247 saved · 12 this week</span></div>
+        <div class="dict-head"><b>${esc(t('home.dictMyWords'))}</b><span class="dict-count">${esc(t('home.dictCount'))}</span></div>
         <div class="dict-card">
-          <div class="dict-w"><b>reluctantly</b><span class="dict-tr">неохотно</span><span class="dict-src">${mark('yt', true)}YouTube</span></div>
-          <p class="dict-ctx">“He <mark>reluctantly</mark> agreed to drive the getaway car.”</p>
+          <div class="dict-w"><b>${esc(t('home.dictWord1'))}</b><span class="dict-tr">${esc(t('home.dictTr1'))}</span><span class="dict-src">${mark('yt', true)}${esc(t('editionsMap.yt'))}</span></div>
+          <p class="dict-ctx">${t('home.dictCtx1', { w: `<mark>${esc(t('home.dictWord1'))}</mark>` })}</p>
         </div>
         <div class="dict-card">
-          <div class="dict-w"><b>getaway</b><span class="dict-tr">побег</span><span class="dict-src">${mark('nf', true)}Netflix</span></div>
-          <p class="dict-ctx">“This isn't a heist, it's a <mark>getaway</mark>.”</p>
+          <div class="dict-w"><b>${esc(t('home.dictWord2'))}</b><span class="dict-tr">${esc(t('home.dictTr2'))}</span><span class="dict-src">${mark('nf', true)}${esc(t('editionsMap.nf'))}</span></div>
+          <p class="dict-ctx">${t('home.dictCtx2', { w: `<mark>${esc(t('home.dictWord2'))}</mark>` })}</p>
         </div>
         <div class="dict-card">
-          <div class="dict-w"><b>spinning its wheels</b><span class="dict-tr">буксует</span><span class="dict-src">${mark('hd', true)}HDrezka</span></div>
-          <p class="dict-ctx">“It's <mark>spinning its wheels</mark> in sixth gear!”</p>
+          <div class="dict-w"><b>${esc(t('home.dictWord3'))}</b><span class="dict-tr">${esc(t('home.dictTr3'))}</span><span class="dict-src">${mark('hd', true)}${esc(t('editionsMap.hd'))}</span></div>
+          <p class="dict-ctx">${t('home.dictCtx3', { w: `<mark>${esc(t('home.dictWord3'))}</mark>` })}</p>
         </div>
-        <div class="dict-foot">Your words sync across devices and every Lingogram edition — <b>one account, one dictionary</b>.</div>
+        <div class="dict-foot">${t('home.dictFoot', { b: `<b>${esc(t('home.dictFootBold'))}</b>` })}</div>
       </div>
     </div>
   </div>
 
   <div class="wrap">
     <section id="features" style="padding-top:0; margin-top:76px">
-      <span class="kicker">Why it sticks</span>
-      <h2>Most tools stop at translation. Lingogram makes words stick.</h2>
-      <p class="lede">Lingogram is built around active recall: you don't just read along — you guess, replay, and collect, so the hours you already spend watching turn into real progress.</p>
+      <span class="kicker">${esc(t('home.featKicker'))}</span>
+      <h2>${esc(t('home.featH2'))}</h2>
+      <p class="lede">${esc(t('home.featLede'))}</p>
       <div class="features">
-        <div class="feat"><span class="tag">Dual subtitles</span><h3>Two languages, one screen</h3><p>Catch every line in the original and match it to your own language without pausing. When you're ready, hide the translation — dual subtitles are training wheels, and Lingogram helps you take them off.</p></div>
-        <div class="feat"><span class="tag">Interactive transcript</span><h3>Replay the line, not the movie</h3><p>The transcript scrolls with the video on its own. Click any line to jump back and loop that one scene until the sounds you couldn't parse become words you instantly recognize.</p></div>
-        <div class="feat"><span class="tag">Guess mode</span><h3>Listen first, then check</h3><p>Words start hidden: catch the line by ear, then reveal it. This listen-first loop builds listening you can rely on — not subtitles you only read along to. Toggle it with <kbd>Shift + G</kbd>.</p></div>
-        <div class="feat"><span class="tag">Saved words</span><h3>Your vocabulary, from your movies</h3><p>One tap saves a word with the subtitle lines around it. It goes straight to <a href="#dictionary">your personal dictionary</a> on lingogram.ai, where you review every word in its original scene.</p></div>
+        <div class="feat"><span class="tag">${esc(t('home.feat1Tag'))}</span><h3>${esc(t('home.feat1H'))}</h3><p>${esc(t('home.feat1P'))}</p></div>
+        <div class="feat"><span class="tag">${esc(t('home.feat2Tag'))}</span><h3>${esc(t('home.feat2H'))}</h3><p>${esc(t('home.feat2P'))}</p></div>
+        <div class="feat"><span class="tag">${esc(t('home.feat3Tag'))}</span><h3>${esc(t('home.feat3H'))}</h3><p>${t('home.feat3P', { kbd: '<kbd>Shift + G</kbd>' })}</p></div>
+        <div class="feat"><span class="tag">${esc(t('home.feat4Tag'))}</span><h3>${esc(t('home.feat4H'))}</h3><p>${t('home.feat4P', { link: `<a href="#dictionary">${esc(t('home.feat4Link'))}</a>` })}</p></div>
       </div>
     </section>
 
     <section id="privacy">
-      <span class="kicker">Private by default</span>
-      <h2>What you watch stays your business</h2>
+      <span class="kicker">${esc(t('home.privKicker'))}</span>
+      <h2>${esc(t('home.privH2'))}</h2>
       <div class="privacy">
-        <div class="cell"><span><b>No telemetry, no tracking.</b> Language and layout settings are stored locally in your browser.</span></div>
-        <div class="cell"><span><b>We never see your watch history.</b> Subtitles are processed right on your device.</span></div>
-        <div class="cell"><span><b>Your dictionary is opt-in.</b> If you sign in, we store your email and your saved words — nothing else, and we never sell them.</span></div>
-        <div class="cell"><span><b>Built to keep working.</b> If a site update breaks something, one click reports it so we can fix it fast.</span></div>
+        <div class="cell"><span>${t('home.priv1', { b: `<b>${esc(t('home.priv1Bold'))}</b>` })}</span></div>
+        <div class="cell"><span>${t('home.priv2', { b: `<b>${esc(t('home.priv2Bold'))}</b>` })}</span></div>
+        <div class="cell"><span>${t('home.priv3', { b: `<b>${esc(t('home.priv3Bold'))}</b>` })}</span></div>
+        <div class="cell"><span>${t('home.priv4', { b: `<b>${esc(t('home.priv4Bold'))}</b>` })}</span></div>
       </div>
     </section>
 
     <section id="faq">
-      <span class="kicker">FAQ</span>
-      <h2>Questions people ask before installing</h2>
-      ${qa(GLOBAL_FAQ)}
+      <span class="kicker">${esc(t('home.faqKicker'))}</span>
+      <h2>${esc(t('home.faqH2'))}</h2>
+      ${qa(globalFaq(t))}
     </section>
 
     <section class="final">
       <span class="logo-mark">${CHAMELEON(40)}</span>
-      <h2>Turn tonight's episode into your language lesson</h2>
+      <h2>${esc(t('home.finalH2'))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}Add Lingogram to Chrome</a>
+        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
       </div>
-      <p class="proof">Free · Sets up in under a minute</p>
+      <p class="proof">${esc(t('home.finalProof'))}</p>
     </section>
   </div>
 </main>
-${footer()}
+${footer(t, root)}
 </div>`,
-});
+  });
+};
 
-const editionPage = (ed) => layout({
-  title: `${ed.name} — dual subtitles on ${ed.site}`,
-  description: ed.sub,
-  pathName: `/${ed.slug}/`,
-  body: `
-${header()}
+// Edition pages (editions.json copy: name/hero/points/faq) are English-only
+// for now — see the i18n rollout note at the top of this file. They still
+// render the localized header/footer chrome via the English dictionary, so
+// the language switcher is present and consistent even here.
+const editionPage = (ed) => {
+  const t = makeT(EN_STRINGS);
+  return layout({
+    lang: 'en', htmlLang: 'en',
+    title: `${ed.name} — dual subtitles on ${ed.site}`,
+    description: ed.sub,
+    pathName: `/${ed.slug}/`,
+    body: `
+${header(t, '')}
 <main>
   <div class="wrap">
     <section class="hero" style="padding-top:32px">
@@ -468,16 +554,16 @@ ${header()}
       <h1>${esc(ed.heroLead)}<br><span class="pop">${esc(ed.heroPop)}</span></h1>
       <p class="sub">${esc(ed.sub)}</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}Add to Chrome — it's free</a>
-        <a class="btn btn-ghost" href="/#platforms">See all editions</a>
+        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}${esc(t('edition.ctaPrimary'))}</a>
+        <a class="btn btn-ghost" href="/#platforms">${esc(t('edition.ctaSecondary'))}</a>
       </div>
-      ${proof()}
-      ${demo(ed.demoUrl)}
+      ${proof(t)}
+      ${demo(t, ed.demoUrl)}
     </section>
 
     <section>
-      <span class="kicker">Built for ${esc(ed.site)}</span>
-      <h2>What the ${esc(ed.site)} edition does</h2>
+      <span class="kicker">${esc(t('edition.builtKicker', { site: ed.site }))}</span>
+      <h2>${esc(t('edition.builtH2', { site: ed.site }))}</h2>
       <div class="steps">
         ${ed.points.map((p, i) => `
         <div class="step"><span class="step-n">${i + 1}</span><b>${esc(p.t)}</b><p>${esc(p.d)}</p></div>`).join('')}
@@ -486,22 +572,23 @@ ${header()}
 
     <section id="faq">
       <span class="kicker">FAQ</span>
-      <h2>Before you install</h2>
-      ${qa([...ed.faq, ...GLOBAL_FAQ.filter((f) => f.q !== 'Which languages does it support?')])}
+      <h2>${esc(t('edition.faqH2'))}</h2>
+      ${qa([...ed.faq, ...globalFaq(t).filter((f) => f.q !== t('faq.languages.q'))])}
     </section>
 
     <section class="final">
       <span class="logo-mark">${CHAMELEON(40)}</span>
-      <h2>Watch ${esc(ed.site)} tonight — in two languages</h2>
+      <h2>${esc(t('edition.finalH2', { site: ed.site }))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}Add ${esc(ed.name)}</a>
+        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}${esc(t('edition.finalCta', { name: ed.name }))}</a>
       </div>
-      <p class="proof">Free · Sets up in under a minute</p>
+      <p class="proof">${esc(t('edition.finalProof'))}</p>
     </section>
   </div>
 </main>
-${footer()}`,
-});
+${footer(t, '')}`,
+  });
+};
 
 // Minimal markdown renderer — enough for the privacy policy (headings, bold,
 // links, bullet lists, horizontal rules, paragraphs).
@@ -530,14 +617,31 @@ const md = (text) => {
   return blocks.join('\n');
 };
 
-const privacyPage = () => {
-  const source = path.join(HERE, '..', 'youtube', 'PRIVACY_POLICY.md');
-  const text = fs.readFileSync(source, 'utf8');
+// The English body is the LEGAL source of truth, read straight from
+// apps/youtube/PRIVACY_POLICY.md (single source until a family-wide policy
+// is written — see the file header). Other locales are a translated COPY
+// committed under src/data/privacy/<lang>.md: translating a legal document
+// is not something to regenerate casually on every edit of the English
+// original, so these are static files a human updates, not a live mirror.
+// A locale without a translated copy falls back to the English body rather
+// than 404ing or omitting the page.
+const PRIVACY_DIR = path.join(SRC, 'data', 'privacy');
+const privacyBody = (lang) => {
+  const translated = path.join(PRIVACY_DIR, `${lang}.md`);
+  if (lang !== 'en' && fs.existsSync(translated)) return fs.readFileSync(translated, 'utf8');
+  return fs.readFileSync(path.join(HERE, '..', 'youtube', 'PRIVACY_POLICY.md'), 'utf8');
+};
+
+const privacyPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
   return layout({
-    title: 'Privacy policy — Lingogram',
-    description: 'What Lingogram collects, how it is used, and the choices you have.',
-    pathName: '/privacy/',
-    body: `${header()}<main><article class="doc">${md(text)}</article></main>${footer()}`,
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('privacy.title'),
+    description: t('privacy.description'),
+    pathName: `${root}/privacy/`,
+    body: `${header(t, root)}<main><article class="doc">${md(privacyBody(lang))}</article></main>${footer(t, root)}`,
   });
 };
 
@@ -545,52 +649,68 @@ const editionsMap = JSON.stringify(
   Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e.name])),
 );
 
-const welcomePage = () => layout({
-  title: 'Welcome to Lingogram',
-  description: 'You are set up — here is your first saved word in three steps.',
-  pathName: '/welcome/',
-  body: `
-${header()}
+// welcome/uninstall are reached from the extension (chrome.runtime.onInstalled
+// / setUninstallURL — not wired up in any of the three extensions yet, but the
+// pages are edition-aware via ?ext=<slug> for when they are), so they render
+// per locale exactly like the home page.
+const welcomePage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('welcome.title'),
+    description: t('welcome.description'),
+    pathName: `${root}/welcome/`,
+    body: `
+${header(t, root)}
 <main class="narrow">
   <span class="logo-mark" style="width:64px;height:64px;border-radius:18px;margin:20px auto">${CHAMELEON(40)}</span>
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em"><span data-ext-name>Lingogram</span> is installed</h1>
-  <p class="sub">Three steps to your first saved word — it takes one video.</p>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em"><span data-ext-name>Lingogram</span> ${esc(t('welcome.h1'))}</h1>
+  <p class="sub">${esc(t('welcome.sub'))}</p>
   <div class="steps">
-    <div class="step"><span class="step-n">1</span><b>Pick your languages</b><p>Click the Lingogram icon in the toolbar and choose the language you're learning and your own.</p></div>
-    <div class="step"><span class="step-n">2</span><b>Open a video with captions</b><p>Press play — both languages appear together, on the video and in the transcript.</p></div>
-    <div class="step"><span class="step-n">3</span><b>Save your first word</b><p>Highlight a word in the subtitles and tap to keep it — it lands in <a href="${SITE.appUrl}">your dictionary</a>.</p></div>
+    <div class="step"><span class="step-n">1</span><b>${esc(t('welcome.step1T'))}</b><p>${esc(t('welcome.step1D'))}</p></div>
+    <div class="step"><span class="step-n">2</span><b>${esc(t('welcome.step2T'))}</b><p>${esc(t('welcome.step2D'))}</p></div>
+    <div class="step"><span class="step-n">3</span><b>${esc(t('welcome.step3T'))}</b><p>${t('welcome.step3D', { link: `<a href="${SITE.appUrl}">${esc(t('welcome.step3Link'))}</a>` })}</p></div>
   </div>
   <div class="keys">
-    <span><kbd>Shift + D</kbd> dual subtitles</span>
-    <span><kbd>Shift + S</kbd> swap languages</span>
-    <span><kbd>Shift + G</kbd> guess mode</span>
-    <span><kbd>Shift + O</kbd> overlay mode</span>
+    <span><kbd>Shift + D</kbd> ${esc(t('welcome.keyDual'))}</span>
+    <span><kbd>Shift + S</kbd> ${esc(t('welcome.keySwap'))}</span>
+    <span><kbd>Shift + G</kbd> ${esc(t('welcome.keyGuess'))}</span>
+    <span><kbd>Shift + O</kbd> ${esc(t('welcome.keyOverlay'))}</span>
   </div>
 </main>
-${footer()}
+${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};</script>`,
-});
+  });
+};
 
-const uninstallPage = () => layout({
-  title: 'Sorry to see you go — Lingogram',
-  description: 'Tell us why you removed Lingogram so we can fix it.',
-  pathName: '/uninstall/',
-  body: `
-${header()}
+const uninstallPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('uninstall.title'),
+    description: t('uninstall.description'),
+    pathName: `${root}/uninstall/`,
+    body: `
+${header(t, root)}
 <main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">Sorry to see you go</h1>
-  <p class="sub">One sentence about why you removed <span data-ext-name>Lingogram</span> helps us fix it for everyone.</p>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('uninstall.h1'))}</h1>
+  <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
   <form id="feedback-form" data-mailto="${SITE.supportEmail}">
-    <textarea id="feedback-text" placeholder="It broke on… / I expected… / I found a better…" aria-label="Why did you uninstall?"></textarea>
+    <textarea id="feedback-text" placeholder="${esc(t('uninstall.placeholder'))}" aria-label="${esc(t('uninstall.ariaLabel'))}"></textarea>
     <div class="cta-row" style="margin-top:16px">
-      <button class="btn btn-primary" type="submit">Send feedback</button>
+      <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
     </div>
   </form>
-  <p class="sub" style="margin-top:34px;font-size:15px">Your saved words are still in <a href="${SITE.appUrl}">your dictionary</a> — they'll be waiting if you come back. <a href="/#platforms">Reinstall anytime.</a></p>
+  <p class="sub" style="margin-top:34px;font-size:15px">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
 </main>
-${footer()}
+${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};</script>`,
-});
+  });
+};
 
 // The /words/ "coming soon" placeholder is gone: the dictionary web app has
 // shipped. SITE.appUrl now points at /app/, served by the React SPA on its own
@@ -651,8 +771,8 @@ const passwordField = (label, attrs, withStrength) => `
         <p class="auth-field-error" data-field-error="password"></p>
       </label>`;
 
-const authShell = (eyebrow, inner) => `
-${header()}
+const authShell = (t, root, eyebrow, inner, here) => `
+${header(t, root, here)}
 <main class="auth-wrap">
   <div class="auth-card">
     <span class="logo-mark auth-logo">${CHAMELEON(40)}</span>
@@ -660,63 +780,81 @@ ${header()}
     ${inner}
   </div>
 </main>
-${footer()}`;
+${footer(t, root)}`;
 
-const registerPage = () => layout({
-  title: 'Create your account — Lingogram',
-  description: 'Sign up to sync your saved words across every device and edition.',
-  pathName: '/register/',
-  scripts: authScripts,
-  body: authShell('Free account', `
-    <h1 class="auth-title">Start your <span class="pop">word list</span></h1>
-    <p class="auth-sub">Save words from anything you watch — synced across every device and edition.</p>
+const registerPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('auth.register.title'),
+    description: t('auth.register.description'),
+    pathName: `${root}/register/`,
+    scripts: authScripts,
+    body: authShell(t, root, t('auth.register.eyebrow'), `
+    <h1 class="auth-title">${esc(t('auth.register.h1Lead'))} <span class="pop">${esc(t('auth.register.h1Pop'))}</span></h1>
+    <p class="auth-sub">${esc(t('auth.register.sub'))}</p>
     <form id="register-form" class="auth-form" novalidate>
-      ${googleAuth('Sign up with Google')}
-      ${field('name', 'Your name <span class="auth-optional">optional</span>', 'type="text" autocomplete="name" placeholder="Jane"')}
-      ${field('email', 'Email', 'type="email" autocomplete="email" inputmode="email" placeholder="jane@example.com" required')}
-      ${passwordField('Password', 'autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required', true)}
+      ${googleAuth(t('auth.register.googleCta'))}
+      ${field('name', `${esc(t('auth.register.nameLabel'))} <span class="auth-optional">${esc(t('auth.optional'))}</span>`, `type="text" autocomplete="name" placeholder="${esc(t('auth.register.namePlaceholder'))}"`)}
+      ${field('email', esc(t('auth.register.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(t('auth.register.emailPlaceholder'))}" required`)}
+      ${passwordField(esc(t('auth.register.passwordLabel')), `autocomplete="new-password" placeholder="${esc(t('auth.register.passwordPlaceholder'))}" minlength="8" required`, true)}
       <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
-      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Creating account…">Create account</button>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(t('auth.register.submitBusy'))}">${esc(t('auth.register.submit'))}</button>
     </form>
-    <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
-    <p class="auth-fine">By continuing you agree to our <a href="/privacy/">Privacy policy</a>.</p>`),
-});
+    <p class="auth-alt">${esc(t('auth.register.altPrefix'))} <a href="${root}/login/">${esc(t('auth.register.altLink'))}</a></p>
+    <p class="auth-fine">${esc(t('auth.register.finePrefix'))} <a href="${root}/privacy/">${esc(t('auth.register.fineLink'))}</a>.</p>`, 'register'),
+  });
+};
 
-const loginPage = () => layout({
-  title: 'Log in — Lingogram',
-  description: 'Log in to your Lingogram dictionary.',
-  pathName: '/login/',
-  scripts: authScripts,
-  body: authShell('Welcome back', `
-    <h1 class="auth-title">Your <span class="pop">dictionary</span> awaits</h1>
-    <p class="auth-sub">Log in to pick up right where you left off.</p>
+const loginPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('auth.login.title'),
+    description: t('auth.login.description'),
+    pathName: `${root}/login/`,
+    scripts: authScripts,
+    body: authShell(t, root, t('auth.login.eyebrow'), `
+    <h1 class="auth-title">${esc(t('auth.login.h1Lead'))} <span class="pop">${esc(t('auth.login.h1Pop'))}</span> ${esc(t('auth.login.h1Tail'))}</h1>
+    <p class="auth-sub">${esc(t('auth.login.sub'))}</p>
     <form id="login-form" class="auth-form" novalidate>
-      ${googleAuth('Log in with Google')}
-      ${field('email', 'Email', 'type="email" autocomplete="email" inputmode="email" placeholder="jane@example.com" required')}
-      ${passwordField('Password', 'autocomplete="current-password" placeholder="Your password" required', false)}
+      ${googleAuth(t('auth.login.googleCta'))}
+      ${field('email', esc(t('auth.login.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(t('auth.login.emailPlaceholder'))}" required`)}
+      ${passwordField(esc(t('auth.login.passwordLabel')), `autocomplete="current-password" placeholder="${esc(t('auth.login.passwordPlaceholder'))}" required`, false)}
       <div class="auth-row-end">
-        <a href="#" id="reset-link" class="auth-link">Forgot password?</a>
+        <a href="#" id="reset-link" class="auth-link">${esc(t('auth.login.forgot'))}</a>
       </div>
       <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
-      <p class="auth-note" id="reset-note">Check your inbox — a password reset link is on its way.</p>
-      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="Logging in…">Log in</button>
+      <p class="auth-note" id="reset-note">${esc(t('auth.login.resetNote'))}</p>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(t('auth.login.submitBusy'))}">${esc(t('auth.login.submit'))}</button>
     </form>
-    <p class="auth-alt">New to Lingogram? <a href="/register/">Create an account</a></p>`),
-});
+    <p class="auth-alt">${esc(t('auth.login.altPrefix'))} <a href="${root}/register/">${esc(t('auth.login.altLink'))}</a></p>`, 'login'),
+  });
+};
 
-const notFoundPage = () => layout({
-  title: 'Page not found — Lingogram',
-  description: 'This page does not exist.',
-  pathName: '/404.html',
-  body: `
-${header()}
+const notFoundPage = (locale) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang,
+    title: t('notFound.title'),
+    description: t('notFound.description'),
+    pathName: `${root}/404.html`,
+    body: `
+${header(t, root)}
 <main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">Nothing to watch here</h1>
-  <p class="sub">This page doesn't exist. The films, however, do.</p>
-  <div class="cta-row"><a class="btn btn-primary" href="/">Back to Lingogram</a></div>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('notFound.h1'))}</h1>
+  <p class="sub">${esc(t('notFound.sub'))}</p>
+  <div class="cta-row"><a class="btn btn-primary" href="${root}/">${esc(t('notFound.cta'))}</a></div>
 </main>
-${footer()}`,
-});
+${footer(t, root)}`,
+  });
+};
 
 // ---------------------------------------------------------------- build
 
@@ -735,14 +873,44 @@ function build() {
     pages += 1;
   };
 
-  write('index.html', homePage());
+  // Every locale-independent page below renders once PER LOCALE: English
+  // unprefixed at /, every other locale under /<lang>/ — full independent
+  // pages, not a client-side switch, so search engines and no-JS visitors
+  // get real localized HTML. One hreflang map per PAGE KIND (each page kind
+  // has its own set of paths), shared by every locale's render of that page
+  // (self-referencing entries are expected and required by the spec).
+  const hrefLangFor = (pathOf) => Object.fromEntries([
+    ...LOCALES.map(({ code }) => [code, pathOf(code)]),
+    ['x-default', pathOf('en')],
+  ]);
+  const homeHrefLang = hrefLangFor((c) => (c === 'en' ? '/' : `/${c}/`));
+  const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
+  const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
+  const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
+  const loginHrefLang = hrefLangFor((c) => (c === 'en' ? '/login/' : `/${c}/login/`));
+  const registerHrefLang = hrefLangFor((c) => (c === 'en' ? '/register/' : `/${c}/register/`));
+
+  for (const locale of LOCALES) {
+    const root = locale.code === 'en' ? '' : locale.code;
+    write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
+    write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
+    write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
+    write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
+    write(path.join(root, 'login', 'index.html'), loginPage(locale, loginHrefLang));
+    write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
+    write(path.join(root, '404.html'), notFoundPage(locale));
+  }
+  // The header switcher's option list (src/demo/index.ts siteLocales): every
+  // locale that actually has a page, sourced from i18n/ rather than
+  // hardcoded, so the switcher never drifts from what LOCALES above just
+  // wrote to disk.
+  fs.writeFileSync(
+    path.join(SRC, 'data', 'site-locales.json'),
+    JSON.stringify(LOCALES.map(({ code }) => code).sort()) + '\n',
+  );
+  // Edition pages (editions.json copy) stay English-only for now — see the
+  // i18n rollout note at the top of this file.
   for (const ed of EDITIONS.editions) write(path.join(ed.slug, 'index.html'), editionPage(ed));
-  write(path.join('privacy', 'index.html'), privacyPage());
-  write(path.join('welcome', 'index.html'), welcomePage());
-  write(path.join('uninstall', 'index.html'), uninstallPage());
-  write(path.join('login', 'index.html'), loginPage());
-  write(path.join('register', 'index.html'), registerPage());
-  write('404.html', notFoundPage());
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));
@@ -750,6 +918,9 @@ function build() {
   // auth.js is emitted by vite.auth.config.ts (from src/auth/entry.ts), not copied.
   fs.copyFileSync(path.join(SRC, 'assets', 'favicon.svg'), path.join(OUT, 'favicon.svg'));
   fs.copyFileSync(path.join(SRC, 'assets', 'logo.png'), path.join(OUT, 'logo.png'));
+  // Localized product stills shown in place of the live embed on phones
+  // (src/demo/index.ts). Generated by scripts/prep-mobile-shots.mjs, committed.
+  fs.cpSync(path.join(SRC, 'assets', 'shots'), path.join(OUT, 'shots'), { recursive: true });
   // The demo's fallback clip (*.mp4 is gitignored). It is the same NASA
   // "Cosmic Dawn" trailer the YouTube source plays, cut to the window the
   // subtitles cover (demo-subs.json windowEnd) so both sources show the same
