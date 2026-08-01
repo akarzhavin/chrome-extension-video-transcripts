@@ -9,6 +9,7 @@
 import { mount } from '@video-transcripts/embed';
 import type { EmbedInstance } from '@video-transcripts/embed';
 import demoSubs from '../data/demo-subs.json';
+import shotLocales from '../data/shot-locales.json';
 
 /**
  * The visitor's own language, if the video has a track for it. A demo that
@@ -24,6 +25,59 @@ const nativeTrack = (): (typeof demoSubs.tracks)[number] | undefined => {
   }
   return has('ru') ?? demoSubs.tracks.find((t) => t.lang !== 'en');
 };
+
+/**
+ * Phones don't get the live embed: the YouTube iframe plus the extension UI
+ * is the heaviest block on the page, and a 320px sidebar can't be "tried" on
+ * a 390px touch screen — the visitor is evaluating for desktop anyway. They
+ * get a real, localized product still instead (scripts/prep-mobile-shots.mjs)
+ * with the mode slider as the storyteller. Decided once at load; matches the
+ * site's own mobile breakpoint AND the embed's internal media query.
+ */
+const mobile = window.matchMedia('(max-width: 760px)').matches;
+
+/**
+ * Which still to show: the visitor's language, same priority order the track
+ * picker uses — but independent of it, because the fallbacks differ: an
+ * English visitor's live demo pairs EN with Russian (some second track), while
+ * their still is hero-en.webp, whose pair (FR ⇄ EN) is already right for them.
+ */
+const shotLang = (): string => {
+  for (const tag of navigator.languages ?? [navigator.language]) {
+    const code = (tag || '').split('-')[0].toLowerCase();
+    if ((shotLocales as string[]).includes(code)) return code;
+  }
+  return 'en';
+};
+
+/**
+ * The per-tab films for phones (scripts/prep-mobile-shots.mjs): the card
+ * above the slider plays the story of whichever tab is active. `ms` is the
+ * film's full loop length — keyframe holds plus crossfades — so the
+ * auto-advance and the tab's countdown line let each story finish exactly
+ * once before moving on.
+ */
+const SHOTS: Record<string, { ms: number; alt: string }> = {
+  dual: {
+    ms: 4480,
+    alt: 'Lingogram dual subtitles: one tap in the sidebar shows both languages in the transcript and on the video',
+  },
+  guess: {
+    ms: 11700,
+    alt: 'Guess mode: the subtitle hides behind stars and every tap on the line reveals one more word, then the translation',
+  },
+  single: {
+    ms: 4480,
+    alt: 'On-screen captions: one tap in the sidebar puts dual subtitles onto the video itself, one more clears them',
+  },
+  save: {
+    ms: 7950,
+    alt: 'Saving a word: select it right in the caption, tap the "+ Lingogram" pill and it gets its "saved" mark',
+  },
+};
+
+/** Set on phones by start(); swaps the card's film when the active tab changes. */
+let setShot: ((tab: string) => void) | null = null;
 
 const start = () => {
   const container = document.getElementById('demo-embed');
@@ -50,6 +104,54 @@ const start = () => {
   const sample = cue?.split(/(?<=[.!?…。])\s+/)[0];
   if (sample && sample.length <= 44) {
     document.querySelectorAll('[data-viz-native]').forEach((el) => (el.textContent = sample));
+  }
+
+  // Phones: a real product still inside the same demo frame, and no embed at
+  // all — the check sits BEFORE mount() so the YouTube iframe, the chrome
+  // shim and the extension styles are never even requested. CSS-hiding the
+  // demo would have downloaded all of it anyway. The mode slider stays and
+  // still switches its slides (wireModeSlider(null)); only the select-a-word
+  // hint is hidden — it promises an interaction that isn't there.
+  if (mobile) {
+    const lang = shotLang();
+    console.info('[lingogram-demo] source: per-tab films (mobile)', lang);
+    // Animated WebPs filmed from THIS live demo (scripts/prep-mobile-shots
+    // .mjs): the real desktop product — right-hand sidebar beside the video —
+    // one film per mode-slider tab, so the tab the visitor reads about is the
+    // story the card is playing. The film's video is paused throughout: the
+    // backdrop is a static frame and the motion IS the functionality.
+    // prefers-reduced-motion visitors get each story's payoff frame.
+    const source = document.createElement('source');
+    source.media = '(prefers-reduced-motion: reduce)';
+    const img = document.createElement('img');
+    img.className = 'demo-still';
+    img.width = 1280;
+    img.height = 515;
+    let current = '';
+    const show = (tab: string): void => {
+      if (tab === current || !SHOTS[tab]) return;
+      current = tab;
+      // A fresh src decodes from frame zero, so every visit to a tab tells
+      // its story from the start — same promise the miniatures make.
+      source.srcset = `/shots/${tab}-static-${lang}.webp`;
+      img.src = `/shots/${tab}-${lang}.webp`;
+      img.alt = SHOTS[tab].alt;
+    };
+    show('dual'); // the tab the slider opens on
+    const pic = document.createElement('picture');
+    pic.append(source, img);
+    container.replaceChildren(pic);
+    setShot = show;
+    // Warm the other stories while the first one plays, in slider order —
+    // without this the first auto-advance swaps to a film that is still
+    // downloading and the card goes blank for a beat.
+    window.setTimeout(() => {
+      for (const tab of Object.keys(SHOTS)) {
+        if (tab !== 'dual') new Image().src = `/shots/${tab}-${lang}.webp`;
+      }
+    }, 2500);
+    wireModeSlider(null);
+    return;
   }
 
   // Preferred source is the real YouTube player. If embedded playback is
@@ -136,7 +238,9 @@ const showOnScreen = (instance: EmbedInstance): void => {
   overlay?.classList.add('os-flash');
 };
 
-function wireModeSlider(instance: EmbedInstance): void {
+// `instance` is null on phones: no live demo to drive, so tabs only switch
+// their own slides (and restart the miniatures' animations).
+function wireModeSlider(instance: EmbedInstance | null): void {
   const slider = document.getElementById('mode-slider');
   if (!slider) return;
   // Remount (YouTube → file fallback) wires the slider again: kill the
@@ -165,16 +269,30 @@ function wireModeSlider(instance: EmbedInstance): void {
         }
       }
     });
+    // On phones the card above plays the active tab's film.
+    setShot?.(id);
   };
   showSlide('dual'); // the mode the demo opens in
 
+  // The advance beat: fixed on desktop, where the slides are peers of the
+  // live demo; on phones each slide owns the card's film, so the beat is that
+  // film's full loop — a story always finishes exactly once before the next
+  // begins, and the tab's countdown line (--tab-auto) fills over the same span.
+  const delayFor = (id: string): number => (setShot ? SHOTS[id]?.ms ?? 6500 : 6500);
   let idx = 0;
-  const auto = window.setInterval(() => {
-    idx = (idx + 1) % order.length;
-    showSlide?.(order[idx]);
-  }, 6500);
+  let timer = 0;
+  const tick = () => {
+    const ms = delayFor(order[idx]);
+    slider.style.setProperty('--tab-auto', `${ms}ms`);
+    timer = window.setTimeout(() => {
+      idx = (idx + 1) % order.length;
+      showSlide?.(order[idx]);
+      tick();
+    }, ms);
+  };
+  tick();
   stopAuto = () => {
-    window.clearInterval(auto);
+    window.clearTimeout(timer);
     slider.classList.add('m-no-auto'); // hides the countdown line on the tab
   };
 
@@ -188,9 +306,9 @@ function wireModeSlider(instance: EmbedInstance): void {
       // happen must be one gesture. On-screen is the overlay's story, not a
       // mode (see showOnScreen); the dictionary tab has no mode to set — its
       // slide's CTA points at the always-on selection flow instead.
-      if (id === 'dual' || id === 'guess') instance.setMode(id);
-      if (id === 'single') showOnScreen(instance);
-      if (id === 'save') {
+      if (instance && (id === 'dual' || id === 'guess')) instance.setMode(id);
+      if (instance && id === 'single') showOnScreen(instance);
+      if (instance && id === 'save') {
         // Nothing to switch — the selection flow is always live. Flash the
         // "select a word" instruction under the demo so the tab still points
         // at something the visitor can do.

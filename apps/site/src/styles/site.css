@@ -168,7 +168,9 @@ h1 .pop { color: var(--accent); }
 .mtab.is-active::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
   border-radius: 2px; background: var(--accent);
-  transform-origin: left; animation: tabAuto 6.5s linear forwards;
+  /* --tab-auto is set from JS on phones, where each tab's film has its own
+     length and the countdown must fill over exactly one loop of it. */
+  transform-origin: left; animation: tabAuto var(--tab-auto, 6.5s) linear forwards;
 }
 .mslider.m-no-auto .mtab.is-active::after { animation: none; }
 @keyframes tabAuto { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -927,15 +929,21 @@ footer.site {
   .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
   /* 44px touch target for the burger (see the coarse-pointer block above). */
   .mnav summary { min-height: 44px; display: grid; place-items: center; padding: 8px 12px; }
-  .demo-body { grid-template-columns: 1fr; }
+  /* Phones show the active tab's film instead of the live embed
+     (demo/index.ts); the select-a-word hint promises an interaction that
+     isn't there. The mode slider stays for its tabs and benefit copy, but
+     the slides' animated miniatures go: the card above already plays the
+     same story with the real product — two animations telling it at once
+     compete for the eye. */
+  .demo-still { display: block; width: 100%; height: auto; }
+  .demo-hint { display: none; }
   .mtabs { gap: 14px; }
   .mtab { font-size: 13px; gap: 6px; }
   .mslide { flex-direction: column; align-items: stretch; gap: 14px; }
-  .mviz { width: 100%; }
-  .sidebar { display: none; }
-  .stage { min-height: 300px; }
-  .sub-line { font-size: 14.5px; white-space: normal; max-width: 92%; }
-  .sub-line.trans { font-size: 13px; }
+  .mviz { display: none; }
+  /* The full video URL is wider than the pill at this width — one ellipsized
+     line, never a wrap. min-width:0 lets the flex item actually shrink. */
+  .url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .steps, .features, .privacy, .editions { grid-template-columns: 1fr; }
   .pillars { grid-template-columns: 1fr; gap: 10px; max-width: 340px; }
   .auth-card { padding: 24px 20px; }
