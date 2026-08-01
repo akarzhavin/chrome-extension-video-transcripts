@@ -57,33 +57,72 @@ function isCancel(err: unknown): boolean {
   );
 }
 
+/**
+ * Puts the button in a busy state: swaps the Google mark for a spinner and
+ * lets the caller name the current step. Returns handles to update that label
+ * and to undo everything.
+ *
+ * The spinner starts on click rather than after a delay — the popup can take a
+ * second to appear, and a button that greys out with no other change is the
+ * thing that makes people click twice.
+ */
+function setBusy(btn: HTMLElement) {
+  // Only the trailing text node is captured, never btn.textContent: assigning
+  // that back would delete the Google <svg> and leave a button with no mark.
+  const labelNode =
+    btn.lastChild && btn.lastChild.nodeType === Node.TEXT_NODE
+      ? btn.lastChild
+      : null;
+  const original = labelNode?.textContent ?? null;
+  const spinner = document.createElement('span');
+  spinner.className = 'auth-google-spinner';
+  btn.setAttribute('data-busy', '');
+  btn.setAttribute('aria-busy', 'true');
+  btn.prepend(spinner);
+
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  // Write through the captured node so the spinner and icon are never touched.
+  const label = (text: string) => {
+    if (labelNode) labelNode.textContent = ' ' + text;
+  };
+
+  return {
+    label,
+    labelAfter: (ms: number, text: string) => {
+      timers.push(setTimeout(() => label(text), ms));
+    },
+    stop: () => {
+      timers.forEach(clearTimeout);
+      spinner.remove();
+      btn.removeAttribute('data-busy');
+      btn.removeAttribute('aria-busy');
+      if (labelNode && original !== null) labelNode.textContent = original;
+    },
+  };
+}
+
 function wireButton(btn: HTMLElement, auth: ReturnType<typeof getAuth>) {
   const form = btn.closest('form');
   const errEl = form ? form.querySelector('[data-auth-error]') : null;
   btn.addEventListener('click', async () => {
     setError(errEl, '');
     (btn as HTMLButtonElement).disabled = true;
-    // A cold start can hold this for tens of seconds. Without a label change
-    // the page looks frozen — which is what makes a slow login read as broken.
-    const label = btn.textContent;
-    let waking: ReturnType<typeof setTimeout> | undefined;
-    const restore = () => {
-      clearTimeout(waking);
-      if (label !== null) btn.textContent = label;
-    };
+    const busy = setBusy(btn);
     try {
       const cred = await signInWithPopup(auth, new GoogleAuthProvider());
       const idToken = await cred.user.getIdToken();
-      // Only announce the wait once it is actually a wait; a warm backend
-      // answers well inside this and the label never flickers.
-      waking = setTimeout(() => {
-        btn.textContent = 'Waking up the server…';
-      }, 2000);
+      // Returning from the popup is the moment the page looks emptiest: the
+      // overlay is gone and the profile fetch is the only thing left running.
+      // Name that step, and after 2s say why it is slow — a cold container.
+      busy.label('Signing you in…');
+      busy.labelAfter(2000, 'Waking up the server…');
       await backendMe(CFG!, idToken);
-      restore();
+      // Deliberately left spinning: the redirect below ends this page, and
+      // restoring the idle label first would flash "Log in with Google" as
+      // though nothing had happened.
       location.href = APP_URL;
     } catch (err) {
-      restore();
+      busy.stop();
       (btn as HTMLButtonElement).disabled = false;
       if (!isCancel(err)) {
         // The popup is only half of this flow: backendMe() runs after Google

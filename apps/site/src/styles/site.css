@@ -77,30 +77,149 @@ nav.top a:hover { color: var(--ink); }
 .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-login { padding: 9px 18px; font-size: 14px; }
-/* The demo-language switcher (filled by demo.js; [hidden] on pages without
-   the demo). The .lang-face pill is what the visitor sees; the real 42-item
-   <select> lies transparent on top of it, so a tap opens the platform's own
-   picker — and the pill's width stays ours: a native select can't shrink
-   below its selected option's text, which broke the phone header. */
+/* The language switcher. TWO controls, one shown at a time (see the 760px
+   block near the bottom): .lang-wrap is the DESKTOP popover, filled by
+   demo.js and [hidden] until it is; .lang-link is the phone/tablet link to
+   /languages/, server-rendered so it also covers the auth pages. */
 .lang-wrap { position: relative; display: inline-flex; flex: none; }
 .lang-wrap[hidden] { display: none; }
 .lang-face {
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
-  border-radius: 999px; padding: 8px 26px 8px 13px;
-  font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
-  max-width: 132px; overflow: hidden;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23697086' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 11px center;
+  border-radius: 999px; padding: 8px 11px 8px 13px; cursor: pointer;
+  font: inherit; font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+  max-width: 150px;
 }
 .lang-face .lf-name { overflow: hidden; text-overflow: ellipsis; }
-.lang-face .lf-code { display: none; }
-.lang-wrap select {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; border: 0;
-}
+.lang-face .lf-chev { width: 12px; height: 12px; flex: none; opacity: .65; transition: transform .15s ease; }
+.lang-wrap.open .lang-face .lf-chev { transform: rotate(180deg); }
 .lang-wrap:hover .lang-face,
-.lang-wrap:focus-within .lang-face { border-color: var(--accent); }
+.lang-wrap:focus-within .lang-face,
+.lang-wrap.open .lang-face { border-color: var(--accent); }
+
+.lang-panel {
+  position: absolute; top: calc(100% + 8px); inset-inline-end: 0; width: 280px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .45);
+  opacity: 0; pointer-events: none; transform: translateY(-6px) scale(.98);
+  transition: opacity .14s ease, transform .14s ease;
+  z-index: 40; overflow: hidden;
+}
+/* No `visibility` here on purpose: it is a transitioned property, so it only
+   flips at the END of the transition, and a still-hidden element refuses
+   focus() the whole time — the search input would never take keyboard focus
+   on open. opacity + pointer-events hide it just as completely while leaving
+   it focusable the instant `.open` is set. */
+.lang-wrap.open .lang-panel { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.lang-search-row { padding: 10px; border-bottom: 1px solid var(--line); }
+.lang-search {
+  width: 100%; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  border-radius: 10px; font: inherit; font-size: 14px; outline: none;
+  padding-block: 9px; padding-inline: 34px 12px;
+  background-repeat: no-repeat; background-position: 11px center; background-size: 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23697086' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+}
+[dir="rtl"] .lang-search { background-position: right 11px center; }
+.lang-search:focus { border-color: var(--accent); }
+.lang-list { max-height: 320px; overflow-y: auto; padding: 6px; }
+.lang-group-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); padding: 10px 10px 6px;
+}
+.lang-option {
+  display: flex; align-items: center; width: 100%; border: none; background: none;
+  text-align: start; padding: 9px 10px; border-radius: 9px; cursor: pointer; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 500;
+}
+.lang-option:hover,
+.lang-option:focus-visible { background: var(--accent-soft); }
+.lang-option .code { margin-inline-start: auto; font-size: 11px; font-weight: 700; color: var(--muted); }
+.lang-option.current { color: var(--accent); }
+.lang-option.current::after { content: "✓"; margin-inline-start: auto; font-weight: 700; }
+.lang-option.current .code { display: none; }
+.lang-empty { padding: 24px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* The phone/tablet control: a link, not a panel. Hidden on desktop. */
+.lang-link {
+  display: none; align-items: center; gap: 6px; flex: none;
+  border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 8px 12px; text-decoration: none;
+  font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap;
+}
+.lang-link:hover { border-color: var(--accent); color: var(--accent); }
+.lang-globe { width: 14px; height: 14px; flex: none; opacity: .7; }
+.lang-link:hover .lang-globe { opacity: 1; }
+
+/* ---------- /languages/ ---------- */
+/* Gap, not margins: the result count and the empty state come and go as you
+   type, and margin-based spacing leaves a hole behind whichever is hidden. */
+.lang-page {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: 26px; padding-bottom: 70px;
+}
+.lang-head { max-width: 60ch; margin: 0; }
+.lang-head h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 10px; }
+.lang-head .sub { color: var(--muted); font-size: 17px; margin: 0; }
+.lang-current-row {
+  background: var(--accent-soft); color: var(--ink); border-radius: 12px;
+  padding: 13px 16px; margin: 0; font-size: 14.5px;
+}
+.lang-current-row b { color: var(--accent); }
+
+/* Injected by main.js — see the note in build.mjs's languagesPage. */
+.lang-search-wrap { position: relative; max-width: 420px; }
+.lang-search-field {
+  width: 100%; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 11px; font: inherit; font-size: 15.5px; outline: none; min-height: 48px;
+  padding-block: 13px; padding-inline: 42px 40px;
+  background-repeat: no-repeat; background-position: 14px center; background-size: 17px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23697086' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+}
+/* background-position has no logical equivalent, so mirror it by hand. */
+[dir="rtl"] .lang-search-field { background-position: right 14px center; }
+.lang-search-field:focus { border-color: var(--accent); }
+.lang-search-clear {
+  position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%);
+  border: 0; background: none; cursor: pointer; color: var(--muted);
+  font-size: 22px; line-height: 1; padding: 8px 11px; border-radius: 8px; display: none;
+}
+.lang-search-wrap.has-query .lang-search-clear { display: block; }
+.lang-search-clear:hover { color: var(--ink); }
+
+#lang-regions { display: flex; flex-direction: column; gap: 30px; }
+/* Overrides the bare `section { padding: 76px 0 0 }` further down, which
+   spaces the home page's full-width bands — far too much between four short
+   lists, and it would stack on top of the flex gap. */
+.lang-region { margin: 0; padding: 0; }
+.lang-region[hidden] { display: none; }
+.lang-region h2 {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin: 0; padding-bottom: 9px; border-bottom: 1px solid var(--line);
+}
+.lang-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 2px; margin-top: 8px;
+}
+.lang-entry {
+  display: flex; align-items: baseline; gap: 9px; text-decoration: none; color: var(--ink);
+  padding: 11px 12px; border-radius: 9px; min-height: 44px;
+}
+.lang-entry[hidden] { display: none; }
+.lang-entry:hover { background: var(--accent-soft); color: var(--accent); }
+.lang-entry .le-name { font-size: 16px; font-weight: 500; }
+.lang-entry .le-en {
+  font-size: 12.5px; color: var(--muted); margin-inline-start: auto;
+  text-align: end; white-space: nowrap;
+}
+.lang-entry:hover .le-en { color: var(--accent); }
+.lang-entry.is-current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.lang-entry.is-current::after { content: "✓"; margin-inline-start: 6px; font-weight: 700; }
+.lang-count { font-size: 13px; color: var(--muted); margin: 0; }
+.lang-no-match {
+  padding: 34px 20px; text-align: center; color: var(--muted);
+  border: 1px dashed var(--line); border-radius: 12px;
+}
+.lang-no-match b { color: var(--ink); display: block; margin-bottom: 4px; }
 .mnav { display: none; position: relative; }
 
 /* ---------- hero ---------- */
@@ -836,6 +955,25 @@ footer.site {
 .auth-google:hover { border-color: var(--accent); }
 .auth-google:disabled { opacity: 0.6; cursor: default; }
 .auth-google-icon { flex: none; }
+/* Busy state for the Google button. The backend call runs after the popup
+   closes, and on a cold Cloud Run instance that can take tens of seconds —
+   without a moving indicator the page reads as frozen. The spinner replaces
+   the Google mark in place so the button neither resizes nor reflows. */
+.auth-google[data-busy] .auth-google-icon { display: none; }
+.auth-google-spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  animation: authSpin 0.7s linear infinite;
+}
+@keyframes authSpin { to { transform: rotate(360deg); } }
+/* Honour a reduced-motion preference: keep the state visible, drop the spin. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-google-spinner { animation: none; border-top-color: var(--accent); }
+}
 .auth-divider { display: flex; align-items: center; gap: 14px; margin: 4px 0; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 /* "optional" tag next to a field label */
@@ -926,6 +1064,8 @@ footer.site {
   .auth-alt a,
   .auth-fine a { display: inline-flex; align-items: center; min-height: 44px; }
   .btn-login, .auth-google, .auth-submit, .logo { min-height: 44px; }
+  /* The header's language link and every row on /languages/. */
+  .lang-link, .lang-entry { min-height: 44px; }
   /* `flex`, not `inline-flex`: these are stacked one per line (display: block
      above), and going inline would run the whole column onto a single line. */
   .f-col a { display: flex; align-items: center; min-height: 44px; margin-top: 0; }
@@ -951,13 +1091,16 @@ footer.site {
   .mnav-panel a:hover { background: var(--accent-soft); }
   header.site { gap: 10px; }
   .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
-  /* The switcher matters MOST here (the phone demo has no in-panel picker),
-     but the header is at its tightest: the pill shows the bare code ("DE")
-     instead of the autonym, and below 480px the wordmark yields too — the
-     chameleon mark carries the brand alone. */
-  .lang-face { padding: 7px 20px 7px 10px; background-position: right 8px center; }
-  .lang-face .lf-name { display: none; }
-  .lang-face .lf-code { display: inline; }
+  /* THE SWAP. The desktop popover goes; the link to /languages/ takes its
+     place. A 280px panel hung off a pill that sits ~106px from the left
+     edge put most of its width — and every language NAME, leaving only the
+     codes — off the left of a 375px screen, where nothing could scroll it
+     back. The page has the room the panel never had. `!important` beats the
+     inline `hidden` attribute demo.js clears when it fills the panel. */
+  .lang-wrap { display: none !important; }
+  .lang-link { display: inline-flex; }
+  /* Two even columns — 196px auto-fill tracks leave an orphan at this width. */
+  .lang-grid { grid-template-columns: 1fr 1fr; }
   /* 44px touch target for the burger (see the coarse-pointer block above). */
   .mnav summary { min-height: 44px; display: grid; place-items: center; padding: 8px 12px; }
   /* Phones show the active tab's film instead of the live embed
@@ -1008,6 +1151,11 @@ footer.site {
   .auth-card { padding: 22px 16px; }
   /* The eyebrow's 0.14em tracking pushes it onto three lines at this width. */
   .eyebrow { letter-spacing: 0.08em; font-size: 11px; }
+  /* One column, and the English gloss goes: at 375px "Português" beside
+     "Portuguese" leaves neither room to breathe. The autonym is what a
+     speaker of that language recognises, so the gloss is what yields. */
+  .lang-grid { grid-template-columns: 1fr; }
+  .lang-entry .le-en { display: none; }
 }
 
 /* Very narrow phones (320px: iPhone SE 1st gen, Android S-sizes). The header
