@@ -10,6 +10,7 @@ import { mount } from '@video-transcripts/embed';
 import type { EmbedInstance } from '@video-transcripts/embed';
 import demoSubs from '../data/demo-subs.json';
 import shotLocales from '../data/shot-locales.json';
+import siteLocaleList from '../data/site-locales.json';
 
 /**
  * The page's own locale, read off the URL build.mjs generated it at:
@@ -69,12 +70,14 @@ const shotLang = (): string => {
 
 /**
  * The site's translated locales — build.mjs writes one at /<lang>/ (English
- * unprefixed, at /). Kept in its own JSON rather than reusing shot-locales
- * (the demo-film rollout) because the two lists answer different questions:
- * this one is "which pages exist", that one is "which pages have their own
- * phone film" — a locale can gain page copy before its films are shot.
+ * unprefixed, at /), and writes this exact list from the same i18n/ files it
+ * rendered from, so it can never drift from what pages actually exist. Kept
+ * separate from shot-locales (the demo-film rollout) because the two lists
+ * answer different questions: this one is "which pages exist", that one is
+ * "which pages have their own phone film" — a locale can gain page copy
+ * before its films are shot, or vice versa.
  */
-const siteLocales = (): string[] => (shotLocales as string[]).includes('ru') ? ['en', 'ru'] : ['en'];
+const siteLocales = (): string[] => siteLocaleList as string[];
 
 /**
  * The header's language switcher: a real navigation to this same page's

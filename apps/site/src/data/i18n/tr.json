@@ -1,0 +1,204 @@
+{
+  "meta": { "name": "Türkçe", "htmlLang": "tr" },
+
+  "nav": {
+    "editions": "Sürümler",
+    "how": "Nasıl çalışır",
+    "dictionary": "Sözlüğünüz",
+    "faq": "SSS",
+    "logIn": "Giriş yap",
+    "signUp": "Kaydol",
+    "menu": "Menü"
+  },
+
+  "footer": {
+    "tagline": "İzlediklerinizden dil öğrenin.",
+    "product": "Ürün",
+    "allEditions": "Tüm sürümler",
+    "yourDictionary": "Sözlüğünüz",
+    "howItWorks": "Nasıl çalışır",
+    "help": "Yardım",
+    "faq": "SSS",
+    "support": "Destek",
+    "suggestSite": "Site öner",
+    "suggestSubject": "Lingogram için site önerisi",
+    "legal": "Yasal",
+    "privacyPolicy": "Gizlilik politikası"
+  },
+
+  "proof": {
+    "rating": "Chrome Web Store'da",
+    "learners": "öğrenci",
+    "free": "Ücretsiz, reklamsız"
+  },
+
+  "demo": {
+    "hintPrefix": "Bu, uzantının kendisi, burada çalışıyor —",
+    "hintBold": "bir kelime seçin",
+    "hintSuffix": "kaydetmek için, ya da aşağıdaki modlardan birini deneyin.",
+    "credit": "Klip: NASA —",
+    "creditLink": "Cosmic Dawn",
+    "creditSuffix": "(kamu malı)"
+  },
+
+  "modes": {
+    "dual": { "tab": "Çift altyazı", "h": "İki dil, aynı anda", "p": "Duyduğunuz satır, anladığınız satırın hemen yanında — durup beklemek yok, parça değiştirmek yok." },
+    "guess": { "tab": "Tahmin et", "h": "Görmek için tıklayın — kulağınızı geliştirin", "p": "Satır siz tıklayana kadar gizli kalır. Önce dinleyerek tahmin edin, sonra kendinizi kontrol edin: aradaki fark tam olarak dinlemenin geliştiği yerdir." },
+    "single": { "tab": "Ekranda", "h": "Ekranda ya da yan panelde — seçim sizin", "p": "İki satırı da gözünüzün zaten baktığı yerde, filmin üzerinde tutun. Ya da tek düğmeyle kaldırın ve kendi hızınızda panelden okuyun. Altyazılar hiç kaybolmaz — sadece yer değiştirir." },
+    "save": { "tab": "Sözlük", "h": "Karşılaştığınız her kelimeyi saklayın", "p": "Bir kelime seçin — tek tık, geldiği cümleyle birlikte lingogram.ai'daki sözlüğünüze kaydeder." }
+  },
+
+  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "home": {
+    "eyebrow": "Ücretsiz · YouTube · Netflix · HDrezka",
+    "h1Lead": "Altyazıyla izlemeyi zaten biliyorsunuz.",
+    "h1Pop": "Bu sefer ondan çok daha fazlasını alacaksınız.",
+    "ctaPrimary": "Chrome'a ekle — ücretsiz",
+    "ctaSecondary": "Sitenize uygun sürümü seçin ↓",
+
+    "platformsKicker": "Sürümler",
+    "platformsH2": "Tek Lingogram, izlediğiniz siteye göre ayarlanmış",
+    "platformsLede": "Her sürüm, kendi sitesinin oynatıcısına göre yapıldı — yerel altyazı parçaları, tam ekran katmanı, o sitenin ihtiyaç duyduğu düzeltmeler. Hepsi aynı öğrenme araçlarını ve aynı hesabı paylaşır, yani hangisini kullanırsanız kullanın kaydettiğiniz kelimeler tek bir yerde olur. İki uzantı üç siteyi de kapsar: YouTube sürümü Netflix'i de idare eder.",
+    "editionGo": "Chrome'a ekle →",
+    "editionSoonTitle": "Sıradaki: sizin siteniz",
+    "editionSoonBody": "Yeni özel sürümler düzenli olarak çıkıyor — nerede izlediğinizi bize söyleyin.",
+    "editionSoonCta": "Site öner →",
+
+    "howKicker": "Nasıl çalışır",
+    "howH2": "Kurulumdan ilk kaydedilen kelimeye tek bir videoda",
+    "step1T": "Kurun ve dillerinizi seçin",
+    "step1D": "Öğrendiğiniz dili ve kendi dilinizi seçin. Hızlı, tek seferlik bir ayar — hesap gerekmez.",
+    "step2T": "Altyazılı herhangi bir videoyu açın",
+    "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de sahneyle birlikte kayan bir dökümde.",
+    "step3T": "Kelimeleri kaydedin, burada tekrar edin",
+    "step3D": "İzlerken tek dokunuşla bir kelime saklayın — sonra lingogram.ai'daki sözlüğünüzü açın ve geldiği sahneyle birlikte tekrar edin.",
+
+    "dictKicker": "Sözlüğünüz",
+    "dictH2": "Kaydettiğiniz her kelime gerçekten size ait bir sözlük oluşturur",
+    "dictLede": "Ders kitabından bir sıklık listesi değil — seçtiğiniz sahnelerde karşılaştığınız, geldikleri satırlarla birlikte saklanan kelimeler. Hangi sürümle izlerseniz izleyin, her şey tek bir hesapta toplanır ve giriş yaptığınızda burada sizi bekler.",
+    "dictMyWords": "Kelimelerim",
+    "dictCount": "247 kayıtlı · bu hafta 12",
+    "dictWord1": "reluctantly", "dictTr1": "isteksizce", "dictCtx1": "\"Kaçış aracını sürmeyi {w} kabul etti.\"",
+    "dictWord2": "getaway", "dictTr2": "kaçış", "dictCtx2": "\"Bu bir soygun değil, bir {w}.\"",
+    "dictWord3": "spinning its wheels", "dictTr3": "boşa dönüyor", "dictCtx3": "\"Altıncı vitesde tekerlekleri {w}!\"",
+    "dictFoot": "Kelimeleriniz cihazlar ve her Lingogram sürümü arasında senkronize olur — {b}.",
+    "dictFootBold": "tek hesap, tek sözlük",
+
+    "featKicker": "Neden akılda kalıyor",
+    "featH2": "Çoğu araç çeviride durur. Lingogram kelimelerin akılda kalmasını sağlar.",
+    "featLede": "Lingogram aktif hatırlamayı merkezine alır: sadece takip ederek okumazsınız — tahmin eder, tekrar izler ve biriktirirsiniz, böylece zaten izleyerek geçirdiğiniz saatler gerçek bir ilerlemeye dönüşür.",
+    "feat1Tag": "Çift altyazı", "feat1H": "Tek ekranda iki dil", "feat1P": "Orijinaldeki her satırı yakalayın ve durmadan kendi dilinizle eşleştirin. Hazır olduğunuzda çeviriyi gizleyin: çift altyazı bir yardımcı tekerlektir, Lingogram onları çıkarmanıza yardım eder.",
+    "feat2Tag": "Etkileşimli döküm", "feat2H": "Filmi değil, satırı tekrar izleyin", "feat2P": "Döküm videoyla birlikte kendiliğinden kayar. Geri sarmak ve tam olarak çözemediğiniz sesler anında tanıdığınız kelimelere dönüşene kadar o sahneyi döngüye almak için herhangi bir satıra tıklayın.",
+    "feat3Tag": "Tahmin modu", "feat3H": "Önce dinleyin, sonra kontrol edin", "feat3P": "Kelimeler başta gizlidir: satırı kulakla yakalayın, sonra ortaya çıkarın. Bu önce-dinle döngüsü, sadece takip ederek okuduğunuz altyazılar yerine güvenebileceğiniz bir dinleme becerisi kazandırır. {kbd} ile açıp kapatın.",
+    "feat4Tag": "Kaydedilen kelimeler", "feat4H": "Filmlerinizden çıkan kelime dağarcığınız", "feat4P": "Tek dokunuş, bir kelimeyi çevresindeki altyazı satırlarıyla birlikte kaydeder. Doğrudan lingogram.ai'daki {link} bölümüne gider, her kelimeyi geldiği orijinal sahnede tekrar edersiniz.",
+    "feat4Link": "kişisel sözlüğünüze",
+
+    "privKicker": "Varsayılan olarak gizli",
+    "privH2": "İzlediğiniz şey sizin kendi işiniz olarak kalır",
+    "priv1": "{b} Dil ve düzen ayarları tarayıcınızda yerel olarak saklanır.", "priv1Bold": "Telemetri yok, takip yok.",
+    "priv2": "{b} Altyazılar doğrudan cihazınızda işlenir.", "priv2Bold": "İzleme geçmişinizi asla görmeyiz.",
+    "priv3": "{b} Giriş yaparsanız yalnızca e-postanızı ve kaydettiğiniz kelimeleri saklarız — başka hiçbir şeyi, ve bunları asla satmayız.", "priv3Bold": "Sözlük tamamen isteğe bağlıdır.",
+    "priv4": "{b} Bir site güncellemesi bir şeyi bozarsa, tek bir tıkla bize bildirirsiniz, biz de hızlıca düzeltiriz.", "priv4Bold": "Çalışmaya devam etmek için tasarlandı.",
+
+    "faqKicker": "SSS",
+    "faqH2": "Kurmadan önce sorulan sorular",
+
+    "finalH2": "Bu akşamki bölümü dil dersinize çevirin",
+    "finalCta": "Lingogram'ı Chrome'a ekleyin",
+    "finalProof": "Ücretsiz · Bir dakikadan kısa sürede kurulur"
+  },
+
+  "faq": {
+    "free": { "q": "Ücretsiz mi?", "a": "Evet. Çift altyazı, döküm ve Tahmin modu ücretsizdir. Ücretsiz hesap yalnızca kaydettiğiniz kelimeleri cihazlar arasında senkronize etmek istiyorsanız gerekir." },
+    "languages": { "q": "Hangi dilleri destekliyor?", "a": "Videonun altyazısı olan herhangi bir dil çifti. YouTube'da, iki dilinizden biri eksikse Lingogram onu YouTube'un otomatik çevirisiyle tamamlar, böylece yine de çift görünümü alırsınız. Netflix ve HDrezka'da ise yalnızca yapımın gerçekten sahip olduğu altyazı parçaları gösterilir — makine çevirisi yoktur." },
+    "edition": { "q": "Hangi sürümü kurmalıyım?", "a": "İzlediğiniz siteye ait olanı. İki uzantı var: biri YouTube ve Netflix'i birlikte kapsıyor, diğeri HDrezka'yı. İkisinde de izliyorsanız ikisini de kurun — aynı öğrenme araçlarını ve aynı hesabı paylaşırlar, böylece kaydettiğiniz kelimeler tek bir yerde kalır." },
+    "words": { "q": "Kaydettiğim kelimeler nerede duruyor?", "a": "Tam burada, lingogram.ai'daki kişisel sözlüğünüzde. Giriş yapın ve kaydettiğiniz her kelime, hangi sürümde veya cihazda kaydettiğinizden bağımsız olarak, geldiği sahneyle birlikte orada olur." }
+  },
+
+  "edition": {
+    "eyebrow": "{site} için Lingogram",
+    "ctaPrimary": "Chrome'a ekle — ücretsiz",
+    "ctaSecondary": "Tüm sürümleri gör",
+    "builtKicker": "{site} için tasarlandı",
+    "builtH2": "{site} sürümü ne yapar",
+    "faqH2": "Kurmadan önce",
+    "finalH2": "{site}'ı bu akşam iki dilde izleyin",
+    "finalCta": "{name} ekle",
+    "finalProof": "Ücretsiz · Bir dakikadan kısa sürede kurulur"
+  },
+
+  "privacy": {
+    "title": "Gizlilik politikası — Lingogram",
+    "description": "Lingogram'ın ne topladığı, bunun nasıl kullanıldığı ve sahip olduğunuz seçenekler."
+  },
+
+  "welcome": {
+    "title": "Lingogram'a hoş geldiniz",
+    "description": "Kurulum tamam — işte üç adımda ilk kaydedilen kelimeniz.",
+    "h1": "kuruldu",
+    "sub": "İlk kaydedilen kelimenize üç adım — tek bir video yeterli.",
+    "step1T": "Dillerinizi seçin", "step1D": "Araç çubuğundaki Lingogram simgesine tıklayın ve öğrendiğiniz dili ile kendi dilinizi seçin.",
+    "step2T": "Altyazılı bir video açın", "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de dökümde.",
+    "step3T": "İlk kelimenizi kaydedin", "step3D": "Altyazıda bir kelimeyi seçin ve saklamak için dokunun — {link} bölümüne gider.",
+    "step3Link": "sözlüğünüze",
+    "keyDual": "çift altyazı", "keySwap": "dilleri değiştir", "keyGuess": "tahmin modu", "keyOverlay": "ekran katmanı modu"
+  },
+
+  "uninstall": {
+    "title": "Gitmenize üzüldük — Lingogram",
+    "description": "Lingogram'ı neden kaldırdığınızı söyleyin, düzeltebilelim.",
+    "h1": "Gitmenize üzüldük",
+    "sub": "{ext}'i neden kaldırdığınız hakkında tek bir cümle, herkes için düzeltmemize yardımcı olur.",
+    "placeholder": "Şurada bozuldu… / Şunu bekliyordum… / Daha iyi bir şey buldum…",
+    "ariaLabel": "Neden kaldırdınız?",
+    "send": "Geri bildirim gönder",
+    "footPrefix": "Kaydettiğiniz kelimeler hâlâ",
+    "footLink": "sözlüğünüzde",
+    "footMid": "— geri dönerseniz sizi bekliyor olacaklar.",
+    "reinstall": "İstediğiniz zaman yeniden kurabilirsiniz."
+  },
+
+  "auth": {
+    "or": "veya",
+    "showPassword": "Şifreyi göster",
+    "capsLock": "⇪ Caps Lock açık",
+    "optional": "isteğe bağlı",
+    "register": {
+      "title": "Hesabınızı oluşturun — Lingogram",
+      "description": "Kaydettiğiniz kelimeleri her cihaz ve sürümde senkronize etmek için kaydolun.",
+      "eyebrow": "Ücretsiz hesap",
+      "h1Lead": "Kelime listenizi", "h1Pop": "başlatın",
+      "sub": "İzlediğiniz her şeyden kelime kaydedin — her cihaz ve sürümde senkronize.",
+      "googleCta": "Google ile kaydol",
+      "nameLabel": "Adınız", "namePlaceholder": "Zeynep",
+      "emailLabel": "E-posta", "emailPlaceholder": "zeynep@example.com",
+      "passwordLabel": "Şifre", "passwordPlaceholder": "En az 8 karakter",
+      "submit": "Hesap oluştur", "submitBusy": "Hesap oluşturuluyor…",
+      "altPrefix": "Zaten bir hesabınız var mı?", "altLink": "Giriş yap",
+      "finePrefix": "Devam ederek şunu kabul etmiş olursunuz:", "fineLink": "Gizlilik politikası"
+    },
+    "login": {
+      "title": "Giriş yap — Lingogram",
+      "description": "Lingogram sözlüğünüze giriş yapın.",
+      "eyebrow": "Tekrar hoş geldiniz",
+      "h1Lead": "Sözlüğünüz", "h1Pop": "sizi", "h1Tail": "bekliyor",
+      "sub": "Kaldığınız yerden devam etmek için giriş yapın.",
+      "googleCta": "Google ile giriş yap",
+      "emailLabel": "E-posta", "emailPlaceholder": "zeynep@example.com",
+      "passwordLabel": "Şifre", "passwordPlaceholder": "Şifreniz",
+      "forgot": "Şifrenizi mi unuttunuz?",
+      "resetNote": "Gelen kutunuza bakın — şifre sıfırlama bağlantısı yolda.",
+      "submit": "Giriş yap", "submitBusy": "Giriş yapılıyor…",
+      "altPrefix": "Lingogram'da yeni misiniz?", "altLink": "Hesap oluştur"
+    }
+  },
+
+  "notFound": {
+    "title": "Sayfa bulunamadı — Lingogram",
+    "description": "Bu sayfa mevcut değil.",
+    "h1": "İzlenecek bir şey yok burada",
+    "sub": "Bu sayfa mevcut değil. Filmler ise mevcut.",
+    "cta": "Lingogram'a dön"
+  }
+}

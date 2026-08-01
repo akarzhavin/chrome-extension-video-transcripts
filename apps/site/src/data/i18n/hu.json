@@ -1,0 +1,204 @@
+{
+  "meta": { "name": "Magyar", "htmlLang": "hu" },
+
+  "nav": {
+    "editions": "Kiadások",
+    "how": "Hogyan működik",
+    "dictionary": "A szótárad",
+    "faq": "GYIK",
+    "logIn": "Bejelentkezés",
+    "signUp": "Regisztráció",
+    "menu": "Menü"
+  },
+
+  "footer": {
+    "tagline": "Tanulj nyelvet abból, amit nézel.",
+    "product": "Termék",
+    "allEditions": "Az összes kiadás",
+    "yourDictionary": "A szótárad",
+    "howItWorks": "Hogyan működik",
+    "help": "Súgó",
+    "faq": "GYIK",
+    "support": "Támogatás",
+    "suggestSite": "Javasolj egy oldalt",
+    "suggestSubject": "Oldaljavaslat a Lingogramhoz",
+    "legal": "Jogi információk",
+    "privacyPolicy": "Adatvédelmi irányelvek"
+  },
+
+  "proof": {
+    "rating": "a Chrome Webáruházban",
+    "learners": "tanuló",
+    "free": "Ingyenes, reklámmentes"
+  },
+
+  "demo": {
+    "hintPrefix": "Ez maga a kiterjesztés, itt működik élesben —",
+    "hintBold": "jelölj ki egy szót",
+    "hintSuffix": "a mentéshez, vagy próbáld ki az alábbi módok egyikét.",
+    "credit": "Klip: NASA —",
+    "creditLink": "Cosmic Dawn",
+    "creditSuffix": "(közkincs)"
+  },
+
+  "modes": {
+    "dual": { "tab": "Kétnyelvű felirat", "h": "Mindkét nyelv, egyszerre", "p": "A sor, amit hallasz, a sor mellett, amit értesz — szüneteltetés és sávváltás nélkül." },
+    "guess": { "tab": "Találd ki", "h": "Kattints a feloldáshoz — és edzd a hallásod", "p": "A sor rejtve marad, amíg rá nem kattintasz. Először hallás alapján találd ki, aztán ellenőrizd magad: pontosan ebben a résben fejlődik a hallott szöveg értése." },
+    "single": { "tab": "A képen", "h": "A képen vagy az oldalsávban — te döntöd el", "p": "Tartsd mindkét sort a film fölött, ott, ahol a szemed már úgyis néz. Vagy vedd le őket egy gombnyomással, és olvasd az oldalsávból, a saját tempódban. A feliratok sosem tűnnek el — csak helyet cserélnek." },
+    "save": { "tab": "Szótár", "h": "Tarts meg minden szót, amivel találkozol", "p": "Jelölj ki egy szót — egy koppintással elmented a mondattal együtt, amiből származik, egyenesen a szótáradba a lingogram.ai-n." }
+  },
+
+  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "home": {
+    "eyebrow": "Ingyenes · YouTube · Netflix · HDrezka",
+    "h1Lead": "Néztél már filmet felirattal.",
+    "h1Pop": "Most többet fogsz kihozni belőle.",
+    "ctaPrimary": "Hozzáadás a Chrome-hoz — ingyenes",
+    "ctaSecondary": "Válaszd ki az oldaladhoz tartozó kiadást ↓",
+
+    "platformsKicker": "Kiadások",
+    "platformsH2": "Egy Lingogram, ráhangolva arra az oldalra, amit nézel",
+    "platformsLede": "Minden kiadás az adott oldal lejátszójához készült — natív feliratsávok, teljes képernyős megjelenítés, azok a javítások, amelyekre az adott oldalnak szüksége van. Ugyanazokat a tanulási eszközöket és ugyanazt a fiókot használják, így a mentett szavaid mindig egy helyen vannak, bármelyik kiadást is használod. Két kiterjesztés fedi le mind a három oldalt: a YouTube-os a Netflixet is kezeli.",
+    "editionGo": "Hozzáadás a Chrome-hoz →",
+    "editionSoonTitle": "A te oldalad jön legközelebb",
+    "editionSoonBody": "Rendszeresen jelennek meg új, dedikált kiadások — mondd el, hol nézel.",
+    "editionSoonCta": "Javasolj egy oldalt →",
+
+    "howKicker": "Hogyan működik",
+    "howH2": "A telepítéstől az első mentett szóig, egyetlen videó alatt",
+    "step1T": "Telepítsd, és válaszd ki a nyelveidet",
+    "step1D": "Válaszd ki a nyelvet, amit tanulsz, és a sajátodat. Egy gyors, egyszeri beállítás — fiók nélkül is megy.",
+    "step2T": "Nyiss meg egy feliratos videót",
+    "step2D": "Indítsd el a lejátszást — mindkét nyelv együtt jelenik meg, a videón és egy átiratban, amely a jelenettel együtt görgethető.",
+    "step3T": "Mentsd a szavakat, itt tekintsd át őket",
+    "step3D": "Egy koppintással mentsd el a szót nézés közben — aztán nyisd meg a szótáradat a lingogram.ai-n, és nézd át azzal a jelenettel együtt, ahonnan származik.",
+
+    "dictKicker": "A szótárad",
+    "dictH2": "Minden mentett szó egy olyan szótárat épít, ami tényleg a tiéd",
+    "dictLede": "Nem egy tankönyvi gyakorisági lista — hanem szavak, amikkel a magad választotta jelenetekben találkoztál, megőrizve azzal a mondattal, amiből származnak. Bármelyik kiadást is használod, minden egy fiókba kerül, és bejelentkezés után itt vár rád.",
+    "dictMyWords": "A szavaim",
+    "dictCount": "247 mentve · 12 ezen a héten",
+    "dictWord1": "reluctantly", "dictTr1": "vonakodva", "dictCtx1": "„{w} beleegyezett, hogy vezesse a menekülő autót.”",
+    "dictWord2": "getaway", "dictTr2": "szökés", "dictCtx2": "„Ez nem rablás, ez egy {w}.”",
+    "dictWord3": "spinning its wheels", "dictTr3": "kipörög", "dictCtx3": "„{w} hatodik fokozatban!”",
+    "dictFoot": "A szavaid szinkronizálódnak az eszközeid és a Lingogram összes kiadása között — {b}.",
+    "dictFootBold": "egy fiók, egy szótár",
+
+    "featKicker": "Miért ragad meg",
+    "featH2": "A legtöbb eszköz megáll a fordításnál. A Lingogram elintézi, hogy a szavak megmaradjanak.",
+    "featLede": "A Lingogram az aktív felidézésre épül: nem csak követed a szöveget — hanem kitalálod, visszajátszod és gyűjtöd a szavakat, így az órák, amiket úgyis nézéssel töltesz, valódi fejlődéssé válnak.",
+    "feat1Tag": "Kétnyelvű felirat", "feat1H": "Két nyelv, egy képernyő", "feat1P": "Fogj el minden sort az eredetiben, és párosítsd a saját nyelveddel szüneteltetés nélkül. Amikor készen állsz, rejtsd el a fordítást: a kétnyelvű felirat olyan, mint a kerékpár pótkereke — a Lingogram segít levenni.",
+    "feat2Tag": "Interaktív átirat", "feat2H": "Játszd vissza a sort, ne az egész filmet", "feat2P": "Az átirat magától görgeti magát a videóval. Kattints bármelyik sorra, hogy visszaugorj, és ismételd azt a jelenetet, amíg a hangok, amiket nem tudtál felismerni, azonnal felismerhető szavakká válnak.",
+    "feat3Tag": "Találd ki mód", "feat3H": "Előbb hallgasd, aztán ellenőrizd", "feat3P": "A szavak eleinte rejtve vannak: fogd el a sort hallás után, majd fedd fel. Ez az „előbb hallgatás” ciklus olyan hallásértést épít, amire számíthatsz — nem csak feliratot, amit végigolvasol. Kapcsold be a {kbd} billentyűvel.",
+    "feat4Tag": "Mentett szavak", "feat4H": "A szókincsed, a filmjeidből", "feat4P": "Egy koppintás elmenti a szót a körülötte lévő feliratsorokkal együtt. Egyenesen a {link} részbe kerül a lingogram.ai-n, ahol minden szót az eredeti jelenetében nézhetsz át.",
+    "feat4Link": "a személyes szótáradba",
+
+    "privKicker": "Alapból privát",
+    "privH2": "Amit nézel, az a te dolgod marad",
+    "priv1": "{b} A nyelvi és megjelenítési beállítások helyben, a böngésződben tárolódnak.", "priv1Bold": "Se telemetria, se nyomkövetés.",
+    "priv2": "{b} A feliratok feldolgozása közvetlenül az eszközödön történik.", "priv2Bold": "Sosem látjuk a nézési előzményeidet.",
+    "priv3": "{b} Ha bejelentkezel, tároljuk az e-mail címedet és a mentett szavaidat — semmi mást, és sosem adjuk el őket.", "priv3Bold": "A szótár opcionális.",
+    "priv4": "{b} Ha egy oldalfrissítés elront valamit, egy kattintással jelentheted, hogy gyorsan javítsuk.", "priv4Bold": "Úgy készült, hogy folyamatosan működjön.",
+
+    "faqKicker": "GYIK",
+    "faqH2": "Kérdések, amiket telepítés előtt szoktak feltenni",
+
+    "finalH2": "Alakítsd a mai esti epizódot nyelvórává",
+    "finalCta": "Lingogram hozzáadása a Chrome-hoz",
+    "finalProof": "Ingyenes · Egy percnél is gyorsabban beállítható"
+  },
+
+  "faq": {
+    "free": { "q": "Ingyenes?", "a": "Igen. A kétnyelvű felirat, az átirat és a Találd ki mód ingyenes. Ingyenes fiókra csak akkor van szükség, ha szeretnéd, hogy a mentett szavaid szinkronizálódjanak az eszközeid között." },
+    "languages": { "q": "Milyen nyelveket támogat?", "a": "Bármilyen nyelvpárt, amihez a videóhoz van felirat. A YouTube-on, ha a két nyelved közül az egyik hiányzik, a Lingogram a YouTube automatikus fordításával pótolja, így akkor is megkapod a kétnyelvű nézetet. A Netflixen és a HDrezkán csak azok a feliratsávok jelennek meg, amik ténylegesen léteznek az adott tartalomhoz — gépi fordítás nélkül." },
+    "edition": { "q": "Melyik kiadást telepítsem?", "a": "Azt, amelyik ahhoz az oldalhoz tartozik, amit nézel. Két kiterjesztés van: az egyik a YouTube-ot és a Netflixet fedi le együtt, a másik a HDrezkát. Telepítsd mindkettőt, ha mindkettőn nézel — ugyanazokat a tanulási eszközöket és ugyanazt a fiókot használják, így a mentett szavaid egy helyen maradnak." },
+    "words": { "q": "Hol vannak a mentett szavaim?", "a": "A személyes szótáradban, itt, a lingogram.ai-n. Jelentkezz be, és minden mentett szavad ott van azzal a jelenettel együtt, ahonnan származik — függetlenül attól, melyik kiadáson vagy eszközön mentetted." }
+  },
+
+  "edition": {
+    "eyebrow": "Lingogram a(z) {site} oldalhoz",
+    "ctaPrimary": "Hozzáadás a Chrome-hoz — ingyenes",
+    "ctaSecondary": "Az összes kiadás megtekintése",
+    "builtKicker": "A(z) {site} oldalra készült",
+    "builtH2": "Mit tud a(z) {site} kiadás",
+    "faqH2": "Telepítés előtt",
+    "finalH2": "Nézd a(z) {site} oldalt ma este — két nyelven",
+    "finalCta": "{name} hozzáadása",
+    "finalProof": "Ingyenes · Egy percnél is gyorsabban beállítható"
+  },
+
+  "privacy": {
+    "title": "Adatvédelmi irányelvek — Lingogram",
+    "description": "Mit gyűjt a Lingogram, hogyan használja, és milyen választásaid vannak."
+  },
+
+  "welcome": {
+    "title": "Üdv a Lingogramban",
+    "description": "Minden be van állítva — íme az első mentett szavad három lépésben.",
+    "h1": "telepítve van",
+    "sub": "Három lépés az első mentett szavadig — mindössze egy videó kell hozzá.",
+    "step1T": "Válaszd ki a nyelveidet", "step1D": "Kattints a Lingogram ikonjára az eszköztáron, és válaszd ki a nyelvet, amit tanulsz, és a sajátodat.",
+    "step2T": "Nyiss meg egy feliratos videót", "step2D": "Indítsd el a lejátszást — mindkét nyelv együtt jelenik meg, a videón és az átiratban.",
+    "step3T": "Mentsd el az első szavadat", "step3D": "Jelölj ki egy szót a feliratban, és koppints rá a mentéshez — a(z) {link} részben landol.",
+    "step3Link": "a szótáradban",
+    "keyDual": "kétnyelvű felirat", "keySwap": "nyelvcsere", "keyGuess": "Találd ki mód", "keyOverlay": "képernyőn megjelenő mód"
+  },
+
+  "uninstall": {
+    "title": "Sajnáljuk, hogy távozol — Lingogram",
+    "description": "Mondd el, miért távolítottad el a Lingogramot, hogy javíthassunk rajta.",
+    "h1": "Sajnáljuk, hogy távozol",
+    "sub": "Egyetlen mondat arról, hogy miért távolítottad el a(z) {ext} kiterjesztést, segít nekünk javítani mindenki számára.",
+    "placeholder": "Elromlott, amikor… / Azt vártam, hogy… / Találtam egy jobbat…",
+    "ariaLabel": "Miért távolítottad el?",
+    "send": "Visszajelzés küldése",
+    "footPrefix": "A mentett szavaid továbbra is ott vannak",
+    "footLink": "a szótáradban",
+    "footMid": "— ott várnak, ha visszatérsz.",
+    "reinstall": "Bármikor újratelepítheted."
+  },
+
+  "auth": {
+    "or": "vagy",
+    "showPassword": "Jelszó megjelenítése",
+    "capsLock": "⇪ A Caps Lock be van kapcsolva",
+    "optional": "opcionális",
+    "register": {
+      "title": "Fiók létrehozása — Lingogram",
+      "description": "Regisztrálj, hogy a mentett szavaid szinkronizálódjanak minden eszközön és kiadásban.",
+      "eyebrow": "Ingyenes fiók",
+      "h1Lead": "Indítsd el a", "h1Pop": "szólistádat",
+      "sub": "Ments szavakat abból, amit csak nézel — szinkronizálva minden eszközön és kiadásban.",
+      "googleCta": "Regisztráció Google-fiókkal",
+      "nameLabel": "A neved", "namePlaceholder": "Anna",
+      "emailLabel": "E-mail", "emailPlaceholder": "anna@pelda.com",
+      "passwordLabel": "Jelszó", "passwordPlaceholder": "Legalább 8 karakter",
+      "submit": "Fiók létrehozása", "submitBusy": "Fiók létrehozása…",
+      "altPrefix": "Már van fiókod?", "altLink": "Bejelentkezés",
+      "finePrefix": "A folytatással elfogadod az", "fineLink": "Adatvédelmi irányelveinket"
+    },
+    "login": {
+      "title": "Bejelentkezés — Lingogram",
+      "description": "Jelentkezz be a Lingogram szótáradba.",
+      "eyebrow": "Üdv újra itt",
+      "h1Lead": "A", "h1Pop": "szótárad", "h1Tail": "vár rád",
+      "sub": "Jelentkezz be, és folytasd pontosan onnan, ahol abbahagytad.",
+      "googleCta": "Bejelentkezés Google-fiókkal",
+      "emailLabel": "E-mail", "emailPlaceholder": "anna@pelda.com",
+      "passwordLabel": "Jelszó", "passwordPlaceholder": "A jelszavad",
+      "forgot": "Elfelejtetted a jelszavad?",
+      "resetNote": "Nézd meg a postaládád — már úton is van a jelszó-visszaállító link.",
+      "submit": "Bejelentkezés", "submitBusy": "Bejelentkezés…",
+      "altPrefix": "Új vagy a Lingogramban?", "altLink": "Fiók létrehozása"
+    }
+  },
+
+  "notFound": {
+    "title": "Az oldal nem található — Lingogram",
+    "description": "Ez az oldal nem létezik.",
+    "h1": "Itt nincs mit nézni",
+    "sub": "Ez az oldal nem létezik. A filmek viszont igen.",
+    "cta": "Vissza a Lingogramhoz"
+  }
+}

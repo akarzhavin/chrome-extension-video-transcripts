@@ -847,6 +847,14 @@ function build() {
     const root = locale.code === 'en' ? '' : locale.code;
     write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
   }
+  // The header switcher's option list (src/demo/index.ts siteLocales): every
+  // locale that actually has a page, sourced from i18n/ rather than
+  // hardcoded, so the switcher never drifts from what LOCALES above just
+  // wrote to disk.
+  fs.writeFileSync(
+    path.join(SRC, 'data', 'site-locales.json'),
+    JSON.stringify(LOCALES.map(({ code }) => code).sort()) + '\n',
+  );
   for (const ed of EDITIONS.editions) write(path.join(ed.slug, 'index.html'), editionPage(ed));
   write(path.join('privacy', 'index.html'), privacyPage());
   write(path.join('welcome', 'index.html'), welcomePage());

@@ -1,0 +1,204 @@
+{
+  "meta": { "name": "Bahasa Melayu", "htmlLang": "ms" },
+
+  "nav": {
+    "editions": "Edisi",
+    "how": "Cara ia berfungsi",
+    "dictionary": "Kamus anda",
+    "faq": "Soalan Lazim",
+    "logIn": "Log masuk",
+    "signUp": "Daftar",
+    "menu": "Menu"
+  },
+
+  "footer": {
+    "tagline": "Belajar bahasa daripada apa yang anda tonton.",
+    "product": "Produk",
+    "allEditions": "Semua edisi",
+    "yourDictionary": "Kamus anda",
+    "howItWorks": "Cara ia berfungsi",
+    "help": "Bantuan",
+    "faq": "Soalan Lazim",
+    "support": "Sokongan",
+    "suggestSite": "Cadangkan laman",
+    "suggestSubject": "Cadangan laman untuk Lingogram",
+    "legal": "Perundangan",
+    "privacyPolicy": "Dasar privasi"
+  },
+
+  "proof": {
+    "rating": "di Chrome Web Store",
+    "learners": "pelajar",
+    "free": "Percuma, tiada iklan"
+  },
+
+  "demo": {
+    "hintPrefix": "Ini adalah sambungan itu sendiri, sedang berjalan di sini —",
+    "hintBold": "pilih satu perkataan",
+    "hintSuffix": "untuk menyimpannya, atau cuba salah satu mod di bawah.",
+    "credit": "Klip: NASA —",
+    "creditLink": "Cosmic Dawn",
+    "creditSuffix": "(domain awam)"
+  },
+
+  "modes": {
+    "dual": { "tab": "Sari kata dwibahasa", "h": "Kedua-dua bahasa, sekali gus", "p": "Baris yang anda dengar bersebelahan baris yang anda faham — tiada jeda, tiada tukar trek." },
+    "guess": { "tab": "Teka", "h": "Klik untuk dedah — dan latih pendengaran anda", "p": "Baris kekal tersembunyi sehingga anda mengklik. Cuba teka melalui pendengaran dahulu, kemudian semak diri anda: jurang antara kedua-duanya itulah tempat kemahiran mendengar anda bertambah baik." },
+    "single": { "tab": "Pada skrin", "h": "Pada skrin, atau di panel sisi — pilihan anda", "p": "Kekalkan kedua-dua baris di atas filem, di tempat mata anda sudah memandang. Atau alihkannya dengan satu butang dan baca daripada panel mengikut rentak anda sendiri. Sari kata tidak pernah hilang — ia cuma berpindah tempat." },
+    "save": { "tab": "Kamus", "h": "Simpan setiap perkataan yang anda temui", "p": "Pilih satu perkataan — satu ketikan menyimpannya berserta ayat asalnya, terus ke kamus anda di lingogram.ai." }
+  },
+
+  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "home": {
+    "eyebrow": "Percuma · YouTube · Netflix · HDrezka",
+    "h1Lead": "Anda pernah menonton dengan sari kata sebelum ini.",
+    "h1Pop": "Kali ini anda akan dapat lebih banyak daripadanya.",
+    "ctaPrimary": "Tambah ke Chrome — ia percuma",
+    "ctaSecondary": "Pilih edisi untuk laman anda ↓",
+
+    "platformsKicker": "Edisi",
+    "platformsH2": "Satu Lingogram, disesuaikan untuk laman tempat anda menonton",
+    "platformsLede": "Setiap edisi dibina khusus untuk pemain laman itu — trek sari kata asli, lapisan skrin penuh, pembetulan yang diperlukan laman tersebut. Semuanya berkongsi alat pembelajaran dan akaun yang sama, jadi perkataan simpanan anda berada di satu tempat tidak kira edisi mana anda gunakan. Dua sambungan meliputi ketiga-tiga laman: edisi YouTube turut mengendalikan Netflix.",
+    "editionGo": "Tambah ke Chrome →",
+    "editionSoonTitle": "Seterusnya, laman anda",
+    "editionSoonBody": "Edisi khusus baharu dilancarkan secara berkala — beritahu kami di mana anda menonton.",
+    "editionSoonCta": "Cadangkan laman →",
+
+    "howKicker": "Cara ia berfungsi",
+    "howH2": "Daripada pemasangan hingga perkataan pertama disimpan, dalam satu video",
+    "step1T": "Pasang dan pilih bahasa anda",
+    "step1D": "Pilih bahasa yang sedang anda pelajari dan bahasa anda sendiri. Persediaan sekali sahaja yang pantas — tiada akaun diperlukan.",
+    "step2T": "Buka mana-mana video yang mempunyai sari kata",
+    "step2D": "Tekan main — kedua-dua bahasa muncul bersama, pada video dan dalam transkrip yang menatal seiring dengan babak.",
+    "step3T": "Simpan perkataan, ulang kaji di sini",
+    "step3D": "Simpan perkataan dengan satu ketikan semasa menonton — kemudian buka kamus anda di lingogram.ai dan ulang kaji bersama babak asalnya.",
+
+    "dictKicker": "Kamus anda",
+    "dictH2": "Setiap perkataan yang anda simpan membina kamus yang benar-benar milik anda",
+    "dictLede": "Bukan senarai frekuensi daripada buku teks — perkataan yang anda temui dalam babak pilihan anda sendiri, disimpan bersama baris asalnya. Tidak kira edisi mana anda gunakan untuk menonton, semuanya masuk ke satu akaun dan menanti anda di sini selepas log masuk.",
+    "dictMyWords": "Perkataan saya",
+    "dictCount": "247 disimpan · 12 minggu ini",
+    "dictWord1": "reluctantly", "dictTr1": "dengan berat hati", "dictCtx1": "\"Dia {w} bersetuju memandu kereta larian itu.\"",
+    "dictWord2": "getaway", "dictTr2": "pelarian", "dictCtx2": "\"Ini bukan rompakan, ini {w}.\"",
+    "dictWord3": "spinning its wheels", "dictTr3": "berpusing tanpa gerak", "dictCtx3": "\"Ia {w} pada gear keenam!\"",
+    "dictFoot": "Perkataan anda disegerakkan merentas peranti dan setiap edisi Lingogram — {b}.",
+    "dictFootBold": "satu akaun, satu kamus",
+
+    "featKicker": "Sebab ia melekat",
+    "featH2": "Kebanyakan alat berhenti setakat terjemahan. Lingogram menjadikan perkataan melekat.",
+    "featLede": "Lingogram dibina berasaskan ingat semula aktif: anda bukan sekadar membaca sambil menonton — anda meneka, main semula dan mengumpul, jadi masa yang sudah pun anda habiskan menonton bertukar menjadi kemajuan sebenar.",
+    "feat1Tag": "Sari kata dwibahasa", "feat1H": "Dua bahasa, satu skrin", "feat1P": "Tangkap setiap baris dalam bahasa asal dan padankan dengan bahasa anda sendiri tanpa jeda. Apabila anda sudah bersedia, sembunyikan terjemahan — sari kata dwibahasa ibarat roda latihan, dan Lingogram membantu anda menanggalkannya.",
+    "feat2Tag": "Transkrip interaktif", "feat2H": "Main semula baris itu, bukan seluruh filem", "feat2P": "Transkrip menatal sendiri seiring dengan video. Klik mana-mana baris untuk melompat semula dan mengulang babak itu sahaja, sehingga bunyi yang tidak dapat anda kenal pasti menjadi perkataan yang anda kenali serta-merta.",
+    "feat3Tag": "Mod Teka", "feat3H": "Dengar dahulu, kemudian semak", "feat3P": "Perkataan bermula tersembunyi: tangkap baris itu melalui pendengaran, kemudian dedahkannya. Kitaran \"dengar dahulu\" ini membina kemahiran mendengar yang boleh anda percayai — bukan sekadar sari kata yang anda baca sahaja. Togol dengan {kbd}.",
+    "feat4Tag": "Perkataan disimpan", "feat4H": "Perbendaharaan kata anda, daripada filem anda", "feat4P": "Satu ketikan menyimpan perkataan berserta baris sari kata di sekelilingnya. Ia terus masuk ke {link} di lingogram.ai, tempat anda mengulang kaji setiap perkataan dalam babak asalnya.",
+    "feat4Link": "kamus peribadi anda",
+
+    "privKicker": "Peribadi secara lalai",
+    "privH2": "Apa yang anda tonton kekal urusan anda sendiri",
+    "priv1": "{b} Tetapan bahasa dan susun atur disimpan secara setempat dalam pelayar anda.", "priv1Bold": "Tiada telemetri, tiada penjejakan.",
+    "priv2": "{b} Sari kata diproses terus pada peranti anda.", "priv2Bold": "Kami tidak pernah melihat sejarah tontonan anda.",
+    "priv3": "{b} Jika anda log masuk, kami menyimpan e-mel dan perkataan simpanan anda — tiada apa-apa lagi, dan kami tidak sekali-kali menjualnya.", "priv3Bold": "Kamus adalah pilihan anda sendiri.",
+    "priv4": "{b} Jika kemas kini laman merosakkan sesuatu, satu klik melaporkannya supaya kami boleh membaikinya dengan cepat.", "priv4Bold": "Dibina untuk terus berfungsi.",
+
+    "faqKicker": "Soalan Lazim",
+    "faqH2": "Soalan yang ditanya orang sebelum memasang",
+
+    "finalH2": "Jadikan episod malam ini pelajaran bahasa anda",
+    "finalCta": "Tambah Lingogram ke Chrome",
+    "finalProof": "Percuma · Persediaan kurang seminit"
+  },
+
+  "faq": {
+    "free": { "q": "Adakah ia percuma?", "a": "Ya. Sari kata dwibahasa, transkrip dan Mod Teka adalah percuma. Akaun percuma hanya diperlukan jika anda mahu perkataan simpanan anda disegerakkan merentas peranti." },
+    "languages": { "q": "Bahasa apakah yang disokong?", "a": "Mana-mana pasangan yang mempunyai sari kata pada video tersebut. Di YouTube, jika salah satu daripada dua bahasa anda tiada, Lingogram melengkapkannya dengan terjemahan automatik YouTube supaya anda tetap mendapat paparan dwibahasa. Di Netflix dan HDrezka, ia memaparkan trek sari kata yang benar-benar ada pada tajuk tersebut — tiada terjemahan mesin." },
+    "edition": { "q": "Edisi mana yang perlu saya pasang?", "a": "Edisi untuk laman tempat anda menonton. Terdapat dua sambungan: satu meliputi YouTube dan Netflix bersama, satu lagi meliputi HDrezka. Pasang kedua-duanya jika anda menonton di kedua-dua laman — ia berkongsi alat pembelajaran dan akaun yang sama, jadi perkataan simpanan anda kekal di satu tempat." },
+    "words": { "q": "Di manakah perkataan simpanan saya berada?", "a": "Dalam kamus peribadi anda, di sini juga di lingogram.ai. Log masuk dan setiap perkataan yang anda simpan berada di sana bersama babak asalnya — tidak kira edisi atau peranti mana yang anda gunakan untuk menyimpannya." }
+  },
+
+  "edition": {
+    "eyebrow": "Lingogram untuk {site}",
+    "ctaPrimary": "Tambah ke Chrome — ia percuma",
+    "ctaSecondary": "Lihat semua edisi",
+    "builtKicker": "Dibina untuk {site}",
+    "builtH2": "Apa yang dilakukan edisi {site}",
+    "faqH2": "Sebelum anda memasang",
+    "finalH2": "Tonton {site} malam ini — dalam dua bahasa",
+    "finalCta": "Tambah {name}",
+    "finalProof": "Percuma · Persediaan kurang seminit"
+  },
+
+  "privacy": {
+    "title": "Dasar privasi — Lingogram",
+    "description": "Apa yang dikumpul oleh Lingogram, cara ia digunakan, dan pilihan yang anda ada."
+  },
+
+  "welcome": {
+    "title": "Selamat datang ke Lingogram",
+    "description": "Anda sudah bersedia — inilah cara menyimpan perkataan pertama anda dalam tiga langkah.",
+    "h1": "telah dipasang",
+    "sub": "Tiga langkah menuju perkataan pertama anda disimpan — hanya perlukan satu video.",
+    "step1T": "Pilih bahasa anda", "step1D": "Klik ikon Lingogram pada bar alat dan pilih bahasa yang sedang anda pelajari serta bahasa anda sendiri.",
+    "step2T": "Buka video yang mempunyai sari kata", "step2D": "Tekan main — kedua-dua bahasa muncul bersama, pada video dan dalam transkrip.",
+    "step3T": "Simpan perkataan pertama anda", "step3D": "Tanda satu perkataan dalam sari kata dan ketik untuk menyimpannya — ia akan masuk ke {link}.",
+    "step3Link": "kamus anda",
+    "keyDual": "sari kata dwibahasa", "keySwap": "tukar bahasa", "keyGuess": "mod teka", "keyOverlay": "mod lapisan"
+  },
+
+  "uninstall": {
+    "title": "Sedih melihat anda pergi — Lingogram",
+    "description": "Beritahu kami sebab anda mengalih keluar Lingogram supaya kami boleh memperbaikinya.",
+    "h1": "Sedih melihat anda pergi",
+    "sub": "Satu ayat tentang sebab anda mengalih keluar {ext} membantu kami memperbaikinya untuk semua orang.",
+    "placeholder": "Ia rosak semasa… / Saya menyangka… / Saya menjumpai yang lebih baik…",
+    "ariaLabel": "Kenapa anda nyahpasang?",
+    "send": "Hantar maklum balas",
+    "footPrefix": "Perkataan simpanan anda masih ada di",
+    "footLink": "kamus anda",
+    "footMid": "— ia akan menunggu jika anda kembali.",
+    "reinstall": "Pasang semula pada bila-bila masa."
+  },
+
+  "auth": {
+    "or": "atau",
+    "showPassword": "Tunjukkan kata laluan",
+    "capsLock": "⇪ Caps Lock dihidupkan",
+    "optional": "pilihan",
+    "register": {
+      "title": "Cipta akaun anda — Lingogram",
+      "description": "Daftar untuk menyegerakkan perkataan simpanan anda merentas setiap peranti dan edisi.",
+      "eyebrow": "Akaun percuma",
+      "h1Lead": "Mulakan", "h1Pop": "senarai perkataan anda",
+      "sub": "Simpan perkataan daripada apa sahaja yang anda tonton — disegerakkan merentas setiap peranti dan edisi.",
+      "googleCta": "Daftar dengan Google",
+      "nameLabel": "Nama anda", "namePlaceholder": "Aisyah",
+      "emailLabel": "E-mel", "emailPlaceholder": "aisyah@example.com",
+      "passwordLabel": "Kata laluan", "passwordPlaceholder": "Sekurang-kurangnya 8 aksara",
+      "submit": "Cipta akaun", "submitBusy": "Mencipta akaun…",
+      "altPrefix": "Sudah ada akaun?", "altLink": "Log masuk",
+      "finePrefix": "Dengan meneruskan, anda bersetuju dengan", "fineLink": "Dasar privasi"
+    },
+    "login": {
+      "title": "Log masuk — Lingogram",
+      "description": "Log masuk ke kamus Lingogram anda.",
+      "eyebrow": "Selamat kembali",
+      "h1Lead": "Kamus", "h1Pop": "anda", "h1Tail": "sedang menanti",
+      "sub": "Log masuk untuk menyambung dari tempat anda berhenti.",
+      "googleCta": "Log masuk dengan Google",
+      "emailLabel": "E-mel", "emailPlaceholder": "aisyah@example.com",
+      "passwordLabel": "Kata laluan", "passwordPlaceholder": "Kata laluan anda",
+      "forgot": "Lupa kata laluan?",
+      "resetNote": "Semak peti masuk anda — pautan tetap semula kata laluan sedang dalam perjalanan.",
+      "submit": "Log masuk", "submitBusy": "Log masuk sedang berjalan…",
+      "altPrefix": "Baharu di Lingogram?", "altLink": "Cipta akaun"
+    }
+  },
+
+  "notFound": {
+    "title": "Halaman tidak dijumpai — Lingogram",
+    "description": "Halaman ini tidak wujud.",
+    "h1": "Tiada apa untuk ditonton di sini",
+    "sub": "Halaman ini tidak wujud. Filem-filem itu, sebaliknya, wujud.",
+    "cta": "Kembali ke Lingogram"
+  }
+}
