@@ -1,4 +1,4 @@
-import { installAuthBackground } from '@video-transcripts/shared';
+import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
 
 // Function to download a file with automatic retry on error
 export async function fetchWithRetry(url: string, retries: number = 3, delay: number = 1000): Promise<string> {
@@ -20,6 +20,7 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 }
 
 installAuthBackground();
+installOnboarding('rezka');
 
 interface VttMessage {
     action: 'TIME_UPDATE' | 'SEEK_VIDEO' | 'VTT_LOADED' | 'FETCH_VTT' | 'RESCAN' | 'DEV_LOAD_LOCALE';

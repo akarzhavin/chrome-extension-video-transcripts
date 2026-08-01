@@ -1,9 +1,10 @@
-import { getAuthState, handleAuthMessage, installAuthBackground } from '@video-transcripts/shared';
+import { getAuthState, handleAuthMessage, installAuthBackground, installOnboarding } from '@video-transcripts/shared';
 
 // Reuse the exact auth stack shipped in the youtube / rezka extensions:
 // popup sign-in (AUTH_* messages), the external token handoff from the
 // Lingogram SPA, and ADD_WORD → Firestore writes.
 installAuthBackground();
+installOnboarding('web');
 
 const MENU_ID = 'lingogram-add-to-inbox';
 const MAX_TERM_LEN = 256;
