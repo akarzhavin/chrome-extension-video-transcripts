@@ -9,3 +9,4 @@ export * from './types';
 export * from './auth';
 export * from './content';
 export * from './popup';
+export * from './onboarding';
