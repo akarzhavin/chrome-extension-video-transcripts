@@ -617,21 +617,31 @@ const md = (text) => {
   return blocks.join('\n');
 };
 
-// Privacy, welcome, uninstall and auth pages are English-only for now (see
-// the i18n rollout note at the top of this file) — they still get the
-// localized header/footer chrome so the language switcher stays consistent
-// site-wide. `EN_T` is the shared English translator these pages close over.
-const EN_T = makeT(EN_STRINGS);
+// The English body is the LEGAL source of truth, read straight from
+// apps/youtube/PRIVACY_POLICY.md (single source until a family-wide policy
+// is written — see the file header). Other locales are a translated COPY
+// committed under src/data/privacy/<lang>.md: translating a legal document
+// is not something to regenerate casually on every edit of the English
+// original, so these are static files a human updates, not a live mirror.
+// A locale without a translated copy falls back to the English body rather
+// than 404ing or omitting the page.
+const PRIVACY_DIR = path.join(SRC, 'data', 'privacy');
+const privacyBody = (lang) => {
+  const translated = path.join(PRIVACY_DIR, `${lang}.md`);
+  if (lang !== 'en' && fs.existsSync(translated)) return fs.readFileSync(translated, 'utf8');
+  return fs.readFileSync(path.join(HERE, '..', 'youtube', 'PRIVACY_POLICY.md'), 'utf8');
+};
 
-const privacyPage = () => {
-  const source = path.join(HERE, '..', 'youtube', 'PRIVACY_POLICY.md');
-  const text = fs.readFileSync(source, 'utf8');
+const privacyPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
   return layout({
-    lang: 'en', htmlLang: 'en',
-    title: EN_T('privacy.title'),
-    description: EN_T('privacy.description'),
-    pathName: '/privacy/',
-    body: `${header(EN_T, '')}<main><article class="doc">${md(text)}</article></main>${footer(EN_T, '')}`,
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('privacy.title'),
+    description: t('privacy.description'),
+    pathName: `${root}/privacy/`,
+    body: `${header(t, root)}<main><article class="doc">${md(privacyBody(lang))}</article></main>${footer(t, root)}`,
   });
 };
 
@@ -639,54 +649,68 @@ const editionsMap = JSON.stringify(
   Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e.name])),
 );
 
-const welcomePage = () => layout({
-  lang: 'en', htmlLang: 'en',
-  title: EN_T('welcome.title'),
-  description: EN_T('welcome.description'),
-  pathName: '/welcome/',
-  body: `
-${header(EN_T, '')}
+// welcome/uninstall are reached from the extension (chrome.runtime.onInstalled
+// / setUninstallURL — not wired up in any of the three extensions yet, but the
+// pages are edition-aware via ?ext=<slug> for when they are), so they render
+// per locale exactly like the home page.
+const welcomePage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('welcome.title'),
+    description: t('welcome.description'),
+    pathName: `${root}/welcome/`,
+    body: `
+${header(t, root)}
 <main class="narrow">
   <span class="logo-mark" style="width:64px;height:64px;border-radius:18px;margin:20px auto">${CHAMELEON(40)}</span>
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em"><span data-ext-name>Lingogram</span> ${esc(EN_T('welcome.h1'))}</h1>
-  <p class="sub">${esc(EN_T('welcome.sub'))}</p>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em"><span data-ext-name>Lingogram</span> ${esc(t('welcome.h1'))}</h1>
+  <p class="sub">${esc(t('welcome.sub'))}</p>
   <div class="steps">
-    <div class="step"><span class="step-n">1</span><b>${esc(EN_T('welcome.step1T'))}</b><p>${esc(EN_T('welcome.step1D'))}</p></div>
-    <div class="step"><span class="step-n">2</span><b>${esc(EN_T('welcome.step2T'))}</b><p>${esc(EN_T('welcome.step2D'))}</p></div>
-    <div class="step"><span class="step-n">3</span><b>${esc(EN_T('welcome.step3T'))}</b><p>${EN_T('welcome.step3D', { link: `<a href="${SITE.appUrl}">${esc(EN_T('welcome.step3Link'))}</a>` })}</p></div>
+    <div class="step"><span class="step-n">1</span><b>${esc(t('welcome.step1T'))}</b><p>${esc(t('welcome.step1D'))}</p></div>
+    <div class="step"><span class="step-n">2</span><b>${esc(t('welcome.step2T'))}</b><p>${esc(t('welcome.step2D'))}</p></div>
+    <div class="step"><span class="step-n">3</span><b>${esc(t('welcome.step3T'))}</b><p>${t('welcome.step3D', { link: `<a href="${SITE.appUrl}">${esc(t('welcome.step3Link'))}</a>` })}</p></div>
   </div>
   <div class="keys">
-    <span><kbd>Shift + D</kbd> ${esc(EN_T('welcome.keyDual'))}</span>
-    <span><kbd>Shift + S</kbd> ${esc(EN_T('welcome.keySwap'))}</span>
-    <span><kbd>Shift + G</kbd> ${esc(EN_T('welcome.keyGuess'))}</span>
-    <span><kbd>Shift + O</kbd> ${esc(EN_T('welcome.keyOverlay'))}</span>
+    <span><kbd>Shift + D</kbd> ${esc(t('welcome.keyDual'))}</span>
+    <span><kbd>Shift + S</kbd> ${esc(t('welcome.keySwap'))}</span>
+    <span><kbd>Shift + G</kbd> ${esc(t('welcome.keyGuess'))}</span>
+    <span><kbd>Shift + O</kbd> ${esc(t('welcome.keyOverlay'))}</span>
   </div>
 </main>
-${footer(EN_T, '')}
+${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};</script>`,
-});
+  });
+};
 
-const uninstallPage = () => layout({
-  lang: 'en', htmlLang: 'en',
-  title: EN_T('uninstall.title'),
-  description: EN_T('uninstall.description'),
-  pathName: '/uninstall/',
-  body: `
-${header(EN_T, '')}
+const uninstallPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('uninstall.title'),
+    description: t('uninstall.description'),
+    pathName: `${root}/uninstall/`,
+    body: `
+${header(t, root)}
 <main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(EN_T('uninstall.h1'))}</h1>
-  <p class="sub">${EN_T('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('uninstall.h1'))}</h1>
+  <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
   <form id="feedback-form" data-mailto="${SITE.supportEmail}">
-    <textarea id="feedback-text" placeholder="${esc(EN_T('uninstall.placeholder'))}" aria-label="${esc(EN_T('uninstall.ariaLabel'))}"></textarea>
+    <textarea id="feedback-text" placeholder="${esc(t('uninstall.placeholder'))}" aria-label="${esc(t('uninstall.ariaLabel'))}"></textarea>
     <div class="cta-row" style="margin-top:16px">
-      <button class="btn btn-primary" type="submit">${esc(EN_T('uninstall.send'))}</button>
+      <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
     </div>
   </form>
-  <p class="sub" style="margin-top:34px;font-size:15px">${esc(EN_T('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(EN_T('uninstall.footLink'))}</a> ${esc(EN_T('uninstall.footMid'))} <a href="/#platforms">${esc(EN_T('uninstall.reinstall'))}</a></p>
+  <p class="sub" style="margin-top:34px;font-size:15px">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
 </main>
-${footer(EN_T, '')}
+${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};</script>`,
-});
+  });
+};
 
 // The /words/ "coming soon" placeholder is gone: the dictionary web app has
 // shipped. SITE.appUrl now points at /app/, served by the React SPA on its own
@@ -747,8 +771,8 @@ const passwordField = (label, attrs, withStrength) => `
         <p class="auth-field-error" data-field-error="password"></p>
       </label>`;
 
-const authShell = (eyebrow, inner, here) => `
-${header(EN_T, '', here)}
+const authShell = (t, root, eyebrow, inner, here) => `
+${header(t, root, here)}
 <main class="auth-wrap">
   <div class="auth-card">
     <span class="logo-mark auth-logo">${CHAMELEON(40)}</span>
@@ -756,66 +780,81 @@ ${header(EN_T, '', here)}
     ${inner}
   </div>
 </main>
-${footer(EN_T, '')}`;
+${footer(t, root)}`;
 
-const registerPage = () => layout({
-  lang: 'en', htmlLang: 'en',
-  title: EN_T('auth.register.title'),
-  description: EN_T('auth.register.description'),
-  pathName: '/register/',
-  scripts: authScripts,
-  body: authShell(EN_T('auth.register.eyebrow'), `
-    <h1 class="auth-title">${esc(EN_T('auth.register.h1Lead'))} <span class="pop">${esc(EN_T('auth.register.h1Pop'))}</span></h1>
-    <p class="auth-sub">${esc(EN_T('auth.register.sub'))}</p>
+const registerPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('auth.register.title'),
+    description: t('auth.register.description'),
+    pathName: `${root}/register/`,
+    scripts: authScripts,
+    body: authShell(t, root, t('auth.register.eyebrow'), `
+    <h1 class="auth-title">${esc(t('auth.register.h1Lead'))} <span class="pop">${esc(t('auth.register.h1Pop'))}</span></h1>
+    <p class="auth-sub">${esc(t('auth.register.sub'))}</p>
     <form id="register-form" class="auth-form" novalidate>
-      ${googleAuth(EN_T('auth.register.googleCta'))}
-      ${field('name', `${esc(EN_T('auth.register.nameLabel'))} <span class="auth-optional">${esc(EN_T('auth.optional'))}</span>`, `type="text" autocomplete="name" placeholder="${esc(EN_T('auth.register.namePlaceholder'))}"`)}
-      ${field('email', esc(EN_T('auth.register.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(EN_T('auth.register.emailPlaceholder'))}" required`)}
-      ${passwordField(esc(EN_T('auth.register.passwordLabel')), `autocomplete="new-password" placeholder="${esc(EN_T('auth.register.passwordPlaceholder'))}" minlength="8" required`, true)}
+      ${googleAuth(t('auth.register.googleCta'))}
+      ${field('name', `${esc(t('auth.register.nameLabel'))} <span class="auth-optional">${esc(t('auth.optional'))}</span>`, `type="text" autocomplete="name" placeholder="${esc(t('auth.register.namePlaceholder'))}"`)}
+      ${field('email', esc(t('auth.register.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(t('auth.register.emailPlaceholder'))}" required`)}
+      ${passwordField(esc(t('auth.register.passwordLabel')), `autocomplete="new-password" placeholder="${esc(t('auth.register.passwordPlaceholder'))}" minlength="8" required`, true)}
       <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
-      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(EN_T('auth.register.submitBusy'))}">${esc(EN_T('auth.register.submit'))}</button>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(t('auth.register.submitBusy'))}">${esc(t('auth.register.submit'))}</button>
     </form>
-    <p class="auth-alt">${esc(EN_T('auth.register.altPrefix'))} <a href="/login/">${esc(EN_T('auth.register.altLink'))}</a></p>
-    <p class="auth-fine">${esc(EN_T('auth.register.finePrefix'))} <a href="/privacy/">${esc(EN_T('auth.register.fineLink'))}</a>.</p>`, 'register'),
-});
+    <p class="auth-alt">${esc(t('auth.register.altPrefix'))} <a href="${root}/login/">${esc(t('auth.register.altLink'))}</a></p>
+    <p class="auth-fine">${esc(t('auth.register.finePrefix'))} <a href="${root}/privacy/">${esc(t('auth.register.fineLink'))}</a>.</p>`, 'register'),
+  });
+};
 
-const loginPage = () => layout({
-  lang: 'en', htmlLang: 'en',
-  title: EN_T('auth.login.title'),
-  description: EN_T('auth.login.description'),
-  pathName: '/login/',
-  scripts: authScripts,
-  body: authShell(EN_T('auth.login.eyebrow'), `
-    <h1 class="auth-title">${esc(EN_T('auth.login.h1Lead'))} <span class="pop">${esc(EN_T('auth.login.h1Pop'))}</span> ${esc(EN_T('auth.login.h1Tail'))}</h1>
-    <p class="auth-sub">${esc(EN_T('auth.login.sub'))}</p>
+const loginPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('auth.login.title'),
+    description: t('auth.login.description'),
+    pathName: `${root}/login/`,
+    scripts: authScripts,
+    body: authShell(t, root, t('auth.login.eyebrow'), `
+    <h1 class="auth-title">${esc(t('auth.login.h1Lead'))} <span class="pop">${esc(t('auth.login.h1Pop'))}</span> ${esc(t('auth.login.h1Tail'))}</h1>
+    <p class="auth-sub">${esc(t('auth.login.sub'))}</p>
     <form id="login-form" class="auth-form" novalidate>
-      ${googleAuth(EN_T('auth.login.googleCta'))}
-      ${field('email', esc(EN_T('auth.login.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(EN_T('auth.login.emailPlaceholder'))}" required`)}
-      ${passwordField(esc(EN_T('auth.login.passwordLabel')), `autocomplete="current-password" placeholder="${esc(EN_T('auth.login.passwordPlaceholder'))}" required`, false)}
+      ${googleAuth(t('auth.login.googleCta'))}
+      ${field('email', esc(t('auth.login.emailLabel')), `type="email" autocomplete="email" inputmode="email" placeholder="${esc(t('auth.login.emailPlaceholder'))}" required`)}
+      ${passwordField(esc(t('auth.login.passwordLabel')), `autocomplete="current-password" placeholder="${esc(t('auth.login.passwordPlaceholder'))}" required`, false)}
       <div class="auth-row-end">
-        <a href="#" id="reset-link" class="auth-link">${esc(EN_T('auth.login.forgot'))}</a>
+        <a href="#" id="reset-link" class="auth-link">${esc(t('auth.login.forgot'))}</a>
       </div>
       <p class="auth-error" data-auth-error role="alert" aria-live="polite"></p>
-      <p class="auth-note" id="reset-note">${esc(EN_T('auth.login.resetNote'))}</p>
-      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(EN_T('auth.login.submitBusy'))}">${esc(EN_T('auth.login.submit'))}</button>
+      <p class="auth-note" id="reset-note">${esc(t('auth.login.resetNote'))}</p>
+      <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(t('auth.login.submitBusy'))}">${esc(t('auth.login.submit'))}</button>
     </form>
-    <p class="auth-alt">${esc(EN_T('auth.login.altPrefix'))} <a href="/register/">${esc(EN_T('auth.login.altLink'))}</a></p>`, 'login'),
-});
+    <p class="auth-alt">${esc(t('auth.login.altPrefix'))} <a href="${root}/register/">${esc(t('auth.login.altLink'))}</a></p>`, 'login'),
+  });
+};
 
-const notFoundPage = () => layout({
-  lang: 'en', htmlLang: 'en',
-  title: EN_T('notFound.title'),
-  description: EN_T('notFound.description'),
-  pathName: '/404.html',
-  body: `
-${header(EN_T, '')}
+const notFoundPage = (locale) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang,
+    title: t('notFound.title'),
+    description: t('notFound.description'),
+    pathName: `${root}/404.html`,
+    body: `
+${header(t, root)}
 <main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(EN_T('notFound.h1'))}</h1>
-  <p class="sub">${esc(EN_T('notFound.sub'))}</p>
-  <div class="cta-row"><a class="btn btn-primary" href="/">${esc(EN_T('notFound.cta'))}</a></div>
+  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('notFound.h1'))}</h1>
+  <p class="sub">${esc(t('notFound.sub'))}</p>
+  <div class="cta-row"><a class="btn btn-primary" href="${root}/">${esc(t('notFound.cta'))}</a></div>
 </main>
-${footer(EN_T, '')}`,
-});
+${footer(t, root)}`,
+  });
+};
 
 // ---------------------------------------------------------------- build
 
@@ -834,18 +873,32 @@ function build() {
     pages += 1;
   };
 
-  // The home page renders once PER LOCALE: English unprefixed at /, every
-  // other locale under /<lang>/ — a full independent page, not a
-  // client-side switch, so search engines and no-JS visitors get real
-  // localized HTML. hreflang map built once, shared by every locale's page
+  // Every locale-independent page below renders once PER LOCALE: English
+  // unprefixed at /, every other locale under /<lang>/ — full independent
+  // pages, not a client-side switch, so search engines and no-JS visitors
+  // get real localized HTML. One hreflang map per PAGE KIND (each page kind
+  // has its own set of paths), shared by every locale's render of that page
   // (self-referencing entries are expected and required by the spec).
-  const homeHrefLang = Object.fromEntries([
-    ...LOCALES.map(({ code }) => [code, code === 'en' ? '/' : `/${code}/`]),
-    ['x-default', '/'],
+  const hrefLangFor = (pathOf) => Object.fromEntries([
+    ...LOCALES.map(({ code }) => [code, pathOf(code)]),
+    ['x-default', pathOf('en')],
   ]);
+  const homeHrefLang = hrefLangFor((c) => (c === 'en' ? '/' : `/${c}/`));
+  const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
+  const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
+  const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
+  const loginHrefLang = hrefLangFor((c) => (c === 'en' ? '/login/' : `/${c}/login/`));
+  const registerHrefLang = hrefLangFor((c) => (c === 'en' ? '/register/' : `/${c}/register/`));
+
   for (const locale of LOCALES) {
     const root = locale.code === 'en' ? '' : locale.code;
     write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
+    write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
+    write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
+    write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
+    write(path.join(root, 'login', 'index.html'), loginPage(locale, loginHrefLang));
+    write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
+    write(path.join(root, '404.html'), notFoundPage(locale));
   }
   // The header switcher's option list (src/demo/index.ts siteLocales): every
   // locale that actually has a page, sourced from i18n/ rather than
@@ -855,13 +908,9 @@ function build() {
     path.join(SRC, 'data', 'site-locales.json'),
     JSON.stringify(LOCALES.map(({ code }) => code).sort()) + '\n',
   );
+  // Edition pages (editions.json copy) stay English-only for now — see the
+  // i18n rollout note at the top of this file.
   for (const ed of EDITIONS.editions) write(path.join(ed.slug, 'index.html'), editionPage(ed));
-  write(path.join('privacy', 'index.html'), privacyPage());
-  write(path.join('welcome', 'index.html'), welcomePage());
-  write(path.join('uninstall', 'index.html'), uninstallPage());
-  write(path.join('login', 'index.html'), loginPage());
-  write(path.join('register', 'index.html'), registerPage());
-  write('404.html', notFoundPage());
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));
