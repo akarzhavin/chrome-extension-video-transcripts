@@ -1021,6 +1021,15 @@
     user-select: text;
 }
 
+/* Guess mode: the caption box is a reveal target, exactly like a line in the
+   transcript — a click uncovers the next word. Say so with the cursor, but
+   only while words are still hidden; once the line is out it goes back to
+   being text you select from. Drag-selecting still works either way (the
+   reveal handler stands down when there's a selection inside). */
+.vtt-overlay-main:has(.vtt-masked-word) {
+    cursor: pointer;
+}
+
 .vtt-overlay-sub {
     background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));
     /* Translation accent stays fixed — user color applies to the main line only. */

@@ -1,0 +1,880 @@
+/* Lingogram site — token-based styles. Light theme is the daylight brand;
+   dark theme redefines the tokens only (never style inside the media query). */
+:root {
+  color-scheme: light dark;
+  --ground: #f6f5fa;
+  --panel: #ffffff;
+  --ink: #17131f;
+  --muted: #5d5870;
+  --line: #e4e1ee;
+  --accent: #5b3fbf;
+  --accent-ink: #ffffff;
+  --accent-soft: #ece7fb;
+  --teal: #14a97c;
+  --teal-deep: #0b7a5c;
+  --teal-soft: #e3f6ee;
+  --band: #17131f;
+  --band-panel: #221d2e;
+  --band-ink: #f5f3fa;
+  --band-muted: #a49fb5;
+  --band-line: #37313f;
+  --player: #16141d;
+  --player-panel: #201d29;
+  --demo-edge: rgba(255, 255, 255, 0.08);
+  --shadow: 0 24px 60px -30px rgba(35, 20, 90, 0.35);
+  --star: #f5a623;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #0f0b1e; --panel: #1e1740; --ink: #f1eefa; --muted: #aaa3c4;
+    --line: #352c63; --accent: #a390ff; --accent-ink: #17112e; --accent-soft: #2b2260;
+    --teal: #3adfa5; --teal-deep: #3adfa5; --teal-soft: #12382c;
+    --band: #080614; --band-panel: #161028; --band-line: #2b2344;
+    --player: #0d0b16; --player-panel: #161320; --demo-edge: rgba(150, 130, 255, 0.35);
+    --shadow: 0 24px 70px -28px rgba(80, 50, 220, 0.45);
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.55; -webkit-font-smoothing: antialiased;
+  /* Lets .demo size itself with cqw units: unlike 100vw, 100cqw excludes the
+     scrollbar, so the breakout card never overflows under a classic scrollbar. */
+  container-type: inline-size;
+}
+img, svg { max-width: 100%; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, summary:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px;
+}
+
+.wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+/* ---------- header ---------- */
+header.site { display: flex; align-items: center; gap: 18px; padding: 20px 0; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; margin-right: auto; color: var(--ink); text-decoration: none; }
+.logo-mark {
+  width: 38px; height: 38px; border-radius: 11px; flex: none;
+  display: grid; place-items: center;
+}
+/* The logo art supplies its own backdrop — fill the box, keep its corners. */
+.logo-mark .logo-img { width: 100%; height: 100%; border-radius: inherit; display: block; }
+nav.top { display: flex; gap: 24px; font-size: 14.5px; }
+nav.top a { color: var(--muted); text-decoration: none; font-weight: 500; }
+nav.top a:hover { color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 12px; padding: 14px 24px; font-size: 16px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 10px 30px -12px var(--accent); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-primary svg { flex: none; }
+.btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--accent); }
+.btn-login { padding: 9px 18px; font-size: 14px; }
+.mnav { display: none; position: relative; }
+
+/* ---------- hero ---------- */
+.hero { text-align: center; padding: 34px 0 8px; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel);
+  border-radius: 999px; padding: 7px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+}
+.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+h1 { font-size: clamp(38px, 6.2vw, 62px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; margin: 22px auto 30px; text-wrap: balance; }
+h1 .pop { color: var(--accent); }
+.sub { max-width: 56ch; margin: 0 auto 26px; font-size: 18px; color: var(--muted); text-wrap: balance; }
+.cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.pillars {
+  list-style: none; margin: 0 auto 30px; padding: 0; max-width: 880px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 30px; text-align: center;
+}
+.pillars li { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+.pillars b {
+  display: block; color: var(--ink); font-size: 15.5px; font-weight: 700; margin-bottom: 3px;
+}
+.pillars b::before { content: "✓ "; color: var(--teal-deep); }
+.proof { display: flex; gap: 10px 22px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 20px 0 0; font-size: 14px; color: var(--muted); font-weight: 550; }
+.proof .stars { color: var(--star); letter-spacing: 2px; font-size: 15px; }
+.proof b { color: var(--ink); }
+.proof .sep { color: var(--line); }
+
+/* ---------- demo player ---------- */
+/* Wide enough that the 320px sidebar (the extension's real width) leaves a
+   16:9 stage with room to breathe: at 940px the video flattened into a strip
+   and the panel read as oversized next to it. The demo is the one block that
+   outgrows .wrap, so it breaks out of it rather than widening the page's
+   text column — clamped to the viewport so it never forces a scrollbar. */
+.demo {
+  border-radius: 18px; overflow: hidden;
+  box-shadow: var(--shadow); border: 1px solid var(--line);
+  width: min(1120px, calc(100cqw - 48px));
+  max-width: none;
+  /* Wider than .wrap, so auto margins resolve to 0 and the card would hug the
+     column's left edge. Center it on the viewport by hand: parent is centered,
+     so (100% - own width) / 2 is the (negative) margin that re-centers.
+     cqw (from body, sans scrollbar), not vw: vw would overflow + clip the
+     right edge whenever a classic scrollbar is visible. */
+  margin: 40px 0 0 calc((100% - min(1120px, 100cqw - 48px)) / 2);
+}
+.demo-chrome { background: var(--panel); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.url { background: var(--ground); border: 1px solid var(--line); border-radius: 8px; padding: 3px 12px; margin-left: 8px; }
+
+/* Shown in place of the demo when the installed extension owns the page's
+   #vtt-* ids. Sized like the player it replaces so the hero doesn't collapse. */
+.demo-conflict {
+  margin: 0; padding: 48px 32px; min-height: 220px;
+  display: flex; flex-direction: column; justify-content: center;
+  text-align: center; color: var(--muted); font-size: 15px; line-height: 1.6;
+}
+.demo-conflict b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 6px; }
+
+.demo-hint { text-align: center; font-size: 13.5px; color: var(--muted); margin-top: 14px; }
+.demo-hint b { color: var(--ink); }
+
+/* ---------- mode explainer ----------
+   Page furniture, NOT part of the product: the demo frame above is the
+   extension itself, so everything explaining it stays outside that frame and
+   speaks the page's visual language (tokens, light/dark aware). Underline
+   tabs, an ANIMATED miniature — a dark "screenshot of the product" inside
+   page copy — and short benefit text. Two-way coupled to the demo
+   (src/demo/index.ts). No box around it: boxes read as widgets. */
+.mslider { max-width: 860px; margin: 34px auto 0; text-align: left; }
+.mtabs {
+  display: flex; gap: 26px; justify-content: center; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+}
+.mtab {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  cursor: pointer; border: none; background: none;
+  color: var(--muted); font: inherit; font-size: 14px; font-weight: 650;
+  padding: 4px 2px 11px;
+  transition: color 0.15s;
+}
+.mtab svg { width: 16px; height: 16px; flex: none; }
+.mtab:hover { color: var(--ink); }
+.mtab.is-active { color: var(--accent); }
+/* The underline is the active marker AND the auto-advance countdown: while
+   the slider self-advances it fills over the interval; once the visitor takes
+   over (.m-no-auto) it sits full — a plain active indicator. It re-triggers
+   naturally as is-active moves between tabs. */
+.mtab.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  border-radius: 2px; background: var(--accent);
+  transform-origin: left; animation: tabAuto 6.5s linear forwards;
+}
+.mslider.m-no-auto .mtab.is-active::after { animation: none; }
+@keyframes tabAuto { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Slides stack in one grid cell; the active one fades in. */
+.mslides { display: grid; padding-top: 22px; }
+.mslide {
+  grid-area: 1 / 1; display: flex; gap: 22px; align-items: center;
+  opacity: 0; visibility: hidden; transition: opacity 0.35s ease;
+}
+.mslide.is-active { opacity: 1; visibility: visible; }
+.mtext h3 { margin: 0 0 5px; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
+.mtext p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.55; max-width: 54ch; }
+/* Miniature of the player — the same visual language as the real overlay
+   (white main line, yellow translation, dark pill). Dark in both themes: it
+   is a picture OF the product, and the product is dark. */
+.mviz {
+  position: relative; display: block; flex: none;
+  width: 264px; aspect-ratio: 16 / 8.5;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 10px 30px -14px rgba(20, 10, 60, 0.55);
+  background:
+    radial-gradient(120% 130% at 20% 0%, #2b2352 0%, transparent 55%),
+    radial-gradient(110% 120% at 85% 100%, #14202e 0%, transparent 60%),
+    #0d0b16;
+}
+.viz-panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 27%;
+  background: rgba(22, 19, 32, 0.92); border-left: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex; flex-direction: column; gap: 5px; padding: 9px 8px;
+}
+/* Direct children only: the ghost transcript rows. The chips in .viz-chiprow
+   are also <i> and must not inherit row height/background. */
+.viz-panel > i {
+  display: block; height: 12px; border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+}
+.viz-panel > i:first-child { background: rgba(124, 92, 255, 0.45); }
+/* On-screen slide: the two states of the toggle, named. The label sits under
+   whichever surface currently holds the text — over the film, or over the
+   panel — so the visitor reads the toggle as a choice of PLACE rather than as
+   a feature being switched off. */
+.viz-where {
+  position: absolute; bottom: 7%;
+  padding: 1.5px 7px; border-radius: 999px;
+  font-size: 8.5px; font-weight: 750; letter-spacing: 0.04em;
+  white-space: nowrap; opacity: 0;
+  background: rgba(124, 92, 255, 0.9); color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+/* Centred on whatever the film currently occupies: the left 73% while the
+   panel is open, the whole frame once it has collapsed. osWhereA moves it. */
+.viz-where-screen { left: 36.5%; transform: translateX(-50%); }
+/* The panel strip is only 27% wide — narrower than this label — so anchor it to
+   the frame's right edge instead of centring it, or it overflows and clips. */
+.viz-where-panel { right: 6px; }
+.viz-caption {
+  position: absolute; left: 0; right: 27%; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 8px;
+}
+.viz-line {
+  display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden;
+  padding: 3px 9px; border-radius: 6px; background: rgba(0, 0, 0, 0.72);
+  font-size: 11.5px; font-weight: 600; line-height: 1.35; color: #fff;
+}
+.viz-tr { color: #ffd042; font-size: 10.5px; }
+.viz-masked { letter-spacing: 0.06em; }
+/* Guess slide: the taps land on the sidebar row, the reveal lands on the
+   overlay. Each word holds its mask and its real text in one grid cell so the
+   swap never reflows the line — the pill keeps its width from the first frame,
+   which is what makes the reveal read as uncovering rather than retyping. */
+.viz-w { position: relative; display: inline-grid; font-weight: inherit; }
+.viz-w > s, .viz-w > em { grid-area: 1 / 1; text-decoration: none; font-style: normal; }
+.viz-w > em { opacity: 0; }
+.viz-w.is-open > em { opacity: 1; }
+/* The row being tapped, idle — gRow lights it up on each hit. */
+.viz-row-tap { background: rgba(255, 255, 255, 0.09); }
+/* On-screen slide: the panel's quick-mode chip row, standing in for the real
+   one at the top of the sidebar — abstract active-mode chip, hairline, then
+   the On-screen toggle. Only the toggle carries its real SidebarUI glyph:
+   one concrete icon among abstract shapes is unmissable. */
+/* The sidebar's collapse tab (#vtt-toggle-btn): a chevron riding the panel's
+   LEFT edge, half outside it, exactly as the real one does. It travels with the
+   panel when it slides, because in the product it is part of the sidebar. */
+.viz-tab {
+  position: absolute; right: 100%; top: 50%;
+  transform: translateY(-50%);
+  display: grid; place-items: center;
+  width: 12px; height: 22px;
+  border-radius: 5px 0 0 5px;
+  background: rgba(22, 19, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.09); border-right: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+.viz-tab svg { width: 9px; height: 9px; display: block; }
+.viz-chiprow { display: flex; align-items: center; gap: 4px; flex: none; margin-bottom: 2px; }
+.viz-chip {
+  position: relative; /* anchors the tap ripple centred inside */
+  display: grid; place-items: center; flex: none;
+  width: 21px; height: 16px; border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+}
+.viz-chip svg { width: 12px; height: 12px; display: block; }
+/* The hairline between exclusive modes and the independent toggle — the same
+   divider the real bar draws. */
+.viz-chipdiv { display: block; width: 1px; height: 10px; background: rgba(255, 255, 255, 0.14); }
+.viz-tapdot {
+  position: absolute; left: 50%; top: 32px; width: 22px; height: 22px;
+  margin: -11px 0 0 -11px; border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.25);
+  opacity: 0; pointer-events: none;
+}
+/* On-screen: the ripple lives inside the toggle chip and centres itself on
+   it — edge-offset arithmetic is what made an earlier version miss the
+   button. Smaller than the guess ripple so its 1.7× peak stays in frame. */
+.viz-tapdot-chip {
+  left: 50%; top: 50%;
+  width: 16px; height: 16px; margin: -8px 0 0 -8px;
+}
+.viz-progress {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.viz-progress i { display: block; width: 34%; height: 100%; background: #7c5cff; }
+/* The dictionary miniature: drag-select a word, the quick-add pill, the saved
+   marker, the toast — the exact beats of saving a word in the product. Every
+   value here is copied from the real thing (quick-add-overlay.ts): browser-blue
+   selection, the "+ Lingogram" pill floating ABOVE the word, the saved word
+   keeping a blue underline plus a "✓ saved" badge, and a solid green toast in
+   the corner. A miniature that invents its own colours teaches the wrong UI. */
+/* The quick-add pill hangs above the word, so this caption line must not clip
+   it the way the others (which truncate long machine translations) do. */
+.viz-line:has(.viz-selwrap) { overflow: visible; }
+.viz-selwrap { position: relative; }
+.viz-sel {
+  position: relative; isolation: isolate;
+  border-radius: 2px; padding: 0 1px;
+  background: none; color: inherit;
+}
+/* The drag itself: a highlight band that grows left→right behind the glyphs,
+   as if the mouse were pulling it across the word. Animating this layer's
+   width (not the word's own background) is what makes it read as a drag
+   rather than a block appearing all at once. */
+.viz-sel::before {
+  content: ''; position: absolute; left: 0; top: -1px; bottom: -1px;
+  z-index: -1; width: 0; border-radius: 2px;
+  background: rgba(0, 106, 255, 0.55);
+}
+/* Post-save marker: the extension leaves the word tinted with a blue underline
+   rather than a selection block. */
+.viz-sel::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 4px;
+  background: rgba(77, 163, 255, 0.18);
+  box-shadow: inset 0 -2px 0 rgba(77, 163, 255, 0.85);
+  opacity: 0;
+}
+/* The I-beam cursor riding the leading edge of the drag. */
+.viz-caret {
+  position: absolute; left: 0; top: 50%; width: 9px; height: 13px;
+  margin-left: -4px; transform: translateY(-50%);
+  opacity: 0; pointer-events: none;
+}
+.viz-caret::before,
+.viz-caret::after {
+  content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+  background: #fff; box-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+}
+/* The vertical stem plus the serif caps of a text cursor. */
+.viz-caret::before { top: 1px; bottom: 1px; width: 1.5px; }
+.viz-caret::after { top: 0; height: 1.5px; width: 7px; box-shadow: 0 11.5px 0 #fff, 0 0 2px rgba(0, 0, 0, 0.9); }
+.viz-savedbadge {
+  margin-left: 5px; padding: 0 5px; border-radius: 999px;
+  font-size: 8px; font-weight: 700; vertical-align: middle; white-space: nowrap;
+  color: #86efac; background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  opacity: 0;
+}
+.viz-pill {
+  position: absolute; left: 50%; bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  padding: 2px 7px; border-radius: 999px;
+  background: #2563eb; color: #fff; font-size: 9px; font-weight: 600;
+  white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.viz-toast {
+  position: absolute; right: 30%; bottom: 8%; /* clear of the panel strip */
+  padding: 3px 8px; border-radius: 6px;
+  background: rgba(22, 163, 74, 0.95);
+  color: #fff; font-size: 9px; font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+/* The Dictionary tab flashes the instruction that was there all along. */
+.demo-hint.hint-flash b { animation: hintFlash 1.8s ease; border-radius: 6px; }
+@keyframes hintFlash {
+  0%, 100% { background: transparent; }
+  25%, 60% { background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-soft); }
+}
+
+/* ---------- mode slider animations ----------
+   Each miniature loops its mode's actual gesture. Timings share a beat
+   (4.5–6.5s cycles) so nothing strobes. */
+/* Dual: the translation joins the line, holds, and leaves. */
+.anim-dual-tr { animation: dualTr 4.5s ease-in-out infinite; }
+@keyframes dualTr {
+  0%, 8% { opacity: 0; transform: translateY(5px); }
+  20%, 82% { opacity: 1; transform: none; }
+  94%, 100% { opacity: 0; transform: translateY(5px); }
+}
+/* Guess: three taps on ONE sidebar row. Taps 1 and 2 uncover a word each on
+   the overlay; tap 3 completes the line AND brings the translation up with it
+   — finishing the line is what earns the answer, so it is one beat, not two.
+   Every element runs the same 6s duration and differs only in the % at which
+   it flips, keeping the beats locked. Taps land at 16 / 38 / 60%; each reveal
+   follows its tap by ~2%. */
+.viz-tapdot { animation: gTap 6s linear infinite; }
+.viz-row-tap { animation: gRow 6s linear infinite; }
+.anim-gw1 > s { animation: gHide1 6s linear infinite; }
+.anim-gw1 > em { animation: gShow1 6s linear infinite; }
+.anim-gw2 > s { animation: gHide2 6s linear infinite; }
+.anim-gw2 > em { animation: gShow2 6s linear infinite; }
+.anim-gw3 > s { animation: gHide3 6s linear infinite; }
+.anim-gw3 > em { animation: gShow3 6s linear infinite; }
+.anim-gtr { animation: gTr 6s linear infinite; }
+/* Word 1 uncovers on the first tap (18%), word 2 on the second (40%), word 3
+   on the third (62%); all re-mask together at the end of the loop (92%). */
+@keyframes gHide1 { 0%, 17% { opacity: 1; } 19%, 92% { opacity: 0; } 94%, 100% { opacity: 1; } }
+@keyframes gShow1 { 0%, 17% { opacity: 0; } 19%, 92% { opacity: 1; } 94%, 100% { opacity: 0; } }
+@keyframes gHide2 { 0%, 39% { opacity: 1; } 41%, 92% { opacity: 0; } 94%, 100% { opacity: 1; } }
+@keyframes gShow2 { 0%, 39% { opacity: 0; } 41%, 92% { opacity: 1; } 94%, 100% { opacity: 0; } }
+@keyframes gHide3 { 0%, 61% { opacity: 1; } 63%, 92% { opacity: 0; } 94%, 100% { opacity: 1; } }
+@keyframes gShow3 { 0%, 61% { opacity: 0; } 63%, 92% { opacity: 1; } 94%, 100% { opacity: 0; } }
+/* The translation rides the same tap that opens the last word. */
+@keyframes gTr {
+  0%, 61% { opacity: 0; transform: translateY(4px); }
+  66%, 92% { opacity: 1; transform: none; }
+  94%, 100% { opacity: 0; transform: translateY(4px); }
+}
+/* One ripple per tap: fire, fade, repeat — three times inside the loop. */
+@keyframes gTap {
+  0%, 14% { opacity: 0; transform: scale(0.5); }
+  16% { opacity: 0.95; transform: scale(1); }
+  26%, 35.99% { opacity: 0; transform: scale(1.7); }
+  36% { transform: scale(0.5); }
+  38% { opacity: 0.95; transform: scale(1); }
+  48%, 57.99% { opacity: 0; transform: scale(1.7); }
+  58% { transform: scale(0.5); }
+  60% { opacity: 0.95; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(1.7); }
+}
+/* The tapped row flashes on each hit, the way the real active line does. */
+@keyframes gRow {
+  0%, 14% { background: rgba(255, 255, 255, 0.09); }
+  16%, 21% { background: rgba(124, 92, 255, 0.55); }
+  27%, 36% { background: rgba(255, 255, 255, 0.09); }
+  38%, 43% { background: rgba(124, 92, 255, 0.55); }
+  49%, 58% { background: rgba(255, 255, 255, 0.09); }
+  60%, 65% { background: rgba(124, 92, 255, 0.55); }
+  71%, 100% { background: rgba(255, 255, 255, 0.09); }
+}
+/* On-screen: the slide is about WHERE the subtitles live, so the loop plays the
+   collapse tab — tap it at 20% and the sidebar slides off to the right, leaving
+   the film and its captions the whole frame; tap it again at 62% and the panel
+   comes back and the reading returns to it. Same 6s beat as the guess slide, so
+   switching tabs doesn't change tempo. */
+/* 8s, not the 6s the other slides use: this loop tells a four-tap story and at
+   6s the states flick past too fast to read. The tempo change is deliberate. */
+.anim-ostap { animation: osTap 8s linear infinite; }
+.anim-ostap-chip { animation: osTapChip 8s linear infinite; }
+.anim-oschip { animation: osChip 8s linear infinite; }
+.anim-ospanel { animation: osPanel 8s ease-in-out infinite; }
+.anim-ostab { animation: osTab 8s ease-in-out infinite; }
+.anim-oscap { animation: osCap 8s ease-in-out infinite; }
+/* The collapse tab's two ripples: close the panel (56%), reopen it (84%). Each
+   lands just before its flip, so the tap reads as the cause. */
+@keyframes osTap {
+  0%, 54% { opacity: 0; transform: scale(0.5); }
+  56% { opacity: 0.95; transform: scale(1); }
+  64%, 81.99% { opacity: 0; transform: scale(1.7); }
+  82% { transform: scale(0.5); }
+  84% { opacity: 0.95; transform: scale(1); }
+  92%, 100% { opacity: 0; transform: scale(1.7); }
+}
+/* The On-screen chip's two ripples: off (12%), then back on (36%). The captions
+   must be restored BEFORE the panel collapses — a loop that hid them and then
+   slid the panel away would leave a frame with nothing to read anywhere, which
+   is a state the product never puts you in. */
+@keyframes osTapChip {
+  0%, 10% { opacity: 0; transform: scale(0.5); }
+  12% { opacity: 0.95; transform: scale(1); }
+  20%, 33.99% { opacity: 0; transform: scale(1.7); }
+  34% { transform: scale(0.5); }
+  36% { opacity: 0.95; transform: scale(1); }
+  44%, 100% { opacity: 0; transform: scale(1.7); }
+}
+/* The On-screen slide's "Show me": the on-video captions in the DEMO answer
+   with one soft glow, so the eye finds them without any panel state changing.
+   Filter only — the overlay's position is the extension's own layout and must
+   not be nudged. */
+#vtt-video-overlay.os-flash { animation: osFlash 1.4s ease; }
+@keyframes osFlash {
+  0%, 100% { filter: none; }
+  25% { filter: brightness(1.55) drop-shadow(0 0 16px rgba(124, 92, 255, 0.85)); }
+  70% { filter: brightness(1.1) drop-shadow(0 0 6px rgba(124, 92, 255, 0.35)); }
+}
+/* ---- The On-screen loop's states, shared by every keyframe below ----
+   A   0–10%   captions on the film AND the panel open (the default look)
+   B  18–34%   chip tapped OFF: captions leave the film, reading moves to the
+               panel, whose rows light up
+   A' 42–54%   chip tapped back ON: captions return to the film
+   C  64–82%   tab tapped: panel collapsed, captions on the FULL frame
+   then the tab is tapped again and it returns to A.
+   The captions are restored (A') BEFORE the panel collapses, so the loop never
+   passes through a frame with nothing to read anywhere — a state the product
+   does not put you in. Every animation keys off these same numbers: a control
+   and its effect must never disagree, or the miniature teaches the wrong
+   cause. */
+/* The chip is lit whenever the captions are on the film, dim while they are
+   not: it IS the control that put them there. */
+@keyframes osChip {
+  0%, 10% { background: rgba(124, 92, 255, 0.85); color: #fff; }
+  18%, 34% { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.45); }
+  42%, 100% { background: rgba(124, 92, 255, 0.85); color: #fff; }
+}
+/* The panel slides out past its own right edge and back. 105%, not 100%, so
+   the tab riding its left edge clears the frame too. */
+@keyframes osPanel {
+  0%, 56% { transform: translateX(0); }
+  64%, 82% { transform: translateX(105%); }
+  92%, 100% { transform: translateX(0); }
+}
+/* The tab's chevron points the way the tap will move the panel: right (→ close)
+   while open, left (← reopen) while collapsed. It is the same flip the real
+   #vtt-toggle-btn does, and it is what makes the collapsed state read as
+   "tap here to bring it back" rather than as something broken. */
+@keyframes osTab {
+  0%, 56% { transform: translateY(-50%) rotate(0deg); }
+  64%, 82% { transform: translateY(-50%) rotate(180deg); }
+  92%, 100% { transform: translateY(-50%) rotate(0deg); }
+}
+/* The captions: on the film, gone at the first chip tap, back at the second —
+   and then widening to the full frame as the panel collapses under them.
+   `right` animates (not a transform) so they look like they re-flow into the
+   space, which is what actually happens. Unlike the earlier version there is no
+   fade around the widening: the captions are already on screen and STAY on
+   screen through the collapse — that continuity is the whole point of the
+   reordering. */
+@keyframes osCap {
+  0%, 10% { opacity: 1; right: 27%; }
+  18%, 34% { opacity: 0; right: 27%; }
+  42%, 56% { opacity: 1; right: 27%; }
+  64%, 82% { opacity: 1; right: 0; }
+  92%, 100% { opacity: 1; right: 27%; }
+}
+/* The counterpoint: the panel's transcript rows light up exactly when the film
+   stops carrying the text — the reading moved there, it didn't stop. Nothing
+   is ever lost, so nothing in the loop should read as "off". */
+.anim-osrow { animation: osRow 8s ease-in-out infinite; }
+@keyframes osRow {
+  0%, 10% { background: rgba(255, 255, 255, 0.09); }
+  18%, 34% { background: rgba(124, 92, 255, 0.5); }
+  42%, 100% { background: rgba(255, 255, 255, 0.09); }
+}
+/* Each label names where the text currently is, and only one is ever up, so
+   the pair reads as one setting with two positions rather than two badges.
+   "In sidebar" belongs to state B, "On screen" to A, A' and C. */
+.anim-oswhere-a { animation: osWhereA 8s ease-in-out infinite; }
+.anim-oswhere-b { animation: osWhereB 8s ease-in-out infinite; }
+/* "On screen" — up whenever the film carries the captions, re-centring with
+   them: on the film half while the panel is open, on the whole frame once it
+   has collapsed. It rides along rather than fading, same as the captions. */
+@keyframes osWhereA {
+  0%, 10% { opacity: 1; left: 36.5%; }
+  18%, 34% { opacity: 0; left: 36.5%; }
+  42%, 56% { opacity: 1; left: 36.5%; }
+  64%, 82% { opacity: 1; left: 50%; }
+  92%, 100% { opacity: 1; left: 36.5%; }
+}
+/* "In sidebar" — up only while the panel is doing the reading. */
+@keyframes osWhereB {
+  0%, 14% { opacity: 0; }
+  22%, 32% { opacity: 1; }
+  38%, 100% { opacity: 0; }
+}
+/* Dictionary — the product's four beats, in order: drag-select the word, the
+   "+ Lingogram" pill pops above it, the click lands (selection releases, the
+   word keeps the saved underline + "✓ saved"), the toast confirms. `linear`
+   throughout: a hand pulling a selection doesn't ease. */
+.anim-sel { animation: selText 6s linear infinite; }
+.anim-sel::before { animation: selDrag 6s linear infinite; }
+.anim-caret { animation: caretDrag 6s linear infinite; }
+.anim-saved::after { animation: savedIn 6s linear infinite; }
+.anim-badge { animation: badgeIn 6s linear infinite; }
+.anim-pill { animation: pillIn 6s linear infinite; }
+.anim-toast { animation: toastIn 6s linear infinite; }
+/* The band sweeps across the word — mouse down at its left edge, dragged to
+   the right — then holds until the pill is clicked and the selection releases. */
+@keyframes selDrag {
+  0%, 8% { width: 0; }
+  22%, 48% { width: 100%; }
+  54%, 100% { width: 0; }
+}
+/* The glyphs go white under the band. It passes the word in ~0.8s, too fast to
+   letter-space the flip, so it lands mid-sweep where the band already covers
+   most of the word. */
+@keyframes selText {
+  0%, 13% { color: inherit; }
+  17%, 48% { color: #fff; }
+  54%, 100% { color: inherit; }
+}
+/* The cursor rides the band's leading edge and lifts on mouse-up. */
+@keyframes caretDrag {
+  0%, 6% { opacity: 0; left: 0; }
+  8% { opacity: 1; left: 0; }
+  22% { opacity: 1; left: 100%; }
+  28%, 100% { opacity: 0; left: 100%; }
+}
+@keyframes savedIn {
+  0%, 48% { opacity: 0; }
+  56%, 90% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+@keyframes badgeIn {
+  0%, 50% { opacity: 0; transform: scale(0.8); }
+  58%, 90% { opacity: 1; transform: scale(1); }
+  98%, 100% { opacity: 0; transform: scale(0.8); }
+}
+@keyframes pillIn {
+  0%, 22% { opacity: 0; transform: translateX(-50%) scale(0.85); }
+  30%, 44% { opacity: 1; transform: translateX(-50%) scale(1); }
+  /* The click: the pill shrinks and goes, as it does when the save fires. */
+  50%, 100% { opacity: 0; transform: translateX(-50%) scale(0.85); }
+}
+@keyframes toastIn {
+  0%, 50% { opacity: 0; transform: translateY(6px); }
+  58%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: translateY(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-dual-tr, .anim-gtr, .viz-tapdot, .viz-row-tap,
+  .anim-ostap, .anim-ostap-chip, .anim-oschip, .anim-ospanel, .anim-ostab,
+  .anim-oscap, .anim-osrow, .anim-oswhere-a, .anim-oswhere-b,
+  .viz-w > s, .viz-w > em,
+  .anim-sel, .anim-sel::before, .anim-caret, .anim-saved::after,
+  .anim-badge, .anim-pill, .anim-toast,
+  #vtt-video-overlay.os-flash { animation: none; }
+  /* Static fallback shows the revealed state, not the mask. */
+  .viz-w > s { opacity: 0; }
+  .viz-w > em { opacity: 1; }
+  .anim-gtr { opacity: 1; transform: none; }
+  .viz-tapdot { opacity: 0; }
+  /* On-screen rests in state A — captions on the film, panel open, chip lit.
+     With no motion to show the toggles firing, naming the two places side by
+     side IS the explanation, so both labels stay up. */
+  .anim-oswhere-a, .anim-oswhere-b { opacity: 1; }
+  .anim-oschip { background: rgba(124, 92, 255, 0.85); color: #fff; }
+  /* Dictionary rests at the saved end-state: no selection, no cursor, no pill —
+     just the word marked as kept, which is what the slide is about. */
+  .anim-sel { color: inherit; }
+  .anim-caret, .anim-pill { opacity: 0; }
+  .anim-saved::after, .anim-badge { opacity: 1; }
+}
+
+/* ---------- sections ---------- */
+section { padding: 76px 0 0; }
+.kicker { font-size: 12.5px; font-weight: 750; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal-deep); }
+h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.03em; line-height: 1.1; margin: 10px 0 14px; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 62ch; font-size: 17px; margin: 0; }
+
+/* brand marks */
+.mark { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex: none; font-weight: 800; }
+.mark-sm { width: 22px; height: 22px; border-radius: 6px; font-size: 10px; }
+.mark-yt { background: #ff0000; }
+.mark-yt::before { content: ""; width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 12px; border-color: transparent transparent transparent #fff; margin-left: 2px; }
+.mark-sm.mark-yt::before { border-width: 4px 0 4px 7px; margin-left: 1px; }
+.mark-nf { background: #141414; color: #e50914; font-size: 22px; font-family: Georgia, serif; }
+.mark-sm.mark-nf { font-size: 13px; }
+.mark-hd { background: #1f1b16; color: #f2a33c; font-size: 13px; letter-spacing: 0.02em; }
+.mark-sm.mark-hd { font-size: 9px; }
+
+/* editions */
+.editions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 32px; }
+.ed {
+  display: flex; align-items: flex-start; gap: 14px; text-decoration: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+}
+.ed:hover { border-color: var(--accent); }
+.ed-t b { color: var(--ink); font-size: 16.5px; display: block; }
+.ed-t span { color: var(--muted); font-size: 14px; line-height: 1.45; display: block; margin-top: 2px; }
+.ed-t .go { color: var(--accent); font-weight: 700; font-size: 13.5px; margin-top: 8px; }
+.ed-soon { border-style: dashed; align-items: center; }
+.ed-soon .mark { background: var(--accent-soft); color: var(--accent); font-size: 20px; }
+
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+.step { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.step b { display: block; font-size: 17px; margin: 10px 0 6px; }
+.step p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.step-n { width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+
+/* ---------- dictionary band ---------- */
+.band { background: var(--band); color: var(--band-ink); margin-top: 76px; padding: 76px 0; }
+.band .kicker { color: #3adfa5; }
+.band h2 { color: var(--band-ink); }
+.band .lede { color: var(--band-muted); }
+.dict { margin-top: 32px; background: var(--band-panel); border: 1px solid var(--band-line); border-radius: 16px; overflow: hidden; }
+.dict-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--band-line); }
+.dict-head b { font-size: 17px; }
+.dict-count { font-size: 13.5px; color: var(--band-muted); font-variant-numeric: tabular-nums; }
+.dict-card { padding: 16px 24px; border-bottom: 1px solid var(--band-line); }
+.dict-card:last-of-type { border-bottom: none; }
+.dict-w { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dict-w b { font-size: 16.5px; }
+.dict-tr { color: var(--band-muted); font-size: 14.5px; }
+.dict-src { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 650; color: var(--band-muted); }
+.dict-ctx { margin: 6px 0 0; color: var(--band-muted); font-size: 14.5px; }
+.dict-ctx mark { background: rgba(58, 223, 165, 0.16); color: #3adfa5; font-weight: 650; border-radius: 3px; padding: 0 3px; }
+.dict-foot { padding: 14px 24px; font-size: 13.5px; color: var(--band-muted); border-top: 1px solid var(--band-line); }
+.dict-foot b { color: #3adfa5; }
+
+/* features */
+.features { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+.feat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
+.feat .tag { display: inline-block; font-size: 11.5px; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; background: var(--teal-soft); color: var(--teal-deep); border-radius: 6px; padding: 4px 9px; margin-bottom: 12px; }
+.feat h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.02em; }
+.feat p { margin: 0; color: var(--muted); font-size: 15px; }
+.feat kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 2px 7px; }
+
+.privacy { margin-top: 32px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; }
+.privacy .cell { font-size: 15px; color: var(--muted); display: flex; gap: 10px; align-items: baseline; }
+.privacy .cell::before { content: "✓"; color: var(--teal-deep); font-weight: 800; }
+.privacy .cell b { color: var(--ink); }
+
+/* faq */
+details.qa { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 20px; margin-top: 10px; }
+details.qa summary { cursor: pointer; font-weight: 650; font-size: 16px; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; }
+details.qa summary::-webkit-details-marker { display: none; }
+details.qa summary::after { content: "+"; font-size: 20px; font-weight: 500; color: var(--accent); flex: none; transition: transform 0.2s; }
+details.qa[open] summary::after { transform: rotate(45deg); }
+details.qa p { color: var(--muted); font-size: 15px; margin: 0 0 16px; max-width: 70ch; }
+
+/* final */
+.final { text-align: center; padding: 84px 0 30px; }
+.final .logo-mark { width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 20px; }
+.final h2 { max-width: 22ch; margin-inline: auto; }
+.final .proof { margin-top: 18px; }
+
+footer.site { border-top: 1px solid var(--line); margin-top: 60px; padding: 30px 0 44px; display: flex; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.f-col b { display: block; color: var(--ink); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+.f-col a { display: block; color: var(--muted); text-decoration: none; margin-top: 6px; }
+.f-col a:hover { color: var(--ink); }
+
+/* ---------- document pages (privacy etc.) ---------- */
+.doc { max-width: 72ch; margin: 30px auto 90px; padding: 0 24px; }
+.doc h1 { font-size: clamp(30px, 4.5vw, 40px); letter-spacing: -0.03em; line-height: 1.12; text-wrap: balance; }
+.doc h2 { font-size: 22px; margin: 2em 0 0.6em; }
+.doc h3 { font-size: 17px; margin: 1.6em 0 0.5em; }
+.doc p, .doc li { color: var(--muted); font-size: 15.5px; }
+.doc strong { color: var(--ink); }
+.doc hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+.doc table { border-collapse: collapse; width: 100%; }
+.doc th, .doc td { border: 1px solid var(--line); padding: 8px 12px; font-size: 14px; text-align: left; color: var(--muted); }
+
+/* ---------- welcome / uninstall ---------- */
+.narrow { max-width: 640px; margin: 40px auto 90px; padding: 0 24px; text-align: center; }
+.narrow .steps { grid-template-columns: 1fr; text-align: left; }
+.narrow textarea {
+  width: 100%; min-height: 120px; margin-top: 18px; resize: vertical;
+  background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; font: inherit; font-size: 15px;
+}
+.keys { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+.keys span { font-size: 13.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; }
+.keys kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 1px 6px; }
+
+/* ---------- login / register ---------- */
+/* Styled in the landing's own visual language: an accent aura behind the card
+   (same radial-gradient trick as .demo), the eyebrow pill and the big
+   clamp() headline with a .pop accent word from the hero. */
+.auth-wrap {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  padding: 28px 24px 44px; overflow: hidden;
+}
+.auth-wrap::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 50% 0%, var(--accent-soft) 0%, transparent 60%),
+    radial-gradient(45% 40% at 85% 100%, var(--teal-soft) 0%, transparent 60%);
+  opacity: 0.9;
+}
+.auth-card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 440px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 22px; box-shadow: var(--shadow); padding: 28px 32px 26px; text-align: center;
+}
+.auth-logo { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 12px; box-shadow: 0 10px 30px -14px var(--accent); }
+.auth-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; background: var(--accent-soft);
+  border-radius: 999px; padding: 5px 14px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+}
+.auth-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.auth-title { font-size: clamp(22px, 3.6vw, 28px); line-height: 1.1; letter-spacing: -0.03em; font-weight: 800; margin: 0 0 6px; text-wrap: balance; }
+.auth-title .pop { color: var(--accent); }
+.auth-sub { margin: 0 0 18px; color: var(--muted); font-size: 15px; text-wrap: balance; }
+.auth-form { display: flex; flex-direction: column; gap: 11px; text-align: left; }
+.auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.auth-field { display: flex; flex-direction: column; gap: 5px; }
+.auth-field > span { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.auth-field input {
+  width: 100%; background: var(--ground); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 12px; padding: 11px 15px; font: inherit; font-size: 15px; transition: border-color .15s, box-shadow .15s;
+}
+.auth-field input::placeholder { color: var(--muted); opacity: 0.7; }
+.auth-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.auth-row-end { display: flex; justify-content: flex-end; margin-top: -6px; }
+.auth-link { font-size: 13.5px; font-weight: 600; text-decoration: none; }
+.auth-link:hover { text-decoration: underline; }
+.auth-submit { width: 100%; margin-top: 4px; padding: 12px 24px; font-size: 15.5px; }
+.auth-submit:disabled { opacity: 0.6; cursor: default; }
+.auth-error { display: none; margin: 0; color: #d13b3b; font-size: 13.5px; font-weight: 600; }
+.auth-note { display: none; margin: 0; color: var(--teal-deep); font-size: 13.5px; font-weight: 600; }
+.auth-alt { margin: 14px 0 0; font-size: 14.5px; color: var(--muted); }
+.auth-alt a { font-weight: 700; }
+.auth-fine { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+.auth-google { width: 100%; gap: 10px; font-size: 15px; padding: 11px 20px; font-weight: 700; }
+.auth-google:hover { border-color: var(--accent); }
+.auth-google:disabled { opacity: 0.6; cursor: default; }
+.auth-google-icon { flex: none; }
+.auth-divider { display: flex; align-items: center; gap: 14px; margin: 4px 0; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+/* "optional" tag next to a field label */
+.auth-optional { font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--ground); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; margin-left: 6px; }
+/* password field: input + show/hide toggle */
+.auth-pw-wrap { position: relative; display: block; }
+.auth-pw-wrap input { width: 100%; padding-right: 46px; }
+.auth-pw-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  background: none; border: none; border-radius: 8px; cursor: pointer; color: var(--muted);
+}
+.auth-pw-toggle:hover { color: var(--accent); background: var(--accent-soft); }
+/* per-field inline error (blur validation) */
+.auth-field-error { display: none; margin: 0; color: #d13b3b; font-size: 12.5px; font-weight: 600; }
+.auth-field.is-invalid input { border-color: #d13b3b; }
+.auth-field.is-invalid .auth-field-error { display: block; }
+/* Caps Lock hint */
+.auth-caps { margin: 0; color: var(--star); font-size: 12px; font-weight: 700; }
+/* password strength meter */
+.auth-strength { display: flex; align-items: center; gap: 10px; }
+.auth-strength-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.auth-strength-bar > span { display: block; height: 100%; width: 0; border-radius: 999px; transition: width .2s, background .2s; }
+.auth-strength-label { font-size: 12px; font-weight: 700; min-width: 52px; text-align: right; }
+.auth-strength[data-level="1"] .auth-strength-bar > span { width: 33%; background: #e0564d; }
+.auth-strength[data-level="2"] .auth-strength-bar > span { width: 66%; background: var(--star); }
+.auth-strength[data-level="3"] .auth-strength-bar > span { width: 100%; background: var(--teal); }
+.auth-strength[data-level="1"] .auth-strength-label { color: #e0564d; }
+.auth-strength[data-level="2"] .auth-strength-label { color: var(--star); }
+.auth-strength[data-level="3"] .auth-strength-label { color: var(--teal-deep); }
+@media (prefers-color-scheme: dark) { .auth-field-error { color: #ff8b8b; } }
+@media (prefers-color-scheme: dark) { .auth-strength[data-level="3"] .auth-strength-label { color: var(--teal); } }
+@media (prefers-color-scheme: dark) { .auth-error { color: #ff8b8b; } }
+/* Short viewports (laptops, split screens): tighten and drop the eyebrow so the
+   taller register form clears the fold without scrolling. Two steps: ≤820px
+   trims the chrome, ≤700px goes further for very short windows. */
+@media (max-height: 820px) {
+  .auth-wrap { padding: 14px 24px 20px; }
+  .auth-card { padding: 20px 30px 20px; }
+  .auth-logo { width: 40px; height: 40px; margin-bottom: 8px; }
+  .auth-eyebrow { display: none; }
+  .auth-title { font-size: clamp(20px, 3.2vw, 25px); }
+  .auth-sub { margin-bottom: 12px; font-size: 14px; }
+  .auth-form { gap: 9px; }
+  .auth-field input { padding: 10px 14px; }
+  .auth-google { padding: 10px 20px; }
+  .auth-alt { margin-top: 10px; }
+  .auth-fine { margin-top: 6px; }
+}
+@media (max-height: 700px) {
+  .auth-wrap { padding: 10px 24px 14px; }
+  .auth-card { padding: 16px 28px 16px; }
+  .auth-logo { width: 34px; height: 34px; margin-bottom: 6px; }
+  .auth-sub { margin-bottom: 10px; }
+  .auth-form { gap: 8px; }
+}
+
+@media (max-width: 760px) {
+  nav.top { display: none; }
+  .mnav { display: block; }
+  .mnav summary { list-style: none; cursor: pointer; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; font-size: 18px; line-height: 1; }
+  .mnav summary::-webkit-details-marker { display: none; }
+  .mnav-panel {
+    position: absolute; right: 0; top: 46px; z-index: 20; min-width: 210px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 8px; display: flex; flex-direction: column;
+  }
+  .mnav-panel a { text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; padding: 11px 14px; border-radius: 9px; }
+  .mnav-panel a:hover { background: var(--accent-soft); }
+  header.site { gap: 10px; }
+  .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
+  .demo-body { grid-template-columns: 1fr; }
+  .mtabs { gap: 14px; }
+  .mtab { font-size: 13px; gap: 6px; }
+  .mslide { flex-direction: column; align-items: stretch; gap: 14px; }
+  .mviz { width: 100%; }
+  .sidebar { display: none; }
+  .stage { min-height: 300px; }
+  .sub-line { font-size: 14.5px; white-space: normal; max-width: 92%; }
+  .sub-line.trans { font-size: 13px; }
+  .steps, .features, .privacy, .editions { grid-template-columns: 1fr; }
+  .pillars { grid-template-columns: 1fr; gap: 10px; max-width: 340px; }
+  .auth-card { padding: 24px 20px; }
+  .auth-row { grid-template-columns: 1fr; }
+}

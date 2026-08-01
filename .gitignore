@@ -2,6 +2,10 @@ node_modules/
 build/
 .DS_Store
 
+# Bundled library output — CI rebuilds it before building apps/site, which
+# imports the built package (see .github/workflows/site-deploy.yml)
+packages/*/dist/
+
 *.log
 
 .claude/
@@ -18,6 +22,10 @@ apps/*/screenshots/out-live/
 # Video assets (promo clips, screencasts, source footage)
 *.mp4
 *.mov
+# ...except the landing page's fallback clip, which is a BUILD INPUT, not
+# footage: the demo plays it whenever YouTube refuses embedded playback, so CI
+# needs it in the checkout or the fallback player 404s.
+!apps/site/src/assets/demo-clip.mp4
 
 # Backup files
 *.bak
@@ -28,3 +36,7 @@ competitor-extensions/
 # Root docs: strategy / keyword-research / listing working notes (leading slash
 # so app docs like apps/rezka/docs/ stay tracked)
 /docs/
+
+# Local-only dev server that stitches the landing + SPA on one origin (mirrors
+# the prod firebase.json rewrite). Not shipped — CI builds and deploys the site.
+apps/site/dev-serve.mjs

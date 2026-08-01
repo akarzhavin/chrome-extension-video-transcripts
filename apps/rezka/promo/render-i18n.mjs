@@ -39,8 +39,8 @@ catch { ({ chromium } = require(PW_FALLBACK)); }
 const COPY = JSON.parse(fs.readFileSync(path.join(HERE, 'promo-copy.json'), 'utf8'));
 const SHOT_DIR = path.join(HERE, '..', 'screenshots', 'out-live');
 const CSS_HREF = pathToFileURL(path.join(HERE, 'promo.css')).href;
-const MASCOT = pathToFileURL(path.join(HERE, 'mascot-cutout.png')).href;
-const BRAND = `<img class="cornermark" src="${MASCOT}" alt="" />`;
+const BRAND_TILE = pathToFileURL(path.join(HERE, 'brand-tile.png')).href;
+const BRAND = `<div class="brand"><img src="${BRAND_TILE}" alt="" /><span>Lingogram</span></div>`;
 const shotUrl = (name) => pathToFileURL(path.join(SHOT_DIR, name)).href;
 
 // Per-locale sidebar captures, falling back to the English demo capture when a

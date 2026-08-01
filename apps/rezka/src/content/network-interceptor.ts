@@ -11,6 +11,23 @@ import { FEATURES } from '../config';
 // Found URLs are buffered and re-delivered when the isolated content script
 // signals readiness (VTT_SINK_READY), so nothing detected early is lost.
 (function () {
+    // The manifest matches <all_urls> to reach every rezka/hdrezka mirror
+    // (rotating hash hosts, arbitrary TLDs) without a domain list, so guard here
+    // before patching fetch/XHR — otherwise we'd wrap them on every site. Any
+    // host containing "rezka" qualifies (this also covers "hdrezka"); in a frame
+    // we check the ancestor chain so embedded players still match.
+    const hostMatches = (h: string): boolean => h.includes('rezka');
+    let onRezka = hostMatches(window.location.hostname);
+    if (!onRezka && window.location.ancestorOrigins) {
+        for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
+            if (hostMatches(window.location.ancestorOrigins[i])) {
+                onRezka = true;
+                break;
+            }
+        }
+    }
+    if (!onRezka) return;
+
     // Absolute .vtt URLs, tolerant of trailing query/format chars. Slashes in
     // HDrezka's JSON are escaped (\/), so we normalize before matching.
     const VTT_RE = /https?:\/\/[^\s"'<>,\]\\]+\.vtt[^\s"'<>,\]\\]*/g;

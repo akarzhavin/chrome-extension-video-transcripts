@@ -1,0 +1,12 @@
+{
+  "domain": "https://lingogram.ai",
+  "title": "Lingogram — dual subtitles that teach you the language",
+  "description": "Dual subtitles on YouTube, Netflix, HDrezka and more — the language you're learning and your own, side by side. Tap a word to save it to your personal dictionary.",
+  "supportEmail": "aliaksandr.karzhavin@gmail.com",
+  "appUrl": "/app/",
+  "proof": {
+    "_comment": "Rendered only when BOTH values are real. Keep null until the CWS numbers are worth showing.",
+    "rating": null,
+    "users": null
+  }
+}

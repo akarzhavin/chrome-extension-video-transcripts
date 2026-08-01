@@ -365,9 +365,15 @@ function sendMessage<T>(msg: object): Promise<T> {
     });
 }
 
-export function installQuickAddOverlay(): void {
+/**
+ * Returns a teardown. The extensions live for the page's lifetime and can
+ * ignore it, but an embed (packages/embed) may remount — and without unbinding,
+ * a second install leaves two `mouseup` handlers, so one selection shows the
+ * pill twice and the two `mousedown` handlers race to remove it.
+ */
+export function installQuickAddOverlay(): () => void {
     injectSavedWordStyles();
-    document.addEventListener('mouseup', () => {
+    const onMouseUp = (): void => {
         // Defer so that selection is finalized after click on existing pill clearing it.
         setTimeout(() => {
             const payload = getSelectionPayload();
@@ -377,12 +383,19 @@ export function installQuickAddOverlay(): void {
             }
             showPill(payload.rect, payload.term.toLowerCase(), payload.context);
         }, 0);
-    });
+    };
+    document.addEventListener('mouseup', onMouseUp);
 
-    document.addEventListener('mousedown', (e) => {
+    const onMouseDown = (e: MouseEvent): void => {
         const pill = document.getElementById(PILL_ID);
         if (pill && !pill.contains(e.target as Node)) {
             removePill();
         }
-    });
+    };
+    document.addEventListener('mousedown', onMouseDown);
+
+    return () => {
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mousedown', onMouseDown);
+    };
 }

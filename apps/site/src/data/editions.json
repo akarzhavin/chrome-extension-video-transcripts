@@ -1,0 +1,72 @@
+{
+  "_comment": "One record per edition PAGE. Two extensions ship today, so two distinct storeUrls: the YouTube listing also covers Netflix (one install, both sites — see its manifest matches), which is why the netflix record points at the same URL and says so. Adding a record here creates the card on the home page and the /<slug>/ landing page. storeUrl empty renders a disabled '#' link.",
+  "primary": {
+    "demoUrl": "youtube.com/watch?v=Kk1vR7BdTno",
+    "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan"
+  },
+  "editions": [
+    {
+      "slug": "youtube",
+      "site": "YouTube",
+      "name": "Lingogram for YouTube",
+      "mark": "yt",
+      "card": "Fills the missing second track with YouTube's auto-translation.",
+      "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan",
+      "demoUrl": "youtube.com/watch?v=road-movie",
+      "heroLead": "Dual subtitles",
+      "heroPop": "on every YouTube video",
+      "sub": "Your target language and your own together on any YouTube video that has captions — including auto-generated ones. Tap a word to keep it in your personal dictionary.",
+      "points": [
+        { "t": "Any captioned video", "d": "Works with every caption track, including YouTube's auto-generated ones." },
+        { "t": "Never a missing track", "d": "If one of your two languages isn't there, Lingogram fills it with YouTube's automatic translation, so you always get the dual view." },
+        { "t": "Fullscreen included", "d": "The floating overlay keeps both subtitle lines on screen in fullscreen and theater mode." }
+      ],
+      "faq": [
+        { "q": "Does it work with auto-generated captions?", "a": "Yes — any caption track works, including auto-generated ones." },
+        { "q": "What if the video has captions in only one language?", "a": "Lingogram fills the second track with YouTube's automatic translation. Automatic translations aren't perfect, but they keep you moving." }
+      ]
+    },
+    {
+      "slug": "netflix",
+      "site": "Netflix",
+      "name": "Lingogram for Netflix",
+      "mark": "nf",
+      "card": "Original subtitle tracks, no machine translation.",
+      "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan",
+      "demoUrl": "netflix.com/watch/80100172",
+      "heroLead": "Dual subtitles",
+      "heroPop": "for your Netflix nights",
+      "sub": "Lingogram pairs the subtitle tracks a title actually has — the original plus a translation — and shows them side by side. No machine translation, ever.",
+      "points": [
+        { "t": "Real subtitle tracks", "d": "Only the tracks the title actually carries — human-made subtitles, not machine output." },
+        { "t": "Your language pair", "d": "Pick which available languages play as primary and secondary, and swap them with one shortcut." },
+        { "t": "No double captions", "d": "Lingogram turns Netflix's own captions off while the overlay is on, so lines never stack." }
+      ],
+      "faq": [
+        { "q": "Does it translate subtitles automatically?", "a": "No. Lingogram for Netflix only shows the subtitle tracks a title actually has. When a title carries tracks in both of your languages, you get the dual view." },
+        { "q": "Which titles does it work on?", "a": "Any title with subtitles. The dual view appears when the title offers tracks in both of your languages." }
+      ]
+    },
+    {
+      "slug": "rezka",
+      "site": "HDrezka",
+      "name": "Lingogram for HDrezka",
+      "mark": "hd",
+      "card": "Dual tracks when a title carries them.",
+      "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-for-hdrezk/hmdkmkimdbomemfcjmgeclchbcdbhabj",
+      "demoUrl": "hdrezka.ag/films/road-movie",
+      "heroLead": "Watch HDrezka in the original,",
+      "heroPop": "learn as you watch",
+      "sub": "The interactive transcript, listening challenge and one-tap word saving work on any HDrezka title with a subtitle track. When a title carries two tracks — the original plus a translation — you get dual subtitles.",
+      "points": [
+        { "t": "Works with one track", "d": "Most HDrezka titles carry a single subtitle track — usually English — and that alone powers the transcript, listening challenge and word saving." },
+        { "t": "Dual when available", "d": "When a title also offers a second language (English plus Russian, for example), Lingogram shows both as dual subtitles. No machine translation — only the tracks a title actually has." },
+        { "t": "Fullscreen overlay", "d": "The floating overlay keeps your subtitles on screen, fullscreen included." }
+      ],
+      "faq": [
+        { "q": "Does it translate subtitles automatically?", "a": "No. Lingogram only ever shows the subtitle tracks a title actually has. Dual subtitles appear on titles that carry two tracks." },
+        { "q": "Which titles does it work on?", "a": "Any HDrezka title that has a subtitle track — switch the audio to the original and turn its subtitles on." }
+      ]
+    }
+  ]
+}

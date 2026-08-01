@@ -1,0 +1,28 @@
+{
+  "name": "@video-transcripts/embed",
+  "version": "0.1.0",
+  "description": "Runs the Lingogram extension UI inside a web page",
+  "private": true,
+  "type": "module",
+  "main": "./dist/lingogram-embed.umd.js",
+  "module": "./dist/lingogram-embed.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/lingogram-embed.mjs",
+      "require": "./dist/lingogram-embed.umd.js"
+    }
+  },
+  "files": [
+    "dist",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@video-transcripts/shared": "*"
+  }
+}
