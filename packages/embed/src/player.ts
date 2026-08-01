@@ -163,7 +163,7 @@ let apiPromise: Promise<void> | null = null;
 function loadIframeApi(): Promise<void> {
     if (window.YT?.Player) return Promise.resolve();
     if (!apiPromise) {
-        apiPromise = new Promise((resolve) => {
+        apiPromise = new Promise((resolve, reject) => {
             const prev = window.onYouTubeIframeAPIReady;
             window.onYouTubeIframeAPIReady = () => {
                 prev?.();
@@ -171,6 +171,15 @@ function loadIframeApi(): Promise<void> {
             };
             const s = document.createElement('script');
             s.src = 'https://www.youtube.com/iframe_api';
+            // Networks that can't reach YouTube at all (corporate blocklists,
+            // regional blocks) kill the script itself — without this the
+            // promise never settles, onFail never fires and the caller's
+            // fallback player never mounts: a permanently blank demo. Clear
+            // the cache so a later mount may retry a recovered network.
+            s.onerror = () => {
+                apiPromise = null;
+                reject(new Error('YouTube IFrame API failed to load'));
+            };
             document.head.appendChild(s);
         });
     }
@@ -278,7 +287,7 @@ export function createYouTubePlayer(
                 },
             },
         });
-    });
+    }).catch(fail); // API script unreachable (see loadIframeApi) → fallback
 
     return {
         video: null,

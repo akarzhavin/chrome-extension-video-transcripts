@@ -10,5 +10,9 @@
   "dependencies": {
     "@video-transcripts/embed": "*",
     "firebase": "^11.0.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.60.0",
+    "sharp": "^0.35.3"
   }
 }

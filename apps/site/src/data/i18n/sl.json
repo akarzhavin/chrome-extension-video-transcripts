@@ -1,0 +1,204 @@
+{
+  "meta": { "name": "Slovenščina", "htmlLang": "sl" },
+
+  "nav": {
+    "editions": "Izdaje",
+    "how": "Kako deluje",
+    "dictionary": "Vaš slovar",
+    "faq": "Vprašanja",
+    "logIn": "Prijava",
+    "signUp": "Registracija",
+    "menu": "Meni"
+  },
+
+  "footer": {
+    "tagline": "Učite se jezikov ob tem, kar gledate.",
+    "product": "Izdelek",
+    "allEditions": "Vse izdaje",
+    "yourDictionary": "Vaš slovar",
+    "howItWorks": "Kako deluje",
+    "help": "Pomoč",
+    "faq": "Vprašanja",
+    "support": "Podpora",
+    "suggestSite": "Predlagajte stran",
+    "suggestSubject": "Predlog strani za Lingogram",
+    "legal": "Pravno",
+    "privacyPolicy": "Politika zasebnosti"
+  },
+
+  "proof": {
+    "rating": "na Chrome Web Store",
+    "learners": "uporabnikov se uči",
+    "free": "Brezplačno, brez oglasov"
+  },
+
+  "demo": {
+    "hintPrefix": "To je razširitev sama, ki teče tukaj —",
+    "hintBold": "izberite besedo",
+    "hintSuffix": "da jo shranite, ali preizkusite enega od načinov spodaj.",
+    "credit": "Posnetek: NASA —",
+    "creditLink": "Cosmic Dawn",
+    "creditSuffix": "(javna last)"
+  },
+
+  "modes": {
+    "dual": { "tab": "Dvojni podnapisi", "h": "Oba jezika hkrati", "p": "Vrstica, ki jo slišite, poleg vrstice, ki jo razumete — brez premora, brez preklapljanja sledi." },
+    "guess": { "tab": "Ugani", "h": "Kliknite za prikaz — in urite sluh", "p": "Vrstica ostane skrita, dokler je ne kliknete. Najprej uganite po posluhu, nato preverite sebe: prav v tej razliki se izboljšuje razumevanje govora." },
+    "single": { "tab": "Na zaslonu", "h": "Na zaslonu ali v stranski plošči — vi izbirate", "p": "Obe vrstici obdržite nad filmom, kjer so vaše oči že usmerjene. Ali ju z enim gumbom umaknite in raje berite iz plošče, po svojem tempu. Podnapisi nikoli ne izginejo — samo premaknejo se." },
+    "save": { "tab": "Slovar", "h": "Obdržite vsako besedo, na katero naletite", "p": "Izberite besedo — en dotik jo shrani skupaj s stavkom, iz katerega izvira, naravnost v vaš slovar na lingogram.ai." }
+  },
+
+  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "home": {
+    "eyebrow": "Brezplačno · YouTube · Netflix · HDrezka",
+    "h1Lead": "S podnapisi ste že gledali.",
+    "h1Pop": "Tokrat boste odnesli več.",
+    "ctaPrimary": "Dodaj v Chrome — brezplačno",
+    "ctaSecondary": "Izberite izdajo za svojo stran ↓",
+
+    "platformsKicker": "Izdaje",
+    "platformsH2": "En Lingogram, prilagojen strani, ki jo gledate",
+    "platformsLede": "Vsaka izdaja je zgrajena za predvajalnik svoje strani — izvirne sledi podnapisov, celozaslonski prekrivni sloj, popravki, ki jih ta stran potrebuje. Vse si delijo enaka orodja za učenje in isti račun, zato so vaše shranjene besede vedno na enem mestu, ne glede na to, katero uporabljate. Dve razširitvi pokrijeta vse tri strani: tista za YouTube deluje tudi na Netflixu.",
+    "editionGo": "Dodaj v Chrome →",
+    "editionSoonTitle": "Vaša stran je naslednja",
+    "editionSoonBody": "Nove namenske izdaje izhajajo redno — povejte nam, kje gledate.",
+    "editionSoonCta": "Predlagajte stran →",
+
+    "howKicker": "Kako deluje",
+    "howH2": "Od namestitve do prve shranjene besede v enem videu",
+    "step1T": "Namestite in izberite jezika",
+    "step1D": "Izberite jezik, ki se ga učite, in svojega. Hitra enkratna nastavitev — računa ne potrebujete.",
+    "step2T": "Odprite kateri koli video s podnapisi",
+    "step2D": "Pritisnite predvajanje — oba jezika se prikažeta skupaj, na videu in v prepisu, ki se pomika s prizorom.",
+    "step3T": "Shranjujte besede, jih tu ponavljajte",
+    "step3D": "Med gledanjem shranite besedo z enim dotikom — nato odprite svoj slovar na lingogram.ai in jo ponovite s prizorom, iz katerega izvira.",
+
+    "dictKicker": "Vaš slovar",
+    "dictH2": "Vsaka shranjena beseda gradi slovar, ki je resnično vaš",
+    "dictLede": "Ne seznam pogostosti iz učbenika — besede, na katere ste naleteli v prizorih, ki ste jih sami izbrali, shranjene skupaj z vrsticami, iz katerih izvirajo. Ne glede na to, katero izdajo uporabljate, vse pristane v enem računu in vas čaka tukaj po prijavi.",
+    "dictMyWords": "Moje besede",
+    "dictCount": "247 shranjenih · 12 ta teden",
+    "dictWord1": "reluctantly", "dictTr1": "nerad", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway", "dictTr2": "beg", "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "spinning its wheels", "dictTr3": "vrti prazne kolute", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictFoot": "Vaše besede se sinhronizirajo med napravami in vsemi izdajami Lingograma — {b}.",
+    "dictFootBold": "en račun, en slovar",
+
+    "featKicker": "Zakaj si zapomnite",
+    "featH2": "Večina orodij se ustavi pri prevodu. Lingogram poskrbi, da besede ostanejo.",
+    "featLede": "Lingogram temelji na aktivnem priklicu: ne samo berete zraven — ugibate, predvajate znova in zbirate, tako da se ure, ki jih tako ali tako preživite ob gledanju, spremenijo v pravi napredek.",
+    "feat1Tag": "Dvojni podnapisi", "feat1H": "Dva jezika na enem zaslonu", "feat1P": "Ujemite vsako vrstico v izvirniku in jo brez premora povežite s svojim jezikom. Ko boste pripravljeni, skrijte prevod: dvojni podnapisi so podporna kolesca, Lingogram pa vam pomaga, da jih snamete.",
+    "feat2Tag": "Interaktivni prepis", "feat2H": "Predvajajte znova vrstico, ne celega filma", "feat2P": "Prepis se sam pomika skupaj z videom. Kliknite katero koli vrstico, da se vrnete nazaj in ta prizor predvajate v zanki, dokler zvoki, ki jih niste razločili, ne postanejo besede, ki jih prepoznate takoj.",
+    "feat3Tag": "Način Ugani", "feat3H": "Najprej poslušajte, nato preverite", "feat3P": "Besede so sprva skrite: ujemite vrstico po posluhu, nato jo razkrijte. Ta zanka poslušanja pred branjem gradi razumevanje govora, na katerega se lahko zanesete — ne le podnapisov, ob katerih zgolj berete. Preklopite z {kbd}.",
+    "feat4Tag": "Shranjene besede", "feat4H": "Vaš besedni zaklad, iz vaših filmov", "feat4P": "En dotik shrani besedo skupaj z vrsticami podnapisov okoli nje. Pristane naravnost v {link} na lingogram.ai, kjer vsako besedo pregledate v njenem izvirnem prizoru.",
+    "feat4Link": "vaš osebni slovar",
+
+    "privKicker": "Zasebno privzeto",
+    "privH2": "Kar gledate, ostane vaša zadeva",
+    "priv1": "{b} Nastavitve jezika in postavitve so shranjene lokalno v vašem brskalniku.", "priv1Bold": "Brez telemetrije, brez sledenja.",
+    "priv2": "{b} Podnapisi se obdelujejo neposredno na vaši napravi.", "priv2Bold": "Vaše zgodovine gledanja nikoli ne vidimo.",
+    "priv3": "{b} Če se prijavite, shranimo vaš e-poštni naslov in shranjene besede — nič drugega, in jih nikoli ne prodamo.", "priv3Bold": "Slovar je izbirna možnost.",
+    "priv4": "{b} Če posodobitev strani kaj pokvari, en klik nam to sporoči, da to hitro popravimo.", "priv4Bold": "Zgrajen, da vedno deluje.",
+
+    "faqKicker": "Vprašanja",
+    "faqH2": "Vprašanja, ki jih ljudje postavijo pred namestitvijo",
+
+    "finalH2": "Nocojšnjo epizodo spremenite v lekcijo jezika",
+    "finalCta": "Dodaj Lingogram v Chrome",
+    "finalProof": "Brezplačno · Nastavitev v manj kot minuti"
+  },
+
+  "faq": {
+    "free": { "q": "Ali je brezplačno?", "a": "Da. Dvojni podnapisi, prepis in način Ugani so brezplačni. Brezplačen račun potrebujete le, če želite, da so shranjene besede sinhronizirane med napravami." },
+    "languages": { "q": "Katere jezike podpira?", "a": "Vsak par, za katerega ima video podnapise. Na YouTubu, če enega od vaših dveh jezikov manjka, ga Lingogram dopolni z YouTubovim samodejnim prevodom, da vseeno dobite dvojni prikaz. Na Netflixu in HDrezki prikaže tiste sledi podnapisov, ki jih naslov dejansko ima — brez strojnega prevoda." },
+    "edition": { "q": "Katero izdajo naj namestim?", "a": "Tisto za stran, ki jo gledate. Obstajata dve razširitvi: ena pokriva YouTube in Netflix skupaj, druga pokriva HDrezko. Namestite obe, če gledate na obeh — delita si ista orodja za učenje in isti račun, zato shranjene besede ostanejo na enem mestu." },
+    "words": { "q": "Kje živijo moje shranjene besede?", "a": "V vašem osebnem slovarju, tukaj na lingogram.ai. Prijavite se in vsaka shranjena beseda je tam, skupaj s prizorom, iz katerega izvira — ne glede na to, s katero izdajo ali napravo ste jo shranili." }
+  },
+
+  "edition": {
+    "eyebrow": "Lingogram za {site}",
+    "ctaPrimary": "Dodaj v Chrome — brezplačno",
+    "ctaSecondary": "Poglejte vse izdaje",
+    "builtKicker": "Zgrajeno za {site}",
+    "builtH2": "Kaj zmore izdaja za {site}",
+    "faqH2": "Preden namestite",
+    "finalH2": "Nocoj glejte {site} — v dveh jezikih",
+    "finalCta": "Dodaj {name}",
+    "finalProof": "Brezplačno · Nastavitev v manj kot minuti"
+  },
+
+  "privacy": {
+    "title": "Politika zasebnosti — Lingogram",
+    "description": "Kaj Lingogram zbira, kako se to uporablja in kakšne izbire imate."
+  },
+
+  "welcome": {
+    "title": "Dobrodošli v Lingogramu",
+    "description": "Vse je nastavljeno — tu je vaša prva shranjena beseda v treh korakih.",
+    "h1": "je nameščen",
+    "sub": "Trije koraki do vaše prve shranjene besede — potrebujete en video.",
+    "step1T": "Izberite jezika", "step1D": "Kliknite ikono Lingograma v orodni vrstici in izberite jezik, ki se ga učite, in svojega.",
+    "step2T": "Odprite video s podnapisi", "step2D": "Pritisnite predvajanje — oba jezika se prikažeta skupaj, na videu in v prepisu.",
+    "step3T": "Shranite svojo prvo besedo", "step3D": "V podnapisih označite besedo in se je dotaknite, da jo shranite — pristane v {link}.",
+    "step3Link": "vaš slovar",
+    "keyDual": "dvojni podnapisi", "keySwap": "zamenjaj jezika", "keyGuess": "način Ugani", "keyOverlay": "prikaz na zaslonu"
+  },
+
+  "uninstall": {
+    "title": "Škoda, da odhajate — Lingogram",
+    "description": "Povejte nam, zakaj ste odstranili Lingogram, da lahko to popravimo.",
+    "h1": "Škoda, da odhajate",
+    "sub": "En stavek o tem, zakaj ste odstranili {ext}, nam pomaga to popraviti za vse.",
+    "placeholder": "Nekaj se je pokvarilo pri… / Pričakoval sem… / Našel sem boljšo…",
+    "ariaLabel": "Zakaj ste odstranili razširitev?",
+    "send": "Pošlji povratno informacijo",
+    "footPrefix": "Vaše shranjene besede so še vedno v",
+    "footLink": "vašem slovarju",
+    "footMid": "— čakale bodo, če se vrnete.",
+    "reinstall": "Znova namestite kadar koli."
+  },
+
+  "auth": {
+    "or": "ali",
+    "showPassword": "Prikaži geslo",
+    "capsLock": "⇪ Caps Lock je vklopljen",
+    "optional": "neobvezno",
+    "register": {
+      "title": "Ustvarite svoj račun — Lingogram",
+      "description": "Registrirajte se, da sinhronizirate shranjene besede med vsemi napravami in izdajami.",
+      "eyebrow": "Brezplačen račun",
+      "h1Lead": "Začnite svoj", "h1Pop": "seznam besed",
+      "sub": "Shranjujte besede iz vsega, kar gledate — sinhronizirano med vsemi napravami in izdajami.",
+      "googleCta": "Registracija z Googlom",
+      "nameLabel": "Vaše ime", "namePlaceholder": "Ana",
+      "emailLabel": "E-pošta", "emailPlaceholder": "ana@example.com",
+      "passwordLabel": "Geslo", "passwordPlaceholder": "Vsaj 8 znakov",
+      "submit": "Ustvari račun", "submitBusy": "Ustvarjanje računa …",
+      "altPrefix": "Že imate račun?", "altLink": "Prijava",
+      "finePrefix": "Z nadaljevanjem se strinjate z našo", "fineLink": "Politiko zasebnosti"
+    },
+    "login": {
+      "title": "Prijava — Lingogram",
+      "description": "Prijavite se v svoj slovar Lingogram.",
+      "eyebrow": "Dobrodošli nazaj",
+      "h1Lead": "Vaš", "h1Pop": "slovar", "h1Tail": "vas čaka",
+      "sub": "Prijavite se in nadaljujte natanko tam, kjer ste ostali.",
+      "googleCta": "Prijava z Googlom",
+      "emailLabel": "E-pošta", "emailPlaceholder": "ana@example.com",
+      "passwordLabel": "Geslo", "passwordPlaceholder": "Vaše geslo",
+      "forgot": "Ste pozabili geslo?",
+      "resetNote": "Preverite nabiralnik — povezava za ponastavitev gesla je na poti.",
+      "submit": "Prijava", "submitBusy": "Prijavljanje …",
+      "altPrefix": "Ste novi v Lingogramu?", "altLink": "Ustvari račun"
+    }
+  },
+
+  "notFound": {
+    "title": "Stran ni najdena — Lingogram",
+    "description": "Ta stran ne obstaja.",
+    "h1": "Tukaj ni ničesar za gledanje",
+    "sub": "Ta stran ne obstaja. Filmi pa obstajajo.",
+    "cta": "Nazaj na Lingogram"
+  }
+}
