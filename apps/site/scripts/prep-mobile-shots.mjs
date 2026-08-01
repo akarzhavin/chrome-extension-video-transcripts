@@ -135,7 +135,16 @@ const STORIES = {
     payoff: 4,
     start: 2,   // open on the selected word + pill
     run: async (t) => {
-      const WORD = '#vtt-video-overlay .vtt-overlay-main span[data-word="before-seen"]';
+      // The word is picked per locale: the longest token of the caption —
+      // the one most worth saving, and present in every translation of the
+      // line (a hardcoded word would only exist in one language's track).
+      await t.page.evaluate(() => {
+        const spans = [...document.querySelectorAll('#vtt-video-overlay .vtt-overlay-main span[data-word]')];
+        const pick = spans.reduce((a, b) =>
+          (b.textContent.trim().length > a.textContent.trim().length ? b : a));
+        pick.setAttribute('data-cap-pick', '');
+      });
+      const WORD = '#vtt-video-overlay .vtt-overlay-main span[data-cap-pick]';
       await t.shoot(1500);                 // dual captions on the film
       await t.ring(WORD, 550);             // the gesture lands on one word…
       await t.select(WORD);                // …drag-select it for real
@@ -172,8 +181,9 @@ const ALL_LANGS = demoSubs.tracks.map((tr) => tr.lang);
 const langs = argOf('langs') ?? ALL_LANGS;
 const tabs = argOf('tabs') ?? Object.keys(STORIES);
 for (const tab of tabs) if (!STORIES[tab]) { console.error(`unknown tab "${tab}"`); process.exit(1); }
-// BCP-47 tags Chromium accepts where the bare code differs.
-const LOCALE_TAG = { en: 'en-US', zh: 'zh-CN', pt: 'pt-BR' };
+// BCP-47 tags Chromium accepts where the bare code differs. (`no` is the
+// track code but Chromium's Norwegian locale is `nb`.)
+const LOCALE_TAG = { en: 'en-US', zh: 'zh-CN', pt: 'pt-BR', no: 'nb' };
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.mp4': 'video/mp4', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json' };
 const server = createServer((req, res) => {
@@ -196,6 +206,14 @@ for (const lang of langs) {
     deviceScaleFactor: 2,
   });
   const page = await ctx.newPage();
+  // The film's CONTENT hangs off navigator.languages: the demo's
+  // nativeTrack() picks the second subtitle language from it. If Chromium
+  // doesn't recognize a context locale it silently reports en — and the film
+  // for that language would ship with the wrong pair. Pin the value hard.
+  await page.addInitScript((l) => {
+    Object.defineProperty(navigator, 'languages', { get: () => [l] });
+    Object.defineProperty(navigator, 'language', { get: () => l });
+  }, lang);
   // The YouTube iframe is nondeterministic in headless runs; aborting it
   // triggers the file fallback, which plays the same NASA clip.
   await page.route('**/*youtube*/**', (r) => r.abort());
@@ -329,13 +347,17 @@ for (const lang of langs) {
         await page.waitForSelector('#lingogram-quick-add-pill', { timeout: 5000 });
       },
       page,
-      // Click the row until nothing is masked: the real mode reveals one word
-      // per tap, and a story that tapped six times would outstay its welcome.
+      // Click until nothing is masked: the real mode reveals one word per
+      // tap, and a story that tapped six times would outstay its welcome.
+      // Masked state is detected by the .vtt-masked-word class, not by the
+      // glyphs: spaced languages mask with "***" but unspaced ones (ja, zh,
+      // th) use "•", and those also reveal one TOKEN per click — hence the
+      // generous iteration cap.
       revealRest: async (selector) => {
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 40; i++) {
           const masked = await page.evaluate((sel) => {
             const el = document.querySelector(sel);
-            return el ? el.textContent.includes('*') : false;
+            return el ? el.querySelectorAll('.vtt-masked-word').length : 0;
           }, selector);
           if (!masked) return;
           await page.click(selector);
