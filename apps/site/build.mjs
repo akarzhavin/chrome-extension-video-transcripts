@@ -64,9 +64,21 @@ const header = (here) => `
 <header class="site wrap">
   <a class="logo" href="/">
     <span class="logo-mark">${CHAMELEON(24)}</span>
-    Lingogram
+    <span class="logo-name">Lingogram</span>
   </a>
   <nav class="top">${navLinks}</nav>
+  <!-- The site copy is English; this switches the language PAIR of the hero
+       demo — the live demo's second track, the phone films, the miniatures'
+       sample line. Filled and unhidden by demo.js (src/demo/index.ts), so
+       pages without the demo (auth) never show an empty control. The visible
+       pill is the .lang-face (full autonym on desktop, bare code on phones,
+       where the header has no room for "Português"); the real <select> lies
+       transparent on top so a tap still opens the platform's own picker —
+       the right UI for a 42-item list on a touch screen. -->
+  <span class="lang-wrap" hidden>
+    <span class="lang-face" aria-hidden="true"><span class="lf-name"></span><span class="lf-code"></span></span>
+    <select id="lang-switch" aria-label="Language of the demo subtitles"></select>
+  </span>
   ${here === 'login' ? '' : '<a class="btn btn-ghost btn-login" href="/login/">Log in</a>'}
   ${here === 'register' ? '' : '<a class="btn btn-primary btn-login" href="/register/">Sign up</a>'}
   <details class="mnav">

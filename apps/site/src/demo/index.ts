@@ -12,13 +12,31 @@ import demoSubs from '../data/demo-subs.json';
 import shotLocales from '../data/shot-locales.json';
 
 /**
+ * The header's language switcher stores an explicit choice; it outranks the
+ * browser's languages everywhere a language is picked below. localStorage is
+ * unavailable in some privacy modes — treat that as "no choice".
+ */
+const storedLang = ((): string | null => {
+  try {
+    return localStorage.getItem('lingogram-lang');
+  } catch {
+    return null;
+  }
+})();
+
+/**
  * The visitor's own language, if the video has a track for it. A demo that
  * always paired English with Russian would undersell the product to everyone
- * else, so the second track is theirs: `navigator.languages` in order, first
- * hit wins. Falls back to Russian, then to whatever comes after English.
+ * else, so the second track is theirs: the header switcher's choice first,
+ * then `navigator.languages` in order, first hit wins. Falls back to Russian,
+ * then to whatever comes after English.
  */
 const nativeTrack = (): (typeof demoSubs.tracks)[number] | undefined => {
   const has = (code: string) => demoSubs.tracks.find((t) => t.lang === code && t.lang !== 'en');
+  if (storedLang) {
+    const hit = has(storedLang);
+    if (hit) return hit;
+  }
   for (const tag of navigator.languages ?? [navigator.language]) {
     const hit = has((tag || '').split('-')[0].toLowerCase());
     if (hit) return hit;
@@ -43,11 +61,57 @@ const mobile = window.matchMedia('(max-width: 760px)').matches;
  * their still is hero-en.webp, whose pair (FR ⇄ EN) is already right for them.
  */
 const shotLang = (): string => {
+  if (storedLang && (shotLocales as string[]).includes(storedLang)) return storedLang;
   for (const tag of navigator.languages ?? [navigator.language]) {
     const code = (tag || '').split('-')[0].toLowerCase();
     if ((shotLocales as string[]).includes(code)) return code;
   }
   return 'en';
+};
+
+/**
+ * The header's language switcher: every language the demo has a track for,
+ * each named in itself (Intl.DisplayNames — no shipped name table). Picking
+ * one stores the choice and reloads: the whole demo surface re-derives from
+ * one value — the live demo's second track, the phone films, the miniatures'
+ * sample line — and a reload is the one path that updates them all alike.
+ * The control ships hidden; pages without the demo never populate it.
+ */
+const wireLangSwitch = (current: string): void => {
+  const sel = document.getElementById('lang-switch') as HTMLSelectElement | null;
+  if (!sel) return;
+  const autonym = (code: string): string => {
+    try {
+      const n = new Intl.DisplayNames([code], { type: 'language' }).of(code);
+      return n ? n.charAt(0).toLocaleUpperCase(code) + n.slice(1) : code.toUpperCase();
+    } catch {
+      return code.toUpperCase();
+    }
+  };
+  const named = (shotLocales as string[]).map((code) => ({ code, name: autonym(code) }));
+  named.sort((a, b) => a.name.localeCompare(b.name));
+  for (const { code, name } of named) {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = name;
+    sel.append(opt);
+  }
+  sel.value = current;
+  // The visible pill under the transparent select (see build.mjs header).
+  const wrap = sel.closest<HTMLElement>('.lang-wrap');
+  const face = wrap?.querySelector('.lf-name');
+  const code = wrap?.querySelector('.lf-code');
+  if (face) face.textContent = autonym(current);
+  if (code) code.textContent = current.toUpperCase();
+  if (wrap) wrap.hidden = false;
+  sel.onchange = () => {
+    try {
+      localStorage.setItem('lingogram-lang', sel.value);
+    } catch {
+      /* privacy mode — the choice just won't survive the reload */
+    }
+    location.reload();
+  };
 };
 
 /**
@@ -93,6 +157,9 @@ const start = () => {
   ];
   const tracks = ordered.map((t) => ({ name: t.name, lang: t.lang, lines: t.lines }));
   console.info('[lingogram-demo] native track:', native?.lang ?? 'none');
+  // On desktop the switcher reflects the pair the live demo actually opens
+  // with — including the Russian fallback an English-browser visitor gets.
+  if (!mobile) wireLangSwitch(native?.lang ?? 'ru');
 
   // The mode-card miniatures show a sample line pair; put the translation in
   // the visitor's own language (build.mjs bakes in the Russian fallback).
@@ -114,6 +181,7 @@ const start = () => {
   // hint is hidden — it promises an interaction that isn't there.
   if (mobile) {
     const lang = shotLang();
+    wireLangSwitch(lang);
     console.info('[lingogram-demo] source: per-tab films (mobile)', lang);
     // Animated WebPs filmed from THIS live demo (scripts/prep-mobile-shots
     // .mjs): the real desktop product — right-hand sidebar beside the video —

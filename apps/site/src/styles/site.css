@@ -77,6 +77,30 @@ nav.top a:hover { color: var(--ink); }
 .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-login { padding: 9px 18px; font-size: 14px; }
+/* The demo-language switcher (filled by demo.js; [hidden] on pages without
+   the demo). The .lang-face pill is what the visitor sees; the real 42-item
+   <select> lies transparent on top of it, so a tap opens the platform's own
+   picker — and the pill's width stays ours: a native select can't shrink
+   below its selected option's text, which broke the phone header. */
+.lang-wrap { position: relative; display: inline-flex; flex: none; }
+.lang-wrap[hidden] { display: none; }
+.lang-face {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 8px 26px 8px 13px;
+  font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+  max-width: 132px; overflow: hidden;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23697086' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+.lang-face .lf-name { overflow: hidden; text-overflow: ellipsis; }
+.lang-face .lf-code { display: none; }
+.lang-wrap select {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; border: 0;
+}
+.lang-wrap:hover .lang-face,
+.lang-wrap:focus-within .lang-face { border-color: var(--accent); }
 .mnav { display: none; position: relative; }
 
 /* ---------- hero ---------- */
@@ -927,6 +951,13 @@ footer.site {
   .mnav-panel a:hover { background: var(--accent-soft); }
   header.site { gap: 10px; }
   .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
+  /* The switcher matters MOST here (the phone demo has no in-panel picker),
+     but the header is at its tightest: the pill shows the bare code ("DE")
+     instead of the autonym, and below 480px the wordmark yields too — the
+     chameleon mark carries the brand alone. */
+  .lang-face { padding: 7px 20px 7px 10px; background-position: right 8px center; }
+  .lang-face .lf-name { display: none; }
+  .lang-face .lf-code { display: inline; }
   /* 44px touch target for the burger (see the coarse-pointer block above). */
   .mnav summary { min-height: 44px; display: grid; place-items: center; padding: 8px 12px; }
   /* Phones show the active tab's film instead of the live embed
@@ -957,6 +988,12 @@ footer.site {
   /* Brand block above, then the three link columns two-up. */
   footer.site { grid-template-columns: repeat(2, 1fr); gap: 20px 24px; }
   footer.site .f-col:first-child { grid-column: 1 / -1; }
+}
+
+/* Below 480px the header can't seat the wordmark, the language pill and both
+   auth buttons — the chameleon mark carries the brand alone. */
+@media (max-width: 480px) {
+  .logo-name { display: none; }
 }
 
 /* Small phones (iPhone SE and friends, ≤400px). The 24px gutters eat 13% of a
