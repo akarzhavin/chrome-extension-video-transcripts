@@ -970,6 +970,22 @@ footer.site {
   animation: authSpin 0.7s linear infinite;
 }
 @keyframes authSpin { to { transform: rotate(360deg); } }
+/* Same indicator on the email/password submit. That button is filled, so the
+   track is drawn from the label colour rather than the page's border colour. */
+.auth-submit-spinner {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  animation: authSpin 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-submit-spinner { animation: none; }
+}
 /* Honour a reduced-motion preference: keep the state visible, drop the spin. */
 @media (prefers-reduced-motion: reduce) {
   .auth-google-spinner { animation: none; border-top-color: var(--accent); }
