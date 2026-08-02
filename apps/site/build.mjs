@@ -478,7 +478,6 @@ ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
 // page, unlike the full /<slug>/ landing pages which stay English.
 const editionCards = (t, lang) => EDITIONS.editions.map((ed) => `
   <a class="ed" href="${storeHref(ed.storeUrl, lang)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
-
     ${mark(ed.mark)}
     <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(t(`editionsCard.${ed.mark}`))}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
   </a>`).join('') + `
