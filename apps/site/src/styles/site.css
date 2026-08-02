@@ -93,20 +93,22 @@ nav.top a:hover { color: var(--ink); }
 .lang-wrap { position: relative; display: inline-flex; flex: none; }
 .lang-wrap[hidden] { display: none; }
 .lang-face {
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
-  border-radius: 999px; padding: 8px 26px 8px 13px;
-  font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
-  max-width: 132px; overflow: hidden;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23697086' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 11px center;
+  border-radius: 999px; padding: 8px 11px 8px 13px; cursor: pointer;
+  font: inherit; font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+  max-width: 150px;
 }
 .lang-face .lf-name { overflow: hidden; text-overflow: ellipsis; }
-.lang-face .lf-code { display: none; }
-.lang-wrap select {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; border: 0;
+/* Explicit size and flex:none. An inline SVG with only a viewBox takes an
+   aspect-ratio box off whatever room the flex line gives it, so in locales
+   with a short autonym the chevron ballooned to 39px and pushed the whole
+   header taller (worst in sl/nl/uk/bg/sk). */
+.lang-face .lf-chev {
+  width: 12px; height: 12px; flex: none; opacity: .65;
+  transition: transform .15s ease;
 }
+.lang-wrap.open .lang-face .lf-chev { transform: rotate(180deg); }
 .lang-wrap:hover .lang-face,
 .lang-wrap:focus-within .lang-face,
 .lang-wrap.open .lang-face { border-color: var(--accent); }
