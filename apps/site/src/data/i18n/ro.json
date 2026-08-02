@@ -129,7 +129,7 @@
     "priv1": "{b} Setările de limbă și de aspect sunt stocate local, în browserul tău.", "priv1Bold": "Fără telemetrie, fără urmărire.",
     "priv2": "{b} Subtitrările sunt procesate chiar pe dispozitivul tău.", "priv2Bold": "Nu vedem niciodată istoricul tău de vizionare.",
     "priv3": "{b} Dacă te conectezi, stocăm emailul tău și cuvintele salvate — nimic altceva, și nu le vindem niciodată.", "priv3Bold": "Dicționarul este opțional.",
-    "priv4": "{b} Dacă o actualizare a unui site strică ceva, un singur clic ne raportează problema, ca să o reparăm rapid.", "priv4Bold": "Reparăm rapid.",
+    "priv4": "{b} Dacă o actualizare a unui site strică ceva, ne raportezi problema dintr-un singur clic, ca să o reparăm rapid.", "priv4Bold": "Reparăm rapid.",
 
     "faqKicker": "Întrebări frecvente",
     "faqH2": "Întrebări pe care oamenii le pun înainte de instalare",

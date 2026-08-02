@@ -68,7 +68,7 @@
   "modes": {
     "dual": { "tab": "Dalawahang subtitle", "h": "Parehong wika, sabay", "p": "Ang linyang naririnig mo, katabi ng linyang naiintindihan mo — walang pause, walang paglipat ng track." },
     "guess": { "tab": "Mode na Hulaan", "h": "I-click para makita — at sanayin ang iyong pandinig", "p": "Nananatiling nakatago ang linya hanggang sa i-click mo ito. Manghula muna gamit ang tainga, tapos suriin mo ang sarili mo: ang puwang sa pagitan ng dalawa ang eksaktong lugar kung saan bumubuti ang pakikinig mo." },
-    "single": { "tab": "Nasa video", "h": "Nasa screen, o nasa sidebar — desisyon mo", "p": "Panatilihin ang dalawang linya sa ibabaw ng pelikula, kung saan nakatingin ka na naman. O tanggalin ang mga ito sa isang pindot lang at basahin na lang mula sa panel, sa sarili mong bilis. Hindi kailanman nawawala ang mga subtitle — lumilipat lang sila." },
+    "single": { "tab": "Nasa video", "h": "Nasa screen, o nasa sidebar — desisyon mo", "p": "Panatilihin ang dalawang linya sa ibabaw ng pelikula, kung saan nakatingin ka na. O tanggalin ang mga ito sa isang pindot lang at basahin na lang mula sa panel, sa sarili mong bilis. Hindi kailanman nawawala ang mga subtitle — lumilipat lang sila." },
     "save": { "tab": "Mga salita ko", "h": "Itago ang bawat salitang nakakasalubong mo", "p": "Pumili ng salita — isang tap para i-save ito kasama ang pangungusap na pinagmulan nito, diretso sa iyong diksyunaryo dito mismo sa lingogram.ai." }
   },
 
@@ -105,7 +105,7 @@
     "dictLede": "Hindi ito listahan ng dalas mula sa isang textbook — mga salitang nasalubong mo sa mga eksenang pinili mo mismo, na naka-save kasama ang mga linyang pinagmulan nila. Anumang edisyon ang gamitin mo, lahat ay napupunta sa iisang account, at naghihintay ito sa iyo sa site na ito pagkatapos mong mag-log in.",
     "dictMyWords": "Ang mga salita ko",
     "dictCount": "247 na-save · 12 ngayong linggo",
-    "dictWord1": "reluctantly", "dictTr1": "nang pabigla-bigla / nang ayaw-ayaw", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord1": "reluctantly", "dictTr1": "nang atubili", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
     "dictWord2": "getaway", "dictTr2": "takasan / pagtakas", "dictCtx2": "“This isn't a heist, it's a {w}.”",
     "dictWord3": "naubusan ng gas", "dictTr3": "walang natitirang gasolina", "dictCtx3": "“{w} na kami mula noong huling gasolinahan.”",
     "dictFoot": "Nagsi-sync ang mga salita mo sa lahat ng device at bawat edisyon ng Lingogram — {b}.",

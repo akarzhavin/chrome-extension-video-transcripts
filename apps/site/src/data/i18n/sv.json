@@ -111,7 +111,7 @@
     "dictCount": "247 sparade · 12 den här veckan",
     "dictWord1": "reluctantly", "dictTr1": "motvilligt", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
     "dictWord2": "getaway", "dictTr2": "flykt", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "spinner hjulen", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictWord3": "slut på bensin", "dictTr3": "utan bränsle", "dictCtx3": "“Vi har varit {w} sedan senaste macken.”",
     "dictFoot": "Dina ord synkas mellan enheter och alla Lingogram-utgåvor — {b}.",
     "dictFootBold": "ett konto, en ordbok",
 
@@ -129,7 +129,7 @@
     "priv1": "{b} Språk- och layoutinställningar sparas lokalt i din webbläsare.", "priv1Bold": "Ingen telemetri, ingen spårning.",
     "priv2": "{b} Undertexter bearbetas direkt på din enhet.", "priv2Bold": "Vi ser aldrig din tittarhistorik.",
     "priv3": "{b} Om du loggar in sparar vi din e-post och dina sparade ord — inget annat, och vi säljer dem aldrig.", "priv3Bold": "Ordboken är valfri.",
-    "priv4": "{b} Om en sajtuppdatering förstör något rapporterar ett klick det så vi kan åtgärda det snabbt.", "priv4Bold": "Byggd för att fortsätta fungera.",
+    "priv4": "{b} Om en sajtuppdatering förstör något rapporterar du det med ett klick, så vi kan åtgärda det snabbt.", "priv4Bold": "Byggd för att fortsätta fungera.",
 
     "faqKicker": "Vanliga frågor",
     "faqH2": "Frågor folk ställer innan de installerar",

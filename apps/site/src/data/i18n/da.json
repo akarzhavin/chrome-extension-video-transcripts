@@ -111,7 +111,7 @@
     "dictCount": "247 gemt · 12 denne uge",
     "dictWord1": "reluctantly", "dictTr1": "nølende", "dictCtx1": "„He {w} agreed to drive the getaway car.“",
     "dictWord2": "getaway", "dictTr2": "flugt", "dictCtx2": "„This isn't a heist, it's a {w}.“",
-    "dictWord3": "spinning its wheels", "dictTr3": "spinner i hjulene", "dictCtx3": "„It's {w} in sixth gear!“",
+    "dictWord3": "løbet tør for benzin", "dictTr3": "løbet tør for brændstof", "dictCtx3": "„Vi har {w} siden sidste tankstation.“",
     "dictFoot": "Dine ord synkroniseres på tværs af enheder og alle Lingogram-udgaver — {b}.",
     "dictFootBold": "én konto, én ordbog",
 
@@ -129,7 +129,7 @@
     "priv1": "{b} Sprog- og layoutindstillinger gemmes lokalt i din browser.", "priv1Bold": "Ingen telemetri, ingen sporing.",
     "priv2": "{b} Undertekster behandles direkte på din enhed.", "priv2Bold": "Vi ser aldrig din seerhistorik.",
     "priv3": "{b} Hvis du logger ind, gemmer vi din e-mail og dine gemte ord — intet andet, og vi sælger dem aldrig.", "priv3Bold": "Din ordbog er valgfri.",
-    "priv4": "{b} Hvis en opdatering på siden ødelægger noget, kan du med ét klik give os besked, så vi kan rette det hurtigt.", "priv4Bold": "Bygget til at blive ved med at virke.",
+    "priv4": "{b} Hvis en opdatering på siden ødelægger noget, giver du os besked med ét klik, så vi kan rette det hurtigt.", "priv4Bold": "Bygget til at blive ved med at virke.",
 
     "faqKicker": "Ofte stillede spørgsmål",
     "faqH2": "Spørgsmål folk stiller, før de installerer",

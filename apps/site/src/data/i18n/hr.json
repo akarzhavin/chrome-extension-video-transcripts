@@ -55,7 +55,7 @@
     "free": "Besplatno, bez oglasa"
   },
   "demo": {
-    "hintPrefix": "Ovo je demo, ali prava ekstenzija — stvarno radi, upravo ovdje na ovoj stranici —",
+    "hintPrefix": "Ovo je demo, ali pravo proširenje — stvarno radi, upravo ovdje na ovoj stranici —",
     "hintBold": "odaberite riječ",
     "hintSuffix": "da je spremite, ili isprobajte jedan od načina rada ispod.",
     "credit": "Isječak: NASA —",
@@ -102,7 +102,7 @@
     "ctaSecondary": "Odaberite izdanje za stranicu na kojoj gledate ↓",
     "platformsKicker": "Izdanja",
     "platformsH2": "Jedan Lingogram, prilagođen stranici koju gledate",
-    "platformsLede": "Svako je izdanje zaseban Chrome dodatak, izrađen za player jedne stranice — izvorni zapisi titlova, prikaz preko cijelog videa, ispravci koje baš ta stranica treba. Sva dijele iste alate za učenje i isti račun, pa su vaše spremljene riječi uvijek na jednom mjestu, bez obzira koje izdanje koristite. Dva proširenja pokrivaju sve tri stranice: ono za YouTube podržava i Netflix.",
+    "platformsLede": "Svako je izdanje zasebno Chrome proširenje, izrađeno za player jedne stranice — izvorni zapisi titlova, prikaz preko cijelog videa, ispravci koje baš ta stranica treba. Sva dijele iste alate za učenje i isti račun, pa su vaše spremljene riječi uvijek na jednom mjestu, bez obzira koje izdanje koristite. Dva proširenja pokrivaju sve tri stranice: ono za YouTube podržava i Netflix.",
     "editionGo": "Dodaj u Chrome →",
     "editionSoonTitle": "Gledate negdje drugdje?",
     "editionSoonBody": "Nova posebna izdanja izlaze redovito — recite nam gdje gledate.",

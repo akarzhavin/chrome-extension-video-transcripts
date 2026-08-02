@@ -67,7 +67,7 @@
 
   "modes": {
     "dual": { "tab": "Legendas duplas", "h": "Os dois idiomas, ao mesmo tempo", "p": "A linha que ouve ao lado da linha que entende — sem pausar, sem trocar de faixa." },
-    "guess": { "tab": "Modo Adivinhar", "h": "Clique para revelar — e treine o ouvido", "p": "A linha fica oculta até você clicar nela. Adivinhe primeiro pelo som, depois confirme: é exatamente nessa diferença que a sua compreensão auditiva melhora." },
+    "guess": { "tab": "Modo Adivinhar", "h": "Clique para revelar — e treine o ouvido", "p": "A linha fica oculta até lhe tocar. Adivinhe primeiro pelo som, depois confirme: é exatamente nessa diferença que a sua compreensão auditiva melhora." },
     "single": { "tab": "Sobre o vídeo", "h": "Sobre o vídeo, ou no painel lateral — à sua escolha", "p": "Mantenha as duas linhas sobre o filme, onde os seus olhos já estão. Ou retire-as com um botão e leia antes no painel, ao seu próprio ritmo. As legendas nunca desaparecem — apenas mudam de lugar." },
     "save": { "tab": "As minhas palavras", "h": "Guarde cada palavra nova", "p": "Selecione uma palavra — um toque guarda-a com a frase de onde veio, diretamente aqui, no seu dicionário em lingogram.ai." }
   },
@@ -88,8 +88,8 @@
     "ctaSecondary": "Escolha a edição para o site onde assiste ↓",
 
     "platformsKicker": "Edições",
-    "platformsH2": "Um só Lingogram, ajustado ao site onde você assiste",
-    "platformsLede": "Cada edição é uma extensão do Chrome separada, construída para o leitor de um único site — faixas de legendas nativas, uma sobreposição de legendas sobre o vídeo em ecrã inteiro, os ajustes que esse site precisa. Todas partilham as mesmas ferramentas de aprendizagem e a mesma conta, por isso as suas palavras guardadas ficam sempre num único lugar, seja qual for a edição que use. Duas extensões cobrem os três sites: a do YouTube trata também do Netflix.",
+    "platformsH2": "Um só Lingogram, ajustado ao site onde vê",
+    "platformsLede": "Cada edição é uma extensão do Chrome separada, construída para o reprodutor de um único site — faixas de legendas nativas, uma sobreposição de legendas sobre o vídeo em ecrã inteiro, os ajustes que esse site precisa. Todas partilham as mesmas ferramentas de aprendizagem e a mesma conta, por isso as suas palavras guardadas ficam sempre num único lugar, seja qual for a edição que use. Duas extensões cobrem os três sites: a do YouTube trata também do Netflix.",
     "editionGo": "Adicionar ao Chrome →",
     "editionSoonTitle": "Assiste noutro sítio?",
     "editionSoonBody": "Novas edições dedicadas surgem regularmente — diga-nos onde assiste.",
@@ -117,7 +117,7 @@
 
     "featKicker": "Porque fica na memória",
     "featH2": "A maioria das ferramentas para na tradução. O Lingogram faz as palavras ficarem.",
-    "featLede": "O Lingogram assenta na recordação ativa: você não se limita a ler junto — adivinha, repete e coleciona, para que as horas que já passa a assistir se tornem progresso real.",
+    "featLede": "O Lingogram assenta na recordação ativa: não se limita a ler junto — adivinha, repete e coleciona, para que as horas que já passa a assistir se tornem progresso real.",
     "feat1Tag": "Legendas duplas", "feat1H": "Dois idiomas, um ecrã", "feat1P": "Apanhe cada linha no original e associe-a de imediato ao seu idioma, sem pausar. Quando estiver pronto, oculte a tradução: as legendas duplas são um ponto de partida, e o Lingogram ajuda-o a passar a dispensá-las.",
     "feat2Tag": "Transcrição interativa", "feat2H": "Repita a linha, não o filme inteiro", "feat2P": "A transcrição acompanha o vídeo sozinha. Clique em qualquer linha para voltar atrás e repetir em loop exatamente essa cena, até os sons que não conseguia distinguir se tornarem palavras que reconhece de imediato.",
     "feat3Tag": "Modo Adivinhar", "feat3H": "Ouça primeiro, depois confirme", "feat3P": "As palavras começam ocultas: apanhe a linha pelo ouvido e só depois a revele. Este ciclo de ouvir primeiro constrói uma compreensão auditiva em que pode confiar — não legendas que apenas acompanha com os olhos. Ative com {kbd}.",
@@ -125,7 +125,7 @@
     "feat4Link": "o seu dicionário pessoal",
 
     "privKicker": "Privado por padrão",
-    "privH2": "O que você assiste continua a ser um assunto seu",
+    "privH2": "O que vê é só consigo",
     "priv1": "{b} As definições de idioma e de esquema ficam guardadas localmente no seu navegador.", "priv1Bold": "Sem telemetria, sem rastreamento.",
     "priv2": "{b} As legendas são processadas diretamente no seu dispositivo.", "priv2Bold": "Nunca vemos o seu histórico de visualização.",
     "priv3": "{b} Se iniciar sessão, guardamos o seu email e as suas palavras guardadas — nada mais, e nunca os vendemos.", "priv3Bold": "O dicionário é opcional.",
@@ -160,7 +160,7 @@
 
   "privacy": {
     "title": "Política de privacidade — Lingogram",
-    "description": "O que o Lingogram recolhe, como é utilizado e as escolhas que você tem."
+    "description": "O que o Lingogram recolhe, como é utilizado e as escolhas que tem."
   },
 
   "welcome": {

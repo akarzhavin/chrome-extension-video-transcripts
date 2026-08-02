@@ -60,7 +60,7 @@
     "hintSuffix": "kad jį išsaugotumėte, arba išbandykite vieną iš toliau esančių režimų.",
     "credit": "Vaizdo įrašas: NASA —",
     "creditLink": "Cosmic Dawn",
-    "creditSuffix": "(viešasis turtas)"
+    "creditSuffix": "(viešoji sritis)"
   },
   "modes": {
     "dual": {
@@ -96,7 +96,7 @@
   },
   "home": {
     "eyebrow": "Nemokama · YouTube · Netflix · HDrezka",
-    "h1Lead": "Su subtitrais žiūrėti jau teko.",
+    "h1Lead": "Su subtitrais jau esate žiūrėję.",
     "h1Pop": "Šįkart iš to gausite daugiau.",
     "ctaPrimary": "Pridėti į Chrome — tai nemokama",
     "ctaSecondary": "Pasirinkite versiją svetainei, kurioje žiūrite ↓",
@@ -112,7 +112,7 @@
     "step1T": "Įdiekite ir pasirinkite kalbas",
     "step1D": "Pasirinkite kalbą, kurios mokotės, ir savo gimtąją kalbą. Greitas vienkartinis nustatymas — paskyros nereikia.",
     "step2T": "Atidarykite bet kurį vaizdo įrašą su subtitrais",
-    "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek kartu su scena slenkančiame teksto ruošinyje.",
+    "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek kartu su scena slenkančiame transkripcijoje.",
     "step3T": "Išsaugokite žodžius, peržiūrėkite juos šioje svetainėje",
     "step3D": "Žiūrėdami vienu bakstelėjimu išsaugokite žodį — vėliau atidarykite savo žodyną šioje svetainėje, lingogram.ai, ir peržiūrėkite jį kartu su scena, iš kurios jis paimtas.",
     "dictKicker": "Jūsų žodynas",
@@ -137,9 +137,9 @@
     "feat1Tag": "Dvigubi subtitrai",
     "feat1H": "Dvi kalbos, vienas ekranas",
     "feat1P": "Pagaukite kiekvieną originalo eilutę ir sugretinkite ją su sava kalba be pauzių. Kai būsite pasiruošę, paslėpkite vertimą — dvigubi subtitrai yra tik pradžios taškas, o Lingogram padeda jį peraugti.",
-    "feat2Tag": "Interaktyvus teksto ruošinys",
+    "feat2Tag": "Interaktyvi transkripcija",
     "feat2H": "Peržiūrėkite eilutę, o ne visą filmą",
-    "feat2P": "Teksto ruošinys savaime slenka kartu su vaizdo įrašu. Spustelėkite bet kurią eilutę, kad grįžtumėte atgal ir kartotumėte būtent tą sceną, kol negalėję atskirti garsai netaps žodžiais, kuriuos atpažįstate akimirksniu.",
+    "feat2P": "Transkripcija savaime slenka kartu su vaizdo įrašu. Spustelėkite bet kurią eilutę, kad grįžtumėte atgal ir kartotumėte būtent tą sceną, kol negalėję atskirti garsai netaps žodžiais, kuriuos atpažįstate akimirksniu.",
     "feat3Tag": "Atspėjimo režimas",
     "feat3H": "Pirma paklausykite, tada pasitikrinkite",
     "feat3P": "Žodžiai iš pradžių paslėpti: pagaukite eilutę klausa, tada ją atskleiskite. Šis „pirma paklausyk“ ciklas ugdo klausymo įgūdžius, kuriais galite pasitikėti — o ne įprotį tiesiog skaityti subtitrus. Perjunkite klavišu {kbd}.",
@@ -166,11 +166,11 @@
   "faq": {
     "free": {
       "q": "Ar tai nemokama?",
-      "a": "Taip. Dvigubi subtitrai, teksto ruošinys ir Atspėjimo režimas yra nemokami. Nemokama paskyra reikalinga tik tuo atveju, jei norite, kad išsaugoti žodžiai būtų sinchronizuojami tarp įrenginių."
+      "a": "Taip. Dvigubi subtitrai, transkripcija ir Atspėjimo režimas yra nemokami. Nemokama paskyra reikalinga tik tuo atveju, jei norite, kad išsaugoti žodžiai būtų sinchronizuojami tarp įrenginių."
     },
     "languages": {
       "q": "Kokias kalbas jis palaiko?",
-      "a": "Bet kurią kalbų porą, kuriai vaizdo įrašas turi subtitrus. YouTube, jei trūksta vienos iš dviejų jūsų kalbų, Lingogram ją papildo automatiniu YouTube vertimu, kad vis tiek matytumėte dvigubą vaizdą. Netflix ir HDrezka rodomi tik tie subtitrų takeliai, kuriuos konkretus titulas iš tikrųjų turi — jokio mašininio vertimo."
+      "a": "Bet kurią kalbų porą, kuriai vaizdo įrašas turi subtitrus. YouTube, jei trūksta vienos iš dviejų jūsų kalbų, Lingogram ją papildo automatiniu YouTube vertimu, kad vis tiek matytumėte dvigubą vaizdą. Netflix ir HDrezka rodomi tik tie subtitrų takeliai, kuriuos tas filmas ar serialas iš tikrųjų turi — jokio mašininio vertimo."
     },
     "edition": {
       "q": "Kurią versiją man diegti?",
@@ -204,7 +204,7 @@
     "step1T": "Pasirinkite kalbas",
     "step1D": "Spustelėkite Lingogram piktogramą įrankių juostoje ir pasirinkite kalbą, kurios mokotės, bei savo gimtąją kalbą.",
     "step2T": "Atidarykite vaizdo įrašą su subtitrais",
-    "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek teksto ruošinyje.",
+    "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek transkripcijoje.",
     "step3T": "Išsaugokite savo pirmą žodį",
     "step3D": "Pažymėkite žodį subtitruose ir bakstelėkite, kad jį išsaugotumėte — jis atsidurs {link}.",
     "step3Link": "jūsų žodyne",

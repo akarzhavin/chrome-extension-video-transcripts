@@ -129,7 +129,7 @@
     "priv1": "{b} Nastavení jazyka a rozvržení se ukládají lokálně ve vašem prohlížeči.", "priv1Bold": "Žádná telemetrie, žádné sledování.",
     "priv2": "{b} Titulky se zpracovávají přímo ve vašem zařízení.", "priv2Bold": "Historii vašeho sledování nikdy nevidíme.",
     "priv3": "{b} Pokud se přihlásíte, ukládáme váš e-mail a uložená slova — nic víc, a nikdy je neprodáváme.", "priv3Bold": "Slovník je dobrovolný.",
-    "priv4": "{b} Pokud aktualizace webu něco rozbije, jedno kliknutí nám to nahlásí, abychom to mohli rychle opravit.", "priv4Bold": "Opravíme to rychle.",
+    "priv4": "{b} Pokud aktualizace webu něco rozbije, nahlásíte nám to jedním kliknutím, abychom to mohli rychle opravit.", "priv4Bold": "Opravíme to rychle.",
 
     "faqKicker": "Časté dotazy",
     "faqH2": "Otázky, které lidi napadají před instalací",

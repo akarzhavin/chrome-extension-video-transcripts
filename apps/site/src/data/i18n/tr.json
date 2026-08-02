@@ -51,7 +51,7 @@
   },
   "proof": {
     "rating": "Chrome Web Store'da",
-    "learners": "öğrenci",
+    "learners": "kişi dil öğreniyor",
     "free": "Ücretsiz, reklamsız"
   },
   "demo": {
@@ -112,7 +112,7 @@
     "step1T": "Kurun ve dillerinizi seçin",
     "step1D": "Öğrendiğiniz dili ve kendi dilinizi seçin. Hızlı, tek seferlik bir ayar — hesap gerekmez.",
     "step2T": "Altyazılı herhangi bir videoyu açın",
-    "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de sahneyle birlikte kayan bir dökümde.",
+    "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de sahneyle birlikte kayan bir transkriptte.",
     "step3T": "Kelimeleri kaydedin, bu sitede tekrar edin",
     "step3D": "İzlerken tek dokunuşla bir kelime saklayın — sonra bu sitede sözlüğünüzü açın ve geldiği sahneyle birlikte tekrar edin.",
     "dictKicker": "Sözlüğünüz",
@@ -137,9 +137,9 @@
     "feat1Tag": "Çift altyazı",
     "feat1H": "Tek ekranda iki dil",
     "feat1P": "Orijinaldeki her satırı yakalayın ve durmadan kendi dilinizle eşleştirin. Hazır olduğunuzda çeviriyi gizleyin: çift altyazı bir başlangıç noktasıdır, Lingogram onun ötesine geçmenize yardım eder.",
-    "feat2Tag": "Etkileşimli döküm",
+    "feat2Tag": "Etkileşimli transkript",
     "feat2H": "Filmi değil, satırı tekrar izleyin",
-    "feat2P": "Döküm videoyla birlikte kendiliğinden kayar. Geri sarmak ve tam olarak çözemediğiniz sesler anında tanıdığınız kelimelere dönüşene kadar o sahneyi döngüye almak için herhangi bir satıra tıklayın.",
+    "feat2P": "Transkript videoyla birlikte kendiliğinden kayar. Geri sarmak ve tam olarak çözemediğiniz sesler anında tanıdığınız kelimelere dönüşene kadar o sahneyi döngüye almak için herhangi bir satıra tıklayın.",
     "feat3Tag": "Tahmin modu",
     "feat3H": "Önce dinleyin, sonra kontrol edin",
     "feat3P": "Kelimeler başta gizlidir: satırı kulakla yakalayın, sonra ortaya çıkarın. Bu önce-dinle döngüsü, sadece takip ederek okuduğunuz altyazılar yerine güvenebileceğiniz bir dinleme becerisi kazandırır. {kbd} ile açıp kapatın.",
@@ -166,7 +166,7 @@
   "faq": {
     "free": {
       "q": "Ücretsiz mi?",
-      "a": "Evet. Çift altyazı, döküm ve Tahmin modu ücretsizdir. Ücretsiz hesap yalnızca kaydettiğiniz kelimeleri cihazlar arasında senkronize etmek istiyorsanız gerekir."
+      "a": "Evet. Çift altyazı, transkript ve Tahmin modu ücretsizdir. Ücretsiz hesap yalnızca kaydettiğiniz kelimeleri cihazlar arasında senkronize etmek istiyorsanız gerekir."
     },
     "languages": {
       "q": "Hangi dilleri destekliyor?",
@@ -204,7 +204,7 @@
     "step1T": "Dillerinizi seçin",
     "step1D": "Araç çubuğundaki Lingogram simgesine tıklayın ve öğrendiğiniz dili ile kendi dilinizi seçin.",
     "step2T": "Altyazılı bir video açın",
-    "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de dökümde.",
+    "step2D": "Oynat'a basın — iki dil birlikte belirir, hem video üzerinde hem de transkriptte.",
     "step3T": "İlk kelimenizi kaydedin",
     "step3D": "Altyazıda bir kelimeyi seçin ve saklamak için dokunun — {link} bölümüne gider.",
     "step3Link": "sözlüğünüze",
