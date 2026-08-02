@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Edície",
     "how": "Ako to funguje",
-    "dictionary": "Váš slovník",
-    "faq": "Časté otázky",
+    "dictionary": "Moje slová",
+    "faq": "FAQ",
     "logIn": "Prihlásiť sa",
     "signUp": "Registrovať sa",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Jazyk",
+    "searchLanguage": "Hľadať jazyk…",
+    "suggested": "Odporúčané",
+    "allLanguages": "Všetky jazyky",
+    "noLanguageMatch": "Žiadny jazyk nezodpovedá"
+  },
+
+  "languages": {
+    "title": "Jazyky — Lingogram",
+    "description": "Web Lingogramu v 42 jazykoch — vyberte si ten, v ktorom čítate.",
+    "h1": "Čítajte Lingogram vo svojom jazyku",
+    "lede": "Počet jazykov, do ktorých je web preložený: {n}. Vyberte si svoj — každá stránka, ktorú teraz čítate, má v ňom svoju verziu.",
+    "reading": "Práve čítate v jazyku {lang}.",
+    "searchPlaceholder": "Hľadať jazyky…",
+    "clearSearch": "Vymazať hľadanie",
+    "noMatch": "Žiadny jazyk nezodpovedá",
+    "noMatchHint": "Skúste jeho anglický názov alebo dvojpísmenový kód.",
+    "count": { "one": "{n} jazyk", "few": "{n} jazyky", "many": "{n} jazyka", "other": "{n} jazykov" },
+    "region": {
+      "westEurope": "Západná a severná Európa",
+      "eastEurope": "Stredná a východná Európa",
+      "asia": "Ázia",
+      "middleEast": "Blízky východ"
+    }
   },
 
   "footer": {
     "tagline": "Učte sa jazyky z toho, čo sledujete.",
     "product": "Produkt",
     "allEditions": "Všetky edície",
-    "yourDictionary": "Váš slovník",
+    "yourDictionary": "Moje slová",
     "howItWorks": "Ako to funguje",
     "help": "Pomoc",
     "faq": "Časté otázky",
@@ -33,7 +57,7 @@
   },
 
   "demo": {
-    "hintPrefix": "Toto je samotné rozšírenie, ktoré tu beží —",
+    "hintPrefix": "Toto je ukážka skutočného rozšírenia, ktoré tu na stránke naozaj beží —",
     "hintBold": "vyberte slovo",
     "hintSuffix": "a uložte si ho, alebo vyskúšajte niektorý z režimov nižšie.",
     "credit": "Klip: NASA —",
@@ -43,25 +67,31 @@
 
   "modes": {
     "dual": { "tab": "Dvojité titulky", "h": "Oba jazyky naraz", "p": "Riadok, ktorý počujete, vedľa riadku, ktorému rozumiete — bez pauzovania, bez prepínania stôp." },
-    "guess": { "tab": "Hádaj", "h": "Kliknutím odkryjete — a natrénujete si sluch", "p": "Riadok zostáva skrytý, kým naň nekliknete. Najprv hádajte podľa sluchu, potom sa skontrolujte: presne v tomto rozdiele rastie vaše porozumenie reči." },
-    "single": { "tab": "Na obrazovke", "h": "Na obrazovke, alebo v bočnom paneli — vy rozhodujete", "p": "Nechajte oba riadky nad filmom, tam, kam sa aj tak pozeráte. Alebo ich jedným tlačidlom odstráňte a čítajte radšej z panela, vlastným tempom. Titulky nikdy nezmiznú — len sa presunú." },
-    "save": { "tab": "Slovník", "h": "Uchovajte si každé slovo, na ktoré narazíte", "p": "Vyberte slovo — jedno ťuknutie ho uloží spolu s vetou, z ktorej pochádza, priamo do vášho slovníka na lingogram.ai." }
+    "guess": { "tab": "Režim Hádaj", "h": "Kliknutím odkryjete — a natrénujete si sluch", "p": "Riadok zostáva skrytý, kým naň nekliknete. Najprv hádajte podľa sluchu, potom sa skontrolujte: presne v tomto rozdiele rastie vaše porozumenie reči." },
+    "single": { "tab": "Na videu", "h": "Na obrazovke, alebo v bočnom paneli — vy rozhodujete", "p": "Nechajte oba riadky nad filmom, tam, kam sa aj tak pozeráte. Alebo ich jedným tlačidlom odstráňte a čítajte radšej z panela, vlastným tempom. Titulky nikdy nezmiznú — len sa presunú." },
+    "save": { "tab": "Moje slová", "h": "Uchovajte si každé slovo, na ktoré narazíte", "p": "Vyberte slovo — jedno ťuknutie ho uloží spolu s vetou, z ktorej pochádza, priamo do vášho slovníka tu na lingogram.ai." }
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Chýbajúcu druhú stopu doplní automatickým prekladom YouTube.",
+    "nf": "Originálne stopy titulkov, bez strojového prekladu.",
+    "hd": "Dvojité titulky pri tituloch, ktoré ich majú."
+  },
 
   "home": {
     "eyebrow": "Zadarmo · YouTube · Netflix · HDrezka",
     "h1Lead": "Titulky pri sledovaní ste už zažili.",
     "h1Pop": "Tentokrát z nich vyťažíte oveľa viac.",
     "ctaPrimary": "Pridať do Chrome — zadarmo",
-    "ctaSecondary": "Vyberte edíciu pre svoju stránku ↓",
+    "ctaSecondary": "Vyberte edíciu pre stránku, na ktorej sledujete ↓",
 
     "platformsKicker": "Edície",
     "platformsH2": "Jeden Lingogram, prispôsobený stránke, na ktorej sledujete",
-    "platformsLede": "Každá edícia je postavená presne pre prehrávač danej stránky — natívne stopy titulkov, prekrytie na celú obrazovku, opravy, ktoré tá stránka potrebuje. Všetky zdieľajú rovnaké nástroje na učenie a rovnaký účet, takže vaše uložené slová sú vždy na jednom mieste, nech používate ktorúkoľvek z nich. Dve rozšírenia pokrývajú všetky tri stránky: to pre YouTube zvláda aj Netflix.",
+    "platformsLede": "Každá edícia je samostatné rozšírenie pre Chrome, postavené presne pre prehrávač danej stránky — natívne stopy titulkov, titulky cez celú obrazovku videa, opravy, ktoré tá stránka potrebuje. Všetky zdieľajú rovnaké nástroje na učenie a rovnaký účet, takže vaše uložené slová sú vždy na jednom mieste, nech používate ktorúkoľvek z nich. Dve rozšírenia pokrývajú všetky tri stránky: to pre YouTube zvláda aj Netflix.",
     "editionGo": "Pridať do Chrome →",
-    "editionSoonTitle": "Vaša stránka je na rade",
+    "editionSoonTitle": "Sledujete inde?",
     "editionSoonBody": "Nové dedikované edície pribúdajú pravidelne — povedzte nám, kde sledujete.",
     "editionSoonCta": "Navrhnúť stránku →",
 
@@ -71,24 +101,24 @@
     "step1D": "Vyberte jazyk, ktorý sa učíte, a svoj vlastný. Rýchle jednorazové nastavenie — účet nie je potrebný.",
     "step2T": "Otvorte akékoľvek video s titulkami",
     "step2D": "Stlačte play — oba jazyky sa zobrazia spolu, na videu aj v prepise, ktorý sa posúva spolu so scénou.",
-    "step3T": "Ukladajte slová, opakujte si ich tu",
-    "step3D": "Uložte si slovo jedným ťuknutím počas sledovania — potom si otvorte slovník na lingogram.ai a zopakujte si ho spolu so scénou, z ktorej pochádza.",
+    "step3T": "Ukladajte slová, opakujte si ich na tejto stránke",
+    "step3D": "Uložte si slovo jedným ťuknutím počas sledovania — potom si otvorte svoj slovník na tejto stránke a zopakujte si ho spolu so scénou, z ktorej pochádza.",
 
     "dictKicker": "Váš slovník",
     "dictH2": "Každé uložené slovo buduje slovník, ktorý je naozaj váš",
-    "dictLede": "Nie frekvenčný zoznam z učebnice — slová, na ktoré ste narazili v scénach, ktoré ste si sami vybrali, uložené spolu s vetami, z ktorých pochádzajú. Nech používate ktorúkoľvek edíciu, všetko sa zíde v jednom účte a čaká na vás tu po prihlásení.",
+    "dictLede": "Nie frekvenčný zoznam z učebnice — slová, na ktoré ste narazili v scénach, ktoré ste si sami vybrali, uložené spolu s vetami, z ktorých pochádzajú. Nech používate ktorúkoľvek edíciu, všetko sa zíde v jednom účte a čaká na vás na tejto stránke po prihlásení.",
     "dictMyWords": "Moje slová",
     "dictCount": "247 uložených · 12 tento týždeň",
     "dictWord1": "reluctantly", "dictTr1": "neochotne", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
     "dictWord2": "getaway", "dictTr2": "útek", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "šmýka sa", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictWord3": "na rezerve", "dictTr3": "dochádza benzín", "dictCtx3": "“Sme {w} už od poslednej čerpacej stanice.”",
     "dictFoot": "Vaše slová sa synchronizujú medzi zariadeniami a všetkými edíciami Lingogram — {b}.",
     "dictFootBold": "jeden účet, jeden slovník",
 
     "featKicker": "Prečo si to zapamätáte",
     "featH2": "Väčšina nástrojov sa zastaví pri preklade. Lingogram sa stará, aby vám slová zostali v hlave.",
-    "featLede": "Lingogram stojí na aktívnom vybavovaní si: nielen čítate popri videu — hádate, prehrávate znova a zbierate slová, takže hodiny, ktoré aj tak trávite pozeraním, sa menia na skutočný pokrok.",
-    "feat1Tag": "Dvojité titulky", "feat1H": "Dva jazyky, jedna obrazovka", "feat1P": "Zachyťte každý riadok v origináli a bez pauzovania si ho hneď priraďte k svojmu jazyku. Keď budete pripravení, preklad skryte: dvojité titulky sú pomocné kolieska a Lingogram vám pomôže ich odopnúť.",
+    "featLede": "Lingogram stojí na princípe aktívneho vybavovania si z pamäti: nielen čítate popri videu — hádate, prehrávate znova a zbierate slová, takže hodiny, ktoré aj tak trávite pozeraním, sa menia na skutočný pokrok.",
+    "feat1Tag": "Dvojité titulky", "feat1H": "Dva jazyky, jedna obrazovka", "feat1P": "Zachyťte každý riadok v origináli a bez pauzovania si ho hneď priraďte k svojmu jazyku. Keď budete pripravení, preklad skryte: dvojité titulky sú len začiatok a Lingogram vám pomôže postupne sa bez nich zaobísť.",
     "feat2Tag": "Interaktívny prepis", "feat2H": "Zopakujte si riadok, nie celý film", "feat2P": "Prepis sa sám posúva spolu s videom. Kliknutím na ktorýkoľvek riadok sa vrátite späť a zacyklíte presne tú scénu, kým sa zvuky, ktoré ste nevedeli rozlúštiť, nestanú slovami, ktoré spoznáte na prvý raz.",
     "feat3Tag": "Režim Hádaj", "feat3H": "Najprv počúvajte, potom si skontrolujte", "feat3P": "Slová sú spočiatku skryté: zachyťte riadok podľa sluchu a až potom ho odkryte. Tento cyklus „najprv počúvaj“ buduje porozumenie reči, na ktoré sa môžete spoľahnúť — nie titulky, ktoré len odčítavate. Prepínajte klávesou {kbd}.",
     "feat4Tag": "Uložené slová", "feat4H": "Vaša slovná zásoba, z vašich filmov", "feat4P": "Jedno ťuknutie uloží slovo spolu s titulkovými riadkami okolo neho. Ide priamo do {link} na lingogram.ai, kde si každé slovo zopakujete v jeho pôvodnej scéne.",
@@ -99,7 +129,7 @@
     "priv1": "{b} Nastavenia jazyka a rozloženia sa ukladajú lokálne vo vašom prehliadači.", "priv1Bold": "Žiadna telemetria, žiadne sledovanie.",
     "priv2": "{b} Titulky sa spracúvajú priamo vo vašom zariadení.", "priv2Bold": "Vašu históriu sledovania nikdy nevidíme.",
     "priv3": "{b} Ak sa prihlásite, uchovávame váš email a uložené slová — nič iné, a nikdy ich nepredávame.", "priv3Bold": "Slovník je voliteľný.",
-    "priv4": "{b} Ak aktualizácia stránky niečo pokazí, jedným kliknutím nám to nahlásite, aby sme to mohli rýchlo opraviť.", "priv4Bold": "Vytvorený tak, aby fungoval ďalej.",
+    "priv4": "{b} Ak aktualizácia stránky niečo pokazí, jedným kliknutím nám to nahlásite, aby sme to mohli rýchlo opraviť.", "priv4Bold": "Opravíme to rýchlo.",
 
     "faqKicker": "Časté otázky",
     "faqH2": "Otázky, ktoré si ľudia kladú pred inštaláciou",
@@ -113,7 +143,7 @@
     "free": { "q": "Je to zadarmo?", "a": "Áno. Dvojité titulky, prepis a režim Hádaj sú zadarmo. Bezplatný účet potrebujete len vtedy, ak chcete mať uložené slová synchronizované medzi zariadeniami." },
     "languages": { "q": "Ktoré jazyky podporuje?", "a": "Ktorúkoľvek dvojicu, pre ktorú má video titulky. Na YouTube, ak jeden z vašich dvoch jazykov chýba, Lingogram ho doplní automatickým prekladom YouTube, aby ste aj tak videli dvojité zobrazenie. Na Netflixe a HDrezka zobrazuje len tie stopy titulkov, ktoré daný titul naozaj má — bez strojového prekladu." },
     "edition": { "q": "Ktorú edíciu si mám nainštalovať?", "a": "Tú pre stránku, na ktorej sledujete. Existujú dve rozšírenia: jedno pokrýva YouTube a Netflix spolu, druhé pokrýva HDrezka. Nainštalujte si obe, ak sledujete na oboch — zdieľajú rovnaké nástroje na učenie aj rovnaký účet, takže vaše uložené slová zostávajú na jednom mieste." },
-    "words": { "q": "Kde sa nachádzajú moje uložené slová?", "a": "Vo vašom osobnom slovníku, priamo tu, na lingogram.ai. Prihláste sa a každé uložené slovo tam nájdete spolu so scénou, z ktorej pochádza — bez ohľadu na to, v ktorej edícii alebo na akom zariadení ste ho uložili." }
+    "words": { "q": "Kde sú uložené moje slová?", "a": "Vo vašom osobnom slovníku, priamo tu, na lingogram.ai. Prihláste sa a každé uložené slovo tam nájdete spolu so scénou, z ktorej pochádza — bez ohľadu na to, v ktorej edícii alebo na akom zariadení ste ho uložili." }
   },
 
   "edition": {
@@ -142,7 +172,7 @@
     "step2T": "Otvorte video s titulkami", "step2D": "Stlačte play — oba jazyky sa zobrazia spolu, na videu aj v prepise.",
     "step3T": "Uložte si prvé slovo", "step3D": "Označte slovo v titulkoch a ťuknutím si ho uložte — dostane sa do {link}.",
     "step3Link": "vášho slovníka",
-    "keyDual": "dvojité titulky", "keySwap": "vymeniť jazyky", "keyGuess": "režim Hádaj", "keyOverlay": "režim prekrytia"
+    "keyDual": "dvojité titulky", "keySwap": "vymeniť jazyky", "keyGuess": "režim Hádaj", "keyOverlay": "titulky na videu (prekrytie)"
   },
 
   "uninstall": {

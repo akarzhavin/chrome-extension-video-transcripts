@@ -1,21 +1,45 @@
 {
-  "meta": { "name": "Eesti", "htmlLang": "et" },
-
+  "meta": {
+    "name": "Eesti",
+    "htmlLang": "et"
+  },
   "nav": {
-    "editions": "Väljaanded",
+    "editions": "Versioonid",
     "how": "Kuidas see töötab",
-    "dictionary": "Sinu sõnastik",
+    "dictionary": "Minu sõnad",
     "faq": "KKK",
     "logIn": "Logi sisse",
     "signUp": "Registreeru",
-    "menu": "Menüü"
+    "menu": "Menüü",
+    "language": "Keel",
+    "searchLanguage": "Otsi keelt…",
+    "suggested": "Soovitatud",
+    "allLanguages": "Kõik keeled",
+    "noLanguageMatch": "Ükski keel ei sobi"
   },
-
+  "languages": {
+    "title": "Keeled — Lingogram",
+    "description": "Lingogrami veebisait 42 keeles — vali see, milles sa loed.",
+    "h1": "Loe Lingogrami omas keeles",
+    "lede": "Kogu sait on tõlgitud {n} keelde. Vali enda oma — igal lehel, mida praegu loed, on ka selles versioon.",
+    "reading": "Sa loed praegu keeles {lang}.",
+    "searchPlaceholder": "Otsi keeli…",
+    "clearSearch": "Tühjenda otsing",
+    "noMatch": "Ükski keel ei sobi",
+    "noMatchHint": "Proovi selle ingliskeelset nime või kahetähelist koodi.",
+    "count": { "one": "{n} keel", "other": "{n} keelt" },
+    "region": {
+      "westEurope": "Lääne- ja Põhja-Euroopa",
+      "eastEurope": "Kesk- ja Ida-Euroopa",
+      "asia": "Aasia",
+      "middleEast": "Lähis-Ida"
+    }
+  },
   "footer": {
     "tagline": "Õpi keeli selle kaudu, mida vaatad.",
     "product": "Toode",
-    "allEditions": "Kõik väljaanded",
-    "yourDictionary": "Sinu sõnastik",
+    "allEditions": "Kõik versioonid",
+    "yourDictionary": "Minu sõnad",
     "howItWorks": "Kuidas see töötab",
     "help": "Abi",
     "faq": "KKK",
@@ -25,126 +49,170 @@
     "legal": "Õiguslik teave",
     "privacyPolicy": "Privaatsuspoliitika"
   },
-
   "proof": {
     "rating": "Chrome Web Store'is",
     "learners": "õppijat",
     "free": "Tasuta, ilma reklaamideta"
   },
-
   "demo": {
-    "hintPrefix": "See on laiendus ise, mis töötab siin —",
+    "hintPrefix": "See demo on päris laiendus, mis töötab siin, sellel lehel —",
     "hintBold": "vali sõna",
     "hintSuffix": "et see salvestada, või proovi mõnda režiimi allpool.",
     "credit": "Klipp: NASA —",
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(vaba teos)"
   },
-
   "modes": {
-    "dual": { "tab": "Kahekeelsed subtiitrid", "h": "Mõlemad keeled korraga", "p": "Rida, mida kuuled, kohe rea kõrval, mida mõistad — ilma pausideta ja rada vahetamata." },
-    "guess": { "tab": "Arva ära", "h": "Klõpsa, et paljastada — ja treeni oma kõrva", "p": "Rida jääb varjatuks, kuni sellel klõpsad. Arva esmalt kuulmise järgi ja kontrolli end siis: just selles vahes ongi kuulmise mõistmine kõige rohkem arenev." },
-    "single": { "tab": "Ekraanil", "h": "Ekraanil või külgpaneelil — sina otsustad", "p": "Hoia mõlemad read otse filmi peal, seal, kuhu su pilk niigi vaatab. Või eemalda need ühe nupuvajutusega ja loe hoopis paneelilt, omas tempos. Subtiitrid ei kao kunagi — need lihtsalt liiguvad kohta." },
-    "save": { "tab": "Sõnastik", "h": "Talleta iga sõna, mida kohtad", "p": "Vali sõna — üks puudutus salvestab selle koos lausega, kust see pärit on, otse sinu sõnastikku aadressil lingogram.ai." }
+    "dual": {
+      "tab": "Kahekeelsed subtiitrid",
+      "h": "Mõlemad keeled korraga",
+      "p": "Rida, mida kuuled, kohe rea kõrval, mida mõistad — ilma pausideta ja rada vahetamata."
+    },
+    "guess": {
+      "tab": "Arva ära režiim",
+      "h": "Klõpsa, et paljastada — ja treeni oma kõrva",
+      "p": "Rida jääb varjatuks, kuni sellel klõpsad. Arva esmalt kuulmise järgi ja kontrolli end siis: just selles vahes ongi kuulmise mõistmine kõige rohkem arenev."
+    },
+    "single": {
+      "tab": "Videol",
+      "h": "Ekraanil või külgpaneelil — sina otsustad",
+      "p": "Hoia mõlemad read otse filmi peal, seal, kuhu su pilk niigi vaatab. Või eemalda need ühe nupuvajutusega ja loe hoopis paneelilt, omas tempos. Subtiitrid ei kao kunagi — need lihtsalt liiguvad kohta."
+    },
+    "save": {
+      "tab": "Minu sõnad",
+      "h": "Talleta iga sõna, mida kohtad",
+      "p": "Vali sõna — üks puudutus salvestab selle koos lausega, kust see pärit on, otse sinu sõnastikku, siinsamas aadressil lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Täidab puuduva teise subtiitriraja YouTube'i automaatse tõlkega.",
+    "nf": "Originaalsed subtiitrirajad, ilma masintõlketa.",
+    "hd": "Kahekeelsed rajad, kui pealkiri need sisaldab."
+  },
   "home": {
     "eyebrow": "Tasuta · YouTube · Netflix · HDrezka",
     "h1Lead": "Oled varemgi subtiitritega vaadanud.",
     "h1Pop": "Seekord saad sellest palju rohkem kasu.",
     "ctaPrimary": "Lisa Chrome'i — tasuta",
-    "ctaSecondary": "Vali oma saidi jaoks sobiv väljaanne ↓",
-
-    "platformsKicker": "Väljaanded",
+    "ctaSecondary": "Vali versioon saidile, kus sina vaatad ↓",
+    "platformsKicker": "Versioonid",
     "platformsH2": "Üks Lingogram, häälestatud saidile, mida vaatad",
-    "platformsLede": "Iga väljaanne on ehitatud oma saidi pleieri jaoks — omad subtiitrirajad, täisekraani ülekate, just selle saidi jaoks vajalikud parandused. Kõigil on samad õppetööriistad ja sama konto, nii et su salvestatud sõnad on ühes kohas olenemata sellest, millist kasutad. Kaks laiendust katavad kõik kolm saiti: YouTube'i oma toimib ka Netflixil.",
+    "platformsLede": "Iga versioon on eraldi Chrome'i laiendus, ehitatud ühe kindla saidi pleieri jaoks — omad subtiitrirajad, täisekraani ülekate otse pildi peal, just selle saidi jaoks vajalikud parandused. Kõigil on samad õppetööriistad ja sama konto, nii et su salvestatud sõnad on ühes kohas olenemata sellest, millist kasutad. Kaks laiendust katavad kõik kolm saiti: YouTube'i oma toimib ka Netflixil.",
     "editionGo": "Lisa Chrome'i →",
-    "editionSoonTitle": "Sinu sait järgmisena",
-    "editionSoonBody": "Uued spetsiaalsed väljaanded ilmuvad regulaarselt — anna teada, kus sina vaatad.",
+    "editionSoonTitle": "Kas vaatad mujal?",
+    "editionSoonBody": "Uued spetsiaalsed versioonid ilmuvad regulaarselt — anna teada, kus sina vaatad.",
     "editionSoonCta": "Soovita saiti →",
-
     "howKicker": "Kuidas see töötab",
     "howH2": "Paigaldamisest esimese salvestatud sõnani ühe videoga",
     "step1T": "Paigalda ja vali oma keeled",
     "step1D": "Vali keel, mida õpid, ja oma emakeel. Kiire ühekordne seadistus — kontot pole vaja.",
     "step2T": "Ava mis tahes video subtiitritega",
     "step2D": "Vajuta esitusnuppu — mõlemad keeled ilmuvad koos, nii video peal kui ka transkriptsioonis, mis kerib koos stseeniga.",
-    "step3T": "Salvesta sõnu, korda neid siin",
-    "step3D": "Salvesta sõna ühe puudutusega vaatamise ajal — seejärel ava oma sõnastik aadressil lingogram.ai ja korda seda koos stseeniga, kust see pärit on.",
-
+    "step3T": "Salvesta sõnu, korda neid sellel saidil",
+    "step3D": "Salvesta sõna ühe puudutusega vaatamise ajal — seejärel ava oma sõnastik sellel saidil ja korda seda koos stseeniga, kust see pärit on.",
     "dictKicker": "Sinu sõnastik",
     "dictH2": "Iga salvestatud sõna kasvatab sõnastikku, mis on tõeliselt sinu oma",
-    "dictLede": "See pole sagedusloend õpikust — need on sõnad, mida kohtasid sinu enda valitud stseenides, salvestatud koos lausetega, kust need pärit on. Ükskõik millist väljaannet kasutad, kõik jõuab ühte kontosse ja ootab sind siin, kui sisse logid.",
+    "dictLede": "See pole sagedusloend õpikust — need on sõnad, mida kohtasid sinu enda valitud stseenides, salvestatud koos lausetega, kust need pärit on. Ükskõik millist versiooni kasutad, kõik jõuab ühte kontosse — ja ootab sind sellel saidil, kui sisse logid.",
     "dictMyWords": "Minu sõnad",
     "dictCount": "247 salvestatud · 12 sel nädalal",
-    "dictWord1": "reluctantly", "dictTr1": "vastumeelselt", "dictCtx1": "„Ta nõustus {w} pagemisautot juhtima.”",
-    "dictWord2": "getaway", "dictTr2": "põgenemine", "dictCtx2": "„See pole röövimine, see on {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "keerutab rattaid tühjalt", "dictCtx3": "„See {w} kuuendal käigul!”",
-    "dictFoot": "Su sõnad sünkroonuvad kõikide seadmete ja kõikide Lingogrami väljaannete vahel — {b}.",
+    "dictWord1": "reluctantly",
+    "dictTr1": "vastumeelselt",
+    "dictCtx1": "„He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "põgenemine",
+    "dictCtx2": "„This isn't a heist, it's a {w}.”",
+    "dictWord3": "reservi peal",
+    "dictTr3": "bensiin peaaegu otsas",
+    "dictCtx3": "„Oleme sõitnud {w} juba viimasest bensiinijaamast saati.”",
+    "dictFoot": "Su sõnad sünkroonuvad kõikide seadmete ja kõikide Lingogrami versioonie vahel — {b}.",
     "dictFootBold": "üks konto, üks sõnastik",
-
     "featKicker": "Miks see jääb meelde",
     "featH2": "Enamik tööriistu jäävad tõlke juurde pidama. Lingogram paneb sõnad meelde jääma.",
-    "featLede": "Lingogram on üles ehitatud aktiivsele meenutamisele: sa ei loe lihtsalt kaasa — sa arvad, korrad ja kogud, nii et tunnid, mille niigi vaatamisele kulutad, muutuvad tõeliseks edasiminekuks.",
-    "feat1Tag": "Kahekeelsed subtiitrid", "feat1H": "Kaks keelt, üks ekraan", "feat1P": "Püüa kinni iga rida originaalis ja seosta see oma keelega ilma pausideta. Kui oled valmis, peida tõlge — kahekeelsed subtiitrid on abirattad ja Lingogram aitab sul need lõpuks eemaldada.",
-    "feat2Tag": "Interaktiivne transkriptsioon", "feat2H": "Korda rida, mitte kogu filmi", "feat2P": "Transkriptsioon kerib videoga kaasa iseenesest. Klõpsa mis tahes real, et hüpata tagasi ja korrata just seda stseeni ikka ja jälle, kuni helid, mida ei suutnud eristada, muutuvad sõnadeks, mida tunned kohe ära.",
-    "feat3Tag": "Arva ära režiim", "feat3H": "Kuula enne, kontrolli hiljem", "feat3P": "Sõnad algavad varjatuna: püüa rida kõrva järgi kinni ja alles siis paljasta see. See kuula-enne tsükkel kujundab kuulmise mõistmise, millele saad tõesti loota — mitte subtiitrid, mida lihtsalt kaasa loed. Lülita sisse-välja klahviga {kbd}.",
-    "feat4Tag": "Salvestatud sõnad", "feat4H": "Sinu sõnavara, sinu enda filmidest", "feat4P": "Üks puudutus salvestab sõna koos seda ümbritsevate subtiitriridadega. See jõuab otse {link} aadressil lingogram.ai, kus saad iga sõna korrata selle algses stseenis.",
+    "featLede": "Lingogram tugineb aktiivsele meenutamisele: sa ei loe lihtsalt kaasa — sa arvad, korrad ja kogud, nii et tunnid, mille niigi vaatamisele kulutad, muutuvad tõeliseks edasiminekuks.",
+    "feat1Tag": "Kahekeelsed subtiitrid",
+    "feat1H": "Kaks keelt, üks ekraan",
+    "feat1P": "Püüa kinni iga rida originaalis ja seosta see oma keelega ilma pausideta. Kui oled valmis, peida tõlge — kahekeelsed subtiitrid on lähtepunkt, millest Lingogram aitab sul aja jooksul üle kasvada.",
+    "feat2Tag": "Interaktiivne transkriptsioon",
+    "feat2H": "Korda rida, mitte kogu filmi",
+    "feat2P": "Transkriptsioon kerib videoga kaasa iseenesest. Klõpsa mis tahes real, et hüpata tagasi ja korrata just seda stseeni ikka ja jälle, kuni helid, mida ei suutnud eristada, muutuvad sõnadeks, mida tunned kohe ära.",
+    "feat3Tag": "Arva ära režiim",
+    "feat3H": "Kuula enne, kontrolli hiljem",
+    "feat3P": "Sõnad algavad varjatuna: püüa rida kõrva järgi kinni ja alles siis paljasta see. See kuula-enne tsükkel kujundab kuulmise mõistmise, millele saad tõesti loota — mitte subtiitrid, mida lihtsalt kaasa loed. Lülita sisse-välja klahviga {kbd}.",
+    "feat4Tag": "Salvestatud sõnad",
+    "feat4H": "Sinu sõnavara, sinu enda filmidest",
+    "feat4P": "Üks puudutus salvestab sõna koos seda ümbritsevate subtiitriridadega. See jõuab otse {link} aadressil lingogram.ai, kus saad iga sõna korrata selle algses stseenis.",
     "feat4Link": "sinu isiklikku sõnastikku",
-
     "privKicker": "Vaikimisi privaatne",
     "privH2": "See, mida vaatad, jääb sinu enda asjaks",
-    "priv1": "{b} Keele- ja paigutusseaded talletatakse kohalikult sinu brauseris.", "priv1Bold": "Ei telemeetriat ega jälgimist.",
-    "priv2": "{b} Subtiitreid töödeldakse otse sinu seadmes.", "priv2Bold": "Me ei näe kunagi sinu vaatamisajalugu.",
-    "priv3": "{b} Kui logid sisse, salvestame su e-posti aadressi ja salvestatud sõnad — mitte midagi muud, ega me neid kunagi müü.", "priv3Bold": "Sõnastik on vabatahtlik.",
-    "priv4": "{b} Kui saidi uuendus midagi lõhub, teatab üks klõps sellest meile, et saaksime kiirelt parandada.", "priv4Bold": "Ehitatud selleks, et jätkuvalt toimida.",
-
+    "priv1": "{b} Keele- ja paigutusseaded talletatakse kohalikult sinu brauseris.",
+    "priv1Bold": "Ei telemeetriat ega jälgimist.",
+    "priv2": "{b} Subtiitreid töödeldakse otse sinu seadmes.",
+    "priv2Bold": "Me ei näe kunagi sinu vaatamisajalugu.",
+    "priv3": "{b} Kui logid sisse, salvestame su e-posti aadressi ja salvestatud sõnad — mitte midagi muud, ega me neid kunagi müü.",
+    "priv3Bold": "Sõnastik on vabatahtlik.",
+    "priv4": "{b} Kui saidi uuendus midagi lõhub, teatab üks klõps sellest meile, et saaksime kiirelt parandada.",
+    "priv4Bold": "Parandame selle kiirelt ära.",
     "faqKicker": "KKK",
     "faqH2": "Küsimused, mida inimesed enne paigaldamist küsivad",
-
     "finalH2": "Muuda tänane osa oma keeletunniks",
     "finalCta": "Lisa Lingogram Chrome'i",
     "finalProof": "Tasuta · Seadistamine võtab alla minuti"
   },
-
   "faq": {
-    "free": { "q": "Kas see on tasuta?", "a": "Jah. Kahekeelsed subtiitrid, transkriptsioon ja Arva ära režiim on tasuta. Tasuta kontot on vaja ainult siis, kui soovid, et salvestatud sõnad sünkrooniksid kõikide seadmete vahel." },
-    "languages": { "q": "Milliseid keeli see toetab?", "a": "Iga keelepaari, mille jaoks videol subtiitrid olemas on. YouTube'is, kui üks su kahest keelest puudub, täidab Lingogram selle YouTube'i automaatse tõlkega, nii et saad ikkagi kahekeelse vaate. Netflixis ja HDrezkas näitab see ainult neid subtiitrirajad, mis pealkirjal tegelikult olemas on — ilma masintõlketa." },
-    "edition": { "q": "Millise väljaande peaksin paigaldama?", "a": "Selle, mis on mõeldud saidile, kus sina vaatad. Laiendusi on kaks: üks katab koos YouTube'i ja Netflixi, teine HDrezka. Paigalda mõlemad, kui vaatad mõlemal — need jagavad samu õppetööriistu ja sama kontot, nii et salvestatud sõnad jäävad ühte kohta." },
-    "words": { "q": "Kuhu salvestatud sõnad jõuavad?", "a": "Sinu isiklikku sõnastikku, otse siin, aadressil lingogram.ai. Logi sisse ja iga salvestatud sõna on seal, koos stseeniga, kust see pärit on — olenemata sellest, millise väljaande või seadmega selle salvestasid." }
+    "free": {
+      "q": "Kas see on tasuta?",
+      "a": "Jah. Kahekeelsed subtiitrid, transkriptsioon ja Arva ära režiim on tasuta. Tasuta kontot on vaja ainult siis, kui soovid, et salvestatud sõnad sünkrooniksid kõikide seadmete vahel."
+    },
+    "languages": {
+      "q": "Milliseid keeli see toetab?",
+      "a": "Iga keelepaari, mille jaoks videol subtiitrid olemas on. YouTube'is, kui üks su kahest keelest puudub, täidab Lingogram selle YouTube'i automaatse tõlkega, nii et saad ikkagi kahekeelse vaate. Netflixis ja HDrezkas näitab see ainult neid subtiitrirajad, mis pealkirjal tegelikult olemas on — ilma masintõlketa."
+    },
+    "edition": {
+      "q": "Millise versiooni peaksin paigaldama?",
+      "a": "Selle, mis on mõeldud saidile, kus sina vaatad. Laiendusi on kaks: üks katab koos YouTube'i ja Netflixi, teine HDrezka. Paigalda mõlemad, kui vaatad mõlemal — need jagavad samu õppetööriistu ja sama kontot, nii et salvestatud sõnad jäävad ühte kohta."
+    },
+    "words": {
+      "q": "Kuhu salvestatud sõnad jõuavad?",
+      "a": "Sinu isiklikku sõnastikku, otse siin, aadressil lingogram.ai. Logi sisse ja iga salvestatud sõna on seal, koos stseeniga, kust see pärit on — olenemata sellest, millise versiooni või seadmega selle salvestasid."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram {site} jaoks",
     "ctaPrimary": "Lisa Chrome'i — tasuta",
-    "ctaSecondary": "Vaata kõiki väljaandeid",
+    "ctaSecondary": "Vaata kõiki versioone",
     "builtKicker": "Ehitatud {site} jaoks",
-    "builtH2": "Mida {site} väljaanne teeb",
+    "builtH2": "Mida {site} versioon teeb",
     "faqH2": "Enne paigaldamist",
     "finalH2": "Vaata {site} juba täna õhtul — kahes keeles",
     "finalCta": "Lisa {name}",
     "finalProof": "Tasuta · Seadistamine võtab alla minuti"
   },
-
   "privacy": {
     "title": "Privaatsuspoliitika — Lingogram",
     "description": "Mida Lingogram kogub, kuidas seda kasutatakse ja millised valikud sul on."
   },
-
   "welcome": {
     "title": "Tere tulemast Lingogrami",
     "description": "Kõik on seadistatud — siin on sinu esimene salvestatud sõna kolmes sammus.",
     "h1": "on paigaldatud",
     "sub": "Kolm sammu esimese salvestatud sõnani — selleks kulub üks video.",
-    "step1T": "Vali oma keeled", "step1D": "Klõpsa tööriistaribal Lingogrami ikoonil ja vali keel, mida õpid, ning oma emakeel.",
-    "step2T": "Ava video subtiitritega", "step2D": "Vajuta esitusnuppu — mõlemad keeled ilmuvad koos, nii video peal kui ka transkriptsioonis.",
-    "step3T": "Salvesta oma esimene sõna", "step3D": "Tõsta subtiitrites sõna esile ja puuduta selle salvestamiseks — see jõuab siia: {link}.",
+    "step1T": "Vali oma keeled",
+    "step1D": "Klõpsa tööriistaribal Lingogrami ikoonil ja vali keel, mida õpid, ning oma emakeel.",
+    "step2T": "Ava video subtiitritega",
+    "step2D": "Vajuta esitusnuppu — mõlemad keeled ilmuvad koos, nii video peal kui ka transkriptsioonis.",
+    "step3T": "Salvesta oma esimene sõna",
+    "step3D": "Tõsta subtiitrites sõna esile ja puuduta selle salvestamiseks — see jõuab siia: {link}.",
     "step3Link": "sinu sõnastikku",
-    "keyDual": "kahekeelsed subtiitrid", "keySwap": "vaheta keeled", "keyGuess": "Arva ära režiim", "keyOverlay": "ülekate ekraanil"
+    "keyDual": "kahekeelsed subtiitrid",
+    "keySwap": "vaheta keeled",
+    "keyGuess": "Arva ära režiim",
+    "keyOverlay": "subtiitrid otse video peal (ülekate)"
   },
-
   "uninstall": {
     "title": "Kahju, et lahkud — Lingogram",
     "description": "Räägi meile, miks Lingogrami eemaldasid, et saaksime seda parandada.",
@@ -158,7 +226,6 @@
     "footMid": "— need ootavad sind, kui tagasi tuled.",
     "reinstall": "Paigalda uuesti, millal iganes soovid."
   },
-
   "auth": {
     "or": "või",
     "showPassword": "Näita parooli",
@@ -166,34 +233,46 @@
     "optional": "valikuline",
     "register": {
       "title": "Loo oma konto — Lingogram",
-      "description": "Registreeru, et sünkrooniga salvestatud sõnad kõikide seadmete ja väljaannete vahel.",
+      "description": "Registreeru, et sünkrooniga salvestatud sõnad kõikide seadmete ja versioonie vahel.",
       "eyebrow": "Tasuta konto",
-      "h1Lead": "Alusta oma", "h1Pop": "sõnaloendit",
-      "sub": "Salvesta sõnu kõigest, mida vaatad — sünkroonituna kõikide seadmete ja väljaannete vahel.",
+      "h1Lead": "Alusta oma",
+      "h1Pop": "sõnaloendit",
+      "sub": "Salvesta sõnu kõigest, mida vaatad — sünkroonituna kõikide seadmete ja versioonie vahel.",
       "googleCta": "Registreeru Google'iga",
-      "nameLabel": "Sinu nimi", "namePlaceholder": "Jaana",
-      "emailLabel": "E-post", "emailPlaceholder": "jaana@näide.ee",
-      "passwordLabel": "Parool", "passwordPlaceholder": "Vähemalt 8 tähemärki",
-      "submit": "Loo konto", "submitBusy": "Konto loomine…",
-      "altPrefix": "Kas sul on juba konto?", "altLink": "Logi sisse",
-      "finePrefix": "Jätkates nõustud meie", "fineLink": "privaatsuspoliitikaga"
+      "nameLabel": "Sinu nimi",
+      "namePlaceholder": "Jaana",
+      "emailLabel": "E-post",
+      "emailPlaceholder": "jaana@näide.ee",
+      "passwordLabel": "Parool",
+      "passwordPlaceholder": "Vähemalt 8 tähemärki",
+      "submit": "Loo konto",
+      "submitBusy": "Konto loomine…",
+      "altPrefix": "Kas sul on juba konto?",
+      "altLink": "Logi sisse",
+      "finePrefix": "Jätkates nõustud meie",
+      "fineLink": "privaatsuspoliitikaga"
     },
     "login": {
       "title": "Logi sisse — Lingogram",
       "description": "Logi sisse oma Lingogrami sõnastikku.",
       "eyebrow": "Tere tulemast tagasi",
-      "h1Lead": "Sinu", "h1Pop": "sõnastik", "h1Tail": "ootab sind",
+      "h1Lead": "Sinu",
+      "h1Pop": "sõnastik",
+      "h1Tail": "ootab sind",
       "sub": "Logi sisse, et jätkata täpselt sealt, kus pooleli jäid.",
       "googleCta": "Logi sisse Google'iga",
-      "emailLabel": "E-post", "emailPlaceholder": "jaana@näide.ee",
-      "passwordLabel": "Parool", "passwordPlaceholder": "Sinu parool",
+      "emailLabel": "E-post",
+      "emailPlaceholder": "jaana@näide.ee",
+      "passwordLabel": "Parool",
+      "passwordPlaceholder": "Sinu parool",
       "forgot": "Unustasid parooli?",
       "resetNote": "Kontrolli oma postkasti — parooli lähtestamise link on juba teel.",
-      "submit": "Logi sisse", "submitBusy": "Sisselogimine…",
-      "altPrefix": "Kas oled Lingogramis uus?", "altLink": "Loo konto"
+      "submit": "Logi sisse",
+      "submitBusy": "Sisselogimine…",
+      "altPrefix": "Kas oled Lingogramis uus?",
+      "altLink": "Loo konto"
     }
   },
-
   "notFound": {
     "title": "Lehte ei leitud — Lingogram",
     "description": "Seda lehte ei ole olemas.",

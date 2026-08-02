@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Ediții",
     "how": "Cum funcționează",
-    "dictionary": "Dicționarul tău",
-    "faq": "Întrebări frecvente",
+    "dictionary": "Cuvintele mele",
+    "faq": "FAQ",
     "logIn": "Conectare",
     "signUp": "Creează cont",
-    "menu": "Meniu"
+    "menu": "Meniu",
+    "language": "Limbă",
+    "searchLanguage": "Caută o limbă…",
+    "suggested": "Sugerate",
+    "allLanguages": "Toate limbile",
+    "noLanguageMatch": "Nicio limbă nu se potrivește"
+  },
+
+  "languages": {
+    "title": "Limbi — Lingogram",
+    "description": "Site-ul Lingogram în 42 de limbi — alege-o pe cea în care citești.",
+    "h1": "Citește Lingogram în limba ta",
+    "lede": "Limbi în care este tradus tot site-ul: {n}. Alege-o pe a ta — fiecare pagină pe care o citești acum are o versiune în ea.",
+    "reading": "Citești în {lang}.",
+    "searchPlaceholder": "Caută limbi…",
+    "clearSearch": "Șterge căutarea",
+    "noMatch": "Nicio limbă nu se potrivește",
+    "noMatchHint": "Încearcă numele ei în engleză sau codul din două litere.",
+    "count": { "one": "{n} limbă", "few": "{n} limbi", "other": "{n} de limbi" },
+    "region": {
+      "westEurope": "Europa de Vest și de Nord",
+      "eastEurope": "Europa Centrală și de Est",
+      "asia": "Asia",
+      "middleEast": "Orientul Mijlociu"
+    }
   },
 
   "footer": {
     "tagline": "Învață limbi din ce urmărești.",
     "product": "Produs",
     "allEditions": "Toate edițiile",
-    "yourDictionary": "Dicționarul tău",
+    "yourDictionary": "Cuvintele mele",
     "howItWorks": "Cum funcționează",
     "help": "Ajutor",
     "faq": "Întrebări frecvente",
@@ -33,7 +57,7 @@
   },
 
   "demo": {
-    "hintPrefix": "Aceasta este chiar extensia, rulând aici —",
+    "hintPrefix": "Aceasta este o demonstrație a extensiei reale, care rulează chiar aici, pe această pagină —",
     "hintBold": "selectează un cuvânt",
     "hintSuffix": "ca să-l salvezi, sau încearcă un mod mai jos.",
     "credit": "Clip: NASA —",
@@ -43,25 +67,31 @@
 
   "modes": {
     "dual": { "tab": "Subtitrări duble", "h": "Ambele limbi, deodată", "p": "Replica pe care o auzi lângă replica pe care o înțelegi — fără pauze, fără schimbat piste." },
-    "guess": { "tab": "Ghicește", "h": "Dă clic pentru a dezvălui — și antrenează-ți auzul", "p": "Replica rămâne ascunsă până dai clic pe ea. Ghicește mai întâi din auz, apoi verifică-te: exact în acel decalaj se îmbunătățește înțelegerea vorbirii." },
-    "single": { "tab": "Pe ecran", "h": "Pe ecran sau în panoul lateral — alegi tu", "p": "Păstrează ambele replici peste film, acolo unde privești oricum. Sau scoate-le cu un singur buton și citește-le din panou, în ritmul tău. Subtitrările nu dispar niciodată — doar își schimbă locul." },
-    "save": { "tab": "Dicționar", "h": "Păstrează fiecare cuvânt nou", "p": "Selectează un cuvânt — o atingere îl salvează împreună cu propoziția din care a venit, direct în dicționarul tău de pe lingogram.ai." }
+    "guess": { "tab": "Modul Ghicește", "h": "Dă clic pentru a dezvălui — și antrenează-ți auzul", "p": "Replica rămâne ascunsă până dai clic pe ea. Ghicește mai întâi din auz, apoi verifică-te: exact în acel decalaj se îmbunătățește înțelegerea vorbirii." },
+    "single": { "tab": "Pe video", "h": "Pe ecran sau în panoul lateral — alegi tu", "p": "Păstrează ambele replici peste film, acolo unde privești oricum. Sau scoate-le cu un singur buton și citește-le din panou, în ritmul tău. Subtitrările nu dispar niciodată — doar își schimbă locul." },
+    "save": { "tab": "Cuvintele mele", "h": "Păstrează fiecare cuvânt nou", "p": "Selectează un cuvânt — o atingere îl salvează împreună cu propoziția din care a venit, direct aici, în dicționarul tău de pe lingogram.ai." }
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Completează pista lipsă cu traducerea automată a YouTube.",
+    "nf": "Piste de subtitrări originale, fără traducere automată.",
+    "hd": "Piste duble atunci când titlul le are."
+  },
 
   "home": {
     "eyebrow": "Gratuit · YouTube · Netflix · HDrezka",
     "h1Lead": "Ai mai urmărit conținut cu subtitrări.",
     "h1Pop": "De data asta vei avea mai mult de câștigat.",
     "ctaPrimary": "Adaugă în Chrome — e gratuit",
-    "ctaSecondary": "Alege ediția pentru site-ul tău ↓",
+    "ctaSecondary": "Alege ediția pentru site-ul pe care îl urmărești ↓",
 
     "platformsKicker": "Ediții",
     "platformsH2": "Un singur Lingogram, adaptat site-ului pe care îl urmărești",
-    "platformsLede": "Fiecare ediție este construită pentru playerul site-ului respectiv — piste native de subtitrări, suprapunere pe tot ecranul, exact corecțiile de care are nevoie acel site. Toate folosesc aceleași instrumente de învățare și același cont, așa că orice ediție ai folosi, cuvintele tale salvate rămân într-un singur loc. Două extensii acoperă toate cele trei site-uri: cea pentru YouTube gestionează și Netflix.",
+    "platformsLede": "Fiecare ediție este o extensie Chrome separată, construită pentru playerul unui singur site — piste native de subtitrări, o suprapunere de subtitrări peste imaginea video pe tot ecranul, exact corecțiile de care are nevoie acel site. Toate folosesc aceleași instrumente de învățare și același cont, așa că orice ediție ai folosi, cuvintele tale salvate rămân într-un singur loc. Două extensii acoperă toate cele trei site-uri: cea pentru YouTube gestionează și Netflix.",
     "editionGo": "Adaugă în Chrome →",
-    "editionSoonTitle": "Site-ul tău urmează",
+    "editionSoonTitle": "Urmărești conținut în altă parte?",
     "editionSoonBody": "Lansăm regulat ediții noi dedicate — spune-ne unde urmărești conținut.",
     "editionSoonCta": "Sugerează un site →",
 
@@ -71,24 +101,24 @@
     "step1D": "Alege limba pe care o înveți și limba ta. O configurare rapidă, o singură dată — nu ai nevoie de cont.",
     "step2T": "Deschide orice videoclip cu subtitrări",
     "step2D": "Apasă play — ambele limbi apar împreună, pe videoclip și într-un transcript care derulează odată cu scena.",
-    "step3T": "Salvează cuvinte, recapitulează-le aici",
-    "step3D": "Salvează un cuvânt dintr-o atingere în timp ce urmărești — apoi deschide dicționarul tău pe lingogram.ai și recapitulează-l împreună cu scena din care a venit.",
+    "step3T": "Salvează cuvinte, recapitulează-le pe acest site",
+    "step3D": "Salvează un cuvânt dintr-o atingere în timp ce urmărești — apoi deschide dicționarul tău pe acest site și recapitulează-l împreună cu scena din care a venit.",
 
     "dictKicker": "Dicționarul tău",
     "dictH2": "Fiecare cuvânt salvat construiește un dicționar care e cu adevărat al tău",
-    "dictLede": "Nu o listă de frecvență dintr-un manual — cuvinte pe care le-ai întâlnit în scene alese chiar de tine, păstrate împreună cu replicile din care provin. Indiferent ce ediție folosești, totul ajunge într-un singur cont și te așteaptă aici după ce te conectezi.",
+    "dictLede": "Nu o listă de frecvență dintr-un manual — cuvinte pe care le-ai întâlnit în scene alese chiar de tine, păstrate împreună cu replicile din care provin. Indiferent ce ediție folosești, totul ajunge într-un singur cont și te așteaptă pe acest site după ce te conectezi.",
     "dictMyWords": "Cuvintele mele",
     "dictCount": "247 salvate · 12 săptămâna aceasta",
     "dictWord1": "reluctantly", "dictTr1": "cu reținere", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
     "dictWord2": "getaway", "dictTr2": "evadare", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "patinează", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictWord3": "pe ultimele picături de benzină", "dictTr3": "aproape fără combustibil", "dictCtx3": "“Suntem {w} de la ultima benzinărie.”",
     "dictFoot": "Cuvintele tale se sincronizează între dispozitive și toate edițiile Lingogram — {b}.",
     "dictFootBold": "un cont, un dicționar",
 
     "featKicker": "De ce rămân în minte",
     "featH2": "Majoritatea instrumentelor se opresc la traducere. Lingogram face ca respectivele cuvinte să rămână.",
-    "featLede": "Lingogram este construit în jurul reamintirii active: nu doar citești în paralel — ghicești, repeți și colecționezi cuvinte, astfel încât orele pe care oricum le petreci vizionând se transformă în progres real.",
-    "feat1Tag": "Subtitrări duble", "feat1H": "Două limbi, un singur ecran", "feat1P": "Prinde fiecare replică în original și potrivește-o cu limba ta, fără să dai pauză. Când ești pregătit, ascunde traducerea: subtitrările duble sunt roțile ajutătoare, iar Lingogram te ajută să le dai jos.",
+    "featLede": "Lingogram se bazează pe reamintirea activă: nu doar citești în paralel — ghicești, repeți și colecționezi cuvinte, astfel încât orele pe care oricum le petreci vizionând se transformă în progres real.",
+    "feat1Tag": "Subtitrări duble", "feat1H": "Două limbi, un singur ecran", "feat1P": "Prinde fiecare replică în original și potrivește-o cu limba ta, fără să dai pauză. Când ești pregătit, ascunde traducerea: subtitrările duble sunt doar un punct de plecare, iar Lingogram te ajută să treci dincolo de ele.",
     "feat2Tag": "Transcript interactiv", "feat2H": "Repetă replica, nu tot filmul", "feat2P": "Transcriptul derulează singur odată cu videoclipul. Dă clic pe orice replică pentru a sări înapoi și a repeta în buclă exact acea scenă, până când sunetele pe care nu le puteai desluși devin cuvinte pe care le recunoști instantaneu.",
     "feat3Tag": "Modul Ghicește", "feat3H": "Ascultă întâi, verifică apoi", "feat3P": "Cuvintele încep ascunse: prinde replica din auz, apoi dezvălui-o. Acest ciclu „ascultă întâi” construiește o înțelegere a vorbirii pe care te poți baza — nu subtitrări pe care doar le citești în paralel. Comută cu {kbd}.",
     "feat4Tag": "Cuvinte salvate", "feat4H": "Vocabularul tău, din propriile filme", "feat4P": "O atingere salvează un cuvânt împreună cu replicile din jurul lui. Ajunge direct în {link} pe lingogram.ai, unde recapitulezi fiecare cuvânt în scena lui originală.",
@@ -99,7 +129,7 @@
     "priv1": "{b} Setările de limbă și de aspect sunt stocate local, în browserul tău.", "priv1Bold": "Fără telemetrie, fără urmărire.",
     "priv2": "{b} Subtitrările sunt procesate chiar pe dispozitivul tău.", "priv2Bold": "Nu vedem niciodată istoricul tău de vizionare.",
     "priv3": "{b} Dacă te conectezi, stocăm emailul tău și cuvintele salvate — nimic altceva, și nu le vindem niciodată.", "priv3Bold": "Dicționarul este opțional.",
-    "priv4": "{b} Dacă o actualizare a unui site strică ceva, un singur clic ne raportează problema, ca să o reparăm rapid.", "priv4Bold": "Construit ca să continue să funcționeze.",
+    "priv4": "{b} Dacă o actualizare a unui site strică ceva, ne raportezi problema dintr-un singur clic, ca să o reparăm rapid.", "priv4Bold": "Reparăm rapid.",
 
     "faqKicker": "Întrebări frecvente",
     "faqH2": "Întrebări pe care oamenii le pun înainte de instalare",
@@ -113,7 +143,7 @@
     "free": { "q": "Este gratuit?", "a": "Da. Subtitrările duble, transcriptul și modul Ghicește sunt gratuite. Un cont gratuit este necesar doar dacă vrei ca cuvintele salvate să se sincronizeze între dispozitive." },
     "languages": { "q": "Ce limbi sunt acceptate?", "a": "Orice pereche pentru care videoclipul are subtitrări. Pe YouTube, dacă una dintre cele două limbi ale tale lipsește, Lingogram o completează cu traducerea automată a YouTube, ca să ai totuși vizualizarea duală. Pe Netflix și HDrezka afișează doar pistele de subtitrări pe care titlul le are cu adevărat — fără traducere automată." },
     "edition": { "q": "Ce ediție instalez?", "a": "Cea pentru site-ul pe care îl urmărești. Există două extensii: una acoperă YouTube și Netflix împreună, cealaltă acoperă HDrezka. Instalează-le pe amândouă dacă urmărești pe ambele — folosesc aceleași instrumente de învățare și același cont, astfel încât cuvintele tale salvate rămân într-un singur loc." },
-    "words": { "q": "Unde ajung cuvintele mele salvate?", "a": "În dicționarul tău personal, chiar aici, pe lingogram.ai. Conectează-te și fiecare cuvânt salvat este acolo, împreună cu scena din care provine — indiferent de ediția sau dispozitivul pe care l-ai folosit ca să-l salvezi." }
+    "words": { "q": "Unde sunt păstrate cuvintele mele salvate?", "a": "În dicționarul tău personal, chiar aici, pe lingogram.ai. Conectează-te și fiecare cuvânt salvat este acolo, împreună cu scena din care provine — indiferent de ediția sau dispozitivul pe care l-ai folosit ca să-l salvezi." }
   },
 
   "edition": {
@@ -142,7 +172,7 @@
     "step2T": "Deschide un videoclip cu subtitrări", "step2D": "Apasă play — ambele limbi apar împreună, pe videoclip și în transcript.",
     "step3T": "Salvează primul tău cuvânt", "step3D": "Evidențiază un cuvânt din subtitrări și atinge-l ca să-l salvezi — ajunge în {link}.",
     "step3Link": "dicționarul tău",
-    "keyDual": "subtitrări duble", "keySwap": "schimbă limbile", "keyGuess": "modul ghicește", "keyOverlay": "modul suprapunere"
+    "keyDual": "subtitrări duble", "keySwap": "schimbă limbile", "keyGuess": "modul ghicește", "keyOverlay": "subtitrări peste video (suprapunere)"
   },
 
   "uninstall": {
