@@ -85,6 +85,65 @@ export function toAuthError(err: unknown): AuthError {
   return new AuthError(msg, code);
 }
 
+// The backend runs on Cloud Run with no minimum instances, so the first request
+// after an idle spell waits on a container boot. A bare fetch has no timeout —
+// it hangs until the browser gives up — and one attempt means that boot is
+// simply reported as a failure. Both flows below sign the user in with Firebase
+// *before* calling the backend, so failing here strands someone who is already
+// authenticated, and the retry on their second try is what finally succeeds.
+const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 700;
+
+/** True when the request never got a verdict from the app: it timed out, the
+ *  socket died, or a gateway answered while the container was still booting. */
+function isTransientStatus(status: number): boolean {
+  return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * fetch + timeout + backoff for cold starts. Retries only when the failure
+ * carries no answer from the application; a 4xx is a verdict and is returned
+ * to the caller untouched. Callers pass idempotent reads or the auto-creating
+ * /auth/me, so a replay is safe.
+ */
+export async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      // Full jitter: a cold start releases every waiting client at once, and
+      // identical backoffs would stampede the single instance that just booted.
+      await sleep(Math.random() * BASE_DELAY_MS * 2 ** (attempt - 1));
+    }
+    // AbortController rather than the (unsupported) fetch timeout option, so
+    // this works in every browser the landing page targets.
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { ...init, signal: ctl.signal });
+      if (isTransientStatus(res.status) && attempt < MAX_RETRIES) continue;
+      return res;
+    } catch (err) {
+      // Abort (timeout) and network errors both land here.
+      lastErr = err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  // The underlying abort/network error is logged rather than attached: it is
+  // useful in the console but says nothing a user could act on.
+  console.error('Backend unreachable after retries:', lastErr);
+  throw new AuthError(
+    "Couldn't reach the server — it may still be starting up. Please try again.",
+    'backend/unreachable',
+  );
+}
+
 async function backend(
   cfg: RuntimeAuthConfig,
   method: string,
@@ -92,7 +151,7 @@ async function backend(
   idToken: string,
   body?: Record<string, unknown>,
 ): Promise<any> {
-  const res = await fetch(cfg.apiBase + path, {
+  const res = await fetchWithRetry(cfg.apiBase + path, {
     method,
     headers: {
       Authorization: 'Bearer ' + idToken,
