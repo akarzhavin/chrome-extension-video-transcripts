@@ -45,6 +45,24 @@ const joinFrags = (...frags) => frags.filter((f) => f !== '').join(' ');
 const countAttrs = (count) => Object.entries(count)
   .map(([cat, str]) => ` data-count-${cat}="${esc(str)}"`).join('');
 
+// Store links carry the page's language as `?hl=<lang>`, so a visitor reading
+// /ru/ lands on the RUSSIAN listing. Without it the store picks by BROWSER
+// language, not by the page they came from — a Russian speaker on an English
+// browser would get the English listing.
+//
+// No code mapping is needed: all 42 site locales were probed against the live
+// listing and every one returns a genuinely translated page, zero fallbacks.
+// The store normalizes the shapes that differ from our codes on its own —
+// zh->zh-CN, pt->pt-BR, he->iw — so pass the code through verbatim and do NOT
+// reintroduce an exception table here; it would only drift from the store.
+//
+// This localizes the LISTING page. The extension's own UI language comes from
+// _locales and is chosen by Chrome at install time; no URL can change that.
+const storeHref = (url, lang) => {
+  if (!url) return '#';
+  return `${url}?hl=${encodeURIComponent(lang)}`;
+};
+
 // ---------------------------------------------------------------- i18n
 //
 // UI copy lives in src/data/i18n/<lang>.json (checked-in, not editions.json —
@@ -458,8 +476,9 @@ ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
 // rollout note at the top of this file. The one-line card blurb is
 // localized (i18n editionsCard.<mark>): it renders on every locale's home
 // page, unlike the full /<slug>/ landing pages which stay English.
-const editionCards = (t) => EDITIONS.editions.map((ed) => `
-  <a class="ed" href="${href(ed.storeUrl)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
+const editionCards = (t, lang) => EDITIONS.editions.map((ed) => `
+  <a class="ed" href="${storeHref(ed.storeUrl, lang)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
+
     ${mark(ed.mark)}
     <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(t(`editionsCard.${ed.mark}`))}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
   </a>`).join('') + `
@@ -490,7 +509,7 @@ ${header(t, root)}
            the same three points — a text-only copy above would just duplicate
            them at their weakest. -->
       <div class="cta-row">
-        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="#platforms">${esc(t('home.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
@@ -501,7 +520,7 @@ ${header(t, root)}
       <span class="kicker">${esc(t('home.platformsKicker'))}</span>
       <h2>${esc(t('home.platformsH2'))}</h2>
       <p class="lede">${esc(t('home.platformsLede'))}</p>
-      <div class="editions">${editionCards(t)}</div>
+      <div class="editions">${editionCards(t, lang)}</div>
     </section>
 
     <section id="how">
@@ -573,7 +592,7 @@ ${header(t, root)}
       <span class="logo-mark">${CHAMELEON(40)}</span>
       <h2>${esc(t('home.finalH2'))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${href(EDITIONS.primary.storeUrl)}">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
       </div>
       <p class="proof">${esc(t('home.finalProof'))}</p>
     </section>
@@ -604,7 +623,7 @@ ${header(t, '')}
       <h1>${esc(ed.heroLead)}<br><span class="pop">${esc(ed.heroPop)}</span></h1>
       <p class="sub">${esc(ed.sub)}</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}${esc(t('edition.ctaPrimary'))}</a>
+        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}">${CHROME_ICON}${esc(t('edition.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="/#platforms">${esc(t('edition.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
@@ -630,7 +649,7 @@ ${header(t, '')}
       <span class="logo-mark">${CHAMELEON(40)}</span>
       <h2>${esc(t('edition.finalH2', { site: ed.site }))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${href(ed.storeUrl)}">${CHROME_ICON}${esc(t('edition.finalCta', { name: ed.name }))}</a>
+        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}">${CHROME_ICON}${esc(t('edition.finalCta', { name: ed.name }))}</a>
       </div>
       <p class="proof">${esc(t('edition.finalProof'))}</p>
     </section>
