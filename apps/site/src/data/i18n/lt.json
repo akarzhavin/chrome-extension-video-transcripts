@@ -1,21 +1,45 @@
 {
-  "meta": { "name": "Lietuvių", "htmlLang": "lt" },
-
+  "meta": {
+    "name": "Lietuvių",
+    "htmlLang": "lt"
+  },
   "nav": {
-    "editions": "Leidimai",
+    "editions": "Versijos",
     "how": "Kaip tai veikia",
-    "dictionary": "Jūsų žodynas",
+    "dictionary": "Mano žodžiai",
     "faq": "DUK",
     "logIn": "Prisijungti",
     "signUp": "Registruotis",
-    "menu": "Meniu"
+    "menu": "Meniu",
+    "language": "Kalba",
+    "searchLanguage": "Ieškoti kalbos…",
+    "suggested": "Siūloma",
+    "allLanguages": "Visos kalbos",
+    "noLanguageMatch": "Tokios kalbos nerasta"
   },
-
+  "languages": {
+    "title": "Kalbos — Lingogram",
+    "description": "„Lingogram“ svetainė 42 kalbomis — pasirinkite tą, kuria skaitote.",
+    "h1": "Skaitykite „Lingogram“ savo kalba",
+    "lede": "Kalbų, į kurias išversta visa svetainė: {n}. Pasirinkite savąją — kiekvienas puslapis, kurį dabar skaitote, turi versiją ir ja.",
+    "reading": "Šiuo metu skaitote kalba: {lang}.",
+    "searchPlaceholder": "Ieškoti kalbų…",
+    "clearSearch": "Išvalyti paiešką",
+    "noMatch": "Tokios kalbos nerasta",
+    "noMatchHint": "Pabandykite jos pavadinimą angliškai arba dviejų raidžių kodą.",
+    "count": { "one": "{n} kalba", "few": "{n} kalbos", "other": "{n} kalbų" },
+    "region": {
+      "westEurope": "Vakarų ir Šiaurės Europa",
+      "eastEurope": "Vidurio ir Rytų Europa",
+      "asia": "Azija",
+      "middleEast": "Artimieji Rytai"
+    }
+  },
   "footer": {
     "tagline": "Mokykitės kalbų iš to, ką žiūrite.",
     "product": "Produktas",
-    "allEditions": "Visi leidimai",
-    "yourDictionary": "Jūsų žodynas",
+    "allEditions": "Visos versijos",
+    "yourDictionary": "Mano žodžiai",
     "howItWorks": "Kaip tai veikia",
     "help": "Pagalba",
     "faq": "DUK",
@@ -25,126 +49,170 @@
     "legal": "Teisinė informacija",
     "privacyPolicy": "Privatumo politika"
   },
-
   "proof": {
     "rating": "Chrome Web Store",
     "learners": "besimokančiųjų",
     "free": "Nemokama, be reklamų"
   },
-
   "demo": {
-    "hintPrefix": "Tai pats plėtinys, veikiantis tiesiog čia —",
+    "hintPrefix": "Ši demonstracija — tai pats plėtinys, iš tikrųjų veikiantis būtent šiame puslapyje —",
     "hintBold": "pažymėkite žodį",
     "hintSuffix": "kad jį išsaugotumėte, arba išbandykite vieną iš toliau esančių režimų.",
     "credit": "Vaizdo įrašas: NASA —",
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(viešasis turtas)"
   },
-
   "modes": {
-    "dual": { "tab": "Dvigubi subtitrai", "h": "Abi kalbos vienu metu", "p": "Eilutė, kurią girdite, šalia eilutės, kurią suprantate — be pauzių, be takelių perjungimo." },
-    "guess": { "tab": "Atspėk", "h": "Spustelėkite, kad atskleistumėte — ir lavinkite klausą", "p": "Eilutė lieka paslėpta, kol jos nespustelėsite. Pirmiausia pabandykite atspėti iš klausos, tada pasitikrinkite: būtent šis skirtumas ir yra vieta, kur gerėja klausymo įgūdžiai." },
-    "single": { "tab": "Ekrane", "h": "Ekrane arba šoniniame skydelyje — jūs pasirenkate", "p": "Palikite abi eilutes virš filmo, ten, kur jau žvelgia jūsų akys. Arba vienu mygtuku jas paslėpkite ir skaitykite iš skydelio savo tempu. Subtitrai niekur nedingsta — jie tik pasikeičia vieta." },
-    "save": { "tab": "Žodynas", "h": "Išsaugokite kiekvieną sutiktą žodį", "p": "Pažymėkite žodį — vienu bakstelėjimu jis išsaugomas kartu su sakiniu, iš kurio jis paimtas, tiesiai į jūsų žodyną lingogram.ai." }
+    "dual": {
+      "tab": "Dvigubi subtitrai",
+      "h": "Abi kalbos vienu metu",
+      "p": "Eilutė, kurią girdite, šalia eilutės, kurią suprantate — be pauzių, be takelių perjungimo."
+    },
+    "guess": {
+      "tab": "Atspėjimo režimas",
+      "h": "Spustelėkite, kad atskleistumėte — ir lavinkite klausą",
+      "p": "Eilutė lieka paslėpta, kol jos nespustelėsite. Pirmiausia pabandykite atspėti iš klausos, tada pasitikrinkite: būtent šis skirtumas ir yra vieta, kur gerėja klausymo įgūdžiai."
+    },
+    "single": {
+      "tab": "Ant vaizdo",
+      "h": "Ekrane arba šoniniame skydelyje — jūs pasirenkate",
+      "p": "Palikite abi eilutes virš filmo, ten, kur jau žvelgia jūsų akys. Arba vienu mygtuku jas paslėpkite ir skaitykite iš skydelio savo tempu. Subtitrai niekur nedingsta — jie tik pasikeičia vieta."
+    },
+    "save": {
+      "tab": "Mano žodžiai",
+      "h": "Išsaugokite kiekvieną sutiktą žodį",
+      "p": "Pažymėkite žodį — vienu bakstelėjimu jis išsaugomas kartu su sakiniu, iš kurio jis paimtas, tiesiai į jūsų žodyną čia pat, lingogram.ai svetainėje."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Trūkstamą antrą takelį papildo YouTube automatiniu vertimu.",
+    "nf": "Tik originalūs subtitrų takeliai, be mašininio vertimo.",
+    "hd": "Dvigubi takeliai, kai juos turi pats titulas."
+  },
   "home": {
     "eyebrow": "Nemokama · YouTube · Netflix · HDrezka",
     "h1Lead": "Su subtitrais žiūrėti jau teko.",
     "h1Pop": "Šįkart iš to gausite daugiau.",
     "ctaPrimary": "Pridėti į Chrome — tai nemokama",
-    "ctaSecondary": "Pasirinkite savo svetainės leidimą ↓",
-
-    "platformsKicker": "Leidimai",
+    "ctaSecondary": "Pasirinkite versiją svetainei, kurioje žiūrite ↓",
+    "platformsKicker": "Versijos",
     "platformsH2": "Vienas Lingogram, pritaikytas svetainei, kurioje žiūrite",
-    "platformsLede": "Kiekvienas leidimas sukurtas būtent tos svetainės grotuvui — savi subtitrų takeliai, viso ekrano perdanga, tos svetainės reikalaujami pataisymai. Visi jie naudoja tas pačias mokymosi priemones ir tą pačią paskyrą, todėl išsaugoti žodžiai visada vienoje vietoje, kad ir kurį leidimą naudotumėte. Du plėtiniai apima visas tris svetaines: YouTube skirtas plėtinys veikia ir su Netflix.",
+    "platformsLede": "Kiekviena versija yra atskiras Chrome plėtinys, sukurtas būtent tos svetainės grotuvui — savi subtitrų takeliai, subtitrus tiesiai ant vaizdo rodanti viso ekrano perdanga, tos svetainės reikalaujami pataisymai. Visi jie naudoja tas pačias mokymosi priemones ir tą pačią paskyrą, todėl išsaugoti žodžiai visada vienoje vietoje, kad ir kurią versiją naudotumėte. Du plėtiniai apima visas tris svetaines: YouTube skirtas plėtinys veikia ir su Netflix.",
     "editionGo": "Pridėti į Chrome →",
-    "editionSoonTitle": "Kita — jūsų svetainė",
-    "editionSoonBody": "Nauji specializuoti leidimai pasirodo reguliariai — parašykite, kur žiūrite.",
+    "editionSoonTitle": "Žiūrite kitur?",
+    "editionSoonBody": "Naujos specializuotos versijos pasirodo reguliariai — parašykite, kur žiūrite.",
     "editionSoonCta": "Pasiūlyti svetainę →",
-
     "howKicker": "Kaip tai veikia",
     "howH2": "Nuo diegimo iki pirmo išsaugoto žodžio per vieną vaizdo įrašą",
     "step1T": "Įdiekite ir pasirinkite kalbas",
     "step1D": "Pasirinkite kalbą, kurios mokotės, ir savo gimtąją kalbą. Greitas vienkartinis nustatymas — paskyros nereikia.",
     "step2T": "Atidarykite bet kurį vaizdo įrašą su subtitrais",
     "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek kartu su scena slenkančiame teksto ruošinyje.",
-    "step3T": "Išsaugokite žodžius, peržiūrėkite juos čia",
-    "step3D": "Žiūrėdami vienu bakstelėjimu išsaugokite žodį — vėliau atidarykite savo žodyną lingogram.ai ir peržiūrėkite jį kartu su scena, iš kurios jis paimtas.",
-
+    "step3T": "Išsaugokite žodžius, peržiūrėkite juos šioje svetainėje",
+    "step3D": "Žiūrėdami vienu bakstelėjimu išsaugokite žodį — vėliau atidarykite savo žodyną šioje svetainėje, lingogram.ai, ir peržiūrėkite jį kartu su scena, iš kurios jis paimtas.",
     "dictKicker": "Jūsų žodynas",
     "dictH2": "Kiekvienas išsaugotas žodis kuria žodyną, kuris iš tiesų priklauso jums",
-    "dictLede": "Ne dažniausiai vartojamų žodžių sąrašas iš vadovėlio — žodžiai, kuriuos sutikote pačių pasirinktose scenose, išsaugoti kartu su eilutėmis, iš kurių jie paimti. Kad ir kokį leidimą naudotumėte žiūrėdami, viskas atsiduria vienoje paskyroje ir laukia jūsų čia, kai prisijungiate.",
+    "dictLede": "Ne dažniausiai vartojamų žodžių sąrašas iš vadovėlio — žodžiai, kuriuos sutikote pačių pasirinktose scenose, išsaugoti kartu su eilutėmis, iš kurių jie paimti. Kad ir kokią versiją naudotumėte žiūrėdami, viskas atsiduria vienoje paskyroje ir laukia jūsų šioje svetainėje, kai prisijungiate.",
     "dictMyWords": "Mano žodžiai",
     "dictCount": "247 išsaugoti · 12 šią savaitę",
-    "dictWord1": "reluctantly", "dictTr1": "nenoromis", "dictCtx1": "„Jis {w} sutiko vairuoti pabėgimo automobilį.“",
-    "dictWord2": "getaway", "dictTr2": "pabėgimas", "dictCtx2": "„Tai ne apiplėšimas, tai {w}.“",
-    "dictWord3": "spinning its wheels", "dictTr3": "sukasi vietoje", "dictCtx3": "„Ji {w} net šeštoje pavaroje!“",
-    "dictFoot": "Jūsų žodžiai sinchronizuojami visuose įrenginiuose ir visuose Lingogram leidimuose — {b}.",
+    "dictWord1": "reluctantly",
+    "dictTr1": "nenoromis",
+    "dictCtx1": "„He {w} agreed to drive the getaway car.“",
+    "dictWord2": "getaway",
+    "dictTr2": "pabėgimas",
+    "dictCtx2": "„This isn't a heist, it's a {w}.“",
+    "dictWord3": "baigiasi kuras",
+    "dictTr3": "trūksta degalų",
+    "dictCtx3": "„Mums {w} nuo pat paskutinės degalinės.“",
+    "dictFoot": "Jūsų žodžiai sinchronizuojami visuose įrenginiuose ir visose Lingogram versijose — {b}.",
     "dictFootBold": "viena paskyra, vienas žodynas",
-
     "featKicker": "Kodėl žodžiai įsimena",
     "featH2": "Dauguma įrankių sustoja ties vertimu. Lingogram padaro taip, kad žodžiai įsimintų.",
     "featLede": "Lingogram sukurtas aktyvaus prisiminimo principu: jūs ne tik skaitote kartu su vaizdo įrašu — spėjate, peržiūrite iš naujo ir kaupiate žodžius, todėl valandos, kurias ir taip praleidžiate žiūrėdami, virsta tikra pažanga.",
-    "feat1Tag": "Dvigubi subtitrai", "feat1H": "Dvi kalbos, vienas ekranas", "feat1P": "Pagaukite kiekvieną originalo eilutę ir sugretinkite ją su sava kalba be pauzių. Kai būsite pasiruošę, paslėpkite vertimą — dvigubi subtitrai tarsi lavinamieji dviratuko ratukai, o Lingogram padeda juos nuimti.",
-    "feat2Tag": "Interaktyvus teksto ruošinys", "feat2H": "Peržiūrėkite eilutę, o ne visą filmą", "feat2P": "Teksto ruošinys savaime slenka kartu su vaizdo įrašu. Spustelėkite bet kurią eilutę, kad grįžtumėte atgal ir kartotumėte būtent tą sceną, kol negalėję atskirti garsai netaps žodžiais, kuriuos atpažįstate akimirksniu.",
-    "feat3Tag": "Atspėjimo režimas", "feat3H": "Pirma paklausykite, tada pasitikrinkite", "feat3P": "Žodžiai iš pradžių paslėpti: pagaukite eilutę klausa, tada ją atskleiskite. Šis „pirma paklausyk“ ciklas ugdo klausymo įgūdžius, kuriais galite pasitikėti — o ne įprotį tiesiog skaityti subtitrus. Perjunkite klavišu {kbd}.",
-    "feat4Tag": "Išsaugoti žodžiai", "feat4H": "Jūsų žodynas — iš jūsų filmų", "feat4P": "Vienu bakstelėjimu žodis išsaugomas kartu su jį supančiomis subtitrų eilutėmis. Jis iškart patenka į {link} lingogram.ai, kur kiekvieną žodį galite peržiūrėti jo originalioje scenoje.",
+    "feat1Tag": "Dvigubi subtitrai",
+    "feat1H": "Dvi kalbos, vienas ekranas",
+    "feat1P": "Pagaukite kiekvieną originalo eilutę ir sugretinkite ją su sava kalba be pauzių. Kai būsite pasiruošę, paslėpkite vertimą — dvigubi subtitrai yra tik pradžios taškas, o Lingogram padeda jį peraugti.",
+    "feat2Tag": "Interaktyvus teksto ruošinys",
+    "feat2H": "Peržiūrėkite eilutę, o ne visą filmą",
+    "feat2P": "Teksto ruošinys savaime slenka kartu su vaizdo įrašu. Spustelėkite bet kurią eilutę, kad grįžtumėte atgal ir kartotumėte būtent tą sceną, kol negalėję atskirti garsai netaps žodžiais, kuriuos atpažįstate akimirksniu.",
+    "feat3Tag": "Atspėjimo režimas",
+    "feat3H": "Pirma paklausykite, tada pasitikrinkite",
+    "feat3P": "Žodžiai iš pradžių paslėpti: pagaukite eilutę klausa, tada ją atskleiskite. Šis „pirma paklausyk“ ciklas ugdo klausymo įgūdžius, kuriais galite pasitikėti — o ne įprotį tiesiog skaityti subtitrus. Perjunkite klavišu {kbd}.",
+    "feat4Tag": "Išsaugoti žodžiai",
+    "feat4H": "Jūsų žodynas — iš jūsų filmų",
+    "feat4P": "Vienu bakstelėjimu žodis išsaugomas kartu su jį supančiomis subtitrų eilutėmis. Jis iškart patenka į {link} lingogram.ai, kur kiekvieną žodį galite peržiūrėti jo originalioje scenoje.",
     "feat4Link": "jūsų asmeninį žodyną",
-
     "privKicker": "Privatu pagal nutylėjimą",
     "privH2": "Tai, ką žiūrite, lieka tik jūsų reikalas",
-    "priv1": "{b} Kalbos ir išdėstymo nustatymai saugomi vietoje, jūsų naršyklėje.", "priv1Bold": "Jokios telemetrijos, jokio sekimo.",
-    "priv2": "{b} Subtitrai apdorojami tiesiai jūsų įrenginyje.", "priv2Bold": "Mes niekada nematome jūsų žiūrėjimo istorijos.",
-    "priv3": "{b} Jei prisijungiate, saugome jūsų el. paštą ir išsaugotus žodžius — nieko daugiau, ir niekada jų neparduodame.", "priv3Bold": "Žodyno naudojimas — savanoriškas.",
-    "priv4": "{b} Jei svetainės atnaujinimas ką nors sugadina, vienu paspaudimu apie tai pranešate, o mes galime greitai tai ištaisyti.", "priv4Bold": "Sukurta, kad veiktų nuolat.",
-
+    "priv1": "{b} Kalbos ir išdėstymo nustatymai saugomi vietoje, jūsų naršyklėje.",
+    "priv1Bold": "Jokios telemetrijos, jokio sekimo.",
+    "priv2": "{b} Subtitrai apdorojami tiesiai jūsų įrenginyje.",
+    "priv2Bold": "Mes niekada nematome jūsų žiūrėjimo istorijos.",
+    "priv3": "{b} Jei prisijungiate, saugome jūsų el. paštą ir išsaugotus žodžius — nieko daugiau, ir niekada jų neparduodame.",
+    "priv3Bold": "Žodyno naudojimas — savanoriškas.",
+    "priv4": "{b} Jei svetainės atnaujinimas ką nors sugadina, vienu paspaudimu apie tai pranešate, o mes galime greitai tai ištaisyti.",
+    "priv4Bold": "Mes tai greitai sutvarkome.",
     "faqKicker": "DUK",
     "faqH2": "Klausimai, kuriuos žmonės užduoda prieš įsidiegdami",
-
     "finalH2": "Paverskite šio vakaro epizodą kalbos pamoka",
     "finalCta": "Pridėti Lingogram į Chrome",
     "finalProof": "Nemokama · Nustatoma greičiau nei per minutę"
   },
-
   "faq": {
-    "free": { "q": "Ar tai nemokama?", "a": "Taip. Dvigubi subtitrai, teksto ruošinys ir Atspėjimo režimas yra nemokami. Nemokama paskyra reikalinga tik tuo atveju, jei norite, kad išsaugoti žodžiai būtų sinchronizuojami tarp įrenginių." },
-    "languages": { "q": "Kokias kalbas jis palaiko?", "a": "Bet kurią kalbų porą, kuriai vaizdo įrašas turi subtitrus. YouTube, jei trūksta vienos iš dviejų jūsų kalbų, Lingogram ją papildo automatiniu YouTube vertimu, kad vis tiek matytumėte dvigubą vaizdą. Netflix ir HDrezka rodomi tik tie subtitrų takeliai, kuriuos konkretus titulas iš tikrųjų turi — jokio mašininio vertimo." },
-    "edition": { "q": "Kurį leidimą man diegti?", "a": "Tą, kuris skirtas svetainei, kurioje žiūrite. Yra du plėtiniai: vienas apima YouTube ir Netflix kartu, kitas — HDrezka. Įsidiekite abu, jei žiūrite abiejose — jie naudoja tas pačias mokymosi priemones ir tą pačią paskyrą, todėl išsaugoti žodžiai lieka vienoje vietoje." },
-    "words": { "q": "Kur saugomi mano išsaugoti žodžiai?", "a": "Jūsų asmeniniame žodyne, čia pat, lingogram.ai. Prisijunkite, ir kiekvienas jūsų išsaugotas žodis bus ten kartu su scena, iš kurios jis paimtas — nesvarbu, kuriuo leidimu ar įrenginiu jį išsaugojote." }
+    "free": {
+      "q": "Ar tai nemokama?",
+      "a": "Taip. Dvigubi subtitrai, teksto ruošinys ir Atspėjimo režimas yra nemokami. Nemokama paskyra reikalinga tik tuo atveju, jei norite, kad išsaugoti žodžiai būtų sinchronizuojami tarp įrenginių."
+    },
+    "languages": {
+      "q": "Kokias kalbas jis palaiko?",
+      "a": "Bet kurią kalbų porą, kuriai vaizdo įrašas turi subtitrus. YouTube, jei trūksta vienos iš dviejų jūsų kalbų, Lingogram ją papildo automatiniu YouTube vertimu, kad vis tiek matytumėte dvigubą vaizdą. Netflix ir HDrezka rodomi tik tie subtitrų takeliai, kuriuos konkretus titulas iš tikrųjų turi — jokio mašininio vertimo."
+    },
+    "edition": {
+      "q": "Kurią versiją man diegti?",
+      "a": "Tą, kuris skirtas svetainei, kurioje žiūrite. Yra du plėtiniai: vienas apima YouTube ir Netflix kartu, kitas — HDrezka. Įsidiekite abu, jei žiūrite abiejose — jie naudoja tas pačias mokymosi priemones ir tą pačią paskyrą, todėl išsaugoti žodžiai lieka vienoje vietoje."
+    },
+    "words": {
+      "q": "Kur saugomi mano išsaugoti žodžiai?",
+      "a": "Jūsų asmeniniame žodyne, čia pat, lingogram.ai. Prisijunkite, ir kiekvienas jūsų išsaugotas žodis bus ten kartu su scena, iš kurios jis paimtas — nesvarbu, kuria versija ar įrenginiu jį išsaugojote."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram, skirtas {site}",
     "ctaPrimary": "Pridėti į Chrome — tai nemokama",
-    "ctaSecondary": "Žiūrėti visus leidimus",
+    "ctaSecondary": "Žiūrėti visas versijas",
     "builtKicker": "Sukurta {site}",
-    "builtH2": "Ką daro {site} leidimas",
+    "builtH2": "Ką daro {site} versija",
     "faqH2": "Prieš diegiant",
     "finalH2": "Žiūrėkite {site} šįvakar — dviem kalbomis",
     "finalCta": "Pridėti {name}",
     "finalProof": "Nemokama · Nustatoma greičiau nei per minutę"
   },
-
   "privacy": {
     "title": "Privatumo politika — Lingogram",
     "description": "Ką renka Lingogram, kaip tai naudojama ir kokį pasirinkimą turite."
   },
-
   "welcome": {
     "title": "Sveiki atvykę į Lingogram",
     "description": "Viskas paruošta — štai kaip per tris žingsnius išsaugoti pirmą žodį.",
     "h1": "įdiegta",
     "sub": "Trys žingsniai iki pirmo išsaugoto žodžio — užteks vieno vaizdo įrašo.",
-    "step1T": "Pasirinkite kalbas", "step1D": "Spustelėkite Lingogram piktogramą įrankių juostoje ir pasirinkite kalbą, kurios mokotės, bei savo gimtąją kalbą.",
-    "step2T": "Atidarykite vaizdo įrašą su subtitrais", "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek teksto ruošinyje.",
-    "step3T": "Išsaugokite savo pirmą žodį", "step3D": "Pažymėkite žodį subtitruose ir bakstelėkite, kad jį išsaugotumėte — jis atsidurs {link}.",
+    "step1T": "Pasirinkite kalbas",
+    "step1D": "Spustelėkite Lingogram piktogramą įrankių juostoje ir pasirinkite kalbą, kurios mokotės, bei savo gimtąją kalbą.",
+    "step2T": "Atidarykite vaizdo įrašą su subtitrais",
+    "step2D": "Paspauskite play — abi kalbos atsiras kartu, tiek vaizdo įraše, tiek teksto ruošinyje.",
+    "step3T": "Išsaugokite savo pirmą žodį",
+    "step3D": "Pažymėkite žodį subtitruose ir bakstelėkite, kad jį išsaugotumėte — jis atsidurs {link}.",
     "step3Link": "jūsų žodyne",
-    "keyDual": "dvigubi subtitrai", "keySwap": "sukeisti kalbas", "keyGuess": "atspėjimo režimas", "keyOverlay": "perdangos režimas"
+    "keyDual": "dvigubi subtitrai",
+    "keySwap": "sukeisti kalbas",
+    "keyGuess": "atspėjimo režimas",
+    "keyOverlay": "subtitrai ant vaizdo (perdanga)"
   },
-
   "uninstall": {
     "title": "Gaila, kad išeinate — Lingogram",
     "description": "Papasakokite, kodėl pašalinote Lingogram, kad galėtume tai ištaisyti.",
@@ -158,7 +226,6 @@
     "footMid": "— jie lauks jūsų, jei sugrįšite.",
     "reinstall": "Įdiekite iš naujo bet kada."
   },
-
   "auth": {
     "or": "arba",
     "showPassword": "Rodyti slaptažodį",
@@ -166,34 +233,46 @@
     "optional": "neprivaloma",
     "register": {
       "title": "Susikurkite paskyrą — Lingogram",
-      "description": "Užsiregistruokite, kad sinchronizuotumėte išsaugotus žodžius visuose įrenginiuose ir leidimuose.",
+      "description": "Užsiregistruokite, kad sinchronizuotumėte išsaugotus žodžius visuose įrenginiuose ir versijose.",
       "eyebrow": "Nemokama paskyra",
-      "h1Lead": "Pradėkite savo", "h1Pop": "žodžių sąrašą",
-      "sub": "Išsaugokite žodžius iš visko, ką žiūrite — sinchronizuojama visuose įrenginiuose ir leidimuose.",
+      "h1Lead": "Pradėkite savo",
+      "h1Pop": "žodžių sąrašą",
+      "sub": "Išsaugokite žodžius iš visko, ką žiūrite — sinchronizuojama visuose įrenginiuose ir versijose.",
       "googleCta": "Registruotis su Google",
-      "nameLabel": "Jūsų vardas", "namePlaceholder": "Jonė",
-      "emailLabel": "El. paštas", "emailPlaceholder": "jone@example.com",
-      "passwordLabel": "Slaptažodis", "passwordPlaceholder": "Bent 8 simboliai",
-      "submit": "Sukurti paskyrą", "submitBusy": "Kuriama paskyra…",
-      "altPrefix": "Jau turite paskyrą?", "altLink": "Prisijungti",
-      "finePrefix": "Tęsdami sutinkate su mūsų", "fineLink": "Privatumo politika"
+      "nameLabel": "Jūsų vardas",
+      "namePlaceholder": "Jonė",
+      "emailLabel": "El. paštas",
+      "emailPlaceholder": "jone@example.com",
+      "passwordLabel": "Slaptažodis",
+      "passwordPlaceholder": "Bent 8 simboliai",
+      "submit": "Sukurti paskyrą",
+      "submitBusy": "Kuriama paskyra…",
+      "altPrefix": "Jau turite paskyrą?",
+      "altLink": "Prisijungti",
+      "finePrefix": "Tęsdami sutinkate su mūsų",
+      "fineLink": "Privatumo politika"
     },
     "login": {
       "title": "Prisijungti — Lingogram",
       "description": "Prisijunkite prie savo Lingogram žodyno.",
       "eyebrow": "Sveiki sugrįžę",
-      "h1Lead": "Jūsų", "h1Pop": "žodynas", "h1Tail": "jūsų laukia",
+      "h1Lead": "Jūsų",
+      "h1Pop": "žodynas",
+      "h1Tail": "jūsų laukia",
       "sub": "Prisijunkite ir tęskite ten, kur baigėte.",
       "googleCta": "Prisijungti su Google",
-      "emailLabel": "El. paštas", "emailPlaceholder": "jone@example.com",
-      "passwordLabel": "Slaptažodis", "passwordPlaceholder": "Jūsų slaptažodis",
+      "emailLabel": "El. paštas",
+      "emailPlaceholder": "jone@example.com",
+      "passwordLabel": "Slaptažodis",
+      "passwordPlaceholder": "Jūsų slaptažodis",
       "forgot": "Pamiršote slaptažodį?",
       "resetNote": "Patikrinkite savo pašto dėžutę — slaptažodžio atkūrimo nuoroda jau keliauja pas jus.",
-      "submit": "Prisijungti", "submitBusy": "Jungiamasi…",
-      "altPrefix": "Naujas Lingogram vartotojas?", "altLink": "Susikurti paskyrą"
+      "submit": "Prisijungti",
+      "submitBusy": "Jungiamasi…",
+      "altPrefix": "Naujas Lingogram vartotojas?",
+      "altLink": "Susikurti paskyrą"
     }
   },
-
   "notFound": {
     "title": "Puslapis nerastas — Lingogram",
     "description": "Šio puslapio nėra.",

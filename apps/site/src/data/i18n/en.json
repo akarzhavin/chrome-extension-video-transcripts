@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Editions",
     "how": "How it works",
-    "dictionary": "Your dictionary",
+    "dictionary": "My words",
     "faq": "FAQ",
     "logIn": "Log in",
     "signUp": "Sign up",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Language",
+    "searchLanguage": "Search language…",
+    "suggested": "Suggested",
+    "allLanguages": "All languages",
+    "noLanguageMatch": "No language matches that"
+  },
+
+  "languages": {
+    "title": "Languages — Lingogram",
+    "description": "Lingogram's site in 42 languages — pick the one you read in.",
+    "h1": "Read Lingogram in your language",
+    "lede": "The whole site is translated into {n} languages. Pick yours — every page you're reading now has a version in it.",
+    "reading": "You're reading {lang}.",
+    "searchPlaceholder": "Search languages…",
+    "clearSearch": "Clear search",
+    "noMatch": "No language matches that",
+    "noMatchHint": "Try its English name, or its two-letter code.",
+    "count": { "one": "1 language", "other": "{n} languages" },
+    "region": {
+      "westEurope": "Western & Northern Europe",
+      "eastEurope": "Central & Eastern Europe",
+      "asia": "Asia",
+      "middleEast": "Middle East"
+    }
   },
 
   "footer": {
     "tagline": "Learn languages from what you watch.",
     "product": "Product",
     "allEditions": "All editions",
-    "yourDictionary": "Your dictionary",
+    "yourDictionary": "My words",
     "howItWorks": "How it works",
     "help": "Help",
     "faq": "FAQ",
@@ -33,7 +57,7 @@
   },
 
   "demo": {
-    "hintPrefix": "This is the extension itself, running here —",
+    "hintPrefix": "This demo is the real extension, running on this page —",
     "hintBold": "select a word",
     "hintSuffix": "to save it, or try a mode below.",
     "credit": "Clip: NASA —",
@@ -43,25 +67,31 @@
 
   "modes": {
     "dual": { "tab": "Dual subtitles", "h": "Both languages, at once", "p": "The line you hear next to the line you understand — no pausing, no switching tracks." },
-    "guess": { "tab": "Guess", "h": "Click to reveal — and train your ear", "p": "The line stays hidden until you click it. Guess from listening first, then check yourself: the gap between the two is exactly where hearing improves." },
-    "single": { "tab": "On-screen", "h": "On screen, or in the sidebar — your call", "p": "Keep both lines over the film, where your eyes already are. Or take them off with one button and read from the panel instead, at your own pace. The subtitles never disappear — they just move." },
-    "save": { "tab": "Dictionary", "h": "Keep every word you meet", "p": "Select a word — one tap saves it with the sentence it came from, straight to your dictionary on lingogram.ai." }
+    "guess": { "tab": "Guess mode", "h": "Click to reveal — and train your ear", "p": "The line stays hidden until you click it. Guess from listening first, then check yourself: the gap between the two is exactly where hearing improves." },
+    "single": { "tab": "On video", "h": "On screen, or in the sidebar — your call", "p": "Keep both lines over the film, where your eyes already are. Or take them off with one button and read from the panel instead, at your own pace. The subtitles never disappear — they just move." },
+    "save": { "tab": "My words", "h": "Keep every word you meet", "p": "Select a word — one tap saves it with the sentence it came from, straight to your dictionary right here on lingogram.ai." }
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Fills the missing second track with YouTube's auto-translation.",
+    "nf": "Original subtitle tracks, no machine translation.",
+    "hd": "Dual tracks when a title carries them."
+  },
 
   "home": {
     "eyebrow": "Free · YouTube · Netflix · HDrezka",
     "h1Lead": "You've watched with subtitles before.",
     "h1Pop": "This time you'll get more out of it.",
     "ctaPrimary": "Add to Chrome — it's free",
-    "ctaSecondary": "Pick the edition for your site ↓",
+    "ctaSecondary": "Pick the edition for the site you watch on ↓",
 
     "platformsKicker": "Editions",
     "platformsH2": "One Lingogram, tuned for the site you watch on",
-    "platformsLede": "Each edition is built for its site's player — native subtitle tracks, fullscreen overlay, the fixes that site needs. They share the same learning tools and the same account, so your saved words are in one place whichever you use. Two extensions cover all three sites: the YouTube one handles Netflix as well.",
+    "platformsLede": "Each edition is a separate Chrome extension, built for one site's player — native subtitle tracks, fullscreen overlay, the fixes that site needs. They share the same learning tools and the same account, so your saved words are in one place whichever you use. Two extensions cover all three sites: the YouTube one handles Netflix as well.",
     "editionGo": "Add to Chrome →",
-    "editionSoonTitle": "Your site next",
+    "editionSoonTitle": "Watch somewhere else?",
     "editionSoonBody": "New dedicated editions ship regularly — tell us where you watch.",
     "editionSoonCta": "Suggest a site →",
 
@@ -71,24 +101,24 @@
     "step1D": "Choose the language you're learning and your own. A quick one-time setup — no account needed.",
     "step2T": "Open any video with captions",
     "step2D": "Press play — both languages appear together, on the video and in a transcript that scrolls with the scene.",
-    "step3T": "Save words, review them here",
-    "step3D": "Keep a word in one tap while you watch — then open your dictionary on lingogram.ai and review it with the scene it came from.",
+    "step3T": "Save words, review them on this site",
+    "step3D": "Keep a word in one tap while you watch — then open your dictionary on this site and review it with the scene it came from.",
 
     "dictKicker": "Your dictionary",
     "dictH2": "Every word you save builds a dictionary that's actually yours",
-    "dictLede": "Not a frequency list from a textbook — words you met in scenes you chose, kept with the lines they came from. Whatever edition you watch with, everything lands in one account, and it's waiting for you here after you log in.",
+    "dictLede": "Not a frequency list from a textbook — words you met in scenes you chose, kept with the lines they came from. Whatever edition you watch with, everything lands in one account, and it's waiting for you on this site after you log in.",
     "dictMyWords": "My words",
     "dictCount": "247 saved · 12 this week",
-    "dictWord1": "reluctantly", "dictTr1": "неохотно", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "побег", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "буксует", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictWord1": "reluctantly", "dictTr1": "a regañadientes", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway", "dictTr2": "la huida", "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "running on empty", "dictTr3": "sin gasolina", "dictCtx3": "“We've been {w} since the last gas station.”",
     "dictFoot": "Your words sync across devices and every Lingogram edition — {b}.",
     "dictFootBold": "one account, one dictionary",
 
     "featKicker": "Why it sticks",
     "featH2": "Most tools stop at translation. Lingogram makes words stick.",
-    "featLede": "Lingogram is built around active recall: you don't just read along — you guess, replay, and collect, so the hours you already spend watching turn into real progress.",
-    "feat1Tag": "Dual subtitles", "feat1H": "Two languages, one screen", "feat1P": "Catch every line in the original and match it to your own language without pausing. When you're ready, hide the translation — dual subtitles are training wheels, and Lingogram helps you take them off.",
+    "featLede": "Lingogram is based on active recall: you don't just read along — you guess, replay, and collect, so the hours you already spend watching turn into real progress.",
+    "feat1Tag": "Dual subtitles", "feat1H": "Two languages, one screen", "feat1P": "Catch every line in the original and match it to your own language without pausing. When you're ready, hide the translation — dual subtitles are a starting point, and Lingogram helps you outgrow them.",
     "feat2Tag": "Interactive transcript", "feat2H": "Replay the line, not the movie", "feat2P": "The transcript scrolls with the video on its own. Click any line to jump back and loop that one scene until the sounds you couldn't parse become words you instantly recognize.",
     "feat3Tag": "Guess mode", "feat3H": "Listen first, then check", "feat3P": "Words start hidden: catch the line by ear, then reveal it. This listen-first loop builds listening you can rely on — not subtitles you only read along to. Toggle it with {kbd}.",
     "feat4Tag": "Saved words", "feat4H": "Your vocabulary, from your movies", "feat4P": "One tap saves a word with the subtitle lines around it. It goes straight to {link} on lingogram.ai, where you review every word in its original scene.",
@@ -99,7 +129,7 @@
     "priv1": "{b} Language and layout settings are stored locally in your browser.", "priv1Bold": "No telemetry, no tracking.",
     "priv2": "{b} Subtitles are processed right on your device.", "priv2Bold": "We never see your watch history.",
     "priv3": "{b} If you sign in, we store your email and your saved words — nothing else, and we never sell them.", "priv3Bold": "Your dictionary is opt-in.",
-    "priv4": "{b} If a site update breaks something, one click reports it so we can fix it fast.", "priv4Bold": "Built to keep working.",
+    "priv4": "{b} If a site update breaks something, one click reports it so we can fix it fast.", "priv4Bold": "We fix it fast.",
 
     "faqKicker": "FAQ",
     "faqH2": "Questions people ask before installing",
@@ -113,7 +143,7 @@
     "free": { "q": "Is it free?", "a": "Yes. Dual subtitles, the transcript, and Guess mode are free. A free account is only needed if you want your saved words synced across devices." },
     "languages": { "q": "Which languages does it support?", "a": "Any pair the video has captions for. On YouTube, if one of your two languages is missing, Lingogram fills it with YouTube's automatic translation so you still get the dual view. On Netflix and HDrezka it shows the subtitle tracks the title actually has — no machine translation." },
     "edition": { "q": "Which edition do I install?", "a": "The one for the site you watch on. There are two extensions: one covers YouTube and Netflix together, the other covers HDrezka. Install both if you watch on both — they share the same learning tools and the same account, so your saved words stay in one place." },
-    "words": { "q": "Where do my saved words live?", "a": "In your personal dictionary, right here on lingogram.ai. Log in and every word you've saved is there with the scene it came from — whichever edition or device you saved it on." }
+    "words": { "q": "Where are my saved words kept?", "a": "In your personal dictionary, right here on lingogram.ai. Log in and every word you've saved is there with the scene it came from — whichever edition or device you saved it on." }
   },
 
   "edition": {
@@ -142,7 +172,7 @@
     "step2T": "Open a video with captions", "step2D": "Press play — both languages appear together, on the video and in the transcript.",
     "step3T": "Save your first word", "step3D": "Highlight a word in the subtitles and tap to keep it — it lands in {link}.",
     "step3Link": "your dictionary",
-    "keyDual": "dual subtitles", "keySwap": "swap languages", "keyGuess": "guess mode", "keyOverlay": "overlay mode"
+    "keyDual": "dual subtitles", "keySwap": "swap languages", "keyGuess": "guess mode", "keyOverlay": "subtitles on the video (overlay)"
   },
 
   "uninstall": {

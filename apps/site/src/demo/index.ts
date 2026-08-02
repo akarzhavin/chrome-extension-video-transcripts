@@ -80,16 +80,34 @@ const shotLang = (): string => {
 const siteLocales = (): string[] => siteLocaleList as string[];
 
 /**
+ * The languages most visitors speak — a shortlist so the panel doesn't open
+ * on 42 alphabetical strangers. The visitor's own detected language jumps
+ * the queue if it isn't already here; everything else still ships, under
+ * "All languages" below.
+ */
+const POPULAR_LOCALES = ['es', 'fr', 'de', 'pt', 'ru', 'zh', 'ja', 'ar'];
+
+/**
  * The header's language switcher: a real navigation to this same page's
  * translation at /<lang>/ — not a client-side swap. It changes the page
  * language (build.mjs rendered every string), and by construction changes
  * the demo's language pair with it (nativeTrack/shotLang read the URL). Each
  * option is named in itself (Intl.DisplayNames — no shipped name table). The
  * control ships hidden; pages without the demo never populate it.
+ *
+ * A searchable popover, not a native <select>: 42 locales is too long to
+ * open on, and a select can only group options, never hide them until asked.
+ * Empty search shows the suggested shortlist; typing filters all 42 by
+ * autonym, English name, or code. This is the DESKTOP control — CSS hides it
+ * below 760px, where the header links to /languages/ instead.
  */
 const wireLangSwitch = (current: string): void => {
-  const sel = document.getElementById('lang-switch') as HTMLSelectElement | null;
-  if (!sel) return;
+  const wrap = document.querySelector<HTMLElement>('.lang-wrap');
+  const btn = document.getElementById('lang-switch-btn') as HTMLButtonElement | null;
+  const search = document.getElementById('lang-search') as HTMLInputElement | null;
+  const list = document.getElementById('lang-list');
+  if (!wrap || !btn || !search || !list) return;
+
   const autonym = (code: string): string => {
     try {
       const n = new Intl.DisplayNames([code], { type: 'language' }).of(code);
@@ -98,31 +116,108 @@ const wireLangSwitch = (current: string): void => {
       return code.toUpperCase();
     }
   };
+  // Kept for search only, never shown: someone typing "Spanish" should find
+  // "Español" as readily as someone typing "espa".
+  const englishName = (code: string): string => {
+    try {
+      return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) ?? code;
+    } catch {
+      return code;
+    }
+  };
   // The path this same page (by its trailing segment) has at another locale:
   // strip the current locale prefix, then add the target's.
   const pathFor = (lang: string): string => {
     const rest = location.pathname.replace(/^\/[a-z]{2,3}(?=\/|$)/, '') || '/';
     return lang === 'en' ? rest : `/${lang}${rest}`;
   };
-  const named = siteLocales().map((code) => ({ code, name: autonym(code) }));
-  named.sort((a, b) => a.name.localeCompare(b.name));
-  for (const { code, name } of named) {
-    const opt = document.createElement('option');
-    opt.value = code;
-    opt.textContent = name;
-    sel.append(opt);
-  }
-  sel.value = current;
-  // The visible pill under the transparent select (see build.mjs header).
-  const wrap = sel.closest<HTMLElement>('.lang-wrap');
-  const face = wrap?.querySelector('.lf-name');
-  const code = wrap?.querySelector('.lf-code');
-  if (face) face.textContent = autonym(current);
-  if (code) code.textContent = current.toUpperCase();
-  if (wrap) wrap.hidden = false;
-  sel.onchange = () => {
-    location.assign(pathFor(sel.value) + location.hash);
+
+  const named = siteLocales().map((code) => ({
+    code,
+    name: autonym(code),
+    searchName: englishName(code).toLowerCase(),
+  }));
+  const byName = [...named].sort((a, b) => a.name.localeCompare(b.name));
+
+  const detected = (navigator.languages ?? [navigator.language])
+    .map((tag) => (tag || '').split('-')[0].toLowerCase())
+    .find((code) => siteLocales().includes(code));
+  const suggestedCodes = [...new Set([detected, ...POPULAR_LOCALES].filter(Boolean))] as string[];
+
+  const optionRow = (entry: (typeof named)[number]): HTMLButtonElement => {
+    const opt = document.createElement('button');
+    opt.type = 'button';
+    opt.className = 'lang-option' + (entry.code === current ? ' current' : '');
+    opt.setAttribute('role', 'option');
+    opt.innerHTML = `<span>${entry.name}</span><span class="code">${entry.code.toUpperCase()}</span>`;
+    opt.onclick = () => location.assign(pathFor(entry.code) + location.hash);
+    return opt;
   };
+  const groupLabel = (text: string): HTMLElement => {
+    const el = document.createElement('div');
+    el.className = 'lang-group-label';
+    el.textContent = text;
+    return el;
+  };
+
+  const render = (query: string): void => {
+    list.replaceChildren();
+    const q = query.trim().toLocaleLowerCase(current);
+    if (!q) {
+      const suggested = suggestedCodes
+        .map((code) => named.find((n) => n.code === code))
+        .filter((n): n is (typeof named)[number] => !!n);
+      const suggestedSet = new Set(suggestedCodes);
+      if (suggested.length) {
+        list.append(groupLabel(list.dataset.suggested || 'Suggested'));
+        suggested.forEach((entry) => list.append(optionRow(entry)));
+      }
+      list.append(groupLabel(list.dataset.all || 'All languages'));
+      byName.filter((n) => !suggestedSet.has(n.code)).forEach((e) => list.append(optionRow(e)));
+      return;
+    }
+    const matches = byName.filter(
+      (n) => n.name.toLocaleLowerCase(current).includes(q) || n.searchName.includes(q) || n.code.includes(q),
+    );
+    if (!matches.length) {
+      const empty = document.createElement('div');
+      empty.className = 'lang-empty';
+      empty.textContent = list.dataset.empty || 'No match';
+      list.append(empty);
+      return;
+    }
+    matches.forEach((entry) => list.append(optionRow(entry)));
+  };
+
+  const open = (): void => {
+    wrap.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    search.value = '';
+    render('');
+    search.focus();
+  };
+  const close = (): void => {
+    wrap.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  };
+
+  btn.onclick = () => (wrap.classList.contains('open') ? close() : open());
+  search.oninput = () => render(search.value);
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target as Node)) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+
+  const face = wrap.querySelector('.lf-name');
+  if (face) face.textContent = autonym(current);
+  wrap.hidden = false;
+  // Only now — with the panel built and wired — does the always-visible
+  // /languages/ link stand down (and only above 760px; see site.css). If we
+  // never reach this line the link stays, so a failed or blocked demo.js
+  // still leaves a working way to change language.
+  document.documentElement.classList.add('lang-ready');
 };
 
 /**
@@ -170,7 +265,9 @@ const start = () => {
   console.info('[lingogram-demo] native track:', native?.lang ?? 'none');
   // The switcher reflects the PAGE's locale, not the demo's language pair —
   // those usually agree (pageLang feeds nativeTrack), but only the page
-  // locale is what the switcher actually navigates between.
+  // locale is what the switcher actually navigates between. Desktop only:
+  // below 760px CSS hides the popover and the header links to /languages/
+  // instead, so filling it there would be work nobody can see.
   if (!mobile) wireLangSwitch(pageLang());
 
   // The mode-card miniatures show a sample line pair; put the translation in
@@ -193,7 +290,6 @@ const start = () => {
   // hint is hidden — it promises an interaction that isn't there.
   if (mobile) {
     const lang = shotLang();
-    wireLangSwitch(pageLang());
     console.info('[lingogram-demo] source: per-tab films (mobile)', lang);
     // Animated WebPs filmed from THIS live demo (scripts/prep-mobile-shots
     // .mjs): the real desktop product — right-hand sidebar beside the video —

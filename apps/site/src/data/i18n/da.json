@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Udgaver",
     "how": "Sådan virker det",
-    "dictionary": "Din ordbog",
+    "dictionary": "Mine ord",
     "faq": "Ofte stillede spørgsmål",
     "logIn": "Log ind",
     "signUp": "Opret konto",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Sprog",
+    "searchLanguage": "Søg efter sprog…",
+    "suggested": "Foreslået",
+    "allLanguages": "Alle sprog",
+    "noLanguageMatch": "Ingen sprog matcher"
+  },
+
+  "languages": {
+    "title": "Sprog — Lingogram",
+    "description": "Lingogram-siden på 42 sprog — vælg det, du læser på.",
+    "h1": "Læs Lingogram på dit eget sprog",
+    "lede": "Hele siden er oversat til {n} sprog. Vælg dit — hver eneste side, du læser nu, findes også på det.",
+    "reading": "Du læser på {lang}.",
+    "searchPlaceholder": "Søg efter sprog…",
+    "clearSearch": "Ryd søgning",
+    "noMatch": "Ingen sprog matcher",
+    "noMatchHint": "Prøv det engelske navn eller den tobogstavskode.",
+    "count": { "one": "{n} sprog", "other": "{n} sprog" },
+    "region": {
+      "westEurope": "Vest- og Nordeuropa",
+      "eastEurope": "Central- og Østeuropa",
+      "asia": "Asien",
+      "middleEast": "Mellemøsten"
+    }
   },
 
   "footer": {
     "tagline": "Lær sprog ud fra det, du ser.",
     "product": "Produkt",
     "allEditions": "Alle udgaver",
-    "yourDictionary": "Din ordbog",
+    "yourDictionary": "Mine ord",
     "howItWorks": "Sådan virker det",
     "help": "Hjælp",
     "faq": "Ofte stillede spørgsmål",
@@ -49,6 +73,12 @@
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Udfylder det manglende andet spor med YouTubes automatiske oversættelse.",
+    "nf": "Netflix' egne undertekstspor, ingen maskinoversættelse.",
+    "hd": "Dobbelte spor, når titlen har dem."
+  },
 
   "home": {
     "eyebrow": "Gratis · YouTube · Netflix · HDrezka",

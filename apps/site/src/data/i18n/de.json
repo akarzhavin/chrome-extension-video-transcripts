@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Editionen",
     "how": "So funktioniert's",
-    "dictionary": "Ihr Wörterbuch",
+    "dictionary": "Meine Wörter",
     "faq": "FAQ",
     "logIn": "Anmelden",
     "signUp": "Registrieren",
-    "menu": "Menü"
+    "menu": "Menü",
+    "language": "Sprache",
+    "searchLanguage": "Sprache suchen…",
+    "suggested": "Vorschläge",
+    "allLanguages": "Alle Sprachen",
+    "noLanguageMatch": "Keine passende Sprache"
+  },
+
+  "languages": {
+    "title": "Sprachen — Lingogram",
+    "description": "Die Lingogram-Website in 42 Sprachen — wählen Sie die, in der Sie lesen.",
+    "h1": "Lingogram in Ihrer Sprache lesen",
+    "lede": "Die gesamte Website ist in {n} Sprachen übersetzt. Wählen Sie Ihre — jede Seite, die Sie gerade lesen, gibt es auch darin.",
+    "reading": "Sie lesen gerade auf {lang}.",
+    "searchPlaceholder": "Sprachen suchen…",
+    "clearSearch": "Suche löschen",
+    "noMatch": "Keine passende Sprache",
+    "noMatchHint": "Versuchen Sie den englischen Namen oder das Kürzel aus zwei Buchstaben.",
+    "count": { "one": "{n} Sprache", "other": "{n} Sprachen" },
+    "region": {
+      "westEurope": "West- und Nordeuropa",
+      "eastEurope": "Mittel- und Osteuropa",
+      "asia": "Asien",
+      "middleEast": "Naher Osten"
+    }
   },
 
   "footer": {
     "tagline": "Sprachen lernen mit dem, was Sie schauen.",
     "product": "Produkt",
     "allEditions": "Alle Editionen",
-    "yourDictionary": "Ihr Wörterbuch",
+    "yourDictionary": "Meine Wörter",
     "howItWorks": "So funktioniert's",
     "help": "Hilfe",
     "faq": "FAQ",
@@ -33,7 +57,7 @@
   },
 
   "demo": {
-    "hintPrefix": "Das ist die Erweiterung selbst, live hier —",
+    "hintPrefix": "Das ist eine Demo der echten Erweiterung, live hier auf dieser Seite —",
     "hintBold": "wählen Sie ein Wort aus",
     "hintSuffix": "um es zu speichern, oder probieren Sie einen Modus unten.",
     "credit": "Clip: NASA —",
@@ -45,23 +69,25 @@
     "dual": { "tab": "Zweisprachige Untertitel", "h": "Beide Sprachen, gleichzeitig", "p": "Die Zeile, die Sie hören, neben der Zeile, die Sie verstehen — ohne Pause, ohne Spurwechsel." },
     "guess": { "tab": "Rateübung", "h": "Klicken zum Aufdecken — und Ihr Gehör trainieren", "p": "Die Zeile bleibt verborgen, bis Sie sie anklicken. Erst per Gehör raten, dann selbst prüfen: Genau in dieser Lücke verbessert sich Ihr Hörverständnis." },
     "single": { "tab": "Im Bild", "h": "Im Bild oder in der Seitenleiste — Sie entscheiden", "p": "Behalten Sie beide Zeilen über dem Film, dort, wo Ihr Blick ohnehin ist. Oder blenden Sie sie mit einem Klick aus und lesen stattdessen im Panel, in Ihrem eigenen Tempo. Die Untertitel verschwinden nie — sie wechseln nur den Ort." },
-    "save": { "tab": "Wörterbuch", "h": "Jedes Wort behalten, dem Sie begegnen", "p": "Wort auswählen — ein Tipp speichert es mitsamt dem Satz, aus dem es stammt, direkt in Ihr Wörterbuch auf lingogram.ai." }
+    "save": { "tab": "Meine Wörter", "h": "Jedes Wort behalten, dem Sie begegnen", "p": "Wort auswählen — ein Tipp speichert es mitsamt dem Satz, aus dem es stammt, direkt in Ihr Wörterbuch, gleich hier auf lingogram.ai." }
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": { "yt": "Ergänzt die fehlende zweite Spur mit YouTubes automatischer Übersetzung.", "nf": "Originale Untertitelspuren, ohne maschinelle Übersetzung.", "hd": "Zweisprachige Spuren, wenn ein Titel sie mitbringt." },
 
   "home": {
     "eyebrow": "Kostenlos · YouTube · Netflix · HDrezka",
     "h1Lead": "Sie haben schon mit Untertiteln geschaut.",
     "h1Pop": "Diesmal nehmen Sie mehr davon mit.",
     "ctaPrimary": "Zu Chrome hinzufügen — kostenlos",
-    "ctaSecondary": "Edition für Ihre Website wählen ↓",
+    "ctaSecondary": "Edition für die Website wählen, auf der Sie schauen ↓",
 
     "platformsKicker": "Editionen",
     "platformsH2": "Ein Lingogram, abgestimmt auf Ihre Website",
-    "platformsLede": "Jede Edition ist auf den Player ihrer Website zugeschnitten — native Untertitelspuren, Vollbild-Overlay, genau die Anpassungen, die diese Website braucht. Alle teilen sich dieselben Lernwerkzeuge und denselben Account, sodass Ihre gespeicherten Wörter immer an einem Ort sind. Zwei Erweiterungen decken alle drei Websites ab: Die YouTube-Edition übernimmt auch Netflix.",
+    "platformsLede": "Jede Edition ist eine eigenständige Chrome-Erweiterung, zugeschnitten auf den Player einer bestimmten Website — native Untertitelspuren, Vollbild-Overlay direkt über dem Bild, genau die Anpassungen, die diese Website braucht. Alle teilen sich dieselben Lernwerkzeuge und denselben Account, sodass Ihre gespeicherten Wörter immer an einem Ort sind, ganz gleich, welche Edition Sie nutzen. Zwei Erweiterungen decken alle drei Websites ab: Die YouTube-Edition übernimmt auch Netflix.",
     "editionGo": "Zu Chrome hinzufügen →",
-    "editionSoonTitle": "Ihre Website als Nächstes",
+    "editionSoonTitle": "Schauen Sie woanders?",
     "editionSoonBody": "Neue Editionen erscheinen regelmäßig — sagen Sie uns, wo Sie schauen.",
     "editionSoonCta": "Website vorschlagen →",
 
@@ -71,24 +97,24 @@
     "step1D": "Wählen Sie die Sprache, die Sie lernen, und Ihre eigene. Eine kurze, einmalige Einrichtung — kein Account nötig.",
     "step2T": "Ein beliebiges Video mit Untertiteln öffnen",
     "step2D": "Play drücken — beide Sprachen erscheinen zusammen, im Video und in einem Transkript, das mit der Szene mitläuft.",
-    "step3T": "Wörter speichern, hier wiederholen",
-    "step3D": "Speichern Sie ein Wort mit einem Tipp während des Schauens — öffnen Sie dann Ihr Wörterbuch auf lingogram.ai und wiederholen Sie es mit der Szene, aus der es stammt.",
+    "step3T": "Wörter speichern, auf dieser Website wiederholen",
+    "step3D": "Speichern Sie ein Wort mit einem Tipp während des Schauens — öffnen Sie dann Ihr Wörterbuch auf dieser Website und wiederholen Sie es mit der Szene, aus der es stammt.",
 
     "dictKicker": "Ihr Wörterbuch",
     "dictH2": "Jedes gespeicherte Wort baut ein Wörterbuch, das wirklich Ihres ist",
-    "dictLede": "Keine Frequenzliste aus dem Lehrbuch — Wörter, die Ihnen in selbst gewählten Szenen begegnet sind, samt der Zeilen, aus denen sie stammen. Egal, mit welcher Edition Sie schauen, alles landet in einem Account und wartet hier auf Sie, sobald Sie sich anmelden.",
+    "dictLede": "Keine Frequenzliste aus dem Lehrbuch — Wörter, die Ihnen in selbst gewählten Szenen begegnet sind, samt der Zeilen, aus denen sie stammen. Egal, mit welcher Edition Sie schauen, alles landet in einem Account — und wartet auf dieser Website auf Sie, sobald Sie sich anmelden.",
     "dictMyWords": "Meine Wörter",
     "dictCount": "247 gespeichert · 12 diese Woche",
     "dictWord1": "reluctantly", "dictTr1": "widerwillig", "dictCtx1": "„He {w} agreed to drive the getaway car.“",
     "dictWord2": "getaway", "dictTr2": "Flucht", "dictCtx2": "„This isn't a heist, it's a {w}.“",
-    "dictWord3": "spinning its wheels", "dictTr3": "durchdreht", "dictCtx3": "„It's {w} in sixth gear!“",
+    "dictWord3": "auf Reserve", "dictTr3": "fast ohne Sprit", "dictCtx3": "„Wir fahren schon seit der letzten Tankstelle {w}.“",
     "dictFoot": "Ihre Wörter synchronisieren sich über alle Geräte und jede Lingogram-Edition hinweg — {b}.",
     "dictFootBold": "ein Account, ein Wörterbuch",
 
     "featKicker": "Warum es hängen bleibt",
     "featH2": "Die meisten Tools hören bei der Übersetzung auf. Lingogram sorgt dafür, dass Wörter bleiben.",
-    "featLede": "Lingogram baut auf aktivem Abrufen auf: Sie lesen nicht nur mit — Sie raten, spielen zurück und sammeln, sodass die Stunden, die Sie ohnehin mit Schauen verbringen, zu echtem Fortschritt werden.",
-    "feat1Tag": "Zweisprachige Untertitel", "feat1H": "Zwei Sprachen, ein Bildschirm", "feat1P": "Erfassen Sie jede Zeile im Original und ordnen Sie sie ohne Pause Ihrer eigenen Sprache zu. Wenn Sie bereit sind, blenden Sie die Übersetzung aus — zweisprachige Untertitel sind Stützräder, und Lingogram hilft Ihnen, sie abzunehmen.",
+    "featLede": "Lingogram setzt auf aktives Erinnern: Sie lesen nicht nur passiv mit — Sie raten, spielen zurück und sammeln, sodass die Stunden, die Sie ohnehin mit Schauen verbringen, zu echtem Fortschritt werden.",
+    "feat1Tag": "Zweisprachige Untertitel", "feat1H": "Zwei Sprachen, ein Bildschirm", "feat1P": "Erfassen Sie jede Zeile im Original und ordnen Sie sie ohne Pause Ihrer eigenen Sprache zu. Wenn Sie bereit sind, blenden Sie die Übersetzung aus — zweisprachige Untertitel sind ein Ausgangspunkt, und Lingogram hilft Ihnen, mit der Zeit darüber hinauszuwachsen.",
     "feat2Tag": "Interaktives Transkript", "feat2H": "Die Zeile wiederholen, nicht den Film", "feat2P": "Das Transkript läuft von selbst mit dem Video mit. Klicken Sie auf eine Zeile, um zurückzuspringen und genau diese Szene in einer Schleife laufen zu lassen, bis aus Lauten, die Sie nicht einordnen konnten, Wörter werden, die Sie sofort erkennen.",
     "feat3Tag": "Rateübung", "feat3H": "Erst hören, dann prüfen", "feat3P": "Wörter starten verborgen: Erfassen Sie die Zeile per Gehör, decken Sie sie dann auf. Diese Hör-zuerst-Schleife baut Hörverständnis auf, auf das Sie sich verlassen können — statt Untertitel, denen Sie nur mit den Augen folgen. Umschalten mit {kbd}.",
     "feat4Tag": "Gespeicherte Wörter", "feat4H": "Ihr Wortschatz, aus Ihren Filmen", "feat4P": "Ein Tipp speichert ein Wort mit den umliegenden Untertitelzeilen. Es landet direkt in {link} auf lingogram.ai, wo Sie jedes Wort in seiner ursprünglichen Szene wiederholen.",
@@ -99,7 +125,7 @@
     "priv1": "{b} Sprach- und Layout-Einstellungen werden lokal in Ihrem Browser gespeichert.", "priv1Bold": "Keine Telemetrie, kein Tracking.",
     "priv2": "{b} Untertitel werden direkt auf Ihrem Gerät verarbeitet.", "priv2Bold": "Wir sehen Ihren Verlauf nie.",
     "priv3": "{b} Wenn Sie sich anmelden, speichern wir Ihre E-Mail-Adresse und Ihre gespeicherten Wörter — sonst nichts, und wir verkaufen sie nie.", "priv3Bold": "Ihr Wörterbuch ist optional.",
-    "priv4": "{b} Bricht ein Website-Update etwas, meldet ein Klick es uns, damit wir es schnell beheben können.", "priv4Bold": "Gebaut, um weiter zu funktionieren.",
+    "priv4": "{b} Bricht ein Website-Update etwas, meldet ein Klick es uns, damit wir es schnell beheben können.", "priv4Bold": "Wir beheben es schnell.",
 
     "faqKicker": "FAQ",
     "faqH2": "Fragen, die vor der Installation aufkommen",
@@ -142,7 +168,7 @@
     "step2T": "Ein Video mit Untertiteln öffnen", "step2D": "Play drücken — beide Sprachen erscheinen zusammen, im Video und im Transkript.",
     "step3T": "Ihr erstes Wort speichern", "step3D": "Markieren Sie ein Wort in den Untertiteln und tippen Sie, um es zu speichern — es landet in {link}.",
     "step3Link": "Ihrem Wörterbuch",
-    "keyDual": "zweisprachige Untertitel", "keySwap": "Sprachen tauschen", "keyGuess": "Rateübung", "keyOverlay": "Overlay-Modus"
+    "keyDual": "zweisprachige Untertitel", "keySwap": "Sprachen tauschen", "keyGuess": "Rateübung", "keyOverlay": "Untertitel im Video (Overlay)"
   },
 
   "uninstall": {
