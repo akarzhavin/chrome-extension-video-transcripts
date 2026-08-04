@@ -77,9 +77,9 @@
   "editionsCard": { "yt": "Täyttää puuttuvan toisen raidan YouTuben automaattikäännöksellä.", "nf": "Alkuperäiset tekstitysraidat, ei konekäännöstä.", "hd": "Kaksoistekstitys, kun nimikkeellä on molemmat raidat." },
 
   "home": {
-    "eyebrow": "Ilmainen · YouTube · Netflix · HDrezka",
-    "h1Lead": "Olet katsonut tekstitysten kanssa ennenkin.",
-    "h1Pop": "Tällä kertaa saat siitä enemmän irti.",
+    "h1Lead": "Opi kieltä samalla, kun katsot",
+    "h1Pop": "videoita, joita rakastat.",
+    "heroLede": "Katso tekstityksiä kahdella kielellä tai harjoita korvaasi paljastamalla vain ne sanat, joita et kuullut kunnolla. Tallenna uudet sanat henkilökohtaiseen sanastoosi.",
     "ctaPrimary": "Lisää Chromeen — ilmaiseksi",
     "ctaSecondary": "Valitse versio sille sivustolle, jolla katsot ↓",
 

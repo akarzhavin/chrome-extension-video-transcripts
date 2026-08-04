@@ -20,6 +20,10 @@
   --band-line: #37313f;
   --player: #16141d;
   --player-panel: #201d29;
+  /* The demo's tab strip sits BEHIND its raised active tab, so it needs to be
+     a shade off --panel (which the active tab uses) or the tab has nothing to
+     lift off. Between --ground and --panel in both themes. */
+  --chrome: #eeecf4;
   --demo-edge: rgba(255, 255, 255, 0.08);
   --shadow: 0 24px 60px -30px rgba(35, 20, 90, 0.35);
   --star: #f5a623;
@@ -30,7 +34,9 @@
     --line: #352c63; --accent: #a390ff; --accent-ink: #17112e; --accent-soft: #2b2260;
     --teal: #3adfa5; --teal-deep: #3adfa5; --teal-soft: #12382c;
     --band: #080614; --band-panel: #161028; --band-line: #2b2344;
-    --player: #0d0b16; --player-panel: #161320; --demo-edge: rgba(150, 130, 255, 0.35);
+    --player: #0d0b16; --player-panel: #161320; --chrome: #140d30;
+    --dtab-lip: rgba(163, 144, 255, 0.32);
+    --demo-edge: rgba(150, 130, 255, 0.35);
     --shadow: 0 24px 70px -28px rgba(80, 50, 220, 0.45);
   }
 }
@@ -293,9 +299,55 @@ h1 .pop { color: var(--accent); }
      right edge whenever a classic scrollbar is visible. */
   margin: 40px 0 0 calc((100% - min(1120px, 100cqw - 48px)) / 2);
 }
-.demo-chrome { background: var(--panel); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+/* The chrome is a window title bar, not a toolbar row: tabs stand ON its
+   bottom edge, so it aligns to flex-end and carries no bottom padding —
+   the active tab's own background closes the gap down to the player. */
+.demo-chrome {
+  background: var(--chrome); padding: 10px 16px 0; display: flex; align-items: flex-end;
+  gap: 12px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--muted);
+}
+.demo-chrome .dots { display: flex; gap: 8px; flex: none; padding-bottom: 11px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.url { background: var(--ground); border: 1px solid var(--line); border-radius: 8px; padding: 3px 12px; margin-left: 8px; }
+
+/* ---------- demo browser tabs ---------- */
+/* The three sites Lingogram runs on, drawn as browser tabs. Decorative: no
+   hover, no pointer, aria-hidden on the container — the active tab is marked
+   by shape (raised, fused with the panel below), never by an accent bar,
+   which would read as a switch the visitor can operate. */
+.dtabs { display: flex; align-items: flex-end; min-width: 0; }
+.dtab {
+  display: flex; align-items: center; gap: 7px; padding: 8px 16px;
+  border-radius: 11px 11px 0 0; font-size: 12.5px; font-weight: 600;
+  color: var(--muted); white-space: nowrap; position: relative; top: 1px;
+}
+/* --dtab-lip is a hairline along the tab's own top edge. On a dark ground the
+   raised tab is only ~1.1:1 against the strip behind it, so the silhouette
+   alone is too faint to read; the lip restores the lift the light theme gets
+   for free from white-on-grey. Transparent in the light theme, where the
+   contrast is already there. */
+.dtab.is-on {
+  background: var(--panel); color: var(--ink); font-weight: 700;
+  box-shadow: inset 0 1px 0 var(--dtab-lip, transparent);
+}
+/* The concave corners that let a real Chrome tab spill into the bar it sits
+   on. Two radial gradients, so it costs no markup and follows the theme. */
+.dtab.is-on::before, .dtab.is-on::after {
+  content: ""; position: absolute; bottom: 0; width: 10px; height: 10px;
+}
+.dtab.is-on::before { left: -10px; background: radial-gradient(circle at 0 0, transparent 10px, var(--panel) 10.5px); }
+.dtab.is-on::after { right: -10px; background: radial-gradient(circle at 100% 0, transparent 10px, var(--panel) 10.5px); }
+/* Hairline between two sleeping tabs, as in a real browser. Only between
+   them: a divider touching the active tab would cut its concave corner. */
+.dtab:not(.is-on) + .dtab:not(.is-on)::before {
+  content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 1px;
+  background: var(--muted); opacity: 0.25;
+}
+.dtab:not(.is-on) .dfav { opacity: 0.75; }
+/* Site favicons — the real logos (SITE_LOGO in build.mjs), same marks as the
+   edition cards further down the page. The SVG carries the brand colour and
+   its own rounded tile, so nothing is painted here but the box. */
+.dfav { width: 15px; height: 15px; flex: none; display: block; }
+.dfav svg { display: block; width: 100%; height: 100%; }
 
 /* Shown in place of the demo when the installed extension owns the page's
    #vtt-* ids. Sized like the player it replaces so the hero doesn't collapse. */
@@ -810,16 +862,13 @@ section { padding: 76px 0 0; }
 h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.03em; line-height: 1.1; margin: 10px 0 14px; text-wrap: balance; }
 .lede { color: var(--muted); max-width: 62ch; font-size: 17px; margin: 0; }
 
-/* brand marks */
-.mark { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex: none; font-weight: 800; }
+/* Brand marks — the real site logos (SITE_LOGO in build.mjs). Each SVG paints
+   its own rounded tile and brand colour, so these rules only size the box.
+   The .mark-* classes stay as hooks (.ed-soon overrides .mark for the
+   "suggest a site" card, which has no logo of its own). */
+.mark { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex: none; font-weight: 800; overflow: hidden; }
 .mark-sm { width: 22px; height: 22px; border-radius: 6px; font-size: 10px; }
-.mark-yt { background: #ff0000; }
-.mark-yt::before { content: ""; width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 12px; border-color: transparent transparent transparent #fff; margin-left: 2px; }
-.mark-sm.mark-yt::before { border-width: 4px 0 4px 7px; margin-left: 1px; }
-.mark-nf { background: #141414; color: #e50914; font-size: 22px; font-family: Georgia, serif; }
-.mark-sm.mark-nf { font-size: 13px; }
-.mark-hd { background: #1f1b16; color: #f2a33c; font-size: 13px; letter-spacing: 0.02em; }
-.mark-sm.mark-hd { font-size: 9px; }
+.mark > svg { display: block; width: 100%; height: 100%; }
 
 /* editions */
 .editions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 32px; }
@@ -1158,9 +1207,12 @@ footer.site {
   .mtab { font-size: 13px; gap: 6px; }
   .mslide { flex-direction: column; align-items: stretch; gap: 14px; }
   .mviz { display: none; }
-  /* The full video URL is wider than the pill at this width — one ellipsized
-     line, never a wrap. min-width:0 lets the flex item actually shrink. */
-  .url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* The window dots go — pure decoration, and the three site names are worth
+     more than they are. All three tabs keep their names: measured, the strip
+     needs ~273px and the card offers 290px even on a 360px phone. */
+  .demo-chrome { padding: 9px 10px 0; gap: 6px; }
+  .demo-chrome .dots { display: none; }
+  .dtab { padding: 7px 11px; font-size: 12px; }
   .steps, .features, .privacy, .editions { grid-template-columns: 1fr; }
   .pillars { grid-template-columns: 1fr; gap: 10px; max-width: 340px; }
   .auth-card { padding: 24px 20px; }
@@ -1217,4 +1269,10 @@ footer.site {
   .btn-login { padding: 8px 10px; font-size: 13px; }
   .mnav summary { padding: 8px 10px; min-width: 40px; }
   .mnav-panel { top: 50px; }
+  /* Only here do three named tabs actually overrun the card (~273px needed
+     against 250px available at 320px). Tighten the tabs rather than hide the
+     names: the sites are the point of the strip. */
+  .demo-chrome { padding: 9px 6px 0; }
+  .dtab { padding: 7px 8px; gap: 5px; font-size: 11.5px; }
+  .dfav { width: 13px; height: 13px; }
 }

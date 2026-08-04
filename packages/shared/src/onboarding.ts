@@ -9,8 +9,15 @@
 // site renders /welcome/ and /uninstall/ once per language under /<lang>/,
 // but there is no server-side Accept-Language redirect, so a hardcoded link
 // can only ever point at one fixed path — English is that path's owner.
-const WELCOME_URL = 'https://lingogram.ai/welcome/';
-const UNINSTALL_URL = 'https://lingogram.ai/uninstall/';
+//
+// The host comes from the same build-time base URL the auth flow uses
+// (EXT_FRONTEND_BASE_URL, defaulting to https://lingogram.ai), so a build
+// aimed at preprod or a local server sends its onboarding tabs there too
+// rather than bouncing the tester back to production.
+import { config } from './auth/config';
+
+const WELCOME_URL = `${config.frontendBaseUrl}/welcome/`;
+const UNINSTALL_URL = `${config.frontendBaseUrl}/uninstall/`;
 
 export function installOnboarding(ext: 'youtube' | 'netflix' | 'rezka' | 'web'): void {
     chrome.runtime.onInstalled.addListener((details) => {
