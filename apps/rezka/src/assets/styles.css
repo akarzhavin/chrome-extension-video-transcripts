@@ -1,4 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+/* Design tokens. One accent, one success, one danger, one hairline scale —
+   declared on :root so every surface the extension injects (sidebar, player
+   menu, quick-add pill, auth panel, rate card) reads the same values instead of
+   each re-inventing its own blue. Scoped to custom properties only: nothing
+   here styles host-page elements.
+
+   The accent is Lingogram's brand indigo-violet rather than the generic
+   #4da3ff it replaces — it stays legible against the dark glass panel and
+   matches the toolbar mascot. */
+:root {
+    --vtt-accent: #7c8dff;
+    --vtt-accent-strong: #6b7bff;
+    --vtt-accent-quiet: rgba(124, 141, 255, 0.16);
+    --vtt-accent-hover: rgba(124, 141, 255, 0.3);
+    --vtt-accent-border: rgba(124, 141, 255, 0.32);
+    --vtt-accent-border-strong: rgba(124, 141, 255, 0.55);
+    --vtt-accent-ring: rgba(124, 141, 255, 0.55);
+    --vtt-accent-text: #dfe4ff;
+
+    --vtt-success: #34d399;
+    /* Text weight of the success hue. The base #34d399 sits at ~4.4:1 once it
+       is drawn ON the success tint (the "saved" badge does exactly that), so
+       label text uses this lighter step instead. */
+    --vtt-success-text: #6ee7b7;
+    --vtt-success-quiet: rgba(52, 211, 153, 0.16);
+    --vtt-success-border: rgba(52, 211, 153, 0.4);
+
+    --vtt-danger: #f87171;
+
+    /* Text ramp. --vtt-text-dim is the floor for anything readable: at the
+       10-12px the group headers use, lighter than this drops under 4.5:1 on
+       the panel's dark glass. */
+    --vtt-text: #e9eaee;
+    --vtt-text-soft: rgba(255, 255, 255, 0.72);
+    --vtt-text-dim: rgba(255, 255, 255, 0.62);
+
+    --vtt-hairline: rgba(255, 255, 255, 0.08);
+    --vtt-hairline-strong: rgba(255, 255, 255, 0.15);
+
+    /* 0.86, not the old 0.75: the panel floats over arbitrary video, so a
+       bright frame shows through and lifts the effective background. At 0.75 a
+       white frame put --vtt-text-dim at 4.15:1 — under the 4.5:1 floor through
+       no fault of the text colour. 0.86 holds every ramp step above 4.5:1 in
+       the worst case while still reading as glass. */
+    --vtt-panel: rgba(25, 25, 25, 0.86);
+    --vtt-panel-solid: #1b1c20;
+
+    /* Type stack. This file used to open with an @import of Inter from
+       fonts.googleapis.com, which fired a third-party request from every
+       YouTube, Netflix and HDrezka page the extension touches — leaking the
+       user's IP to Google on pages they never asked us to phone home from, and
+       blocking first paint on the network. Self-hosting the real face costs
+       272KB of woff2 (latin + latin-ext + cyrillic, two weights) in every
+       content script, a poor trade for something the system stacks already
+       approximate closely at the 11-14px this UI lives at — and the native UI
+       font is what the host players' own controls use, so the panel sits in
+       the page instead of announcing itself. */
+    --vtt-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
 
 #vtt-sidebar {
     position: fixed;
@@ -6,16 +64,20 @@
     right: 0;
     width: 320px;
     height: 100vh;
-    background-color: rgba(25, 25, 25, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: var(--vtt-panel);
+    /* 10px, not 16: this pane is 320px x 100vh sitting over a playing video, so
+       the blur is recomputed every frame the page repaints. The visual
+       difference above ~10px is imperceptible through 75% opacity; the GPU cost
+       is not. */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-left: 1px solid var(--vtt-hairline);
     color: #e0e0e0;
     z-index: 2147483647;
     display: flex;
     flex-direction: column;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--vtt-font);
     font-size: 14px;
     box-sizing: border-box;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -47,10 +109,10 @@
     transform: translateY(-50%);
     width: 40px;
     height: 60px;
-    background-color: rgba(25, 25, 25, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: var(--vtt-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--vtt-hairline);
     border-right: none;
     border-radius: 8px 0 0 8px;
     cursor: pointer;
@@ -108,19 +170,30 @@
     letter-spacing: 0.5px;
 }
 
+/* A real <button> (it opens the settings takeover), so it needs the button
+   reset the old <div> never did — and a 32px box so the 20px gear clears the
+   24px minimum pointer target. */
 #vtt-settings-btn {
     position: absolute;
-    right: 20px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
     cursor: pointer;
-    color: #999;
+    color: #a9adb8;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s;
+    transition: color 0.2s, background-color 0.2s;
 }
 
 #vtt-settings-btn:hover {
     color: #fff;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 #vtt-settings-btn svg {
@@ -168,16 +241,19 @@
     align-items: center;
     gap: 3px;
     cursor: pointer;
-    color: #4da3ff;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    color: var(--vtt-accent);
     font-size: 12.5px;
     font-weight: 500;
-    padding: 4px 8px 4px 4px;
+    padding: 6px 8px 6px 4px;
     border-radius: 6px;
     transition: background 0.15s;
 }
 
 #vtt-back-btn:hover {
-    background: rgba(77, 163, 255, 0.12);
+    background: var(--vtt-accent-quiet);
 }
 
 #vtt-back-btn svg {
@@ -187,6 +263,38 @@
 
 #vtt-sidebar.vtt-settings-open #vtt-back-btn {
     display: flex;
+}
+
+/* Baseline keyboard-focus ring for every control in the panel. Individual
+   controls (quick-mode segments, the language chip) override it with an inset
+   or offset ring where a plain outline would be clipped by their own overflow,
+   but nothing is left with the browser default the dark glass swallows. */
+#vtt-sidebar button:focus-visible,
+#vtt-sidebar select:focus-visible,
+#vtt-sidebar [role='button']:focus-visible,
+#vtt-toggle-btn:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring);
+    outline-offset: 2px;
+}
+
+/* Account strip and its popup panel (built in packages/shared/src/content/
+   auth-status-badge.ts). The buttons are inline-styled there — these rules add
+   only the interaction states inline styles cannot express. */
+.lingogram-auth-btn {
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.lingogram-auth-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lingogram-auth-btn--primary:hover:not(:disabled) {
+    background: var(--vtt-accent-strong);
+}
+
+.lingogram-auth-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
 }
 
 /* ===== Settings panel v2: labeled groups (Languages / Reading mode /
@@ -209,7 +317,7 @@
     font-weight: 600;
     letter-spacing: 1.3px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.36);
+    color: var(--vtt-text-dim);
 }
 
 .vtt-group-head svg {
@@ -231,14 +339,14 @@
     letter-spacing: 0.8px;
     text-transform: uppercase;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.36);
+    color: var(--vtt-text-dim);
     padding: 2px 4px;
     border-radius: 4px;
     transition: color 0.15s;
 }
 
 .vtt-reset:hover {
-    color: #4da3ff;
+    color: var(--vtt-accent);
 }
 
 /* -- Languages group: labeled select fields -- */
@@ -257,7 +365,7 @@
 
 .vtt-field-label {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.56);
+    color: var(--vtt-text-soft);
 }
 
 .vtt-select-wrap {
@@ -270,7 +378,7 @@
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
-    color: rgba(255, 255, 255, 0.36);
+    color: var(--vtt-text-dim);
     display: flex;
 }
 
@@ -284,8 +392,8 @@
     -webkit-appearance: none;
     width: 100%;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e9eaee;
+    border: 1px solid var(--vtt-hairline-strong);
+    color: var(--vtt-text);
     border-radius: 7px;
     padding: 7px 26px 7px 10px;
     font-size: 12.5px;
@@ -300,7 +408,7 @@
 }
 
 .vtt-select:focus {
-    border-color: rgba(77, 163, 255, 0.55);
+    border-color: var(--vtt-accent-border-strong);
 }
 
 /* Grouped language picker (Netflix): the native popup lists an "available in
@@ -310,14 +418,14 @@
    the two groups read clearly. macOS renders an OS-native popup that ignores
    most of this — harmless there. */
 .vtt-select optgroup {
-    background: #1b1c20;
+    background: var(--vtt-panel-solid);
     color: #8b8f99;
     font-weight: 600;
 }
 
 .vtt-select option {
-    background: #1b1c20;
-    color: #e9eaee;
+    background: var(--vtt-panel-solid);
+    color: var(--vtt-text);
     font-weight: 400;
 }
 
@@ -337,14 +445,14 @@
     align-items: center;
     gap: 8px;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e9eaee;
+    border: 1px solid var(--vtt-hairline-strong);
+    color: var(--vtt-text);
     border-radius: 7px;
     padding: 8px 10px;
     font-size: 12.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
     font-family: inherit;
 }
 
@@ -369,8 +477,8 @@
 }
 
 .vtt-mode.active {
-    background: rgba(77, 163, 255, 0.15);
-    border-color: rgba(77, 163, 255, 0.55);
+    background: var(--vtt-accent-quiet);
+    border-color: var(--vtt-accent-border-strong);
     color: #dcebff;
 }
 
@@ -385,14 +493,14 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.36);
-    transition: all 0.2s;
+    background: var(--vtt-text-dim);
+    transition: background-color 0.2s, box-shadow 0.2s;
     flex: none;
 }
 
 .vtt-mode.active .vtt-mode-dot {
-    background: #4da3ff;
-    box-shadow: 0 0 7px #4da3ff;
+    background: var(--vtt-accent);
+    box-shadow: 0 0 7px var(--vtt-accent);
 }
 
 /* Momentary swap feedback: half-turn of the arrows icon. */
@@ -436,11 +544,14 @@
 
 /* Visible micro-label: the cluster names itself without hover. */
 .vtt-qm-label {
-    font-size: 9.5px;
+    /* 10px and a lighter grey than the old 9.5px/#8d92a8, which measured
+       3.73:1 — the smallest type in the panel needs the most contrast, not the
+       least. */
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #8d92a8;
+    color: var(--vtt-text-dim);
     padding: 0 4px 0 9px;
     flex: none;
     -webkit-user-select: none;
@@ -510,7 +621,7 @@
     width: 27px;
     height: 27px;
     border-radius: 999px;
-    background: linear-gradient(180deg, #5aa8ff, #3d7fe6);
+    background: linear-gradient(180deg, var(--vtt-accent), var(--vtt-accent-strong));
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s ease;
     opacity: 0;
@@ -552,29 +663,29 @@
 
 .vtt-modeseg .vtt-qm:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.7);
+    box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
 /* On-screen: independent toggle, so a standalone filled+ring button (not part
    of the segment). Focus ring declared AFTER .active (equal specificity —
    source order decides) so an active button keeps its ring. */
 .vtt-qm-toggle.active {
-    background: rgba(77, 163, 255, 0.26);
+    background: var(--vtt-accent-hover);
     color: #eaf6ff;
-    box-shadow: inset 0 0 0 1px rgba(77, 163, 255, 0.4);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
 }
 
 .vtt-qm-toggle.active:hover {
-    background: rgba(77, 163, 255, 0.34);
+    background: var(--vtt-accent-hover);
 }
 
 .vtt-qm-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.5);
+    box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
 .vtt-qm-toggle.active:focus-visible {
-    box-shadow: inset 0 0 0 1px rgba(77, 163, 255, 0.4), 0 0 0 2px rgba(77, 163, 255, 0.55);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border), 0 0 0 2px var(--vtt-accent-border-strong);
 }
 
 /* Hairline: exclusive mode choice (left) vs. independent overlay toggle. */
@@ -698,7 +809,7 @@
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--vtt-text-dim);
     letter-spacing: 0.5px;
     opacity: 0;
     pointer-events: none;
@@ -729,7 +840,7 @@
 
 .vtt-style-label {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.56);
+    color: var(--vtt-text-soft);
     white-space: nowrap;
 }
 
@@ -765,7 +876,7 @@
     gap: 5px;
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.56);
+    color: var(--vtt-text-soft);
     cursor: pointer;
     border-radius: 6px;
     padding: 5px 4px;
@@ -776,7 +887,7 @@
 }
 
 .vtt-seg-btn:hover {
-    color: #e9eaee;
+    color: var(--vtt-text);
 }
 
 .vtt-seg-btn.active {
@@ -801,9 +912,11 @@
     align-items: center;
 }
 
+/* 24px, the WCAG 2.2 minimum target size (2.5.8) — at this scale the swatch
+   reads the same as the old 22px, so the clearance is free. */
 .vtt-swatch {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
@@ -819,7 +932,7 @@
 }
 
 .vtt-swatch.active {
-    box-shadow: 0 0 0 2px #1b1c20, 0 0 0 4px #4da3ff;
+    box-shadow: 0 0 0 2px var(--vtt-panel-solid), 0 0 0 4px var(--vtt-accent);
 }
 
 .vtt-swatch svg {
@@ -841,6 +954,24 @@
     .vtt-mode svg,
     .vtt-swatch,
     .vtt-swatch svg {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    /* The panel slide and the tab's arrow flip are the biggest movements in
+       this UI, so they belong here more than the thumbs above do. The sidebar
+       still appears and disappears — it just arrives rather than travels.
+       Everything inside the panel is covered too: a reduced-motion request is
+       about movement in general, not only the animations we happened to think
+       of. Colour and opacity still CHANGE — they just change instantly, so
+       hover and active states stay fully legible. */
+    #vtt-sidebar,
+    #vtt-sidebar *,
+    #vtt-toggle-btn,
+    #vtt-toggle-btn svg,
+    #vtt-video-overlay,
+    #vtt-ytp-menu,
+    #vtt-ytp-menu * {
         transition: none !important;
         animation: none !important;
     }
@@ -874,7 +1005,7 @@
     border: 1px solid rgba(255, 255, 255, 0.02);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
     line-height: 1.5;
     word-wrap: break-word;
     color: #b0b0b0;
@@ -890,14 +1021,17 @@
     transform: translateY(1px);
 }
 
+/* The active line is marked by fill, weight and a full hairline — not by a
+   thick accent bar down one edge. Two reasons: the bar is the tired "AI card"
+   tell, and because it only existed while active it changed the item's box
+   width, nudging every line sideways as playback advanced through the
+   transcript. The border is now the same 1px in all four directions, so the
+   geometry is identical active or not, and only colour moves. */
 .vtt-item.active-sub {
-    background-color: rgba(0, 122, 204, 0.2);
+    background-color: var(--vtt-accent-quiet);
     color: #ffffff;
     font-weight: 600;
-    border-left: 4px solid #4da3ff;
-    border-right: 1px solid rgba(0, 122, 204, 0.3);
-    border-top: 1px solid rgba(0, 122, 204, 0.3);
-    border-bottom: 1px solid rgba(0, 122, 204, 0.3);
+    border: 1px solid var(--vtt-accent-border);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -907,7 +1041,9 @@
 
 .vtt-sub-text {
     font-size: 13px;
-    color: #999;
+    /* Was #999, which measured 4.04:1 on the active line's tinted background —
+       under the floor for a row the user reads on every subtitle. */
+    color: var(--vtt-text-soft);
     margin-top: 6px;
     padding-top: 6px;
     border-top: 1px dashed rgba(255, 255, 255, 0.15);
@@ -929,13 +1065,18 @@
     color: #fff;
 }
 
+/* "Every word uncovered" in guess mode. Carried by the border colour rather
+   than a 4px bar, for the same layout-stability reason as .active-sub above —
+   a solved line must not resize. The border alone is enough: this marks a line
+   the user already finished, so it should recede, not compete with the line
+   that is currently playing. Only the active-and-solved case gets a tint. */
 .vtt-item.fully-revealed {
-    border-left: 4px solid #4caf50;
+    border-color: var(--vtt-success-border);
 }
 
 .vtt-item.fully-revealed.active-sub {
-    border-left: 4px solid #66bb6a;
-    background-color: rgba(76, 175, 80, 0.15);
+    border-color: var(--vtt-success);
+    background-color: var(--vtt-success-quiet);
 }
 
 #vtt-video-overlay {
@@ -1064,8 +1205,8 @@
     gap: 8px;
     padding: 5px 13px;
     border-radius: 999px;
-    background: rgba(0, 122, 204, 0.18);
-    border: 1px solid rgba(77, 163, 255, 0.32);
+    background: var(--vtt-accent-quiet);
+    border: 1px solid var(--vtt-accent-border);
     font-size: 12px;
     font-weight: 600;
     color: #dbeafe;
@@ -1099,15 +1240,15 @@
 }
 
 #vtt-langpair .vtt-langpair-inner:hover {
-    background: rgba(0, 122, 204, 0.3);
-    border-color: rgba(77, 163, 255, 0.55);
+    background: var(--vtt-accent-border);
+    border-color: var(--vtt-accent-border-strong);
 }
 
 #vtt-langpair:focus-visible { outline: none; }
 
 #vtt-langpair:focus-visible .vtt-langpair-inner {
-    border-color: rgba(77, 163, 255, 0.75);
-    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.35);
+    border-color: var(--vtt-accent-ring);
+    box-shadow: 0 0 0 2px var(--vtt-accent-quiet);
 }
 
 #vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
@@ -1134,7 +1275,9 @@
 #vtt-status .vtt-empty-state-text {
     font-size: 12px;
     line-height: 1.5;
-    color: #9ca3af;
+    /* These two blocks are the onboarding explainer and the "subtitles didn't
+       load" recovery text — the moments where the user most needs to read. */
+    color: var(--vtt-text-soft);
 }
 
 #vtt-lang-onboarding .vtt-lang-onboarding-text {
@@ -1168,30 +1311,31 @@
 
 #vtt-lang-onboarding select:focus {
     outline: none;
-    border-color: #4da3ff;
+    border-color: var(--vtt-accent);
 }
 
 /* Rich "Subtitles didn't load" banner with the player-menu illustration.
    Selectors are scoped with #vtt-status to outweigh the plain banner's
    id-specificity rules (background/button colors). */
 #vtt-status.vtt-status--rich {
-    border-color: rgba(124, 90, 255, 0.32);
-    background: linear-gradient(180deg, rgba(124, 90, 255, 0.12), rgba(34, 211, 238, 0.04) 55%, rgba(255, 255, 255, 0.03));
+    border-color: var(--vtt-accent-border);
+    background: linear-gradient(180deg, var(--vtt-accent-quiet), rgba(255, 255, 255, 0.03) 60%);
 }
 
+/* Solid, not gradient-filled. This heading names a failure the user has to
+   read and act on; clipping a two-stop gradient into the glyphs costs
+   contrast at the ends of the run and buys decoration the message does not
+   want. Emphasis here comes from size and weight, which the base rule sets. */
 #vtt-status.vtt-status--rich .vtt-empty-state-title {
-    background: linear-gradient(90deg, #b39dff, #5fe3f5);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--vtt-accent-text);
 }
 
 #vtt-status .vtt-empty-state-figure {
     margin: 12px 0 2px;
     padding: 10px;
     border-radius: 12px;
-    border: 1px solid rgba(124, 90, 255, 0.22);
-    background: radial-gradient(120% 120% at 50% 0%, rgba(124, 90, 255, 0.20), rgba(34, 211, 238, 0.05) 60%, transparent);
+    border: 1px solid var(--vtt-accent-border);
+    background: radial-gradient(120% 120% at 50% 0%, var(--vtt-accent-quiet), transparent 65%);
 }
 
 #vtt-status .vtt-empty-state-figure svg {
@@ -1224,7 +1368,7 @@
 }
 
 #vtt-status .vtt-empty-state-steps li::marker {
-    color: #4da3ff;
+    color: var(--vtt-accent);
     font-weight: 600;
 }
 
@@ -1485,7 +1629,7 @@
        2300 YouTube gives its own popups. A bigger number buys nothing: this is
        #movie_player's stacking context, not the page's. */
     z-index: 2300;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--vtt-font);
     font-size: 13px;
     line-height: 1.4;
     color: #e8e8ea;
@@ -1530,7 +1674,7 @@
 }
 .vtt-ytp-row:focus-visible {
     outline: none;
-    box-shadow: inset 0 0 0 2px rgba(77, 163, 255, 0.6);
+    box-shadow: inset 0 0 0 2px var(--vtt-accent-ring);
 }
 .vtt-ytp-row:disabled {
     opacity: 0.38;
@@ -1617,7 +1761,7 @@
     height: 15px;
     flex: none;
     opacity: 0;
-    color: #4da3ff;
+    color: var(--vtt-accent);
 }
 .vtt-ytp-row--radio[aria-checked='true'] .vtt-ytp-check {
     opacity: 1;

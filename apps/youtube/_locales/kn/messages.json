@@ -242,5 +242,65 @@
   "ytTogglePanel": {
     "message": "ಪ್ಯಾನೆಲ್ ತೋರಿಸಿ ಅಥವಾ ಮರೆಮಾಡಿ",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Lingogram ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "lingogram ನಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "ಸೈನ್ ಔಟ್",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "ಸೈನ್ ಇನ್ ಆಗಿದೆ",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "ಈ ಖಾತೆಯಲ್ಲಿ ಸೈನ್ ಇನ್ ಆಗಿದೆ",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "ಸೈನ್ ಇನ್ ಪುಟವನ್ನು ತೆರೆಯಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "ಉಳಿಸಲಾಗಿದೆ: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "ಪದಗಳನ್ನು ಉಳಿಸಲು ಉಪಶೀರ್ಷಿಕೆ ಪಟ್ಟಿಯ ಮೇಲಿನ Lingogram ಸಾಲಿನಿಂದ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "ಉಳಿಸಲಾಗಲಿಲ್ಲ: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(ಇಮೇಲ್ ತಿಳಿದಿಲ್ಲ)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "ಆಯ್ಕೆಮಾಡಿ…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "ನಾನು ಕಲಿಯುತ್ತಿರುವುದು",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "ನನ್ನ ಮಾತೃಭಾಷೆ",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

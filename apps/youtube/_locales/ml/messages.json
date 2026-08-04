@@ -242,5 +242,65 @@
   "ytTogglePanel": {
     "message": "പാനൽ കാണിക്കുക അല്ലെങ്കിൽ മറയ്ക്കുക",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "സൈൻ ഔട്ട്",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "ഇങ്ങനെ സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "സൈൻ ഇൻ പേജ് തുറക്കാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "സംരക്ഷിച്ചു: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "വാക്കുകൾ സംരക്ഷിക്കാൻ സബ്‌ടൈറ്റിൽ പട്ടികയ്ക്ക് മുകളിലുള്ള Lingogram വരിയിലൂടെ സൈൻ ഇൻ ചെയ്യുക.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "സംരക്ഷിക്കാനായില്ല: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "ലോഡ് ചെയ്യുന്നു…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(ഇമെയിൽ അജ്ഞാതം)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "തിരഞ്ഞെടുക്കുക…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "ഞാൻ പഠിക്കുന്നത്",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "എന്റെ മാതൃഭാഷ",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

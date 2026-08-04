@@ -29,7 +29,7 @@ export type TrackRole = 'learning' | 'native';
 
 export interface SidebarElements {
   sidebar?: HTMLDivElement;
-  settingsBtn?: HTMLDivElement;
+  settingsBtn?: HTMLButtonElement;
   settingsPanel?: HTMLDivElement;
   mainSelect?: HTMLSelectElement;
   subSelect?: HTMLSelectElement;
@@ -51,7 +51,7 @@ export interface SidebarElements {
   // Settings-takeover navigation: header title (swaps Subtitles ↔ Settings)
   // and the "‹ Subtitles" back chip.
   titleEl?: HTMLHeadingElement;
-  backBtn?: HTMLDivElement;
+  backBtn?: HTMLButtonElement;
   // Quick-mode bar in the sub-header (icon-only Dual/Guess/On-screen; swap
   // lives on the language-pair chip). Dual/Guess share a segmented radio
   // control (quickModesSeg) whose sliding thumb tracks the selection.

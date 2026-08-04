@@ -44,7 +44,9 @@ describe('SidebarUI', () => {
             sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
             overlayBtn: { classList: { toggle: jest.fn() } } as any,
             dualBtn: { classList: { toggle: jest.fn() } } as any,
-            settingsBtn: { style: { display: 'none' } } as any,
+            // A real <button>: it carries aria-expanded and takes focus, neither
+            // of which a bare style stub can do.
+            settingsBtn: document.createElement('button'),
             mainSelect: { innerHTML: '', appendChild: jest.fn() } as any,
             subSelect: { innerHTML: '', appendChild: jest.fn() } as any
         };

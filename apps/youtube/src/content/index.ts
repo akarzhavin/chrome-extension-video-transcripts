@@ -618,9 +618,16 @@ function injectLayoutOverrides(): void {
         body.vtt-sidebar-active:has(#vtt-sidebar:not(.collapsed):not(.fullscreen)) #masthead-container.ytd-app {
             width: calc(100vw - 320px) !important;
         }
-        body.vtt-sidebar-active ytd-app {
-            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        /* The width change itself is what makes room for the sidebar, so it
+           stays — but it is NOT animated. Transitioning width on ytd-app runs a
+           full layout + paint of YouTube's entire app tree on every frame for
+           the duration, next to a playing video, and YouTube's own JS relayouts
+           on the resize events it produces. The sidebar's 0.4s translateX slide
+           (compositor-only) already carries the motion; the page settling to
+           its new width underneath reads as instant rather than janky.
+
+           prefers-reduced-motion is respected by the sidebar's own transform
+           rule; nothing here animates, so there is nothing to disable. */
         ${SIDEBAR_CHROME_CSS}
     `;
     (document.head || document.documentElement).appendChild(style);
