@@ -175,13 +175,65 @@
     "message": "ಇತರ ಭಾಷೆಗಳು",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Lingogram ಇಷ್ಟವಾಯಿತೇ? ವೆಬ್ ಸ್ಟೋರ್‌ನಲ್ಲಿ ಒಂದು ಸಣ್ಣ ರೇಟಿಂಗ್ ಇತರರಿಗೆ ಇದನ್ನು ಹುಡುಕಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "ರೇಟ್ ಮಾಡಿ",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram ಇಷ್ಟವಾಯಿತೇ?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "ಇಲ್ಲಿಯವರೆಗೆ ಸಾಕಷ್ಟು ಪದಗಳನ್ನು ಉಳಿಸಿದ್ದೀರಿ.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "ವೆಬ್ ಸ್ಟೋರ್‌ನಲ್ಲಿ ನಿಮ್ಮ ರೇಟಿಂಗ್ ನಮಗೆ ತುಂಬಾ ಮುಖ್ಯ. ಹೀಗೆಯೇ ಇತರರು ನಮ್ಮನ್ನು ಕಂಡುಕೊಳ್ಳುತ್ತಾರೆ.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "ಹೌದು!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "ಅಷ್ಟೇನೂ ಇಲ್ಲ",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "ತಿಳಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "ಇದರಲ್ಲಿ ಏನು ಕೊರತೆ?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "ಏನು ಸರಿ ಅನಿಸಲಿಲ್ಲ? ಏನು ಬದಲಿಸುತ್ತೀರಿ?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "ಧನ್ಯವಾದ, ಇದು ನಿಜಕ್ಕೂ ಸಹಾಯವಾಗುತ್ತದೆ.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "ಕಳಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೊಮ್ಮೆ?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "ಬೇಡ",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "ಕಳಿಸಿ",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "ಕಳಿಸುತ್ತಿದ್ದೇವೆ…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "ಕೇಳಿ ಸಂತೋಷವಾಯಿತು",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "ಈಗ ಬೇಡ",

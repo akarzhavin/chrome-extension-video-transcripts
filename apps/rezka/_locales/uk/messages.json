@@ -167,13 +167,37 @@
     "message": "Налаштування",
     "description": "Sidebar header title while the settings panel is open."
   },
-  "ytRatePromptText": {
-    "message": "Подобається Lingogram? Швидка оцінка у Web Store допоможе іншим його знайти.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "Оцінити",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Подобається Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Ти вже зберіг чимало слів.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "Будемо дуже вдячні, якщо оціниш нас у Web Store. Так Lingogram знаходять інші.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Так!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Не дуже",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "Дякуємо, що сказав.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateThanksYes": {
+    "message": "Приємно чути",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "Не зараз",
@@ -238,5 +262,57 @@
   "ytPopupNative": {
     "message": "Моя рідна мова",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Чого бракує?",
+    "description": "Heading of the feedback form shown after a negative answer to the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Що пішло не так? Що б ти змінив?",
+    "description": "Placeholder text inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Дякуємо, це справді важливо.",
+    "description": "Confirmation shown for two seconds after the feedback is sent successfully."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Не надіслалося. Ще раз?",
+    "description": "Error shown when sending the feedback failed; the user can retry."
+  },
+  "ytSavedBadge": {
+    "message": "збережено",
+    "description": "Inline badge appended to a word right after it is saved."
+  },
+  "ytSignInToSave": {
+    "message": "Увійди, щоб зберігати слова",
+    "description": "Prompt on the sidebar auth badge for signed-out users."
+  },
+  "ytWordsSaved": {
+    "message": "Збережено слів: {count}",
+    "description": "Saved-word counter. {count} is substituted in code, not a Chrome placeholder."
+  },
+  "ytTogglePanel": {
+    "message": "Показати або сховати панель",
+    "description": "Accessible label for the sidebar show/hide tab."
+  },
+  "ytLangGroupAvailable": {
+    "message": "Є в цьому відео",
+    "description": "Group heading for subtitle languages this video actually carries."
+  },
+  "ytLangGroupOther": {
+    "message": "Інші мови",
+    "description": "Group heading for the remaining selectable languages."
+  },
+  "ytRateSkip": {
+    "message": "Пропустити",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Надіслати",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Надсилаємо…",
+    "description": "Submit button label while the feedback is in flight."
   }
 }

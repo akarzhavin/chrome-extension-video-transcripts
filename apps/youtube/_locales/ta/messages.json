@@ -175,13 +175,65 @@
     "message": "பிற மொழிகள்",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Lingogram பிடித்திருக்கிறதா? வெப் ஸ்டோரில் ஒரு சிறு மதிப்பீடு மற்றவர்களுக்கு இதைக் கண்டறிய உதவும்.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "மதிப்பிடு",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram பிடித்திருக்கிறதா?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "இதுவரை நிறைய சொற்களைச் சேமித்துவிட்டீர்கள்.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "வெப் ஸ்டோரில் உங்கள் மதிப்பீடு எங்களுக்கு மிகவும் முக்கியம். அப்படித்தான் மற்றவர்கள் எங்களைக் கண்டறிகிறார்கள்.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "ஆம்!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "அவ்வளவாக இல்லை",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "சொன்னதற்கு நன்றி.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "எதுவெல்லாம் குறை?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "என்ன சரியில்லை? எதை மாற்றுவீர்கள்?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "நன்றி, இது உண்மையில் உதவும்.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "அனுப்ப முடியவில்லை. மீண்டும்?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "வேண்டாம்",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "அனுப்பு",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "அனுப்புகிறோம்…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "கேட்க மகிழ்ச்சி",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "இப்போது வேண்டாம்",

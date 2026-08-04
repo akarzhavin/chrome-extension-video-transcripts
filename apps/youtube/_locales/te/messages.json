@@ -175,13 +175,65 @@
     "message": "ఇతర భాషలు",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Lingogram నచ్చిందా? వెబ్ స్టోర్‌లో ఒక చిన్న రేటింగ్ ఇతరులకు దీన్ని కనుగొనడంలో సహాయపడుతుంది.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "రేటింగ్ ఇవ్వండి",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram నచ్చిందా?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "ఇప్పటికే మీరు చాలా పదాలు సేవ్ చేశారు.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "వెబ్ స్టోర్‌లో మీ రేటింగ్ మాకు ఎంతో విలువైనది. అలాగే ఇతరులు మమ్మల్ని కనుగొంటారు.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "అవును!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "అంతగా లేదు",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "చెప్పినందుకు ధన్యవాదాలు.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "ఇందులో ఏం తక్కువ?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "ఏం నచ్చలేదు? దేన్ని మారుస్తారు?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "ధన్యవాదాలు, ఇది నిజంగా ఉపయోగపడుతుంది.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "పంపలేకపోయాం. మళ్లీనా?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "వద్దు",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "పంపండి",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "పంపుతున్నాం…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "వినడం సంతోషం",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "ఇప్పుడు వద్దు",
