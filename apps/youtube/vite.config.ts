@@ -15,19 +15,27 @@ const env = process.env.EXT_ENV ?? 'prod';
 const isDev = env === 'dev';
 
 const FRONTEND_BASE_URL = process.env.EXT_FRONTEND_BASE_URL ?? 'https://lingogram.ai';
+
 // The manifest match pattern for a non-production frontend, or '' when this
 // build targets production (whose origins the manifest already lists).
 // localhost is excluded too: the manifest carries those entries already, and
 // they are deliberately stripped from prod builds just below.
-const FRONTEND_ORIGIN_MATCH = (() => {
-  if (FRONTEND_BASE_URL === 'https://lingogram.ai') return '';
+const originMatch = (baseUrl: string, varName: string): string => {
+  if (!baseUrl || baseUrl === 'https://lingogram.ai') return '';
   try {
-    const { origin, hostname } = new URL(FRONTEND_BASE_URL);
+    const { origin, hostname } = new URL(baseUrl);
     return hostname === 'localhost' || hostname === '127.0.0.1' ? '' : `${origin}/*`;
   } catch {
-    throw new Error(`EXT_FRONTEND_BASE_URL is not a valid URL: ${FRONTEND_BASE_URL}`);
+    throw new Error(`${varName} is not a valid URL: ${baseUrl}`);
   }
-})();
+};
+
+const FRONTEND_ORIGIN_MATCH = originMatch(FRONTEND_BASE_URL, 'EXT_FRONTEND_BASE_URL');
+// Second origin for the dev-only backend switch, when a build is given one.
+const ALT_ORIGIN_MATCH = originMatch(
+  process.env.EXT_ALT_FRONTEND_BASE_URL ?? '',
+  'EXT_ALT_FRONTEND_BASE_URL',
+);
 
 const EXT_SOURCE = 'youtube-extension';
 const limits = loadLingogramLimits();
@@ -53,6 +61,14 @@ const buildDefines = {
   // the live site so their "Sign in" flow works without running the SPA.
   __FRONTEND_BASE_URL__: JSON.stringify(FRONTEND_BASE_URL),
   __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
+  // Optional SECOND target for the dev-only backend switch (see
+  // packages/shared/src/auth/devEnvSwitch.ts). Supplied at build time only —
+  // no environment's project id, key, or host is stored in this repo. Empty
+  // in every build that isn't handed them, which leaves the switch inert.
+  // Dropped from prod bundles: devEnvSwitch sits behind an __EXT_ENV__ guard.
+  __EXT_ALT_PROJECT_ID__: JSON.stringify(process.env.EXT_ALT_PROJECT_ID ?? ''),
+  __EXT_ALT_API_KEY__: JSON.stringify(process.env.EXT_ALT_API_KEY ?? ''),
+  __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_ALT_FRONTEND_BASE_URL ?? ''),
   ...limitDefines(limits),
 };
 
@@ -131,10 +147,14 @@ export default defineConfig(({ command, mode }) => {
                 // the sign-in handoff is a chrome.runtime message from the
                 // page, and externally_connectable is an allow-list, so
                 // without this the auth flow silently never connects.
-                if (FRONTEND_ORIGIN_MATCH) {
+                // ALT_ORIGIN_MATCH is the dev-only switch's second target: the
+                // manifest is static, so a build that cannot name both origins
+                // up front can move its data plane but never complete a
+                // sign-in on the other side.
+                for (const origin of [FRONTEND_ORIGIN_MATCH, ALT_ORIGIN_MATCH]) {
+                  if (!origin) continue;
                   const add = (list: string[] | undefined) =>
-                    list && !list.includes(FRONTEND_ORIGIN_MATCH)
-                      ? [...list, FRONTEND_ORIGIN_MATCH] : list;
+                    list && !list.includes(origin) ? [...list, origin] : list;
                   if (manifest.externally_connectable?.matches) {
                     manifest.externally_connectable.matches =
                       add(manifest.externally_connectable.matches);

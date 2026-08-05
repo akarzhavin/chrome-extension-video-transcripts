@@ -1,4 +1,8 @@
 import { config } from './config';
+// Static, not dynamic: a dynamic import() makes Vite emit sibling .mjs chunks
+// that an MV3 service worker cannot load. Static keeps one file, and the
+// __EXT_ENV__ literal guards below still drop this module from prod bundles.
+import { handleDevAction, restoreEnv } from './devEnvSwitch';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
 import {
@@ -23,7 +27,11 @@ export type AuthAction =
     | 'OPEN_LINGOGRAM'
     | 'ADD_WORD'
     | 'REPORT_NO_SUBS'
-    | 'SEND_FEEDBACK';
+    | 'SEND_FEEDBACK'
+    // Dev-only backend switch. The names are declared for type-checking only;
+    // the values live in ./devEnvSwitch so prod bundles never carry them.
+    | 'DEV_SET_ENV'
+    | 'DEV_GET_ENV';
 
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
@@ -36,7 +44,11 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
-    return typeof action === 'string' && (AUTH_ACTIONS as ReadonlySet<string>).has(action);
+    if (typeof action !== 'string') return false;
+    if ((AUTH_ACTIONS as ReadonlySet<string>).has(action)) return true;
+    // Dev actions are matched by prefix rather than by name, so no dev action
+    // string appears in a prod bundle. Folds away entirely in prod builds.
+    return __EXT_ENV__ === 'dev' && action.startsWith('DEV_');
 }
 
 export interface AuthMessage {
@@ -80,7 +92,18 @@ function isAuthFailure(err: unknown): boolean {
     );
 }
 
+// Dev builds may be pointed at preprod; restoring that choice is async while
+// the message listener is registered synchronously, so a request arriving
+// during a cold service-worker start could otherwise be served against prod.
+// Awaiting here — a resolved promise after the first call — closes that race.
+// Compiled out of prod builds: __EXT_ENV__ is a literal, so the guard folds.
+let envRestored: Promise<void> | null = null;
+
 export async function handleAuthMessage(request: AuthMessage): Promise<unknown> {
+    if (__EXT_ENV__ === 'dev') {
+        envRestored ??= restoreEnv();
+        await envRestored;
+    }
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();
@@ -190,8 +213,18 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 return { ok: false };
             }
         }
-        default:
+        default: {
+            // Dev-only actions live in their own module so their very NAMES
+            // stay out of prod bundles: a `case 'DEV_SET_ENV'` here would
+            // survive minification as a dead branch, advertising the mechanism
+            // even though its body was stripped. The guard folds to false in
+            // prod and the import is never emitted.
+            if (__EXT_ENV__ === 'dev') {
+                const handled = await handleDevAction(request);
+                if (handled) return handled.result;
+            }
             throw new Error(`unknown action: ${request.action}`);
+        }
     }
 }
 

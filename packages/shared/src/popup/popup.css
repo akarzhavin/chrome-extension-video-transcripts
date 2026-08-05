@@ -188,15 +188,3 @@ input:focus-visible {
     color: var(--lg-text);
     font-family: inherit;
 }
-
-.env-badge {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--lg-warn-bg);
-    color: var(--lg-warn-text);
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-}

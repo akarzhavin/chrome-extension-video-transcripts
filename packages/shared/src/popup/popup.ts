@@ -1,4 +1,3 @@
-import { isDev } from '../auth/config';
 import { msg as i18nMsg } from '../i18n';
 import {
     SUPPORTED_LANGUAGES,
@@ -50,12 +49,6 @@ function render(root: HTMLElement, state: ViewState): void {
 
     const title = document.createElement('h1');
     title.textContent = 'Lingogram';
-    if (isDev) {
-        const badge = document.createElement('span');
-        badge.className = 'env-badge';
-        badge.textContent = 'dev';
-        title.appendChild(badge);
-    }
     root.appendChild(title);
 
     if (state.loading) {
