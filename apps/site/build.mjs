@@ -124,9 +124,11 @@ const makeT = (strings) => (key, vars) => {
 
 // ---------------------------------------------------------------- fragments
 
-// The brand mark is the shipped extension icon (apps/rezka/src/assets/icons/
-// icon1254.png, downscaled into src/assets/logo.png). It already carries its
-// own rounded-square backdrop, so .logo-mark is just a sizing box around it.
+// The brand mark is the extension icon, downscaled into src/assets/logo.png.
+// The 1254px master lives in apps/rezka/promo/icon1254.png — it is a listing
+// asset, not a shipped one, and must stay out of src/assets/icons/, which is
+// copied into both extensions wholesale. It already carries its own
+// rounded-square backdrop, so .logo-mark is just a sizing box around it.
 const CHAMELEON = (size) =>
   `<img class="logo-img" src="/logo.png" width="${size}" height="${size}" alt="" aria-hidden="true">`;
 
