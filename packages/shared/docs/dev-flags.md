@@ -165,8 +165,34 @@ in `packages/shared/src/SidebarUI.ts`.
 `npm run build` runs `packages/shared/assert-shippable.mjs` between the build and
 the zip, and **refuses to write the zip** for anything that must not reach the
 Web Store: a compiled-in dev switch, a non-production Firebase project, a
-localhost origin, a non-production origin in the manifest, or a placeholder
-version (`0.0.0`/`1.0.0`, which is what you get running vite outside npm).
+localhost origin, a placeholder version (`0.0.0`/`1.0.0`, which is what you get
+running vite outside npm), or a manifest whose origins are not the expected ones.
+
+The gate runs before the zip is deleted, so a refusal leaves any existing
+release archive untouched.
+
+Manifest origins are checked against a **fixed list**, not a suspicious-looking
+pattern — a pattern only catches the bad origins someone thought of, while an
+exact list also catches the ones nobody anticipated:
+
+- `externally_connectable` is pinned exactly. It is the shortest and most
+  dangerous list in the manifest: every origin on it can hand the extension a
+  signed-in user's SSO token, so an unexpected entry is a security finding.
+  A *missing* entry is flagged too — sign-in would simply not connect.
+- `host_permissions` is checked in halves. The infrastructure origins
+  (identitytoolkit, securetoken, firestore) are pinned exactly. Content-site
+  origins are matched by pattern, because Rezka alone ships ~250 mirror domains
+  and that list grows whenever a mirror appears — pinning those would make the
+  gate fail on routine edits, and a gate that cries wolf stops being read.
+
+  The pattern is deliberately narrow: those 250 entries are only a handful of
+  second-level **names** (`rezka`, `hdrezka`) spread across 177 flat TLDs, so
+  the name is pinned and only the zone is free. A single TLD label, no second
+  dot — otherwise `hdrezka.evil.com` would pass as a mirror. A genuinely new
+  zone needs no gate edit; a lookalike domain does not get in.
+
+Both lists live at the top of `assert-shippable.mjs`. Adding a genuinely new
+backend means editing them — deliberately, in a reviewed diff.
 
 It inspects the build output rather than the env vars that produced it. Env vars
 are what people get wrong; the artifact is what actually ships, and it is the one

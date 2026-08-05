@@ -76,8 +76,62 @@ function backendProblems() {
         : [`it targets Firebase project "${m[1]}", not lingogram-prod`];
 }
 
-// The manifest is checked separately: origins live only there, and a bad one
-// silently widens what can talk to the extension.
+// What a shipped manifest is allowed to say. Checked against a fixed list
+// rather than a "looks suspicious" pattern: a pattern only catches the bad
+// origins someone thought of, while an exact list also catches the ones nobody
+// anticipated — a new staging host, a colleague's tunnel, a typo'd domain.
+//
+// externally_connectable is pinned EXACTLY. It is the shortest and most
+// dangerous list in the manifest: every origin on it can hand this extension a
+// signed-in user's SSO token, so an unexpected entry is a security finding, not
+// a style problem.
+const ALLOWED_EXTERNALLY_CONNECTABLE = ['https://lingogram.ai/*'];
+
+// host_permissions is checked in two halves. The infrastructure origins (the
+// backends the extension calls) are pinned exactly; the content-site origins
+// are not, because Rezka alone ships ~250 mirror domains and that list changes
+// whenever a mirror appears. Pinning those would make the gate fail on routine
+// edits, and a gate that cries wolf stops being read.
+const ALLOWED_INFRA_HOSTS = [
+    'https://identitytoolkit.googleapis.com/*',
+    'https://securetoken.googleapis.com/*',
+    'https://firestore.googleapis.com/*',
+];
+
+// Content sites the extension reads subtitles on. Rezka ships ~250 entries, but
+// they are only a handful of NAMES across many TLDs (hdrezka.ag, hdrezka.to,
+// rezka.ru, …), so the second-level name is pinned and only the zone is free.
+// That is what keeps a lookalike like "rezka-evil.com" from passing as a mirror
+// while a genuinely new zone still needs no gate edit.
+const CONTENT_SITE_NAMES = [
+    'youtube.com',
+    'netflix.com',
+    'voidboost.com',
+    'rezka-ua.tv',
+    'hdrezka-home.tv',
+];
+const CONTENT_SITE_WILDCARD_NAMES = ['rezka', 'hdrezka'];
+
+// A single TLD label only — no second dot. Allowing one would let
+// "hdrezka.evil.com" pass as a mirror, and the real list uses none: all 177
+// zones are flat (.ag, .to, .xn--p1ai). If a mirror ever needs a multi-label
+// zone like .co.uk, add it here explicitly rather than loosening this.
+const ZONE = String.raw`[a-z]{2,}|xn--[a-z0-9]+`;
+const CONTENT_ORIGIN_RE = new RegExp(
+    `^\\*?(https?|\\*)://(\\*\\.)?(` +
+    CONTENT_SITE_NAMES.map((n) => n.replace(/\./g, '\\.')).join('|') +
+    `|(${CONTENT_SITE_WILDCARD_NAMES.join('|')})\\.(${ZONE})` +
+    `)/`,
+);
+
+// An origin belongs to a content site rather than to our own infrastructure.
+// Everything else must be on the infra allow-list above.
+function isContentSiteOrigin(origin) {
+    return CONTENT_ORIGIN_RE.test(origin);
+}
+
+// The manifest is checked separately from the bundles: origins live only there,
+// and a bad one silently widens what is allowed to talk to the extension.
 function manifestProblems(dir) {
     const problems = [];
     let manifest;
@@ -87,14 +141,34 @@ function manifestProblems(dir) {
         return ['manifest.json is missing or unreadable'];
     }
 
-    const origins = [
-        ...(manifest.externally_connectable?.matches ?? []),
-        ...(manifest.host_permissions ?? []),
-    ];
-    const bad = origins.filter(
-        (o) => o.includes('localhost') || o.includes('127.0.0.1') || /\/\/(?!lingogram\.ai)[a-z0-9-]+\.lingogram\.ai/.test(o),
+    const ext = manifest.externally_connectable?.matches ?? [];
+    const extUnexpected = ext.filter((o) => !ALLOWED_EXTERNALLY_CONNECTABLE.includes(o));
+    const extMissing = ALLOWED_EXTERNALLY_CONNECTABLE.filter((o) => !ext.includes(o));
+    if (extUnexpected.length) {
+        problems.push(
+            `externally_connectable lists origins that must not ship: ${extUnexpected.join(', ')}\n` +
+            '      Every origin here can hand the extension a signed-in user\'s SSO token.',
+        );
+    }
+    if (extMissing.length) {
+        // Not a security problem, but a broken build: sign-in cannot complete.
+        problems.push(`externally_connectable is missing ${extMissing.join(', ')} — sign-in would not connect`);
+    }
+
+    const hosts = manifest.host_permissions ?? [];
+    const infraUnexpected = hosts.filter(
+        (o) => !isContentSiteOrigin(o) && !ALLOWED_INFRA_HOSTS.includes(o),
     );
-    if (bad.length) problems.push(`manifest allows non-production origins: ${bad.join(', ')}`);
+    if (infraUnexpected.length) {
+        problems.push(
+            `host_permissions lists non-production or unknown origins: ${infraUnexpected.join(', ')}\n` +
+            '      Expected only content sites plus: ' + ALLOWED_INFRA_HOSTS.join(', '),
+        );
+    }
+    const infraMissing = ALLOWED_INFRA_HOSTS.filter((o) => !hosts.includes(o));
+    if (infraMissing.length) {
+        problems.push(`host_permissions is missing ${infraMissing.join(', ')} — auth or saving would fail`);
+    }
 
     if (manifest.version === '0.0.0' || manifest.version === '1.0.0') {
         problems.push(
