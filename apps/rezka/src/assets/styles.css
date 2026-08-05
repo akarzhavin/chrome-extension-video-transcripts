@@ -349,6 +349,45 @@
     color: var(--vtt-accent);
 }
 
+/* Dev-only backend banner, pinned at the very top of the sidebar. Absent from
+   shipped builds: the code that creates it sits behind an __EXT_ENV__ literal
+   guard. Deliberately loud — it is the only signal of which backend a dev build
+   writes to, and the earlier quiet chip inside Settings was missed entirely. */
+#vtt-env-switch {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: filter 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+#vtt-env-switch:hover:not(:disabled) { filter: brightness(1.12); }
+#vtt-env-switch:active:not(:disabled) { filter: brightness(0.94); }
+#vtt-env-switch:disabled { opacity: 0.75; cursor: default; }
+
+/* Keyed on what the backend IS, not which slot the build put it in: only real
+   user data earns the alarm colour. The safe target still gets a solid bar —
+   the point is to always know which one you are on, not only when it is bad. */
+#vtt-env-switch[data-env='live'] {
+    background: var(--vtt-danger);
+    color: #240b0b;
+}
+
+#vtt-env-switch[data-env='safe'] {
+    background: var(--vtt-accent);
+    color: #10122b;
+}
+
 /* -- Languages group: labeled select fields -- */
 #vtt-track-selectors {
     display: flex;

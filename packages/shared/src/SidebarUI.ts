@@ -144,6 +144,23 @@ export class SidebarUI {
         const header = document.createElement('div');
         header.id = 'vtt-header';
 
+        // Dev-only backend switch, pinned above the title — not tucked into the
+        // settings panel, where it sat below the fold and got missed. This is
+        // the only thing telling you whether a dev build is writing to real
+        // user data, so it is meant to be impossible to overlook.
+        //
+        // Guarded on the __EXT_ENV__ literal, which Vite replaces before
+        // minification, so the block is unreachable — and dropped — in shipped
+        // builds.
+        if (__EXT_ENV__ === 'dev') {
+            const envBtn = document.createElement('button');
+            envBtn.id = 'vtt-env-switch';
+            envBtn.type = 'button';
+            envBtn.textContent = 'backend: …';
+            header.appendChild(envBtn);
+            this.wireEnvSwitch(envBtn);
+        }
+
         const headerTop = document.createElement('div');
         headerTop.id = 'vtt-header-top';
         // Localized via the shared i18n helper (honors the demo override, then
@@ -630,6 +647,62 @@ export class SidebarUI {
 
     // Restores the default overlay appearance with a single storage write so
     // other tabs converge in one onPrefsChanged tick.
+    /**
+     * Dev-only: show which backend this build talks to, and switch it.
+     *
+     * Lives in the sidebar because that is where you actually look while
+     * testing — the toolbar popup is two clicks away and easy to forget.
+     * Colour follows the DATA, not the build slot: only real user data earns
+     * the alarm colour, so an accidental write to production is hard to make
+     * without noticing.
+     *
+     * Failure is shown, never swallowed: a switch that silently fails to
+     * report leaves you believing you are on preprod when you are not.
+     */
+    private wireEnvSwitch(btn: HTMLButtonElement): void {
+        if (__EXT_ENV__ !== 'dev') return;
+        type Info = { side: 'home' | 'away'; label: string; canSwitch: boolean; isProd?: boolean };
+        let info: Info | null = null;
+
+        const paint = (i: Info) => {
+            info = i;
+            btn.textContent = i.canSwitch ? `backend: ${i.label}  ⇄` : `backend: ${i.label}`;
+            btn.dataset.env = i.isProd ? 'live' : 'safe';
+            btn.disabled = !i.canSwitch;
+            btn.title = i.canSwitch
+                ? `${i.isProd ? 'REAL user data. ' : ''}Click to switch (signs you out).`
+                : 'This build was given no second target to switch to.';
+        };
+
+        const ask = (msgObj: object) =>
+            new Promise<Info>((resolve, reject) => {
+                chrome.runtime.sendMessage(msgObj, (res) => {
+                    const err = chrome.runtime.lastError;
+                    if (err) reject(new Error(err.message));
+                    else resolve(res as Info);
+                });
+            });
+
+        void ask({ action: 'DEV_GET_ENV' })
+            .then(paint)
+            .catch((err) => {
+                console.warn('[Lingogram] dev env probe failed:', err);
+                paint({ side: 'home', label: 'env?', canSwitch: false });
+            });
+
+        btn.addEventListener('click', () => {
+            if (!info?.canSwitch) return;
+            const next = info.side === 'away' ? 'home' : 'away';
+            btn.disabled = true;
+            void ask({ action: 'DEV_SET_ENV', side: next })
+                .then(paint)
+                .catch((err) => {
+                    console.warn('[Lingogram] dev env switch failed:', err);
+                    btn.disabled = false;
+                });
+        });
+    }
+
     private resetOverlayStyle(): void {
         this.overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
         this.applyOverlayStyle();

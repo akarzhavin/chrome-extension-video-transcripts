@@ -7,6 +7,11 @@
 (global as any).__FIRESTORE_URL__ = 'http://localhost:8080';
 (global as any).__FRONTEND_BASE_URL__ = 'http://localhost:5173';
 (global as any).__EXT_SOURCE__ = 'rezka-extension';
+// No second target in tests: the dev backend switch stays inert, which is also
+// what a checkout with no credentials gets.
+(global as any).__EXT_ALT_PROJECT_ID__ = '';
+(global as any).__EXT_ALT_API_KEY__ = '';
+(global as any).__EXT_ALT_FRONTEND_BASE_URL__ = '';
 (global as any).__LIMIT_MAX_WORDS_PER_DAY__ = 500;
 (global as any).__LIMIT_MIN_INTERVAL_MS__ = 1000;
 (global as any).__LIMIT_MAX_TERM_BYTES__ = 256;
