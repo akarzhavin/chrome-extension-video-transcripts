@@ -139,16 +139,21 @@ function injectSavedWordStyles(): void {
     style.textContent = `
         .vtt-saved-word {
             border-radius: 4px; padding: 0 2px;
-            background: rgba(77,163,255,0.18);
-            box-shadow: inset 0 -2px 0 rgba(77,163,255,0.85);
+            background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
+            box-shadow: inset 0 -2px 0 var(--vtt-accent, #7c8dff);
         }
         .vtt-saved-badge {
-            margin-left: 7px; padding: 1px 7px; border-radius: 999px;
+            /* inline-block so the margin actually separates it from the word:
+               as a plain inline the badge butted straight against the last
+               glyph ("teeming✓ saved"), because the word spans carry no
+               trailing whitespace of their own. */
+            display: inline-block;
+            margin: 0 4px 0 7px; padding: 1px 7px; border-radius: 999px;
             font-size: 10px; font-weight: 700; vertical-align: middle;
             white-space: nowrap;
-            color: #86efac;
-            background: rgba(34,197,94,0.16);
-            border: 1px solid rgba(34,197,94,0.4);
+            color: var(--vtt-success-text, #6ee7b7);
+            background: var(--vtt-success-quiet, rgba(52,211,153,0.16));
+            border: 1px solid var(--vtt-success-border, rgba(52,211,153,0.4));
         }
     `;
     (document.head ?? document.documentElement).appendChild(style);
@@ -182,18 +187,25 @@ function showToast(text: string, ok: boolean): void {
     const t = document.createElement('div');
     t.id = TOAST_ID;
     t.textContent = text;
+    // The result of saving a word is announced, not just shown: this is the
+    // only confirmation the action worked, and it disappears in 2.5s. Errors
+    // interrupt ('assertive'); a successful save waits its turn ('polite').
+    t.setAttribute('role', ok ? 'status' : 'alert');
+    t.setAttribute('aria-live', ok ? 'polite' : 'assertive');
     Object.assign(t.style, {
         position: 'fixed',
         right: '20px',
         bottom: '20px',
         zIndex: '2147483647',
+        maxWidth: 'min(360px, calc(100vw - 40px))',
         padding: '10px 14px',
         borderRadius: '8px',
-        background: ok ? 'rgba(22,163,74,0.95)' : 'rgba(185,28,28,0.95)',
+        background: ok ? 'rgba(6,78,59,0.96)' : 'rgba(127,29,29,0.96)',
+        border: `1px solid ${ok ? 'var(--vtt-success-border)' : 'rgba(248,113,113,0.45)'}`,
         color: '#fff',
         fontSize: '13px',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        fontFamily: 'var(--vtt-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
     } as CSSStyleDeclaration);
     (document.fullscreenElement ?? document.body).appendChild(t);
     setTimeout(() => t.remove(), 2500);
@@ -217,86 +229,358 @@ function reviewUrl(): string | null {
     }
 }
 
-function showRatePrompt(): void {
-    const url = reviewUrl();
-    if (!url) return; // no runtime id (e.g. promo demo) — silently skip
-    document.getElementById(RATE_ID)?.remove();
+// Styles live in an injected sheet (same pattern as injectSavedWordStyles)
+// because the card needs :hover states and an entrance animation — neither is
+// expressible as inline styles. Every value is lifted from the sidebar's own
+// system (apps/rezka/src/assets/styles.css): the panel base, the neutral
+// action pills, the --vtt-accent token, the 12px/#9ca3af body. The card reads as
+// Lingogram UI because it is built from Lingogram's parts.
+function injectRatePromptStyles(): void {
+    if (document.getElementById('lingogram-rate-style')) return;
+    const style = document.createElement('style');
+    style.id = 'lingogram-rate-style';
+    style.textContent = `
+        @keyframes lingogram-rate-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: none; }
+        }
+        #${RATE_ID} {
+            position: fixed; right: 20px; bottom: 20px; z-index: 2147483647;
+            width: 268px; padding: 16px; box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: #191919;
+            color: #e5e7eb; font-size: 12px; line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            animation: lingogram-rate-in 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #${RATE_ID} { animation-name: none; }
+        }
+        #${RATE_ID} .lingogram-rate-title {
+            font-size: 15px; font-weight: 600; color: #f3f4f6; margin-bottom: 6px;
+        }
+        #${RATE_ID} .lingogram-rate-text {
+            font-size: 12px; line-height: 1.5; color: #9ca3af;
+        }
+        #${RATE_ID} .lingogram-rate-row {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 8px; margin-top: 14px;
+        }
+        #${RATE_ID} .lingogram-rate-action {
+            display: inline-block; line-height: 1.5;
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f3f4f6;
+            font-size: 12px; font-weight: 600; font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        #${RATE_ID} .lingogram-rate-action:hover { background: rgba(255, 255, 255, 0.12); }
+        #${RATE_ID} .lingogram-rate-action:active { transform: scale(0.97); }
+        #${RATE_ID} .lingogram-rate-action--primary {
+            border-color: var(--vtt-accent-border-strong, rgba(124,141,255,0.55));
+            background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
+            color: #dbeafe;
+            text-decoration: none;
+        }
+        #${RATE_ID} .lingogram-rate-action--primary:hover { background: var(--vtt-accent-hover, rgba(124,141,255,0.3)); }
+        #${RATE_ID} .lingogram-rate-action:focus-visible {
+            outline: 2px solid var(--vtt-accent-ring, rgba(124,141,255,0.55)); outline-offset: 2px;
+        }
+        #${RATE_ID} .lingogram-rate-later {
+            padding: 6px 8px; border: 0; border-radius: 6px; cursor: pointer;
+            background: transparent; color: #9ca3af;
+            font-size: 12px; font-family: inherit; transition: color 0.15s;
+        }
+        #${RATE_ID} .lingogram-rate-later:hover { color: #f3f4f6; }
+        #${RATE_ID} .lingogram-rate-input {
+            display: block; box-sizing: border-box;
+            width: 100%; margin-top: 10px; padding: 8px 10px;
+            min-height: 68px; max-height: 160px; resize: vertical;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+            background: #1f1f1f; color: #f3f4f6;
+            font-size: 12px; line-height: 1.5; font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        #${RATE_ID} .lingogram-rate-input::placeholder { color: #6b7280; }
+        #${RATE_ID} .lingogram-rate-input:focus {
+            outline: none; border-color: var(--vtt-accent, #7c8dff);
+        }
+        #${RATE_ID} .lingogram-rate-counter {
+            margin-right: auto;
+            font-size: 11px; font-variant-numeric: tabular-nums;
+            color: #9ca3af;
+        }
+        #${RATE_ID} .lingogram-rate-action[disabled] {
+            opacity: 0.5; cursor: default;
+        }
+        #${RATE_ID} .lingogram-rate-action[disabled]:hover {
+            background: rgba(77, 163, 255, 0.16);
+        }
+    `;
+    (document.head ?? document.documentElement).appendChild(style);
+}
 
-    const card = document.createElement('div');
-    card.id = RATE_ID;
-    Object.assign(card.style, {
-        position: 'fixed',
-        right: '20px',
-        bottom: '20px',
-        zIndex: '2147483647',
-        maxWidth: '300px',
-        padding: '14px 16px',
-        borderRadius: '12px',
-        background: 'rgba(30,27,75,0.97)',
-        color: '#fff',
-        fontSize: '13px',
-        lineHeight: '1.45',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-        border: '1px solid rgba(129,140,248,0.35)',
-    } as CSSStyleDeclaration);
+// The question line names the product ("Enjoying Lingogram?"), so the card
+// needs no wordmark row of its own — the copy is the branding.
+function rateTitle(content: string): HTMLElement {
+    const title = document.createElement('div');
+    title.className = 'lingogram-rate-title';
+    title.textContent = content;
+    return title;
+}
 
+function rateText(content: string): HTMLElement {
     const text = document.createElement('div');
-    text.textContent = i18nMsg(
-        'ytRatePromptText',
-        'Enjoying Lingogram? A quick rating on the Web Store helps others find it.',
+    text.className = 'lingogram-rate-text';
+    text.textContent = content;
+    return text;
+}
+
+// Step 1: "Enjoying it?" — a yes/no gate so users who aren't happy never get
+// pointed at the store's review form (the classic rating funnel). "Yes" leads
+// to the ask step; "not really" just thanks them and closes.
+function renderRateAskStep(card: HTMLElement, url: string): void {
+    const row = document.createElement('div');
+    row.className = 'lingogram-rate-row';
+
+    const no = document.createElement('button');
+    no.className = 'lingogram-rate-action';
+    no.textContent = i18nMsg('ytRateNo', 'Not really');
+    no.addEventListener('click', () => renderRateFeedbackStep(card));
+
+    const yes = document.createElement('button');
+    yes.className = 'lingogram-rate-action lingogram-rate-action--primary';
+    yes.textContent = i18nMsg('ytRateYes', 'Yes!');
+    yes.addEventListener('click', () => renderRateStoreStep(card, url));
+
+    row.append(no, yes);
+    card.replaceChildren(
+        rateTitle(i18nMsg('ytRateQ', 'Enjoying Lingogram?')),
+        rateText(i18nMsg('ytRateQSub', "You've been saving words with it for a while.")),
+        row,
     );
-    text.style.marginBottom = '12px';
+}
+
+// Firestore counts UTF-8 BYTES, while a textarea's maxLength counts UTF-16
+// code units — so a 2000-char Russian message is 4000 bytes and would be
+// silently halved on send. Clamp on the real budget instead, and do it here
+// rather than importing the auth module's truncateBytes: that would pull the
+// whole Firestore/token stack into the content bundle for one helper.
+const MAX_FEEDBACK_BYTES = __LIMIT_MAX_FEEDBACK_TEXT_BYTES__;
+
+function utf8Len(s: string): number {
+    return new TextEncoder().encode(s).length;
+}
+
+/** Longest prefix of `s` that fits in `maxBytes`, never splitting a surrogate pair. */
+function clampToBytes(s: string, maxBytes: number): string {
+    if (utf8Len(s) <= maxBytes) return s;
+    let lo = 0;
+    let hi = s.length;
+    while (lo < hi) {
+        const mid = (lo + hi + 1) >>> 1;
+        if (utf8Len(s.slice(0, mid)) <= maxBytes) lo = mid;
+        else hi = mid - 1;
+    }
+    // Step back off a lone high surrogate — TextEncoder turns it into U+FFFD
+    // (3 bytes), which the search above would otherwise accept as valid.
+    while (lo > 0) {
+        const code = s.charCodeAt(lo - 1);
+        if (code >= 0xd800 && code <= 0xdbff) lo--;
+        else break;
+    }
+    return s.slice(0, lo);
+}
+
+// Shown for two seconds, then the card closes itself. Used by both endings.
+function renderRateClosing(card: HTMLElement, message: string): void {
+    const line = rateText(message);
+    line.setAttribute('role', 'status');
+    card.replaceChildren(line);
+    setTimeout(() => card.remove(), 2000);
+}
+
+// The "not really" branch. A dead end here would waste the one moment an
+// unhappy user is willing to talk, so the card asks what's wrong and takes the
+// answer inline — no mail client, no sign-in, no extra page. Sending is
+// deliberately best-effort and never blocks the user from just closing.
+function renderRateFeedbackStep(card: HTMLElement): void {
+    const input = document.createElement('textarea');
+    input.className = 'lingogram-rate-input';
+    input.rows = 3;
+    input.placeholder = i18nMsg('ytRateFeedbackHint', 'What went wrong? What would you change?');
+    input.setAttribute('aria-label', i18nMsg('ytRateFeedbackHint', 'What went wrong? What would you change?'));
 
     const row = document.createElement('div');
-    Object.assign(row.style, { display: 'flex', gap: '8px', justifyContent: 'flex-end' } as CSSStyleDeclaration);
+    row.className = 'lingogram-rate-row';
+
+    const skip = document.createElement('button');
+    skip.className = 'lingogram-rate-later';
+    skip.textContent = i18nMsg('ytRateSkip', 'Skip');
+    skip.addEventListener('click', () => card.remove());
+
+    // Only appears once the message is near the byte ceiling — a counter that
+    // is always on would read as a limit to hit rather than one to ignore.
+    const counter = document.createElement('div');
+    counter.className = 'lingogram-rate-counter';
+    counter.hidden = true;
+    counter.setAttribute('aria-live', 'polite');
+
+    const send = document.createElement('button');
+    send.className = 'lingogram-rate-action lingogram-rate-action--primary';
+    send.textContent = i18nMsg('ytRateSend', 'Send');
+    send.disabled = true;
+    input.addEventListener('input', () => {
+        // Hard-clamp on the real budget. Typing past the cap stops adding
+        // characters instead of letting the send path silently halve the text.
+        if (utf8Len(input.value) > MAX_FEEDBACK_BYTES) {
+            const caret = input.selectionStart ?? input.value.length;
+            const clamped = clampToBytes(input.value, MAX_FEEDBACK_BYTES);
+            const dropped = input.value.length - clamped.length;
+            input.value = clamped;
+            const next = Math.max(0, caret - dropped);
+            input.setSelectionRange(next, next);
+        }
+        const left = MAX_FEEDBACK_BYTES - utf8Len(input.value);
+        counter.hidden = left > 200;
+        counter.textContent = String(left);
+        send.disabled = input.value.trim().length === 0;
+    });
+    // Enter sends, Shift+Enter makes a newline — the message is usually one line.
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !send.disabled) {
+            e.preventDefault();
+            send.click();
+        }
+    });
+
+    send.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        send.disabled = true;
+        send.textContent = i18nMsg('ytRateSending', 'Sending…');
+        try {
+            const res = await sendMessage<{ ok: boolean }>({
+                action: 'SEND_FEEDBACK',
+                text,
+                site: location.hostname,
+                version: chrome.runtime.getManifest().version,
+                locale: chrome.i18n?.getUILanguage?.() ?? '',
+            });
+            if (!res?.ok) throw new Error('send failed');
+            renderRateClosing(card, i18nMsg('ytRateFeedbackSent', 'Thank you, this really helps.'));
+        } catch {
+            // Don't make the user retype: keep the text, let them try again.
+            send.disabled = false;
+            send.textContent = i18nMsg('ytRateSend', 'Send');
+            const err = card.querySelector('.lingogram-rate-error')
+                ?? (() => {
+                    const e = rateText(i18nMsg('ytRateFeedbackFailed', "Couldn't send. Try again?"));
+                    e.className = 'lingogram-rate-text lingogram-rate-error';
+                    e.setAttribute('role', 'alert');
+                    card.insertBefore(e, row);
+                    return e;
+                })();
+            (err as HTMLElement).style.marginTop = '8px';
+        }
+    });
+
+    row.append(counter, skip, send);
+    card.replaceChildren(
+        rateTitle(i18nMsg('ytRateFeedbackTitle', 'What would make it better?')),
+        input,
+        row,
+    );
+    input.focus();
+}
+
+// Step 2, only after an explicit yes. A plain link to the store's review page:
+// the rating itself is entered there. Showing pickable stars here would promise
+// a choice this card cannot carry — the URL takes no score, so every star would
+// open the same page and the user would have to rate again anyway.
+function renderRateStoreStep(card: HTMLElement, url: string): void {
+    const row = document.createElement('div');
+    row.className = 'lingogram-rate-row';
 
     const later = document.createElement('button');
+    later.className = 'lingogram-rate-later';
     later.textContent = i18nMsg('ytRateLater', 'Not now');
-    Object.assign(later.style, {
-        padding: '6px 12px', borderRadius: '8px', border: '0', cursor: 'pointer',
-        background: 'transparent', color: 'rgba(255,255,255,0.75)',
-        fontSize: '13px', fontFamily: 'inherit',
-    } as CSSStyleDeclaration);
     later.addEventListener('click', () => card.remove());
 
     const rate = document.createElement('a');
+    rate.className = 'lingogram-rate-action lingogram-rate-action--primary';
     rate.textContent = i18nMsg('ytRateButton', 'Rate it');
     rate.href = url;
     rate.target = '_blank';
     rate.rel = 'noopener noreferrer';
-    Object.assign(rate.style, {
-        padding: '6px 14px', borderRadius: '8px', cursor: 'pointer',
-        background: '#818cf8', color: '#1e1b4b', textDecoration: 'none',
-        fontSize: '13px', fontWeight: '700', fontFamily: 'inherit',
-    } as CSSStyleDeclaration);
     rate.addEventListener('click', () => card.remove());
 
     row.append(later, rate);
-    card.append(text, row);
+    card.replaceChildren(
+        rateTitle(i18nMsg('ytRateThanksYes', 'Glad to hear it')),
+        rateText(i18nMsg('ytRateStep2', 'A quick rating on the Web Store helps others find it.')),
+        row,
+    );
+}
+
+function showRatePrompt(): void {
+    const url = reviewUrl();
+    if (!url) return; // no runtime id (e.g. promo demo) — silently skip
+    injectRatePromptStyles();
+    document.getElementById(RATE_ID)?.remove();
+
+    const card = document.createElement('div');
+    card.id = RATE_ID;
+    renderRateAskStep(card, url);
     (document.fullscreenElement ?? document.body).appendChild(card);
 }
+
+// Half the pill's own width, used to centre it over the selection before
+// clamping. The pill is sized by its content, so this is an estimate that only
+// has to be close — the clamp below is what guarantees it stays on screen.
+const PILL_HALF_WIDTH = 50;
+const PILL_MARGIN = 8;
 
 function showPill(rect: DOMRect, term: string, context: string): void {
     removePill();
     const pill = document.createElement('button');
     pill.id = PILL_ID;
-    pill.textContent = '+ Lingogram';
+    pill.type = 'button';
+    pill.textContent = i18nMsg('ytQuickAddPill', '+ Lingogram');
+
+    // Clamp to the viewport on both axes. Selecting the first word of a line
+    // near the left edge used to push the pill off-screen (centre − 50 goes
+    // negative), and selecting in the on-screen overlay near the top of the
+    // video put it above y=0 — in both cases the only way to save the word
+    // vanished. Below the selection is the fallback when there's no room above.
+    const left = Math.min(
+        Math.max(PILL_MARGIN, Math.round(rect.left + rect.width / 2 - PILL_HALF_WIDTH)),
+        window.innerWidth - PILL_HALF_WIDTH * 2 - PILL_MARGIN,
+    );
+    const above = Math.round(rect.top - 32);
+    const top = above >= PILL_MARGIN ? above : Math.round(rect.bottom + 8);
+
     Object.assign(pill.style, {
         position: 'fixed',
-        left: `${Math.round(rect.left + rect.width / 2 - 50)}px`,
-        top: `${Math.round(rect.top - 32)}px`,
+        left: `${left}px`,
+        top: `${top}px`,
         zIndex: '2147483647',
-        padding: '4px 10px',
+        padding: '6px 12px',
         borderRadius: '999px',
-        border: '0',
-        background: '#2563eb',
-        color: '#fff',
+        border: '1px solid var(--vtt-accent-border-strong, rgba(124,141,255,0.55))',
+        background: 'var(--vtt-accent, #7c8dff)',
+        color: '#0a1129',
         fontSize: '12px',
         fontWeight: '600',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: 'var(--vtt-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)',
         cursor: 'pointer',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
     } as CSSStyleDeclaration);
 
     pill.addEventListener('mousedown', (e) => {
@@ -319,7 +603,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
             });
             console.log('[Lingogram] ADD_WORD ←', res);
             if (!res.ok) throw new Error(res.error ?? 'add failed');
-            showToast(`Added: ${term}`, true);
+            showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
             markSpansSaved(savedSpans);
             // Drop the range so the overlay's selection-guard releases and
             // resumes timeupdate rebuilds.
@@ -329,10 +613,10 @@ function showPill(rect: DOMRect, term: string, context: string): void {
         } catch (err) {
             const msg = String(err instanceof Error ? err.message : err);
             const friendly = /Not signed in|sign in via/i.test(msg)
-                ? 'Sign in via the Lingogram badge above the subtitle list.'
+                ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
                 : /reloaded/i.test(msg)
                 ? msg
-                : `Failed: ${msg}`;
+                : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
             showToast(friendly, false);
             console.warn('[Lingogram] add failed:', err);
         } finally {
@@ -365,6 +649,19 @@ function sendMessage<T>(msg: object): Promise<T> {
     });
 }
 
+// The rating prompt normally fires once per install, after 30 saved words — so
+// there is no way to look at it again without wiping chrome.storage. Append
+// `lingogram_rate=1` to the URL (query or hash: YouTube keeps the query,
+// HDrezka strips it but keeps the hash — see applyDevLocaleOverride) to render
+// the real card on demand. Compiled out of prod builds via the __EXT_ENV__
+// guard, and it neither bumps the counter nor burns the one-shot flag.
+function applyDevRatePromptOverride(): void {
+    if (__EXT_ENV__ !== 'dev') return;
+    if (!/[?#&]lingogram_rate=1\b/.test(location.href)) return;
+    showRatePrompt();
+    console.log('[dev] rate prompt forced via lingogram_rate=1');
+}
+
 /**
  * Returns a teardown. The extensions live for the page's lifetime and can
  * ignore it, but an embed (packages/embed) may remount — and without unbinding,
@@ -373,6 +670,7 @@ function sendMessage<T>(msg: object): Promise<T> {
  */
 export function installQuickAddOverlay(): () => void {
     injectSavedWordStyles();
+    applyDevRatePromptOverride();
     const onMouseUp = (): void => {
         // Defer so that selection is finalized after click on existing pill clearing it.
         setTimeout(() => {

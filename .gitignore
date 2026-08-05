@@ -46,3 +46,14 @@ competitor-extensions/
 # Local-only dev server that stitches the landing + SPA on one origin (mirrors
 # the prod firebase.json rewrite). Not shipped — CI builds and deploys the site.
 apps/site/dev-serve.mjs
+
+# Firebase deploy artifacts must never exist here. This repo builds the landing
+# page; it does NOT deploy it. The authoritative hosting config lives in the
+# english repo (frontend/firebase.json) and ships via frontend/.gitlab-ci.yml,
+# which copies apps/site/build/ to dist/ and the SPA to dist/app/ — one site,
+# one deploy. A hand-written firebase.json here has neither the SPA nor the
+# /extension-auth -> /app/extension-auth redirect table, and `firebase deploy`
+# replaces a site wholesale: deploying from this directory takes down the whole
+# web app. This happened on 2026-08-04. Deploy from the english repo instead.
+firebase.json
+.firebase/

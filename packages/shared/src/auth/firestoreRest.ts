@@ -7,6 +7,7 @@ import { AuthState, getAuthState, setAuthState } from './storage';
 const MAX_WORDS_PER_DAY = __LIMIT_MAX_WORDS_PER_DAY__;
 const MAX_TERM_BYTES = __LIMIT_MAX_TERM_BYTES__;
 const MAX_CONTEXT_BYTES = __LIMIT_MAX_CONTEXT_BYTES__;
+const MAX_FEEDBACK_TEXT_BYTES = __LIMIT_MAX_FEEDBACK_TEXT_BYTES__;
 
 const REFRESH_LEEWAY_MS = 60_000;
 
@@ -178,6 +179,103 @@ export function truncateBytes(s: string, maxBytes: number): string {
         else break;
     }
     return s.slice(0, lo);
+}
+
+export interface FeedbackInput {
+    /** What the user typed. Truncated to MAX_FEEDBACK_TEXT_BYTES before send. */
+    text: string;
+    /** Hostname the card was shown on. */
+    site: string;
+    /** Extension version (manifest). */
+    version: string;
+    /** Browser UI locale. */
+    locale: string;
+}
+
+// Free-text feedback from the rating prompt's "not really" branch.
+//
+// Unlike every other write here this one runs SIGNED OUT as well: the people
+// most worth hearing from are the ones who never made an account, and asking
+// them to sign in first would lose exactly that feedback. Auth, when present,
+// only stamps the uid so a reply is possible later.
+//
+// Signed-out writes cost us the per-user daily cap that guards /diagnostics
+// (no uid to pin a doc id to), so the cap is global: one counter doc per UTC
+// day that this commit must advance by exactly +1. The read-then-write is
+// racy by construction — two concurrent submissions compute the same next
+// count and one loses on the rule's getAfter() check. That is a dropped
+// message, not a corrupted counter, and the caller swallows it.
+export async function addFeedback(cfg: AuthConfig, input: FeedbackInput): Promise<void> {
+    const text = truncateBytes(input.text.trim(), MAX_FEEDBACK_TEXT_BYTES);
+    if (!text) throw new Error('empty feedback');
+
+    // Best-effort auth: a signed-in user gets their uid on the doc, a signed-out
+    // one (or one whose refresh fails) still gets to send.
+    let uid = '';
+    let idToken = '';
+    try {
+        const state = await ensureFreshToken(cfg);
+        uid = state.uid;
+        idToken = state.idToken;
+    } catch {
+        /* signed out — the rules allow this path with uid === '' */
+    }
+
+    const dayId = String(todayBucket());
+    const quotaName = `projects/${cfg.projectId}/databases/(default)/documents/feedbackQuota/${dayId}`;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+
+    // Read today's counter to compute the next value. A 404 means nobody has
+    // written today yet, so we open the day at 1.
+    const quotaRes = await fetch(
+        `${cfg.firestoreUrl}/v1/${quotaName}`,
+        { headers },
+    );
+    let nextCount = 1;
+    if (quotaRes.ok) {
+        const doc = (await quotaRes.json()) as FirestoreDocument;
+        const current = Number(doc.fields?.count?.integerValue ?? 0);
+        nextCount = (Number.isFinite(current) ? current : 0) + 1;
+    } else if (quotaRes.status !== 404) {
+        throw new Error(`Firestore feedbackQuota get ${quotaRes.status}`);
+    }
+
+    const writes: CommitWrite[] = [
+        {
+            update: {
+                // Id is pinned to `{day}_{count}` — the rules use it to stop N
+                // docs riding one counter bump (two would need the same id).
+                name: `projects/${cfg.projectId}/databases/(default)/documents/feedback/${dayId}_${nextCount}`,
+                fields: {
+                    text: { stringValue: text },
+                    uid: { stringValue: uid },
+                    site: { stringValue: truncateBytes(input.site, 100) },
+                    version: { stringValue: truncateBytes(input.version, 32) },
+                    locale: { stringValue: truncateBytes(input.locale, 16) },
+                    source: { stringValue: cfg.source },
+                },
+            },
+            currentDocument: { exists: false },
+            updateTransforms: [{ fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' }],
+        },
+        {
+            update: {
+                name: quotaName,
+                fields: { count: { integerValue: String(nextCount) } },
+            },
+            updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }],
+        },
+    ];
+
+    const res = await fetch(
+        `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents:commit`,
+        { method: 'POST', headers, body: JSON.stringify({ writes }) },
+    );
+    if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`Firestore feedback commit ${res.status}: ${body || res.statusText}`);
+    }
 }
 
 export interface NoSubsReportInput {

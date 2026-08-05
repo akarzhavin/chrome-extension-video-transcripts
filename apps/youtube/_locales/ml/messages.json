@@ -175,13 +175,65 @@
     "message": "മറ്റ് ഭാഷകൾ",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ? വെബ് സ്റ്റോറിലെ ഒരു ചെറിയ റേറ്റിംഗ് മറ്റുള്ളവർക്ക് ഇത് കണ്ടെത്താൻ സഹായിക്കും.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "റേറ്റ് ചെയ്യുക",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "ഇതിനകം ഒരുപാട് വാക്കുകൾ സേവ് ചെയ്തുകഴിഞ്ഞു.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "വെബ് സ്റ്റോറിലെ നിങ്ങളുടെ റേറ്റിംഗ് ഞങ്ങൾക്ക് വളരെ വിലപ്പെട്ടതാണ്. അങ്ങനെയാണ് മറ്റുള്ളവർ ഞങ്ങളെ കാണുന്നത്.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "അതെ!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "അത്ര ഇല്ല",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "പറഞ്ഞതിന് നന്ദി.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "എന്താണ് കുറവ്?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "എന്താണ് ശരിയാകാത്തത്? എന്ത് മാറ്റും?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "നന്ദി, ഇത് ശരിക്കും സഹായകമാണ്.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "അയക്കാനായില്ല. വീണ്ടും?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "വേണ്ട",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "അയക്കുക",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "അയക്കുന്നു…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "കേട്ടതിൽ സന്തോഷം",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "ഇപ്പോൾ വേണ്ട",
@@ -242,5 +294,65 @@
   "ytTogglePanel": {
     "message": "പാനൽ കാണിക്കുക അല്ലെങ്കിൽ മറയ്ക്കുക",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "സൈൻ ഔട്ട്",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "ഇങ്ങനെ സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "സൈൻ ഇൻ പേജ് തുറക്കാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "സംരക്ഷിച്ചു: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "വാക്കുകൾ സംരക്ഷിക്കാൻ സബ്‌ടൈറ്റിൽ പട്ടികയ്ക്ക് മുകളിലുള്ള Lingogram വരിയിലൂടെ സൈൻ ഇൻ ചെയ്യുക.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "സംരക്ഷിക്കാനായില്ല: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "ലോഡ് ചെയ്യുന്നു…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(ഇമെയിൽ അജ്ഞാതം)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "തിരഞ്ഞെടുക്കുക…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "ഞാൻ പഠിക്കുന്നത്",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "എന്റെ മാതൃഭാഷ",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

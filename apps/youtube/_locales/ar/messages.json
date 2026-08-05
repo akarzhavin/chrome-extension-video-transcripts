@@ -175,13 +175,65 @@
     "message": "لغات أخرى",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "هل يعجبك Lingogram؟ تقييم سريع على متجر الويب يساعد الآخرين على اكتشافه.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "قيّم الآن",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "هل يعجبك Lingogram؟",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "حفظت عددًا لا بأس به من الكلمات حتى الآن.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "تقييمك في متجر الويب يعني لنا الكثير، فبه يعثر علينا متعلمون آخرون.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "نعم!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "ليس تمامًا",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "شكرًا لإخبارنا.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "ما الذي ينقصه؟",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "ما الذي لم يعجبك؟ وما الذي تغيّره؟",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "شكرًا لك، هذا يفيدنا كثيرًا.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "لم يُرسَل. نعيد المحاولة؟",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "تخطٍّ",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "إرسال",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "جارٍ الإرسال…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "يسعدنا سماع ذلك",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "ليس الآن",
@@ -242,5 +294,65 @@
   "ytTogglePanel": {
     "message": "إظهار اللوحة أو إخفاؤها",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "تسجيل الدخول إلى Lingogram",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "تسجيل الدخول على lingogram",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "تسجيل الخروج",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "تم تسجيل الدخول",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "تم تسجيل الدخول باسم",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "تعذّر فتح صفحة تسجيل الدخول. حاول مرة أخرى.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "تم الحفظ: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "سجّل الدخول من صف Lingogram أعلى قائمة الترجمة لحفظ الكلمات.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "تعذّر الحفظ: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "جارٍ التحميل…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(بريد إلكتروني غير معروف)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "اختر…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "أتعلّم",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "لغتي الأم",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

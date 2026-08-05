@@ -37,6 +37,11 @@ function closePanel(): void {
     document.getElementById(PANEL_ID)?.remove();
 }
 
+/** "{count} words saved" in the user's locale — the same key the demo chip uses. */
+function wordsSavedLabel(count: number): string {
+    return i18nMsg('ytWordsSaved', '{count} words saved').replace('{count}', String(count));
+}
+
 function panelBase(): HTMLDivElement {
     return el('div', { id: PANEL_ID }, {
         position: 'absolute',
@@ -59,13 +64,13 @@ function panelBase(): HTMLDivElement {
 }
 
 function primaryButton(text: string): HTMLButtonElement {
-    return el('button', { textContent: text }, {
+    return el('button', { textContent: text, className: 'lingogram-auth-btn lingogram-auth-btn--primary' }, {
         width: '100%',
         padding: '7px 9px',
         marginTop: '2px',
-        border: '0',
+        border: '1px solid var(--vtt-accent-border-strong)',
         borderRadius: '5px',
-        background: '#4da3ff',
+        background: 'var(--vtt-accent)',
         color: '#0a1929',
         fontSize: '12px',
         fontWeight: '600',
@@ -74,10 +79,10 @@ function primaryButton(text: string): HTMLButtonElement {
 }
 
 function ghostButton(text: string): HTMLButtonElement {
-    return el('button', { textContent: text }, {
+    return el('button', { textContent: text, className: 'lingogram-auth-btn' }, {
         width: '100%',
         padding: '7px 9px',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
+        border: '1px solid var(--vtt-hairline-strong)',
         borderRadius: '5px',
         background: 'transparent',
         color: '#e0e0e0',
@@ -90,19 +95,21 @@ function ghostButton(text: string): HTMLButtonElement {
 function showSignInPanel(badge: HTMLElement): void {
     closePanel();
     const panel = panelBase();
-    const errEl = el('div', {}, { color: '#f87171', fontSize: '11px', marginTop: '6px', display: 'none' });
+    const errEl = el('div', { role: 'alert' }, {
+        color: 'var(--vtt-danger)', fontSize: '11px', marginTop: '6px', display: 'none',
+    });
 
     // Always-available: open Lingogram in a new tab and let the user sign in
     // through the regular web UI; the page POSTs tokens back to us via
     // chrome.runtime.sendMessage (externally_connectable in manifest).
-    const viaLingogram = primaryButton('Sign in on lingogram');
+    const viaLingogram = primaryButton(i18nMsg('ytAuthSignInAction', 'Sign in on lingogram'));
     viaLingogram.style.padding = '9px 10px';
     viaLingogram.addEventListener('click', async () => {
         viaLingogram.disabled = true;
         errEl.style.display = 'none';
         try {
             const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
-            if (!res.ok) throw new Error(res.error ?? 'Failed to open auth tab');
+            if (!res.ok) throw new Error(res.error ?? i18nMsg('ytAuthOpenFailed', "Couldn't open the sign-in page. Try again."));
             closePanel();
         } catch (err) {
             errEl.textContent = String(err instanceof Error ? err.message : err);
@@ -111,28 +118,29 @@ function showSignInPanel(badge: HTMLElement): void {
         }
     });
 
-    const title = el('div', { textContent: 'Sign in to Lingogram' }, {
+    const title = el('div', { textContent: i18nMsg('ytAuthSignInTitle', 'Sign in to Lingogram') }, {
         fontWeight: '600', marginBottom: '10px', color: '#fff',
     });
     panel.append(title, viaLingogram, errEl);
     badge.appendChild(panel);
+    viaLingogram.focus();
 }
 
 function showSignedInPanel(badge: HTMLElement, status: AuthStatus): void {
     closePanel();
     const panel = panelBase();
 
-    const label = el('div', { textContent: 'Signed in as' }, {
-        color: 'rgba(255, 255, 255, 0.5)', fontSize: '10px',
+    const label = el('div', { textContent: i18nMsg('ytAuthSignedInAs', 'Signed in as') }, {
+        color: 'var(--vtt-text-dim)', fontSize: '10px',
         textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px',
     });
     const email = el('div', { textContent: status.email ?? '' }, {
         fontWeight: '600', color: '#fff', wordBreak: 'break-all', marginBottom: '10px',
     });
     const count = el('div', {
-        textContent: `${status.inboxCount ?? 0} words added`,
-    }, { color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px', marginBottom: '10px' });
-    const signOut = ghostButton('Sign out');
+        textContent: wordsSavedLabel(status.inboxCount ?? 0),
+    }, { color: 'var(--vtt-text-dim)', fontSize: '11px', marginBottom: '10px' });
+    const signOut = ghostButton(i18nMsg('ytAuthSignOut', 'Sign out'));
     signOut.addEventListener('click', async () => {
         signOut.disabled = true;
         try {
@@ -155,8 +163,7 @@ async function render(badge: HTMLElement): Promise<void> {
     if (demo || location.href.includes('vtt-demo')) {
         // Onboarding shows a sign-in prompt; the rest show a clean signed-in chip
         // that advertises the save-words feature (localized, never the real email).
-        const savedLabel = i18nMsg('ytWordsSaved', '{count} words saved').replace('{count}', '142');
-        status = onboarding ? { signedIn: false } : { signedIn: true, email: savedLabel, inboxCount: 142 };
+        status = onboarding ? { signedIn: false } : { signedIn: true, email: wordsSavedLabel(142), inboxCount: 142 };
     } else {
         try {
             status = await sendMessage<AuthStatus>({ action: 'AUTH_STATUS' });
@@ -166,25 +173,35 @@ async function render(badge: HTMLElement): Promise<void> {
     }
     badge.innerHTML = '';
 
-    const row = el('button', { type: 'button' }, {
-        all: 'unset',
+    // Deliberately NOT `all: unset` — that also erases the focus outline, and
+    // this row is the only way into the account panel, so a keyboard user was
+    // left tabbing onto something with no visible state at all. Reset the
+    // properties that actually need resetting and leave focus alone; the
+    // stylesheet's #vtt-sidebar button:focus-visible rule then applies.
+    const row = el('button', { type: 'button', className: 'lingogram-auth-row' }, {
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
         width: '100%',
         boxSizing: 'border-box',
-        padding: '6px 20px',
+        margin: '0',
+        padding: '8px 20px',
+        border: 'none',
+        borderRadius: '0',
+        textAlign: 'left',
+        fontFamily: 'inherit',
         fontSize: '11px',
         fontWeight: '500',
         lineHeight: '1.2',
-        color: 'rgba(255, 255, 255, 0.55)',
+        color: 'var(--vtt-text-soft)',
         background: 'transparent',
-        transition: 'background 0.15s, color 0.15s',
+        transition: 'background-color 0.15s, color 0.15s',
     });
+    row.setAttribute('aria-expanded', 'false');
 
     const labelPrefix = el('span', { textContent: 'Lingogram' }, {
-        color: 'rgba(255, 255, 255, 0.35)',
+        color: 'var(--vtt-text-dim)',
         fontSize: '10px',
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
@@ -195,11 +212,11 @@ async function render(badge: HTMLElement): Promise<void> {
     if (status.signedIn) {
         const dot = el('span', {}, {
             width: '6px', height: '6px', borderRadius: '50%',
-            background: '#22c55e',
-            boxShadow: '0 0 6px rgba(34, 197, 94, 0.5)',
+            background: 'var(--vtt-success)',
+            boxShadow: '0 0 6px var(--vtt-success-border)',
             flexShrink: '0',
         });
-        const text = el('span', { textContent: status.email ?? 'Signed in' }, {
+        const text = el('span', { textContent: status.email ?? i18nMsg('ytAuthSignedIn', 'Signed in') }, {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -207,12 +224,13 @@ async function render(badge: HTMLElement): Promise<void> {
             minWidth: '0',
         });
         row.append(dot, text);
-        row.title = `Signed in as ${status.email} — ${status.inboxCount ?? 0} words added · click to manage`;
+        row.title = `${i18nMsg('ytAuthSignedInAs', 'Signed in as')} ${status.email} — ${wordsSavedLabel(status.inboxCount ?? 0)}`;
+        row.setAttribute('aria-label', row.title);
     } else {
         const text = el('span', { textContent: i18nMsg('ytSignInToSave', 'Sign in to save words') }, {
-            color: 'rgba(255, 255, 255, 0.75)',
+            color: 'var(--vtt-text)',
             textDecoration: 'underline',
-            textDecorationColor: 'rgba(255, 255, 255, 0.2)',
+            textDecorationColor: 'var(--vtt-hairline-strong)',
             textUnderlineOffset: '2px',
             flex: '1',
             minWidth: '0',
@@ -225,18 +243,19 @@ async function render(badge: HTMLElement): Promise<void> {
     }
 
     row.addEventListener('mouseenter', () => {
-        row.style.background = 'rgba(255, 255, 255, 0.04)';
-        row.style.color = 'rgba(255, 255, 255, 0.85)';
+        row.style.background = 'rgba(255, 255, 255, 0.06)';
+        row.style.color = 'var(--vtt-text)';
     });
     row.addEventListener('mouseleave', () => {
         row.style.background = 'transparent';
-        row.style.color = 'rgba(255, 255, 255, 0.55)';
+        row.style.color = 'var(--vtt-text-soft)';
     });
 
     row.addEventListener('click', (e) => {
         e.stopPropagation();
         if (document.getElementById(PANEL_ID)) {
             closePanel();
+            row.setAttribute('aria-expanded', 'false');
             return;
         }
         if (status.signedIn) {
@@ -244,6 +263,17 @@ async function render(badge: HTMLElement): Promise<void> {
         } else {
             showSignInPanel(badge);
         }
+        row.setAttribute('aria-expanded', 'true');
+    });
+
+    // Escape closes the panel and returns focus to the row that opened it —
+    // the panel is a popup, and a keyboard user needs a way out that isn't
+    // "tab through every control in it".
+    row.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || !document.getElementById(PANEL_ID)) return;
+        closePanel();
+        row.setAttribute('aria-expanded', 'false');
+        row.focus();
     });
 
     badge.appendChild(row);

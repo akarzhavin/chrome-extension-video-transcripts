@@ -13,3 +13,4 @@ declare const __EXT_SOURCE__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_CONTEXT_BYTES__: number;
+declare const __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: number;

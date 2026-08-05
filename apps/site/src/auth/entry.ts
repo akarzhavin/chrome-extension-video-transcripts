@@ -71,13 +71,40 @@ function bindSubmit(
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     setError(errEl, '');
+    // Mirrors the Google button: a spinner from the first click, and after 2s
+    // an explanation, since by then the wait means a cold container rather
+    // than normal latency. Both strings come from the page's own locale —
+    // data-* attributes, because this bundle has no access to the build's t().
+    let spinner: HTMLElement | undefined;
+    let wakeTimer: ReturnType<typeof setTimeout> | undefined;
     if (btn) {
       btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
       btn.textContent = btn.getAttribute('data-busy-text') || 'Please wait…';
+      spinner = document.createElement('span');
+      spinner.className = 'auth-submit-spinner';
+      btn.prepend(spinner);
+      const wakingText = btn.getAttribute('data-waking-text');
+      if (wakingText) {
+        wakeTimer = setTimeout(() => {
+          const last = btn.lastChild;
+          if (last && last.nodeType === Node.TEXT_NODE) {
+            last.textContent = wakingText;
+          }
+        }, 2000);
+      }
     }
+    const clearBusy = () => {
+      clearTimeout(wakeTimer);
+      spinner?.remove();
+      btn?.removeAttribute('aria-busy');
+    };
     try {
       await onSubmit(form);
+      // Left spinning on success: the flow redirects, and restoring the idle
+      // label first would flash "Log in" as though nothing had happened.
     } catch (err) {
+      clearBusy();
       // An Error with an empty message is the "already handled" sentinel: a flow
       // (e.g. register's EMAIL_EXISTS → offerLoginInstead) already wrote a richer
       // message into errEl and threw Error('') to stop the submit — leave errEl

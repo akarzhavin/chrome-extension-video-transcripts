@@ -155,15 +155,19 @@ export class SidebarUI {
 
         // Back chip, visible only in settings mode (CSS): "‹ Subtitles" — a
         // labeled exit that names its destination.
-        const backBtn = document.createElement('div');
+        const backBtn = document.createElement('button');
         backBtn.id = 'vtt-back-btn';
+        backBtn.type = 'button';
         backBtn.innerHTML = `${ICONS.back}<span>${msg('ytSidebarTitle', 'Subtitles')}</span>`;
         backBtn.addEventListener('click', () => this.toggleSettingsPanel());
         headerTop.appendChild(backBtn);
 
-        const settingsBtn = document.createElement('div');
+        const settingsBtn = document.createElement('button');
         settingsBtn.id = 'vtt-settings-btn';
-        settingsBtn.title = 'Settings';
+        settingsBtn.type = 'button';
+        settingsBtn.setAttribute('aria-label', msg('ytSettingsTitle', 'Settings'));
+        settingsBtn.setAttribute('aria-expanded', 'false');
+        settingsBtn.setAttribute('aria-controls', 'vtt-settings-panel');
         settingsBtn.style.display = 'flex'; // Always visible now
         settingsBtn.innerHTML = ICONS.gear;
         settingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
@@ -308,8 +312,12 @@ export class SidebarUI {
     private buildFieldRow(label: string, select: HTMLSelectElement): HTMLDivElement {
         const row = document.createElement('div');
         row.className = 'vtt-field-row';
-        const labelEl = document.createElement('span');
+        // A real <label for> rather than a bare span: without it the select is
+        // announced only as "combo box" and the Learning/Native distinction —
+        // the whole point of the pair — is invisible to a screen reader.
+        const labelEl = document.createElement('label');
         labelEl.className = 'vtt-field-label';
+        labelEl.htmlFor = select.id;
         labelEl.textContent = label;
         const wrap = document.createElement('div');
         wrap.className = 'vtt-select-wrap';
@@ -721,6 +729,16 @@ export class SidebarUI {
         if (!settingsPanel) return;
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
+        this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
+        // Focus follows the takeover: opening hands the keyboard to the back
+        // chip (the panel's exit), closing returns it to the gear that opened
+        // it — otherwise the hidden trigger strands focus on a display:none
+        // element and the next Tab restarts from the top of the page.
+        if (open) {
+            this.elements.backBtn?.focus();
+        } else if (document.activeElement === this.elements.backBtn) {
+            this.elements.settingsBtn?.focus();
+        }
         if (titleEl) {
             titleEl.textContent = open
                 ? msg('ytSettingsTitle', 'Settings')

@@ -175,13 +175,65 @@
     "message": "ఇతర భాషలు",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Lingogram నచ్చిందా? వెబ్ స్టోర్‌లో ఒక చిన్న రేటింగ్ ఇతరులకు దీన్ని కనుగొనడంలో సహాయపడుతుంది.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "రేటింగ్ ఇవ్వండి",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram నచ్చిందా?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "ఇప్పటికే మీరు చాలా పదాలు సేవ్ చేశారు.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "వెబ్ స్టోర్‌లో మీ రేటింగ్ మాకు ఎంతో విలువైనది. అలాగే ఇతరులు మమ్మల్ని కనుగొంటారు.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "అవును!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "అంతగా లేదు",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "చెప్పినందుకు ధన్యవాదాలు.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "ఇందులో ఏం తక్కువ?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "ఏం నచ్చలేదు? దేన్ని మారుస్తారు?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "ధన్యవాదాలు, ఇది నిజంగా ఉపయోగపడుతుంది.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "పంపలేకపోయాం. మళ్లీనా?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "వద్దు",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "పంపండి",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "పంపుతున్నాం…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "వినడం సంతోషం",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "ఇప్పుడు వద్దు",
@@ -242,5 +294,65 @@
   "ytTogglePanel": {
     "message": "ప్యానెల్ చూపు లేదా దాచు",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Lingogram లో సైన్ ఇన్ చేయండి",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "lingogram లో సైన్ ఇన్ చేయండి",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "సైన్ అవుట్",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "సైన్ ఇన్ అయ్యారు",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "ఈ ఖాతాతో సైన్ ఇన్ అయ్యారు",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "సైన్ ఇన్ పేజీని తెరవలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "సేవ్ చేయబడింది: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "పదాలను సేవ్ చేయడానికి ఉపశీర్షికల జాబితా పైన ఉన్న Lingogram వరుస ద్వారా సైన్ ఇన్ చేయండి.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "సేవ్ చేయలేకపోయాం: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "లోడ్ అవుతోంది…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(ఇమెయిల్ తెలియదు)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "ఎంచుకోండి…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "నేను నేర్చుకుంటున్నది",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "నా మాతృభాష",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

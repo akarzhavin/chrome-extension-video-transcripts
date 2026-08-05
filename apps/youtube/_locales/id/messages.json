@@ -175,13 +175,65 @@
     "message": "Bahasa lain",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Suka dengan Lingogram? Penilaian singkat di Web Store membantu orang lain menemukannya.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "Beri nilai",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Suka dengan Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Kamu sudah menyimpan cukup banyak kata.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "Penilaianmu di Web Store sangat berarti bagi kami. Begitulah orang lain menemukan kami.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Ya!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Kurang suka",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "Terima kasih sudah memberi tahu.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Apa yang kurang?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Apa yang kurang pas? Apa yang kamu ubah?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Terima kasih, ini sangat membantu.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Gagal terkirim. Coba lagi?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "Lewati",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Kirim",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Mengirim…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "Senang mendengarnya",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "Nanti saja",
@@ -242,5 +294,65 @@
   "ytTogglePanel": {
     "message": "Tampilkan atau sembunyikan panel",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Masuk ke Lingogram",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "Masuk di lingogram",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "Keluar",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "Sudah masuk",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "Masuk sebagai",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "Halaman masuk tidak dapat dibuka. Coba lagi.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "Tersimpan: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "Masuk lewat baris Lingogram di atas daftar subtitel untuk menyimpan kata.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "Gagal menyimpan: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "Memuat…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(email tidak diketahui)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "Pilih…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "Saya belajar",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "Bahasa ibu saya",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

@@ -1,4 +1,5 @@
 import { isDev } from '../auth/config';
+import { msg as i18nMsg } from '../i18n';
 import {
     SUPPORTED_LANGUAGES,
     SupportedLanguage,
@@ -59,7 +60,7 @@ function render(root: HTMLElement, state: ViewState): void {
 
     if (state.loading) {
         const p = document.createElement('div');
-        p.textContent = 'Loading…';
+        p.textContent = i18nMsg('ytPopupLoading', 'Loading…');
         root.appendChild(p);
         return;
     }
@@ -93,17 +94,17 @@ async function refresh(root: HTMLElement): Promise<void> {
 function renderSignedIn(root: HTMLElement, status: AuthStatus): void {
     const email = document.createElement('div');
     email.className = 'email';
-    email.textContent = status.email ?? '(unknown email)';
+    email.textContent = status.email ?? i18nMsg('ytPopupUnknownEmail', '(unknown email)');
     root.appendChild(email);
 
     const count = document.createElement('div');
     count.className = 'count';
-    count.textContent = `${status.inboxCount ?? 0} words added`;
+    count.textContent = i18nMsg('ytWordsSaved', '{count} words saved').replace('{count}', String(status.inboxCount ?? 0));
     root.appendChild(count);
 
     const out = document.createElement('button');
     out.className = 'secondary';
-    out.textContent = 'Sign out';
+    out.textContent = i18nMsg('ytAuthSignOut', 'Sign out');
     out.addEventListener('click', async () => {
         out.disabled = true;
         try {
@@ -120,12 +121,12 @@ function renderSignedIn(root: HTMLElement, status: AuthStatus): void {
 function renderSignedOut(root: HTMLElement): void {
     const primary = document.createElement('button');
     primary.className = 'primary';
-    primary.textContent = 'Sign in on lingogram';
+    primary.textContent = i18nMsg('ytAuthSignInAction', 'Sign in on lingogram');
     primary.addEventListener('click', async () => {
         primary.disabled = true;
         try {
             const res = await send<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
-            if (!res.ok) throw new Error(res.error ?? 'Failed to open auth tab');
+            if (!res.ok) throw new Error(res.error ?? i18nMsg('ytAuthOpenFailed', "Couldn't open the sign-in page. Try again."));
             window.close();
         } catch (err) {
             render(root, { error: String(err) });
@@ -148,7 +149,7 @@ function makeLangRow(labelText: string): { row: HTMLElement; select: HTMLSelectE
 
     const placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = 'Select…';
+    placeholder.textContent = i18nMsg('ytPopupSelect', 'Select…');
     placeholder.disabled = true;
     placeholder.selected = true;
     select.appendChild(placeholder);
@@ -170,11 +171,11 @@ function renderLanguageSettings(root: HTMLElement): void {
 
     const heading = document.createElement('div');
     heading.className = 'lang-settings-title';
-    heading.textContent = 'Languages';
+    heading.textContent = i18nMsg('ytGroupLanguages', 'Languages');
     section.appendChild(heading);
 
-    const learning = makeLangRow("I'm learning");
-    const native = makeLangRow('My native language');
+    const learning = makeLangRow(i18nMsg('ytPopupLearning', "I'm learning"));
+    const native = makeLangRow(i18nMsg('ytPopupNative', 'My native language'));
     section.appendChild(learning.row);
     section.appendChild(native.row);
     root.appendChild(section);

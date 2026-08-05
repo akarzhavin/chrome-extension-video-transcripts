@@ -11,13 +11,37 @@
     "message": "Subtitles",
     "description": "Sidebar panel header title."
   },
-  "ytRatePromptText": {
-    "message": "Enjoying Lingogram? A quick rating on the Web Store helps others find it.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "Rate it",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Enjoying Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "You've saved a good few words by now.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "A rating on the Web Store would mean a lot to us. It's how other learners find Lingogram.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Yes!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Not really",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "Thanks for telling us.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateThanksYes": {
+    "message": "Glad to hear it",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "Not now",
@@ -178,5 +202,117 @@
   "ytSettingsTitle": {
     "message": "Settings",
     "description": "Sidebar header title while the settings panel is open."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Sign in to Lingogram",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "Sign in on lingogram",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "Sign out",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "Signed in",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "Signed in as",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "Couldn't open the sign-in page. Try again.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "Saved: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "Sign in via the Lingogram row above the subtitle list to save words.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "Couldn't save: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "Loading…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(unknown email)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "Select…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "I'm learning",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "My native language",
+    "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "What would make it better?",
+    "description": "Heading of the feedback form shown after a negative answer to the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "What went wrong? What would you change?",
+    "description": "Placeholder text inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Thank you, this really helps.",
+    "description": "Confirmation shown for two seconds after the feedback is sent successfully."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Couldn't send. Try again?",
+    "description": "Error shown when sending the feedback failed; the user can retry."
+  },
+  "ytSavedBadge": {
+    "message": "saved",
+    "description": "Inline badge appended to a word right after it is saved."
+  },
+  "ytSignInToSave": {
+    "message": "Sign in to save words",
+    "description": "Prompt on the sidebar auth badge for signed-out users."
+  },
+  "ytWordsSaved": {
+    "message": "{count} words saved",
+    "description": "Saved-word counter. {count} is substituted in code, not a Chrome placeholder."
+  },
+  "ytTogglePanel": {
+    "message": "Toggle panel",
+    "description": "Accessible label for the sidebar show/hide tab."
+  },
+  "ytLangGroupAvailable": {
+    "message": "Available in this video",
+    "description": "Group heading for subtitle languages this video actually carries."
+  },
+  "ytLangGroupOther": {
+    "message": "Other languages",
+    "description": "Group heading for the remaining selectable languages."
+  },
+  "ytRateSkip": {
+    "message": "Skip",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Send",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Sending…",
+    "description": "Submit button label while the feedback is in flight."
   }
 }

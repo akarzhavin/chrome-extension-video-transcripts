@@ -175,13 +175,65 @@
     "message": "Andre sprog",
     "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
   },
-  "ytRatePromptText": {
-    "message": "Kan du lide Lingogram? En hurtig bedømmelse i Web Store hjælper andre med at finde den.",
-    "description": "Body of the one-time rating prompt shown after the user has saved enough words to have gotten real value."
-  },
   "ytRateButton": {
     "message": "Bedøm",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Kan du lide Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Du har efterhånden gemt en del ord.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "En bedømmelse i Web Store ville betyde meget for os. Sådan finder andre Lingogram.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Ja!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Ikke rigtig",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateThanks": {
+    "message": "Tak, fordi du siger til.",
+    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Hvad kan gøres bedre?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Hvad gik galt? Hvad ville du ændre?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Tak, det hjælper os virkelig.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Blev ikke sendt. Prøv igen?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "Spring over",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Send",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Sender…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "Dejligt at høre",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
   },
   "ytRateLater": {
     "message": "Ikke nu",
@@ -242,5 +294,65 @@
   "ytTogglePanel": {
     "message": "Vis eller skjul panel",
     "description": "Accessible name of the tab at the screen edge that opens and closes the sidebar."
+  },
+  "ytAuthSignInTitle": {
+    "message": "Log ind på Lingogram",
+    "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
+  },
+  "ytAuthSignInAction": {
+    "message": "Log ind på lingogram",
+    "description": "Button that opens the Lingogram website to sign in. 'lingogram' is the product name."
+  },
+  "ytAuthSignOut": {
+    "message": "Log ud",
+    "description": "Button that signs the user out of their Lingogram account."
+  },
+  "ytAuthSignedIn": {
+    "message": "Logget ind",
+    "description": "Fallback account-row text when the user is signed in but the email is unknown."
+  },
+  "ytAuthSignedInAs": {
+    "message": "Logget ind som",
+    "description": "Label above the signed-in user's email address in the account panel."
+  },
+  "ytAuthOpenFailed": {
+    "message": "Login-siden kunne ikke åbnes. Prøv igen.",
+    "description": "Error shown when the browser could not open the Lingogram sign-in tab."
+  },
+  "ytQuickAddPill": {
+    "message": "+ Lingogram",
+    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
+  },
+  "ytQuickAddSaved": {
+    "message": "Gemt: {term}",
+    "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
+  },
+  "ytQuickAddNeedsSignIn": {
+    "message": "Log ind via Lingogram-rækken over undertekstlisten for at gemme ord.",
+    "description": "Error shown when a word cannot be saved because the user is signed out."
+  },
+  "ytQuickAddFailed": {
+    "message": "Kunne ikke gemme: {error}",
+    "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
+  },
+  "ytPopupLoading": {
+    "message": "Indlæser…",
+    "description": "Placeholder while the toolbar popup fetches the account status."
+  },
+  "ytPopupUnknownEmail": {
+    "message": "(ukendt e-mail)",
+    "description": "Shown in the popup when the signed-in account has no email address on record."
+  },
+  "ytPopupSelect": {
+    "message": "Vælg…",
+    "description": "Placeholder option in the language dropdowns before a language is chosen."
+  },
+  "ytPopupLearning": {
+    "message": "Jeg lærer",
+    "description": "Label for the dropdown where the user picks the language they are learning."
+  },
+  "ytPopupNative": {
+    "message": "Mit modersmål",
+    "description": "Label for the dropdown where the user picks their own native language."
   }
 }

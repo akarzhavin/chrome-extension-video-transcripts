@@ -17,6 +17,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import type { RuntimeAuthConfig } from './core';
+import { AuthError, fetchWithRetry } from './core';
 import { getAuthInstance } from './firebase';
 
 declare global {
@@ -30,7 +31,9 @@ const CFG = window.LINGOGRAM_AUTH;
 const APP_URL = window.LINGOGRAM_APP_URL || '/app/';
 
 async function backendMe(cfg: RuntimeAuthConfig, idToken: string) {
-  const res = await fetch(cfg.apiBase + '/auth/me', {
+  // Retries cold starts and throws AuthError('backend/unreachable') once the
+  // backoff is spent — see fetchWithRetry.
+  const res = await fetchWithRetry(cfg.apiBase + '/auth/me', {
     headers: { Authorization: 'Bearer ' + idToken },
   });
   if (!res.ok) {
@@ -54,21 +57,84 @@ function isCancel(err: unknown): boolean {
   );
 }
 
+/**
+ * Puts the button in a busy state: swaps the Google mark for a spinner and
+ * lets the caller name the current step. Returns handles to update that label
+ * and to undo everything.
+ *
+ * The spinner starts on click rather than after a delay — the popup can take a
+ * second to appear, and a button that greys out with no other change is the
+ * thing that makes people click twice.
+ */
+function setBusy(btn: HTMLElement) {
+  // Only the trailing text node is captured, never btn.textContent: assigning
+  // that back would delete the Google <svg> and leave a button with no mark.
+  const labelNode =
+    btn.lastChild && btn.lastChild.nodeType === Node.TEXT_NODE
+      ? btn.lastChild
+      : null;
+  const original = labelNode?.textContent ?? null;
+  const spinner = document.createElement('span');
+  spinner.className = 'auth-google-spinner';
+  btn.setAttribute('data-busy', '');
+  btn.setAttribute('aria-busy', 'true');
+  btn.prepend(spinner);
+
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  // Write through the captured node so the spinner and icon are never touched.
+  const label = (text: string) => {
+    if (labelNode) labelNode.textContent = ' ' + text;
+  };
+
+  return {
+    label,
+    labelAfter: (ms: number, text: string) => {
+      timers.push(setTimeout(() => label(text), ms));
+    },
+    stop: () => {
+      timers.forEach(clearTimeout);
+      spinner.remove();
+      btn.removeAttribute('data-busy');
+      btn.removeAttribute('aria-busy');
+      if (labelNode && original !== null) labelNode.textContent = original;
+    },
+  };
+}
+
 function wireButton(btn: HTMLElement, auth: ReturnType<typeof getAuth>) {
   const form = btn.closest('form');
   const errEl = form ? form.querySelector('[data-auth-error]') : null;
   btn.addEventListener('click', async () => {
     setError(errEl, '');
     (btn as HTMLButtonElement).disabled = true;
+    const busy = setBusy(btn);
     try {
       const cred = await signInWithPopup(auth, new GoogleAuthProvider());
       const idToken = await cred.user.getIdToken();
+      // Returning from the popup is the moment the page looks emptiest: the
+      // overlay is gone and the profile fetch is the only thing left running.
+      // Name that step, and after 2s say why it is slow — a cold container.
+      busy.label('Signing you in…');
+      busy.labelAfter(2000, 'Waking up the server…');
       await backendMe(CFG!, idToken);
+      // Deliberately left spinning: the redirect below ends this page, and
+      // restoring the idle label first would flash "Log in with Google" as
+      // though nothing had happened.
       location.href = APP_URL;
     } catch (err) {
+      busy.stop();
       (btn as HTMLButtonElement).disabled = false;
       if (!isCancel(err)) {
-        setError(errEl, 'Google sign-in failed. Please try again.');
+        // The popup is only half of this flow: backendMe() runs after Google
+        // has already authenticated the user, so a sleeping backend fails here
+        // with sign-in perfectly fine. Saying "Google sign-in failed" sends
+        // people to re-check an account that was never the problem.
+        setError(
+          errEl,
+          err instanceof AuthError && err.firebaseCode === 'backend/unreachable'
+            ? "Signed in with Google, but couldn't reach the server — it may still be starting up. Please try again."
+            : 'Google sign-in failed. Please try again.',
+        );
       }
     }
   });

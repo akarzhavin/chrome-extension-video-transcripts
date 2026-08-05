@@ -14,21 +14,44 @@ const commonConfig = {
 const env = process.env.EXT_ENV ?? 'prod';
 const isDev = env === 'dev';
 
+const FRONTEND_BASE_URL = process.env.EXT_FRONTEND_BASE_URL ?? 'https://lingogram.ai';
+// The manifest match pattern for a non-production frontend, or '' when this
+// build targets production (whose origins the manifest already lists).
+// localhost is excluded too: the manifest carries those entries already, and
+// they are deliberately stripped from prod builds just below.
+const FRONTEND_ORIGIN_MATCH = (() => {
+  if (FRONTEND_BASE_URL === 'https://lingogram.ai') return '';
+  try {
+    const { origin, hostname } = new URL(FRONTEND_BASE_URL);
+    return hostname === 'localhost' || hostname === '127.0.0.1' ? '' : `${origin}/*`;
+  } catch {
+    throw new Error(`EXT_FRONTEND_BASE_URL is not a valid URL: ${FRONTEND_BASE_URL}`);
+  }
+})();
+
 const EXT_SOURCE = 'youtube-extension';
 const limits = loadLingogramLimits();
 assertSourceAllowed(limits, EXT_SOURCE);
 
 const buildDefines = {
   __EXT_ENV__: JSON.stringify(env),
-  __FIREBASE_PROJECT_ID__: JSON.stringify(isDev ? 'demo-lingogram' : 'lingogram-prod'),
-  __FIREBASE_API_KEY__: JSON.stringify(isDev ? 'demo' : 'AIzaSyCHQt2zwkO-x8qm7wM5IwWAWrl_n8mlQLI'),
+  // Firebase project. Overridable so a build can target preprod, whose
+  // /auth/extension-token mints a custom token signed by ITS project — and
+  // Firebase refuses to exchange a token from one project using another
+  // project's API key, so these two must move together with the frontend URL.
+  __FIREBASE_PROJECT_ID__: JSON.stringify(
+    process.env.EXT_FIREBASE_PROJECT_ID ?? (isDev ? 'demo-lingogram' : 'lingogram-prod'),
+  ),
+  __FIREBASE_API_KEY__: JSON.stringify(
+    process.env.EXT_FIREBASE_API_KEY ?? (isDev ? 'demo' : 'AIzaSyCHQt2zwkO-x8qm7wM5IwWAWrl_n8mlQLI'),
+  ),
   __IDENTITY_TOOLKIT_URL__: JSON.stringify(isDev ? 'http://localhost:9099/identitytoolkit.googleapis.com' : 'https://identitytoolkit.googleapis.com'),
   __SECURE_TOKEN_URL__: JSON.stringify(isDev ? 'http://localhost:9099/securetoken.googleapis.com' : 'https://securetoken.googleapis.com'),
   __FIRESTORE_URL__: JSON.stringify(isDev ? 'http://localhost:8080' : 'https://firestore.googleapis.com'),
   // Auth/sign-in web app. Always prod unless EXT_FRONTEND_BASE_URL overrides
   // (e.g. staging or a local Vite server) — dev builds intentionally point at
   // the live site so their "Sign in" flow works without running the SPA.
-  __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? 'https://lingogram.ai'),
+  __FRONTEND_BASE_URL__: JSON.stringify(FRONTEND_BASE_URL),
   __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
   ...limitDefines(limits),
 };
@@ -102,6 +125,21 @@ export default defineConfig(({ command, mode }) => {
                   manifest.externally_connectable.matches = manifest.externally_connectable.matches.filter(
                     (p: string) => !p.startsWith('http://localhost'),
                   );
+                }
+                // A build pointed somewhere other than production (preprod, a
+                // staging host) has to let that origin talk to the extension:
+                // the sign-in handoff is a chrome.runtime message from the
+                // page, and externally_connectable is an allow-list, so
+                // without this the auth flow silently never connects.
+                if (FRONTEND_ORIGIN_MATCH) {
+                  const add = (list: string[] | undefined) =>
+                    list && !list.includes(FRONTEND_ORIGIN_MATCH)
+                      ? [...list, FRONTEND_ORIGIN_MATCH] : list;
+                  if (manifest.externally_connectable?.matches) {
+                    manifest.externally_connectable.matches =
+                      add(manifest.externally_connectable.matches);
+                  }
+                  manifest.host_permissions = add(manifest.host_permissions);
                 }
                 return JSON.stringify(manifest, null, 2);
               },

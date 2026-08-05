@@ -250,9 +250,10 @@ function injectNetflixLayout(): void {
         body.vtt-sidebar-active:has(#vtt-sidebar:not(.collapsed):not(.fullscreen)) .watch-video {
             width: calc(100vw - 320px) !important;
         }
-        body.vtt-sidebar-active .watch-video {
-            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        /* Not animated, for the same reason as YouTube's ytd-app (see
+           injectLayoutOverrides in ../index.ts): transitioning width here
+           relayouts and repaints the player tree every frame, over playing
+           video. The sidebar's own transform slide carries the motion. */
         #vtt-sidebar:not(.fullscreen) {
             background-color: rgba(18, 18, 20, 0.98) !important;
         }

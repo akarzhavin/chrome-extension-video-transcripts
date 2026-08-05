@@ -136,11 +136,23 @@ const CHROME_ICON = `
   <path d="M12 8.4h8.5M8.9 13.9 4.7 6.6M15 13.9l-4.2 7.4"/>
 </svg>`;
 
-const mark = (kind, small = false) => {
-  const cls = `mark ${small ? 'mark-sm ' : ''}mark-${kind}`;
-  const glyph = kind === 'nf' ? 'N' : kind === 'hd' ? 'HD' : '';
-  return `<span class="${cls}" aria-hidden="true">${glyph}</span>`;
+// Site logos, drawn as SVG so they are the real marks rather than lookalikes
+// built from CSS borders and a serif capital. Nominative use — we name the
+// sites Lingogram runs on — so each keeps its own brand colour and official
+// geometry, and none is altered or recoloured.
+//   yt: the YouTube play badge — rounded rect + white triangle.
+//   nf: the Netflix "N" — NOT a typeset letter, but three strokes: the left
+//       and right uprights plus the diagonal that crosses between them.
+//   hd: HDrezka ships no published mark, so it stays a wordmark — a lettered
+//       tile is honest here, unlike inventing a logo the site doesn't have.
+const SITE_LOGO = {
+  yt: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" rx="5.4" fill="#FF0000"/><path d="M9.9 7.9 16.6 12l-6.7 4.1V7.9Z" fill="#fff"/></svg>`,
+  nf: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" rx="5.4" fill="#000"/><path d="M8 4.4h3.55v15.2H8z" fill="#B1060F"/><path d="M12.45 4.4H16v15.2h-3.55z" fill="#B1060F"/><path d="M8 4.4h3.42L16 19.6h-3.42L8 4.4Z" fill="#E50914"/></svg>`,
+  hd: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect width="24" height="24" rx="5.4" fill="#1F1B16"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8.6" font-weight="700" fill="#F2A33C" letter-spacing=".2">HD</text></svg>`,
 };
+
+const mark = (kind, small = false) =>
+  `<span class="mark ${small ? 'mark-sm ' : ''}mark-${kind}" aria-hidden="true">${SITE_LOGO[kind]}</span>`;
 
 // `root` is the locale's URL prefix: '' for English (unprefixed, at /), or
 // '/ru' etc. for every other locale — every internal href is built from it
@@ -236,13 +248,37 @@ const proof = (t) => {
   </p>`;
 };
 
-const demo = (t, url) => `
+// The three sites Lingogram runs on, as browser tabs across the top of the
+// demo card. They replaced a single fake address bar: the URL named only
+// YouTube, while the tabs name all three sites in the one place a visitor is
+// already looking. Purely decorative — nothing here is clickable, so the
+// active tab is marked by SHAPE (raised, fused with the panel below) rather
+// than an accent bar, which would promise a switch that isn't there.
+// `active` is the edition slug whose tab is lit: the home page shows the
+// YouTube demo, and each edition page lights its own site.
+const DEMO_TABS = [
+  { slug: 'youtube', site: 'YouTube', mark: 'yt' },
+  { slug: 'netflix', site: 'Netflix', mark: 'nf' },
+  { slug: 'rezka', site: 'HDrezka', mark: 'hd' },
+];
+
+const demoTabs = (active) => DEMO_TABS.map((tb) => {
+  const on = tb.slug === active;
+  return `<span class="dtab${on ? ' is-on' : ''}">` +
+    `<span class="dfav">${SITE_LOGO[tb.mark]}</span>` +
+    `<span class="dtab-name">${esc(tb.site)}</span></span>`;
+}).join('');
+
+const demo = (t, active) => `
 <div class="demo" id="demo">
-  <div class="demo-chrome">
-    <span class="dot" style="background:#ff5f57"></span>
-    <span class="dot" style="background:#febc2e"></span>
-    <span class="dot" style="background:#28c840"></span>
-    <span class="url">${esc(url)}</span>
+  <!-- aria-hidden: decorative browser chrome, not a control. -->
+  <div class="demo-chrome" aria-hidden="true">
+    <span class="dots">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+    </span>
+    <span class="dtabs">${demoTabs(active)}</span>
   </div>
   <!-- @video-transcripts/embed mounts the extension UI here. -->
   <div id="demo-embed"></div>
@@ -500,19 +536,23 @@ const homePage = (locale, hrefLang) => {
 ${header(t, root)}
 <main>
   <div class="wrap">
+    <!-- No eyebrow above the h1: the pill that used to sit here ("Free ·
+         YouTube · Netflix · HDrezka") was 12px uppercase above a 62px
+         headline, so the eye skipped it. The three sites now name themselves
+         as tabs on the demo card below, and "free" is still carried by the
+         CTA and the proof line under it. -->
     <section class="hero" style="padding-top:32px">
-      <span class="eyebrow">${esc(t('home.eyebrow'))}</span>
       <h1>${esc(t('home.h1Lead'))}<br><span class="pop">${esc(t('home.h1Pop'))}</span></h1>
-      <!-- No feature list here: the demo below shows the product, and the
-           feature cards under it (Watch. Catch. Keep.) both claim AND prove
-           the same three points — a text-only copy above would just duplicate
-           them at their weakest. -->
+      <!-- One lede, not a feature list: it names the choice of how to study
+           (dual subs vs. listen-first reveal) and the dictionary. The demo
+           below and the feature cards still carry the proof. -->
+      <p class="sub">${esc(t('home.heroLede'))}</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="#platforms">${esc(t('home.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
-      ${demo(t, EDITIONS.primary.demoUrl)}
+      ${demo(t, 'youtube')}
     </section>
 
     <section id="platforms">
@@ -626,7 +666,7 @@ ${header(t, '')}
         <a class="btn btn-ghost" href="/#platforms">${esc(t('edition.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
-      ${demo(t, ed.demoUrl)}
+      ${demo(t, ed.slug)}
     </section>
 
     <section>

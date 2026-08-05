@@ -1,6 +1,6 @@
 import { config } from './config';
 import { exchangeCustomToken } from './firebaseRest';
-import { addInboxWord, addNoSubsReport } from './firestoreRest';
+import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
 import {
     bumpInboxCount,
     bumpSavedWordCount,
@@ -22,7 +22,8 @@ export type AuthAction =
     | 'AUTH_SIGN_OUT'
     | 'OPEN_LINGOGRAM'
     | 'ADD_WORD'
-    | 'REPORT_NO_SUBS';
+    | 'REPORT_NO_SUBS'
+    | 'SEND_FEEDBACK';
 
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
@@ -31,6 +32,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'OPEN_LINGOGRAM',
     'ADD_WORD',
     'REPORT_NO_SUBS',
+    'SEND_FEEDBACK',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -165,6 +167,26 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 });
                 return { ok: true };
             } catch {
+                return { ok: false };
+            }
+        }
+        case 'SEND_FEEDBACK': {
+            // Free text from the rating prompt's "not really" branch. Runs
+            // signed out too — see addFeedback. The card reports success or
+            // failure to the user (unlike REPORT_NO_SUBS, which nobody is
+            // watching), so the result is returned rather than swallowed.
+            const text = String(request.text ?? '').trim();
+            if (!text) return { ok: false };
+            try {
+                await addFeedback(config, {
+                    text,
+                    site: String(request.site ?? ''),
+                    version: String(request.version ?? ''),
+                    locale: String(request.locale ?? ''),
+                });
+                return { ok: true };
+            } catch (err) {
+                console.warn('[Lingogram] feedback failed:', err);
                 return { ok: false };
             }
         }

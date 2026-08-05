@@ -28,6 +28,7 @@ const DEFAULTS = {
     MAX_SOURCE_URL_BYTES: 2048,
     MAX_CONTEXT_BYTES: 2048,
     MAX_TITLE_BYTES: 512,
+    MAX_FEEDBACK_TEXT_BYTES: 2000,
     ALLOWED_SOURCES: ['rezka-extension', 'youtube-extension', 'web-extension'],
 };
 
@@ -54,6 +55,7 @@ export function limitDefines(limits) {
         __LIMIT_MAX_SOURCE_URL_BYTES__: JSON.stringify(limits.MAX_SOURCE_URL_BYTES),
         __LIMIT_MAX_CONTEXT_BYTES__: JSON.stringify(limits.MAX_CONTEXT_BYTES),
         __LIMIT_MAX_TITLE_BYTES__: JSON.stringify(limits.MAX_TITLE_BYTES),
+        __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: JSON.stringify(limits.MAX_FEEDBACK_TEXT_BYTES),
     };
 }
 

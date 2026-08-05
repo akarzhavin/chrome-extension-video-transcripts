@@ -1,10 +1,66 @@
+/* Toolbar popup. Shares the extension's token names with the in-page sidebar
+   (apps/rezka/src/assets/styles.css) so one palette change moves both — but
+   declares its own values, because a popup is an opaque OS-level surface, not
+   glass floating over video.
+
+   Light and dark are both real: Chrome renders this panel against the browser
+   chrome, and a white 300px square punched into a dark-themed browser at night
+   is the single most jarring thing this extension can do. */
+:root {
+    color-scheme: light dark;
+
+    --lg-accent: #5b63d3;
+    --lg-accent-hover: #4b53c4;
+    --lg-accent-ring: rgba(91, 99, 211, 0.45);
+
+    --lg-bg: #ffffff;
+    --lg-surface: #f3f4f6;
+    --lg-surface-hover: #e5e7eb;
+
+    --lg-text: #1f2937;
+    --lg-text-soft: #4b5563;
+    --lg-text-dim: #6b7280;
+
+    --lg-border: #d1d5db;
+    --lg-hairline: #e5e7eb;
+
+    --lg-danger: #b91c1c;
+    --lg-warn-bg: #fef3c7;
+    --lg-warn-text: #92400e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Accent lifts in dark: the light-mode indigo is too dense to read as
+           interactive against a near-black panel. */
+        --lg-accent: #7c8dff;
+        --lg-accent-hover: #8f9dff;
+        --lg-accent-ring: rgba(124, 141, 255, 0.5);
+
+        --lg-bg: #1b1c20;
+        --lg-surface: #26272d;
+        --lg-surface-hover: #32333a;
+
+        --lg-text: #e9eaee;
+        --lg-text-soft: #c2c5cf;
+        --lg-text-dim: #9096a3;
+
+        --lg-border: #3a3c44;
+        --lg-hairline: #2c2e35;
+
+        --lg-danger: #f87171;
+        --lg-warn-bg: rgba(245, 158, 11, 0.16);
+        --lg-warn-text: #fbbf24;
+    }
+}
+
 html, body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
-    color: #1f2937;
-    background: #fff;
+    color: var(--lg-text);
+    background: var(--lg-bg);
 }
 
 #root {
@@ -28,11 +84,13 @@ h1 {
 input[type="email"],
 input[type="password"] {
     padding: 8px 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--lg-border);
     border-radius: 6px;
     font-size: 13px;
     width: 100%;
     box-sizing: border-box;
+    background: var(--lg-bg);
+    color: var(--lg-text);
 }
 
 button {
@@ -42,25 +100,36 @@ button {
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
+    font-family: inherit;
+    transition: background-color 0.15s;
 }
 
 button.primary {
-    background: #2563eb;
+    background: var(--lg-accent);
     color: #fff;
 }
 
-button.primary:hover { background: #1d4ed8; }
+button.primary:hover:not(:disabled) { background: var(--lg-accent-hover); }
 
 button.secondary {
-    background: #f3f4f6;
-    color: #1f2937;
+    background: var(--lg-surface);
+    color: var(--lg-text);
 }
 
-button.secondary:hover { background: #e5e7eb; }
+button.secondary:hover:not(:disabled) { background: var(--lg-surface-hover); }
 
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Every focusable control gets the same visible ring — the browser default is
+   nearly invisible against the dark surface. */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--lg-accent);
+    outline-offset: 2px;
 }
 
 .email {
@@ -71,26 +140,26 @@ button:disabled {
 
 .count {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--lg-text-dim);
     margin-bottom: 12px;
 }
 
 .error {
     margin-top: 8px;
-    color: #b91c1c;
+    color: var(--lg-danger);
     font-size: 12px;
 }
 
 .lang-settings {
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--lg-hairline);
 }
 
 .lang-settings-title {
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--lg-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     margin-bottom: 8px;
@@ -105,18 +174,19 @@ button:disabled {
 
 .lang-row span {
     font-size: 12px;
-    color: #374151;
+    color: var(--lg-text-soft);
 }
 
 .lang-select {
     padding: 8px 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--lg-border);
     border-radius: 6px;
     font-size: 13px;
     width: 100%;
     box-sizing: border-box;
-    background: #fff;
-    color: #1f2937;
+    background: var(--lg-bg);
+    color: var(--lg-text);
+    font-family: inherit;
 }
 
 .env-badge {
@@ -124,8 +194,8 @@ button:disabled {
     margin-left: 8px;
     padding: 2px 6px;
     border-radius: 4px;
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--lg-warn-bg);
+    color: var(--lg-warn-text);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
