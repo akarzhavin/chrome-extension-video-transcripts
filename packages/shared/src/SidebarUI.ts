@@ -9,7 +9,7 @@ import {
     OverlayEdgeToken,
 } from './prefs';
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
-import { tokenizeForGuess } from './guess-tokenize';
+import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -1227,14 +1227,27 @@ export class SidebarUI {
     private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
         const { tokens, sep } = tokenizeForGuess(text);
         const spaced = sep === ' ';
+        // The reveal index walks maskable tokens only. Punctuation and sound
+        // cues ("-", "♪", a stray bracket) render as plain text: a capsule over
+        // them is nothing anyone can guess, and counting them let the "free"
+        // first word come up as a lone symbol.
+        let m = 0;
         tokens.forEach((word, i) => {
             if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
-            const span = this.makeMaskedSpan(word, i < revealedCount, this.maskGlyphs(word, spaced));
+            if (!isMaskableToken(word)) {
+                const plain = document.createElement('span');
+                plain.className = 'vtt-guess-filler';
+                plain.textContent = word;
+                container.appendChild(plain);
+                return;
+            }
+            const span = this.makeMaskedSpan(word, m < revealedCount, this.maskGlyphs(word, spaced));
             // Only the word that opens next is lit. Dressing every hidden word
             // as a target implied you could pick one, but reveal always runs in
             // order — the lit word is the honest version of that.
-            if (i === revealedCount) span.classList.add('vtt-next-word');
+            if (m === revealedCount) span.classList.add('vtt-next-word');
             container.appendChild(span);
+            m++;
         });
     }
 

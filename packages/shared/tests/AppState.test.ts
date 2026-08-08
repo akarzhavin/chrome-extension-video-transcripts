@@ -226,6 +226,22 @@ describe('AppState', () => {
             expect(state.isFullyRevealed(0)).toBe(true);
         });
 
+        test('a bracketed sound cue is one unit, not three', () => {
+            // "[beep]" has no spaces, but it is not a spaceless script — the
+            // Segmenter used to carve it into "[", "beep", "]": three gaps for
+            // a cue nobody can guess.
+            track('[beep]');
+            expect(state.isFullyRevealed(0)).toBe(true); // single free word
+        });
+
+        test('punctuation-only tokens do not demand reveals', () => {
+            track('- hello world -');
+            // Two maskable words; the first is free, so one reveal finishes.
+            expect(state.isFullyRevealed(0)).toBe(false);
+            expect(state.revealNextWord(0)).toBe(true);
+            expect(state.isFullyRevealed(0)).toBe(true);
+        });
+
         test('treats a missing line as not revealed', () => {
             track('one two');
             expect(state.isFullyRevealed(99)).toBe(false);

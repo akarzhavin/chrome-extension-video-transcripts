@@ -1233,12 +1233,14 @@
 
 
 
-.vtt-revealed-word {
+.vtt-revealed-word,
+.vtt-guess-filler {
     color: #e0e0e0;
     transition: color 0.3s ease;
 }
 
-.vtt-item.active-sub .vtt-revealed-word {
+.vtt-item.active-sub .vtt-revealed-word,
+.vtt-item.active-sub .vtt-guess-filler {
     color: #fff;
 }
 

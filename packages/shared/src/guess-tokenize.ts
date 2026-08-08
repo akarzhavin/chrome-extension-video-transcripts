@@ -29,15 +29,34 @@ function getSegmenter(): Segmenter | null {
     return segmenter;
 }
 
+// Scripts written without spaces between words — the only case where a line
+// must be segmented instead of split. Absence of whitespace alone is not it:
+// "[beep]" has no spaces either, and the Segmenter carves it into "[", "beep",
+// "]" — three gaps for a sound cue.
+const SPACELESS_SCRIPT = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Khmer}\p{Script=Lao}\p{Script=Myanmar}]/u;
+
+/**
+ * Whether a token is worth masking: it carries at least one letter or digit.
+ * Sound cues and stray punctuation — "-", "♪", brackets — stay plain text on
+ * a guess line; a capsule over "]" is nothing anyone can guess.
+ */
+export function isMaskableToken(token: string): boolean {
+    return /[\p{L}\p{N}]/u.test(token);
+}
+
 export function tokenizeForGuess(text: string): { tokens: string[]; sep: string } {
     const trimmed = text.trim();
-    // Fast path: every space-delimited script leaves before touching Intl.
+    // Fast path: every space-delimited line leaves before touching Intl.
     if (/\s/.test(trimmed)) return { tokens: trimmed.split(/\s+/), sep: ' ' };
 
-    const seg = getSegmenter();
-    if (seg) {
-        const toks = Array.from(seg.segment(trimmed), (s) => s.segment).filter((w) => w.trim().length);
-        if (toks.length > 1) return { tokens: toks, sep: '' };
+    if (SPACELESS_SCRIPT.test(trimmed)) {
+        const seg = getSegmenter();
+        if (seg) {
+            const toks = Array.from(seg.segment(trimmed), (s) => s.segment).filter((w) => w.trim().length);
+            if (toks.length > 1) return { tokens: toks, sep: '' };
+        }
+        return { tokens: Array.from(trimmed), sep: '' };
     }
-    return { tokens: Array.from(trimmed), sep: '' };
+    // A single space-delimited word ("Yes!", "[beep]") is one unit.
+    return { tokens: [trimmed], sep: ' ' };
 }

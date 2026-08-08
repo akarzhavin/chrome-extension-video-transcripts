@@ -468,6 +468,39 @@ describe('SidebarUI', () => {
             expect(spans[2].dataset.hidden).toBe('foo');
         });
 
+        test('punctuation stays plain text and the free word is a real word', () => {
+            const container = ui.buildMaskedContent('- hello world', 1);
+            const kids = container.querySelectorAll('span');
+            expect(kids).toHaveLength(3);
+
+            // The dash is visible filler — no capsule, no reveal target.
+            expect(kids[0].className).toBe('vtt-guess-filler');
+            expect(kids[0].textContent).toBe('-');
+
+            // The free first word is "hello", not the dash.
+            expect(kids[1].classList.contains('vtt-revealed-word')).toBe(true);
+            expect(kids[1].textContent).toBe('hello');
+
+            // And the lit target is the real second word.
+            expect(kids[2].classList.contains('vtt-masked-word')).toBe(true);
+            expect(kids[2].classList.contains('vtt-next-word')).toBe(true);
+        });
+
+        test('updateGuessItem keeps mapping right past filler tokens', () => {
+            const subs: Subtitle[] = [{ startTime: 0, endTime: 1, text: '- alpha beta' }];
+            state.addTrack('English', subs);
+            state.displayMode = 'guess';
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+
+            state.revealNextWord(0); // uncovers "beta", the 2nd maskable word
+            ui.updateGuessItem(0);
+
+            const words = item.querySelectorAll<HTMLElement>('.vtt-revealed-word');
+            expect(Array.from(words).map((s) => s.textContent)).toEqual(['alpha', 'beta']);
+            expect(item.querySelector('.vtt-guess-filler')?.textContent).toBe('-');
+        });
+
         test('the frosted text never contains the word, and is stable across repaints', () => {
             // The blur is only paint: anything real under it could be selected
             // or copied straight back out, so no masked span may render the

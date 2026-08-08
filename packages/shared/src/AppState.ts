@@ -1,5 +1,5 @@
 import { LanguageChoice, Subtitle, Track } from './types';
-import { tokenizeForGuess } from './guess-tokenize';
+import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 
 export class AppState {
     tracks: Track[] = [];
@@ -189,13 +189,15 @@ export class AppState {
     }
 
     // How many maskable units the line holds. Must match how SidebarUI renders
-    // them, hence the shared tokenizer — see guess-tokenize.ts. Returns 0 when
-    // the line is missing, which keeps callers from reporting a phantom line as
-    // fully revealed.
+    // them, hence the shared tokenizer — see guess-tokenize.ts. Punctuation-only
+    // tokens are excluded on both sides: they are never masked, so counting
+    // them would demand extra reveals for words that were visible all along.
+    // Returns 0 when the line is missing, which keeps callers from reporting a
+    // phantom line as fully revealed.
     private tokenCount(index: number): number {
         const mainTrack = this.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return 0;
-        return tokenizeForGuess(mainTrack[index].text).tokens.length;
+        return tokenizeForGuess(mainTrack[index].text).tokens.filter(isMaskableToken).length;
     }
 
     revealNextWord(index: number): boolean {
