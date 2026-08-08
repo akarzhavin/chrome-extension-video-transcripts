@@ -40,6 +40,11 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         },
         sendMessage: jest.fn(),
         lastError: undefined,
+        // background.ts calls installOnboarding at import time; without these
+        // the whole suite failed to load on `onInstalled.addListener`.
+        onInstalled: { addListener: jest.fn() },
+        OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
+        setUninstallURL: jest.fn(),
     },
     tabs: {
         get: jest.fn(),

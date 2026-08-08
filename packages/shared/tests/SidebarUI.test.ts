@@ -28,7 +28,12 @@ const prefsStore: Record<string, unknown> = {};
     },
 };
 
+// jsdom implements neither scroll method. scrollIntoView was already stubbed;
+// scrollTo was missed when scrollActiveIntoView switched to it, which is why
+// highlightSubtitle has been failing on `list.scrollTo is not a function`
+// rather than on anything it asserts.
 (window as any).HTMLElement.prototype.scrollIntoView = jest.fn();
+(window as any).Element.prototype.scrollTo = jest.fn();
 (window as any).isTopWindow = true;
 
 describe('SidebarUI', () => {
