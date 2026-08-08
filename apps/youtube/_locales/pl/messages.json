@@ -355,14 +355,6 @@
     "message": "Mój język ojczysty",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "Zapisz: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "W słowniku",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "Odkryj następne słowo tego napisu",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

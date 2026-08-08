@@ -355,14 +355,6 @@
     "message": "నా మాతృభాష",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "సేవ్ చేయి: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "నిఘంటువులో ఉంది",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "ఈ ఉపశీర్షిక తదుపరి పదాన్ని చూపు",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

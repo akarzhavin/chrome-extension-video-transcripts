@@ -1013,8 +1013,7 @@
     #vtt-ytp-menu *,
     .vtt-next-word,
     .vtt-masked-word,
-    .vtt-revealed-word,
-    .vtt-guess-btn {
+    .vtt-revealed-word {
         transition: none !important;
         animation: none !important;
     }
@@ -1203,89 +1202,7 @@
     animation: vtt-word-focus 0.42s ease-out;
 }
 
-/* A word already sent to the dictionary, marked on the line so the outcome
-   survives the next reveal rebuilding the action row. */
-.vtt-word-saved {
-    background: var(--vtt-success-quiet);
-    box-shadow: inset 0 -2px 0 var(--vtt-success);
-    border-radius: 3px;
-}
 
-/* Guess mode's two verbs, on one row under the line: uncover the next word,
-   and save the word just uncovered. The save button exists because the reveal
-   already identified that word — making the user re-select it by hand was both
-   ceremony and the reason the two features fought over one click. */
-.vtt-guess-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    padding-top: 9px;
-    border-top: 1px dashed var(--vtt-hairline-strong);
-}
-
-.vtt-guess-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 11px;
-    border-radius: 999px;
-    font-family: var(--vtt-font);
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    color: var(--vtt-accent-text);
-    background: var(--vtt-accent-quiet);
-    border: 1px solid var(--vtt-accent-border);
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.vtt-guess-btn:hover {
-    background: var(--vtt-accent-hover);
-    border-color: var(--vtt-accent-border-strong);
-    color: #fff;
-}
-
-.vtt-guess-btn:focus-visible {
-    outline: 2px solid var(--vtt-accent-ring);
-    outline-offset: 2px;
-}
-
-.vtt-guess-btn svg {
-    width: 13px;
-    height: 13px;
-    flex: none;
-}
-
-.vtt-guess-save {
-    color: var(--vtt-success-text);
-    background: var(--vtt-success-quiet);
-    border-color: var(--vtt-success-border);
-}
-
-.vtt-guess-save:hover {
-    background: rgba(52, 211, 153, 0.3);
-    border-color: var(--vtt-success);
-    color: #fff;
-}
-
-.vtt-guess-save.is-saved,
-.vtt-guess-save:disabled {
-    cursor: default;
-    opacity: 0.75;
-}
-
-.vtt-guess-save.is-saved:hover {
-    background: var(--vtt-success-quiet);
-    border-color: var(--vtt-success-border);
-    color: var(--vtt-success-text);
-}
-
-.vtt-item.fully-revealed .vtt-guess-actions {
-    border-top-color: var(--vtt-success-border);
-}
 
 .vtt-revealed-word {
     color: #e0e0e0;
@@ -1402,38 +1319,7 @@
     cursor: pointer;
 }
 
-/* The action row over video. #vtt-video-overlay is pointer-events: none so the
-   player stays clickable, so the buttons have to opt back in — without this
-   they would render and never respond. Centred under the caption and given a
-   backdrop of their own, since they sit directly on the picture. */
-.vtt-guess-actions-overlay {
-    justify-content: center;
-    margin-top: 8px;
-    padding-top: 0;
-    border-top: 0;
-    pointer-events: auto;
-}
 
-.vtt-guess-actions-overlay .vtt-guess-btn {
-    background: rgba(124, 141, 255, 0.34);
-    border-color: var(--vtt-accent-border-strong);
-    color: #fff;
-    backdrop-filter: blur(6px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-.vtt-guess-actions-overlay .vtt-guess-btn:hover {
-    background: rgba(124, 141, 255, 0.55);
-}
-
-.vtt-guess-actions-overlay .vtt-guess-save {
-    background: rgba(52, 211, 153, 0.32);
-    border-color: var(--vtt-success-border);
-}
-
-.vtt-guess-actions-overlay .vtt-guess-save:hover {
-    background: rgba(52, 211, 153, 0.52);
-}
 
 
 .vtt-overlay-sub {

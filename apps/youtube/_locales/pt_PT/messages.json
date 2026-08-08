@@ -355,14 +355,6 @@
     "message": "A minha língua materna",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "Guardar: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "No dicionário",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "Revelar a próxima palavra desta legenda",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

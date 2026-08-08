@@ -355,14 +355,6 @@
     "message": "Môj rodný jazyk",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "Uložiť: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "V slovníku",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "Odkryť ďalšie slovo tohto titulku",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

@@ -355,14 +355,6 @@
     "message": "என் தாய்மொழி",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "சேமி: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "அகராதியில் உள்ளது",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "இந்த வசன வரியின் அடுத்த சொல்லைக் காட்டு",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

@@ -355,14 +355,6 @@
     "message": "Tiếng mẹ đẻ của tôi",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "Lưu: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "Có trong từ điển",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "Hiện từ tiếp theo của phụ đề này",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

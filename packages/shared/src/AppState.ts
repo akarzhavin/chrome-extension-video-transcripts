@@ -25,10 +25,6 @@ export class AppState {
     currentIndex: number = -1;
     isHovering: boolean = false;
     guessState: Map<number, number> = new Map();
-    // The word the last reveal uncovered, so guess mode can offer to save it
-    // without a second, precise gesture. Cleared whenever the line or the mode
-    // changes — a stale offer would point at the wrong word.
-    private lastRevealed: { index: number; word: number } | null = null;
 
     // When set (YouTube, driven by the user's chosen language pair), track
     // selection matches these display-name fragments instead of the legacy
@@ -77,7 +73,6 @@ export class AppState {
         this.secondaryTrackIndex = 0;
         this.swapped = false;
         this.currentIndex = -1;
-        this.lastRevealed = null;
         this.guessState.clear();
         // The language catalog is per-title — the next title's manifest rebuilds
         // it. The user's selected learning/native codes persist (they're the
@@ -213,27 +208,7 @@ export class AppState {
         if (current >= total) return true; // already fully revealed
 
         this.guessState.set(index, current + 1);
-        // Remember what was just uncovered so "add to dictionary" can act on it
-        // without the user pointing at it again. Held explicitly rather than
-        // derived from the count: the first word of every line starts revealed,
-        // and deriving would offer a word the user never uncovered.
-        this.lastRevealed = { index, word: current };
         return current + 1 >= total;
-    }
-
-    /** The word the last reveal uncovered on `index`, or null. */
-    getLastRevealed(index: number): { word: number; text: string } | null {
-        const at = this.lastRevealed;
-        if (!at || at.index !== index) return null;
-        const sub = this.getMainTrack()?.[index];
-        if (!sub) return null;
-        const token = tokenizeForGuess(sub.text).tokens[at.word];
-        return token ? { word: at.word, text: token } : null;
-    }
-
-    /** Forget the pending offer — the user moved on. */
-    clearLastRevealed(): void {
-        this.lastRevealed = null;
     }
 
     getRevealedCount(index: number): number {
@@ -247,7 +222,6 @@ export class AppState {
     }
 
     resetGuessState(): void {
-        this.lastRevealed = null;
         this.guessState.clear();
     }
 

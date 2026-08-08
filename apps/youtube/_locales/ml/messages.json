@@ -355,14 +355,6 @@
     "message": "എന്റെ മാതൃഭാഷ",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessSaveWord": {
-    "message": "സംരക്ഷിക്കുക: {term}",
-    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
-  },
-  "ytGuessWordSaved": {
-    "message": "നിഘണ്ടുവിലുണ്ട്",
-    "description": "Replaces the save button after the revealed word was added to the dictionary."
-  },
   "ytGuessRevealAria": {
     "message": "ഈ സബ്‌ടൈറ്റിലിന്റെ അടുത്ത വാക്ക് കാണിക്കുക",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."

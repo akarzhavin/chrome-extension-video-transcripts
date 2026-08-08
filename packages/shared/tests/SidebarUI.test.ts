@@ -267,81 +267,15 @@ describe('SidebarUI', () => {
             expect(state.getRevealedCount(0)).toBe(1); // unchanged — pill wins here
         });
 
-        test('saving the revealed word needs no selection at all', async () => {
-            // The point of the whole change: reveal already identified the word,
-            // so the save must not require the user to re-point at it.
+        test('guess items carry no action row — the line itself is the only control', () => {
             state.displayMode = 'guess';
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
             ui.renderSubtitles();
             const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
 
-            // Nothing offered before the user has uncovered anything.
-            expect(item.querySelector('.vtt-guess-save')).toBeNull();
-
-            click(item); // uncovers 'beta'
-            const save = item.querySelector('.vtt-guess-save') as HTMLButtonElement;
-            expect(save).not.toBeNull();
-            expect(save.dataset.word).toBe('beta');
-            expect(window.getSelection()?.isCollapsed !== false).toBe(true);
-
-            const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
-            send.mockClear();
-            send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
-                cb?.({ ok: true, wordId: 'w1' });
-                return Promise.resolve({ ok: true, wordId: 'w1' });
-            });
-
-            save.click();
-            await new Promise((r) => setTimeout(r, 0));
-
-            const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
-            expect(sent).toBeDefined();
-            expect((sent![0] as any).term).toBe('beta');
-        });
-
-        test('the save offer names the newest word and drops when the line resets', () => {
-            state.displayMode = 'guess';
-            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
-            ui.renderSubtitles();
-            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
-            const savedWord = () =>
-                (item.querySelector('.vtt-guess-save') as HTMLButtonElement | null)?.dataset.word;
-
-            click(item);
-            expect(savedWord()).toBe('beta');
-            click(item);
-            expect(savedWord()).toBe('gamma'); // follows the newest reveal
-
-            state.resetGuessState();
-            ui.updateGuessItem(0);
-            expect(item.querySelector('.vtt-guess-save')).toBeNull();
-        });
-
-        test('clicking the save button does not also reveal', () => {
-            // It sits inside the line, whose click reveals — so without the
-            // guard, saving would uncover a word as a side effect.
-            state.displayMode = 'guess';
-            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
-            ui.renderSubtitles();
-            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
-
-            click(item);
-            expect(state.getRevealedCount(0)).toBe(2);
-
-            const save = item.querySelector('.vtt-guess-save') as HTMLButtonElement;
-            click(save);
-            expect(state.getRevealedCount(0)).toBe(2); // unchanged
-        });
-
-        test('the line carries no action row until a word is uncovered', () => {
-            state.displayMode = 'guess';
-            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
-            ui.renderSubtitles();
-            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
-
+            click(item); // reveal one word — previously this spawned a Save row
             expect(item.querySelector('.vtt-guess-actions')).toBeNull();
-            click(item);
-            expect(item.querySelector('.vtt-guess-actions')).not.toBeNull();
+            expect(item.querySelector('button')).toBeNull();
         });
 
         test('double-click is suppressed in guess mode but not in dual', () => {

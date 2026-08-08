@@ -10,7 +10,6 @@ import {
 } from './prefs';
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
 import { tokenizeForGuess } from './guess-tokenize';
-import { saveTerm, buildContextForIndex } from './content/quick-add-overlay';
 import { msg } from './i18n';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -82,10 +81,6 @@ export const ICONS = {
     posMid: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 13h8"/>'),
     posHigh: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8"/>'),
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="#1b1c20" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"/></svg>',
-    // Guess mode's save offer. check2 is the currentColor twin of `check`
-    // above, which is hard-coded to the panel ink.
-    plus: svgIcon('<path d="M12 5v14M5 12h14"/>'),
-    check2: svgIcon('<path d="M5 13l4 4 10-10"/>'),
 };
 
 type ScrollMode = 'smooth' | 'instant';
@@ -1317,24 +1312,12 @@ export class SidebarUI {
         // Mark the next word up, so exactly one target is lit at a time.
         spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === revealedCount));
 
-        // The row's labels move with the state (the remaining count, which word
-        // the save offer names), so it is rebuilt rather than patched. It holds
-        // no selection of its own, unlike the words above it.
-        item.querySelector('.vtt-guess-actions')?.remove();
-        const actions = this.buildGuessActions(index);
-
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
             if (!item.querySelector('.vtt-sub-text')) {
                 const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(mainTrack[index]));
                 if (subText) item.appendChild(subText);
             }
-        }
-        if (actions) {
-            // Always above the translation, which is the line's last element.
-            const translation = item.querySelector('.vtt-sub-text');
-            if (translation) item.insertBefore(actions, translation);
-            else item.appendChild(actions);
         }
     }
 
@@ -1378,8 +1361,6 @@ export class SidebarUI {
         // the words themselves are not individually actionable.
         item.setAttribute('role', 'button');
         item.setAttribute('aria-label', msg('ytGuessRevealAria', 'Reveal the next word of this subtitle'));
-        const actions = this.buildGuessActions(index);
-        if (actions) item.appendChild(actions);
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -1388,10 +1369,8 @@ export class SidebarUI {
         }
 
         item.addEventListener('click', (e) => {
-            // The actions carry their own handlers; a click on one is not a
-            // reveal. Drag-selecting inside the item also fires this click, so
-            // stand down for a live selection and keep the quick-add pill usable.
-            if ((e.target as Element | null)?.closest?.('.vtt-guess-actions')) return;
+            // Drag-selecting inside the item fires this click too; stand down
+            // for a live selection and keep the quick-add pill usable.
             if (!shouldReveal(e, item)) return;
             this.revealAndSeek(index, sub);
         });
@@ -1399,8 +1378,7 @@ export class SidebarUI {
     }
 
     // Reveal one word and follow the line, the single action guess mode is made
-    // of. Shared by the sidebar item, its explicit button and the overlay so the
-    // three cannot drift apart.
+    // of. Shared by the sidebar item and the overlay so the two cannot drift.
     private revealAndSeek(index: number, sub: Subtitle): void {
         this.state.revealNextWord(index);
         // Drop any leftover highlight: the user has moved on to revealing, and
@@ -1410,55 +1388,6 @@ export class SidebarUI {
         this.updateGuessItem(index);
         this.updateOverlay(index);
         this.app.seekVideo(sub.startTime);
-    }
-
-    /**
-     * The offer to keep the word that was just uncovered. It exists because the
-     * reveal already identified that word — making the user re-point at it with
-     * a drag was ceremony, and it put the two features in competition for one
-     * click. Nothing else lives here: a "reveal" button only restated what a
-     * click on the line already does, and a remaining-count restated what the
-     * still-masked words show. Returns null when there is nothing to offer, so
-     * the line carries no empty furniture.
-     */
-    private buildGuessActions(index: number, forOverlay = false): HTMLDivElement | null {
-        const fresh = this.state.getLastRevealed(index);
-        if (!fresh) return null;
-
-        const row = document.createElement('div');
-        row.className = 'vtt-guess-actions' + (forOverlay ? ' vtt-guess-actions-overlay' : '');
-
-        const save = document.createElement('button');
-        save.type = 'button';
-        save.className = 'vtt-guess-btn vtt-guess-save';
-        save.dataset.word = fresh.text;
-        save.innerHTML = ICONS.plus +
-            `<span>${msg('ytGuessSaveWord', 'Save: {term}').replace('{term}', fresh.text)}</span>`;
-        save.addEventListener('click', () => void this.saveRevealedWord(index, save));
-        row.appendChild(save);
-        return row;
-    }
-
-    private async saveRevealedWord(index: number, btn: HTMLButtonElement): Promise<void> {
-        const fresh = this.state.getLastRevealed(index);
-        if (!fresh || btn.disabled) return;
-        btn.disabled = true;
-        const ok = await saveTerm(fresh.text, buildContextForIndex(index));
-        if (!ok) {
-            btn.disabled = false;
-            return;
-        }
-        btn.classList.add('is-saved');
-        btn.innerHTML = ICONS.check2 + `<span>${msg('ytGuessWordSaved', 'In dictionary')}</span>`;
-        // Mark the word itself too, so the line carries the outcome after the
-        // row is rebuilt by the next reveal.
-        this.markGuessWordSaved(index, fresh.word);
-    }
-
-    private markGuessWordSaved(index: number, word: number): void {
-        const item = this.elements.list?.querySelector(`.vtt-item[data-index="${index}"]`);
-        const spans = item?.querySelectorAll<HTMLElement>('.vtt-masked-word, .vtt-revealed-word');
-        spans?.[word]?.classList.add('vtt-word-saved');
     }
 
     private buildPlainItem(sub: Subtitle, index: number): HTMLDivElement {
@@ -1548,12 +1477,6 @@ export class SidebarUI {
             const subDiv = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub), 'vtt-overlay-sub');
             if (subDiv) overlay.appendChild(subDiv);
         }
-        // Guess mode's actions travel with the caption: over a moving picture,
-        // a button under the line is a far easier target than a word inside it.
-        if (this.state.displayMode === 'guess') {
-            const actions = this.buildGuessActions(index, true);
-            if (actions) overlay.appendChild(actions);
-        }
     }
 
     private createOverlayElement(): HTMLDivElement | null {
@@ -1577,8 +1500,6 @@ export class SidebarUI {
         });
         overlay.addEventListener('click', (e) => {
             if (this.state.displayMode !== 'guess') return;
-            // The buttons under the caption carry their own handlers.
-            if ((e.target as Element | null)?.closest?.('.vtt-guess-actions')) return;
             if (!shouldReveal(e, overlay)) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
