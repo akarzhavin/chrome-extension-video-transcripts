@@ -194,6 +194,31 @@ describe('SidebarUI', () => {
 
         afterEach(() => window.getSelection()?.removeAllRanges());
 
+        test('pointerdown alone reveals — the press must not depend on the click arriving', () => {
+            // The overlay rebuilds its DOM every ~250ms; when a rebuild lands
+            // mid-press Chrome drops the click entirely (measured: 22 of 40
+            // trusted clicks delivered). The press itself is the reveal.
+            const overlay = buildGuessOverlay();
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+            expect(state.getRevealedCount(0)).toBe(2);
+        });
+
+        test('a full press (pointerdown then click) reveals exactly once', () => {
+            const overlay = buildGuessOverlay();
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+            masked.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(state.getRevealedCount(0)).toBe(2); // not 3
+        });
+
+        test('a right-button press does not reveal', () => {
+            const overlay = buildGuessOverlay();
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 2 }));
+            expect(state.getRevealedCount(0)).toBe(1);
+        });
+
         test('a click on a masked word reveals the next one', () => {
             const overlay = buildGuessOverlay();
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;

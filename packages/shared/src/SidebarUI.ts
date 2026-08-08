@@ -1368,7 +1368,20 @@ export class SidebarUI {
             if (subText) item.appendChild(subText);
         }
 
+        // Masked words reveal on pointerdown, not click — see the overlay
+        // handler for why (a mid-click DOM rebuild makes Chrome drop the click
+        // entirely). The sidebar patches its spans in place so it is not bitten
+        // the same way, but the two surfaces must feel identical.
+        item.addEventListener('pointerdown', (e) => {
+            this.pointerRevealed = false;
+            if (e.button !== 0) return;
+            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
+            this.pointerRevealed = true;
+            this.revealAndSeek(index, sub);
+        });
         item.addEventListener('click', (e) => {
+            // The pointerdown above already revealed for this press.
+            if (this.pointerRevealed) { this.pointerRevealed = false; return; }
             // Drag-selecting inside the item fires this click too; stand down
             // for a live selection and keep the quick-add pill usable.
             if (!shouldReveal(e, item)) return;
@@ -1376,6 +1389,10 @@ export class SidebarUI {
         });
         return item;
     }
+
+    // True between a pointerdown that revealed a word and the click the same
+    // press delivers afterwards; that click must not reveal a second one.
+    private pointerRevealed = false;
 
     // Reveal one word and follow the line, the single action guess mode is made
     // of. Shared by the sidebar item and the overlay so the two cannot drift.
@@ -1498,8 +1515,28 @@ export class SidebarUI {
         overlay.addEventListener('mousedown', (e) => {
             if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
         });
+        // Masked words reveal on pointerdown, not click. updateOverlay rebuilds
+        // this element's children on every timeupdate (~4×/sec), and when that
+        // rebuild lands between mousedown and mouseup Chrome drops the click
+        // outright — measured with trusted CDP input: 40 presses on a capsule
+        // over a 250ms-rebuild container delivered 40 pointerdowns and only 22
+        // clicks. pointerdown fires at press time, before any rebuild can
+        // detach the word. Clicks elsewhere on the caption stay click-based so
+        // drag-selecting revealed words keeps working.
+        overlay.addEventListener('pointerdown', (e) => {
+            this.pointerRevealed = false;
+            if (this.state.displayMode !== 'guess' || e.button !== 0) return;
+            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
+            const index = this.state.currentIndex;
+            const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+            if (!sub) return;
+            this.pointerRevealed = true;
+            this.revealAndSeek(index, sub);
+        });
         overlay.addEventListener('click', (e) => {
             if (this.state.displayMode !== 'guess') return;
+            // The pointerdown above already revealed for this press.
+            if (this.pointerRevealed) { this.pointerRevealed = false; return; }
             if (!shouldReveal(e, overlay)) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
