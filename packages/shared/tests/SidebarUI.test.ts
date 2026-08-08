@@ -480,10 +480,13 @@ describe('SidebarUI', () => {
             expect(spans[1].dataset.word).toBeUndefined();
             expect(spans[1].dataset.hidden).toBe('world');
             expect(spans[1].classList.contains('vtt-masked-word')).toBe(true);
-            // Stand-in letters of the same length — never the word itself,
-            // which a blur alone would not keep out of reach.
-            expect(spans[1].textContent).not.toBe('world');
-            expect(spans[1].textContent).toHaveLength('world'.length);
+            // A neutral smudge, never the word: a blur is only paint, and
+            // stand-in letters would survive it as readable nonsense. Longer
+            // words still get wider panes, but not one glyph per letter.
+            const mask = spans[1].textContent ?? '';
+            expect(mask).not.toBe('world');
+            expect(new Set(mask)).toHaveProperty('size', 1);
+            expect(mask.length).toBeGreaterThan(0);
 
             expect(spans[2].dataset.word).toBeUndefined();
             expect(spans[2].dataset.hidden).toBe('foo');

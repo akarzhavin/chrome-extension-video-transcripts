@@ -1207,23 +1207,23 @@ export class SidebarUI {
         return container;
     }
 
-    // Letters to sit under the frosted pane. Not the real word — that must stay
-    // out of the DOM, or a blur would be undone by selecting the text under it —
-    // and not a run of asterisks either: "***" reads as "nothing here", when the
-    // truth is that the word is present and merely out of focus. Stand-ins of
-    // the same length keep the line's rhythm, so a short function word still
-    // looks unlike a long one.
+    // What sits under the frosted pane. Its only job is to give the pane the
+    // width of the word it hides — the length is the hint guess mode trades on.
     //
-    // Derived from the token, not random, so a repaint (~4×/sec on the overlay)
-    // does not reshuffle the letters and make the line shimmer.
+    // One repeated neutral glyph, not stand-in letters: fake words survive the
+    // blur as readable nonsense ("ptmsph"), so the line reads as gibberish
+    // instead of as language out of focus, which is worse than the asterisks
+    // this replaced. A single repeated shape blurs into an even smudge.
+    // The real word can never go here — a blur is only paint, and the text
+    // under it stays selectable and copyable.
     private maskGlyphs(token: string, _spaced: boolean): string {
-        const pool = 'aeoscnrmuhtlipd';
-        const len = Math.min(Math.max(token.length, 2), 14);
-        let out = '';
-        for (let i = 0; i < len; i++) {
-            out += pool[(token.charCodeAt(i % token.length) * 7 + i * 13) % pool.length];
-        }
-        return out;
+        // Half the letters, not one per letter: a pane one glyph wide per
+        // character runs far wider than the word it stands for — 'n' is a wide
+        // glyph and real text averages much narrower — which pushed short lines
+        // onto two rows. Halving keeps long words visibly longer than short
+        // ones while the line still fits.
+        const len = Math.min(Math.max(Math.ceil(token.length / 2), 1), 7);
+        return 'n'.repeat(len);
     }
 
     // Both sidebar and on-screen overlay share this layout so the quick-add

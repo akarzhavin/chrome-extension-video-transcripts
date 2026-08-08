@@ -1119,7 +1119,12 @@
     background: rgba(255, 255, 255, 0.10);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
     border-radius: 5px;
-    padding: 0.1em 0.34em;
+    padding: 0.08em 0.3em;
+    /* An inline-block is an unbreakable box, and .vtt-overlay-main sets
+       word-wrap: break-word for long real words — together they made the line
+       wrap far earlier than its width required. */
+    white-space: nowrap;
+    margin: 0 0.02em;
     /* Clip the blur to the pane. Without this the smear spills past the
        rounded edge and the capsule stops reading as one solid object. */
     overflow: hidden;
@@ -1165,12 +1170,12 @@
     background-color: var(--vtt-accent-hover);
 }
 
-/* The panes carry vertical padding, so a wrapped guess line needs more leading
-   than plain text or the rows collide. Scoped to lines that actually hold a
-   pane, so dual and single mode keep their tighter rhythm. */
+/* The panes carry vertical padding, so a wrapped guess line needs a little more
+   leading than plain text or the rows touch. Scoped to lines that actually hold
+   a pane, so dual and single mode keep their tighter rhythm. */
 .vtt-main-text:has(.vtt-masked-word),
 .vtt-overlay-main:has(.vtt-masked-word) {
-    line-height: 2;
+    line-height: 1.75;
 }
 
 /* Coming into focus is the reveal, so it is the one moment worth animating:
