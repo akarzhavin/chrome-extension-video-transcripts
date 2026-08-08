@@ -203,6 +203,41 @@ describe('SidebarUI', () => {
             expect(state.getRevealedCount(0)).toBe(2);
         });
 
+        test('a click anywhere on the line reveals — the line is the target', () => {
+            const overlay = buildGuessOverlay();
+            // Not a word: the caption box itself, and the container around it.
+            const box = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            click(box);
+            expect(state.getRevealedCount(0)).toBe(2);
+
+            click(overlay);
+            expect(state.getRevealedCount(0)).toBe(3);
+        });
+
+        test('exactly one word is lit as next, and it moves with the reveal', () => {
+            const overlay = buildGuessOverlay();
+            const lit = () => overlay.querySelectorAll<HTMLElement>('.vtt-next-word');
+            expect(lit()).toHaveLength(1);
+            // 'alpha' is free, so 'beta' (index 1) is what opens next.
+            expect(lit()[0].textContent).toBe('***');
+            const before = lit()[0].dataset.hidden;
+            expect(before).toBe('beta');
+
+            click(overlay);
+            const after = lit();
+            expect(after).toHaveLength(1);
+            // The frontier advanced onto the following word.
+            expect(after[0].dataset.hidden).toBe('gamma');
+        });
+
+        test('the last word revealed leaves nothing lit', () => {
+            const overlay = buildGuessOverlay();
+            click(overlay);
+            click(overlay); // three tokens, first is free
+            expect(state.isFullyRevealed(0)).toBe(true);
+            expect(document.querySelectorAll('.vtt-next-word')).toHaveLength(0);
+        });
+
         test('a masked word still reveals while text elsewhere is selected', () => {
             const overlay = buildGuessOverlay();
             // Plant a selection on the already-revealed word — this is what used
@@ -230,6 +265,72 @@ describe('SidebarUI', () => {
 
             click(revealed);
             expect(state.getRevealedCount(0)).toBe(1); // unchanged — pill wins here
+        });
+
+        test('saving the revealed word needs no selection at all', async () => {
+            // The point of the whole change: reveal already identified the word,
+            // so the save must not require the user to re-point at it.
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+
+            // Nothing offered before the user has uncovered anything.
+            expect(item.querySelector('.vtt-guess-save')).toBeNull();
+
+            click(item); // uncovers 'beta'
+            const save = item.querySelector('.vtt-guess-save') as HTMLButtonElement;
+            expect(save).not.toBeNull();
+            expect(save.dataset.word).toBe('beta');
+            expect(window.getSelection()?.isCollapsed !== false).toBe(true);
+
+            const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
+            send.mockClear();
+            send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
+                cb?.({ ok: true, wordId: 'w1' });
+                return Promise.resolve({ ok: true, wordId: 'w1' });
+            });
+
+            save.click();
+            await new Promise((r) => setTimeout(r, 0));
+
+            const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
+            expect(sent).toBeDefined();
+            expect((sent![0] as any).term).toBe('beta');
+        });
+
+        test('the save offer names the newest word and drops when the line resets', () => {
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+            const savedWord = () =>
+                (item.querySelector('.vtt-guess-save') as HTMLButtonElement | null)?.dataset.word;
+
+            click(item);
+            expect(savedWord()).toBe('beta');
+            click(item);
+            expect(savedWord()).toBe('gamma'); // follows the newest reveal
+
+            state.resetGuessState();
+            ui.updateGuessItem(0);
+            expect(item.querySelector('.vtt-guess-save')).toBeNull();
+        });
+
+        test('clicking the action row does not also reveal', () => {
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+
+            const reveal = item.querySelector('.vtt-guess-btn') as HTMLButtonElement;
+            reveal.click();
+            expect(state.getRevealedCount(0)).toBe(2); // one step, not two
+
+            // The hint is inert: clicking it must not advance either.
+            const hint = item.querySelector('.vtt-guess-hint') as HTMLElement;
+            click(hint);
+            expect(state.getRevealedCount(0)).toBe(2);
         });
 
         test('double-click is suppressed in guess mode but not in dual', () => {
@@ -362,12 +463,12 @@ describe('SidebarUI', () => {
             expect(spans).toHaveLength(3);
 
             expect(spans[0].dataset.word).toBe('hello');
-            expect(spans[0].className).toBe('vtt-revealed-word');
+            expect(spans[0].classList.contains('vtt-revealed-word')).toBe(true);
 
             // Masked: quick-add must not be able to offer an unseen word.
             expect(spans[1].dataset.word).toBeUndefined();
             expect(spans[1].dataset.hidden).toBe('world');
-            expect(spans[1].className).toBe('vtt-masked-word');
+            expect(spans[1].classList.contains('vtt-masked-word')).toBe(true);
             expect(spans[1].textContent).toBe('***');
 
             expect(spans[2].dataset.word).toBeUndefined();
@@ -403,7 +504,7 @@ describe('SidebarUI', () => {
             const wordSpans = () =>
                 item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
             const beta = wordSpans()[1];
-            expect(beta.className).toBe('vtt-masked-word');
+            expect(beta.classList.contains('vtt-masked-word')).toBe(true);
             expect(beta.textContent).toBe('***');
             expect(beta.dataset.word).toBeUndefined();
 
@@ -413,7 +514,7 @@ describe('SidebarUI', () => {
 
             const sameBeta = wordSpans()[1];
             expect(sameBeta).toBe(beta); // exact same node — not a replacement
-            expect(sameBeta.className).toBe('vtt-revealed-word');
+            expect(sameBeta.classList.contains('vtt-revealed-word')).toBe(true);
             expect(sameBeta.textContent).toBe('beta');
             // Now visible, so quick-add may offer it.
             expect(sameBeta.dataset.word).toBe('beta');
@@ -439,7 +540,7 @@ describe('SidebarUI', () => {
             ui.updateGuessItem(0);
 
             const beta = wordSpans()[1];
-            expect(beta.className).toBe('vtt-masked-word');
+            expect(beta.classList.contains('vtt-masked-word')).toBe(true);
             expect(beta.textContent).toBe('***');
             expect(beta.dataset.word).toBeUndefined();
             expect(beta.dataset.hidden).toBe('beta');

@@ -1010,7 +1010,9 @@
     #vtt-toggle-btn svg,
     #vtt-video-overlay,
     #vtt-ytp-menu,
-    #vtt-ytp-menu * {
+    #vtt-ytp-menu *,
+    .vtt-next-word,
+    .vtt-guess-btn {
         transition: none !important;
         animation: none !important;
     }
@@ -1089,20 +1091,132 @@
     font-weight: 400;
 }
 
-/* A masked word is a button, not text. Making it unselectable is what keeps
-   reveal and quick-add from fighting: both used to branch on "is something
-   selected", in opposite directions, so a click that grazed a glyph boundary
-   would raise the save pill instead of uncovering the word. Excluded from
-   selection, a click on it can only ever mean reveal.
-   user-select rather than pointer-events: the latter would let the click fall
-   through to the video and toggle playback. */
+/* Hidden words are quiet. Every one of them used to be dressed as a target,
+   which implied you could pick one — but reveal always runs in order, so the
+   word you aimed at was rarely the word that opened. Only .vtt-next-word below
+   is lit, and the line itself takes the click.
+   Unselectable so a click here can only ever mean reveal: this is what stops
+   reveal and quick-add branching on the same "is something selected" bit in
+   opposite directions. user-select rather than pointer-events — the latter
+   would let the click fall through to the video and toggle playback. */
 .vtt-masked-word {
-    color: rgba(255, 255, 255, 0.25);
-    letter-spacing: 1px;
-    font-style: italic;
+    color: rgba(255, 255, 255, 0.28);
+    letter-spacing: 2px;
     -webkit-user-select: none;
     user-select: none;
+}
+
+/* The one word that opens next. Carries the accent fill and a hairline ring,
+   so it reads as the live target on any backdrop — including a white video
+   frame, where a colour-only cue would vanish. */
+.vtt-next-word {
+    color: var(--vtt-accent-text);
+    background-color: var(--vtt-accent-quiet);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
+    border-radius: 3px;
+    transition: background-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
+}
+
+.vtt-item:hover .vtt-next-word,
+.vtt-overlay-main:hover .vtt-next-word {
+    background-color: var(--vtt-accent-hover);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
+    color: #fff;
+}
+
+/* A word already sent to the dictionary, marked on the line so the outcome
+   survives the next reveal rebuilding the action row. */
+.vtt-word-saved {
+    background: var(--vtt-success-quiet);
+    box-shadow: inset 0 -2px 0 var(--vtt-success);
+    border-radius: 3px;
+}
+
+/* Guess mode's two verbs, on one row under the line: uncover the next word,
+   and save the word just uncovered. The save button exists because the reveal
+   already identified that word — making the user re-select it by hand was both
+   ceremony and the reason the two features fought over one click. */
+.vtt-guess-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px dashed var(--vtt-hairline-strong);
+}
+
+.vtt-guess-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-family: var(--vtt-font);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
+    color: var(--vtt-accent-text);
+    background: var(--vtt-accent-quiet);
+    border: 1px solid var(--vtt-accent-border);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.vtt-guess-btn:hover {
+    background: var(--vtt-accent-hover);
+    border-color: var(--vtt-accent-border-strong);
+    color: #fff;
+}
+
+.vtt-guess-btn:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring);
+    outline-offset: 2px;
+}
+
+.vtt-guess-btn svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+}
+
+.vtt-guess-save {
+    color: var(--vtt-success-text);
+    background: var(--vtt-success-quiet);
+    border-color: var(--vtt-success-border);
+}
+
+.vtt-guess-save:hover {
+    background: rgba(52, 211, 153, 0.3);
+    border-color: var(--vtt-success);
+    color: #fff;
+}
+
+.vtt-guess-save.is-saved,
+.vtt-guess-save:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.vtt-guess-save.is-saved:hover {
+    background: var(--vtt-success-quiet);
+    border-color: var(--vtt-success-border);
+    color: var(--vtt-success-text);
+}
+
+.vtt-guess-hint {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--vtt-text-dim);
+    letter-spacing: 0.02em;
+}
+
+.vtt-item.fully-revealed .vtt-guess-actions {
+    border-top-color: var(--vtt-success-border);
+}
+
+.vtt-item.fully-revealed .vtt-guess-hint {
+    color: var(--vtt-success-text);
 }
 
 .vtt-revealed-word {
@@ -1211,11 +1325,53 @@
     user-select: text;
 }
 
-/* Guess mode used to put a pointer cursor on the whole caption box while any
-   word was hidden, which mis-signalled the half-revealed case: the words
-   already out are selectable text, not reveal targets. The cursor now lives on
-   .vtt-masked-word itself, so each word states what it is and the box keeps the
-   text cursor it inherits. */
+/* The caption box is the reveal target in guess mode — the whole line, not the
+   individual words, which is what reveal actually does. Only while words are
+   still hidden; once the line is out it goes back to being text you select
+   from. :has() is the honest test here: it asks the box whether it still holds
+   anything hidden. */
+.vtt-overlay-main:has(.vtt-masked-word) {
+    cursor: pointer;
+}
+
+/* The action row over video. #vtt-video-overlay is pointer-events: none so the
+   player stays clickable, so the buttons have to opt back in — without this
+   they would render and never respond. Centred under the caption and given a
+   backdrop of their own, since they sit directly on the picture. */
+.vtt-guess-actions-overlay {
+    justify-content: center;
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: 0;
+    pointer-events: auto;
+}
+
+.vtt-guess-actions-overlay .vtt-guess-btn {
+    background: rgba(124, 141, 255, 0.34);
+    border-color: var(--vtt-accent-border-strong);
+    color: #fff;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-guess-actions-overlay .vtt-guess-btn:hover {
+    background: rgba(124, 141, 255, 0.55);
+}
+
+.vtt-guess-actions-overlay .vtt-guess-save {
+    background: rgba(52, 211, 153, 0.32);
+    border-color: var(--vtt-success-border);
+}
+
+.vtt-guess-actions-overlay .vtt-guess-save:hover {
+    background: rgba(52, 211, 153, 0.52);
+}
+
+/* On the picture the hint needs its own contrast, not the panel's dim ramp. */
+.vtt-guess-actions-overlay .vtt-guess-hint {
+    color: #fff;
+    text-shadow: 1px 1px 3px #000;
+}
 
 .vtt-overlay-sub {
     background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));

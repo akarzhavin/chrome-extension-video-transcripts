@@ -133,7 +133,15 @@ function buildContextFromScope(scope: Element): string {
     if (indexAttr === null) return '';
     const index = parseInt(indexAttr, 10);
     if (!Number.isFinite(index)) return '';
+    return buildContextForIndex(index);
+}
 
+/**
+ * The saved word's neighbourhood: the line before, the line itself, the line
+ * after. Exported because guess mode saves by subtitle index — it never has a
+ * selection to derive the scope from.
+ */
+export function buildContextForIndex(index: number): string {
     const list = document.getElementById('vtt-list');
     if (!list) return '';
 
@@ -665,37 +673,57 @@ function showPill(rect: DOMRect, term: string, context: string): void {
         const savedSpans = selectionWordSpans();
         pill.disabled = true;
         pill.textContent = '…';
-        console.log('[Lingogram] ADD_WORD →', term);
-        try {
-            const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
-                action: 'ADD_WORD',
-                term,
-                context,
-            });
-            console.log('[Lingogram] ADD_WORD ←', res);
-            if (!res.ok) throw new Error(res.error ?? 'add failed');
-            showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
-            markSpansSaved(savedSpans);
+        const ok = await saveTerm(term, context, savedSpans);
+        if (ok) {
             // Drop the range so the overlay's selection-guard releases and
             // resumes timeupdate rebuilds.
             window.getSelection()?.removeAllRanges();
-            // Value-moment rating ask (P1.8) — background signals the one-shot.
-            if (res.promptRate) showRatePrompt();
-        } catch (err) {
-            const msg = String(err instanceof Error ? err.message : err);
-            const friendly = /Not signed in|sign in via/i.test(msg)
-                ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
-                : /reloaded/i.test(msg)
-                ? msg
-                : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
-            showToast(friendly, false);
-            console.warn('[Lingogram] add failed:', err);
-        } finally {
-            removePill();
         }
+        removePill();
     });
 
     (document.fullscreenElement ?? document.body).appendChild(pill);
+}
+
+/**
+ * Save one term to the dictionary and report it to the user. Extracted from the
+ * pill's click handler so guess mode can reach it too: there the word is
+ * already identified — reveal just uncovered it — so making the user re-point
+ * at it with a drag was pure ceremony.
+ *
+ * `spans` are the word elements to tag "saved" on success; pass an empty array
+ * when there is nothing on screen to mark. Returns whether the save succeeded.
+ */
+export async function saveTerm(
+    term: string,
+    context: string,
+    spans: HTMLElement[] = [],
+): Promise<boolean> {
+    console.log('[Lingogram] ADD_WORD →', term);
+    try {
+        const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
+            action: 'ADD_WORD',
+            term,
+            context,
+        });
+        console.log('[Lingogram] ADD_WORD ←', res);
+        if (!res.ok) throw new Error(res.error ?? 'add failed');
+        showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
+        markSpansSaved(spans);
+        // Value-moment rating ask (P1.8) — background signals the one-shot.
+        if (res.promptRate) showRatePrompt();
+        return true;
+    } catch (err) {
+        const msg = String(err instanceof Error ? err.message : err);
+        const friendly = /Not signed in|sign in via/i.test(msg)
+            ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
+            : /reloaded/i.test(msg)
+            ? msg
+            : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
+        showToast(friendly, false);
+        console.warn('[Lingogram] add failed:', err);
+        return false;
+    }
 }
 
 function sendMessage<T>(msg: object): Promise<T> {
