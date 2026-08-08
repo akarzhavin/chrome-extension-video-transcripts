@@ -194,6 +194,23 @@ describe('SidebarUI', () => {
 
         afterEach(() => window.getSelection()?.removeAllRanges());
 
+        test('updateOverlay leaves the DOM alone while nothing changed', () => {
+            // timeupdate calls this ~4×/sec. Recreating identical children made
+            // the lit capsule flicker under a resting cursor (fresh node = one
+            // frame without :hover, transition replays) — so an unchanged
+            // signature must keep the very same nodes.
+            const overlay = buildGuessOverlay();
+            const before = overlay.querySelector('.vtt-next-word');
+            ui.updateOverlay(0);
+            ui.updateOverlay(0);
+            expect(overlay.querySelector('.vtt-next-word')).toBe(before);
+
+            // A reveal changes the signature, so now the children must rebuild.
+            state.revealNextWord(0);
+            ui.updateOverlay(0);
+            expect(overlay.querySelector('.vtt-next-word')).not.toBe(before);
+        });
+
         test('pointerdown alone reveals — the press must not depend on the click arriving', () => {
             // The overlay rebuilds its DOM every ~250ms; when a rebuild lands
             // mid-press Chrome drops the click entirely (measured: 22 of 40

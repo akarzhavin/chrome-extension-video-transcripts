@@ -1483,9 +1483,26 @@ export class SidebarUI {
         if (!overlay) return; // No video to attach to yet.
 
         overlay.style.display = 'flex';
-        overlay.innerHTML = '';
 
         const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+
+        // Rebuild only when the rendered content would differ. This runs on
+        // every timeupdate (~4×/sec); unconditionally recreating the children
+        // made every capsule a newborn four times a second — for one frame it
+        // had no :hover, then the 0.16s transition replayed, so the lit word
+        // flickered under a resting cursor. (It also made Chrome drop clicks
+        // whose press straddled a rebuild — see the pointerdown handler.)
+        // Everything the children are derived from is in the signature: the
+        // line, the mode, how much of it is uncovered, and which tracks feed
+        // the text and the translation.
+        const sig = sub
+            ? [index, this.state.displayMode, this.state.getRevealedCount(index),
+               this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped].join('|')
+            : 'empty';
+        if (overlay.dataset.sig === sig) return;
+        overlay.dataset.sig = sig;
+
+        overlay.innerHTML = '';
         if (!sub) return;
 
         this.applyOverlayStyle();
