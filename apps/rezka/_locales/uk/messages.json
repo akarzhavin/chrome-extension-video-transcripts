@@ -318,5 +318,9 @@
   "ytGuessRevealAria": {
     "message": "Відкрити наступне слово цих субтитрів",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "Одинарні",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

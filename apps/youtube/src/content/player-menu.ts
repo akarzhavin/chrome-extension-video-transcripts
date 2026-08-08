@@ -365,18 +365,8 @@ class PlayerMenu {
         return mode === 'dual' || mode === 'guess' ? mode : 'single';
     }
 
-    // Modes are mutually exclusive, but the underlying API is two independent
-    // toggles (toggleDualMode/toggleGuessMode flip their mode off when it's
-    // already on). Turning the ACTIVE one off lands on 'single', which is
-    // exactly what each of these three paths needs.
     private pickMode(key: ModeKey): void {
-        const current = this.currentMode();
-        if (key !== current) {
-            if (key === 'dual') this.app.ui.toggleDualMode();
-            else if (key === 'guess') this.app.ui.toggleGuessMode();
-            else if (current === 'dual') this.app.ui.toggleDualMode();
-            else this.app.ui.toggleGuessMode();
-        }
+        this.app.ui.setMode(key);
         this.showPage('root');
         this.render();
     }

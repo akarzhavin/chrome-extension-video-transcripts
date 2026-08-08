@@ -169,23 +169,36 @@ export class AppState {
         return false;
     }
 
-    toggleDualMode(): boolean {
-        if (!this.hasMultipleTracks()) return false;
-        // Always land on `dual` unless we're already there — otherwise clicking
-        // Dual from `guess` would silently fall through to `single`, leaving
-        // the user wondering where the secondary translation went.
-        this.displayMode = this.displayMode === 'dual' ? 'single' : 'dual';
+    /**
+     * The mode picker's real shape: three mutually exclusive modes, chosen
+     * directly. The UI used to expose two toggles and hide `single` as the
+     * "neither selected" state — the YouTube player menu even carried a
+     * workaround reconstructing a direct pick out of the toggles.
+     * Returns whether anything changed (dual needs a second track; picking the
+     * active mode is a no-op).
+     */
+    setDisplayMode(mode: 'single' | 'dual' | 'guess'): boolean {
+        if (mode === this.displayMode) return false;
+        if (mode === 'dual' && !this.hasMultipleTracks()) return false;
+        this.displayMode = mode;
+        if (mode === 'guess') this.resetGuessState();
         return true;
     }
 
+    // Toggle wrappers for the Shift+D / Shift+G shortcuts, which flip between
+    // a mode and its natural exit. The exits differ on purpose: leaving guess
+    // lands on dual (the translation came back), while leaving dual lands on
+    // single (the translation went away).
+    toggleDualMode(): boolean {
+        if (!this.hasMultipleTracks()) return false;
+        return this.setDisplayMode(this.displayMode === 'dual' ? 'single' : 'dual');
+    }
+
     toggleGuessMode(): boolean {
-        if (this.displayMode === 'guess') {
-            this.displayMode = 'dual';
-        } else {
-            this.displayMode = 'guess';
-            this.resetGuessState();
-        }
-        return true;
+        if (this.displayMode !== 'guess') return this.setDisplayMode('guess');
+        // With one track "dual" is rejected, which would strand the shortcut
+        // in guess mode — fall back to single there.
+        return this.setDisplayMode(this.hasMultipleTracks() ? 'dual' : 'single');
     }
 
     // How many maskable units the line holds. Must match how SidebarUI renders

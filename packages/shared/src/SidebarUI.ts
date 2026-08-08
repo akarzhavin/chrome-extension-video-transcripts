@@ -72,8 +72,10 @@ export const ICONS = {
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
-    // dual: two stacked subtitle lines; guess: a line with mask dots below it
-    // (text → "•••"); onScreen: a video frame with a caption bar inside.
+    // single: one subtitle line; dual: two stacked subtitle lines; guess: a
+    // line with mask dots below it (text → "•••"); onScreen: a video frame
+    // with a caption bar inside.
+    single: svgIcon('<rect x="3" y="9" width="18" height="6" rx="1.5"/>'),
     dual: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13.5" width="18" height="6" rx="1.5"/>'),
     guess: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><circle cx="6.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/>'),
     onScreen: svgIcon('<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 14.5h12"/>'),
@@ -266,14 +268,22 @@ export class SidebarUI {
         modes.id = 'vtt-controls';
         modes.className = 'vtt-modes';
 
+        // Three modes, three chips, one always active. Two toggle chips used to
+        // hide `single` as "both off", which read as a third mode smuggled into
+        // a button that just… turns things off.
+        const singleBtn = this.buildModeChip('vtt-single-btn', ICONS.single,
+            msg('ytModeSingle', 'Single'), 'Single Subtitles');
+        singleBtn.addEventListener('click', () => this.setMode('single'));
+        modes.appendChild(singleBtn);
+
         const dualBtn = this.buildModeChip('vtt-dual-btn', ICONS.dual,
-            msg('ytModeDual', 'Dual'), 'Toggle Dual Mode (Shift+D)');
-        dualBtn.addEventListener('click', () => this.toggleDualMode());
+            msg('ytModeDual', 'Dual'), 'Dual Subtitles (Shift+D)');
+        dualBtn.addEventListener('click', () => this.setMode('dual'));
         modes.appendChild(dualBtn);
 
         const guessBtn = this.buildModeChip('vtt-guess-btn', ICONS.guess,
-            msg('ytModeGuess', 'Guess'), 'Toggle Guess Mode (Shift+G)');
-        guessBtn.addEventListener('click', () => this.toggleGuessMode());
+            msg('ytModeGuess', 'Guess'), 'Guess Mode (Shift+G)');
+        guessBtn.addEventListener('click', () => this.setMode('guess'));
         modes.appendChild(guessBtn);
 
         const overlayBtn = this.buildModeChip('vtt-overlay-btn', ICONS.onScreen,
@@ -414,7 +424,7 @@ export class SidebarUI {
             btn.className = 'vtt-qm';
             // Custom instant tooltip (CSS ::after on [data-tip]) instead of the
             // native title, which lags ~1s and never shows on keyboard focus.
-            btn.dataset.tip = `${label} (${shortcut})`;
+            btn.dataset.tip = shortcut ? `${label} (${shortcut})` : label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('role', role);
             btn.setAttribute(role === 'radio' ? 'aria-checked' : 'aria-pressed', 'false');
@@ -422,14 +432,15 @@ export class SidebarUI {
             return btn;
         };
 
-        // Dual + Guess are mutually exclusive (both are displayMode values), so
-        // they share a segmented track with a sliding thumb — radiogroup
-        // semantics. A third state (neither) is possible: the thumb hides.
+        // The three reading modes share a segmented track with a sliding thumb —
+        // radiogroup semantics, exactly one always selected. Single used to be
+        // the hidden "neither" state of two toggles, which read as a third mode
+        // smuggled into an off switch.
         // NB: distinct class from the settings .vtt-seg (overlay-style picker) —
         // that one has a permanently-visible thumb and equal-flex text buttons.
         const seg = document.createElement('div');
         seg.className = 'vtt-modeseg';
-        seg.dataset.sel = 'none';
+        seg.dataset.sel = 'single';
         seg.setAttribute('role', 'radiogroup');
         seg.setAttribute('aria-label', msg('ytGroupReadingMode', 'Reading mode'));
         const thumb = document.createElement('span');
@@ -437,12 +448,16 @@ export class SidebarUI {
         thumb.setAttribute('aria-hidden', 'true');
         seg.appendChild(thumb);
 
+        const qmSingleBtn = makeBtn('vtt-qm-single', ICONS.single, msg('ytModeSingle', 'Single'), '', 'radio');
+        qmSingleBtn.addEventListener('click', () => this.setMode('single'));
+        seg.appendChild(qmSingleBtn);
+
         const qmDualBtn = makeBtn('vtt-qm-dual', ICONS.dual, msg('ytModeDual', 'Dual'), 'Shift+D', 'radio');
-        qmDualBtn.addEventListener('click', () => this.toggleDualMode());
+        qmDualBtn.addEventListener('click', () => this.setMode('dual'));
         seg.appendChild(qmDualBtn);
 
         const qmGuessBtn = makeBtn('vtt-qm-guess', ICONS.guess, msg('ytModeGuess', 'Guess'), 'Shift+G', 'radio');
-        qmGuessBtn.addEventListener('click', () => this.toggleGuessMode());
+        qmGuessBtn.addEventListener('click', () => this.setMode('guess'));
         seg.appendChild(qmGuessBtn);
         inner.appendChild(seg);
 
@@ -457,7 +472,7 @@ export class SidebarUI {
         qmOverlayBtn.addEventListener('click', () => this.toggleOverlay());
         inner.appendChild(qmOverlayBtn);
 
-        this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmDualBtn, qmGuessBtn, qmOverlayBtn };
+        this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn };
         return bar;
     }
 
@@ -900,6 +915,13 @@ export class SidebarUI {
         if (!this.elements.settingsPanel?.classList.contains('open')) this.toggleSettingsPanel();
     }
 
+    /** Direct mode pick — what every mode control calls. */
+    setMode(mode: 'single' | 'dual' | 'guess'): void {
+        if (!this.state.setDisplayMode(mode)) return;
+        this.refresh();
+        savePrefs({ displayMode: this.state.displayMode });
+    }
+
     toggleDualMode(): void {
         if (!this.state.toggleDualMode()) return;
         this.refresh();
@@ -1106,28 +1128,31 @@ export class SidebarUI {
         this.elements.settingsBtn.style.display = 'flex';
 
         const hasMultiple = this.state.hasMultipleTracks();
-        this.elements.dualBtn.classList.toggle('active', this.state.displayMode === 'dual');
+        const mode = this.state.displayMode;
+        this.elements.dualBtn.classList.toggle('active', mode === 'dual');
         this.elements.overlayBtn.classList.toggle('active', this.state.overlayEnabled);
 
         const guessBtn = document.getElementById('vtt-guess-btn') as HTMLButtonElement | null;
-        if (guessBtn) guessBtn.classList.toggle('active', this.state.displayMode === 'guess');
+        if (guessBtn) guessBtn.classList.toggle('active', mode === 'guess');
+        const singleBtn = document.getElementById('vtt-single-btn') as HTMLButtonElement | null;
+        if (singleBtn) singleBtn.classList.toggle('active', mode === 'single');
 
         // Quick bar mirrors the settings chips: same .active semantics, same
         // single-track disables; hidden entirely until subtitles are loaded.
-        const { quickModesBar, quickModesSeg, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
+        const { quickModesBar, quickModesSeg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
         if (quickModesBar) quickModesBar.style.display = this.state.tracks.length ? '' : 'none';
-        const dualOn = this.state.displayMode === 'dual';
-        const guessOn = this.state.displayMode === 'guess';
-        // Dual/Guess are radio segments (aria-checked); the sliding thumb tracks
-        // the selection via data-sel ('none' when neither → thumb hides).
+        // The three modes are radio segments (aria-checked); the sliding thumb
+        // tracks the selection via data-sel. Exactly one is always checked —
+        // single is a mode of its own, not "both toggles off".
         const syncRadio = (btn: HTMLButtonElement | undefined, on: boolean): void => {
             if (!btn) return;
             btn.classList.toggle('active', on);
             btn.setAttribute('aria-checked', String(on));
         };
-        syncRadio(qmDualBtn, dualOn);
-        syncRadio(qmGuessBtn, guessOn);
-        if (quickModesSeg) quickModesSeg.dataset.sel = dualOn ? 'dual' : guessOn ? 'guess' : 'none';
+        syncRadio(qmSingleBtn, mode === 'single');
+        syncRadio(qmDualBtn, mode === 'dual');
+        syncRadio(qmGuessBtn, mode === 'guess');
+        if (quickModesSeg) quickModesSeg.dataset.sel = mode;
         // On-screen is an independent toggle (aria-pressed).
         if (qmOverlayBtn) {
             qmOverlayBtn.classList.toggle('active', this.state.overlayEnabled);

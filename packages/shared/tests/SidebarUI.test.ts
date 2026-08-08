@@ -137,6 +137,37 @@ describe('SidebarUI', () => {
         expect(panel.classList.contains('open')).toBe(false);
     });
 
+    test('the mode segment is three radios with exactly one checked', () => {
+        document.body.innerHTML = '';
+        const freshState = new AppState();
+        const freshUi = new SidebarUI(freshState, mockApp);
+        expect(freshUi.init()).toBe(true);
+        freshState.addTrack('A', [{ text: 'one two', startTime: 0, endTime: 1 } as Subtitle]);
+        freshState.addTrack('B', [{ text: 'uno', startTime: 0, endTime: 1 } as Subtitle]);
+        freshUi.updateControls();
+
+        const seg = document.querySelector('.vtt-modeseg') as HTMLElement;
+        const radios = seg.querySelectorAll('[role="radio"]');
+        expect(radios).toHaveLength(3);
+
+        const checked = () =>
+            Array.from(radios).filter((r) => r.getAttribute('aria-checked') === 'true');
+        // Default mode is dual; the thumb must say so — single is a mode of its
+        // own now, not the "nothing selected" look.
+        expect(checked()).toHaveLength(1);
+        expect(seg.dataset.sel).toBe('dual');
+
+        (document.getElementById('vtt-qm-single') as HTMLButtonElement).click();
+        expect(freshState.displayMode).toBe('single');
+        expect(seg.dataset.sel).toBe('single');
+        expect(checked()).toHaveLength(1);
+
+        (document.getElementById('vtt-qm-guess') as HTMLButtonElement).click();
+        expect(freshState.displayMode).toBe('guess');
+        expect(seg.dataset.sel).toBe('guess');
+        expect(checked()).toHaveLength(1);
+    });
+
     test('collapsing the sidebar exits settings, re-expanding shows the transcript', () => {
         document.body.innerHTML = '';
         const freshUi = new SidebarUI(new AppState(), mockApp);

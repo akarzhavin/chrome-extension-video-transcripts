@@ -242,6 +242,29 @@ describe('AppState', () => {
             expect(state.isFullyRevealed(0)).toBe(true);
         });
 
+        test('setDisplayMode picks directly: three modes, no hidden state', () => {
+            state.addTrack('A', [{ text: 'one two', startTime: 0, endTime: 1 } as Subtitle]);
+            state.addTrack('B', [{ text: 'x', startTime: 0, endTime: 1 } as Subtitle]);
+
+            expect(state.setDisplayMode('guess')).toBe(true);
+            expect(state.setDisplayMode('guess')).toBe(false); // same mode = no-op
+            expect(state.setDisplayMode('single')).toBe(true);
+            expect(state.displayMode).toBe('single');
+            expect(state.setDisplayMode('dual')).toBe(true);
+        });
+
+        test('dual needs a second track; guess starts a fresh round', () => {
+            state.addTrack('A', [{ text: 'one two three', startTime: 0, endTime: 1 } as Subtitle]);
+            expect(state.setDisplayMode('dual')).toBe(false); // one track
+
+            state.setDisplayMode('guess');
+            state.revealNextWord(0);
+            expect(state.getRevealedCount(0)).toBe(2);
+            state.setDisplayMode('single');
+            state.setDisplayMode('guess'); // re-entry resets progress
+            expect(state.getRevealedCount(0)).toBe(1);
+        });
+
         test('treats a missing line as not revealed', () => {
             track('one two');
             expect(state.isFullyRevealed(99)).toBe(false);

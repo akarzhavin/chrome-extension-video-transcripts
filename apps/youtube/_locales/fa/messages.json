@@ -358,5 +358,9 @@
   "ytGuessRevealAria": {
     "message": "کلمه بعدی این زیرنویس را نمایش بده",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "تکی",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

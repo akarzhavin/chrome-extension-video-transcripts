@@ -667,14 +667,22 @@
     pointer-events: none;
 }
 
-.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
+/* Three 27px buttons, no gap: the thumb slides to the checked one. Exactly one
+   mode is always selected, so the thumb never hides — "no thumb" used to be
+   how single mode looked, a state the control never admitted to having. */
+.vtt-modeseg[data-sel="single"] .vtt-modeseg-thumb {
     opacity: 1;
     transform: translateX(0);
 }
 
+.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
+    opacity: 1;
+    transform: translateX(27px);
+}
+
 .vtt-modeseg[data-sel="guess"] .vtt-modeseg-thumb {
     opacity: 1;
-    transform: translateX(27px); /* second 27px button, no gap between them */
+    transform: translateX(54px);
 }
 
 /* Icons ride above the thumb; the thumb supplies the fill, so no hover bg. */

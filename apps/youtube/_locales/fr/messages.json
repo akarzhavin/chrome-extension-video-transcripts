@@ -358,5 +358,9 @@
   "ytGuessRevealAria": {
     "message": "Révéler le mot suivant de ce sous-titre",
     "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "Simple",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

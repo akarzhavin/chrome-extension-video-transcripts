@@ -57,6 +57,7 @@ export interface SidebarElements {
   // control (quickModesSeg) whose sliding thumb tracks the selection.
   quickModesBar?: HTMLDivElement;
   quickModesSeg?: HTMLDivElement;
+  qmSingleBtn?: HTMLButtonElement;
   qmDualBtn?: HTMLButtonElement;
   qmGuessBtn?: HTMLButtonElement;
   qmOverlayBtn?: HTMLButtonElement;
