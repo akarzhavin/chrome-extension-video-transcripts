@@ -1120,10 +1120,15 @@
     border-radius: 5px;
     /* The pane must hug its glyphs, not the line: an inline-block inherits the
        container's line-height INTO its own box, so at 1.75 every capsule ran
-       75% taller than the text beside it and the caption block ballooned. */
-    line-height: 1;
+       75% taller than the text beside it and the caption block ballooned.
+       0.92 trims the ascent headroom the font reserves for diacritics — the
+       glyphs inside are invisible, so nothing clips. */
+    line-height: 0.92;
     padding: 0.14em 0.3em;
-    vertical-align: -0.14em;
+    /* Seat the pane on the text's visual band. At -0.14em it rode high next to
+       words without descenders (most of a caption line): the ascent overhang
+       all sat above. -0.22em splits the overhang between top and bottom. */
+    vertical-align: -0.22em;
     /* An inline-block is an unbreakable box, and .vtt-overlay-main sets
        word-wrap: break-word for long real words — together they made the line
        wrap far earlier than its width required. */
