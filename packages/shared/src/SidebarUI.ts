@@ -9,6 +9,7 @@ import {
     OverlayEdgeToken,
 } from './prefs';
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
+import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -71,8 +72,10 @@ export const ICONS = {
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
-    // dual: two stacked subtitle lines; guess: a line with mask dots below it
-    // (text → "•••"); onScreen: a video frame with a caption bar inside.
+    // single: one subtitle line; dual: two stacked subtitle lines; guess: a
+    // line with mask dots below it (text → "•••"); onScreen: a video frame
+    // with a caption bar inside.
+    single: svgIcon('<rect x="3" y="9" width="18" height="6" rx="1.5"/>'),
     dual: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13.5" width="18" height="6" rx="1.5"/>'),
     guess: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><circle cx="6.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/>'),
     onScreen: svgIcon('<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 14.5h12"/>'),
@@ -88,6 +91,16 @@ function hasSelectionInside(el: Element): boolean {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return false;
     return el.contains(sel.getRangeAt(0).commonAncestorContainer);
+}
+
+// Should this click uncover the next word? A click on a masked word always
+// means reveal — that word cannot be part of a selection, so nothing else could
+// have been intended. Anywhere else in the line, a live selection still wins:
+// the user is reaching for the quick-add pill, not the reveal.
+function shouldReveal(e: MouseEvent, container: Element): boolean {
+    const target = e.target as Element | null;
+    if (target?.closest?.('.vtt-masked-word')) return true;
+    return !hasSelectionInside(container);
 }
 
 export class SidebarUI {
@@ -120,6 +133,16 @@ export class SidebarUI {
         const sidebar = document.createElement('div');
         sidebar.id = 'vtt-sidebar';
 
+        // Space belongs to the video. A button that was clicked with the mouse
+        // keeps focus and then eats every Space that follows — the viewer aims
+        // for play/pause and toggles our button instead. Drop focus once the
+        // click is handled. Keyboard users are unaffected: :focus-visible is
+        // false for pointer-driven focus, and text inputs need Space to type.
+        sidebar.addEventListener('click', (e) => {
+            const el = (e.target as HTMLElement)?.closest?.('button');
+            if (el && !el.matches(':focus-visible')) (el as HTMLElement).blur();
+        });
+
         // Toggle Button. A div rather than a button (it predates the rest), so
         // it has to borrow button semantics by hand — without these it's
         // unreachable by keyboard and anonymous to a screen reader.
@@ -130,7 +153,13 @@ export class SidebarUI {
         toggleBtn.setAttribute('tabindex', '0');
         toggleBtn.setAttribute('aria-label', msg('ytTogglePanel', 'Toggle panel'));
         toggleBtn.setAttribute('aria-controls', 'vtt-sidebar');
-        toggleBtn.addEventListener('click', () => this.toggleCollapsed());
+        toggleBtn.addEventListener('click', () => {
+            this.toggleCollapsed();
+            // Hand focus back after a mouse click. Otherwise the tab keeps it
+            // and swallows every following Space — the key the viewer means for
+            // the video's play/pause, not for us.
+            if (!toggleBtn.matches(':focus-visible')) toggleBtn.blur();
+        });
         toggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault(); // Space would scroll the page
@@ -239,14 +268,22 @@ export class SidebarUI {
         modes.id = 'vtt-controls';
         modes.className = 'vtt-modes';
 
+        // Three modes, three chips, one always active. Two toggle chips used to
+        // hide `single` as "both off", which read as a third mode smuggled into
+        // a button that just… turns things off.
+        const singleBtn = this.buildModeChip('vtt-single-btn', ICONS.single,
+            msg('ytModeSingle', 'Single'), 'Single Subtitles');
+        singleBtn.addEventListener('click', () => this.setMode('single'));
+        modes.appendChild(singleBtn);
+
         const dualBtn = this.buildModeChip('vtt-dual-btn', ICONS.dual,
-            msg('ytModeDual', 'Dual'), 'Toggle Dual Mode (Shift+D)');
-        dualBtn.addEventListener('click', () => this.toggleDualMode());
+            msg('ytModeDual', 'Dual'), 'Dual Subtitles (Shift+D)');
+        dualBtn.addEventListener('click', () => this.setMode('dual'));
         modes.appendChild(dualBtn);
 
         const guessBtn = this.buildModeChip('vtt-guess-btn', ICONS.guess,
-            msg('ytModeGuess', 'Guess'), 'Toggle Guess Mode (Shift+G)');
-        guessBtn.addEventListener('click', () => this.toggleGuessMode());
+            msg('ytModeGuess', 'Guess'), 'Guess Mode (Shift+G)');
+        guessBtn.addEventListener('click', () => this.setMode('guess'));
         modes.appendChild(guessBtn);
 
         const overlayBtn = this.buildModeChip('vtt-overlay-btn', ICONS.onScreen,
@@ -387,7 +424,7 @@ export class SidebarUI {
             btn.className = 'vtt-qm';
             // Custom instant tooltip (CSS ::after on [data-tip]) instead of the
             // native title, which lags ~1s and never shows on keyboard focus.
-            btn.dataset.tip = `${label} (${shortcut})`;
+            btn.dataset.tip = shortcut ? `${label} (${shortcut})` : label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('role', role);
             btn.setAttribute(role === 'radio' ? 'aria-checked' : 'aria-pressed', 'false');
@@ -395,14 +432,15 @@ export class SidebarUI {
             return btn;
         };
 
-        // Dual + Guess are mutually exclusive (both are displayMode values), so
-        // they share a segmented track with a sliding thumb — radiogroup
-        // semantics. A third state (neither) is possible: the thumb hides.
+        // The three reading modes share a segmented track with a sliding thumb —
+        // radiogroup semantics, exactly one always selected. Single used to be
+        // the hidden "neither" state of two toggles, which read as a third mode
+        // smuggled into an off switch.
         // NB: distinct class from the settings .vtt-seg (overlay-style picker) —
         // that one has a permanently-visible thumb and equal-flex text buttons.
         const seg = document.createElement('div');
         seg.className = 'vtt-modeseg';
-        seg.dataset.sel = 'none';
+        seg.dataset.sel = 'single';
         seg.setAttribute('role', 'radiogroup');
         seg.setAttribute('aria-label', msg('ytGroupReadingMode', 'Reading mode'));
         const thumb = document.createElement('span');
@@ -410,12 +448,16 @@ export class SidebarUI {
         thumb.setAttribute('aria-hidden', 'true');
         seg.appendChild(thumb);
 
+        const qmSingleBtn = makeBtn('vtt-qm-single', ICONS.single, msg('ytModeSingle', 'Single'), '', 'radio');
+        qmSingleBtn.addEventListener('click', () => this.setMode('single'));
+        seg.appendChild(qmSingleBtn);
+
         const qmDualBtn = makeBtn('vtt-qm-dual', ICONS.dual, msg('ytModeDual', 'Dual'), 'Shift+D', 'radio');
-        qmDualBtn.addEventListener('click', () => this.toggleDualMode());
+        qmDualBtn.addEventListener('click', () => this.setMode('dual'));
         seg.appendChild(qmDualBtn);
 
         const qmGuessBtn = makeBtn('vtt-qm-guess', ICONS.guess, msg('ytModeGuess', 'Guess'), 'Shift+G', 'radio');
-        qmGuessBtn.addEventListener('click', () => this.toggleGuessMode());
+        qmGuessBtn.addEventListener('click', () => this.setMode('guess'));
         seg.appendChild(qmGuessBtn);
         inner.appendChild(seg);
 
@@ -430,7 +472,7 @@ export class SidebarUI {
         qmOverlayBtn.addEventListener('click', () => this.toggleOverlay());
         inner.appendChild(qmOverlayBtn);
 
-        this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmDualBtn, qmGuessBtn, qmOverlayBtn };
+        this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn };
         return bar;
     }
 
@@ -873,6 +915,13 @@ export class SidebarUI {
         if (!this.elements.settingsPanel?.classList.contains('open')) this.toggleSettingsPanel();
     }
 
+    /** Direct mode pick — what every mode control calls. */
+    setMode(mode: 'single' | 'dual' | 'guess'): void {
+        if (!this.state.setDisplayMode(mode)) return;
+        this.refresh();
+        savePrefs({ displayMode: this.state.displayMode });
+    }
+
     toggleDualMode(): void {
         if (!this.state.toggleDualMode()) return;
         this.refresh();
@@ -1079,28 +1128,31 @@ export class SidebarUI {
         this.elements.settingsBtn.style.display = 'flex';
 
         const hasMultiple = this.state.hasMultipleTracks();
-        this.elements.dualBtn.classList.toggle('active', this.state.displayMode === 'dual');
+        const mode = this.state.displayMode;
+        this.elements.dualBtn.classList.toggle('active', mode === 'dual');
         this.elements.overlayBtn.classList.toggle('active', this.state.overlayEnabled);
 
         const guessBtn = document.getElementById('vtt-guess-btn') as HTMLButtonElement | null;
-        if (guessBtn) guessBtn.classList.toggle('active', this.state.displayMode === 'guess');
+        if (guessBtn) guessBtn.classList.toggle('active', mode === 'guess');
+        const singleBtn = document.getElementById('vtt-single-btn') as HTMLButtonElement | null;
+        if (singleBtn) singleBtn.classList.toggle('active', mode === 'single');
 
         // Quick bar mirrors the settings chips: same .active semantics, same
         // single-track disables; hidden entirely until subtitles are loaded.
-        const { quickModesBar, quickModesSeg, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
+        const { quickModesBar, quickModesSeg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
         if (quickModesBar) quickModesBar.style.display = this.state.tracks.length ? '' : 'none';
-        const dualOn = this.state.displayMode === 'dual';
-        const guessOn = this.state.displayMode === 'guess';
-        // Dual/Guess are radio segments (aria-checked); the sliding thumb tracks
-        // the selection via data-sel ('none' when neither → thumb hides).
+        // The three modes are radio segments (aria-checked); the sliding thumb
+        // tracks the selection via data-sel. Exactly one is always checked —
+        // single is a mode of its own, not "both toggles off".
         const syncRadio = (btn: HTMLButtonElement | undefined, on: boolean): void => {
             if (!btn) return;
             btn.classList.toggle('active', on);
             btn.setAttribute('aria-checked', String(on));
         };
-        syncRadio(qmDualBtn, dualOn);
-        syncRadio(qmGuessBtn, guessOn);
-        if (quickModesSeg) quickModesSeg.dataset.sel = dualOn ? 'dual' : guessOn ? 'guess' : 'none';
+        syncRadio(qmSingleBtn, mode === 'single');
+        syncRadio(qmDualBtn, mode === 'dual');
+        syncRadio(qmGuessBtn, mode === 'guess');
+        if (quickModesSeg) quickModesSeg.dataset.sel = mode;
         // On-screen is an independent toggle (aria-pressed).
         if (qmOverlayBtn) {
             qmOverlayBtn.classList.toggle('active', this.state.overlayEnabled);
@@ -1175,54 +1227,70 @@ export class SidebarUI {
         return container;
     }
 
-    // Split a subtitle line into maskable units. Space-delimited scripts split
-    // on whitespace; spaceless scripts (Chinese/Japanese/Thai) are segmented
-    // with Intl.Segmenter (word granularity), falling back to per-character —
-    // otherwise the whole line is one token and "guess mode" masks nothing.
-    private tokenizeForGuess(text: string): { tokens: string[]; sep: string } {
-        const trimmed = text.trim();
-        if (/\s/.test(trimmed)) return { tokens: trimmed.split(/\s+/), sep: ' ' };
-        const Seg = (Intl as unknown as {
-            Segmenter?: new (l?: string, o?: { granularity: string }) => { segment(s: string): Iterable<{ segment: string }> };
-        }).Segmenter;
-        if (Seg) {
-            try {
-                const seg = new Seg(undefined, { granularity: 'word' });
-                const toks = Array.from(seg.segment(trimmed), (s) => s.segment).filter((w) => w.trim().length);
-                if (toks.length > 1) return { tokens: toks, sep: '' };
-            } catch {
-                /* Segmenter unavailable — fall through to per-character */
-            }
-        }
-        return { tokens: Array.from(trimmed), sep: '' };
-    }
-
-    // Mask glyphs for a hidden token: dots in spaceless scripts scale to the
-    // token length so a 2-char word reads as "••", not a fixed "***".
-    private maskGlyphs(token: string, spaced: boolean): string {
-        return spaced ? '***' : '•'.repeat(Math.min(Math.max(token.length, 1), 6));
+    // What sits under the frosted pane. Its only job is to give the pane the
+    // width of the word it hides — the length is the hint guess mode trades on.
+    //
+    // One repeated neutral glyph, not stand-in letters: fake words survive the
+    // blur as readable nonsense ("ptmsph"), so the line reads as gibberish
+    // instead of as language out of focus, which is worse than the asterisks
+    // this replaced. A single repeated shape blurs into an even smudge.
+    // The real word can never go here — a blur is only paint, and the text
+    // under it stays selectable and copyable.
+    private maskGlyphs(token: string, _spaced: boolean): string {
+        // Half the letters, not one per letter: a pane one glyph wide per
+        // character runs far wider than the word it stands for — 'n' is a wide
+        // glyph and real text averages much narrower — which pushed short lines
+        // onto two rows. Halving keeps long words visibly longer than short
+        // ones while the line still fits.
+        const len = Math.min(Math.max(Math.ceil(token.length / 2), 1), 7);
+        return 'n'.repeat(len);
     }
 
     // Both sidebar and on-screen overlay share this layout so the quick-add
     // selection extractor can recover the real word from data-word — even when
     // the visible glyphs are masked.
     private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
-        const { tokens, sep } = this.tokenizeForGuess(text);
+        const { tokens, sep } = tokenizeForGuess(text);
         const spaced = sep === ' ';
+        // The reveal index walks maskable tokens only. Punctuation and sound
+        // cues ("-", "♪", a stray bracket) render as plain text: a capsule over
+        // them is nothing anyone can guess, and counting them let the "free"
+        // first word come up as a lone symbol.
+        let m = 0;
         tokens.forEach((word, i) => {
             if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
-            container.appendChild(this.makeMaskedSpan(word, i < revealedCount, this.maskGlyphs(word, spaced)));
+            if (!isMaskableToken(word)) {
+                const plain = document.createElement('span');
+                plain.className = 'vtt-guess-filler';
+                plain.textContent = word;
+                container.appendChild(plain);
+                return;
+            }
+            const span = this.makeMaskedSpan(word, m < revealedCount, this.maskGlyphs(word, spaced));
+            // Only the word that opens next is lit. Dressing every hidden word
+            // as a target implied you could pick one, but reveal always runs in
+            // order — the lit word is the honest version of that.
+            if (m === revealedCount) span.classList.add('vtt-next-word');
+            container.appendChild(span);
+            m++;
         });
     }
 
+    // data-word is what the quick-add selection reads, so it carries the real
+    // word only while that word is on screen. A word still masked is parked in
+    // data-hidden instead: offering to save a word the user has not been shown
+    // is the confusing half of the reveal/quick-add collision, and dropping the
+    // attribute is also what makes quick-add's `span[data-word]` queries skip
+    // masked words without any change on their side.
     private makeMaskedSpan(word: string, revealed: boolean, maskText: string): HTMLSpanElement {
         const span = document.createElement('span');
-        span.dataset.word = word;
         span.dataset.mask = maskText;
         if (revealed) {
+            span.dataset.word = word;
             span.className = 'vtt-revealed-word';
             span.textContent = word;
         } else {
+            span.dataset.hidden = word;
             span.className = 'vtt-masked-word';
             span.textContent = maskText;
         }
@@ -1233,7 +1301,7 @@ export class SidebarUI {
     // so the quick-add selection can snap to whole-word boundaries. Inline
     // spans without a class read identically to the previous text node.
     private fillPlainWordsInto(container: HTMLElement, text: string): void {
-        const { tokens, sep } = this.tokenizeForGuess(text);
+        const { tokens, sep } = tokenizeForGuess(text);
         tokens.forEach((word, i) => {
             if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
             const span = document.createElement('span');
@@ -1241,12 +1309,6 @@ export class SidebarUI {
             span.textContent = word;
             container.appendChild(span);
         });
-    }
-
-    getMaskedText(text: string, revealedCount: number): string {
-        const { tokens, sep } = this.tokenizeForGuess(text);
-        const spaced = sep === ' ';
-        return tokens.map((w, i) => (i < revealedCount ? w : this.maskGlyphs(w, spaced))).join(sep);
     }
 
     updateGuessItem(index: number): void {
@@ -1262,19 +1324,31 @@ export class SidebarUI {
 
         // Patch spans in place so an active selection inside the item survives
         // the reveal — replacing the parent would orphan the user's Range.
+        // Query by class, not [data-word]: masked spans deliberately lack that
+        // attribute (see makeMaskedSpan), and missing them here would shift
+        // every index and mask the wrong words.
         const revealedCount = this.state.getRevealedCount(index);
-        const spans = main.querySelectorAll<HTMLSpanElement>('span[data-word]');
+        const spans = main.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
         spans.forEach((span, i) => {
-            const word = span.dataset.word ?? '';
             const shouldReveal = i < revealedCount;
             if (shouldReveal && !span.classList.contains('vtt-revealed-word')) {
-                span.className = 'vtt-revealed-word';
+                const word = span.dataset.word ?? span.dataset.hidden ?? '';
+                span.dataset.word = word;
+                delete span.dataset.hidden;
+                // Only this transition animates: the pane clearing is the
+                // reveal. Words already out must not re-focus on every repaint.
+                span.className = 'vtt-revealed-word vtt-just-revealed';
                 span.textContent = word;
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
+                span.dataset.hidden = span.dataset.hidden ?? span.dataset.word ?? '';
+                delete span.dataset.word;
                 span.className = 'vtt-masked-word';
                 span.textContent = span.dataset.mask ?? '***';
             }
         });
+
+        // Mark the next word up, so exactly one target is lit at a time.
+        spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === revealedCount));
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -1321,6 +1395,19 @@ export class SidebarUI {
     private buildGuessItem(sub: Subtitle, index: number): HTMLDivElement {
         const item = this.createSubtitleItem(index);
         item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index)));
+        // The whole line is the reveal target, so say so to assistive tech —
+        // the words themselves are not individually actionable. role="button"
+        // obliges the rest: a div is not focusable and answers no key on its
+        // own, so announcing it as operable without these would promise a
+        // control keyboard users cannot reach. Same pattern as #vtt-toggle-btn.
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', msg('ytGuessRevealAria', 'Reveal the next word of this subtitle'));
+        item.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault(); // Space would scroll the transcript
+            this.revealAndSeek(index, sub);
+        });
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -1328,15 +1415,43 @@ export class SidebarUI {
             if (subText) item.appendChild(subText);
         }
 
-        item.addEventListener('click', () => {
-            // Drag-selecting inside the item fires this click; skip reveal/seek
-            // so the quick-add pill (from selection) stays usable.
-            if (hasSelectionInside(item)) return;
-            this.state.revealNextWord(index);
-            this.updateGuessItem(index);
-            this.app.seekVideo(sub.startTime);
+        // Masked words reveal on pointerdown, not click — see the overlay
+        // handler for why (a mid-click DOM rebuild makes Chrome drop the click
+        // entirely). The sidebar patches its spans in place so it is not bitten
+        // the same way, but the two surfaces must feel identical.
+        item.addEventListener('pointerdown', (e) => {
+            this.pointerRevealed = false;
+            if (e.button !== 0) return;
+            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
+            this.pointerRevealed = true;
+            this.revealAndSeek(index, sub);
+        });
+        item.addEventListener('click', (e) => {
+            // The pointerdown above already revealed for this press.
+            if (this.pointerRevealed) { this.pointerRevealed = false; return; }
+            // Drag-selecting inside the item fires this click too; stand down
+            // for a live selection and keep the quick-add pill usable.
+            if (!shouldReveal(e, item)) return;
+            this.revealAndSeek(index, sub);
         });
         return item;
+    }
+
+    // True between a pointerdown that revealed a word and the click the same
+    // press delivers afterwards; that click must not reveal a second one.
+    private pointerRevealed = false;
+
+    // Reveal one word and follow the line, the single action guess mode is made
+    // of. Shared by the sidebar item and the overlay so the two cannot drift.
+    private revealAndSeek(index: number, sub: Subtitle): void {
+        this.state.revealNextWord(index);
+        // Drop any leftover highlight: the user has moved on to revealing, and
+        // updateOverlay refuses to repaint while a selection is inside (it would
+        // orphan the Range), so the mask would advance in state but not on screen.
+        window.getSelection()?.removeAllRanges();
+        this.updateGuessItem(index);
+        this.updateOverlay(index);
+        this.app.seekVideo(sub.startTime);
     }
 
     private buildPlainItem(sub: Subtitle, index: number): HTMLDivElement {
@@ -1415,9 +1530,26 @@ export class SidebarUI {
         if (!overlay) return; // No video to attach to yet.
 
         overlay.style.display = 'flex';
-        overlay.innerHTML = '';
 
         const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+
+        // Rebuild only when the rendered content would differ. This runs on
+        // every timeupdate (~4×/sec); unconditionally recreating the children
+        // made every capsule a newborn four times a second — for one frame it
+        // had no :hover, then the 0.16s transition replayed, so the lit word
+        // flickered under a resting cursor. (It also made Chrome drop clicks
+        // whose press straddled a rebuild — see the pointerdown handler.)
+        // Everything the children are derived from is in the signature: the
+        // line, the mode, how much of it is uncovered, and which tracks feed
+        // the text and the translation.
+        const sig = sub
+            ? [index, this.state.displayMode, this.state.getRevealedCount(index),
+               this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped].join('|')
+            : 'empty';
+        if (overlay.dataset.sig === sig) return;
+        overlay.dataset.sig = sig;
+
+        overlay.innerHTML = '';
         if (!sub) return;
 
         this.applyOverlayStyle();
@@ -1438,18 +1570,42 @@ export class SidebarUI {
         // the full translation once every word is out. The listener lives on the
         // container (not the inner div, which updateOverlay rebuilds every
         // ~250ms) so it survives those rebuilds.
-        overlay.addEventListener('click', () => {
-            if (this.state.displayMode !== 'guess') return;
-            // A drag-select inside the overlay fires this click too; skip the
-            // reveal so the quick-add pill from a selection stays usable.
-            if (hasSelectionInside(overlay)) return;
+        // Revealing is a run of quick clicks in the same spot, which the browser
+        // reads as a double-click and turns into a word selection — that
+        // selection then blocked the next reveal. The sidebar has always
+        // suppressed this (see createSubtitleItem); the overlay never did, which
+        // is why it was the surface that felt broken. Guess mode only: elsewhere
+        // a double-click is a fair way to select a word for the dictionary.
+        overlay.addEventListener('mousedown', (e) => {
+            if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
+        });
+        // Masked words reveal on pointerdown, not click. updateOverlay rebuilds
+        // this element's children on every timeupdate (~4×/sec), and when that
+        // rebuild lands between mousedown and mouseup Chrome drops the click
+        // outright — measured with trusted CDP input: 40 presses on a capsule
+        // over a 250ms-rebuild container delivered 40 pointerdowns and only 22
+        // clicks. pointerdown fires at press time, before any rebuild can
+        // detach the word. Clicks elsewhere on the caption stay click-based so
+        // drag-selecting revealed words keeps working.
+        overlay.addEventListener('pointerdown', (e) => {
+            this.pointerRevealed = false;
+            if (this.state.displayMode !== 'guess' || e.button !== 0) return;
+            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
             if (!sub) return;
-            this.state.revealNextWord(index);
-            this.updateGuessItem(index);
-            this.updateOverlay(index);
-            this.app.seekVideo(sub.startTime);
+            this.pointerRevealed = true;
+            this.revealAndSeek(index, sub);
+        });
+        overlay.addEventListener('click', (e) => {
+            if (this.state.displayMode !== 'guess') return;
+            // The pointerdown above already revealed for this press.
+            if (this.pointerRevealed) { this.pointerRevealed = false; return; }
+            if (!shouldReveal(e, overlay)) return;
+            const index = this.state.currentIndex;
+            const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+            if (!sub) return;
+            this.revealAndSeek(index, sub);
         });
         parent.appendChild(overlay);
         this.applyOverlayStyle();

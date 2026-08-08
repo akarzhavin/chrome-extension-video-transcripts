@@ -354,5 +354,13 @@
   "ytPopupNative": {
     "message": "Mano gimtoji kalba",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessRevealAria": {
+    "message": "Rodyti kitą šio subtitro žodį",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "Viengubi",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

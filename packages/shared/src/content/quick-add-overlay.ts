@@ -3,6 +3,8 @@ import { msg as i18nMsg } from '../i18n';
 const PILL_ID = 'lingogram-quick-add-pill';
 const TOAST_ID = 'lingogram-quick-add-toast';
 const MAX_TERM_LEN = 256;
+// Set on #vtt-list while a two-cue phrase is being dragged out.
+const PHRASE_SELECT_CLASS = 'vtt-phrase-selecting';
 
 // Selection is only accepted when it lives entirely inside one of these
 // containers — never the translation row (.vtt-sub-text) or unrelated page DOM.
@@ -21,38 +23,68 @@ function getSelectionPayload(): SelectionPayload | null {
 
     const startScope = scopeFor(range.startContainer);
     const endScope = scopeFor(range.endContainer);
-    if (!startScope || startScope !== endScope) return null;
+    if (!startScope || !endScope) return null;
+
+    // A phrase worth saving often straddles a subtitle boundary — it starts in
+    // one cue and finishes in the next. Accept that as one term; anything wider
+    // is a bulk transcript selection, not a dictionary entry.
+    const scopes = mainScopesBetween(startScope, endScope);
+    if (!scopes) return null;
 
     // Snap to whole-word boundaries so the user doesn't need pixel-perfect drags.
-    const snapped = snapToWordSpans(range, startScope);
+    const snapped = snapToWordSpans(range, scopes);
     if (snapped) {
         sel.removeAllRanges();
         sel.addRange(snapped);
     }
     const active = snapped ?? range;
 
-    const term = extractTerm(active, startScope);
+    const single = scopes.length === 1;
+    const term = scopes.map((s) => extractTerm(active, s, single)).filter(Boolean).join(' ').trim();
     if (!term) return null;
 
     const rect = active.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return null;
 
-    const context = buildContextFromScope(startScope);
+    const context = buildContextFromScope(scopes[0]);
     return { term, rect, context };
+}
+
+// The main-text scopes a selection covers, in document order — but only when it
+// spans at most two. Returns null past that, which keeps the pill off bulk
+// selections and leaves them behaving exactly as before.
+function mainScopesBetween(start: Element, end: Element): Element[] | null {
+    if (start === end) return [start];
+    // Cross-cue selection only makes sense inside the transcript list; the
+    // on-screen overlay renders a single line and has no neighbours.
+    const list = document.getElementById('vtt-list');
+    if (!list || !list.contains(start) || !list.contains(end)) return null;
+
+    const all = Array.from(list.querySelectorAll<HTMLElement>('.vtt-main-text'));
+    const from = all.indexOf(start as HTMLElement);
+    const to = all.indexOf(end as HTMLElement);
+    if (from === -1 || to === -1) return null;
+
+    const [lo, hi] = from <= to ? [from, to] : [to, from];
+    if (hi - lo > 1) return null;
+    return all.slice(lo, hi + 1);
 }
 
 // Expand the range to cover every [data-word] span it touches. Returns null
 // when the selection lies in pure whitespace (no spans intersected) so the
-// caller can decide to drop the pill.
-function snapToWordSpans(range: Range, scope: Element): Range | null {
-    const spans = scope.querySelectorAll<HTMLElement>('span[data-word]');
+// caller can decide to drop the pill. Across two scopes the snapped range runs
+// from the first touched word to the last, so the translation row sitting
+// between them is enclosed by the range but never contributes to the term.
+function snapToWordSpans(range: Range, scopes: Element[]): Range | null {
     let first: HTMLElement | null = null;
     let last: HTMLElement | null = null;
-    spans.forEach((span) => {
-        if (!range.intersectsNode(span)) return;
-        if (!first) first = span;
-        last = span;
-    });
+    for (const scope of scopes) {
+        scope.querySelectorAll<HTMLElement>('span[data-word]').forEach((span) => {
+            if (!range.intersectsNode(span)) return;
+            if (!first) first = span;
+            last = span;
+        });
+    }
     if (!first || !last) return null;
 
     const snapped = document.createRange();
@@ -71,7 +103,12 @@ function scopeFor(node: Node): Element | null {
 // Prefer the real word stored on each span via data-word — this resolves
 // masked *** tokens back to the underlying word. Plain-mode text nodes have
 // no spans, so fall back to the visible selection string.
-function extractTerm(range: Range, scope: Element): string {
+//
+// `allowRangeFallback` must be false when more than one scope is being read:
+// range.toString() is the text of the WHOLE selection, not the part inside
+// this scope, so a two-cue drag whose second cue contributes no spans would
+// otherwise append the entire selection again ("world" + "world").
+function extractTerm(range: Range, scope: Element, allowRangeFallback = true): string {
     const spans = scope.querySelectorAll<HTMLElement>('span[data-word]');
     const words: string[] = [];
     spans.forEach((span) => {
@@ -82,7 +119,12 @@ function extractTerm(range: Range, scope: Element): string {
     });
     const joined = words.join(' ').trim();
     if (joined) return joined;
-    return range.toString().trim();
+    // No revealed word was touched. In guess mode the fallback below would
+    // return the mask glyphs ("*** ***"), so refuse instead: a word the user
+    // has not uncovered is not a dictionary candidate. CSS already makes masked
+    // words unselectable, but stating it here keeps the rule enforced in code.
+    if (scope.querySelector('.vtt-masked-word')) return '';
+    return allowRangeFallback ? range.toString().trim() : '';
 }
 
 // Builds a multi-line context block: previous subtitle, the subtitle holding
@@ -97,7 +139,14 @@ function buildContextFromScope(scope: Element): string {
     if (indexAttr === null) return '';
     const index = parseInt(indexAttr, 10);
     if (!Number.isFinite(index)) return '';
+    return buildContextForIndex(index);
+}
 
+/**
+ * The saved word's neighbourhood: the line before, the line itself, the line
+ * after. Keyed by subtitle index rather than by a selection scope.
+ */
+function buildContextForIndex(index: number): string {
     const list = document.getElementById('vtt-list');
     if (!list) return '';
 
@@ -114,11 +163,18 @@ function readMainText(list: HTMLElement, index: number): string {
     if (!item) return '';
     const main = item.querySelector('.vtt-main-text');
     if (!main) return '';
-    const spans = main.querySelectorAll<HTMLElement>('span[data-word]');
+    // Masked words carry the real text in data-hidden rather than data-word, so
+    // read both: the saved context should be the whole sentence, not just the
+    // part uncovered so far. It is stored with the entry, never rendered onto
+    // the still-masked line, so this reveals nothing.
+    // .vtt-guess-filler covers punctuation and sound cues, which carry neither
+    // attribute — without it the saved context loses dashes and brackets.
+    const spans = main.querySelectorAll<HTMLElement>(
+        'span[data-word], span[data-hidden], .vtt-guess-filler');
     if (spans.length === 0) return (main.textContent ?? '').trim();
     const words: string[] = [];
     spans.forEach((s) => {
-        const w = s.dataset.word?.trim();
+        const w = (s.dataset.word ?? s.dataset.hidden ?? s.textContent)?.trim();
         if (w) words.push(w);
     });
     return words.join(' ');
@@ -126,6 +182,39 @@ function readMainText(list: HTMLElement, index: number): string {
 
 function removePill(): void {
     document.getElementById(PILL_ID)?.remove();
+}
+
+// While a selection spans two cues, the translation row caught between them
+// would be painted too — visual noise around a phrase the user is reaching for
+// in the learning language. Marking it unselectable drops it from the highlight
+// without touching the range, so the extracted term is unaffected either way.
+// Only for cross-cue drags: within one cue the translation sits outside the
+// selection anyway, and a user deliberately copying a translation keeps working.
+function syncTranslationSelectability(): void {
+    const list = document.getElementById('vtt-list');
+    if (!list) return;
+
+    const sel = window.getSelection();
+    let phrase = false;
+    if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const start = scopeFor(range.startContainer);
+        const end = scopeFor(range.endContainer);
+        // Adjacency is read off the two cues' own data-index rather than by
+        // locating them in the list: this fires on every mousemove of a drag,
+        // and mainScopesBetween would walk every .vtt-main-text in a transcript
+        // that can run to thousands of rows.
+        phrase = !!start && !!end && start !== end
+            && list.contains(start) && list.contains(end)
+            && Math.abs(cueIndexOf(start) - cueIndexOf(end)) === 1;
+    }
+    list.classList.toggle(PHRASE_SELECT_CLASS, phrase);
+}
+
+/** The subtitle index owning a .vtt-main-text, or NaN. */
+function cueIndexOf(scope: Element): number {
+    const attr = scope.closest('.vtt-item')?.getAttribute('data-index');
+    return attr === null || attr === undefined ? NaN : parseInt(attr, 10);
 }
 
 // ── "✓ saved" marker ──────────────────────────────────────────────────────
@@ -137,6 +226,10 @@ function injectSavedWordStyles(): void {
     const style = document.createElement('style');
     style.id = 'lingogram-saved-style';
     style.textContent = `
+        #vtt-list.${PHRASE_SELECT_CLASS} .vtt-sub-text {
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .vtt-saved-word {
             border-radius: 4px; padding: 0 2px;
             background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
@@ -163,10 +256,16 @@ function selectionWordSpans(): HTMLElement[] {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return [];
     const range = sel.getRangeAt(0);
-    const scope = scopeFor(range.startContainer);
-    if (!scope) return [];
-    return Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]')).filter((s) =>
-        range.intersectsNode(s),
+    const start = scopeFor(range.startContainer);
+    const end = scopeFor(range.endContainer);
+    if (!start || !end) return [];
+    // Mirror the payload's reach: a two-cue phrase gets marked saved in both.
+    const scopes = mainScopesBetween(start, end);
+    if (!scopes) return [];
+    return scopes.flatMap((scope) =>
+        Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]')).filter((s) =>
+            range.intersectsNode(s),
+        ),
     );
 }
 
@@ -594,37 +693,57 @@ function showPill(rect: DOMRect, term: string, context: string): void {
         const savedSpans = selectionWordSpans();
         pill.disabled = true;
         pill.textContent = '…';
-        console.log('[Lingogram] ADD_WORD →', term);
-        try {
-            const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
-                action: 'ADD_WORD',
-                term,
-                context,
-            });
-            console.log('[Lingogram] ADD_WORD ←', res);
-            if (!res.ok) throw new Error(res.error ?? 'add failed');
-            showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
-            markSpansSaved(savedSpans);
+        const ok = await saveTerm(term, context, savedSpans);
+        if (ok) {
             // Drop the range so the overlay's selection-guard releases and
             // resumes timeupdate rebuilds.
             window.getSelection()?.removeAllRanges();
-            // Value-moment rating ask (P1.8) — background signals the one-shot.
-            if (res.promptRate) showRatePrompt();
-        } catch (err) {
-            const msg = String(err instanceof Error ? err.message : err);
-            const friendly = /Not signed in|sign in via/i.test(msg)
-                ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
-                : /reloaded/i.test(msg)
-                ? msg
-                : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
-            showToast(friendly, false);
-            console.warn('[Lingogram] add failed:', err);
-        } finally {
-            removePill();
         }
+        removePill();
     });
 
     (document.fullscreenElement ?? document.body).appendChild(pill);
+}
+
+/**
+ * Save one term to the dictionary and report it to the user. Extracted from the
+ * pill's click handler so guess mode can reach it too: there the word is
+ * already identified — reveal just uncovered it — so making the user re-point
+ * at it with a drag was pure ceremony.
+ *
+ * `spans` are the word elements to tag "saved" on success; pass an empty array
+ * when there is nothing on screen to mark. Returns whether the save succeeded.
+ */
+async function saveTerm(
+    term: string,
+    context: string,
+    spans: HTMLElement[] = [],
+): Promise<boolean> {
+    console.log('[Lingogram] ADD_WORD →', term);
+    try {
+        const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
+            action: 'ADD_WORD',
+            term,
+            context,
+        });
+        console.log('[Lingogram] ADD_WORD ←', res);
+        if (!res.ok) throw new Error(res.error ?? 'add failed');
+        showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
+        markSpansSaved(spans);
+        // Value-moment rating ask (P1.8) — background signals the one-shot.
+        if (res.promptRate) showRatePrompt();
+        return true;
+    } catch (err) {
+        const msg = String(err instanceof Error ? err.message : err);
+        const friendly = /Not signed in|sign in via/i.test(msg)
+            ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
+            : /reloaded/i.test(msg)
+            ? msg
+            : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
+        showToast(friendly, false);
+        console.warn('[Lingogram] add failed:', err);
+        return false;
+    }
 }
 
 function sendMessage<T>(msg: object): Promise<T> {
@@ -692,8 +811,15 @@ export function installQuickAddOverlay(): () => void {
     };
     document.addEventListener('mousedown', onMouseDown);
 
+    // Runs while the drag is still in flight — mouseup is too late, the stray
+    // highlight has to be gone as the cursor crosses the translation.
+    const onSelectionChange = (): void => syncTranslationSelectability();
+    document.addEventListener('selectionchange', onSelectionChange);
+
     return () => {
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousedown', onMouseDown);
+        document.removeEventListener('selectionchange', onSelectionChange);
+        document.getElementById('vtt-list')?.classList.remove(PHRASE_SELECT_CLASS);
     };
 }

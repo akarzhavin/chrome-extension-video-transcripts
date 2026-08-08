@@ -354,5 +354,13 @@
   "ytPopupNative": {
     "message": "모국어",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessRevealAria": {
+    "message": "이 자막의 다음 단어 보기",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "단일",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

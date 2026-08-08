@@ -354,5 +354,13 @@
   "ytPopupNative": {
     "message": "A minha língua materna",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessRevealAria": {
+    "message": "Revelar a próxima palavra desta legenda",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "Simples",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

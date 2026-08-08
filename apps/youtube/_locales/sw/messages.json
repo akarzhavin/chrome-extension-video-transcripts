@@ -354,5 +354,13 @@
   "ytPopupNative": {
     "message": "Lugha yangu ya asili",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessRevealAria": {
+    "message": "Onyesha neno linalofuata la manukuu haya",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "Moja",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

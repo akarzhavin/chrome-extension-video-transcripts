@@ -354,5 +354,13 @@
   "ytPopupNative": {
     "message": "என் தாய்மொழி",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessRevealAria": {
+    "message": "இந்த வசன வரியின் அடுத்த சொல்லைக் காட்டு",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
+  },
+  "ytModeSingle": {
+    "message": "ஒற்றை",
+    "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   }
 }

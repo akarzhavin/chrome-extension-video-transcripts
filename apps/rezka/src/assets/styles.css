@@ -667,14 +667,22 @@
     pointer-events: none;
 }
 
-.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
+/* Three 27px buttons, no gap: the thumb slides to the checked one. Exactly one
+   mode is always selected, so the thumb never hides — "no thumb" used to be
+   how single mode looked, a state the control never admitted to having. */
+.vtt-modeseg[data-sel="single"] .vtt-modeseg-thumb {
     opacity: 1;
     transform: translateX(0);
 }
 
+.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
+    opacity: 1;
+    transform: translateX(27px);
+}
+
 .vtt-modeseg[data-sel="guess"] .vtt-modeseg-thumb {
     opacity: 1;
-    transform: translateX(27px); /* second 27px button, no gap between them */
+    transform: translateX(54px);
 }
 
 /* Icons ride above the thumb; the thumb supplies the fill, so no hover bg. */
@@ -1010,7 +1018,10 @@
     #vtt-toggle-btn svg,
     #vtt-video-overlay,
     #vtt-ytp-menu,
-    #vtt-ytp-menu * {
+    #vtt-ytp-menu *,
+    .vtt-next-word,
+    .vtt-masked-word,
+    .vtt-revealed-word {
         transition: none !important;
         animation: none !important;
     }
@@ -1089,18 +1100,155 @@
     font-weight: 400;
 }
 
+/* Hidden words are quiet. Every one of them used to be dressed as a target,
+   which implied you could pick one — but reveal always runs in order, so the
+   word you aimed at was rarely the word that opened. Only .vtt-next-word below
+   is lit, and the line itself takes the click.
+   Unselectable so a click here can only ever mean reveal: this is what stops
+   reveal and quick-add branching on the same "is something selected" bit in
+   opposite directions. user-select rather than pointer-events — the latter
+   would let the click fall through to the video and toggle playback. */
+/* Frosted glass: the word is behind the pane, not missing. "***" said "nothing
+   here"; a word out of focus says "this is still language, you just can't read
+   it yet" — which is what guess mode actually means, and it gives the eye a
+   shape to guess at. The letters under the blur are stand-ins of the right
+   length (see maskGlyphs), never the real word: a blur is only paint, so
+   anything real under it could be selected or copied straight back out.
+   Unselectable so a click here can only ever mean reveal — this is what stops
+   reveal and quick-add branching on the same "is something selected" bit in
+   opposite directions. user-select rather than pointer-events, since the latter
+   would let the click fall through to the video and toggle playback. */
 .vtt-masked-word {
-    color: rgba(255, 255, 255, 0.25);
-    letter-spacing: 1px;
-    font-style: italic;
+    position: relative;
+    display: inline-block;
+    /* A solid pane with real body — the pill is the word's container, so it
+       needs height and side padding rather than hugging the glyphs. */
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    border-radius: 5px;
+    /* The pane must hug its glyphs, not the line: an inline-block inherits the
+       container's line-height INTO its own box, so at 1.75 every capsule ran
+       75% taller than the text beside it and the caption block ballooned.
+       0.92 trims the ascent headroom the font reserves for diacritics — the
+       glyphs inside are invisible, so nothing clips. */
+    line-height: 0.92;
+    padding: 0.14em 0.3em;
+    /* Seat the pane on the text's visual band. At -0.14em it rode high next to
+       words without descenders (most of a caption line): the ascent overhang
+       all sat above. -0.22em splits the overhang between top and bottom. */
+    vertical-align: -0.22em;
+    /* An inline-block is an unbreakable box, and .vtt-overlay-main sets
+       word-wrap: break-word for long real words — together they made the line
+       wrap far earlier than its width required. */
+    white-space: nowrap;
+    margin: 0 0.02em;
+    /* Clip the blur to the pane. Without this the smear spills past the
+       rounded edge and the capsule stops reading as one solid object. */
+    overflow: hidden;
+    /* The glyph run only sizes the pane — it must never paint. Colour, not
+       display:none, so the text keeps giving the box its width; and the shadow
+       must go too: .vtt-overlay-main sets a text-shadow that renders even for
+       transparent glyphs, which is exactly how the "hidden" letters showed up
+       dark on the video overlay. */
+    color: transparent;
+    text-shadow: none;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.vtt-revealed-word {
+/* Nothing legible inside — the pane is empty frosted glass. Every attempt to
+   put "hidden text" under a blur failed the same way: glyphs keep enough
+   structure to read through it (*** as a picket fence, filler letters as
+   nonsense words, repeated n's as a comb). A soft gradient gives the glass its
+   depth instead; the transparent glyph run on the span itself only sets the
+   pane's width. */
+.vtt-masked-word::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 60% at 50% 90%, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* The one word that opens next. Carries the accent fill and a hairline ring,
+   so it reads as the live target on any backdrop — including a white video
+   frame, where a colour-only cue would vanish. */
+/* The pane that opens next: tinted, not clearer. The accent identifies the
+   target without thinning the blur, so the word stays hidden until it is
+   actually revealed. */
+.vtt-next-word {
+    background-color: var(--vtt-accent-quiet);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
+}
+
+.vtt-item:hover .vtt-next-word,
+.vtt-overlay-main:hover .vtt-next-word {
+    background-color: var(--vtt-accent-hover);
+}
+
+/* Over the video the pane cannot borrow contrast from the caption backing —
+   its opacity is a user setting, and at a translucent setting on a light frame
+   white-on-white simply vanishes. Give the pane its own dark body plus a
+   brighter ring: the fill separates it on light frames, the ring on dark ones,
+   and neither depends on what the picture happens to show. Sidebar panes keep
+   the quiet look — the panel's dark glass is a known backdrop. */
+.vtt-overlay-main .vtt-masked-word {
+    background-color: rgba(18, 20, 27, 0.55);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-overlay-main .vtt-next-word {
+    background-color: rgba(124, 141, 255, 0.45);
+    box-shadow:
+        inset 0 0 0 1px var(--vtt-accent-border-strong),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-overlay-main:hover .vtt-next-word {
+    background-color: rgba(124, 141, 255, 0.62);
+}
+
+/* The panes carry vertical padding, so a wrapped guess line needs a little more
+   leading than plain text or the rows touch. Scoped to lines that actually hold
+   a pane, so dual and single mode keep their tighter rhythm. */
+.vtt-main-text:has(.vtt-masked-word),
+.vtt-overlay-main:has(.vtt-masked-word) {
+    line-height: 1.6;
+}
+
+/* Coming into focus is the reveal, so it is the one moment worth animating:
+   the word resolves out of the blur rather than simply appearing. */
+@keyframes vtt-word-focus {
+    from {
+        filter: blur(0.2em);
+        opacity: 0.5;
+    }
+    to {
+        filter: blur(0);
+        opacity: 1;
+    }
+}
+
+.vtt-revealed-word.vtt-just-revealed {
+    display: inline-block;
+    animation: vtt-word-focus 0.42s ease-out;
+}
+
+
+
+.vtt-revealed-word,
+.vtt-guess-filler {
     color: #e0e0e0;
     transition: color 0.3s ease;
 }
 
-.vtt-item.active-sub .vtt-revealed-word {
+.vtt-item.active-sub .vtt-revealed-word,
+.vtt-item.active-sub .vtt-guess-filler {
     color: #fff;
 }
 
@@ -1201,14 +1349,17 @@
     user-select: text;
 }
 
-/* Guess mode: the caption box is a reveal target, exactly like a line in the
-   transcript — a click uncovers the next word. Say so with the cursor, but
-   only while words are still hidden; once the line is out it goes back to
-   being text you select from. Drag-selecting still works either way (the
-   reveal handler stands down when there's a selection inside). */
+/* The caption box is the reveal target in guess mode — the whole line, not the
+   individual words, which is what reveal actually does. Only while words are
+   still hidden; once the line is out it goes back to being text you select
+   from. :has() is the honest test here: it asks the box whether it still holds
+   anything hidden. */
 .vtt-overlay-main:has(.vtt-masked-word) {
     cursor: pointer;
 }
+
+
+
 
 .vtt-overlay-sub {
     background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));

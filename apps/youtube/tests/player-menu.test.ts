@@ -26,6 +26,7 @@ interface FakeUi {
     toggleOverlay: jest.Mock;
     toggleDualMode: jest.Mock;
     toggleGuessMode: jest.Mock;
+    setMode: jest.Mock;
     toggleCollapsed: jest.Mock;
     openPanel: jest.Mock;
     openSettings: jest.Mock;
@@ -48,6 +49,7 @@ function makeApp(over: Partial<{
         toggleOverlay: jest.fn(),
         toggleDualMode: jest.fn(),
         toggleGuessMode: jest.fn(),
+        setMode: jest.fn(),
         toggleCollapsed: jest.fn(),
         openPanel: jest.fn(),
         openSettings: jest.fn(),
@@ -246,25 +248,27 @@ describe('reading mode', () => {
         openMenu();
         document.getElementById('vtt-ytp-menu-modes')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         document.getElementById('vtt-ytp-mm-guess')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(app.ui.toggleGuessMode).toHaveBeenCalled();
+        expect(app.ui.setMode).toHaveBeenCalledWith('guess');
         expect(menu().dataset.page).toBe('root');
     });
 
-    test('"Original only" turns the active mode off rather than toggling a third flag', () => {
+    test('"Original only" is a direct pick, not a toggle workaround', () => {
         const app = makeApp({ displayMode: 'dual' });
         installPlayerMenu(app);
         openMenu();
         document.getElementById('vtt-ytp-mm-single')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(app.ui.toggleDualMode).toHaveBeenCalled();
+        expect(app.ui.setMode).toHaveBeenCalledWith('single');
+        expect(app.ui.toggleDualMode).not.toHaveBeenCalled();
         expect(app.ui.toggleGuessMode).not.toHaveBeenCalled();
     });
 
-    test('picking the mode already active does nothing', () => {
+    test('picking the mode already active is a no-op pick (setMode dedupes)', () => {
         const app = makeApp({ displayMode: 'dual' });
         installPlayerMenu(app);
         openMenu();
         document.getElementById('vtt-ytp-mm-dual')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(app.ui.toggleDualMode).not.toHaveBeenCalled();
+        // The dedupe lives in AppState.setDisplayMode now; the menu just picks.
+        expect(app.ui.setMode).toHaveBeenCalledWith('dual');
     });
 
     test('dual is disabled without a second track', () => {
