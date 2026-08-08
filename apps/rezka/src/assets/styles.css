@@ -1181,6 +1181,30 @@
     background-color: var(--vtt-accent-hover);
 }
 
+/* Over the video the pane cannot borrow contrast from the caption backing —
+   its opacity is a user setting, and at a translucent setting on a light frame
+   white-on-white simply vanishes. Give the pane its own dark body plus a
+   brighter ring: the fill separates it on light frames, the ring on dark ones,
+   and neither depends on what the picture happens to show. Sidebar panes keep
+   the quiet look — the panel's dark glass is a known backdrop. */
+.vtt-overlay-main .vtt-masked-word {
+    background-color: rgba(18, 20, 27, 0.55);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-overlay-main .vtt-next-word {
+    background-color: rgba(124, 141, 255, 0.45);
+    box-shadow:
+        inset 0 0 0 1px var(--vtt-accent-border-strong),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-overlay-main:hover .vtt-next-word {
+    background-color: rgba(124, 141, 255, 0.62);
+}
+
 /* The panes carry vertical padding, so a wrapped guess line needs a little more
    leading than plain text or the rows touch. Scoped to lines that actually hold
    a pane, so dual and single mode keep their tighter rhythm. */
