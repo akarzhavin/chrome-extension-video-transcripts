@@ -1,4 +1,5 @@
 import { LanguageChoice, Subtitle, Track } from './types';
+import { tokenizeForGuess } from './guess-tokenize';
 
 export class AppState {
     tracks: Track[] = [];
@@ -187,17 +188,27 @@ export class AppState {
         return true;
     }
 
+    // How many maskable units the line holds. Must match how SidebarUI renders
+    // them, hence the shared tokenizer — see guess-tokenize.ts. Returns 0 when
+    // the line is missing, which keeps callers from reporting a phantom line as
+    // fully revealed.
+    private tokenCount(index: number): number {
+        const mainTrack = this.getMainTrack();
+        if (!mainTrack || !mainTrack[index]) return 0;
+        return tokenizeForGuess(mainTrack[index].text).tokens.length;
+    }
+
     revealNextWord(index: number): boolean {
         const mainTrack = this.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return false;
 
-        const words = mainTrack[index].text.split(/\s+/);
+        const total = this.tokenCount(index);
         const current = this.guessState.get(index) ?? 1;
 
-        if (current >= words.length) return true; // already fully revealed
+        if (current >= total) return true; // already fully revealed
 
         this.guessState.set(index, current + 1);
-        return current + 1 >= words.length;
+        return current + 1 >= total;
     }
 
     getRevealedCount(index: number): number {
@@ -207,8 +218,7 @@ export class AppState {
     isFullyRevealed(index: number): boolean {
         const mainTrack = this.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return false;
-        const words = mainTrack[index].text.split(/\s+/);
-        return this.getRevealedCount(index) >= words.length;
+        return this.getRevealedCount(index) >= this.tokenCount(index);
     }
 
     resetGuessState(): void {

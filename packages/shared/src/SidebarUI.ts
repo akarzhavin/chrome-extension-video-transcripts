@@ -9,6 +9,7 @@ import {
     OverlayEdgeToken,
 } from './prefs';
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
+import { tokenizeForGuess } from './guess-tokenize';
 import { msg } from './i18n';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -90,6 +91,16 @@ function hasSelectionInside(el: Element): boolean {
     return el.contains(sel.getRangeAt(0).commonAncestorContainer);
 }
 
+// Should this click uncover the next word? A click on a masked word always
+// means reveal — that word cannot be part of a selection, so nothing else could
+// have been intended. Anywhere else in the line, a live selection still wins:
+// the user is reaching for the quick-add pill, not the reveal.
+function shouldReveal(e: MouseEvent, container: Element): boolean {
+    const target = e.target as Element | null;
+    if (target?.closest?.('.vtt-masked-word')) return true;
+    return !hasSelectionInside(container);
+}
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
@@ -120,6 +131,16 @@ export class SidebarUI {
         const sidebar = document.createElement('div');
         sidebar.id = 'vtt-sidebar';
 
+        // Space belongs to the video. A button that was clicked with the mouse
+        // keeps focus and then eats every Space that follows — the viewer aims
+        // for play/pause and toggles our button instead. Drop focus once the
+        // click is handled. Keyboard users are unaffected: :focus-visible is
+        // false for pointer-driven focus, and text inputs need Space to type.
+        sidebar.addEventListener('click', (e) => {
+            const el = (e.target as HTMLElement)?.closest?.('button');
+            if (el && !el.matches(':focus-visible')) (el as HTMLElement).blur();
+        });
+
         // Toggle Button. A div rather than a button (it predates the rest), so
         // it has to borrow button semantics by hand — without these it's
         // unreachable by keyboard and anonymous to a screen reader.
@@ -130,7 +151,13 @@ export class SidebarUI {
         toggleBtn.setAttribute('tabindex', '0');
         toggleBtn.setAttribute('aria-label', msg('ytTogglePanel', 'Toggle panel'));
         toggleBtn.setAttribute('aria-controls', 'vtt-sidebar');
-        toggleBtn.addEventListener('click', () => this.toggleCollapsed());
+        toggleBtn.addEventListener('click', () => {
+            this.toggleCollapsed();
+            // Hand focus back after a mouse click. Otherwise the tab keeps it
+            // and swallows every following Space — the key the viewer means for
+            // the video's play/pause, not for us.
+            if (!toggleBtn.matches(':focus-visible')) toggleBtn.blur();
+        });
         toggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault(); // Space would scroll the page
@@ -1175,28 +1202,6 @@ export class SidebarUI {
         return container;
     }
 
-    // Split a subtitle line into maskable units. Space-delimited scripts split
-    // on whitespace; spaceless scripts (Chinese/Japanese/Thai) are segmented
-    // with Intl.Segmenter (word granularity), falling back to per-character —
-    // otherwise the whole line is one token and "guess mode" masks nothing.
-    private tokenizeForGuess(text: string): { tokens: string[]; sep: string } {
-        const trimmed = text.trim();
-        if (/\s/.test(trimmed)) return { tokens: trimmed.split(/\s+/), sep: ' ' };
-        const Seg = (Intl as unknown as {
-            Segmenter?: new (l?: string, o?: { granularity: string }) => { segment(s: string): Iterable<{ segment: string }> };
-        }).Segmenter;
-        if (Seg) {
-            try {
-                const seg = new Seg(undefined, { granularity: 'word' });
-                const toks = Array.from(seg.segment(trimmed), (s) => s.segment).filter((w) => w.trim().length);
-                if (toks.length > 1) return { tokens: toks, sep: '' };
-            } catch {
-                /* Segmenter unavailable — fall through to per-character */
-            }
-        }
-        return { tokens: Array.from(trimmed), sep: '' };
-    }
-
     // Mask glyphs for a hidden token: dots in spaceless scripts scale to the
     // token length so a 2-char word reads as "••", not a fixed "***".
     private maskGlyphs(token: string, spaced: boolean): string {
@@ -1207,7 +1212,7 @@ export class SidebarUI {
     // selection extractor can recover the real word from data-word — even when
     // the visible glyphs are masked.
     private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
-        const { tokens, sep } = this.tokenizeForGuess(text);
+        const { tokens, sep } = tokenizeForGuess(text);
         const spaced = sep === ' ';
         tokens.forEach((word, i) => {
             if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
@@ -1215,14 +1220,21 @@ export class SidebarUI {
         });
     }
 
+    // data-word is what the quick-add selection reads, so it carries the real
+    // word only while that word is on screen. A word still masked is parked in
+    // data-hidden instead: offering to save a word the user has not been shown
+    // is the confusing half of the reveal/quick-add collision, and dropping the
+    // attribute is also what makes quick-add's `span[data-word]` queries skip
+    // masked words without any change on their side.
     private makeMaskedSpan(word: string, revealed: boolean, maskText: string): HTMLSpanElement {
         const span = document.createElement('span');
-        span.dataset.word = word;
         span.dataset.mask = maskText;
         if (revealed) {
+            span.dataset.word = word;
             span.className = 'vtt-revealed-word';
             span.textContent = word;
         } else {
+            span.dataset.hidden = word;
             span.className = 'vtt-masked-word';
             span.textContent = maskText;
         }
@@ -1233,7 +1245,7 @@ export class SidebarUI {
     // so the quick-add selection can snap to whole-word boundaries. Inline
     // spans without a class read identically to the previous text node.
     private fillPlainWordsInto(container: HTMLElement, text: string): void {
-        const { tokens, sep } = this.tokenizeForGuess(text);
+        const { tokens, sep } = tokenizeForGuess(text);
         tokens.forEach((word, i) => {
             if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
             const span = document.createElement('span');
@@ -1241,12 +1253,6 @@ export class SidebarUI {
             span.textContent = word;
             container.appendChild(span);
         });
-    }
-
-    getMaskedText(text: string, revealedCount: number): string {
-        const { tokens, sep } = this.tokenizeForGuess(text);
-        const spaced = sep === ' ';
-        return tokens.map((w, i) => (i < revealedCount ? w : this.maskGlyphs(w, spaced))).join(sep);
     }
 
     updateGuessItem(index: number): void {
@@ -1262,15 +1268,22 @@ export class SidebarUI {
 
         // Patch spans in place so an active selection inside the item survives
         // the reveal — replacing the parent would orphan the user's Range.
+        // Query by class, not [data-word]: masked spans deliberately lack that
+        // attribute (see makeMaskedSpan), and missing them here would shift
+        // every index and mask the wrong words.
         const revealedCount = this.state.getRevealedCount(index);
-        const spans = main.querySelectorAll<HTMLSpanElement>('span[data-word]');
+        const spans = main.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
         spans.forEach((span, i) => {
-            const word = span.dataset.word ?? '';
             const shouldReveal = i < revealedCount;
             if (shouldReveal && !span.classList.contains('vtt-revealed-word')) {
+                const word = span.dataset.word ?? span.dataset.hidden ?? '';
+                span.dataset.word = word;
+                delete span.dataset.hidden;
                 span.className = 'vtt-revealed-word';
                 span.textContent = word;
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
+                span.dataset.hidden = span.dataset.hidden ?? span.dataset.word ?? '';
+                delete span.dataset.word;
                 span.className = 'vtt-masked-word';
                 span.textContent = span.dataset.mask ?? '***';
             }
@@ -1328,10 +1341,11 @@ export class SidebarUI {
             if (subText) item.appendChild(subText);
         }
 
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
             // Drag-selecting inside the item fires this click; skip reveal/seek
-            // so the quick-add pill (from selection) stays usable.
-            if (hasSelectionInside(item)) return;
+            // so the quick-add pill (from selection) stays usable. A click on a
+            // masked word is always a reveal — same rule as the overlay.
+            if (!shouldReveal(e, item)) return;
             this.state.revealNextWord(index);
             this.updateGuessItem(index);
             this.app.seekVideo(sub.startTime);
@@ -1438,15 +1452,27 @@ export class SidebarUI {
         // the full translation once every word is out. The listener lives on the
         // container (not the inner div, which updateOverlay rebuilds every
         // ~250ms) so it survives those rebuilds.
-        overlay.addEventListener('click', () => {
+        // Revealing is a run of quick clicks in the same spot, which the browser
+        // reads as a double-click and turns into a word selection — that
+        // selection then blocked the next reveal. The sidebar has always
+        // suppressed this (see createSubtitleItem); the overlay never did, which
+        // is why it was the surface that felt broken. Guess mode only: elsewhere
+        // a double-click is a fair way to select a word for the dictionary.
+        overlay.addEventListener('mousedown', (e) => {
+            if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
+        });
+        overlay.addEventListener('click', (e) => {
             if (this.state.displayMode !== 'guess') return;
-            // A drag-select inside the overlay fires this click too; skip the
-            // reveal so the quick-add pill from a selection stays usable.
-            if (hasSelectionInside(overlay)) return;
+            if (!shouldReveal(e, overlay)) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
             if (!sub) return;
             this.state.revealNextWord(index);
+            // Drop any leftover highlight: the user has moved on to revealing,
+            // and updateOverlay refuses to repaint while a selection is inside
+            // (it would orphan the Range), so the mask would otherwise advance
+            // in state without changing on screen.
+            window.getSelection()?.removeAllRanges();
             this.updateGuessItem(index);
             this.updateOverlay(index);
             this.app.seekVideo(sub.startTime);

@@ -3,6 +3,8 @@ import { msg as i18nMsg } from '../i18n';
 const PILL_ID = 'lingogram-quick-add-pill';
 const TOAST_ID = 'lingogram-quick-add-toast';
 const MAX_TERM_LEN = 256;
+// Set on #vtt-list while a two-cue phrase is being dragged out.
+const PHRASE_SELECT_CLASS = 'vtt-phrase-selecting';
 
 // Selection is only accepted when it lives entirely inside one of these
 // containers — never the translation row (.vtt-sub-text) or unrelated page DOM.
@@ -21,38 +23,67 @@ function getSelectionPayload(): SelectionPayload | null {
 
     const startScope = scopeFor(range.startContainer);
     const endScope = scopeFor(range.endContainer);
-    if (!startScope || startScope !== endScope) return null;
+    if (!startScope || !endScope) return null;
+
+    // A phrase worth saving often straddles a subtitle boundary — it starts in
+    // one cue and finishes in the next. Accept that as one term; anything wider
+    // is a bulk transcript selection, not a dictionary entry.
+    const scopes = mainScopesBetween(startScope, endScope);
+    if (!scopes) return null;
 
     // Snap to whole-word boundaries so the user doesn't need pixel-perfect drags.
-    const snapped = snapToWordSpans(range, startScope);
+    const snapped = snapToWordSpans(range, scopes);
     if (snapped) {
         sel.removeAllRanges();
         sel.addRange(snapped);
     }
     const active = snapped ?? range;
 
-    const term = extractTerm(active, startScope);
+    const term = scopes.map((s) => extractTerm(active, s)).filter(Boolean).join(' ').trim();
     if (!term) return null;
 
     const rect = active.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return null;
 
-    const context = buildContextFromScope(startScope);
+    const context = buildContextFromScope(scopes[0]);
     return { term, rect, context };
+}
+
+// The main-text scopes a selection covers, in document order — but only when it
+// spans at most two. Returns null past that, which keeps the pill off bulk
+// selections and leaves them behaving exactly as before.
+function mainScopesBetween(start: Element, end: Element): Element[] | null {
+    if (start === end) return [start];
+    // Cross-cue selection only makes sense inside the transcript list; the
+    // on-screen overlay renders a single line and has no neighbours.
+    const list = document.getElementById('vtt-list');
+    if (!list || !list.contains(start) || !list.contains(end)) return null;
+
+    const all = Array.from(list.querySelectorAll<HTMLElement>('.vtt-main-text'));
+    const from = all.indexOf(start as HTMLElement);
+    const to = all.indexOf(end as HTMLElement);
+    if (from === -1 || to === -1) return null;
+
+    const [lo, hi] = from <= to ? [from, to] : [to, from];
+    if (hi - lo > 1) return null;
+    return all.slice(lo, hi + 1);
 }
 
 // Expand the range to cover every [data-word] span it touches. Returns null
 // when the selection lies in pure whitespace (no spans intersected) so the
-// caller can decide to drop the pill.
-function snapToWordSpans(range: Range, scope: Element): Range | null {
-    const spans = scope.querySelectorAll<HTMLElement>('span[data-word]');
+// caller can decide to drop the pill. Across two scopes the snapped range runs
+// from the first touched word to the last, so the translation row sitting
+// between them is enclosed by the range but never contributes to the term.
+function snapToWordSpans(range: Range, scopes: Element[]): Range | null {
     let first: HTMLElement | null = null;
     let last: HTMLElement | null = null;
-    spans.forEach((span) => {
-        if (!range.intersectsNode(span)) return;
-        if (!first) first = span;
-        last = span;
-    });
+    for (const scope of scopes) {
+        scope.querySelectorAll<HTMLElement>('span[data-word]').forEach((span) => {
+            if (!range.intersectsNode(span)) return;
+            if (!first) first = span;
+            last = span;
+        });
+    }
     if (!first || !last) return null;
 
     const snapped = document.createRange();
@@ -82,6 +113,11 @@ function extractTerm(range: Range, scope: Element): string {
     });
     const joined = words.join(' ').trim();
     if (joined) return joined;
+    // No revealed word was touched. In guess mode the fallback below would
+    // return the mask glyphs ("*** ***"), so refuse instead: a word the user
+    // has not uncovered is not a dictionary candidate. CSS already makes masked
+    // words unselectable, but stating it here keeps the rule enforced in code.
+    if (scope.querySelector('.vtt-masked-word')) return '';
     return range.toString().trim();
 }
 
@@ -114,11 +150,15 @@ function readMainText(list: HTMLElement, index: number): string {
     if (!item) return '';
     const main = item.querySelector('.vtt-main-text');
     if (!main) return '';
-    const spans = main.querySelectorAll<HTMLElement>('span[data-word]');
+    // Masked words carry the real text in data-hidden rather than data-word, so
+    // read both: the saved context should be the whole sentence, not just the
+    // part uncovered so far. It is stored with the entry, never rendered onto
+    // the still-masked line, so this reveals nothing.
+    const spans = main.querySelectorAll<HTMLElement>('span[data-word], span[data-hidden]');
     if (spans.length === 0) return (main.textContent ?? '').trim();
     const words: string[] = [];
     spans.forEach((s) => {
-        const w = s.dataset.word?.trim();
+        const w = (s.dataset.word ?? s.dataset.hidden)?.trim();
         if (w) words.push(w);
     });
     return words.join(' ');
@@ -126,6 +166,27 @@ function readMainText(list: HTMLElement, index: number): string {
 
 function removePill(): void {
     document.getElementById(PILL_ID)?.remove();
+}
+
+// While a selection spans two cues, the translation row caught between them
+// would be painted too — visual noise around a phrase the user is reaching for
+// in the learning language. Marking it unselectable drops it from the highlight
+// without touching the range, so the extracted term is unaffected either way.
+// Only for cross-cue drags: within one cue the translation sits outside the
+// selection anyway, and a user deliberately copying a translation keeps working.
+function syncTranslationSelectability(): void {
+    const list = document.getElementById('vtt-list');
+    if (!list) return;
+
+    const sel = window.getSelection();
+    let phrase = false;
+    if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const start = scopeFor(range.startContainer);
+        const end = scopeFor(range.endContainer);
+        phrase = !!start && !!end && start !== end && !!mainScopesBetween(start, end);
+    }
+    list.classList.toggle(PHRASE_SELECT_CLASS, phrase);
 }
 
 // ── "✓ saved" marker ──────────────────────────────────────────────────────
@@ -137,6 +198,10 @@ function injectSavedWordStyles(): void {
     const style = document.createElement('style');
     style.id = 'lingogram-saved-style';
     style.textContent = `
+        #vtt-list.${PHRASE_SELECT_CLASS} .vtt-sub-text {
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .vtt-saved-word {
             border-radius: 4px; padding: 0 2px;
             background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
@@ -163,10 +228,16 @@ function selectionWordSpans(): HTMLElement[] {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return [];
     const range = sel.getRangeAt(0);
-    const scope = scopeFor(range.startContainer);
-    if (!scope) return [];
-    return Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]')).filter((s) =>
-        range.intersectsNode(s),
+    const start = scopeFor(range.startContainer);
+    const end = scopeFor(range.endContainer);
+    if (!start || !end) return [];
+    // Mirror the payload's reach: a two-cue phrase gets marked saved in both.
+    const scopes = mainScopesBetween(start, end);
+    if (!scopes) return [];
+    return scopes.flatMap((scope) =>
+        Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]')).filter((s) =>
+            range.intersectsNode(s),
+        ),
     );
 }
 
@@ -692,8 +763,15 @@ export function installQuickAddOverlay(): () => void {
     };
     document.addEventListener('mousedown', onMouseDown);
 
+    // Runs while the drag is still in flight — mouseup is too late, the stray
+    // highlight has to be gone as the cursor crosses the translation.
+    const onSelectionChange = (): void => syncTranslationSelectability();
+    document.addEventListener('selectionchange', onSelectionChange);
+
     return () => {
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousedown', onMouseDown);
+        document.removeEventListener('selectionchange', onSelectionChange);
+        document.getElementById('vtt-list')?.classList.remove(PHRASE_SELECT_CLASS);
     };
 }

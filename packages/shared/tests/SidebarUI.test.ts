@@ -171,6 +171,83 @@ describe('SidebarUI', () => {
         Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: null });
     });
 
+    describe('guess mode: reveal vs quick-add on the overlay', () => {
+        // The reported bug: reveal and the quick-add pill both branched on "is
+        // something selected", in opposite directions, so a click that grazed a
+        // glyph boundary raised the pill instead of uncovering the word. A click
+        // on a masked word must now always reveal.
+        const buildGuessOverlay = () => {
+            state.overlayEnabled = true;
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            const video = document.createElement('video');
+            const container = document.createElement('div');
+            container.appendChild(video);
+            document.body.appendChild(container);
+            // The reveal handler reads state.currentIndex, which only
+            // highlightSubtitle sets; without it the click no-ops on -1.
+            state.currentIndex = 0;
+            ui.updateOverlay(0);
+            return document.getElementById('vtt-video-overlay') as HTMLElement;
+        };
+        const click = (el: Element) => el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+        afterEach(() => window.getSelection()?.removeAllRanges());
+
+        test('a click on a masked word reveals the next one', () => {
+            const overlay = buildGuessOverlay();
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            expect(state.getRevealedCount(0)).toBe(1);
+
+            click(masked);
+            expect(state.getRevealedCount(0)).toBe(2);
+        });
+
+        test('a masked word still reveals while text elsewhere is selected', () => {
+            const overlay = buildGuessOverlay();
+            // Plant a selection on the already-revealed word — this is what used
+            // to silently swallow the reveal.
+            const revealed = overlay.querySelector('.vtt-revealed-word') as HTMLElement;
+            const range = document.createRange();
+            range.selectNodeContents(revealed);
+            const sel = window.getSelection()!;
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            click(masked);
+            expect(state.getRevealedCount(0)).toBe(2);
+        });
+
+        test('a click on revealed text stands down for a live selection', () => {
+            const overlay = buildGuessOverlay();
+            const revealed = overlay.querySelector('.vtt-revealed-word') as HTMLElement;
+            const range = document.createRange();
+            range.selectNodeContents(revealed);
+            const sel = window.getSelection()!;
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            click(revealed);
+            expect(state.getRevealedCount(0)).toBe(1); // unchanged — pill wins here
+        });
+
+        test('double-click is suppressed in guess mode but not in dual', () => {
+            const overlay = buildGuessOverlay();
+            const dbl = () => {
+                const e = new MouseEvent('mousedown', { bubbles: true, cancelable: true, detail: 2 });
+                overlay.dispatchEvent(e);
+                return e.defaultPrevented;
+            };
+            expect(dbl()).toBe(true);
+
+            // Elsewhere a double-click is a fair way to grab a word for the
+            // dictionary, so it must survive.
+            state.displayMode = 'dual';
+            expect(dbl()).toBe(false);
+        });
+    });
+
     describe('overlay style presets', () => {
         const buildOverlay = () => {
             state.overlayEnabled = true;
@@ -274,20 +351,27 @@ describe('SidebarUI', () => {
     });
 
     describe('word-wrapping spans (data-word)', () => {
-        // Every word lives in its own <span data-word="..."> so the quick-add
-        // overlay can snap selection to word boundaries and resolve masked
-        // *** tokens back to the underlying word.
+        // Every word lives in its own <span> so the quick-add overlay can snap
+        // selection to word boundaries. data-word is the attribute quick-add
+        // reads, so it carries the real word only while that word is visible;
+        // a still-masked word is parked in data-hidden instead.
 
-        test('buildMaskedContent stores data-word on every span (masked + revealed)', () => {
+        test('buildMaskedContent keeps the hidden word out of data-word', () => {
             const container = ui.buildMaskedContent('hello world foo', 1);
             const spans = container.querySelectorAll('span');
             expect(spans).toHaveLength(3);
+
             expect(spans[0].dataset.word).toBe('hello');
             expect(spans[0].className).toBe('vtt-revealed-word');
-            expect(spans[1].dataset.word).toBe('world');
+
+            // Masked: quick-add must not be able to offer an unseen word.
+            expect(spans[1].dataset.word).toBeUndefined();
+            expect(spans[1].dataset.hidden).toBe('world');
             expect(spans[1].className).toBe('vtt-masked-word');
-            expect(spans[1].textContent).toBe('***'); // glyph, but real word in data-word
-            expect(spans[2].dataset.word).toBe('foo');
+            expect(spans[1].textContent).toBe('***');
+
+            expect(spans[2].dataset.word).toBeUndefined();
+            expect(spans[2].dataset.hidden).toBe('foo');
         });
 
         test('buildPlainItem wraps each word in a data-word span without a class', () => {
@@ -316,18 +400,49 @@ describe('SidebarUI', () => {
             ui.renderSubtitles();
 
             const item = ui.elements.list?.querySelector('.vtt-item[data-index="0"]') as HTMLDivElement;
-            const beta = item.querySelectorAll('span[data-word]')[1] as HTMLSpanElement;
+            const wordSpans = () =>
+                item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
+            const beta = wordSpans()[1];
             expect(beta.className).toBe('vtt-masked-word');
             expect(beta.textContent).toBe('***');
+            expect(beta.dataset.word).toBeUndefined();
 
             // Reveal one more word so index 1 ("beta") flips revealed.
             state.revealNextWord(0);
             ui.updateGuessItem(0);
 
-            const sameBeta = item.querySelectorAll('span[data-word]')[1];
+            const sameBeta = wordSpans()[1];
             expect(sameBeta).toBe(beta); // exact same node — not a replacement
-            expect((sameBeta as HTMLSpanElement).className).toBe('vtt-revealed-word');
+            expect(sameBeta.className).toBe('vtt-revealed-word');
             expect(sameBeta.textContent).toBe('beta');
+            // Now visible, so quick-add may offer it.
+            expect(sameBeta.dataset.word).toBe('beta');
+            expect(sameBeta.dataset.hidden).toBeUndefined();
+        });
+
+        test('updateGuessItem re-masks, hiding data-word again', () => {
+            const subs: Subtitle[] = [{ startTime: 0, endTime: 1, text: 'alpha beta gamma' }];
+            state.addTrack('English', subs);
+            state.displayMode = 'guess';
+            ui.renderSubtitles();
+
+            const item = ui.elements.list?.querySelector('.vtt-item[data-index="0"]') as HTMLDivElement;
+            const wordSpans = () =>
+                item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
+
+            state.revealNextWord(0); // beta revealed
+            ui.updateGuessItem(0);
+            expect(wordSpans()[1].dataset.word).toBe('beta');
+
+            // Back to the start of the line — beta must go dark again.
+            state.resetGuessState();
+            ui.updateGuessItem(0);
+
+            const beta = wordSpans()[1];
+            expect(beta.className).toBe('vtt-masked-word');
+            expect(beta.textContent).toBe('***');
+            expect(beta.dataset.word).toBeUndefined();
+            expect(beta.dataset.hidden).toBe('beta');
         });
     });
 

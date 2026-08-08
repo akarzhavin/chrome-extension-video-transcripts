@@ -1089,10 +1089,20 @@
     font-weight: 400;
 }
 
+/* A masked word is a button, not text. Making it unselectable is what keeps
+   reveal and quick-add from fighting: both used to branch on "is something
+   selected", in opposite directions, so a click that grazed a glyph boundary
+   would raise the save pill instead of uncovering the word. Excluded from
+   selection, a click on it can only ever mean reveal.
+   user-select rather than pointer-events: the latter would let the click fall
+   through to the video and toggle playback. */
 .vtt-masked-word {
     color: rgba(255, 255, 255, 0.25);
     letter-spacing: 1px;
     font-style: italic;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
 }
 
 .vtt-revealed-word {
@@ -1201,14 +1211,11 @@
     user-select: text;
 }
 
-/* Guess mode: the caption box is a reveal target, exactly like a line in the
-   transcript — a click uncovers the next word. Say so with the cursor, but
-   only while words are still hidden; once the line is out it goes back to
-   being text you select from. Drag-selecting still works either way (the
-   reveal handler stands down when there's a selection inside). */
-.vtt-overlay-main:has(.vtt-masked-word) {
-    cursor: pointer;
-}
+/* Guess mode used to put a pointer cursor on the whole caption box while any
+   word was hidden, which mis-signalled the half-revealed case: the words
+   already out are selectable text, not reveal targets. The cursor now lives on
+   .vtt-masked-word itself, so each word states what it is and the box keeps the
+   text cursor it inherits. */
 
 .vtt-overlay-sub {
     background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));

@@ -186,6 +186,52 @@ describe('AppState', () => {
             expect(state.getOverlappingSecondary(mainSub)).toEqual([]);
         });
     });
+
+    describe('guess-mode reveal', () => {
+        // Reveal counts tokens the same way SidebarUI renders them (shared
+        // tokenizeForGuess). When it did not — a naive split(/\s+/) here versus
+        // Intl.Segmenter there — a spaceless line counted as one token, so it
+        // read as fully revealed from the start and never advanced.
+        const track = (text: string) =>
+            state.addTrack('Main', [{ text, startTime: 0, endTime: 1 } as Subtitle]);
+
+        test('advances word by word through a space-delimited line', () => {
+            track('one two three');
+            expect(state.getRevealedCount(0)).toBe(1); // first word is free
+            expect(state.isFullyRevealed(0)).toBe(false);
+
+            expect(state.revealNextWord(0)).toBe(false);
+            expect(state.getRevealedCount(0)).toBe(2);
+
+            expect(state.revealNextWord(0)).toBe(true); // last word
+            expect(state.getRevealedCount(0)).toBe(3);
+            expect(state.isFullyRevealed(0)).toBe(true);
+        });
+
+        test('advances through a spaceless line (CJK regression)', () => {
+            track('你好世界朋友');
+            // Previously length-1 under split(/\s+/) → instantly "complete".
+            expect(state.isFullyRevealed(0)).toBe(false);
+
+            const before = state.getRevealedCount(0);
+            state.revealNextWord(0);
+            expect(state.getRevealedCount(0)).toBeGreaterThan(before);
+        });
+
+        test('reveals a spaceless line to completion', () => {
+            track('你好世界朋友');
+            // Bounded loop: whatever the tokenizer produced, repeated reveals
+            // must terminate rather than stall short of the end.
+            for (let i = 0; i < 50 && !state.isFullyRevealed(0); i++) state.revealNextWord(0);
+            expect(state.isFullyRevealed(0)).toBe(true);
+        });
+
+        test('treats a missing line as not revealed', () => {
+            track('one two');
+            expect(state.isFullyRevealed(99)).toBe(false);
+            expect(state.revealNextWord(99)).toBe(false);
+        });
+    });
 });
 
 describe('AppState language-pair preferences', () => {
