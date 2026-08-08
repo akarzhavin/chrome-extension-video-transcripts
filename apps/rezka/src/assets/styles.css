@@ -1119,7 +1119,12 @@
     background: rgba(255, 255, 255, 0.10);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
     border-radius: 5px;
-    padding: 0.08em 0.3em;
+    /* The pane must hug its glyphs, not the line: an inline-block inherits the
+       container's line-height INTO its own box, so at 1.75 every capsule ran
+       75% taller than the text beside it and the caption block ballooned. */
+    line-height: 1;
+    padding: 0.14em 0.3em;
+    vertical-align: -0.14em;
     /* An inline-block is an unbreakable box, and .vtt-overlay-main sets
        word-wrap: break-word for long real words — together they made the line
        wrap far earlier than its width required. */
@@ -1177,7 +1182,7 @@
    a pane, so dual and single mode keep their tighter rhythm. */
 .vtt-main-text:has(.vtt-masked-word),
 .vtt-overlay-main:has(.vtt-masked-word) {
-    line-height: 1.75;
+    line-height: 1.6;
 }
 
 /* Coming into focus is the reveal, so it is the one moment worth animating:
