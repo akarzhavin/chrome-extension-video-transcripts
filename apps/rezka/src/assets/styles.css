@@ -1128,29 +1128,31 @@
     /* Clip the blur to the pane. Without this the smear spills past the
        rounded edge and the capsule stops reading as one solid object. */
     overflow: hidden;
-    /* The glyphs are painted by ::before below; hide the node's own text so it
-       is not drawn twice. Colour, not display:none — the text must stay in the
-       box to give the pane its width. */
+    /* The glyph run only sizes the pane — it must never paint. Colour, not
+       display:none, so the text keeps giving the box its width; and the shadow
+       must go too: .vtt-overlay-main sets a text-shadow that renders even for
+       transparent glyphs, which is exactly how the "hidden" letters showed up
+       dark on the video overlay. */
     color: transparent;
+    text-shadow: none;
     -webkit-user-select: none;
     user-select: none;
     transition: background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-/* Only the letters are blurred, never the pane: `filter` on the element itself
-   smears its background and border too, which is what turns a crisp pill into a
-   grey cloud. A pseudo-element keeps the two separable. */
+/* Nothing legible inside — the pane is empty frosted glass. Every attempt to
+   put "hidden text" under a blur failed the same way: glyphs keep enough
+   structure to read through it (*** as a picket fence, filler letters as
+   nonsense words, repeated n's as a comb). A soft gradient gives the glass its
+   depth instead; the transparent glyph run on the span itself only sets the
+   pane's width. */
 .vtt-masked-word::before {
-    content: attr(data-mask);
+    content: '';
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.68);
-    /* em, so the blur scales with the caption: a fixed radius that hides 14px
-       sidebar text leaves a 32px overlay caption half-readable. */
-    filter: blur(0.2em);
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 60% at 50% 90%, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
     pointer-events: none;
 }
 
