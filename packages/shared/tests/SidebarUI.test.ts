@@ -219,7 +219,7 @@ describe('SidebarUI', () => {
             const lit = () => overlay.querySelectorAll<HTMLElement>('.vtt-next-word');
             expect(lit()).toHaveLength(1);
             // 'alpha' is free, so 'beta' (index 1) is what opens next.
-            expect(lit()[0].textContent).toBe('***');
+            expect(lit()[0].textContent).not.toBe('beta');
             const before = lit()[0].dataset.hidden;
             expect(before).toBe('beta');
 
@@ -480,10 +480,35 @@ describe('SidebarUI', () => {
             expect(spans[1].dataset.word).toBeUndefined();
             expect(spans[1].dataset.hidden).toBe('world');
             expect(spans[1].classList.contains('vtt-masked-word')).toBe(true);
-            expect(spans[1].textContent).toBe('***');
+            // Stand-in letters of the same length — never the word itself,
+            // which a blur alone would not keep out of reach.
+            expect(spans[1].textContent).not.toBe('world');
+            expect(spans[1].textContent).toHaveLength('world'.length);
 
             expect(spans[2].dataset.word).toBeUndefined();
             expect(spans[2].dataset.hidden).toBe('foo');
+        });
+
+        test('the frosted text never contains the word, and is stable across repaints', () => {
+            // The blur is only paint: anything real under it could be selected
+            // or copied straight back out, so no masked span may render the
+            // word — including as a substring.
+            const line = 'photosynthesis sustains everything';
+            const container = ui.buildMaskedContent(line, 0);
+            const masked = container.querySelectorAll<HTMLElement>('.vtt-masked-word');
+            expect(masked).toHaveLength(3);
+            masked.forEach((span) => {
+                const shown = span.textContent ?? '';
+                const real = span.dataset.hidden ?? '';
+                expect(shown).not.toBe(real);
+                expect(shown).not.toContain(real);
+                expect(shown.trim().length).toBeGreaterThan(0);
+            });
+
+            // The overlay repaints ~4x/sec; unstable filler would make the line
+            // shimmer, so the same word must always mask to the same letters.
+            const again = ui.buildMaskedContent(line, 0);
+            expect(again.textContent).toBe(container.textContent);
         });
 
         test('buildPlainItem wraps each word in a data-word span without a class', () => {
@@ -516,7 +541,7 @@ describe('SidebarUI', () => {
                 item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
             const beta = wordSpans()[1];
             expect(beta.classList.contains('vtt-masked-word')).toBe(true);
-            expect(beta.textContent).toBe('***');
+            expect(beta.textContent).not.toBe('beta');
             expect(beta.dataset.word).toBeUndefined();
 
             // Reveal one more word so index 1 ("beta") flips revealed.
@@ -552,7 +577,7 @@ describe('SidebarUI', () => {
 
             const beta = wordSpans()[1];
             expect(beta.classList.contains('vtt-masked-word')).toBe(true);
-            expect(beta.textContent).toBe('***');
+            expect(beta.textContent).not.toBe('beta');
             expect(beta.dataset.word).toBeUndefined();
             expect(beta.dataset.hidden).toBe('beta');
         });

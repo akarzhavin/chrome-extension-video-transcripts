@@ -1012,6 +1012,8 @@
     #vtt-ytp-menu,
     #vtt-ytp-menu *,
     .vtt-next-word,
+    .vtt-masked-word,
+    .vtt-revealed-word,
     .vtt-guess-btn {
         transition: none !important;
         animation: none !important;
@@ -1099,29 +1101,67 @@
    reveal and quick-add branching on the same "is something selected" bit in
    opposite directions. user-select rather than pointer-events — the latter
    would let the click fall through to the video and toggle playback. */
+/* Frosted glass: the word is behind the pane, not missing. "***" said "nothing
+   here"; a word out of focus says "this is still language, you just can't read
+   it yet" — which is what guess mode actually means, and it gives the eye a
+   shape to guess at. The letters under the blur are stand-ins of the right
+   length (see maskGlyphs), never the real word: a blur is only paint, so
+   anything real under it could be selected or copied straight back out.
+   Unselectable so a click here can only ever mean reveal — this is what stops
+   reveal and quick-add branching on the same "is something selected" bit in
+   opposite directions. user-select rather than pointer-events, since the latter
+   would let the click fall through to the video and toggle playback. */
 .vtt-masked-word {
-    color: rgba(255, 255, 255, 0.28);
-    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.11);
+    border-radius: 4px;
+    padding: 0 2px;
+    /* The blur is what hides the text, so it must not be defeatable: no
+       transition on it, and it never reaches a legible radius on hover. */
+    filter: blur(3.2px);
     -webkit-user-select: none;
     user-select: none;
+    transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* Scale the blur with the caption: 3.2px hides 14px sidebar text but leaves
+   24px+ overlay text half-readable. em ties it to whatever size the user set. */
+.vtt-overlay-main .vtt-masked-word {
+    filter: blur(0.19em);
 }
 
 /* The one word that opens next. Carries the accent fill and a hairline ring,
    so it reads as the live target on any backdrop — including a white video
    frame, where a colour-only cue would vanish. */
+/* The pane that opens next: tinted, not clearer. The accent identifies the
+   target without thinning the blur, so the word stays hidden until it is
+   actually revealed. */
 .vtt-next-word {
-    color: var(--vtt-accent-text);
     background-color: var(--vtt-accent-quiet);
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
-    border-radius: 3px;
-    transition: background-color 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
 }
 
 .vtt-item:hover .vtt-next-word,
 .vtt-overlay-main:hover .vtt-next-word {
     background-color: var(--vtt-accent-hover);
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
-    color: #fff;
+}
+
+/* Coming into focus is the reveal, so it is the one moment worth animating:
+   the pane clears rather than the text simply appearing. */
+@keyframes vtt-word-focus {
+    from {
+        filter: blur(3.2px);
+        opacity: 0.55;
+    }
+    to {
+        filter: blur(0);
+        opacity: 1;
+    }
+}
+
+.vtt-revealed-word.vtt-just-revealed {
+    animation: vtt-word-focus 0.42s ease-out;
 }
 
 /* A word already sent to the dictionary, marked on the line so the outcome

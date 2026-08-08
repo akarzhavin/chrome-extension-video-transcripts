@@ -1207,10 +1207,23 @@ export class SidebarUI {
         return container;
     }
 
-    // Mask glyphs for a hidden token: dots in spaceless scripts scale to the
-    // token length so a 2-char word reads as "••", not a fixed "***".
-    private maskGlyphs(token: string, spaced: boolean): string {
-        return spaced ? '***' : '•'.repeat(Math.min(Math.max(token.length, 1), 6));
+    // Letters to sit under the frosted pane. Not the real word — that must stay
+    // out of the DOM, or a blur would be undone by selecting the text under it —
+    // and not a run of asterisks either: "***" reads as "nothing here", when the
+    // truth is that the word is present and merely out of focus. Stand-ins of
+    // the same length keep the line's rhythm, so a short function word still
+    // looks unlike a long one.
+    //
+    // Derived from the token, not random, so a repaint (~4×/sec on the overlay)
+    // does not reshuffle the letters and make the line shimmer.
+    private maskGlyphs(token: string, _spaced: boolean): string {
+        const pool = 'aeoscnrmuhtlipd';
+        const len = Math.min(Math.max(token.length, 2), 14);
+        let out = '';
+        for (let i = 0; i < len; i++) {
+            out += pool[(token.charCodeAt(i % token.length) * 7 + i * 13) % pool.length];
+        }
+        return out;
     }
 
     // Both sidebar and on-screen overlay share this layout so the quick-add
@@ -1289,7 +1302,9 @@ export class SidebarUI {
                 const word = span.dataset.word ?? span.dataset.hidden ?? '';
                 span.dataset.word = word;
                 delete span.dataset.hidden;
-                span.className = 'vtt-revealed-word';
+                // Only this transition animates: the pane clearing is the
+                // reveal. Words already out must not re-focus on every repaint.
+                span.className = 'vtt-revealed-word vtt-just-revealed';
                 span.textContent = word;
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
                 span.dataset.hidden = span.dataset.hidden ?? span.dataset.word ?? '';
