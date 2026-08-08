@@ -354,5 +354,29 @@
   "ytPopupNative": {
     "message": "Tiếng mẹ đẻ của tôi",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessReveal": {
+    "message": "Hiện từ",
+    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
+  },
+  "ytGuessRemaining": {
+    "message": "Còn {count}",
+    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
+  },
+  "ytGuessLineDone": {
+    "message": "Đã hiện cả dòng",
+    "description": "Shown in guess mode once every word of the line is uncovered."
+  },
+  "ytGuessSaveWord": {
+    "message": "Lưu: {term}",
+    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
+  },
+  "ytGuessWordSaved": {
+    "message": "Có trong từ điển",
+    "description": "Replaces the save button after the revealed word was added to the dictionary."
+  },
+  "ytGuessRevealAria": {
+    "message": "Hiện từ tiếp theo của phụ đề này",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
   }
 }

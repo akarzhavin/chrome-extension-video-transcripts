@@ -354,5 +354,29 @@
   "ytPopupNative": {
     "message": "Mit modersmål",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessReveal": {
+    "message": "Vis ord",
+    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
+  },
+  "ytGuessRemaining": {
+    "message": "{count} tilbage",
+    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
+  },
+  "ytGuessLineDone": {
+    "message": "Linjen er vist",
+    "description": "Shown in guess mode once every word of the line is uncovered."
+  },
+  "ytGuessSaveWord": {
+    "message": "Gem: {term}",
+    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
+  },
+  "ytGuessWordSaved": {
+    "message": "I ordbogen",
+    "description": "Replaces the save button after the revealed word was added to the dictionary."
+  },
+  "ytGuessRevealAria": {
+    "message": "Vis det næste ord i denne undertekst",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
   }
 }

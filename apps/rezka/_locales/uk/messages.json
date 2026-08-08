@@ -314,5 +314,29 @@
   "ytRateSending": {
     "message": "Надсилаємо…",
     "description": "Submit button label while the feedback is in flight."
+  },
+  "ytGuessReveal": {
+    "message": "Відкрити слово",
+    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
+  },
+  "ytGuessRemaining": {
+    "message": "Залишилось {count}",
+    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
+  },
+  "ytGuessLineDone": {
+    "message": "Рядок відкрито",
+    "description": "Shown in guess mode once every word of the line is uncovered."
+  },
+  "ytGuessSaveWord": {
+    "message": "Зберегти: {term}",
+    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
+  },
+  "ytGuessWordSaved": {
+    "message": "У словнику",
+    "description": "Replaces the save button after the revealed word was added to the dictionary."
+  },
+  "ytGuessRevealAria": {
+    "message": "Відкрити наступне слово цих субтитрів",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
   }
 }

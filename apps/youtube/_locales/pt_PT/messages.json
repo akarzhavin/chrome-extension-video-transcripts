@@ -354,5 +354,29 @@
   "ytPopupNative": {
     "message": "A minha língua materna",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessReveal": {
+    "message": "Revelar palavra",
+    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
+  },
+  "ytGuessRemaining": {
+    "message": "Faltam {count}",
+    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
+  },
+  "ytGuessLineDone": {
+    "message": "Linha revelada",
+    "description": "Shown in guess mode once every word of the line is uncovered."
+  },
+  "ytGuessSaveWord": {
+    "message": "Guardar: {term}",
+    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
+  },
+  "ytGuessWordSaved": {
+    "message": "No dicionário",
+    "description": "Replaces the save button after the revealed word was added to the dictionary."
+  },
+  "ytGuessRevealAria": {
+    "message": "Revelar a próxima palavra desta legenda",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
   }
 }

@@ -354,5 +354,29 @@
   "ytPopupNative": {
     "message": "La meva llengua materna",
     "description": "Label for the dropdown where the user picks their own native language."
+  },
+  "ytGuessReveal": {
+    "message": "Mostra la paraula",
+    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
+  },
+  "ytGuessRemaining": {
+    "message": "En queden {count}",
+    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
+  },
+  "ytGuessLineDone": {
+    "message": "Línia revelada",
+    "description": "Shown in guess mode once every word of the line is uncovered."
+  },
+  "ytGuessSaveWord": {
+    "message": "Desa: {term}",
+    "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
+  },
+  "ytGuessWordSaved": {
+    "message": "Al diccionari",
+    "description": "Replaces the save button after the revealed word was added to the dictionary."
+  },
+  "ytGuessRevealAria": {
+    "message": "Mostra la paraula següent d'aquest subtítol",
+    "description": "Accessible label for the guess-mode subtitle line, which acts as a button."
   }
 }
