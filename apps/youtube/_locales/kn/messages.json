@@ -355,18 +355,6 @@
     "message": "ನನ್ನ ಮಾತೃಭಾಷೆ",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessReveal": {
-    "message": "ಪದ ತೋರಿಸಿ",
-    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
-  },
-  "ytGuessRemaining": {
-    "message": "{count} ಬಾಕಿ",
-    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
-  },
-  "ytGuessLineDone": {
-    "message": "ಸಾಲು ಪೂರ್ತಿ ತೋರಿಸಲಾಗಿದೆ",
-    "description": "Shown in guess mode once every word of the line is uncovered."
-  },
   "ytGuessSaveWord": {
     "message": "ಉಳಿಸಿ: {term}",
     "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."

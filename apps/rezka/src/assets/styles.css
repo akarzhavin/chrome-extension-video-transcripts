@@ -1204,19 +1204,8 @@
     color: var(--vtt-success-text);
 }
 
-.vtt-guess-hint {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--vtt-text-dim);
-    letter-spacing: 0.02em;
-}
-
 .vtt-item.fully-revealed .vtt-guess-actions {
     border-top-color: var(--vtt-success-border);
-}
-
-.vtt-item.fully-revealed .vtt-guess-hint {
-    color: var(--vtt-success-text);
 }
 
 .vtt-revealed-word {
@@ -1367,11 +1356,6 @@
     background: rgba(52, 211, 153, 0.52);
 }
 
-/* On the picture the hint needs its own contrast, not the panel's dim ramp. */
-.vtt-guess-actions-overlay .vtt-guess-hint {
-    color: #fff;
-    text-shadow: 1px 1px 3px #000;
-}
 
 .vtt-overlay-sub {
     background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));

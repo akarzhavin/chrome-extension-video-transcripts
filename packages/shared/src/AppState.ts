@@ -240,11 +240,6 @@ export class AppState {
         return this.guessState.get(index) ?? 1;
     }
 
-    /** Words of the line still hidden. 0 once the line is out. */
-    getRemainingCount(index: number): number {
-        return Math.max(0, this.tokenCount(index) - this.getRevealedCount(index));
-    }
-
     isFullyRevealed(index: number): boolean {
         const mainTrack = this.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return false;

@@ -355,18 +355,6 @@
     "message": "મારી માતૃભાષા",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessReveal": {
-    "message": "શબ્દ બતાવો",
-    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
-  },
-  "ytGuessRemaining": {
-    "message": "{count} બાકી",
-    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
-  },
-  "ytGuessLineDone": {
-    "message": "આખી લાઇન દેખાઈ",
-    "description": "Shown in guess mode once every word of the line is uncovered."
-  },
   "ytGuessSaveWord": {
     "message": "સાચવો: {term}",
     "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."

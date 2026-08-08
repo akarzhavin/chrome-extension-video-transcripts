@@ -355,18 +355,6 @@
     "message": "My native language",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessReveal": {
-    "message": "Reveal word",
-    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
-  },
-  "ytGuessRemaining": {
-    "message": "{count} left",
-    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
-  },
-  "ytGuessLineDone": {
-    "message": "Line revealed",
-    "description": "Shown in guess mode once every word of the line is uncovered."
-  },
   "ytGuessSaveWord": {
     "message": "Save: {term}",
     "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."

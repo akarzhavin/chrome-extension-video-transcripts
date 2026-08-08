@@ -82,9 +82,8 @@ export const ICONS = {
     posMid: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 13h8"/>'),
     posHigh: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8"/>'),
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="#1b1c20" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"/></svg>',
-    // Guess mode's two verbs: uncover, and add to the dictionary. check2 is the
-    // currentColor twin of `check` above, which is hard-coded to the panel ink.
-    eye: svgIcon('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'),
+    // Guess mode's save offer. check2 is the currentColor twin of `check`
+    // above, which is hard-coded to the panel ink.
     plus: svgIcon('<path d="M12 5v14M5 12h14"/>'),
     check2: svgIcon('<path d="M5 13l4 4 10-10"/>'),
 };
@@ -1316,10 +1315,12 @@ export class SidebarUI {
                 if (subText) item.appendChild(subText);
             }
         }
-        // Always above the translation, which is the line's last element.
-        const translation = item.querySelector('.vtt-sub-text');
-        if (translation) item.insertBefore(actions, translation);
-        else item.appendChild(actions);
+        if (actions) {
+            // Always above the translation, which is the line's last element.
+            const translation = item.querySelector('.vtt-sub-text');
+            if (translation) item.insertBefore(actions, translation);
+            else item.appendChild(actions);
+        }
     }
 
     renderSubtitles(): void {
@@ -1362,7 +1363,8 @@ export class SidebarUI {
         // the words themselves are not individually actionable.
         item.setAttribute('role', 'button');
         item.setAttribute('aria-label', msg('ytGuessRevealAria', 'Reveal the next word of this subtitle'));
-        item.appendChild(this.buildGuessActions(index));
+        const actions = this.buildGuessActions(index);
+        if (actions) item.appendChild(actions);
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -1396,46 +1398,29 @@ export class SidebarUI {
     }
 
     /**
-     * The two verbs of guess mode, on one row: uncover the next word, and save
-     * the word just uncovered. The save offer exists because the reveal already
-     * identified that word — making the user re-point at it with a drag was
-     * ceremony, and it put the two features in competition for the same click.
+     * The offer to keep the word that was just uncovered. It exists because the
+     * reveal already identified that word — making the user re-point at it with
+     * a drag was ceremony, and it put the two features in competition for one
+     * click. Nothing else lives here: a "reveal" button only restated what a
+     * click on the line already does, and a remaining-count restated what the
+     * still-masked words show. Returns null when there is nothing to offer, so
+     * the line carries no empty furniture.
      */
-    private buildGuessActions(index: number, forOverlay = false): HTMLDivElement {
+    private buildGuessActions(index: number, forOverlay = false): HTMLDivElement | null {
+        const fresh = this.state.getLastRevealed(index);
+        if (!fresh) return null;
+
         const row = document.createElement('div');
         row.className = 'vtt-guess-actions' + (forOverlay ? ' vtt-guess-actions-overlay' : '');
-        const remaining = this.state.getRemainingCount(index);
 
-        if (remaining > 0) {
-            const reveal = document.createElement('button');
-            reveal.type = 'button';
-            reveal.className = 'vtt-guess-btn';
-            reveal.innerHTML = ICONS.eye + `<span>${msg('ytGuessReveal', 'Reveal word')}</span>`;
-            reveal.addEventListener('click', () => {
-                const sub = this.state.getMainTrack()?.[index];
-                if (sub) this.revealAndSeek(index, sub);
-            });
-            row.appendChild(reveal);
-        }
-
-        const fresh = this.state.getLastRevealed(index);
-        if (fresh) {
-            const save = document.createElement('button');
-            save.type = 'button';
-            save.className = 'vtt-guess-btn vtt-guess-save';
-            save.dataset.word = fresh.text;
-            save.innerHTML = ICONS.plus +
-                `<span>${msg('ytGuessSaveWord', 'Save: {term}').replace('{term}', fresh.text)}</span>`;
-            save.addEventListener('click', () => void this.saveRevealedWord(index, save));
-            row.appendChild(save);
-        }
-
-        const hint = document.createElement('span');
-        hint.className = 'vtt-guess-hint';
-        hint.textContent = remaining > 0
-            ? msg('ytGuessRemaining', '{count} left').replace('{count}', String(remaining))
-            : msg('ytGuessLineDone', 'Line revealed');
-        row.appendChild(hint);
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'vtt-guess-btn vtt-guess-save';
+        save.dataset.word = fresh.text;
+        save.innerHTML = ICONS.plus +
+            `<span>${msg('ytGuessSaveWord', 'Save: {term}').replace('{term}', fresh.text)}</span>`;
+        save.addEventListener('click', () => void this.saveRevealedWord(index, save));
+        row.appendChild(save);
         return row;
     }
 
@@ -1551,7 +1536,8 @@ export class SidebarUI {
         // Guess mode's actions travel with the caption: over a moving picture,
         // a button under the line is a far easier target than a word inside it.
         if (this.state.displayMode === 'guess') {
-            overlay.appendChild(this.buildGuessActions(index, true));
+            const actions = this.buildGuessActions(index, true);
+            if (actions) overlay.appendChild(actions);
         }
     }
 

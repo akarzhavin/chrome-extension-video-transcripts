@@ -317,20 +317,31 @@ describe('SidebarUI', () => {
             expect(item.querySelector('.vtt-guess-save')).toBeNull();
         });
 
-        test('clicking the action row does not also reveal', () => {
+        test('clicking the save button does not also reveal', () => {
+            // It sits inside the line, whose click reveals — so without the
+            // guard, saving would uncover a word as a side effect.
             state.displayMode = 'guess';
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
             ui.renderSubtitles();
             const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
 
-            const reveal = item.querySelector('.vtt-guess-btn') as HTMLButtonElement;
-            reveal.click();
-            expect(state.getRevealedCount(0)).toBe(2); // one step, not two
-
-            // The hint is inert: clicking it must not advance either.
-            const hint = item.querySelector('.vtt-guess-hint') as HTMLElement;
-            click(hint);
+            click(item);
             expect(state.getRevealedCount(0)).toBe(2);
+
+            const save = item.querySelector('.vtt-guess-save') as HTMLButtonElement;
+            click(save);
+            expect(state.getRevealedCount(0)).toBe(2); // unchanged
+        });
+
+        test('the line carries no action row until a word is uncovered', () => {
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+
+            expect(item.querySelector('.vtt-guess-actions')).toBeNull();
+            click(item);
+            expect(item.querySelector('.vtt-guess-actions')).not.toBeNull();
         });
 
         test('double-click is suppressed in guess mode but not in dual', () => {

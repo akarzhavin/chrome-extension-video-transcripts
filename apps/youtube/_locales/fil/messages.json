@@ -355,18 +355,6 @@
     "message": "Ang aking sariling wika",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessReveal": {
-    "message": "Ipakita ang salita",
-    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
-  },
-  "ytGuessRemaining": {
-    "message": "{count} pa",
-    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
-  },
-  "ytGuessLineDone": {
-    "message": "Buo na ang linya",
-    "description": "Shown in guess mode once every word of the line is uncovered."
-  },
   "ytGuessSaveWord": {
     "message": "I-save: {term}",
     "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."

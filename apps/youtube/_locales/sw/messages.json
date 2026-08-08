@@ -355,18 +355,6 @@
     "message": "Lugha yangu ya asili",
     "description": "Label for the dropdown where the user picks their own native language."
   },
-  "ytGuessReveal": {
-    "message": "Onyesha neno",
-    "description": "Button in guess mode that uncovers the next hidden word of the subtitle line."
-  },
-  "ytGuessRemaining": {
-    "message": "Yamebaki {count}",
-    "description": "Shows how many words of the line are still hidden. {count} is a number and must be kept."
-  },
-  "ytGuessLineDone": {
-    "message": "Mstari umefunuliwa",
-    "description": "Shown in guess mode once every word of the line is uncovered."
-  },
   "ytGuessSaveWord": {
     "message": "Hifadhi: {term}",
     "description": "Button that saves the word just revealed in guess mode. {term} is that word and must be kept."
