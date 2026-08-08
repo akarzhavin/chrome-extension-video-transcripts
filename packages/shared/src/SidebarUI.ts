@@ -1396,9 +1396,18 @@ export class SidebarUI {
         const item = this.createSubtitleItem(index);
         item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index)));
         // The whole line is the reveal target, so say so to assistive tech —
-        // the words themselves are not individually actionable.
+        // the words themselves are not individually actionable. role="button"
+        // obliges the rest: a div is not focusable and answers no key on its
+        // own, so announcing it as operable without these would promise a
+        // control keyboard users cannot reach. Same pattern as #vtt-toggle-btn.
         item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
         item.setAttribute('aria-label', msg('ytGuessRevealAria', 'Reveal the next word of this subtitle'));
+        item.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault(); // Space would scroll the transcript
+            this.revealAndSeek(index, sub);
+        });
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');

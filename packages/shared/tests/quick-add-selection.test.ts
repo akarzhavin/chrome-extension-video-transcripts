@@ -165,6 +165,41 @@ describe('quick-add selection across subtitles', () => {
         expect(list.classList.contains(PHRASE_CLASS)).toBe(false);
     });
 
+    it('does not double a word when the second cue contributes no spans', async () => {
+        // Releasing in the next cue's whitespace leaves that scope with no
+        // intersecting span. extractTerm's fallback is range.toString(), which
+        // is the WHOLE selection — so the word came back twice ("b0 b0").
+        const list = buildList(4);
+        const from = wordSpans(list, 0)[1];
+        const secondCueMain = list.querySelectorAll('.vtt-main-text')[1];
+
+        const range = document.createRange();
+        range.setStart(from.firstChild!, 0);
+        range.setEnd(secondCueMain, 0); // before any word of cue 1
+        const sel = window.getSelection()!;
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        document.dispatchEvent(new Event('mouseup'));
+        await new Promise((r) => setTimeout(r, 0));
+        const pill = document.getElementById(PILL_ID);
+        if (!pill) return; // no offer at all is also acceptable here
+
+        const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
+        send.mockClear();
+        send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
+            cb?.({ ok: true, wordId: 'w1' });
+            return Promise.resolve({ ok: true, wordId: 'w1' });
+        });
+        pill.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 0));
+
+        const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
+        const term: string = (sent![0] as any).term;
+        const words = term.split(/\s+/);
+        expect(new Set(words).size).toBe(words.length); // no repeats
+    });
+
     it('saves a term joining both cues, without the translation', async () => {
         const list = buildList(4);
         selectAcross(list, 0, 1);

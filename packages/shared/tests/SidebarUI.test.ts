@@ -340,6 +340,27 @@ describe('SidebarUI', () => {
             expect(state.getRevealedCount(0)).toBe(1); // unchanged — pill wins here
         });
 
+        test('a guess line announced as a button is reachable and operable by keyboard', () => {
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+            ui.renderSubtitles();
+            const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+
+            // role="button" without these promises a control that keyboard
+            // users can neither focus nor activate.
+            expect(item.getAttribute('role')).toBe('button');
+            expect(item.getAttribute('tabindex')).toBe('0');
+
+            const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+            item.dispatchEvent(enter);
+            expect(state.getRevealedCount(0)).toBe(2);
+
+            const space = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+            item.dispatchEvent(space);
+            expect(state.getRevealedCount(0)).toBe(3);
+            expect(space.defaultPrevented).toBe(true); // Space must not scroll
+        });
+
         test('guess items carry no action row — the line itself is the only control', () => {
             state.displayMode = 'guess';
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);

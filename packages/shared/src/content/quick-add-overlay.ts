@@ -39,7 +39,8 @@ function getSelectionPayload(): SelectionPayload | null {
     }
     const active = snapped ?? range;
 
-    const term = scopes.map((s) => extractTerm(active, s)).filter(Boolean).join(' ').trim();
+    const single = scopes.length === 1;
+    const term = scopes.map((s) => extractTerm(active, s, single)).filter(Boolean).join(' ').trim();
     if (!term) return null;
 
     const rect = active.getBoundingClientRect();
@@ -102,7 +103,12 @@ function scopeFor(node: Node): Element | null {
 // Prefer the real word stored on each span via data-word — this resolves
 // masked *** tokens back to the underlying word. Plain-mode text nodes have
 // no spans, so fall back to the visible selection string.
-function extractTerm(range: Range, scope: Element): string {
+//
+// `allowRangeFallback` must be false when more than one scope is being read:
+// range.toString() is the text of the WHOLE selection, not the part inside
+// this scope, so a two-cue drag whose second cue contributes no spans would
+// otherwise append the entire selection again ("world" + "world").
+function extractTerm(range: Range, scope: Element, allowRangeFallback = true): string {
     const spans = scope.querySelectorAll<HTMLElement>('span[data-word]');
     const words: string[] = [];
     spans.forEach((span) => {
@@ -118,7 +124,7 @@ function extractTerm(range: Range, scope: Element): string {
     // has not uncovered is not a dictionary candidate. CSS already makes masked
     // words unselectable, but stating it here keeps the rule enforced in code.
     if (scope.querySelector('.vtt-masked-word')) return '';
-    return range.toString().trim();
+    return allowRangeFallback ? range.toString().trim() : '';
 }
 
 // Builds a multi-line context block: previous subtitle, the subtitle holding
@@ -138,10 +144,9 @@ function buildContextFromScope(scope: Element): string {
 
 /**
  * The saved word's neighbourhood: the line before, the line itself, the line
- * after. Exported because guess mode saves by subtitle index — it never has a
- * selection to derive the scope from.
+ * after. Keyed by subtitle index rather than by a selection scope.
  */
-export function buildContextForIndex(index: number): string {
+function buildContextForIndex(index: number): string {
     const list = document.getElementById('vtt-list');
     if (!list) return '';
 
@@ -162,11 +167,14 @@ function readMainText(list: HTMLElement, index: number): string {
     // read both: the saved context should be the whole sentence, not just the
     // part uncovered so far. It is stored with the entry, never rendered onto
     // the still-masked line, so this reveals nothing.
-    const spans = main.querySelectorAll<HTMLElement>('span[data-word], span[data-hidden]');
+    // .vtt-guess-filler covers punctuation and sound cues, which carry neither
+    // attribute — without it the saved context loses dashes and brackets.
+    const spans = main.querySelectorAll<HTMLElement>(
+        'span[data-word], span[data-hidden], .vtt-guess-filler');
     if (spans.length === 0) return (main.textContent ?? '').trim();
     const words: string[] = [];
     spans.forEach((s) => {
-        const w = (s.dataset.word ?? s.dataset.hidden)?.trim();
+        const w = (s.dataset.word ?? s.dataset.hidden ?? s.textContent)?.trim();
         if (w) words.push(w);
     });
     return words.join(' ');
@@ -192,9 +200,21 @@ function syncTranslationSelectability(): void {
         const range = sel.getRangeAt(0);
         const start = scopeFor(range.startContainer);
         const end = scopeFor(range.endContainer);
-        phrase = !!start && !!end && start !== end && !!mainScopesBetween(start, end);
+        // Adjacency is read off the two cues' own data-index rather than by
+        // locating them in the list: this fires on every mousemove of a drag,
+        // and mainScopesBetween would walk every .vtt-main-text in a transcript
+        // that can run to thousands of rows.
+        phrase = !!start && !!end && start !== end
+            && list.contains(start) && list.contains(end)
+            && Math.abs(cueIndexOf(start) - cueIndexOf(end)) === 1;
     }
     list.classList.toggle(PHRASE_SELECT_CLASS, phrase);
+}
+
+/** The subtitle index owning a .vtt-main-text, or NaN. */
+function cueIndexOf(scope: Element): number {
+    const attr = scope.closest('.vtt-item')?.getAttribute('data-index');
+    return attr === null || attr === undefined ? NaN : parseInt(attr, 10);
 }
 
 // ── "✓ saved" marker ──────────────────────────────────────────────────────
@@ -694,7 +714,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
  * `spans` are the word elements to tag "saved" on success; pass an empty array
  * when there is nothing on screen to mark. Returns whether the save succeeded.
  */
-export async function saveTerm(
+async function saveTerm(
     term: string,
     context: string,
     spans: HTMLElement[] = [],
