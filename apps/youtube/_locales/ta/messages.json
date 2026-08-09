@@ -362,5 +362,33 @@
   "ytModeSingle": {
     "message": "ஒற்றை",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackLink": {
+    "message": "சிக்கலைப் புகாரளிக்கவும்",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "கருத்து",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "என்ன கெட்டது அல்லது என்ன மாற்றுவீர்கள் என்று சொல்லுங்கள். நாங்கள் அனைத்தையும் படிக்கிறோம்.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "பதிலுக்கான மின்னஞ்சல்",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "மின்னஞ்சல் (விருப்பத்திற்குரியது, பதில் வேண்டுமெனில் மட்டும்)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "அமைப்புகள்",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} எழுத்துகள் மீதம்",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

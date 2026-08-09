@@ -362,5 +362,33 @@
   "ytModeSingle": {
     "message": "Viengubi",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackLink": {
+    "message": "Pranešti apie problemą",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Atsiliepimas",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "Papasakok, kas sugedo, ar ką pakeistum. Viską perskaitome.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "El. paštas atsakymui",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "El. paštas (neprivaloma, tik jei nori atsakymo)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Nustatymai",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "Liko {n} simbolių",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }
