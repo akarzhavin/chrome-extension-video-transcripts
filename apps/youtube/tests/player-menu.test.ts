@@ -44,6 +44,9 @@ function makeApp(over: Partial<{
     collapsed: boolean;
     learningTrack: boolean;
     nativeTrack: boolean;
+    throttled: boolean;
+    cooldownMs: number;
+    failure: string;
 }> = {}) {
     const ui: FakeUi = {
         toggleOverlay: jest.fn(),
@@ -62,6 +65,11 @@ function makeApp(over: Partial<{
         uiOwned: true,
         ui,
         retrySubtitleSearch: jest.fn(),
+        // Default: nothing was throttled, so the status row keeps its old
+        // "no translation offered" meaning.
+        cooldownRemainingMs: () => over.cooldownMs ?? 0,
+        isThrottled: () => over.throttled ?? (over.cooldownMs ?? 0) > 0,
+        dominantFailure: () => over.failure,
         langPrefs: 'langPrefs' in over ? over.langPrefs : { learning: 'en', native: 'ru' },
         state: {
             displayMode: over.displayMode ?? 'dual',
@@ -351,6 +359,59 @@ describe('subtitle health status', () => {
         expect(status().textContent).toContain('original only');
         expect(status().textContent).not.toContain('No subtitles for this video');
         // Retrying would find nothing — the track doesn't exist.
+        expect(status().disabled).toBe(true);
+        status().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(app.retrySubtitleSearch).not.toHaveBeenCalled();
+    });
+
+    // Same visible shape as the case above (one track playing, one missing) but
+    // a different cause, and the difference is the whole point: a throttled
+    // translation can be retried, an unoffered one cannot.
+    test('native track throttled: says so and offers a retry', () => {
+        const app = makeApp({
+            tracks: [{ name: 'English' }],
+            learningTrack: true,
+            nativeTrack: false,
+            throttled: true,
+        });
+        installPlayerMenu(app);
+        openMenu();
+        expect(status().hidden).toBe(false);
+        expect(status().textContent).toContain('limited by YouTube');
+        expect(status().textContent).not.toContain('original only');
+        // Stays a quiet info row: subtitles are playing, this is not an alarm.
+        expect(status().classList.contains('vtt-ytp-row--status-info')).toBe(true);
+        expect(status().disabled).toBe(false);
+
+        status().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(app.retrySubtitleSearch).toHaveBeenCalled();
+    });
+
+    // An expired signed URL is a load failure, not an absent translation —
+    // it must not borrow the "original only" wording, which says the opposite.
+    test('an expired link is retryable, not reported as "original only"', () => {
+        const app = makeApp({
+            tracks: [{ name: 'English' }],
+            learningTrack: true,
+            nativeTrack: false,
+            failure: 'stale-url',
+        });
+        installPlayerMenu(app);
+        openMenu();
+        expect(status().textContent).not.toContain('original only');
+        expect(status().disabled).toBe(false);
+    });
+
+    test('while the cooldown runs the row counts down and cannot be clicked', () => {
+        const app = makeApp({
+            tracks: [{ name: 'English' }],
+            learningTrack: true,
+            nativeTrack: false,
+            cooldownMs: 12_000,
+        });
+        installPlayerMenu(app);
+        openMenu();
+        expect(status().textContent).toContain('12s');
         expect(status().disabled).toBe(true);
         status().dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(app.retrySubtitleSearch).not.toHaveBeenCalled();

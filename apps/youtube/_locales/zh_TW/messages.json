@@ -362,5 +362,57 @@
   "ytModeSingle": {
     "message": "單語",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytThrottledTitle": {
+    "message": "YouTube 正在限制請求",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube 暫時封鎖了此影片的字幕請求。這是他們那邊的限制，不是缺少字幕——可能幾分鐘內就會解除，但有時會持續數小時。",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "{s} 秒後重試",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "無法載入字幕",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "字幕連結已過期。重新搜尋通常能解決問題。",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "翻譯已被 YouTube 限制——點按重試",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "翻譯已被 YouTube 限制——{s} 秒後重試",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "翻譯已被 YouTube 限制",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "此影片沒有翻譯",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "無法載入翻譯",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube 暫時限制了你的自動翻譯。這是他們那邊的限制，不是擴充功能的問題——可能幾分鐘內就會解除，但有時會持續數小時。與此同時，原始字幕仍會正常顯示。",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "YouTube 未針對此影片提供翻譯成該語言的自動翻譯。重試無濟於事——原始字幕仍會顯示。",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "翻譯載入完成前，字幕連結已過期。重新搜尋通常能解決問題。",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   }
 }

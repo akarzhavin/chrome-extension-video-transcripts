@@ -92,3 +92,10 @@ export interface AppInterface {
    */
   requestLanguageTrack?(role: TrackRole, code: string): void;
 }
+  /**
+   * Why a requested subtitle track is missing (rate-limited, no translation
+   * offered, expired link…), or null when nothing failed. The sidebar uses it
+   * to explain the disabled Dual chip; the same string backs the tooltip on
+   * the partial-failure notice, so every surface tells one story.
+   */
+  missingTrackHint?(): string | null;

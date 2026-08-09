@@ -27,6 +27,16 @@
 
     --vtt-danger: #f87171;
 
+    /* Warning: something is degraded but working, and it will clear by itself
+       (rate limiting is the case this exists for). Sits between --vtt-text-dim
+       and --vtt-danger on purpose — it must catch the eye without reading as a
+       failure the user has to act on. Warm orange, not amber: yellow at this
+       lightness goes mustard on the dark glass, and orange sits better against
+       the brand's indigo/violet. 5.8:1 on the panel over a white video frame,
+       so it clears the 4.5:1 floor at 11px with margin. */
+    --vtt-warning: #ffa257;
+    --vtt-warning-quiet: rgba(255, 162, 87, 0.14);
+
     /* Text ramp. --vtt-text-dim is the floor for anything readable: at the
        10-12px the group headers use, lighter than this drops under 4.5:1 on
        the panel's dark glass. */
@@ -509,10 +519,59 @@
     transform: scale(0.97);
 }
 
-.vtt-mode:disabled {
+.vtt-mode:disabled,
+/* Same look as :disabled, but the element stays hoverable so it can explain
+   why it's off (a real `disabled` button fires no pointer events, so its
+   tooltip could never appear). See updateControls in SidebarUI. */
+.vtt-mode.vtt-mode-blocked {
     opacity: 0.45;
     cursor: default;
     transform: none;
+}
+
+.vtt-mode.vtt-mode-blocked:hover {
+    /* Nothing happens on click, so nothing should suggest it might. */
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--vtt-hairline-strong);
+}
+
+/* Instant multi-line explanation on the blocked chip, matching the sidebar
+   notice: the native title waits ~1s, long enough that the user gives up. */
+.vtt-mode-blocked[data-tip] {
+    position: relative;
+}
+
+.vtt-mode-blocked[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    /* Right-aligned, not left: this chip sits early in a 4-button row inside a
+       320px panel, so a bubble growing rightward from its left edge would spill
+       off the sidebar. Growing leftward keeps it inside. */
+    right: 0;
+    width: max-content;
+    max-width: 240px;
+    background: rgba(12, 13, 20, 0.97);
+    color: #dfe3f0;
+    border: 1px solid var(--vtt-hairline-strong);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 30;
+}
+
+.vtt-mode-blocked[data-tip]:hover::after,
+.vtt-mode-blocked[data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .vtt-mode.active {
@@ -776,6 +835,57 @@
     opacity: 1;
     transform: translate(-50%, 0);
     transition-delay: 0.35s;
+}
+
+/* The Dual chip when it's off because the translation is missing: its tooltip
+   is a sentence, not a label, so it wraps, widens, and appears with no delay —
+   the user is asking "why is this greyed out?" and shouldn't have to wait.
+   .vtt-qm-blocked mirrors :disabled visually while staying hoverable, because
+   a real disabled button fires no pointer events and could never show this. */
+#vtt-quickmodes .vtt-qm-blocked {
+    /* Dim the ICON, not the button: opacity on the element multiplies into its
+       ::after, which would render the explanation bubble see-through. */
+    cursor: default;
+}
+
+#vtt-quickmodes .vtt-qm-blocked > * {
+    opacity: 0.4;
+}
+
+#vtt-quickmodes .vtt-qm-blocked::after {
+    width: max-content;
+    max-width: 230px;
+    /* pre-line, not normal: the tip is "Dual (Shift+D)\n<reason>" — the first
+       line names the mode, the rest explains why it's unavailable. Long lines
+       still wrap on their own. */
+    white-space: pre-line;
+    text-align: left;
+    line-height: 1.45;
+    padding: 8px 10px;
+    font-weight: 400;
+    /* Fully opaque: this bubble covers the notice row and the video behind the
+       panel, and text-over-text is unreadable. */
+    background: #14161f;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    /* Grow leftward: this chip sits mid-row in a 320px panel, so a bubble
+       anchored at its left edge would spill off the sidebar. */
+    left: auto;
+    right: 0;
+    transform: translateY(-2px);
+}
+
+#vtt-quickmodes .vtt-qm-blocked:hover::after,
+#vtt-quickmodes .vtt-qm-blocked:focus-visible::after {
+    transform: translateY(0);
+    transition-delay: 0s; /* instant — overrides the 0.35s label delay */
+}
+
+/* The mode name leads the bubble, so give it a heading's weight and colour and
+   let the explanation sit back. ::first-line is the only way to reach it —
+   the whole tip is one generated text node. */
+#vtt-quickmodes .vtt-qm-blocked::first-line {
+    font-weight: 600;
+    color: #fff;
 }
 
 /* Rightmost button: right-align its tooltip so it can't spill past the
@@ -1387,6 +1497,118 @@
     user-select: none;
 }
 
+/* Its own row under the sub-header: one track is missing while others play.
+   Muted on purpose — it explains a gap, it doesn't announce a fault, and it
+   must not compete with the subtitles it is apologising for. Matches the
+   sub-header's 16px gutter so it lines up with the language chip above. */
+#vtt-partial-notice {
+    position: relative; /* anchor for the [data-tip] bubble below */
+    display: flex;
+    /* center, not baseline: the warning dot is an empty box and has no
+       baseline of its own to align to. */
+    align-items: center;
+    gap: 6px;
+    margin: -2px 0 8px;
+    padding: 0 16px;
+    font-size: 11px;
+    line-height: 1.4;
+    /* --vtt-text-dim is the readability floor at this size (see the ramp note
+       at the top of this file) — do not go lighter to make it quieter. */
+    color: var(--vtt-text-dim);
+    /* The row carries a title= explaining what happened and whether waiting
+       helps; without this there is nothing to suggest hovering it. */
+    cursor: help;
+}
+
+#vtt-partial-notice > span {
+    min-width: 0;
+    /* One line. The panel is 320px and this text is incidental: truncate it
+       rather than let a long locale wrap into a three-line block. */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Instant explanation on hover/focus. The native title waits ~1s — long enough
+   that the user gives up before it appears — and never shows on keyboard
+   focus. Same [data-tip] mechanism as the mode chips, but wrapping instead of
+   nowrap: this is a sentence, not a label. */
+#vtt-partial-notice[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    /* The row already carries the 16px gutter, so 0 here lines the bubble up
+       with the text above it rather than insetting it twice. */
+    left: 0;
+    right: 0;
+    /* Opaque: it overlays subtitle text and the video showing through the
+       panel, and anything less makes both unreadable. */
+    background: #14161f;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    color: #dfe3f0;
+    border: 1px solid var(--vtt-hairline-strong);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+}
+
+#vtt-partial-notice[data-tip]:hover::after,
+#vtt-partial-notice[data-tip]:focus-within::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* An empty data-tip must not render an empty box. */
+#vtt-partial-notice[data-tip=""]::after { content: none; }
+
+/* Rate limiting only. "No translation for this video" is a normal outcome and
+   stays dim — painting that amber would cry wolf about something the user can
+   neither fix nor wait out. The dot carries the state at a glance; the text
+   stays readable rather than shouting. */
+#vtt-partial-notice.is-warning {
+    color: var(--vtt-warning);
+}
+
+#vtt-partial-notice.is-warning::before {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+#vtt-partial-notice.is-warning .vtt-partial-notice-retry:hover {
+    background: var(--vtt-warning-quiet);
+}
+
+.vtt-partial-notice-retry {
+    flex: none;
+    padding: 0 3px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font-size: 12px;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.vtt-partial-notice-retry:hover {
+    opacity: 1;
+    background: var(--vtt-hairline-strong);
+}
+
 #vtt-langpair .vtt-langpair-inner {
     display: inline-flex;
     align-items: center;
@@ -1583,8 +1805,16 @@
     transition: background 0.2s;
 }
 
-#vtt-status .vtt-empty-state-action:hover {
+#vtt-status .vtt-empty-state-action:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.12);
+}
+
+/* Used by the rate-limit cooldown, where the label IS the message ("Try again
+   in 12s"). Dimmed and inert, but still readable — it counts down to a live
+   button rather than being a control that silently does nothing. */
+#vtt-status .vtt-empty-state-action:disabled {
+    opacity: 0.55;
+    cursor: default;
 }
 
 /* "Reload page" is an emergency escape hatch, not a feature: quiet red

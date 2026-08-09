@@ -132,6 +132,7 @@ class PlayerMenu {
     private modeBtns: Record<ModeKey, HTMLButtonElement>;
     private unsubscribeRefresh: (() => void) | null = null;
     private wakeTimer: number | null = null;
+    private cooldownTimer: number | null = null;
 
     constructor(private app: BaseVttApp, btn: HTMLButtonElement) {
         this.btn = btn;
@@ -470,6 +471,36 @@ class PlayerMenu {
             return;
         }
 
+        // Throttled rather than absent: the translation exists, YouTube just
+        // refused to serve it. Retrying can work, so unlike the branch below
+        // this row is actionable — but it stays a quiet info row, because the
+        // other track is playing fine and this must not interrupt watching.
+        // 'not-offered' keeps the original "no translation exists" wording
+        // below; everything else here is a load failure the user can retry.
+        if (missingNative && (this.app.isThrottled() || this.app.dominantFailure() === 'stale-url')) {
+            const remaining = this.app.cooldownRemainingMs();
+            this.statusEl.hidden = false;
+            this.statusEl.classList.add('vtt-ytp-row--status-info');
+            if (remaining > 0) {
+                this.statusEl.disabled = true;
+                this.statusLabel.textContent = t(
+                    'ytMenuThrottledWait',
+                    'Translation limited by YouTube — retry in {s}s',
+                ).replace('{s}', String(Math.ceil(remaining / 1000)));
+                this.statusAction.hidden = true;
+                this.statusEl.removeAttribute('title');
+            } else {
+                this.statusEl.disabled = false;
+                this.statusLabel.textContent = t(
+                    'ytMenuThrottled',
+                    'Translation limited by YouTube — tap to retry',
+                );
+                this.statusAction.hidden = false;
+                this.statusEl.title = t('ytSearchAgain', 'Search again');
+            }
+            return;
+        }
+
         if (missingNative) {
             this.statusEl.hidden = false;
             // Nothing to retry: the track genuinely doesn't exist. Stating it is
@@ -527,6 +558,11 @@ class PlayerMenu {
         const wake = (): void => window.postMessage({ type: 'YT_WAKE_CONTROLS' }, '*');
         wake();
         this.wakeTimer = window.setInterval(wake, WAKE_MS);
+        // Tick the rate-limit countdown in the status row. Only while the menu
+        // is open — nobody can read a countdown they can't see.
+        this.cooldownTimer = window.setInterval(() => {
+            if (this.app.cooldownRemainingMs() > 0) this.render();
+        }, 1000);
     }
 
     close(): void {
@@ -537,6 +573,10 @@ class PlayerMenu {
         if (this.wakeTimer !== null) {
             clearInterval(this.wakeTimer);
             this.wakeTimer = null;
+        }
+        if (this.cooldownTimer !== null) {
+            clearInterval(this.cooldownTimer);
+            this.cooldownTimer = null;
         }
     }
 

@@ -362,5 +362,57 @@
   "ytModeSingle": {
     "message": "एकल",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytThrottledTitle": {
+    "message": "YouTube अनुरोधों को सीमित कर रहा है",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube ने इस वीडियो के लिए सबटाइटल अनुरोध को अस्थायी रूप से रोक दिया। यह उनकी ओर से एक सीमा है, सबटाइटल की कमी नहीं — यह कुछ मिनटों में ठीक हो सकता है, लेकिन कभी-कभी घंटों तक बना रहता है।",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "{s} सेकंड में फिर कोशिश करें",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "सबटाइटल लोड नहीं हो सके",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "सबटाइटल लिंक की मियाद खत्म हो गई। दोबारा खोजने से आमतौर पर यह ठीक हो जाता है।",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "YouTube द्वारा अनुवाद सीमित — फिर कोशिश करने के लिए टैप करें",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "YouTube द्वारा अनुवाद सीमित — {s} सेकंड में फिर कोशिश",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "YouTube द्वारा अनुवाद सीमित",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "इस वीडियो के लिए कोई अनुवाद नहीं है",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "अनुवाद लोड नहीं हो सका",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube ने आपके लिए स्वचालित अनुवाद को अस्थायी रूप से सीमित कर दिया है। यह उनकी सीमा है, एक्सटेंशन की समस्या नहीं — यह कुछ मिनटों में ठीक हो सकता है, लेकिन कभी-कभी घंटों तक बना रहता है। इस बीच मूल सबटाइटल काम करते रहते हैं।",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "इस वीडियो के लिए YouTube इस भाषा में कोई स्वचालित अनुवाद नहीं देता। फिर कोशिश करने से मदद नहीं मिलेगी — मूल सबटाइटल अब भी दिखाए जा रहे हैं।",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "अनुवाद लोड होने से पहले ही सबटाइटल लिंक की मियाद खत्म हो गई। दोबारा खोजने से आमतौर पर यह ठीक हो जाता है।",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   }
 }

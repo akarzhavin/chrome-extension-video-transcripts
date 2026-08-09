@@ -12,6 +12,15 @@ import {
     LanguagePrefs,
     Subtitle,
 } from '@video-transcripts/shared';
+import type { VttFailure } from './timedtext-fetch';
+
+/** A button in the status banner. `disabled` renders it inert but readable. */
+export interface StatusAction {
+    label: string;
+    onClick: () => void;
+    emergency?: boolean;
+    disabled?: boolean;
+}
 
 // Localized UI string with an English fallback. Delegates to the shared helper
 // (honors any demo override, then chrome.i18n, then the fallback).
@@ -176,6 +185,13 @@ export abstract class BaseVttApp implements AppInterface {
     // empty, we offer a page reload as the next fallback. Reset when a track
     // finally loads or the video changes.
     noSubsRetries: number = 0;
+    // Why each requested track failed, keyed by display name. Lets the UI say
+    // "YouTube throttled us" instead of "this video has no subtitles".
+    trackFailures: Map<string, VttFailure> = new Map();
+    // Absolute epoch ms until which the fetcher's rate-limit breaker is open.
+    cooldownUntil: number = 0;
+    // Ticks the cooldown countdown in the banner while it runs.
+    cooldownTimer: number | null = null;
 
     constructor() {
         this.state = new AppState();
@@ -410,11 +426,62 @@ export abstract class BaseVttApp implements AppInterface {
         if (!this.langPrefs) return;
         if (this.getVideoId() === null) return;
         if (this.state.tracks.length > 0) return;
+
+        // Throttled, not subtitle-less. Saying "this video has no subtitles"
+        // here is simply false — the tracks exist, YouTube declined to serve
+        // the request — and it sends the user off to another video for nothing.
+        if (this.isThrottled()) {
+            const remaining = this.cooldownRemainingMs();
+            this.showStatusBanner(
+                t('ytThrottledTitle', 'YouTube is limiting requests'),
+                t(
+                    'ytThrottledText',
+                    'YouTube temporarily blocked the subtitle request for this video. ' +
+                        "It's a limit on their side, not a missing subtitle — it can clear in minutes, but sometimes lasts hours.",
+                ),
+                remaining > 0
+                    ? [
+                          {
+                              label: t('ytRetryInSeconds', 'Try again in {s}s').replace(
+                                  '{s}',
+                                  String(Math.ceil(remaining / 1000)),
+                              ),
+                              onClick: () => {},
+                              disabled: true,
+                          },
+                      ]
+                    : [
+                          {
+                              label: '↻ ' + t('ytSearchAgain', 'Search again'),
+                              onClick: () => this.retrySubtitleSearch(),
+                          },
+                      ],
+            );
+            if (remaining > 0) this.scheduleCooldownTick();
+            return;
+        }
+
+        // A stale signed URL / missing pot is recoverable by re-reading the
+        // player response, which is exactly what "Search again" triggers.
+        const failure = this.dominantFailure();
+        if (failure === 'stale-url' || failure === 'no-pot' || failure === 'network') {
+            this.showStatusBanner(
+                t('ytLoadFailedTitle', "Couldn't load subtitles"),
+                t('ytLoadFailedText', 'The subtitle link expired. Searching again usually fixes it.'),
+                [
+                    {
+                        label: '↻ ' + t('ytSearchAgain', 'Search again'),
+                        onClick: () => this.retrySubtitleSearch(),
+                    },
+                ],
+            );
+            return;
+        }
         // First time we come up empty: offer "Search again" (the normal recovery
         // path). If the user already retried and subtitles still didn't load,
         // additionally surface a quiet, red "Reload page" emergency button — a
         // last-resort escape hatch, deliberately NOT styled as a feature.
-        const actions: Array<{ label: string; onClick: () => void; emergency?: boolean }> = [
+        const actions: StatusAction[] = [
             {
                 label: '↻ ' + t('ytSearchAgain', 'Search again'),
                 onClick: () => this.retrySubtitleSearch(),
@@ -487,14 +554,33 @@ export abstract class BaseVttApp implements AppInterface {
             clearTimeout(this.noSubsTimer);
             this.noSubsTimer = null;
         }
+        this.clearCooldownTick();
+    }
+
+    // Re-render the banner once a second so the cooldown counts down, and stop
+    // as soon as it expires (that last render swaps in a live "Search again").
+    scheduleCooldownTick(): void {
+        if (this.cooldownTimer !== null) return;
+        this.cooldownTimer = window.setInterval(() => {
+            const expired = this.cooldownRemainingMs() <= 0;
+            if (expired) this.clearCooldownTick();
+            if (this.state.tracks.length === 0) this.declareNoSubtitles();
+            else this.updatePartialFailureNotice();
+            this.ui.refresh();
+        }, 1000);
+    }
+
+    clearCooldownTick(): void {
+        if (this.cooldownTimer !== null) {
+            clearInterval(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
     }
 
     showStatusBanner(
         titleText: string,
         bodyText: string,
-        action?:
-            | { label: string; onClick: () => void; emergency?: boolean }
-            | Array<{ label: string; onClick: () => void; emergency?: boolean }>,
+        action?: StatusAction | StatusAction[],
     ): void {
         if (document.getElementById('vtt-lang-onboarding')) return; // onboarding wins
         const sidebar = document.getElementById('vtt-sidebar');
@@ -533,7 +619,10 @@ export abstract class BaseVttApp implements AppInterface {
                     ? 'vtt-empty-state-action vtt-empty-state-action--emergency'
                     : 'vtt-empty-state-action';
                 btn.textContent = a.label;
-                btn.addEventListener('click', a.onClick);
+                // A disabled action still states its label (the cooldown
+                // countdown) — inert, but never a button that silently no-ops.
+                if (a.disabled) btn.disabled = true;
+                else btn.addEventListener('click', a.onClick);
                 row.appendChild(btn);
             }
             banner.appendChild(row);
@@ -604,7 +693,170 @@ export abstract class BaseVttApp implements AppInterface {
         this.clearNoSubtitlesTimer();
         this.hideStatusBanner();
         this.noSubsRetries = 0;
+        // Anything arriving means the throttling lifted and this track is fine.
+        this.trackFailures.delete(name);
+        this.cooldownUntil = 0;
+        // The other half may still be missing, so re-evaluate rather than
+        // blindly clearing: the notice must survive a partial recovery.
+        this.updatePartialFailureNotice();
         this.ui.refresh();
+    }
+
+    // ── track failure bookkeeping ───────────────────────────────────────────
+    // Record why a track didn't load, then decide what (if anything) to show.
+    noteTrackFailure(name: string, info: { failure?: VttFailure; retryAfterMs?: number }): void {
+        this.trackFailures.set(name, info.failure ?? 'unknown');
+        if (info.retryAfterMs && info.retryAfterMs > 0) {
+            this.cooldownUntil = Math.max(this.cooldownUntil, Date.now() + info.retryAfterMs);
+        }
+        this.evaluateSubtitleOutcome();
+    }
+
+    /** ms left on the rate-limit cooldown, 0 when none is running. */
+    cooldownRemainingMs(): number {
+        return Math.max(0, this.cooldownUntil - Date.now());
+    }
+
+    /**
+     * The human explanation for why a requested track is missing, or null when
+     * nothing failed. One source of truth for every surface that has to answer
+     * "why is half of this missing?" — the sidebar notice's tooltip and the
+     * disabled Dual mode chip (AppInterface.missingTrackHint) both read it, so
+     * the two never drift apart.
+     *
+     * Wording note: no promised time-to-recovery. YouTube's limit has been
+     * observed to hold for hours, so "usually clears in a minute" was a lie
+     * the user caught us in. Say what is known — it varies — and no more.
+     */
+    missingTrackHint(): string | null {
+        if (this.trackFailures.size === 0) return null;
+        const failed = this.dominantFailure();
+        if (!failed) return null;
+        if (this.isThrottled()) {
+            return t(
+                'ytPartialThrottledHint',
+                'YouTube has temporarily limited automatic translation for you. ' +
+                    "It's their limit, not a problem with the extension — it can clear in minutes, " +
+                    'but sometimes lasts hours. The original subtitles keep working meanwhile.',
+            );
+        }
+        if (failed === 'not-offered' || failed === 'unavailable') {
+            return t(
+                'ytPartialNotOfferedHint',
+                'YouTube offers no automatic translation into this language for this video. ' +
+                    'Retrying will not help — the original subtitles are still shown.',
+            );
+        }
+        return t(
+            'ytPartialFailedHint',
+            'The subtitle link expired before the translation loaded. Searching again usually fixes it.',
+        );
+    }
+
+    // One quiet line under the language chip when a track is missing but others
+    // are playing. Deliberately NOT the #vtt-status banner: that is a
+    // full-width block above the transcript, and pushing the subtitles down to
+    // apologise for a missing translation costs more than it explains.
+    updatePartialFailureNotice(): void {
+        // Its own row AFTER the sub-header, never inside it: #vtt-subheader is
+        // a single flex line (language chip | mode buttons) and a third child
+        // squeezes both of them into an unreadable mess.
+        const subheader = document.getElementById('vtt-subheader');
+        document.getElementById('vtt-partial-notice')?.remove();
+        if (!subheader?.parentElement) return;
+        // Only meaningful while something IS playing; the empty case banners.
+        if (this.state.tracks.length === 0) return;
+
+        const failed = this.dominantFailure();
+        if (!failed) return;
+
+        const throttled = this.isThrottled();
+        // "Not offered" is a normal outcome, not a fault — say it plainly once
+        // and offer nothing to click, because there is nothing to retry.
+        // No countdown: the wait has no reliable end (YouTube's limit can hold
+        // for hours), so a ticking number promised precision we don't have and
+        // drew the eye to a clock instead of the explanation. State the fact,
+        // and let the user decide when to retry.
+        let text: string;
+        if (throttled) {
+            text = t('ytPartialThrottled', 'Translation limited by YouTube');
+        } else if (failed === 'not-offered' || failed === 'unavailable') {
+            text = t('ytPartialNotOffered', 'No translation for this video');
+        } else {
+            text = t('ytPartialFailed', "Couldn't load the translation");
+        }
+
+        const el = document.createElement('div');
+        el.id = 'vtt-partial-notice';
+        el.className = 'vtt-partial-notice';
+        // Only rate limiting gets the warning treatment: it's temporary and
+        // clears by itself. "No translation exists" is a normal outcome and
+        // stays quiet — colouring it too would make the signal meaningless.
+        if (throttled) el.classList.add('is-warning');
+        // The row is one truncated line, so the explanation lives in the
+        // tooltip. data-tip, not title: the native one waits ~1s and never
+        // appears on keyboard focus. Same mechanism as the mode-cluster chips.
+        el.dataset.tip = this.missingTrackHint() ?? '';
+
+        const label = document.createElement('span');
+        label.textContent = text;
+        el.appendChild(label);
+
+        // Retry is manual and always available when it could help — including
+        // during the cooldown. The breaker still refuses the network call, so
+        // a premature click costs nothing; taking the button away just left
+        // the user with no move at all.
+        const retryable = throttled || failed === 'stale-url' || failed === 'no-pot' || failed === 'network';
+        if (retryable) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'vtt-partial-notice-retry';
+            btn.textContent = '↻';
+            btn.title = t('ytSearchAgain', 'Search again');
+            btn.setAttribute('aria-label', t('ytSearchAgain', 'Search again'));
+            btn.addEventListener('click', () => this.retrySubtitleSearch());
+            el.appendChild(btn);
+        }
+        subheader.insertAdjacentElement('afterend', el);
+    }
+
+    // The most actionable failure across every requested track — what the UI
+    // should talk about when the tracks disagree about why they're missing.
+    dominantFailure(): VttFailure | undefined {
+        const order: VttFailure[] = [
+            'rate-limited',
+            'cooldown',
+            'stale-url',
+            'no-pot',
+            'network',
+            'not-offered',
+            'unavailable',
+            'unknown',
+        ];
+        const seen = new Set(this.trackFailures.values());
+        return order.find((f) => seen.has(f));
+    }
+
+    /** True when the dominant failure is one the user could retry out of. */
+    isThrottled(): boolean {
+        const f = this.dominantFailure();
+        return f === 'rate-limited' || f === 'cooldown' || this.cooldownRemainingMs() > 0;
+    }
+
+    // Called after each failure. A partial failure (something did load) must
+    // never raise the banner — the user is watching with the track that worked.
+    // It gets a quiet one-line notice under the language chip instead, which is
+    // visible without going looking for it (the player-menu row only shows once
+    // that menu is opened, which turned out to be too well hidden).
+    evaluateSubtitleOutcome(): void {
+        if (this.state.tracks.length > 0) {
+            this.updatePartialFailureNotice();
+            this.ui.refresh();
+            return;
+        }
+        // Nothing loaded and nothing still in flight: we know why already, so
+        // don't sit on "Searching…" for the rest of the grace period.
+        if (this.pendingRequests.size === 0) this.declareNoSubtitles();
     }
 
     // NOTE: does NOT reset noSubsRetries — this runs both on a genuine video
@@ -614,6 +866,9 @@ export abstract class BaseVttApp implements AppInterface {
     // finally loads (addParsedTrack).
     resetForNewVideo(): void {
         this.pendingRequests.clear();
+        this.trackFailures.clear();
+        document.getElementById('vtt-partial-notice')?.remove();
+        // NOTE: cooldownUntil deliberately survives — see resetNoSubsRetries.
         this.state.reset();
         // New video → re-disable native captions once (if the overlay is on),
         // even if the user had manually re-enabled them on the previous video.
@@ -624,9 +879,13 @@ export abstract class BaseVttApp implements AppInterface {
     }
 
     // Clear the "Search again" retry count — call on a genuine video change so
-    // the reload fallback starts fresh for the next video.
+    // the reload fallback starts fresh for the next video. The rate-limit
+    // cooldown is cleared HERE and not in resetForNewVideo(), because that also
+    // runs inside reprocessCurrentVideo() ("Search again") and the cooldown has
+    // to outlive exactly the retry spam it exists to absorb.
     resetNoSubsRetries(): void {
         this.noSubsRetries = 0;
+        this.cooldownUntil = 0;
     }
 
     updateHighlight(): void {
