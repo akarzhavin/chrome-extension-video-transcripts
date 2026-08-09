@@ -11,6 +11,14 @@ import {
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
+import {
+    MAX_FEEDBACK_BYTES,
+    clampToBytes,
+    composeFeedbackText,
+    feedbackCopy,
+    sendFeedback,
+    utf8Len,
+} from './feedback';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -69,6 +77,10 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
+    // Speech bubble, not a warning triangle or a bug: this is an invitation to
+    // say something, and an alert glyph would read as "something is broken
+    // right now" every time the panel is open.
+    feedback: svgIcon('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'),
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
@@ -203,10 +215,25 @@ export class SidebarUI {
         // labeled exit that names its destination.
         const backBtn = document.createElement('button');
         backBtn.id = 'vtt-back-btn';
+        backBtn.className = 'vtt-back-chip';
         backBtn.type = 'button';
         backBtn.innerHTML = `${ICONS.back}<span>${msg('ytSidebarTitle', 'Subtitles')}</span>`;
         backBtn.addEventListener('click', () => this.toggleSettingsPanel());
         headerTop.appendChild(backBtn);
+
+        // Second back chip, for the feedback screen: "‹ Settings". Shares the
+        // .vtt-back-chip class with the one above so the two stay identical —
+        // they are the same control pointing at different destinations, and the
+        // styling used to live on #vtt-back-btn alone, which left this one
+        // without even a sized arrow. The ids only drive visibility.
+        const feedbackBackBtn = document.createElement('button');
+        feedbackBackBtn.id = 'vtt-feedback-back-btn';
+        feedbackBackBtn.className = 'vtt-back-chip';
+        feedbackBackBtn.type = 'button';
+        feedbackBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSettingsTitle', 'Settings')}</span>`;
+        feedbackBackBtn.addEventListener('click', () => this.closeFeedbackScreen());
+        headerTop.appendChild(feedbackBackBtn);
+        this.elements = { ...this.elements, feedbackBackBtn };
 
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'vtt-settings-btn';
@@ -306,9 +333,44 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
+        // -- Feedback entry ------------------------------------------------------
+        // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
+        // same weight as Languages and Reading mode, and this is not a setting —
+        // it's an exit for someone who is already annoyed.
+        // "Report a problem", not "Leave feedback": the point is to catch the
+        // unhappy user before they go leave a one-star review instead.
+        //
+        // Lives in a sticky footer band at the bottom of the panel rather than
+        // inline between groups. Two earlier placements failed for opposite
+        // reasons: last-child put it below the fold (Overlay appearance is long
+        // enough that the panel cuts off mid-group), and first-child left it
+        // floating in the gap above Languages, belonging to no group and
+        // aligned to neither edge. Sticky keeps it on screen at any scroll
+        // position while still reading as the end of the panel.
+        const feedbackFooter = document.createElement('div');
+        feedbackFooter.className = 'vtt-panel-footer';
+
+        const feedbackLink = document.createElement('button');
+        feedbackLink.id = 'vtt-feedback-link';
+        feedbackLink.type = 'button';
+        feedbackLink.className = 'vtt-feedback-link';
+        feedbackLink.innerHTML = `${ICONS.feedback}<span>${msg('ytFeedbackLink', 'Report a problem')}</span>`;
+        feedbackLink.addEventListener('click', () => this.openFeedbackScreen());
+        feedbackFooter.appendChild(feedbackLink);
+        settingsPanel.appendChild(feedbackFooter);
+        this.elements = { ...this.elements, feedbackLink };
+
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
         // toggle; no separate Done button at the panel bottom.
         header.appendChild(settingsPanel);
+
+        // Feedback screen — a sibling takeover of the settings panel, populated
+        // on open (buildFeedbackScreen) so the auth state is read fresh each
+        // time rather than frozen at sidebar-construction time.
+        const feedbackPanel = document.createElement('div');
+        feedbackPanel.id = 'vtt-feedback-panel';
+        header.appendChild(feedbackPanel);
+
         sidebar.appendChild(header);
 
         // Subtitles List
@@ -322,7 +384,7 @@ export class SidebarUI {
         this.elements = {
             ...this.elements,
             sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list,
-            titleEl, backBtn,
+            titleEl, backBtn, feedbackPanel,
         };
 
         // Hover interactions. While hovering, highlightSubtitle skips scrolls
@@ -842,6 +904,10 @@ export class SidebarUI {
     toggleSettingsPanel(): void {
         const { settingsPanel, sidebar, titleEl } = this.elements;
         if (!settingsPanel) return;
+        // Feedback sits on top of settings, so leaving settings must tear it
+        // down first — otherwise its class survives and the next visit to
+        // settings opens straight into a stale feedback screen.
+        if (sidebar?.classList.contains('vtt-feedback-open')) this.closeFeedbackScreen(false);
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
@@ -863,6 +929,178 @@ export class SidebarUI {
             // Returning to the transcript: catch up on the scroll position the
             // list couldn't maintain while hidden.
             this.scrollActiveIntoView('instant');
+        }
+    }
+
+    // Feedback is a takeover layered on top of the settings takeover: the
+    // settings panel hides, the feedback panel shows, and the header swaps its
+    // back chip for "‹ Settings". The settings panel keeps its .open class
+    // throughout, so returning is a pure hide/show — nothing to rebuild, and no
+    // way to land back on the transcript by accident.
+    openFeedbackScreen(): void {
+        const { feedbackPanel, sidebar, titleEl } = this.elements;
+        if (!feedbackPanel) return;
+        this.buildFeedbackScreen(feedbackPanel);
+        sidebar?.classList.add('vtt-feedback-open');
+        if (titleEl) titleEl.textContent = msg('ytFeedbackTitle', 'Send feedback');
+        this.elements.feedbackBackBtn?.focus();
+    }
+
+    // `restoreFocus` is false when the caller is itself navigating away (the
+    // settings toggle): moving focus onto a link that is about to be hidden
+    // would strand it on a display:none element and restart the next Tab from
+    // the top of the page.
+    closeFeedbackScreen(restoreFocus = true): void {
+        const { feedbackPanel, sidebar, titleEl } = this.elements;
+        if (!feedbackPanel) return;
+        sidebar?.classList.remove('vtt-feedback-open');
+        // Drop the form so a half-typed message never resurfaces on the next
+        // open — and so the auth state is re-read rather than remembered.
+        feedbackPanel.replaceChildren();
+        if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Settings');
+        if (restoreFocus) this.elements.feedbackLink?.focus();
+    }
+
+    // Populated per-open. Signed-in users are identified by the uid the
+    // background stamps from their own token, so the form only asks for an
+    // email when there is no account to tie the message back to.
+    private buildFeedbackScreen(panel: HTMLDivElement): void {
+        const intro = document.createElement('p');
+        intro.className = 'vtt-feedback-intro';
+        intro.textContent = msg(
+            'ytFeedbackIntro',
+            'Tell us what broke or what you would change. We read every message.',
+        );
+
+        const textarea = document.createElement('textarea');
+        textarea.id = 'vtt-feedback-text';
+        textarea.className = 'vtt-feedback-text';
+        textarea.rows = 6;
+        textarea.placeholder = feedbackCopy.hint();
+        textarea.setAttribute('aria-label', feedbackCopy.hint());
+
+        // Only appears near the byte ceiling — an always-on counter reads as a
+        // limit to hit rather than one to ignore.
+        const counter = document.createElement('div');
+        counter.className = 'vtt-feedback-counter';
+        counter.hidden = true;
+        counter.setAttribute('aria-live', 'polite');
+
+        const status = document.createElement('div');
+        status.className = 'vtt-feedback-status';
+        status.hidden = true;
+
+        const send = document.createElement('button');
+        send.type = 'button';
+        send.className = 'vtt-feedback-send';
+        send.textContent = feedbackCopy.send();
+        send.disabled = true;
+
+        // Optional reply address, signed-out users only. Rendered async because
+        // the auth check is a round trip to the background; the textarea is
+        // usable the whole time, so nothing blocks on it.
+        const emailRow = document.createElement('div');
+        emailRow.className = 'vtt-feedback-email-row';
+        emailRow.hidden = true;
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.id = 'vtt-feedback-email';
+        emailInput.className = 'vtt-feedback-email';
+        emailInput.placeholder = msg('ytFeedbackEmailHint', 'Email (optional, if you want a reply)');
+        emailInput.setAttribute('aria-label', msg('ytFeedbackEmailHint', 'Email (optional, if you want a reply)'));
+        const emailLabel = document.createElement('label');
+        emailLabel.className = 'vtt-feedback-email-label';
+        emailLabel.htmlFor = emailInput.id;
+        emailLabel.textContent = msg('ytFeedbackEmailLabel', 'Reply address');
+        emailRow.append(emailLabel, emailInput);
+
+        void this.isSignedIn().then((signedIn) => {
+            // Guard against a close-then-reopen racing this resolve: only touch
+            // the row if it is still the one in the live panel.
+            if (!signedIn && emailRow.isConnected) emailRow.hidden = false;
+        });
+
+        const budget = () => MAX_FEEDBACK_BYTES - utf8Len(composeFeedbackText(textarea.value, emailInput.value));
+
+        const syncLimits = () => {
+            // Hard-clamp on the real budget: typing past the cap stops adding
+            // characters instead of letting the send path silently truncate.
+            // The email shares the same budget (it rides inside the text), so
+            // the clamp is computed against the composed message.
+            if (budget() < 0) {
+                const caret = textarea.selectionStart ?? textarea.value.length;
+                const overflow = -budget();
+                const clamped = clampToBytes(textarea.value, Math.max(0, utf8Len(textarea.value) - overflow));
+                const dropped = textarea.value.length - clamped.length;
+                textarea.value = clamped;
+                const next = Math.max(0, caret - dropped);
+                textarea.setSelectionRange(next, next);
+            }
+            const left = budget();
+            counter.hidden = left > 200;
+            counter.textContent = String(left);
+            send.disabled = textarea.value.trim().length === 0;
+        };
+        textarea.addEventListener('input', syncLimits);
+        emailInput.addEventListener('input', syncLimits);
+
+        send.addEventListener('click', async () => {
+            const text = textarea.value.trim();
+            if (!text) return;
+            send.disabled = true;
+            send.textContent = feedbackCopy.sending();
+            status.hidden = true;
+            const ok = await sendFeedback(text, emailRow.hidden ? '' : emailInput.value);
+            if (ok) {
+                // The panel stays open (unlike the rating card, which removes
+                // itself), so the success state has to be a real screen: the
+                // form is replaced by a thank-you and the only move is back.
+                const done = document.createElement('div');
+                done.className = 'vtt-feedback-done';
+                done.setAttribute('role', 'status');
+                done.textContent = feedbackCopy.sent();
+                const back = document.createElement('button');
+                back.type = 'button';
+                back.className = 'vtt-feedback-send';
+                back.textContent = msg('ytFeedbackBackToSettings', 'Back to settings');
+                back.addEventListener('click', () => this.closeFeedbackScreen());
+                panel.replaceChildren(done, back);
+                back.focus();
+                return;
+            }
+            // Don't make the user retype: keep the text, let them try again.
+            send.disabled = false;
+            send.textContent = feedbackCopy.send();
+            status.hidden = false;
+            status.textContent = feedbackCopy.failed();
+            status.setAttribute('role', 'alert');
+        });
+
+        const actions = document.createElement('div');
+        actions.className = 'vtt-feedback-actions';
+        actions.append(counter, send);
+
+        panel.replaceChildren(intro, textarea, emailRow, status, actions);
+        textarea.focus();
+    }
+
+    private async isSignedIn(): Promise<boolean> {
+        try {
+            const res = await new Promise<{ signedIn?: boolean }>((resolve, reject) => {
+                chrome.runtime.sendMessage({ action: 'AUTH_STATUS' }, (r) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                        return;
+                    }
+                    resolve(r ?? {});
+                });
+            });
+            return res.signedIn === true;
+        } catch {
+            // Unknown auth state — offer the email field. Asking a signed-in
+            // user for an address is a small redundancy; hiding it from a
+            // signed-out one loses the reply path entirely.
+            return false;
         }
     }
 

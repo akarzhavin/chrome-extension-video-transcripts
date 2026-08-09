@@ -10,7 +10,7 @@ export interface AuthState {
 // saved this many words has clearly gotten value, and asking then — rather
 // than on install — is the ASO rating-flywheel play, not a UX nicety. Fires
 // exactly once per install (guarded by ratePromptShown).
-export const RATE_PROMPT_WORD_THRESHOLD = 30;
+export const RATE_PROMPT_WORD_THRESHOLD = 5;
 
 const KEYS = {
     idToken: 'auth.idToken',
@@ -22,7 +22,7 @@ const KEYS = {
     // Lifetime count of words saved on this install, and a one-shot flag set
     // once we've asked for a store rating. Both survive sign-out (the user is
     // the same person) and drive the value-moment rating prompt — see
-    // RATE_PROMPT_WORD_THRESHOLD in firestoreRest.ts.
+    // RATE_PROMPT_WORD_THRESHOLD above.
     savedWordCount: 'rate.savedWordCount',
     ratePromptShown: 'rate.promptShown',
 } as const;

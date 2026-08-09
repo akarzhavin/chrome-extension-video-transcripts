@@ -167,6 +167,30 @@
     "message": "Настройки",
     "description": "Sidebar header title while the settings panel is open."
   },
+  "ytFeedbackLink": {
+    "message": "Сообщить о проблеме",
+    "description": "Quiet link at the bottom of the settings panel; opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Обратная связь",
+    "description": "Sidebar header title while the feedback screen is open."
+  },
+  "ytFeedbackIntro": {
+    "message": "Расскажи, что сломалось или что бы ты изменил. Мы читаем всё.",
+    "description": "Intro line at the top of the feedback screen."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "Адрес для ответа",
+    "description": "Label for the optional email field, shown only to signed-out users."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "Email (необязательно, если нужен ответ)",
+    "description": "Placeholder inside the optional email field on the feedback screen."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Вернуться в настройки",
+    "description": "Button shown after feedback is sent; returns to the settings panel."
+  },
   "ytRateButton": {
     "message": "Оценить",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
