@@ -101,4 +101,11 @@ export const feedbackCopy = {
     sending: () => i18nMsg('ytRateSending', 'Sending…'),
     sent: () => i18nMsg('ytRateFeedbackSent', 'Thank you, this really helps.'),
     failed: () => i18nMsg('ytRateFeedbackFailed', "Couldn't send. Try again?"),
+    /**
+     * How much room is left, as words rather than a lone number. The counter is
+     * aria-live, so a bare "12" announced on every keystroke tells a screen
+     * reader nothing about what is running out.
+     */
+    charsLeft: (n: number) =>
+        i18nMsg('ytFeedbackCharsLeft', '{n} characters left').replace('{n}', String(n)),
 };

@@ -346,5 +346,9 @@
   "ytModeSingle": {
     "message": "Одинарные",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "Осталось символов: {n}",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

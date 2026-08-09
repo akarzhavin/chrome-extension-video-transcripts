@@ -943,7 +943,12 @@ export class SidebarUI {
         this.buildFeedbackScreen(feedbackPanel);
         sidebar?.classList.add('vtt-feedback-open');
         if (titleEl) titleEl.textContent = msg('ytFeedbackTitle', 'Send feedback');
-        this.elements.feedbackBackBtn?.focus();
+        // Focus the message box, and only after the class above makes the
+        // screen visible — focusing a hidden element silently leaves focus on
+        // the body. Someone who opened "Report a problem" came here to type;
+        // focusing the back chip here (as this used to) meant the first
+        // keystroke went nowhere and Enter or Space walked straight back out.
+        this.elements.feedbackTextarea?.focus();
     }
 
     // `restoreFocus` is false when the caller is itself navigating away (the
@@ -957,6 +962,7 @@ export class SidebarUI {
         // Drop the form so a half-typed message never resurfaces on the next
         // open — and so the auth state is re-read rather than remembered.
         feedbackPanel.replaceChildren();
+        this.elements = { ...this.elements, feedbackTextarea: undefined };
         if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Settings');
         if (restoreFocus) this.elements.feedbackLink?.focus();
     }
@@ -1022,27 +1028,51 @@ export class SidebarUI {
 
         const budget = () => MAX_FEEDBACK_BYTES - utf8Len(composeFeedbackText(textarea.value, emailInput.value));
 
-        const syncLimits = () => {
+        // Clamp the field being typed in, never the other one. The email rides
+        // inside the same byte budget, so typing an address can push the total
+        // over — but taking the overflow out of the MESSAGE would delete text
+        // the user wrote earlier, from a field they aren't even looking at.
+        // Whoever is typing is the one who gets stopped.
+        const clampField = (field: HTMLTextAreaElement | HTMLInputElement) => {
+            const over = -budget();
+            if (over <= 0) return;
+            // selectionStart/setSelectionRange throw on input[type=email] —
+            // the selection API is only defined for text-like inputs — so the
+            // caret is restored on a best-effort basis.
+            let caret: number | null = null;
+            try {
+                caret = field.selectionStart;
+            } catch {
+                caret = null;
+            }
+            const clamped = clampToBytes(field.value, Math.max(0, utf8Len(field.value) - over));
+            const dropped = field.value.length - clamped.length;
+            if (!dropped) return;
+            field.value = clamped;
+            if (caret === null) return;
+            const next = Math.max(0, caret - dropped);
+            try {
+                field.setSelectionRange(next, next);
+            } catch {
+                // Field doesn't support a caret; the clamp still applied.
+            }
+        };
+
+        const syncLimits = (typed?: HTMLTextAreaElement | HTMLInputElement) => {
             // Hard-clamp on the real budget: typing past the cap stops adding
             // characters instead of letting the send path silently truncate.
-            // The email shares the same budget (it rides inside the text), so
-            // the clamp is computed against the composed message.
-            if (budget() < 0) {
-                const caret = textarea.selectionStart ?? textarea.value.length;
-                const overflow = -budget();
-                const clamped = clampToBytes(textarea.value, Math.max(0, utf8Len(textarea.value) - overflow));
-                const dropped = textarea.value.length - clamped.length;
-                textarea.value = clamped;
-                const next = Math.max(0, caret - dropped);
-                textarea.setSelectionRange(next, next);
-            }
+            if (typed) clampField(typed);
             const left = budget();
             counter.hidden = left > 200;
-            counter.textContent = String(left);
+            // A bare number announces as "0" and says nothing about what ran
+            // out; the visible text carries its unit, and the label spells it
+            // out for a screen reader.
+            counter.textContent = feedbackCopy.charsLeft(left);
+            counter.setAttribute('aria-label', feedbackCopy.charsLeft(left));
             send.disabled = textarea.value.trim().length === 0;
         };
-        textarea.addEventListener('input', syncLimits);
-        emailInput.addEventListener('input', syncLimits);
+        textarea.addEventListener('input', () => syncLimits(textarea));
+        emailInput.addEventListener('input', () => syncLimits(emailInput));
 
         send.addEventListener('click', async () => {
             const text = textarea.value.trim();
@@ -1081,7 +1111,10 @@ export class SidebarUI {
         actions.append(counter, send);
 
         panel.replaceChildren(intro, textarea, emailRow, status, actions);
-        textarea.focus();
+        this.elements = { ...this.elements, feedbackTextarea: textarea };
+        // NOT focused here: the panel is still hidden at this point, and
+        // focusing a display:none element is a no-op that leaves focus on the
+        // body. openFeedbackScreen focuses it once the screen is shown.
     }
 
     private async isSignedIn(): Promise<boolean> {

@@ -57,6 +57,8 @@ export interface SidebarElements {
   feedbackPanel?: HTMLDivElement;
   feedbackBackBtn?: HTMLButtonElement;
   feedbackLink?: HTMLButtonElement;
+  // Rebuilt on each open; openFeedbackScreen focuses it once the panel shows.
+  feedbackTextarea?: HTMLTextAreaElement;
   // Quick-mode bar in the sub-header (icon-only Dual/Guess/On-screen; swap
   // lives on the language-pair chip). Dual/Guess share a segmented radio
   // control (quickModesSeg) whose sliding thumb tracks the selection.
