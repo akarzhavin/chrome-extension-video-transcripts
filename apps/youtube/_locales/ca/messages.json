@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "L'enllaç dels subtítols ha caducat abans que es carregués la traducció. Tornar a cercar sol solucionar-ho.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "Informa d'un problema",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Comentaris",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "Explica'ns què ha fallat o què canviaries. Ho llegim tot.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "Correu per rebre resposta",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "Correu (opcional, només si vols una resposta)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Configuració",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} caràcters restants",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

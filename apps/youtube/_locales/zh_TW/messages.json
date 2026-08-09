@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "翻譯載入完成前，字幕連結已過期。重新搜尋通常能解決問題。",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "回報問題",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "意見回饋",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "告訴我們哪裡出了問題，或你想改進什麼。我們都會看。",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "接收回覆的信箱",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "信箱（選填，僅需要回覆時填寫）",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "設定",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "還剩{n}個字元",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

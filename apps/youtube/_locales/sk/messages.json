@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "Platnosť odkazu na titulky vypršala skôr, než sa preklad načítal. Nové vyhľadanie to zvyčajne vyrieši.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "Nahlásiť problém",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Spätná väzba",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "Napíšte, čo nefungovalo alebo čo by ste zmenili. Čítame všetko.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "E-mail na odpoveď",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "E-mail (nepovinné, len ak chcete odpoveď)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Nastavenia",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "Zostáva {n} znakov",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

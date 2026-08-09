@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "ಅನುವಾದ ಲೋಡ್ ಆಗುವ ಮೊದಲೇ ಉಪಶೀರ್ಷಿಕೆ ಲಿಂಕ್ ಅವಧಿ ಮುಗಿದಿದೆ. ಮತ್ತೆ ಹುಡುಕುವುದರಿಂದ ಸಾಮಾನ್ಯವಾಗಿ ಇದು ಸರಿಹೋಗುತ್ತದೆ.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "ಸಮಸ್ಯೆ ವರದಿ ಮಾಡಿ",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "ಪ್ರತಿಕ್ರಿಯೆ",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "ಏನು ಹಾಳಾಯಿತು ಅಥವಾ ನೀವು ಏನು ಬದಲಾಯಿಸುತ್ತೀರಿ ಎಂದು ಹೇಳಿ. ನಾವು ಎಲ್ಲವನ್ನೂ ಓದುತ್ತೇವೆ.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "ಉತ್ತರಕ್ಕಾಗಿ ಇಮೇಲ್",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ಇಮೇಲ್ (ಐಚ್ಛಿಕ, ಉತ್ತರ ಬೇಕಿದ್ದರೆ ಮಾತ್ರ)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} ಅಕ್ಷರಗಳು ಉಳಿದಿವೆ",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

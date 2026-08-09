@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "വിവർത്തനം ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് സബ്ടൈറ്റിൽ ലിങ്കിന്റെ കാലാവധി കഴിഞ്ഞു. വീണ്ടും തിരയുന്നത് സാധാരണയായി ഇത് പരിഹരിക്കും.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "അഭിപ്രായം",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "എന്താണ് കേടായതെന്നോ എന്ത് മാറ്റുമെന്നോ പറയൂ. ഞങ്ങൾ എല്ലാം വായിക്കുന്നു.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "മറുപടിക്കുള്ള ഇമെയിൽ",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ഇമെയിൽ (ഐച്ഛികം, മറുപടി വേണമെങ്കിൽ മാത്രം)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "ക്രമീകരണം",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} അക്ഷരങ്ങൾ ബാക്കി",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

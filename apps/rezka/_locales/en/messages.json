@@ -203,6 +203,30 @@
     "message": "Settings",
     "description": "Sidebar header title while the settings panel is open."
   },
+  "ytFeedbackLink": {
+    "message": "Report a problem",
+    "description": "Quiet link at the bottom of the settings panel; opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Send feedback",
+    "description": "Sidebar header title while the feedback screen is open."
+  },
+  "ytFeedbackIntro": {
+    "message": "Tell us what broke or what you would change. We read every message.",
+    "description": "Intro line at the top of the feedback screen."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "Reply address",
+    "description": "Label for the optional email field, shown only to signed-out users."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "Email (optional, if you want a reply)",
+    "description": "Placeholder inside the optional email field on the feedback screen."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Back to settings",
+    "description": "Button shown after feedback is sent; returns to the settings panel."
+  },
   "ytAuthSignInTitle": {
     "message": "Sign in to Lingogram",
     "description": "Heading of the sign-in popup opened from the account row above the subtitle list."
@@ -322,5 +346,9 @@
   "ytModeSingle": {
     "message": "Single",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} characters left",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

@@ -52,6 +52,13 @@ export interface SidebarElements {
   // and the "‹ Subtitles" back chip.
   titleEl?: HTMLHeadingElement;
   backBtn?: HTMLButtonElement;
+  // Feedback screen: a takeover reached from the settings panel's last line,
+  // with its own "‹ Settings" back chip. Content is rebuilt on each open.
+  feedbackPanel?: HTMLDivElement;
+  feedbackBackBtn?: HTMLButtonElement;
+  feedbackLink?: HTMLButtonElement;
+  // Rebuilt on each open; openFeedbackScreen focuses it once the panel shows.
+  feedbackTextarea?: HTMLTextAreaElement;
   // Quick-mode bar in the sub-header (icon-only Dual/Guess/On-screen; swap
   // lives on the language-pair chip). Dual/Guess share a segmented radio
   // control (quickModesSeg) whose sliding thumb tracks the selection.

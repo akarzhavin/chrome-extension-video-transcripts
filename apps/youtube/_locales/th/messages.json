@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "ลิงก์คำบรรยายหมดอายุก่อนที่คำแปลจะโหลดเสร็จ การค้นหาใหม่มักจะแก้ปัญหานี้ได้",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "รายงานปัญหา",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "ความคิดเห็น",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "บอกเราว่าอะไรใช้ไม่ได้หรือคุณอยากเปลี่ยนอะไร เราอ่านทุกข้อความ",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "อีเมลสำหรับการตอบกลับ",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "อีเมล (ไม่บังคับ ใส่เฉพาะถ้าต้องการคำตอบ)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "การตั้งค่า",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "เหลืออีก {n} ตัวอักษร",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

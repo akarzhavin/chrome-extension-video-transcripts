@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "અનુવાદ લોડ થાય તે પહેલાં સબટાઈટલ લિંકની મુદત પૂરી થઈ ગઈ. ફરીથી શોધવાથી સામાન્ય રીતે તે ઠીક થાય છે.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "સમસ્યાની જાણ કરો",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "પ્રતિભાવ",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "શું બગડ્યું અથવા તમે શું બદલશો તે જણાવો. અમે બધું વાંચીએ છીએ.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "જવાબ માટે ઈમેલ",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ઈમેલ (વૈકલ્પિક, ફક્ત જવાબ જોઈતો હોય તો)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "સેટિંગ્સ",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} અક્ષરો બાકી",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

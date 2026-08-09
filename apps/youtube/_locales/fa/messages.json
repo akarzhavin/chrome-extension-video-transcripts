@@ -414,5 +414,33 @@
   "ytPartialFailedHint": {
     "message": "پیوند زیرنویس پیش از بارگذاری ترجمه منقضی شد. جستجوی دوباره معمولاً مشکل را برطرف می‌کند.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
+  "ytFeedbackLink": {
+    "message": "گزارش مشکل",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "بازخورد",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "به ما بگو چه چیزی خراب شد یا چه چیزی را تغییر می‌دادی. همه را می‌خوانیم.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "ایمیل برای پاسخ",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ایمیل (اختیاری، فقط اگر پاسخ می‌خواهی)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "تنظیمات",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} نویسه باقی‌مانده",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }
