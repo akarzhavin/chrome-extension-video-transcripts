@@ -477,7 +477,10 @@ class PlayerMenu {
         // other track is playing fine and this must not interrupt watching.
         // 'not-offered' keeps the original "no translation exists" wording
         // below; everything else here is a load failure the user can retry.
-        if (missingNative && (this.app.isThrottled() || this.app.dominantFailure() === 'stale-url')) {
+        // Shared predicate, not a hand-listed set — this line used to omit
+        // no-pot and network, so those states claimed no translation existed
+        // while the sidebar offered a retry for the very same failure.
+        if (missingNative && this.app.isRecoverableFailure()) {
             const remaining = this.app.cooldownRemainingMs();
             this.statusEl.hidden = false;
             this.statusEl.classList.add('vtt-ytp-row--status-info');

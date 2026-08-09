@@ -464,7 +464,7 @@ export abstract class BaseVttApp implements AppInterface {
         // A stale signed URL / missing pot is recoverable by re-reading the
         // player response, which is exactly what "Search again" triggers.
         const failure = this.dominantFailure();
-        if (failure === 'stale-url' || failure === 'no-pot' || failure === 'network') {
+        if (this.isRecoverableFailure()) {
             this.showStatusBanner(
                 t('ytLoadFailedTitle', "Couldn't load subtitles"),
                 t('ytLoadFailedText', 'The subtitle link expired. Searching again usually fixes it.'),
@@ -809,8 +809,7 @@ export abstract class BaseVttApp implements AppInterface {
         // during the cooldown. The breaker still refuses the network call, so
         // a premature click costs nothing; taking the button away just left
         // the user with no move at all.
-        const retryable = throttled || failed === 'stale-url' || failed === 'no-pot' || failed === 'network';
-        if (retryable) {
+        if (this.isRecoverableFailure()) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'vtt-partial-notice-retry';
@@ -823,9 +822,25 @@ export abstract class BaseVttApp implements AppInterface {
         subheader.insertAdjacentElement('afterend', el);
     }
 
+    /**
+     * Could another attempt plausibly succeed? One definition for every
+     * surface — the sidebar notice, the banner and the player menu each used
+     * to spell this set out separately, and the menu's copy had already
+     * drifted (it omitted no-pot and network). Mirrors isRetryable() in
+     * timedtext-fetch.ts, which does the same job for the network layer.
+     */
+    isRecoverableFailure(): boolean {
+        const f = this.dominantFailure();
+        if (!f) return false;
+        return this.isThrottled() || f === 'stale-url' || f === 'no-pot' || f === 'network';
+    }
+
     // The most actionable failure across every requested track — what the UI
     // should talk about when the tracks disagree about why they're missing.
     dominantFailure(): VttFailure | undefined {
+        // 'aborted' is deliberately absent: a request cancelled because the
+        // user navigated away is not a failure to report, so it falls through
+        // to undefined and renders nothing.
         const order: VttFailure[] = [
             'rate-limited',
             'cooldown',
@@ -840,7 +855,12 @@ export abstract class BaseVttApp implements AppInterface {
         return order.find((f) => seen.has(f));
     }
 
-    /** True when the dominant failure is one the user could retry out of. */
+    /**
+     * True when the failure is YouTube rate limiting (or its cooldown) —
+     * temporary and self-clearing. Narrower than isRecoverableFailure(): a
+     * stale URL is also worth retrying, but it isn't throttling and must not
+     * borrow the throttling copy.
+     */
     isThrottled(): boolean {
         // The cooldown alone is not enough to claim throttling: it deliberately
         // outlives resetForNewVideo() (so retry spam can't clear it), which

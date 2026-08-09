@@ -211,7 +211,6 @@ describe('rate-limited subtitle failures', () => {
         expect(dualBtn.getAttribute('aria-disabled')).toBe('false');
         expect(dualBtn.classList.contains('vtt-qm-blocked')).toBe(false);
         expect(dualBtn.dataset.tip).toBe('Dual (Shift+D)');
-        
     });
 
     // Without a known reason there is nothing to explain, so the chip goes
@@ -323,6 +322,30 @@ describe('rate-limited subtitle failures', () => {
 
         expect(app.cooldownRemainingMs()).toBeGreaterThan(0);
         expect(app.isThrottled()).toBe(true);
+    });
+
+    // One predicate for every surface. The player menu used to hand-list the
+    // retryable failures and had already dropped no-pot and network, so those
+    // states claimed no translation existed while the sidebar offered a retry.
+    test.each(['rate-limited', 'stale-url', 'no-pot', 'network'] as const)(
+        '%s counts as recoverable everywhere',
+        (failure) => {
+            const app = makeApp();
+            app.addParsedTrack('English', [sub('hello')]);
+            app.noteTrackFailure('Russian', { failure });
+
+            expect(app.isRecoverableFailure()).toBe(true);
+            expect(notice()!.querySelector('button')).not.toBeNull();
+        },
+    );
+
+    test.each(['not-offered', 'unavailable'] as const)('%s is not recoverable', (failure) => {
+        const app = makeApp();
+        app.addParsedTrack('English', [sub('hello')]);
+        app.noteTrackFailure('Russian', { failure });
+
+        expect(app.isRecoverableFailure()).toBe(false);
+        expect(notice()!.querySelector('button')).toBeNull();
     });
 
     test('a loaded track clears the failure record', () => {

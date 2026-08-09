@@ -244,7 +244,222 @@
     display: none !important;
 }
 
-#vtt-back-btn {
+/* ---- Feedback screen ---------------------------------------------------
+   A takeover layered on top of the settings takeover, reached from the quiet
+   last line of the settings panel. While it is open the settings groups hide
+   (settings keeps its .open class, so returning is a pure show/hide) and the
+   header swaps the "‹ Subtitles" chip for "‹ Settings". */
+#vtt-feedback-panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 12px 14px;
+}
+
+#vtt-sidebar.vtt-feedback-open #vtt-feedback-panel {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* The settings back chip is hidden by its own rule further down, which carries
+   a :not(.vtt-feedback-open) guard — a plain display:none here would lose to it
+   on source order. */
+#vtt-sidebar.vtt-feedback-open #vtt-settings-panel,
+#vtt-sidebar.vtt-feedback-open #vtt-subheader,
+#vtt-sidebar.vtt-feedback-open #vtt-list {
+    display: none;
+}
+
+/* The auth badge is a sign-in ask, and this screen deliberately works without
+   an account — leaving it up puts a competing "Sign in to save words" directly
+   above a form whose whole point is that signed-out people can still be heard.
+   !important because the badge sets display:block inline from JS (same reason
+   the settings takeover needs it for the gear button). */
+#vtt-sidebar.vtt-feedback-open #lingogram-auth-badge {
+    display: none !important;
+}
+
+/* Appearance comes from .vtt-back-chip; the id only controls when it shows. */
+#vtt-sidebar.vtt-feedback-open #vtt-feedback-back-btn {
+    display: flex;
+}
+
+/* The entry point. Not a group heading and not a button-looking button: it is
+   an exit for an annoyed user, not a setting, and it earns only a quiet line
+   at the very bottom. Same weight as .vtt-reset. */
+/* Footer band closing the settings panel. Sticky rather than merely last:
+   Overlay appearance is tall enough that a static footer sits below the fold on
+   a normal window, and nobody scrolls settings to the end. Pinning it to the
+   bottom of the scrollport keeps it reachable at any scroll position while it
+   still reads as the end of the stack rather than an item between groups.
+   `margin-top: auto` holds it at the bottom when the content is short enough
+   not to scroll at all. */
+.vtt-panel-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin-top: auto;
+    padding: 8px 16px 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    /* Opaque: scrolling group content passes underneath this band. */
+    background: var(--vtt-panel-solid);
+}
+
+/* Not a button and not a group heading. Dim by default so it never competes
+   with the controls above it, full-strength label + accent icon on hover so it
+   is unmistakably actionable once the eye lands on it. */
+.vtt-feedback-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 5px 2px;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    text-align: left;
+    color: var(--vtt-text-dim);
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.vtt-feedback-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    transition: opacity 0.15s;
+}
+
+.vtt-feedback-link:hover {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.vtt-feedback-link:hover svg {
+    opacity: 1;
+}
+
+.vtt-feedback-link:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, rgba(124, 141, 255, 0.55));
+    outline-offset: 1px;
+}
+
+.vtt-feedback-intro {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-text,
+.vtt-feedback-email {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--vtt-border, rgba(255, 255, 255, 0.14));
+    border-radius: 6px;
+    background: var(--vtt-panel-solid);
+    color: #f3f4f6;
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+}
+
+.vtt-feedback-text {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.vtt-feedback-text::placeholder,
+.vtt-feedback-email::placeholder {
+    color: rgba(255, 255, 255, 0.38);
+}
+
+.vtt-feedback-text:focus,
+.vtt-feedback-email:focus {
+    outline: none;
+    border-color: var(--vtt-accent);
+}
+
+.vtt-feedback-email-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vtt-feedback-email-label {
+    font-size: 11px;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vtt-feedback-counter {
+    margin-right: auto;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-send {
+    padding: 7px 14px;
+    border: 1px solid var(--vtt-accent-border-strong, rgba(124, 141, 255, 0.55));
+    border-radius: 6px;
+    background: var(--vtt-accent-quiet, rgba(124, 141, 255, 0.16));
+    color: #dbeafe;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.vtt-feedback-send:hover:not([disabled]) {
+    background: var(--vtt-accent-hover, rgba(124, 141, 255, 0.3));
+}
+
+.vtt-feedback-send:active:not([disabled]) {
+    transform: scale(0.97);
+}
+
+.vtt-feedback-send[disabled] {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.vtt-feedback-status {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #fca5a5;
+}
+
+.vtt-feedback-done {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #f3f4f6;
+}
+
+/* On the success screen the button is a direct child of the column rather than
+   of .vtt-feedback-actions, so without this it stretches the full width and
+   reads as a primary call to action on a screen that is already finished. */
+.vtt-feedback-done + .vtt-feedback-send {
+    align-self: flex-start;
+}
+
+/* Labeled back chip that names its destination. Styled on the class, not the
+   id: the settings screen and the feedback screen each have one, and they are
+   the same control pointing at different places. The ids drive visibility only. */
+.vtt-back-chip {
     position: absolute;
     left: 12px;
     display: none;
@@ -262,16 +477,34 @@
     transition: background 0.15s;
 }
 
-#vtt-back-btn:hover {
+.vtt-back-chip:hover {
     background: var(--vtt-accent-quiet);
 }
 
-#vtt-back-btn svg {
+/* The chip is absolutely positioned over a centered title, so nothing stops the
+   two from colliding once either string grows — "Обратная связь" next to
+   "Настройки" already leaves about a pixel in English and less in Russian.
+   Reserving a gutter on the title keeps the centering while letting the longer
+   label wrap or ellipsize instead of running under the chip. */
+#vtt-sidebar.vtt-settings-open #vtt-header-top h2,
+#vtt-sidebar.vtt-feedback-open #vtt-header-top h2 {
+    padding-left: 92px;
+    padding-right: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vtt-back-chip svg {
     width: 15px;
     height: 15px;
 }
 
-#vtt-sidebar.vtt-settings-open #vtt-back-btn {
+/* :not(.vtt-feedback-open) because the feedback screen sits on top of the
+   settings takeover and keeps .vtt-settings-open underneath it. Without the
+   guard this rule wins on source order and paints "‹ Subtitles" over the
+   feedback screen's own "‹ Settings" chip — both are absolute at left:12px. */
+#vtt-sidebar.vtt-settings-open:not(.vtt-feedback-open) #vtt-back-btn {
     display: flex;
 }
 
@@ -1515,7 +1748,7 @@
     /* --vtt-text-dim is the readability floor at this size (see the ramp note
        at the top of this file) — do not go lighter to make it quieter. */
     color: var(--vtt-text-dim);
-    /* The row carries a title= explaining what happened and whether waiting
+    /* The row carries a data-tip explaining what happened and whether waiting
        helps; without this there is nothing to suggest hovering it. */
     cursor: help;
 }

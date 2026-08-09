@@ -81,8 +81,8 @@ export function isUsableResponse(text: string): boolean {
  * `bodyLooksUsable` is only consulted for 2xx — a 429 body is never subtitles.
  */
 export function classifyStatus(status: number, bodyLooksUsable: boolean): VttFailure | undefined {
-    if (status === 429) return 'rate-limited';
-    if (status === 503) return 'rate-limited'; // YouTube also sheds load with 503
+    // 503: YouTube sheds load this way too, and it means the same to us.
+    if (status === 429 || status === 503) return 'rate-limited';
     if (status === 403) return 'stale-url';
     if (status === 404 || status === 410) return 'unavailable';
     if (status < 200 || status >= 300) return 'unknown';

@@ -70,6 +70,11 @@ function makeApp(over: Partial<{
         cooldownRemainingMs: () => over.cooldownMs ?? 0,
         isThrottled: () => over.throttled ?? (over.cooldownMs ?? 0) > 0,
         dominantFailure: () => over.failure,
+        // Mirrors app-base: throttling plus the other failures a retry could
+        // clear. The menu reads this instead of hand-listing them.
+        isRecoverableFailure: () =>
+            (over.throttled ?? (over.cooldownMs ?? 0) > 0) ||
+            ['stale-url', 'no-pot', 'network'].includes(over.failure ?? ''),
         langPrefs: 'langPrefs' in over ? over.langPrefs : { learning: 'en', native: 'ru' },
         state: {
             displayMode: over.displayMode ?? 'dual',
