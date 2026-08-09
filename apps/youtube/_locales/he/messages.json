@@ -363,6 +363,58 @@
     "message": "יחיד",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   },
+  "ytThrottledTitle": {
+    "message": "YouTube מגביל בקשות",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube חסם באופן זמני את בקשת הכתוביות לסרטון הזה. זו הגבלה מצידם, לא היעדר כתוביות — זה יכול להיפתר תוך דקות, אך לפעמים נמשך שעות.",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "נסה שוב בעוד {s} שנ׳",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "לא ניתן היה לטעון כתוביות",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "פג תוקף הקישור לכתוביות. חיפוש מחדש בדרך כלל פותר את זה.",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "התרגום הוגבל על ידי YouTube — הקש כדי לנסות שוב",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "התרגום הוגבל על ידי YouTube — ניסיון נוסף בעוד {s} שנ׳",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "התרגום הוגבל על ידי YouTube",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "אין תרגום לסרטון הזה",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "לא ניתן היה לטעון את התרגום",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube הגביל עבורך זמנית את התרגום האוטומטי. זו הגבלה מצידם, לא בעיה בתוסף — זה יכול להיפתר תוך דקות, אך לפעמים נמשך שעות. הכתוביות המקוריות ממשיכות לעבוד בינתיים.",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "YouTube לא מציע תרגום אוטומטי לשפה הזו עבור הסרטון הזה. ניסיון חוזר לא יעזור — הכתוביות המקוריות עדיין מוצגות.",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "פג תוקף הקישור לכתוביות לפני שהתרגום נטען. חיפוש מחדש בדרך כלל פותר את זה.",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
   "ytFeedbackLink": {
     "message": "דיווח על בעיה",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."

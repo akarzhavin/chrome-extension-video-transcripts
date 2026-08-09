@@ -1,5 +1,11 @@
 import { installNetflixHook } from './netflix/manifest-hook';
 import { isNetflix } from './site';
+import {
+    fetchTimedText,
+    RateLimitBreaker,
+    type VttOutcome,
+    type YtVttResultMessage,
+} from './timedtext-fetch';
 
 interface RawCaptionTrack {
     baseUrl: string;
@@ -32,6 +38,36 @@ function installYouTubeHook() {
     const originalFetch = window.fetch.bind(window);
     const potByVideoId = new Map<string, string>();
     const potWaitersByVideoId = new Map<string, Set<(pot: string) => void>>();
+
+    // ---------- dev: force a timedtext status ----------
+    // `#lingogram_http=429:5@2` → status 429, Retry-After 5s, for the first 2
+    // requests. Real throttling can't be summoned on demand, and this is the
+    // only way to exercise the 429/403/404 paths by hand. Stripped from prod by
+    // the minifier via the __EXT_ENV__ guard (see docs/dev-flags.md).
+    function makeForcedFetch(): typeof originalFetch | null {
+        if (__EXT_ENV__ !== 'dev') return null;
+        const m = /[?#&]lingogram_http=(\d{3})(?::(\d+))?(?:@(\d+))?/.exec(location.href);
+        if (!m) return null;
+        const status = Number(m[1]);
+        const retryAfter = m[2];
+        let remaining = m[3] ? Number(m[3]) : Infinity;
+        console.warn(TAG, `dev: forcing HTTP ${status} on timedtext`,
+            retryAfter ? `(Retry-After: ${retryAfter})` : '', Number.isFinite(remaining) ? `for ${remaining} requests` : '');
+        return async (url: string | URL | Request, init?: RequestInit) => {
+            if (remaining <= 0) return originalFetch(url as RequestInfo, init);
+            remaining--;
+            // A 200 override stands in for "translation not offered": a body
+            // with no "events" is exactly what YouTube returns for an empty slot.
+            const body = status >= 200 && status < 300 ? '{"wireMagic":"pb3"}' : '';
+            return new Response(body, {
+                status,
+                headers: retryAfter ? { 'Retry-After': retryAfter } : {},
+            });
+        };
+    }
+    const forcedFetch = makeForcedFetch();
+    const timedTextFetch = (url: string, init: RequestInit): Promise<Response> =>
+        (forcedFetch ?? originalFetch)(url, init);
 
     // ---------- pot sniffing ----------
 
@@ -182,6 +218,10 @@ function installYouTubeHook() {
     }
 
     document.addEventListener('yt-navigate-finish', () => {
+        // Whatever is still in flight belongs to the video the user just left.
+        navAbort.abort();
+        navAbort = new AbortController();
+        inFlightFetch.clear();
         setTimeout(broadcastCurrent, 200);
     });
 
@@ -318,49 +358,95 @@ function installYouTubeHook() {
         return u.toString();
     }
 
-    function isUsableResponse(text: string): boolean {
-        if (!text || text.length < 20) return false;
-        // json3 with no events == empty translation slot etc.
-        if (!text.includes('"events"')) return false;
-        return true;
+    // Rate limiting is applied per client, so one breaker covers every track:
+    // a 429 on one predicts a 429 on the next. Lives here because this is the
+    // only place that can actually decline to send a request.
+    const breaker = new RateLimitBreaker();
+
+    // Duplicate YT_FETCH_VTT messages are easy to provoke (navigation races,
+    // "Search again", a prefs change) and each one used to mean a fresh burst
+    // of requests. Same pattern as inFlightEnsurePot above.
+    const inFlightFetch = new Map<string, Promise<VttOutcome>>();
+
+    // Abandoned when the user navigates: without this the retry loop and its
+    // backoff keep running for a video nobody is watching any more.
+    let navAbort = new AbortController();
+
+    function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+        return new Promise((resolve) => {
+            if (signal?.aborted) return resolve();
+            const timer = setTimeout(resolve, ms);
+            // Resolve (not reject) on abort: the fetch loop checks the signal
+            // itself and returns 'aborted', which keeps its control flow linear.
+            signal?.addEventListener(
+                'abort',
+                () => {
+                    clearTimeout(timer);
+                    resolve();
+                },
+                { once: true },
+            );
+        });
     }
 
-    async function fetchOnce(url: string): Promise<string> {
-        const res = await originalFetch(url, { credentials: 'include' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return await res.text();
+    function fetchDeduped(url: string, signal: AbortSignal): Promise<VttOutcome> {
+        const existing = inFlightFetch.get(url);
+        if (existing) {
+            console.log(TAG, 'reusing in-flight request');
+            return existing;
+        }
+        const p = fetchTimedText(url, { fetchImpl: timedTextFetch, sleep, breaker }, signal).finally(
+            () => {
+                inFlightFetch.delete(url);
+            },
+        );
+        inFlightFetch.set(url, p);
+        return p;
+    }
+
+    function postResult(msg: Omit<YtVttResultMessage, 'type'>): void {
+        window.postMessage({ type: 'YT_VTT_RESULT', ...msg } satisfies YtVttResultMessage, '*');
     }
 
     async function fetchVtt(reqKey: string, baseUrl: string, videoId: string, tlang?: string): Promise<void> {
+        const signal = navAbort.signal;
         const pot = await ensurePot(videoId);
         if (!pot) {
-            // console.warn(TAG, 'no pot for', videoId);
-            window.postMessage({ type: 'YT_VTT_RESULT', url: reqKey, text: '', error: 'no_pot' }, '*');
+            postResult({ url: reqKey, videoId, text: '', ok: false, failure: 'no-pot' });
             return;
         }
+        // Keyed on the built URL rather than reqKey: duplicate requests for the
+        // same track produce an identical URL, which is exactly what we want to
+        // collapse. The key isn't known until ensurePot resolves, hence here.
         const url = buildUrl(baseUrl, pot, tlang);
-        let text = '';
-        let lastErr: unknown = null;
-        for (let attempt = 1; attempt <= 4; attempt++) {
-            try {
-                text = await fetchOnce(url);
-                if (isUsableResponse(text)) {
-                    console.log(TAG, 'fetched', text.length, 'bytes for', reqKey, attempt > 1 ? `(attempt ${attempt})` : '');
-                    window.postMessage({ type: 'YT_VTT_RESULT', url: reqKey, text }, '*');
-                    return;
-                }
-                console.warn(TAG, 'empty/invalid response for', reqKey, 'attempt', attempt, 'bytes:', text.length);
-            } catch (e) {
-                lastErr = e;
-                console.warn(TAG, 'fetch attempt', attempt, 'failed for', reqKey, e);
-            }
-            await new Promise((r) => setTimeout(r, 400 * attempt));
+        const outcome = await fetchDeduped(url, signal);
+
+        if (outcome.ok) {
+            console.log(TAG, 'fetched', outcome.text.length, 'bytes for', reqKey,
+                outcome.attempts > 1 ? `(attempt ${outcome.attempts})` : '');
+        } else {
+            console.warn(TAG, 'failed', reqKey, outcome.failure, 'status:', outcome.status,
+                'attempts:', outcome.attempts, tlang ? `tlang=${tlang}` : '(no tlang)');
+            // A 403 means the signed baseUrl or the pot went stale. Drop the pot
+            // so the next attempt mints a fresh one; the caller re-reads the
+            // player response via YT_QUERY_CAPTIONS, which yields a new baseUrl.
+            if (outcome.failure === 'stale-url') potByVideoId.delete(videoId);
         }
-        console.warn(TAG, 'giving up on', reqKey, 'after retries');
-        window.postMessage(
-            { type: 'YT_VTT_RESULT', url: reqKey, text, error: lastErr ? String(lastErr) : 'empty_after_retries' },
-            '*',
-        );
+
+        postResult({
+            url: reqKey,
+            videoId,
+            ok: outcome.ok,
+            text: outcome.ok ? outcome.text : '',
+            failure: outcome.failure,
+            status: outcome.status,
+            // Only throttle outcomes carry a cooldown. Falling back to the
+            // breaker's remaining time for every failure dressed a permanent
+            // 'not-offered' up as a temporary limit — the UI would then offer a
+            // retry while its own copy said retrying cannot help.
+            retryAfterMs: outcome.retryAfterMs || undefined,
+            attempts: outcome.attempts,
+        });
     }
 
     // ---------- message bus ----------

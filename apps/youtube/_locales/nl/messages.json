@@ -363,6 +363,58 @@
     "message": "Enkel",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   },
+  "ytThrottledTitle": {
+    "message": "YouTube beperkt verzoeken",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube heeft het ondertitelverzoek voor deze video tijdelijk geblokkeerd. Dat is een limiet aan hun kant, geen ontbrekende ondertitel — het kan binnen enkele minuten verdwijnen, maar duurt soms uren.",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "Probeer opnieuw over {s} s",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "Ondertitels konden niet worden geladen",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "De ondertitellink is verlopen. Opnieuw zoeken lost dit meestal op.",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "Vertaling beperkt door YouTube — tik om opnieuw te proberen",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "Vertaling beperkt door YouTube — nieuwe poging over {s} s",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "Vertaling beperkt door YouTube",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "Geen vertaling voor deze video",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "Vertaling kon niet worden geladen",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube heeft de automatische vertaling voor jou tijdelijk beperkt. Dat is hun limiet, geen probleem met de extensie — het kan binnen enkele minuten verdwijnen, maar duurt soms uren. De originele ondertitels blijven ondertussen werken.",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "YouTube biedt voor deze video geen automatische vertaling naar deze taal aan. Opnieuw proberen helpt niet — de originele ondertitels blijven getoond worden.",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "De ondertitellink verliep voordat de vertaling werd geladen. Opnieuw zoeken lost dit meestal op.",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
   "ytFeedbackLink": {
     "message": "Probleem melden",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."

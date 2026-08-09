@@ -363,6 +363,58 @@
     "message": "Yksi",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   },
+  "ytThrottledTitle": {
+    "message": "YouTube rajoittaa pyyntöjä",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube esti tilapäisesti tämän videon tekstityspyynnön. Kyse on heidän puoleisesta rajoituksesta, ei puuttuvasta tekstityksestä — se voi poistua minuuteissa, mutta joskus kestää tunteja.",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "Yritä uudelleen {s} s kuluttua",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "Tekstityksiä ei voitu ladata",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "Tekstityslinkki vanheni. Uudelleen hakeminen yleensä korjaa tämän.",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "YouTube rajoitti käännöstä — yritä uudelleen napauttamalla",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "YouTube rajoitti käännöstä — uusi yritys {s} s kuluttua",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "YouTube rajoitti käännöstä",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "Tälle videolle ei ole käännöstä",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "Käännöstä ei voitu ladata",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube on tilapäisesti rajoittanut automaattista käännöstä sinulta. Kyse on heidän rajoituksestaan, ei laajennuksen ongelmasta — se voi poistua minuuteissa, mutta joskus kestää tunteja. Alkuperäiset tekstitykset toimivat sillä välin normaalisti.",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "YouTube ei tarjoa automaattista käännöstä tälle kielelle tälle videolle. Uudelleen yrittäminen ei auta — alkuperäiset tekstitykset näkyvät edelleen.",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "Tekstityslinkki vanheni ennen kuin käännös ehti latautua. Uudelleen hakeminen yleensä korjaa tämän.",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
   "ytFeedbackLink": {
     "message": "Ilmoita ongelmasta",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."

@@ -363,6 +363,58 @@
     "message": "ഒറ്റ",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   },
+  "ytThrottledTitle": {
+    "message": "YouTube അഭ്യർത്ഥനകൾ പരിമിതപ്പെടുത്തുന്നു",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "ഈ വീഡിയോയ്ക്കുള്ള സബ്ടൈറ്റിൽ അഭ്യർത്ഥന YouTube താൽക്കാലികമായി തടഞ്ഞു. ഇത് അവരുടെ ഭാഗത്തുള്ള ഒരു പരിധിയാണ്, സബ്ടൈറ്റിൽ ഇല്ലാത്തതല്ല — ഇത് മിനിറ്റുകൾക്കുള്ളിൽ മാറാം, പക്ഷേ ചിലപ്പോൾ മണിക്കൂറുകൾ നീണ്ടുനിൽക്കും.",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "{s} സെക്കൻഡിൽ വീണ്ടും ശ്രമിക്കുക",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "സബ്ടൈറ്റിലുകൾ ലോഡ് ചെയ്യാനായില്ല",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "സബ്ടൈറ്റിൽ ലിങ്കിന്റെ കാലാവധി കഴിഞ്ഞു. വീണ്ടും തിരയുന്നത് സാധാരണയായി ഇത് പരിഹരിക്കും.",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "YouTube വിവർത്തനം പരിമിതപ്പെടുത്തി — വീണ്ടും ശ്രമിക്കാൻ ടാപ്പ് ചെയ്യുക",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "YouTube വിവർത്തനം പരിമിതപ്പെടുത്തി — {s} സെക്കൻഡിൽ വീണ്ടും ശ്രമം",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "YouTube വിവർത്തനം പരിമിതപ്പെടുത്തി",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "ഈ വീഡിയോയ്ക്ക് വിവർത്തനം ഇല്ല",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "വിവർത്തനം ലോഡ് ചെയ്യാനായില്ല",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube നിങ്ങൾക്കായി സ്വയമേവയുള്ള വിവർത്തനം താൽക്കാലികമായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു. ഇത് അവരുടെ പരിധിയാണ്, എക്സ്റ്റൻഷന്റെ പ്രശ്നമല്ല — ഇത് മിനിറ്റുകൾക്കുള്ളിൽ മാറാം, പക്ഷേ ചിലപ്പോൾ മണിക്കൂറുകൾ നീണ്ടുനിൽക്കും. ഇതിനിടയിൽ യഥാർത്ഥ സബ്ടൈറ്റിലുകൾ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കും.",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "ഈ വീഡിയോയ്ക്ക് ഈ ഭാഷയിലേക്ക് സ്വയമേവയുള്ള വിവർത്തനം YouTube നൽകുന്നില്ല. വീണ്ടും ശ്രമിക്കുന്നത് സഹായിക്കില്ല — യഥാർത്ഥ സബ്ടൈറ്റിലുകൾ ഇപ്പോഴും കാണിക്കുന്നു.",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "വിവർത്തനം ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് സബ്ടൈറ്റിൽ ലിങ്കിന്റെ കാലാവധി കഴിഞ്ഞു. വീണ്ടും തിരയുന്നത് സാധാരണയായി ഇത് പരിഹരിക്കും.",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
   "ytFeedbackLink": {
     "message": "പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."

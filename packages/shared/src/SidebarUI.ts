@@ -305,7 +305,12 @@ export class SidebarUI {
 
         const dualBtn = this.buildModeChip('vtt-dual-btn', ICONS.dual,
             msg('ytModeDual', 'Dual'), 'Dual Subtitles (Shift+D)');
-        dualBtn.addEventListener('click', () => this.setMode('dual'));
+        // aria-disabled (see updateControls) keeps the chip hoverable so it can
+        // explain itself, which means the off state has to be enforced here.
+        dualBtn.addEventListener('click', () => {
+            if (dualBtn.getAttribute?.('aria-disabled') === 'true') return;
+            this.setMode('dual');
+        });
         modes.appendChild(dualBtn);
 
         const guessBtn = this.buildModeChip('vtt-guess-btn', ICONS.guess,
@@ -454,6 +459,9 @@ export class SidebarUI {
         btn.id = id;
         btn.className = 'vtt-mode';
         btn.title = title;
+        // Kept so updateControls can restore it after swapping in a contextual
+        // "why is this disabled" explanation.
+        btn.dataset.baseTitle = title;
         btn.innerHTML = `${iconSvg}<span class="vtt-mode-label">${label}</span><span class="vtt-mode-dot"></span>`;
         return btn;
     }
@@ -487,6 +495,9 @@ export class SidebarUI {
             // Custom instant tooltip (CSS ::after on [data-tip]) instead of the
             // native title, which lags ~1s and never shows on keyboard focus.
             btn.dataset.tip = shortcut ? `${label} (${shortcut})` : label;
+            // Kept so updateControls can swap in a "why is this off" reason and
+            // put the plain label back afterwards.
+            btn.dataset.baseTip = btn.dataset.tip;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('role', role);
             btn.setAttribute(role === 'radio' ? 'aria-checked' : 'aria-pressed', 'false');
@@ -515,7 +526,12 @@ export class SidebarUI {
         seg.appendChild(qmSingleBtn);
 
         const qmDualBtn = makeBtn('vtt-qm-dual', ICONS.dual, msg('ytModeDual', 'Dual'), 'Shift+D', 'radio');
-        qmDualBtn.addEventListener('click', () => this.setMode('dual'));
+        // aria-disabled keeps it hoverable so it can explain itself (see
+        // updateControls), so the off state is enforced here.
+        qmDualBtn.addEventListener('click', () => {
+            if (qmDualBtn.getAttribute?.('aria-disabled') === 'true') return;
+            this.setMode('dual');
+        });
         seg.appendChild(qmDualBtn);
 
         const qmGuessBtn = makeBtn('vtt-qm-guess', ICONS.guess, msg('ytModeGuess', 'Guess'), 'Shift+G', 'radio');
@@ -1433,7 +1449,25 @@ export class SidebarUI {
         // opens the menu, which is always available, so it has no on/off to
         // mirror. The overlay's state shows on the CC button beside it, which
         // player-menu.ts paints from this same state on open and on refresh.
-        if (qmDualBtn) qmDualBtn.disabled = !hasMultiple;
+        // The Dual chip is the control the user actually reaches for when the
+        // translation is missing, so it has to say WHY it's off. aria-disabled
+        // rather than `disabled`: a disabled button fires no pointer events, so
+        // its tooltip could never appear. The click handler enforces off.
+        if (qmDualBtn) {
+            const hint = (!hasMultiple && this.app.missingTrackHint?.()) || '';
+            qmDualBtn.disabled = !hasMultiple && !hint;
+            qmDualBtn.setAttribute?.('aria-disabled', String(!hasMultiple));
+            qmDualBtn.classList?.toggle('vtt-qm-blocked', !hasMultiple && !!hint);
+            if (qmDualBtn.dataset) {
+                // Keep the mode's own name at the top even when explaining why
+                // it's off — the tooltip still has to answer "what is this
+                // button?", not only "why can't I press it". CSS renders the
+                // first line as a heading. Restores to the plain label once the
+                // reason no longer applies.
+                const base = qmDualBtn.dataset.baseTip || '';
+                qmDualBtn.dataset.tip = hint ? `${base}\n${hint}` : base;
+            }
+        }
 
         // The language chip doubles as the swap control: its visual order
         // follows the actual display order (CSS flips it via .vtt-swapped).
@@ -1459,7 +1493,26 @@ export class SidebarUI {
             });
         }
 
-        this.elements.dualBtn.disabled = !hasMultiple;
+        // A disabled control that won't say why reads as broken, so when the
+        // app knows why the second track is missing (throttled, not offered,
+        // expired link) the chip explains itself on hover — the same string the
+        // partial-failure notice shows, so the UI tells one story.
+        //
+        // aria-disabled, not the `disabled` property: a disabled button fires
+        // no pointer events at all, so its tooltip could never appear — the one
+        // control most in need of an explanation would be the one unable to
+        // give it. It also stays focusable, so a screen reader reaches the
+        // reason too. The click handler enforces the off state.
+        const hint = (!hasMultiple && this.app.missingTrackHint?.()) || '';
+        const dualBtn = this.elements.dualBtn;
+        dualBtn.disabled = !hasMultiple && !hint;
+        dualBtn.setAttribute?.('aria-disabled', String(!hasMultiple));
+        dualBtn.classList?.toggle('vtt-mode-blocked', !hasMultiple && !!hint);
+        if (dualBtn.dataset) {
+            if (hint) dualBtn.dataset.tip = hint;
+            else delete dualBtn.dataset.tip;
+        }
+        dualBtn.title = hint || dualBtn.dataset?.baseTitle || '';
 
         if (activeId) {
             const activeEl = document.getElementById(activeId);

@@ -27,6 +27,16 @@
 
     --vtt-danger: #f87171;
 
+    /* Warning: something is degraded but working, and it will clear by itself
+       (rate limiting is the case this exists for). Sits between --vtt-text-dim
+       and --vtt-danger on purpose — it must catch the eye without reading as a
+       failure the user has to act on. Warm orange, not amber: yellow at this
+       lightness goes mustard on the dark glass, and orange sits better against
+       the brand's indigo/violet. 5.8:1 on the panel over a white video frame,
+       so it clears the 4.5:1 floor at 11px with margin. */
+    --vtt-warning: #ffa257;
+    --vtt-warning-quiet: rgba(255, 162, 87, 0.14);
+
     /* Text ramp. --vtt-text-dim is the floor for anything readable: at the
        10-12px the group headers use, lighter than this drops under 4.5:1 on
        the panel's dark glass. */
@@ -234,7 +244,222 @@
     display: none !important;
 }
 
-#vtt-back-btn {
+/* ---- Feedback screen ---------------------------------------------------
+   A takeover layered on top of the settings takeover, reached from the quiet
+   last line of the settings panel. While it is open the settings groups hide
+   (settings keeps its .open class, so returning is a pure show/hide) and the
+   header swaps the "‹ Subtitles" chip for "‹ Settings". */
+#vtt-feedback-panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 12px 14px;
+}
+
+#vtt-sidebar.vtt-feedback-open #vtt-feedback-panel {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* The settings back chip is hidden by its own rule further down, which carries
+   a :not(.vtt-feedback-open) guard — a plain display:none here would lose to it
+   on source order. */
+#vtt-sidebar.vtt-feedback-open #vtt-settings-panel,
+#vtt-sidebar.vtt-feedback-open #vtt-subheader,
+#vtt-sidebar.vtt-feedback-open #vtt-list {
+    display: none;
+}
+
+/* The auth badge is a sign-in ask, and this screen deliberately works without
+   an account — leaving it up puts a competing "Sign in to save words" directly
+   above a form whose whole point is that signed-out people can still be heard.
+   !important because the badge sets display:block inline from JS (same reason
+   the settings takeover needs it for the gear button). */
+#vtt-sidebar.vtt-feedback-open #lingogram-auth-badge {
+    display: none !important;
+}
+
+/* Appearance comes from .vtt-back-chip; the id only controls when it shows. */
+#vtt-sidebar.vtt-feedback-open #vtt-feedback-back-btn {
+    display: flex;
+}
+
+/* The entry point. Not a group heading and not a button-looking button: it is
+   an exit for an annoyed user, not a setting, and it earns only a quiet line
+   at the very bottom. Same weight as .vtt-reset. */
+/* Footer band closing the settings panel. Sticky rather than merely last:
+   Overlay appearance is tall enough that a static footer sits below the fold on
+   a normal window, and nobody scrolls settings to the end. Pinning it to the
+   bottom of the scrollport keeps it reachable at any scroll position while it
+   still reads as the end of the stack rather than an item between groups.
+   `margin-top: auto` holds it at the bottom when the content is short enough
+   not to scroll at all. */
+.vtt-panel-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin-top: auto;
+    padding: 8px 16px 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    /* Opaque: scrolling group content passes underneath this band. */
+    background: var(--vtt-panel-solid);
+}
+
+/* Not a button and not a group heading. Dim by default so it never competes
+   with the controls above it, full-strength label + accent icon on hover so it
+   is unmistakably actionable once the eye lands on it. */
+.vtt-feedback-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 5px 2px;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    text-align: left;
+    color: var(--vtt-text-dim);
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.vtt-feedback-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    transition: opacity 0.15s;
+}
+
+.vtt-feedback-link:hover {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.vtt-feedback-link:hover svg {
+    opacity: 1;
+}
+
+.vtt-feedback-link:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, rgba(124, 141, 255, 0.55));
+    outline-offset: 1px;
+}
+
+.vtt-feedback-intro {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-text,
+.vtt-feedback-email {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--vtt-border, rgba(255, 255, 255, 0.14));
+    border-radius: 6px;
+    background: var(--vtt-panel-solid);
+    color: #f3f4f6;
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+}
+
+.vtt-feedback-text {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.vtt-feedback-text::placeholder,
+.vtt-feedback-email::placeholder {
+    color: rgba(255, 255, 255, 0.38);
+}
+
+.vtt-feedback-text:focus,
+.vtt-feedback-email:focus {
+    outline: none;
+    border-color: var(--vtt-accent);
+}
+
+.vtt-feedback-email-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vtt-feedback-email-label {
+    font-size: 11px;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vtt-feedback-counter {
+    margin-right: auto;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-feedback-send {
+    padding: 7px 14px;
+    border: 1px solid var(--vtt-accent-border-strong, rgba(124, 141, 255, 0.55));
+    border-radius: 6px;
+    background: var(--vtt-accent-quiet, rgba(124, 141, 255, 0.16));
+    color: #dbeafe;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.vtt-feedback-send:hover:not([disabled]) {
+    background: var(--vtt-accent-hover, rgba(124, 141, 255, 0.3));
+}
+
+.vtt-feedback-send:active:not([disabled]) {
+    transform: scale(0.97);
+}
+
+.vtt-feedback-send[disabled] {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.vtt-feedback-status {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #fca5a5;
+}
+
+.vtt-feedback-done {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #f3f4f6;
+}
+
+/* On the success screen the button is a direct child of the column rather than
+   of .vtt-feedback-actions, so without this it stretches the full width and
+   reads as a primary call to action on a screen that is already finished. */
+.vtt-feedback-done + .vtt-feedback-send {
+    align-self: flex-start;
+}
+
+/* Labeled back chip that names its destination. Styled on the class, not the
+   id: the settings screen and the feedback screen each have one, and they are
+   the same control pointing at different places. The ids drive visibility only. */
+.vtt-back-chip {
     position: absolute;
     left: 12px;
     display: none;
@@ -252,16 +477,34 @@
     transition: background 0.15s;
 }
 
-#vtt-back-btn:hover {
+.vtt-back-chip:hover {
     background: var(--vtt-accent-quiet);
 }
 
-#vtt-back-btn svg {
+/* The chip is absolutely positioned over a centered title, so nothing stops the
+   two from colliding once either string grows — "Обратная связь" next to
+   "Настройки" already leaves about a pixel in English and less in Russian.
+   Reserving a gutter on the title keeps the centering while letting the longer
+   label wrap or ellipsize instead of running under the chip. */
+#vtt-sidebar.vtt-settings-open #vtt-header-top h2,
+#vtt-sidebar.vtt-feedback-open #vtt-header-top h2 {
+    padding-left: 92px;
+    padding-right: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vtt-back-chip svg {
     width: 15px;
     height: 15px;
 }
 
-#vtt-sidebar.vtt-settings-open #vtt-back-btn {
+/* :not(.vtt-feedback-open) because the feedback screen sits on top of the
+   settings takeover and keeps .vtt-settings-open underneath it. Without the
+   guard this rule wins on source order and paints "‹ Subtitles" over the
+   feedback screen's own "‹ Settings" chip — both are absolute at left:12px. */
+#vtt-sidebar.vtt-settings-open:not(.vtt-feedback-open) #vtt-back-btn {
     display: flex;
 }
 
@@ -509,10 +752,59 @@
     transform: scale(0.97);
 }
 
-.vtt-mode:disabled {
+.vtt-mode:disabled,
+/* Same look as :disabled, but the element stays hoverable so it can explain
+   why it's off (a real `disabled` button fires no pointer events, so its
+   tooltip could never appear). See updateControls in SidebarUI. */
+.vtt-mode.vtt-mode-blocked {
     opacity: 0.45;
     cursor: default;
     transform: none;
+}
+
+.vtt-mode.vtt-mode-blocked:hover {
+    /* Nothing happens on click, so nothing should suggest it might. */
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--vtt-hairline-strong);
+}
+
+/* Instant multi-line explanation on the blocked chip, matching the sidebar
+   notice: the native title waits ~1s, long enough that the user gives up. */
+.vtt-mode-blocked[data-tip] {
+    position: relative;
+}
+
+.vtt-mode-blocked[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    /* Right-aligned, not left: this chip sits early in a 4-button row inside a
+       320px panel, so a bubble growing rightward from its left edge would spill
+       off the sidebar. Growing leftward keeps it inside. */
+    right: 0;
+    width: max-content;
+    max-width: 240px;
+    background: rgba(12, 13, 20, 0.97);
+    color: #dfe3f0;
+    border: 1px solid var(--vtt-hairline-strong);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 30;
+}
+
+.vtt-mode-blocked[data-tip]:hover::after,
+.vtt-mode-blocked[data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .vtt-mode.active {
@@ -776,6 +1068,57 @@
     opacity: 1;
     transform: translate(-50%, 0);
     transition-delay: 0.35s;
+}
+
+/* The Dual chip when it's off because the translation is missing: its tooltip
+   is a sentence, not a label, so it wraps, widens, and appears with no delay —
+   the user is asking "why is this greyed out?" and shouldn't have to wait.
+   .vtt-qm-blocked mirrors :disabled visually while staying hoverable, because
+   a real disabled button fires no pointer events and could never show this. */
+#vtt-quickmodes .vtt-qm-blocked {
+    /* Dim the ICON, not the button: opacity on the element multiplies into its
+       ::after, which would render the explanation bubble see-through. */
+    cursor: default;
+}
+
+#vtt-quickmodes .vtt-qm-blocked > * {
+    opacity: 0.4;
+}
+
+#vtt-quickmodes .vtt-qm-blocked::after {
+    width: max-content;
+    max-width: 230px;
+    /* pre-line, not normal: the tip is "Dual (Shift+D)\n<reason>" — the first
+       line names the mode, the rest explains why it's unavailable. Long lines
+       still wrap on their own. */
+    white-space: pre-line;
+    text-align: left;
+    line-height: 1.45;
+    padding: 8px 10px;
+    font-weight: 400;
+    /* Fully opaque: this bubble covers the notice row and the video behind the
+       panel, and text-over-text is unreadable. */
+    background: #14161f;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    /* Grow leftward: this chip sits mid-row in a 320px panel, so a bubble
+       anchored at its left edge would spill off the sidebar. */
+    left: auto;
+    right: 0;
+    transform: translateY(-2px);
+}
+
+#vtt-quickmodes .vtt-qm-blocked:hover::after,
+#vtt-quickmodes .vtt-qm-blocked:focus-visible::after {
+    transform: translateY(0);
+    transition-delay: 0s; /* instant — overrides the 0.35s label delay */
+}
+
+/* The mode name leads the bubble, so give it a heading's weight and colour and
+   let the explanation sit back. ::first-line is the only way to reach it —
+   the whole tip is one generated text node. */
+#vtt-quickmodes .vtt-qm-blocked::first-line {
+    font-weight: 600;
+    color: #fff;
 }
 
 /* Rightmost button: right-align its tooltip so it can't spill past the
@@ -1387,6 +1730,118 @@
     user-select: none;
 }
 
+/* Its own row under the sub-header: one track is missing while others play.
+   Muted on purpose — it explains a gap, it doesn't announce a fault, and it
+   must not compete with the subtitles it is apologising for. Matches the
+   sub-header's 16px gutter so it lines up with the language chip above. */
+#vtt-partial-notice {
+    position: relative; /* anchor for the [data-tip] bubble below */
+    display: flex;
+    /* center, not baseline: the warning dot is an empty box and has no
+       baseline of its own to align to. */
+    align-items: center;
+    gap: 6px;
+    margin: -2px 0 8px;
+    padding: 0 16px;
+    font-size: 11px;
+    line-height: 1.4;
+    /* --vtt-text-dim is the readability floor at this size (see the ramp note
+       at the top of this file) — do not go lighter to make it quieter. */
+    color: var(--vtt-text-dim);
+    /* The row carries a data-tip explaining what happened and whether waiting
+       helps; without this there is nothing to suggest hovering it. */
+    cursor: help;
+}
+
+#vtt-partial-notice > span {
+    min-width: 0;
+    /* One line. The panel is 320px and this text is incidental: truncate it
+       rather than let a long locale wrap into a three-line block. */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Instant explanation on hover/focus. The native title waits ~1s — long enough
+   that the user gives up before it appears — and never shows on keyboard
+   focus. Same [data-tip] mechanism as the mode chips, but wrapping instead of
+   nowrap: this is a sentence, not a label. */
+#vtt-partial-notice[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    /* The row already carries the 16px gutter, so 0 here lines the bubble up
+       with the text above it rather than insetting it twice. */
+    left: 0;
+    right: 0;
+    /* Opaque: it overlays subtitle text and the video showing through the
+       panel, and anything less makes both unreadable. */
+    background: #14161f;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    color: #dfe3f0;
+    border: 1px solid var(--vtt-hairline-strong);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+}
+
+#vtt-partial-notice[data-tip]:hover::after,
+#vtt-partial-notice[data-tip]:focus-within::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* An empty data-tip must not render an empty box. */
+#vtt-partial-notice[data-tip=""]::after { content: none; }
+
+/* Rate limiting only. "No translation for this video" is a normal outcome and
+   stays dim — painting that amber would cry wolf about something the user can
+   neither fix nor wait out. The dot carries the state at a glance; the text
+   stays readable rather than shouting. */
+#vtt-partial-notice.is-warning {
+    color: var(--vtt-warning);
+}
+
+#vtt-partial-notice.is-warning::before {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+#vtt-partial-notice.is-warning .vtt-partial-notice-retry:hover {
+    background: var(--vtt-warning-quiet);
+}
+
+.vtt-partial-notice-retry {
+    flex: none;
+    padding: 0 3px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font-size: 12px;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.vtt-partial-notice-retry:hover {
+    opacity: 1;
+    background: var(--vtt-hairline-strong);
+}
+
 #vtt-langpair .vtt-langpair-inner {
     display: inline-flex;
     align-items: center;
@@ -1583,8 +2038,16 @@
     transition: background 0.2s;
 }
 
-#vtt-status .vtt-empty-state-action:hover {
+#vtt-status .vtt-empty-state-action:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.12);
+}
+
+/* Used by the rate-limit cooldown, where the label IS the message ("Try again
+   in 12s"). Dimmed and inert, but still readable — it counts down to a live
+   button rather than being a control that silently does nothing. */
+#vtt-status .vtt-empty-state-action:disabled {
+    opacity: 0.55;
+    cursor: default;
 }
 
 /* "Reload page" is an emergency escape hatch, not a feature: quiet red

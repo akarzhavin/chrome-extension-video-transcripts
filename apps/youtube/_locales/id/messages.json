@@ -363,6 +363,58 @@
     "message": "Tunggal",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
   },
+  "ytThrottledTitle": {
+    "message": "YouTube membatasi permintaan",
+    "description": "Status banner heading when YouTube rate-limits (HTTP 429) the subtitle request. Distinct from the no-subtitles banner: the video HAS subtitles, YouTube just refused to serve them right now."
+  },
+  "ytThrottledText": {
+    "message": "YouTube untuk sementara memblokir permintaan subtitle untuk video ini. Ini batasan dari pihak mereka, bukan subtitle yang hilang — bisa hilang dalam hitungan menit, tetapi terkadang berlangsung berjam-jam.",
+    "description": "Status banner body for the rate-limited case. Must not imply the video lacks subtitles, and must not promise a recovery time — the limit has been observed to last hours."
+  },
+  "ytRetryInSeconds": {
+    "message": "Coba lagi dalam {s} d",
+    "description": "Disabled retry button label while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytLoadFailedTitle": {
+    "message": "Subtitle tidak dapat dimuat",
+    "description": "Status banner heading when the signed subtitle URL expired or no token could be minted — recoverable by searching again."
+  },
+  "ytLoadFailedText": {
+    "message": "Tautan subtitle telah kedaluwarsa. Mencari ulang biasanya memperbaikinya.",
+    "description": "Status banner body for the expired-link case."
+  },
+  "ytMenuThrottled": {
+    "message": "Terjemahan dibatasi oleh YouTube — ketuk untuk coba lagi",
+    "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
+  },
+  "ytMenuThrottledWait": {
+    "message": "Terjemahan dibatasi oleh YouTube — coba lagi dalam {s} d",
+    "description": "Quiet player-menu status line while the rate-limit cooldown runs. {s} is replaced in code with the remaining whole seconds."
+  },
+  "ytPartialThrottled": {
+    "message": "Terjemahan dibatasi oleh YouTube",
+    "description": "Quiet one-line notice under the language chip when the translated track was rate-limited but another track is playing. Keep it short — it sits on one line beside a retry button."
+  },
+  "ytPartialNotOffered": {
+    "message": "Tidak ada terjemahan untuk video ini",
+    "description": "Quiet notice when YouTube simply has no machine translation for the chosen language. A normal outcome, not an error — nothing to retry."
+  },
+  "ytPartialFailed": {
+    "message": "Terjemahan tidak dapat dimuat",
+    "description": "Quiet notice when the translated track failed to load for a recoverable reason other than rate limiting."
+  },
+  "ytPartialThrottledHint": {
+    "message": "YouTube untuk sementara membatasi terjemahan otomatis untuk Anda. Ini batasan dari pihak mereka, bukan masalah pada ekstensi — bisa hilang dalam hitungan menit, tetapi terkadang berlangsung berjam-jam. Subtitle asli tetap berfungsi sementara itu.",
+    "description": "Hover explanation on the partial-failure row when YouTube rate-limited the translation. Honest about duration: minutes to hours, no promises. Reassures that the extension is not broken."
+  },
+  "ytPartialNotOfferedHint": {
+    "message": "YouTube tidak menawarkan terjemahan otomatis ke bahasa ini untuk video ini. Mencoba lagi tidak akan membantu — subtitle asli tetap ditampilkan.",
+    "description": "Hover explanation when YouTube has no machine translation for the chosen language. Says plainly that retrying is pointless, so the user stops trying."
+  },
+  "ytPartialFailedHint": {
+    "message": "Tautan subtitle kedaluwarsa sebelum terjemahan dimuat. Mencari ulang biasanya memperbaikinya.",
+    "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
+  },
   "ytFeedbackLink": {
     "message": "Laporkan masalah",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."

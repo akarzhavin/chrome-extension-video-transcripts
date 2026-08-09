@@ -11,6 +11,7 @@ import {
 import { BaseVttApp, SIDEBAR_CHROME_CSS } from './app-base';
 import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
+import type { YtVttResultMessage } from './timedtext-fetch';
 import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
 import { bootstrapNetflix } from './netflix/app';
@@ -125,7 +126,7 @@ class YouTubeVttApp extends BaseVttApp {
         window.addEventListener('message', (event) => {
             if (event.source !== window) return;
             if (event.data?.type === 'YT_VTT_RESULT') {
-                this.handleVttLoaded(event.data.url, event.data.text || '');
+                this.handleVttResult(event.data as YtVttResultMessage);
             }
         });
         this.detector.start();
@@ -141,12 +142,28 @@ class YouTubeVttApp extends BaseVttApp {
         );
     }
 
-    handleVttLoaded(url: string, vttText: string): void {
-        const name = this.takePending(url);
-        console.log('[YT-VTT] VTT_LOADED <-', name, 'bytes:', vttText?.length ?? 0);
+    handleVttResult(m: YtVttResultMessage): void {
+        // A result for a video the user already left is noise, not a failure.
+        const current = this.getVideoId();
+        if (m.videoId && current && m.videoId !== current) return;
+
+        const name = this.takePending(m.url);
+        console.log('[YT-VTT] VTT_RESULT <-', name, m.ok ? `bytes: ${m.text.length}` : `failed: ${m.failure}`);
         if (!name) return;
-        const subs = parseJson3(vttText);
+
+        if (!m.ok) {
+            this.noteTrackFailure(name, m);
+            return;
+        }
+        const subs = parseJson3(m.text);
         console.log('[YT-VTT] parsed subs:', subs.length, 'for', name);
+        // A 200 carrying "events" that parse to nothing is the same thing to the
+        // user as "YouTube offers no translation here" — report it rather than
+        // dropping it, which is what made this failure mode invisible.
+        if (subs.length === 0) {
+            this.noteTrackFailure(name, { failure: 'not-offered' });
+            return;
+        }
         this.addParsedTrack(name, subs);
     }
 
