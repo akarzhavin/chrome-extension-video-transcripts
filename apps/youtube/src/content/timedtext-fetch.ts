@@ -207,6 +207,7 @@ export async function fetchTimedText(
     let status: number | undefined;
     let retryAfterMs: number | undefined;
     let emptyAnswers = 0;
+    let sawRateLimit = false;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         retryAfterMs = undefined;
@@ -235,6 +236,7 @@ export async function fetchTimedText(
 
             failure = classifyStatus(res.status, false) ?? 'unknown';
             if (failure === 'rate-limited') {
+                sawRateLimit = true;
                 retryAfterMs = parseRetryAfter(res.headers?.get?.('Retry-After') ?? null, now()) ?? undefined;
             }
             if (!isRetryable(failure)) {
@@ -258,9 +260,14 @@ export async function fetchTimedText(
         }
     }
 
-    if (failure === 'rate-limited') {
+    // Keyed on "was rate limiting seen at all", not on the last attempt's
+    // verdict: 429, 429, then a network blip would otherwise leave the breaker
+    // closed and let the next "Search again" fire a full fresh burst at an
+    // endpoint that just refused us three times.
+    if (sawRateLimit) {
         breaker.trip(retryAfterMs);
         retryAfterMs = breaker.remainingMs() || retryAfterMs;
+        failure = 'rate-limited';
     }
     return { ok: false, text: '', failure, status, retryAfterMs, attempts };
 }

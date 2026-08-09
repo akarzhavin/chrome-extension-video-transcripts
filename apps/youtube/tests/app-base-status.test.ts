@@ -298,6 +298,33 @@ describe('rate-limited subtitle failures', () => {
         expect(app.cooldownRemainingMs()).toBe(0);
     });
 
+    // The cooldown outlives resetForNewVideo() by design, so without a
+    // "something actually failed" guard the next caption-less video would be
+    // blamed on throttling that never touched it.
+    test('a caption-less video during a cooldown is not called throttled', () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 30_000 });
+        app.resetForNewVideo();
+
+        expect(app.cooldownRemainingMs()).toBeGreaterThan(0);
+        expect(app.isThrottled()).toBe(false);
+
+        app.declareNoSubtitles();
+        expect(bannerText()).toContain('No subtitles available');
+        expect(bannerText()).not.toContain('limiting requests');
+    });
+
+    // The good track landing must not advertise a retry the breaker will
+    // silently refuse — the throttled half is still throttled.
+    test('one track loading keeps the cooldown while the other is still failing', () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 30_000 });
+        app.addParsedTrack('English', [sub('hello')]);
+
+        expect(app.cooldownRemainingMs()).toBeGreaterThan(0);
+        expect(app.isThrottled()).toBe(true);
+    });
+
     test('a loaded track clears the failure record', () => {
         const app = makeApp();
         app.noteTrackFailure('English', { failure: 'rate-limited', retryAfterMs: 30_000 });

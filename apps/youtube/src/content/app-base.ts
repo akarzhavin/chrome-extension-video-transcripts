@@ -693,9 +693,12 @@ export abstract class BaseVttApp implements AppInterface {
         this.clearNoSubtitlesTimer();
         this.hideStatusBanner();
         this.noSubsRetries = 0;
-        // Anything arriving means the throttling lifted and this track is fine.
         this.trackFailures.delete(name);
-        this.cooldownUntil = 0;
+        // Only clear the cooldown once nothing is still failing. In the exact
+        // case this feature exists for — one track lands, the other is
+        // throttled — zeroing it here would show a live retry button while the
+        // page-script breaker is still open, so the click would do nothing.
+        if (this.trackFailures.size === 0) this.cooldownUntil = 0;
         // The other half may still be missing, so re-evaluate rather than
         // blindly clearing: the notice must survive a partial recovery.
         this.updatePartialFailureNotice();
@@ -839,7 +842,13 @@ export abstract class BaseVttApp implements AppInterface {
 
     /** True when the dominant failure is one the user could retry out of. */
     isThrottled(): boolean {
+        // The cooldown alone is not enough to claim throttling: it deliberately
+        // outlives resetForNewVideo() (so retry spam can't clear it), which
+        // means a caption-less video opened during one would otherwise be
+        // reported as "YouTube is limiting requests" when nothing was even
+        // requested. A failure has to have actually been recorded.
         const f = this.dominantFailure();
+        if (!f) return false;
         return f === 'rate-limited' || f === 'cooldown' || this.cooldownRemainingMs() > 0;
     }
 

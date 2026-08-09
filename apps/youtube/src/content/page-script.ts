@@ -440,9 +440,11 @@ function installYouTubeHook() {
             text: outcome.ok ? outcome.text : '',
             failure: outcome.failure,
             status: outcome.status,
-            // Pick the outcome's own hint, else whatever the breaker has left;
-            // a 0 means "no cooldown", which the message omits entirely.
-            retryAfterMs: (outcome.retryAfterMs ?? breaker.remainingMs()) || undefined,
+            // Only throttle outcomes carry a cooldown. Falling back to the
+            // breaker's remaining time for every failure dressed a permanent
+            // 'not-offered' up as a temporary limit — the UI would then offer a
+            // retry while its own copy said retrying cannot help.
+            retryAfterMs: outcome.retryAfterMs || undefined,
             attempts: outcome.attempts,
         });
     }

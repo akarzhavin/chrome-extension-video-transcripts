@@ -221,6 +221,15 @@ describe('fetchTimedText', () => {
         expect(out.retryAfterMs).toBeGreaterThan(0);
     });
 
+    // Otherwise the next "Search again" fires a fresh burst at an endpoint
+    // that just refused us three times.
+    test('a 429 run ending in a network blip still opens the breaker', async () => {
+        const deps = makeDeps([response(429), response(429), new Error('offline')]);
+        const out = await fetchTimedText('u', deps);
+        expect(deps.breaker.isOpen()).toBe(true);
+        expect(out.failure).toBe('rate-limited');
+    });
+
     test('Retry-After overrides the jittered backoff', async () => {
         const deps = makeDeps([response(429, '', { 'Retry-After': '2' })]);
         await fetchTimedText('u', deps);
