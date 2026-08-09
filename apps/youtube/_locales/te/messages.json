@@ -362,5 +362,33 @@
   "ytModeSingle": {
     "message": "ఏక",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackLink": {
+    "message": "సమస్యను నివేదించండి",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "అభిప్రాయం",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "ఏమి పాడైందో లేదా మీరు ఏమి మారుస్తారో చెప్పండి. మేము అన్నీ చదువుతాము.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "ప్రత్యుత్తరం కోసం ఇమెయిల్",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ఇమెయిల్ (ఐచ్ఛికం, ప్రత్యుత్తరం కావాలంటే మాత్రమే)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "సెట్టింగ్‌లు",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} అక్షరాలు మిగిలి ఉన్నాయి",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

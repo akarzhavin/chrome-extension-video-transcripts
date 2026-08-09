@@ -362,5 +362,33 @@
   "ytModeSingle": {
     "message": "একক",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackLink": {
+    "message": "সমস্যা রিপোর্ট করুন",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "মতামত",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "কী নষ্ট হয়েছে বা কী পরিবর্তন করতেন বলুন। আমরা সব পড়ি।",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "উত্তরের জন্য ইমেইল",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "ইমেইল (ঐচ্ছিক, শুধু উত্তর চাইলে)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "সেটিংস",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "{n}টি অক্ষর বাকি",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

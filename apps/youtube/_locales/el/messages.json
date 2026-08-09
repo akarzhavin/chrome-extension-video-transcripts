@@ -362,5 +362,33 @@
   "ytModeSingle": {
     "message": "Μονοί",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackLink": {
+    "message": "Αναφορά προβλήματος",
+    "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Σχόλια",
+    "description": "Sidebar header title while the feedback screen is open, replacing ytSettingsTitle."
+  },
+  "ytFeedbackIntro": {
+    "message": "Πες μας τι χάλασε ή τι θα άλλαζες. Τα διαβάζουμε όλα.",
+    "description": "One line of reassurance shown above the feedback message box."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "Email για απάντηση",
+    "description": "Label above the optional email field on the feedback screen."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "Email (προαιρετικό, μόνο αν θέλεις απάντηση)",
+    "description": "Placeholder inside the optional email field, clarifying it's only needed for a reply."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Ρυθμίσεις",
+    "description": "Back chip on the feedback screen that returns to settings."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "Απομένουν {n} χαρακτήρες",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

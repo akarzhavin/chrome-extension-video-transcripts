@@ -167,6 +167,30 @@
     "message": "Налаштування",
     "description": "Sidebar header title while the settings panel is open."
   },
+  "ytFeedbackLink": {
+    "message": "Повідомити про проблему",
+    "description": "Quiet link at the bottom of the settings panel; opens the feedback screen."
+  },
+  "ytFeedbackTitle": {
+    "message": "Зворотний зв'язок",
+    "description": "Sidebar header title while the feedback screen is open."
+  },
+  "ytFeedbackIntro": {
+    "message": "Розкажіть, що зламалося або що б ви змінили. Ми читаємо все.",
+    "description": "Intro line at the top of the feedback screen."
+  },
+  "ytFeedbackEmailLabel": {
+    "message": "Адреса для відповіді",
+    "description": "Label for the optional email field, shown only to signed-out users."
+  },
+  "ytFeedbackEmailHint": {
+    "message": "Email (необов'язково, якщо потрібна відповідь)",
+    "description": "Placeholder inside the optional email field on the feedback screen."
+  },
+  "ytFeedbackBackToSettings": {
+    "message": "Повернутися до налаштувань",
+    "description": "Button shown after feedback is sent; returns to the settings panel."
+  },
   "ytRateButton": {
     "message": "Оцінити",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
@@ -322,5 +346,9 @@
   "ytModeSingle": {
     "message": "Одинарні",
     "description": "Reading mode that shows only the original-language subtitles. Sits beside ytModeDual and ytModeGuess; keep it one short word."
+  },
+  "ytFeedbackCharsLeft": {
+    "message": "Залишилось символів: {n}",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
   }
 }

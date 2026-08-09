@@ -1,4 +1,5 @@
 import { msg as i18nMsg } from '../i18n';
+import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feedback';
 
 const PILL_ID = 'lingogram-quick-add-pill';
 const TOAST_ID = 'lingogram-quick-add-toast';
@@ -466,36 +467,8 @@ function renderRateAskStep(card: HTMLElement, url: string): void {
     );
 }
 
-// Firestore counts UTF-8 BYTES, while a textarea's maxLength counts UTF-16
-// code units — so a 2000-char Russian message is 4000 bytes and would be
-// silently halved on send. Clamp on the real budget instead, and do it here
-// rather than importing the auth module's truncateBytes: that would pull the
-// whole Firestore/token stack into the content bundle for one helper.
-const MAX_FEEDBACK_BYTES = __LIMIT_MAX_FEEDBACK_TEXT_BYTES__;
-
-function utf8Len(s: string): number {
-    return new TextEncoder().encode(s).length;
-}
-
-/** Longest prefix of `s` that fits in `maxBytes`, never splitting a surrogate pair. */
-function clampToBytes(s: string, maxBytes: number): string {
-    if (utf8Len(s) <= maxBytes) return s;
-    let lo = 0;
-    let hi = s.length;
-    while (lo < hi) {
-        const mid = (lo + hi + 1) >>> 1;
-        if (utf8Len(s.slice(0, mid)) <= maxBytes) lo = mid;
-        else hi = mid - 1;
-    }
-    // Step back off a lone high surrogate — TextEncoder turns it into U+FFFD
-    // (3 bytes), which the search above would otherwise accept as valid.
-    while (lo > 0) {
-        const code = s.charCodeAt(lo - 1);
-        if (code >= 0xd800 && code <= 0xdbff) lo--;
-        else break;
-    }
-    return s.slice(0, lo);
-}
+// The byte budget, the clamp and the send call live in ../feedback — the
+// sidebar's feedback screen shares them.
 
 // Shown for two seconds, then the card closes itself. Used by both endings.
 function renderRateClosing(card: HTMLElement, message: string): void {
@@ -564,17 +537,9 @@ function renderRateFeedbackStep(card: HTMLElement): void {
         if (!text) return;
         send.disabled = true;
         send.textContent = i18nMsg('ytRateSending', 'Sending…');
-        try {
-            const res = await sendMessage<{ ok: boolean }>({
-                action: 'SEND_FEEDBACK',
-                text,
-                site: location.hostname,
-                version: chrome.runtime.getManifest().version,
-                locale: chrome.i18n?.getUILanguage?.() ?? '',
-            });
-            if (!res?.ok) throw new Error('send failed');
+        if (await sendFeedback(text)) {
             renderRateClosing(card, i18nMsg('ytRateFeedbackSent', 'Thank you, this really helps.'));
-        } catch {
+        } else {
             // Don't make the user retype: keep the text, let them try again.
             send.disabled = false;
             send.textContent = i18nMsg('ytRateSend', 'Send');
