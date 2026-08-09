@@ -130,8 +130,14 @@ export function backoffMs(
 /**
  * Opens after a rate-limit exhaustion and stays open for a growing window, so
  * repeated "Search again" clicks cannot keep hammering an endpoint that has
- * already refused us. Global rather than per-URL: YouTube throttles the client,
- * so a 429 on one track predicts a 429 on the next.
+ * already refused us.
+ *
+ * Scope: translation (`tlang=`) requests only — plain track requests skip the
+ * breaker entirely (FetchDeps.breaker is optional). Machine translation is the
+ * expensive operation YouTube actually throttles; stored tracks kept serving
+ * with 200s while tlang answered 429 in the field, and gating them on a tlang
+ * 429 turned a quiet "translation limited" notice into a full "no subtitles"
+ * banner over a track YouTube was happy to serve.
  *
  * Deliberately in-memory and per-tab — no persistence, matching the decision
  * not to cache anything about timedtext across sessions.
@@ -174,7 +180,19 @@ export interface FetchDeps {
     fetchImpl: (url: string, init: RequestInit) => Promise<Response>;
     /** Must resolve early when the signal aborts, or aborting only cuts the network leg. */
     sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
-    breaker: RateLimitBreaker;
+    /**
+     * Omit for requests YouTube doesn't throttle (plain stored tracks): they
+     * then neither consult nor trip the breaker. See RateLimitBreaker's scope
+     * note.
+     */
+    breaker?: RateLimitBreaker;
+    /**
+     * Cap on network attempts for this call; defaults to MAX_ATTEMPTS. 1 turns
+     * the call into a probe — a single request with no retry burst, used by the
+     * automatic post-cooldown retry so it cannot worsen the very rate limiting
+     * it is checking on.
+     */
+    maxAttempts?: number;
     rand?: () => number;
     now?: () => number;
 }
@@ -194,9 +212,16 @@ export async function fetchTimedText(
     deps: FetchDeps,
     signal?: AbortSignal,
 ): Promise<VttOutcome> {
-    const { fetchImpl, sleep, breaker, rand = Math.random, now = Date.now } = deps;
+    const {
+        fetchImpl,
+        sleep,
+        breaker,
+        maxAttempts = MAX_ATTEMPTS,
+        rand = Math.random,
+        now = Date.now,
+    } = deps;
 
-    const cooling = breaker.remainingMs();
+    const cooling = breaker?.remainingMs() ?? 0;
     if (cooling > 0) {
         return { ok: false, text: '', failure: 'cooldown', retryAfterMs: cooling, attempts: 0 };
     }
@@ -209,7 +234,7 @@ export async function fetchTimedText(
     let emptyAnswers = 0;
     let sawRateLimit = false;
 
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         retryAfterMs = undefined;
         try {
             const res = await fetchImpl(url, { credentials: 'include', signal });
@@ -220,15 +245,15 @@ export async function fetchTimedText(
                 const text = await res.text();
                 const cls = classifyStatus(res.status, isUsableResponse(text));
                 if (!cls) {
-                    breaker.reset();
+                    breaker?.reset();
                     return { ok: true, text, status: res.status, attempts };
                 }
                 // An empty track may just not be ready yet — give it a couple of
                 // cheap re-asks before calling it "not offered". See EMPTY_RETRIES.
-                if (++emptyAnswers > EMPTY_RETRIES || attempt >= MAX_ATTEMPTS) {
+                if (++emptyAnswers > EMPTY_RETRIES || attempt >= maxAttempts) {
                     return { ok: false, text: '', failure: cls, status: res.status, attempts };
                 }
-                breaker.reset(); // a 200 is not a throttle, whatever it contains
+                breaker?.reset(); // a 200 is not a throttle, whatever it contains
                 await sleep(EMPTY_RETRY_DELAY_MS, signal);
                 if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
                 continue;
@@ -254,7 +279,7 @@ export async function fetchTimedText(
         if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
         // No sleep after the final attempt — the old loop always slept, wasting
         // over a second before reporting a failure the user was waiting on.
-        if (attempt < MAX_ATTEMPTS) {
+        if (attempt < maxAttempts) {
             await sleep(retryAfterMs ?? backoffMs(attempt, rand), signal);
             if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
         }
@@ -265,8 +290,8 @@ export async function fetchTimedText(
     // closed and let the next "Search again" fire a full fresh burst at an
     // endpoint that just refused us three times.
     if (sawRateLimit) {
-        breaker.trip(retryAfterMs);
-        retryAfterMs = breaker.remainingMs() || retryAfterMs;
+        breaker?.trip(retryAfterMs);
+        retryAfterMs = breaker?.remainingMs() || retryAfterMs;
         failure = 'rate-limited';
     }
     return { ok: false, text: '', failure, status, retryAfterMs, attempts };

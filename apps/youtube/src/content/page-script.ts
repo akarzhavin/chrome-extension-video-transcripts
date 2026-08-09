@@ -358,9 +358,12 @@ function installYouTubeHook() {
         return u.toString();
     }
 
-    // Rate limiting is applied per client, so one breaker covers every track:
-    // a 429 on one predicts a 429 on the next. Lives here because this is the
-    // only place that can actually decline to send a request.
+    // One breaker for every TRANSLATION track: machine translation is what
+    // YouTube actually rate limits, and a tlang 429 predicts the next tlang
+    // 429. Plain stored tracks bypass it — they kept serving 200s while tlang
+    // answered 429, and gating them here escalated a missing translation into
+    // a fully empty panel. Lives here because this is the only place that can
+    // actually decline to send a request.
     const breaker = new RateLimitBreaker();
 
     // Duplicate YT_FETCH_VTT messages are easy to provoke (navigation races,
@@ -389,17 +392,28 @@ function installYouTubeHook() {
         });
     }
 
-    function fetchDeduped(url: string, signal: AbortSignal): Promise<VttOutcome> {
+    function fetchDeduped(
+        url: string,
+        signal: AbortSignal,
+        opts: { translation: boolean; probe: boolean },
+    ): Promise<VttOutcome> {
         const existing = inFlightFetch.get(url);
         if (existing) {
             console.log(TAG, 'reusing in-flight request');
             return existing;
         }
-        const p = fetchTimedText(url, { fetchImpl: timedTextFetch, sleep, breaker }, signal).finally(
-            () => {
-                inFlightFetch.delete(url);
+        const p = fetchTimedText(
+            url,
+            {
+                fetchImpl: timedTextFetch,
+                sleep,
+                breaker: opts.translation ? breaker : undefined,
+                maxAttempts: opts.probe ? 1 : undefined,
             },
-        );
+            signal,
+        ).finally(() => {
+            inFlightFetch.delete(url);
+        });
         inFlightFetch.set(url, p);
         return p;
     }
@@ -408,7 +422,13 @@ function installYouTubeHook() {
         window.postMessage({ type: 'YT_VTT_RESULT', ...msg } satisfies YtVttResultMessage, '*');
     }
 
-    async function fetchVtt(reqKey: string, baseUrl: string, videoId: string, tlang?: string): Promise<void> {
+    async function fetchVtt(
+        reqKey: string,
+        baseUrl: string,
+        videoId: string,
+        tlang?: string,
+        probe?: boolean,
+    ): Promise<void> {
         const signal = navAbort.signal;
         const pot = await ensurePot(videoId);
         if (!pot) {
@@ -419,7 +439,7 @@ function installYouTubeHook() {
         // same track produce an identical URL, which is exactly what we want to
         // collapse. The key isn't known until ensurePot resolves, hence here.
         const url = buildUrl(baseUrl, pot, tlang);
-        const outcome = await fetchDeduped(url, signal);
+        const outcome = await fetchDeduped(url, signal, { translation: !!tlang, probe: !!probe });
 
         if (outcome.ok) {
             console.log(TAG, 'fetched', outcome.text.length, 'bytes for', reqKey,
@@ -474,7 +494,7 @@ function installYouTubeHook() {
             typeof data.baseUrl === 'string' &&
             typeof data.videoId === 'string'
         ) {
-            fetchVtt(data.url, data.baseUrl, data.videoId, data.tlang);
+            fetchVtt(data.url, data.baseUrl, data.videoId, data.tlang, data.probe === true);
         }
     });
 

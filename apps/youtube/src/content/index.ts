@@ -8,7 +8,7 @@ import {
     setI18nOverride,
     Subtitle,
 } from '@video-transcripts/shared';
-import { BaseVttApp, SIDEBAR_CHROME_CSS } from './app-base';
+import { BaseVttApp, ReprocessOptions, SIDEBAR_CHROME_CSS } from './app-base';
 import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
 import type { YtVttResultMessage } from './timedtext-fetch';
@@ -92,8 +92,8 @@ class YouTubeVttApp extends BaseVttApp {
         return this.detector.getVideoIdFromUrl();
     }
 
-    reprocessCurrentVideo(): void {
-        this.detector.reprocessCurrentVideo();
+    reprocessCurrentVideo(opts?: ReprocessOptions): void {
+        this.detector.reprocessCurrentVideo(opts);
     }
 
     getOverlayParent(): HTMLElement | null {
@@ -133,11 +133,13 @@ class YouTubeVttApp extends BaseVttApp {
     }
 
     // ── YouTube caption fetch protocol ──────────────────────────────────────
-    requestVtt(req: TrackRequest, videoId: string): void {
+    // `probe` = single-attempt fetch, no retry burst (the unattended
+    // post-cooldown retry; see ReprocessOptions.probe).
+    requestVtt(req: TrackRequest, videoId: string, probe = false): void {
         this.pendingRequests.set(req.key, req.name);
-        console.log('[YT-VTT] FETCH_VTT ->', req.name);
+        console.log('[YT-VTT] FETCH_VTT ->', req.name, probe ? '(probe)' : '');
         window.postMessage(
-            { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang },
+            { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang, probe },
             '*',
         );
     }
@@ -509,6 +511,10 @@ class YouTubeCaptionDetector {
     app: YouTubeVttApp;
     currentVideoId: string | null = null;
     captionsLoadedForVideo: string | null = null;
+    // Set by an auto-retry reprocess; the next handleCaptionTracks fetches with
+    // single-attempt probes. Consumed (or dropped on a video change) there —
+    // the flag must not leak onto an unrelated later load.
+    probeNextLoad = false;
 
     constructor(app: YouTubeVttApp) {
         this.app = app;
@@ -560,6 +566,7 @@ class YouTubeCaptionDetector {
         if (!id || id === this.currentVideoId) return;
         this.currentVideoId = id;
         this.captionsLoadedForVideo = null;
+        this.probeNextLoad = false;
         this.app.resetNoSubsRetries();
         this.app.resetForNewVideo();
         window.postMessage({ type: 'YT_QUERY_CAPTIONS' }, '*');
@@ -574,12 +581,15 @@ class YouTubeCaptionDetector {
         if (videoId !== this.currentVideoId) {
             this.currentVideoId = videoId;
             this.captionsLoadedForVideo = null;
+            this.probeNextLoad = false; // armed for a retry, not for a new video
             this.app.resetNoSubsRetries();
             this.app.resetForNewVideo();
         }
 
         if (this.captionsLoadedForVideo === videoId) return;
         this.captionsLoadedForVideo = videoId;
+        const probe = this.probeNextLoad;
+        this.probeNextLoad = false;
 
         console.log('[YT-VTT] caption tracks for', videoId, tracks.map((t) => t.lang));
 
@@ -591,8 +601,14 @@ class YouTubeCaptionDetector {
             return;
         }
 
-        const requests = this.buildTrackRequests(tracks, videoId);
-        requests.forEach((req) => this.app.requestVtt(req, videoId));
+        // A track that's already loaded (retries preserve them) needs no
+        // re-fetch: re-asking would spend network on subtitles the user is
+        // already reading — and during a throttle episode, extra requests are
+        // exactly what we're rationing.
+        const requests = this.buildTrackRequests(tracks, videoId).filter(
+            (req) => !this.app.state.tracks.some((track) => track.name === req.name),
+        );
+        requests.forEach((req) => this.app.requestVtt(req, videoId, probe));
     }
 
     handleNoCaptions(videoId: string): void {
@@ -603,9 +619,10 @@ class YouTubeCaptionDetector {
         this.app.declareNoSubtitles();
     }
 
-    reprocessCurrentVideo(): void {
+    reprocessCurrentVideo(opts: ReprocessOptions = {}): void {
         this.captionsLoadedForVideo = null;
-        this.app.resetForNewVideo();
+        this.probeNextLoad = !!opts.probe;
+        this.app.resetForNewVideo({ preserveTracks: opts.preserveTracks });
         window.postMessage({ type: 'YT_QUERY_CAPTIONS' }, '*');
     }
 
