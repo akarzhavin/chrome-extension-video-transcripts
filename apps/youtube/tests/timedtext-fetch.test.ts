@@ -32,7 +32,7 @@ const makeSleep = (impl: (ms: number, signal?: AbortSignal) => Promise<void> = a
 function makeDeps(
     responses: Array<ReturnType<typeof response> | Error>,
     overrides: Partial<FetchDeps> = {},
-): FetchDeps & { fetchImpl: jest.Mock; sleep: Sleep } {
+): FetchDeps & { fetchImpl: jest.Mock; sleep: Sleep; breaker: RateLimitBreaker } {
     const queue = [...responses];
     const fetchImpl = jest.fn(async () => {
         const next = queue.shift() ?? responses[responses.length - 1];
@@ -45,7 +45,7 @@ function makeDeps(
         breaker: new RateLimitBreaker(),
         rand: () => 0.5,
         ...overrides,
-    } as FetchDeps & { fetchImpl: jest.Mock; sleep: Sleep };
+    } as FetchDeps & { fetchImpl: jest.Mock; sleep: Sleep; breaker: RateLimitBreaker };
 }
 
 describe('isUsableResponse', () => {
@@ -297,5 +297,46 @@ describe('fetchTimedText', () => {
         expect(out).toMatchObject({ ok: false, failure: 'cooldown', attempts: 0 });
         expect(out.retryAfterMs).toBeGreaterThan(0);
         expect(deps.fetchImpl).not.toHaveBeenCalled();
+    });
+
+    // Plain stored tracks pass no breaker at all: YouTube throttles machine
+    // translation, and stored tracks kept serving 200s while tlang answered
+    // 429 — a tlang cooldown must not block the track that still works.
+    test('without a breaker, a request is never refused by a cooldown', async () => {
+        const deps = makeDeps([response(200, GOOD_BODY)], { breaker: undefined });
+        const out = await fetchTimedText('u', deps);
+        expect(out).toMatchObject({ ok: true, text: GOOD_BODY, attempts: 1 });
+    });
+
+    test('without a breaker, a 429 run still reports rate-limited and finishes cleanly', async () => {
+        const deps = makeDeps([response(429, '', { 'Retry-After': '2' })], { breaker: undefined });
+        const out = await fetchTimedText('u', deps);
+        expect(out).toMatchObject({ ok: false, failure: 'rate-limited', attempts: MAX_ATTEMPTS });
+        // The Retry-After survives even with no breaker to stretch it.
+        expect(out.retryAfterMs).toBe(2000);
+    });
+
+    // The unattended post-cooldown probe: one request, no burst — a retry the
+    // user didn't ask for must not hand YouTube fresh reasons to keep limiting.
+    test('maxAttempts: 1 sends a single probe and never sleeps', async () => {
+        const deps = makeDeps([response(429)], { maxAttempts: 1 });
+        const out = await fetchTimedText('u', deps);
+        expect(out).toMatchObject({ ok: false, failure: 'rate-limited', attempts: 1 });
+        expect(deps.fetchImpl).toHaveBeenCalledTimes(1);
+        expect(deps.sleep).not.toHaveBeenCalled();
+        // A refused probe still re-opens the breaker for the next window.
+        expect(deps.breaker.isOpen()).toBe(true);
+    });
+
+    test('a successful probe resets the breaker escalation', async () => {
+        let clock = 0;
+        const breaker = new RateLimitBreaker(() => clock);
+        const deps = makeDeps([response(200, GOOD_BODY)], { maxAttempts: 1, breaker });
+        breaker.trip(); // 30s window
+        clock += 30_000; // window elapsed — the probe is allowed through
+        const out = await fetchTimedText('u', deps);
+        expect(out).toMatchObject({ ok: true, attempts: 1 });
+        breaker.trip(); // a later throttle starts a fresh episode…
+        expect(breaker.remainingMs()).toBe(30_000); // …not the escalated 60s step
     });
 });

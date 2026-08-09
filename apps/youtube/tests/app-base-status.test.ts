@@ -15,12 +15,13 @@
     },
 };
 
-import { BaseVttApp } from '../src/content/app-base';
+import { AUTO_PROBE_LIMIT, BaseVttApp, type ReprocessOptions } from '../src/content/app-base';
 import type { Subtitle } from '@video-transcripts/shared';
 
 class TestApp extends BaseVttApp {
     videoId: string | null = 'vid1';
     reprocessed = 0;
+    reprocessCalls: ReprocessOptions[] = [];
 
     constructor() {
         super();
@@ -33,8 +34,11 @@ class TestApp extends BaseVttApp {
         return null;
     }
     seekVideo(): void {}
-    reprocessCurrentVideo(): void {
+    // Mirrors the real YouTube adapter: a retry preserves loaded tracks.
+    reprocessCurrentVideo(opts: ReprocessOptions = {}): void {
         this.reprocessed++;
+        this.reprocessCalls.push(opts);
+        this.resetForNewVideo({ preserveTracks: opts.preserveTracks });
     }
     startSite(): void {}
 }
@@ -371,5 +375,121 @@ describe('rate-limited subtitle failures', () => {
         app.pendingRequests.set('vid1:Russian', 'Russian');
         app.noteTrackFailure('English', { failure: 'rate-limited', retryAfterMs: 30_000 });
         expect(banner()).toBeNull();
+    });
+});
+
+// A retry exists to fill in what's missing. It used to run the full new-video
+// reset first, so clicking ↻ during a cooldown wiped the playing track, the
+// breaker refused the refetch, and the user traded working subtitles for the
+// full "limiting requests" banner — without one request being sent.
+describe('retry preserves loaded tracks', () => {
+    test('clicking ↻ during a cooldown keeps the playing track and stays quiet', () => {
+        const app = makeApp();
+        app.addParsedTrack('English', [sub('hello')]);
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 30_000 });
+
+        (notice()!.querySelector('button') as HTMLButtonElement).click();
+
+        expect(app.reprocessed).toBe(1);
+        expect(app.state.tracks).toHaveLength(1); // still playing
+        expect(banner()).toBeNull(); // no "limiting requests" takeover
+    });
+
+    test('a manual retry keeps tracks; only an auto retry downgrades to a probe', () => {
+        const app = makeApp();
+        app.retrySubtitleSearch();
+        app.retrySubtitleSearch({ auto: true });
+
+        expect(app.reprocessCalls[0]).toMatchObject({ preserveTracks: true, probe: undefined });
+        expect(app.reprocessCalls[1]).toMatchObject({ preserveTracks: true, probe: true });
+        // Unattended retries don't count toward the "Reload page" escalation.
+        expect(app.noSubsRetries).toBe(1);
+    });
+
+    test('a genuine video change still starts from scratch', () => {
+        const app = makeApp();
+        app.addParsedTrack('English', [sub('hello')]);
+        app.resetForNewVideo();
+        expect(app.state.tracks).toHaveLength(0);
+    });
+});
+
+// The user's observed loop — banner, wait ~30s, click, subtitles load — was the
+// cooldown expiring with nobody to press the button. Expiry now fires a single
+// unattended probe, a bounded number of times, so the common short throttle
+// recovers by itself without hammering an endpoint that may still refuse.
+describe('auto probe after the cooldown expires', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    test('the expiring banner cooldown fires one unattended probe', () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 3_000 });
+        expect(app.reprocessed).toBe(0);
+
+        jest.advanceTimersByTime(4_000);
+
+        expect(app.reprocessed).toBe(1);
+        expect(app.reprocessCalls[0]).toMatchObject({ probe: true });
+        expect(app.noSubsRetries).toBe(0);
+    });
+
+    test('a throttled translation retries itself when the wait ends, keeping the original', () => {
+        const app = makeApp();
+        app.addParsedTrack('English', [sub('hello')]);
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 2_000 });
+
+        jest.advanceTimersByTime(3_000);
+
+        expect(app.reprocessed).toBe(1);
+        expect(app.state.tracks).toHaveLength(1);
+    });
+
+    // addParsedTrack clears the cooldown tick as part of its cleanup, so the
+    // arming has to survive the "failure first, working track second" ordering.
+    test('the probe also arms when the failure lands before the working track', () => {
+        const app = makeApp();
+        app.pendingRequests.set('vid1:English', 'English');
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 2_000 });
+        app.addParsedTrack('English', [sub('hello')]);
+
+        jest.advanceTimersByTime(3_000);
+
+        expect(app.reprocessed).toBe(1);
+    });
+
+    test('unattended probes stop at the cap; after that recovery is manual', () => {
+        const app = makeApp();
+        for (let i = 0; i < AUTO_PROBE_LIMIT + 2; i++) {
+            app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 1_000 });
+            jest.advanceTimersByTime(2_000);
+        }
+
+        expect(app.reprocessed).toBe(AUTO_PROBE_LIMIT);
+        // The user still has a move: the banner is back with a live button.
+        expect(bannerText()).toContain('limiting requests');
+        const [btn] = actions();
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('a full recovery ends the episode and restores the probe budget', () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 1_000 });
+        jest.advanceTimersByTime(2_000);
+        expect(app.autoProbes).toBe(1);
+
+        app.addParsedTrack('English', [sub('hello')]);
+        app.addParsedTrack('Russian', [sub('привет')]);
+        expect(app.autoProbes).toBe(0);
+    });
+
+    test('a new video restores the probe budget too', () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', retryAfterMs: 1_000 });
+        jest.advanceTimersByTime(2_000);
+        expect(app.autoProbes).toBe(1);
+
+        app.resetNoSubsRetries();
+        expect(app.autoProbes).toBe(0);
     });
 });

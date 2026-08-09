@@ -22,6 +22,33 @@ export interface StatusAction {
     disabled?: boolean;
 }
 
+/** How a reprocessCurrentVideo() run should differ from a full video change. */
+export interface ReprocessOptions {
+    /**
+     * Keep already-loaded tracks (and the user's guess progress) instead of
+     * wiping state. Set on every retry: a retry exists to fill in what's
+     * missing, and clearing a playing track to re-ask for it traded working
+     * subtitles for an empty panel whenever the refetch was refused.
+     */
+    preserveTracks?: boolean;
+    /**
+     * Fetch with a single attempt instead of the full retry burst. Set by the
+     * automatic post-cooldown retry: an unattended probe against an endpoint
+     * that recently throttled us must not fire MAX_ATTEMPTS requests and give
+     * YouTube fresh reasons to keep the limit up.
+     */
+    probe?: boolean;
+}
+
+/**
+ * How many times an expired throttle cooldown may auto-retry unattended before
+ * recovery goes back to being manual-only. Two probes ride the breaker's
+ * escalating windows (~30s, then ~60s) — enough to pick up the common short
+ * throttle without a click, few enough to stay polite when the limit is real
+ * and long.
+ */
+export const AUTO_PROBE_LIMIT = 2;
+
 // Localized UI string with an English fallback. Delegates to the shared helper
 // (honors any demo override, then chrome.i18n, then the fallback).
 function t(key: string, fallback: string): string {
@@ -192,6 +219,9 @@ export abstract class BaseVttApp implements AppInterface {
     cooldownUntil: number = 0;
     // Ticks the cooldown countdown in the banner while it runs.
     cooldownTimer: number | null = null;
+    // Unattended retries fired for the current throttle episode; capped at
+    // AUTO_PROBE_LIMIT. Reset when a video changes or everything loads.
+    autoProbes: number = 0;
 
     constructor() {
         this.state = new AppState();
@@ -206,7 +236,7 @@ export abstract class BaseVttApp implements AppInterface {
     /** Move playback to `time` seconds. */
     abstract seekVideo(time: number): void;
     /** Re-discover and re-fetch caption tracks for the current video. */
-    abstract reprocessCurrentVideo(): void;
+    abstract reprocessCurrentVideo(opts?: ReprocessOptions): void;
     /** Start site-specific caption detection (called once, after init()). */
     abstract startSite(): void;
     /** Whether an ad is currently playing (suppresses highlight/seek). */
@@ -512,9 +542,31 @@ export abstract class BaseVttApp implements AppInterface {
 
     // "Search again" handler: remember that the user retried (so the next empty
     // result can escalate to a reload prompt) and re-run site detection.
-    retrySubtitleSearch(): void {
-        this.noSubsRetries++;
-        this.reprocessCurrentVideo();
+    // Always preserveTracks — a retry fills in what's missing; it must never
+    // trade a playing track for an empty panel. Auto-retries (the post-cooldown
+    // probe) don't count toward the reload-prompt escalation: that prompt is
+    // about what the USER has already tried.
+    retrySubtitleSearch(opts: { auto?: boolean } = {}): void {
+        if (!opts.auto) this.noSubsRetries++;
+        this.reprocessCurrentVideo({ preserveTracks: true, probe: opts.auto });
+    }
+
+    /**
+     * Fire one unattended retry now that the cooldown expired, if the budget
+     * allows. Returns whether a probe was launched. Deliberately conservative —
+     * the user's worry is real: every request sent into an active limit is
+     * fresh evidence for YouTube to keep throttling this client. So a probe is
+     * a single attempt (no burst), only ever fired after the breaker's window
+     * has fully elapsed, and only AUTO_PROBE_LIMIT times per episode; after
+     * that the retry goes back to being a human decision.
+     */
+    maybeAutoProbe(): boolean {
+        if (this.autoProbes >= AUTO_PROBE_LIMIT) return false;
+        if (!this.isThrottled()) return false;
+        if (!this.langPrefs || this.getVideoId() === null) return false;
+        this.autoProbes++;
+        this.retrySubtitleSearch({ auto: true });
+        return true;
     }
 
     // Emergency "Reload page" handler. The banner copy qualifies the click
@@ -558,14 +610,23 @@ export abstract class BaseVttApp implements AppInterface {
     }
 
     // Re-render the banner once a second so the cooldown counts down, and stop
-    // as soon as it expires (that last render swaps in a live "Search again").
+    // as soon as it expires. On expiry, first offer the moment to the auto
+    // probe — the user's two "wait ~30s, click, it loads" rounds were exactly
+    // this timer reaching zero with nobody to press the button. If the probe
+    // budget is spent, the last render swaps in a live "Search again" instead.
+    // The partial notice (tracks playing) is deliberately NOT re-rendered every
+    // tick: it shows no countdown, so each rebuild would only flicker its
+    // tooltip out from under the cursor.
     scheduleCooldownTick(): void {
         if (this.cooldownTimer !== null) return;
         this.cooldownTimer = window.setInterval(() => {
             const expired = this.cooldownRemainingMs() <= 0;
-            if (expired) this.clearCooldownTick();
+            if (expired) {
+                this.clearCooldownTick();
+                if (this.maybeAutoProbe()) return; // reprocess re-renders everything
+            }
             if (this.state.tracks.length === 0) this.declareNoSubtitles();
-            else this.updatePartialFailureNotice();
+            else if (expired) this.updatePartialFailureNotice();
             this.ui.refresh();
         }, 1000);
     }
@@ -698,10 +759,20 @@ export abstract class BaseVttApp implements AppInterface {
         // case this feature exists for — one track lands, the other is
         // throttled — zeroing it here would show a live retry button while the
         // page-script breaker is still open, so the click would do nothing.
-        if (this.trackFailures.size === 0) this.cooldownUntil = 0;
+        if (this.trackFailures.size === 0) {
+            this.cooldownUntil = 0;
+            this.autoProbes = 0; // full recovery ends the throttle episode
+        }
         // The other half may still be missing, so re-evaluate rather than
         // blindly clearing: the notice must survive a partial recovery.
         this.updatePartialFailureNotice();
+        // Re-arm the auto-probe tick when a throttled half is still missing:
+        // clearNoSubtitlesTimer() above just killed it, and without this the
+        // probe would only fire when the failure landed AFTER the working
+        // track (evaluateSubtitleOutcome arms the other ordering).
+        if (this.cooldownRemainingMs() > 0 && this.autoProbes < AUTO_PROBE_LIMIT) {
+            this.scheduleCooldownTick();
+        }
         this.ui.refresh();
     }
 
@@ -805,10 +876,12 @@ export abstract class BaseVttApp implements AppInterface {
         label.textContent = text;
         el.appendChild(label);
 
-        // Retry is manual and always available when it could help — including
-        // during the cooldown. The breaker still refuses the network call, so
-        // a premature click costs nothing; taking the button away just left
-        // the user with no move at all.
+        // Retry is always available when it could help — including during the
+        // cooldown, when the breaker will refuse the network call. A premature
+        // click is harmless BECAUSE the retry preserves loaded tracks (see
+        // retrySubtitleSearch): it used to wipe the playing track first, so
+        // clicking this during a cooldown swapped working subtitles for the
+        // full "limiting requests" banner without a single request being sent.
         if (this.isRecoverableFailure()) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -880,6 +953,13 @@ export abstract class BaseVttApp implements AppInterface {
     evaluateSubtitleOutcome(): void {
         if (this.state.tracks.length > 0) {
             this.updatePartialFailureNotice();
+            // The banner path arms the cooldown tick for its countdown; the
+            // partial notice shows none, so arm it here purely so the auto
+            // probe can fire at expiry. Skip it once the budget is spent —
+            // nothing would happen at zero, so the interval would just spin.
+            if (this.cooldownRemainingMs() > 0 && this.autoProbes < AUTO_PROBE_LIMIT) {
+                this.scheduleCooldownTick();
+            }
             this.ui.refresh();
             return;
         }
@@ -893,17 +973,26 @@ export abstract class BaseVttApp implements AppInterface {
     // count must survive the latter so the reload fallback can appear. The count
     // is cleared on a real video change (resetNoSubsRetries) and when a track
     // finally loads (addParsedTrack).
-    resetForNewVideo(): void {
+    resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
         this.pendingRequests.clear();
         this.trackFailures.clear();
         document.getElementById('vtt-partial-notice')?.remove();
         // NOTE: cooldownUntil deliberately survives — see resetNoSubsRetries.
-        this.state.reset();
-        // New video → re-disable native captions once (if the overlay is on),
-        // even if the user had manually re-enabled them on the previous video.
-        this.ui.resetNativeSubsGuard();
+        // preserveTracks (every retry path): keep what's already playing — and
+        // the user's guess progress with it — while the missing half is
+        // re-asked for. Wiping here meant a retry refused by the breaker left
+        // the panel emptier than before the click.
+        if (!(opts.preserveTracks && this.state.tracks.length > 0)) {
+            this.state.reset();
+            // New video → re-disable native captions once (if the overlay is
+            // on), even if the user had manually re-enabled them on the
+            // previous video. Skipped when tracks survive: nothing about the
+            // video changed, so the user's CC choice stands.
+            this.ui.resetNativeSubsGuard();
+        }
         this.ui.refresh();
-        // New video → re-arm the empty-state check (clears any stale notice).
+        // Re-arm the empty-state check (clears any stale notice; a no-op
+        // banner-wise while preserved tracks are showing).
         this.scheduleNoSubtitlesCheck();
     }
 
@@ -915,6 +1004,7 @@ export abstract class BaseVttApp implements AppInterface {
     resetNoSubsRetries(): void {
         this.noSubsRetries = 0;
         this.cooldownUntil = 0;
+        this.autoProbes = 0;
     }
 
     updateHighlight(): void {
