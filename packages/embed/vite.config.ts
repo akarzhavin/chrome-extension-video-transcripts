@@ -33,6 +33,9 @@ export default defineConfig({
     __FIRESTORE_URL__: JSON.stringify('https://firestore.googleapis.com'),
     __FRONTEND_BASE_URL__: JSON.stringify('https://lingogram.ai'),
     __EXT_SOURCE__: JSON.stringify('embed'),
+    __EXT_ALT_PROJECT_ID__: JSON.stringify(''),
+    __EXT_ALT_API_KEY__: JSON.stringify(''),
+    __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(''),
     ...limitDefines(loadLingogramLimits()),
   },
   build: {

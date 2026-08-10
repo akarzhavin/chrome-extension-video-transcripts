@@ -48,7 +48,9 @@ catch { ({ chromium } = require(PW)); }
 // can't read file:// assets).
 let LOGO_DATA = '';
 try {
-    const p = join(HERE, 'icon128.png');
+    // Always the CURRENT extension icon (the promo dir's icon128.png went stale
+    // after the chameleon rebrand) — read it straight from the build.
+    const p = join(BUILD, 'src', 'assets', 'icons', 'icon128.png');
     if (existsSync(p)) LOGO_DATA = 'data:image/png;base64,' + readFileSync(p).toString('base64');
 } catch { /* end card just drops the logo */ }
 
@@ -56,7 +58,7 @@ try {
 // we fully control (no ads, no YouTube playback errors, no third-party footage in
 // the render). Served SAME-ORIGIN via request interception (below) so it isn't
 // blocked as mixed content / by CSP on the YouTube page.
-const CLIP = join(HERE, 'video', 'bbb-clip.mp4');
+const CLIP = join(HERE, 'video', arg('clip', 'bbb-clip.mp4'));   // --clip <file in video/> overrides the backdrop
 const BBB_SRC = 'https://www.youtube.com/__lingogram_backdrop.mp4';
 // Self-heal: cut the small 720p backdrop clip (meadow scene, no audio) from the
 // full Big Buck Bunny source the first time, so the repo needs only the source.
@@ -153,6 +155,27 @@ await page.evaluate((src) => {
         }
         if (v.parentElement !== player) player.appendChild(v);
         if (v.paused) v.play().catch(() => {});
+        // Bot-walled player: the wall is #error-screen — a SIBLING of
+        // #movie_player inside #player — and YT flips the blocked subtree to
+        // visibility:hidden. Hide the wall, force the player + backdrop visible
+        // (same recipe as screenshots/capture-backdrop.mjs).
+        document.querySelectorAll('#error-screen, .ytp-error, .ytp-cued-thumbnail-overlay')
+            .forEach((e) => { if (!e.contains(v)) e.style.setProperty('display', 'none', 'important'); });
+        player.style.setProperty('display', 'block', 'important');
+        player.style.setProperty('visibility', 'visible', 'important');
+        v.style.setProperty('visibility', 'visible', 'important');
+        // Promo layout: with #secondary hidden (CSS below), YouTube's own flexy
+        // sizing gives the player the freed width — just keep nudging it to
+        // recompute. (Pinning px sizes loses a fight with YT's resize JS.)
+        window.dispatchEvent(new Event('resize'));
+        // Demo-mode's white .sk-below cover was anchored while the player was
+        // still small — re-anchor it under the now-taller player each tick.
+        const pr = player.getBoundingClientRect();
+        document.querySelectorAll('#vtt-demo-noise .sk-below').forEach((e) => {
+            e.style.top = Math.round(pr.bottom + 8) + 'px';
+            e.style.left = '0px';
+            e.style.width = Math.round(pr.right + 16) + 'px';
+        });
     };
     ensure();
     if (!window.__lgBgTimer) window.__lgBgTimer = setInterval(ensure, 1000);
@@ -165,6 +188,15 @@ await page.evaluate(() => {
     const style = document.createElement('style');
     style.id = 'lg-cursor-style';
     style.textContent = `
+      /* Promo layout: no related-videos rail — the player and the panel share
+         the full frame. Sizes are pinned in px by the backdrop ensure() loop
+         (YouTube's JS sizing fights pure-CSS overrides). */
+      ytd-watch-flexy #secondary{display:none!important;}
+      ytd-watch-flexy #primary{max-width:none!important;}
+      /* demo-mode's own white skeleton column over the (now hidden) related
+         rail — built from a stale #secondary rect, would cover the wide player */
+      #vtt-demo-noise .sk-col{display:none!important;}
+      tp-yt-iron-overlay-backdrop{display:none!important;}
       #lg-cursor{position:fixed;left:0;top:0;width:30px;height:30px;z-index:${Z};
         pointer-events:none;will-change:transform;transform:translate(-100px,-100px);
         filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));}
@@ -441,7 +473,14 @@ async function revealNextWordManual(lineIndex, translation) {
         if (!main) return;
         const masked = main.querySelector('span.vtt-masked-word');
         if (masked) {
-            masked.textContent = masked.dataset.word || masked.textContent;
+            // PR #31 parks the real word in data-hidden while masked (data-word
+            // only exists once revealed) — mirror the extension's own reveal.
+            const word = masked.dataset.hidden || masked.dataset.word;
+            if (word) {
+                masked.textContent = word;
+                masked.dataset.word = word;
+                delete masked.dataset.hidden;
+            }
             masked.className = 'vtt-revealed-word';
         }
         if (!main.querySelector('span.vtt-masked-word')) {
@@ -573,38 +612,38 @@ await glideTo('#vtt-video-overlay', { ms: 850, dy: -6 });
 await sleep(1400);
 await page.evaluate(() => window.__lg.stopPlay());
 
-// 5) Open the panel's settings to reveal the controls
-await glideTo('#vtt-settings-btn', { ms: 950 });
-await clickHere();
-await sleep(700);
-
-// 6) Flip on Guess mode (active recall) — words mask over. Demo mode has no
-//    timeupdate loop, so the overlay only re-binds on refresh(): nudge the video
-//    onto the active line's timestamp first, or highlightSubtitle() resolves to
-//    "no active line" and the on-video overlay blanks out.
+// 5) Flip on Guess mode the way a real user does: one click on the Guess chip
+//    in the panel's quick-modes bar (no settings detour).
 // Grab line 1's translation while it's still in the dual list (guess mode rebuilds
 // the rows without it) — used when the manual reveal finishes.
 const line1Sub = await page.evaluate(() => document.querySelector('#vtt-list .vtt-item[data-index="1"] .vtt-sub-text')?.textContent || '');
 
-await sleep(320);
-await glideTo('#vtt-guess-btn', { ms: 720 });
+await glideTo('#vtt-qm-guess', { ms: 950 });
 await clickHere();
 await sleep(700);
 await setActiveLine(1);     // restore the line-1 highlight + refill the overlay
 await syncOverlay(1);       // (highlightSubtitle saw real video time → cleared them)
 await sleep(350);
-
-// 7) Close the settings menu so the subtitle isn't hidden behind it, then make
-//    sure the line we'll reveal sits clear of the header.
-await glideTo('#vtt-settings-btn', { ms: 650 });
-await clickHere();
-await sleep(500);
 await scrollLineIntoView(1, 70);
 
-// 8) Click ONE subtitle word-by-word to the end. The panel AND the on-video
-//    overlay un-mask together; once every word shows, the translation drops in.
-await glideTo('#vtt-list .vtt-item[data-index="1"] .vtt-main-text', { ms: 820, dx: -8 });
-for (let i = 0; i < 7; i++) { await tapVisualOnly(); await revealNextWordManual(1, line1Sub); await syncOverlay(1); await sleep(470); }
+// 6) Reveal the line word-by-word by clicking the masked words ON THE VIDEO
+//    OVERLAY (the product's own reveal affordance). The panel un-masks in sync.
+const overlayMaskCenter = () => page.evaluate(() => {
+    const s = document.querySelector('#vtt-video-overlay .vtt-masked-word');
+    if (!s) return null;
+    const b = s.getBoundingClientRect();
+    return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+});
+for (let i = 0; i < 7; i++) {
+    const c = await overlayMaskCenter();
+    if (!c) break;
+    await glide(Math.round(c.x), Math.round(c.y), i === 0 ? 900 : 420);
+    await sleep(160);
+    await tapVisualOnly();
+    await revealNextWordManual(1, line1Sub);
+    await syncOverlay(1);
+    await sleep(470);
+}
 await sleep(900);
 
 // 9) Select a word from that line and add it to Lingogram — drag-select raises
