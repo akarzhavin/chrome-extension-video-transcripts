@@ -876,24 +876,35 @@ const editionsMap = JSON.stringify(
 //   - A real destination: the demoUrl already in editions.json.
 //   - Edition-awareness that actually shows. ?ext= and the `data-ext-name` span
 //     both predate this page and always worked, but the copy they fed named no
-//     site at all, so every edition read identically. See EXT_COPY below.
+//     site at all, so every edition read identically. See EXT_SITES below.
 //   - Privacy next to the sign-in ask, where the decision is made, rather than
 //     only in the footer.
 const WELCOME_VIDEO = 't2oye9CA7Vw';
 
-// Which sites each install actually covers, keyed by editions.json slug. The
-// YouTube extension matches netflix.com too, so its visitors are Netflix
-// visitors as often as not and both names belong on the page; the first entry
-// is the site the visitor came from, and the buttons follow the same order.
+// Per-edition page shape, keyed by editions.json slug.
 //
-// Only the ORDER lives here. The names are brands, but the list that joins them
-// is not: "YouTube and Netflix" has to become "YouTube и Netflix" in Russian,
-// so the pair is assembled per locale through welcome.sitesPair below. Hardcoding
-// the English "and" here leaked it into all 41 translations.
-const EXT_SITES = {
-  youtube: ['youtube', 'netflix'],
-  netflix: ['netflix', 'youtube'],
-  rezka: ['rezka', 'youtube'],
+// `covers` and `order` are deliberately NOT the same list:
+//
+//   covers — the sites this install actually works on, named in the headline
+//     and the lede. The YouTube extension matches netflix.com too (one store
+//     listing, both sites), so its visitors are Netflix visitors as often as
+//     not and both names belong there. The HDrezka extension is a separate
+//     listing that matches hdrezka only, so naming YouTube in ITS headline
+//     would promise something the install cannot do.
+//
+//   order — the buttons, first one primary. HDrezka gets a YouTube button
+//     anyway: not because the extension works there, but because it is the
+//     one place we can guarantee a video with subtitles to check against.
+//
+// `covers` holds slugs rather than display names because the list that joins
+// them is language-specific — "YouTube and Netflix" has to become "YouTube и
+// Netflix" in Russian — so the pair is assembled per locale through
+// welcome.sitesPair. Hardcoding the English "and" here leaked it into all 41
+// translations once already.
+const EXT_PAGES = {
+  youtube: { covers: ['youtube', 'netflix'], order: ['youtube', 'netflix'] },
+  netflix: { covers: ['netflix', 'youtube'], order: ['netflix', 'youtube'] },
+  rezka: { covers: ['rezka'], order: ['rezka', 'youtube'] },
 };
 
 const welcomePage = (locale, hrefLang) => {
@@ -1016,18 +1027,31 @@ ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};
 window.__WELCOME = ${JSON.stringify({
   video: WELCOME_VIDEO,
-  // Per-slug: the site list already joined in this locale's own words, plus
-  // the button order. Joining here rather than in main.js keeps that file free
-  // of language rules — it ships once for all 42 locales.
-  copy: Object.fromEntries(Object.entries(EXT_SITES).map(([slug, order]) => [
-    slug,
-    {
-      sites: order.length > 1 && bySlug[order[1]]
-        ? t('welcome.sitesPair', { a: bySlug[order[0]].site, b: bySlug[order[1]].site })
-        : bySlug[order[0]].site,
-      order,
-    },
-  ])),
+  // Per-slug: the covered-site list already joined in this locale's own words,
+  // plus the button order. Joining here rather than in main.js keeps that file
+  // free of language rules — it ships once for all 42 locales.
+  //
+  // Every slug is resolved through editions.json and dropped if it isn't there,
+  // so removing a record from that file (which its own comment invites) drops
+  // the edition from this page instead of crashing the build.
+  copy: Object.fromEntries(
+    Object.entries(EXT_PAGES)
+      .map(([slug, { covers, order }]) => {
+        // The edition itself must exist, not just something it covers —
+        // otherwise a removed record leaves a ?ext= entry pointing at a page
+        // variant for an extension that no longer ships.
+        if (!bySlug[slug]) return null;
+        const names = covers.map((s) => bySlug[s]?.site).filter(Boolean);
+        if (names.length === 0) return null;
+        return [slug, {
+          sites: names.length > 1
+            ? t('welcome.sitesPair', { a: names[0], b: names[1] })
+            : names[0],
+          order: order.filter((s) => bySlug[s]),
+        }];
+      })
+      .filter(Boolean),
+  ),
   // Strings main.js swaps in for ?ext=. Passed from here so that file — one
   // bundle shared by all 42 locales — never holds English of its own.
   i18n: {

@@ -24,15 +24,22 @@
   // used to look up a key in the build-time __WELCOME.copy map — an unknown
   // value fails the guard and leaves the generic page standing, and never
   // reaches the DOM.
+  // hasOwnProperty, not a plain lookup: `?ext=constructor` would otherwise
+  // find a prototype member, pass the guard, and print garbage into the
+  // headline instead of falling through to the generic page.
   var wlOpens = document.getElementById('wl-opens');
-  if (wlOpens && window.__WELCOME && window.__WELCOME.copy[extSlug]) {
-    var wl = window.__WELCOME.copy[extSlug];
+  var wlCopy = window.__WELCOME && window.__WELCOME.copy;
+  if (wlOpens && wlCopy && Object.prototype.hasOwnProperty.call(wlCopy, extSlug)) {
+    var wl = wlCopy[extSlug];
 
     // Every string comes from window.__WELCOME.i18n, already translated by
     // build.mjs — this file ships one copy for all 42 locales and so must
     // never hold English of its own (same rule as the /languages/ filter).
     // `sites` is a list of brand names, so it is the one part not translated.
     var wlT = window.__WELCOME.i18n || {};
+    // Two forms of the same list: raw for the textContent sink below, and
+    // &-escaped for the innerHTML one. Escaping the textContent copy would
+    // print a literal "&amp;".
     var sites = wl.sites.replace(/&/g, '&amp;');
 
     // "Thanks for installing Lingogram" -> "... for YouTube and Netflix".
