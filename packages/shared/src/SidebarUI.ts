@@ -1,4 +1,7 @@
 import { AppState } from './AppState';
+// Content-safe half only: analytics.ts never reads the GA4 api_secret, so it is
+// safe in a bundle the page can read. analytics-bg must never be imported here.
+import { trackVia } from './analytics';
 import {
     loadPrefs,
     onPrefsChanged,
@@ -77,6 +80,7 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
+    privacy: svgIcon('<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'),
     // Speech bubble, not a warning triangle or a bug: this is an invitation to
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
@@ -338,31 +342,23 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
-        // -- Feedback entry ------------------------------------------------------
-        // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
-        // same weight as Languages and Reading mode, and this is not a setting —
-        // it's an exit for someone who is already annoyed.
-        // "Report a problem", not "Leave feedback": the point is to catch the
-        // unhappy user before they go leave a one-star review instead.
-        //
-        // Lives in a sticky footer band at the bottom of the panel rather than
-        // inline between groups. Two earlier placements failed for opposite
-        // reasons: last-child put it below the fold (Overlay appearance is long
-        // enough that the panel cuts off mid-group), and first-child left it
-        // floating in the gap above Languages, belonging to no group and
-        // aligned to neither edge. Sticky keeps it on screen at any scroll
-        // position while still reading as the end of the panel.
-        const feedbackFooter = document.createElement('div');
-        feedbackFooter.className = 'vtt-panel-footer';
+        // -- Tail rows -----------------------------------------------------------
+        // Two rows of one anatomy close the panel: the analytics opt-out (a
+        // setting, so it scrolls with the settings) and "Report a problem"
+        // (not "Leave feedback" — the point is to catch the unhappy user
+        // before they leave a one-star review instead). Neither is a
+        // buildGroup: a heading would out-shout Languages for things people
+        // touch once or never. Hairline-separated rows in the groups' icon
+        // column, same weight as each other.
+        settingsPanel.appendChild(this.buildAnalyticsToggle());
 
         const feedbackLink = document.createElement('button');
         feedbackLink.id = 'vtt-feedback-link';
         feedbackLink.type = 'button';
-        feedbackLink.className = 'vtt-feedback-link';
+        feedbackLink.className = 'vtt-panel-row vtt-feedback-link';
         feedbackLink.innerHTML = `${ICONS.feedback}<span>${msg('ytFeedbackLink', 'Report a problem')}</span>`;
         feedbackLink.addEventListener('click', () => this.openFeedbackScreen());
-        feedbackFooter.appendChild(feedbackLink);
-        settingsPanel.appendChild(feedbackFooter);
+        settingsPanel.appendChild(feedbackLink);
         this.elements = { ...this.elements, feedbackLink };
 
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
@@ -426,6 +422,71 @@ export class SidebarUI {
         head.innerHTML = `${iconSvg}<span>${title}</span><span class="vtt-group-spacer"></span>`;
         group.appendChild(head);
         return group;
+    }
+
+    /**
+     * The analytics opt-out, mirroring the one in the toolbar popup.
+     *
+     * A native checkbox rather than a styled div: it gets keyboard focus, the
+     * platform focus ring, and screen-reader semantics for free — and this is
+     * the one control in the panel where being operable matters legally, not
+     * just aesthetically.
+     *
+     * Rendered checked, then corrected once prefs resolve. Flashing "off" on a
+     * privacy control reads far worse than the reverse: a user who glances at
+     * it mid-load would think collection was already disabled.
+     */
+    private buildAnalyticsToggle(): HTMLLabelElement {
+        // Anatomy mirrors .vtt-feedback-link below it — icon, label, one line —
+        // so the footer reads as one band, not two leftovers. The state lives
+        // in a trailing mini-switch, the settings idiom for a live toggle
+        // (a checkbox here read as "form field", which this is not).
+        const label = document.createElement('label');
+        label.className = 'vtt-panel-row';
+        label.innerHTML = `${ICONS.privacy}<span class="vtt-privacy-text">${msg(
+            'ytPrivacyAnalyticsLabel',
+            'Share anonymous usage stats',
+        )}</span>`;
+
+        // The full sentence lives in the tooltip rather than a second line:
+        // the footer is a one-line-per-row band, and spelling out what is and
+        // is not collected inline would make privacy the loudest thing here.
+        // The policy carries the same wording in full.
+        label.title = msg(
+            'ytPrivacyAnalyticsHint',
+            'Counts like "subtitles loaded" and "word saved". Never your account, the videos you watch, or the words you save.',
+        );
+
+        // A real checkbox drives the switch: keyboard, focus and screen-reader
+        // semantics stay native, only the pixels are ours. It is visually
+        // hidden by CSS, and :focus-visible re-surfaces as a ring on the track.
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-analytics-toggle';
+        box.className = 'vtt-switch-input';
+        box.checked = true;
+
+        const track = document.createElement('span');
+        track.className = 'vtt-switch';
+        track.setAttribute('aria-hidden', 'true');
+
+        label.appendChild(box);
+        label.appendChild(track);
+
+        void loadPrefs().then((p) => {
+            box.checked = p.analyticsEnabled;
+        });
+        box.addEventListener('change', () => {
+            const on = box.checked;
+            // Sent BEFORE the preference is written, so this final hit still
+            // passes the gate. Opting back in isn't tracked: analytics is on
+            // for everyone by default, so that event could only ever measure
+            // re-enables. Same ordering as the popup's copy of this control.
+            if (!on) trackVia('analytics_opt_out');
+            void savePrefs({ analyticsEnabled: on });
+        });
+
+        return label;
     }
 
     // Label + select field row with a custom chevron (the select itself is

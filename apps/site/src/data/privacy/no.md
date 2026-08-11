@@ -1,3 +1,5 @@
+*Denne oversettelsen bygger på en eldre versjon av retningslinjene og inneholder ikke de siste endringene. Den engelske versjonen på https://lingogram.ai/privacy/ er den gjeldende.*
+
 # Personvernerklæring — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Ikrafttredelsesdato:** 22. juni 2026

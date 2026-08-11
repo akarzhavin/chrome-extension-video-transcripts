@@ -1,3 +1,5 @@
+*Tento překlad vychází ze starší verze zásad a neobsahuje poslední změny. Závazná je anglická verze na https://lingogram.ai/privacy/.*
+
 # Zásady ochrany osobních údajů — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Datum účinnosti:** 22. června 2026

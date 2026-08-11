@@ -24,6 +24,13 @@ const EDITIONS = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'editions.jso
 // keep serving stale css/js after a rebuild. New value every build.
 const BUST = Date.now().toString(36);
 
+// Sign-in and sign-up are functional pages, not content: they carry nothing a
+// searcher could want, and 42 localized copies of each would be 84 thin
+// near-duplicates competing with the real pages. Kept out of sitemap.xml
+// (INDEXABLE below) AND marked noindex here — a sitemap omission alone does
+// not stop indexing, since crawlers still follow the links to them.
+const NOINDEX = '<meta name="robots" content="noindex, follow">\n';
+
 const esc = (s) => String(s)
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;');
@@ -882,6 +889,13 @@ ${header(t, root)}
     <span><kbd>Shift + G</kbd> ${esc(t('welcome.keyGuess'))}</span>
     <span><kbd>Shift + O</kbd> ${esc(t('welcome.keyOverlay'))}</span>
   </div>
+  <!-- Disclosed here rather than as a fourth step: analytics is on by default,
+       so the first run is the honest moment to say so — but making it a step
+       would put a settings chore in a flow that exists to reach the first saved
+       word. Quiet line, real link. -->
+  <p class="welcome-privacy">${t('welcome.privacy', {
+      link: `<a href="${root}/privacy/">${esc(t('welcome.privacyLink'))}</a>`,
+  })}</p>
 </main>
 ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};</script>`,
@@ -995,6 +1009,7 @@ const registerPage = (locale, hrefLang) => {
     description: t('auth.register.description'),
     pathName: `${root}/register/`,
     scripts: authScripts,
+    extraHead: NOINDEX,
     body: authShell(t, root, t('auth.register.eyebrow'), `
     <h1 class="auth-title">${joinFrags(esc(t('auth.register.h1Lead')), `<span class="pop">${esc(t('auth.register.h1Pop'))}</span>`)}</h1>
     <p class="auth-sub">${esc(t('auth.register.sub'))}</p>
@@ -1021,6 +1036,7 @@ const loginPage = (locale, hrefLang) => {
     description: t('auth.login.description'),
     pathName: `${root}/login/`,
     scripts: authScripts,
+    extraHead: NOINDEX,
     body: authShell(t, root, t('auth.login.eyebrow'), `
     <h1 class="auth-title">${joinFrags(esc(t('auth.login.h1Lead')), `<span class="pop">${esc(t('auth.login.h1Pop'))}</span>`, esc(t('auth.login.h1Tail')))}</h1>
     <p class="auth-sub">${esc(t('auth.login.sub'))}</p>
@@ -1105,6 +1121,55 @@ function build() {
     write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
     write(path.join(root, '404.html'), notFoundPage(locale));
   }
+  // ---- sitemap.xml + robots.txt ----
+  //
+  // Built from the SAME hreflang maps the pages above render from, so a new
+  // locale or page kind cannot appear on disk while missing from the sitemap
+  // — the drift a hand-written sitemap guarantees at 42 locales.
+  //
+  // Each URL carries the full <xhtml:link> alternates set, which is what tells
+  // Google these 42 renders are translations rather than duplicates. That set
+  // is exactly the hrefLang map, so the two can never disagree.
+  //
+  // login/register are excluded on purpose (see NOINDEX above). 404.html is
+  // not a URL. Edition pages are English-only for now, so they get no
+  // alternates — an empty map, not a fabricated per-locale one.
+  const INDEXABLE = [
+    homeHrefLang, welcomeHrefLang, uninstallHrefLang,
+    privacyHrefLang, languagesHrefLang,
+  ];
+  const urlEntry = (loc, alternates) => `  <url>
+    <loc>${SITE.domain}${loc}</loc>
+${Object.entries(alternates).map(([tag, href]) =>
+    `    <xhtml:link rel="alternate" hreflang="${tag}" href="${SITE.domain}${href}"/>`).join('\n')}
+  </url>`;
+  const sitemapUrls = [
+    // One entry per locale per page kind: the hreflang map's values ARE the
+    // locale URLs, so iterating it needs no second source.
+    ...INDEXABLE.flatMap((alternates) =>
+      LOCALES.map(({ code }) => urlEntry(alternates[code], alternates))),
+    ...EDITIONS.editions.map((ed) => urlEntry(`/${ed.slug}/`, {})),
+  ];
+  fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${sitemapUrls.join('\n')}
+</urlset>
+`);
+  // The SPA under /app is behind auth and renders client-side — nothing there
+  // is indexable, and letting crawlers grind through it wastes crawl budget on
+  // the pages that are. login/register are deliberately NOT disallowed here:
+  // they carry noindex, and a crawler must be able to FETCH a page to read
+  // that tag. Disallowing them instead would leave Google free to index them
+  // from inbound links alone — the exact outcome the tag prevents.
+  fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *
+Allow: /
+Disallow: /app/
+
+Sitemap: ${SITE.domain}/sitemap.xml
+`);
+  console.log(`sitemap: ${sitemapUrls.length} urls`);
+
   // The header switcher's option list (src/demo/index.ts siteLocales): every
   // locale that actually has a page, sourced from i18n/ rather than
   // hardcoded, so the switcher never drifts from what LOCALES above just

@@ -57,6 +57,7 @@ describe('prefs', () => {
             overlayBottomOffset: 'medium',
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
+            analyticsEnabled: true,
         });
     });
 
@@ -73,6 +74,22 @@ describe('prefs', () => {
         p = await loadPrefs();
         expect(p.overlayBottomOffset).toBe('high');
         expect(p.overlayFontSize).toBe('large'); // earlier change preserved
+    });
+
+    test('a blob written before analyticsEnabled existed resolves to true', async () => {
+        // The "on by default, no migration" contract for installs upgrading
+        // from a version that predates the field: loadPrefs spreads the
+        // defaults first, so the absent key becomes true rather than undefined.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            displayMode: 'dual',
+            overlayEnabled: true,
+        };
+        expect((await loadPrefs()).analyticsEnabled).toBe(true);
+    });
+
+    test('an explicit opt-out survives a round trip', async () => {
+        await savePrefs({ analyticsEnabled: false });
+        expect((await loadPrefs()).analyticsEnabled).toBe(false);
     });
 
     test('savePrefs merges with existing values', async () => {
@@ -111,6 +128,7 @@ describe('prefs', () => {
             overlayBottomOffset: 'medium',
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
+            analyticsEnabled: true,
         });
     });
 

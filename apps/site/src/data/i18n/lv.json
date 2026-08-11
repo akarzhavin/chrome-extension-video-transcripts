@@ -27,7 +27,11 @@
     "clearSearch": "Notīrīt meklēšanu",
     "noMatch": "Neviena valoda neatbilst",
     "noMatchHint": "Pamēģini tās nosaukumu angliski vai divburtu kodu.",
-    "count": { "zero": "{n} valodu", "one": "{n} valoda", "other": "{n} valodas" },
+    "count": {
+      "zero": "{n} valodu",
+      "one": "{n} valoda",
+      "other": "{n} valodas"
+    },
     "region": {
       "westEurope": "Rietumeiropa un Ziemeļeiropa",
       "eastEurope": "Centrāleiropa un Austrumeiropa",
@@ -211,7 +215,9 @@
     "keyDual": "dubultie subtitri",
     "keySwap": "mainīt valodas vietām",
     "keyGuess": "uzminēšanas režīms",
-    "keyOverlay": "subtitri uz video (pārklājums)"
+    "keyOverlay": "subtitri uz video (pārklājums)",
+    "privacy": "Anonīmā lietojuma statistika ir ieslēgta, lai redzētu, kur lietotāji iestrēgst. Nekāda konta, nekādu videoklipu, nekādu saglabātu vārdu — jebkurā brīdī izslēdziet paplašinājuma logā. {link}",
+    "privacyLink": "Konfidencialitātes politika"
   },
   "uninstall": {
     "title": "Žēl, ka aizej — Lingogram",

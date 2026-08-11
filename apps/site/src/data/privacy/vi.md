@@ -1,3 +1,5 @@
+*Bản dịch này dựa trên phiên bản cũ hơn của chính sách và chưa bao gồm các thay đổi gần đây. Bản tiếng Anh tại https://lingogram.ai/privacy/ là bản có hiệu lực.*
+
 # Chính sách quyền riêng tư — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Ngày có hiệu lực:** 22 tháng 6 năm 2026

@@ -27,7 +27,10 @@
     "clearSearch": "Cancella la ricerca",
     "noMatch": "Nessuna lingua corrisponde",
     "noMatchHint": "Prova con il nome in inglese o con il codice di due lettere.",
-    "count": { "one": "{n} lingua", "other": "{n} lingue" },
+    "count": {
+      "one": "{n} lingua",
+      "other": "{n} lingue"
+    },
     "region": {
       "westEurope": "Europa occidentale e settentrionale",
       "eastEurope": "Europa centrale e orientale",
@@ -211,7 +214,9 @@
     "keyDual": "sottotitoli doppi",
     "keySwap": "scambia le lingue",
     "keyGuess": "modalità Indovina",
-    "keyOverlay": "sottotitoli sul video (overlay)"
+    "keyOverlay": "sottotitoli sul video (overlay)",
+    "privacy": "Le statistiche d’uso anonime sono attive, così vediamo dove ci si blocca. Nessun account, nessun video, nessuna parola salvata: puoi disattivarle quando vuoi dalla finestra dell’estensione. {link}",
+    "privacyLink": "Informativa sulla privacy"
   },
   "uninstall": {
     "title": "Ci dispiace vederti andare via — Lingogram",

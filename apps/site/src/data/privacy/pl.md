@@ -1,3 +1,5 @@
+*To tłumaczenie dotyczy wcześniejszej wersji polityki i nie zawiera najnowszych zmian. Wersją rozstrzygającą jest wersja angielska pod adresem https://lingogram.ai/privacy/.*
+
 # Polityka prywatności — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Data wejścia w życie:** 22 czerwca 2026

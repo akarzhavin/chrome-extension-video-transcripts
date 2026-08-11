@@ -8,11 +8,32 @@ import {
     labelForLanguage,
     shortCodeForLanguage,
     msg as i18nMsg,
+    OncePerScope,
+    platformOf,
+    type Platform,
+    trackVia,
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     Subtitle,
 } from '@video-transcripts/shared';
 import type { VttFailure } from './timedtext-fetch';
+
+/**
+ * Everything known about one failed track request. Wider than the bare
+ * VttFailure it replaced because the diagnostics events need to distinguish
+ * "YouTube throttled us, retried 4 times, asked for 30s" from "no translation
+ * exists for this pair" — outwardly identical, but fixed in completely
+ * different ways.
+ */
+export interface TrackFailureInfo {
+    failure: VttFailure;
+    status?: number;
+    attempts?: number;
+    /** Which escalation window the fetcher's breaker was on, if it opened. */
+    breakerStep?: number;
+    /** When this failure was recorded — feeds the recovery event's waited_s. */
+    at: number;
+}
 
 /** A button in the status banner. `disabled` renders it inert but readable. */
 export interface StatusAction {
@@ -207,6 +228,10 @@ export abstract class BaseVttApp implements AppInterface {
     pendingRequests: Map<string, string> = new Map();
     langPrefs: LanguagePrefs | null = null;
     noSubsTimer: number | null = null;
+    // Separate from noSubsTimer: that one only guards the all-empty case.
+    pendingTrackTimer: number | null = null;
+    /** Debounce for subtitles_loaded, so track_count counts every track. */
+    subsLoadedTimer: number | null = null;
     // How many times the user has hit "Search again" for the current no-subs
     // banner without any track showing up. Once they've retried and it's still
     // empty, we offer a page reload as the next fallback. Reset when a track
@@ -214,7 +239,10 @@ export abstract class BaseVttApp implements AppInterface {
     noSubsRetries: number = 0;
     // Why each requested track failed, keyed by display name. Lets the UI say
     // "YouTube throttled us" instead of "this video has no subtitles".
-    trackFailures: Map<string, VttFailure> = new Map();
+    // Carries the HTTP status / attempt count alongside the verdict so the
+    // diagnostics events can report *how* it failed, not just *that* it did —
+    // by the time declareNoSubtitles() runs, the original message is long gone.
+    trackFailures: Map<string, TrackFailureInfo> = new Map();
     // Absolute epoch ms until which the fetcher's rate-limit breaker is open.
     cooldownUntil: number = 0;
     // Ticks the cooldown countdown in the banner while it runs.
@@ -222,6 +250,23 @@ export abstract class BaseVttApp implements AppInterface {
     // Unattended retries fired for the current throttle episode; capped at
     // AUTO_PROBE_LIMIT. Reset when a video changes or everything loads.
     autoProbes: number = 0;
+
+    // ── analytics bookkeeping ───────────────────────────────────────────────
+    // One-shots for the per-video events. Reset from resetNoSubsRetries(), NOT
+    // resetForNewVideo(): the latter also runs inside reprocessCurrentVideo()
+    // ("Search again"), so resetting there would re-arm every event on each
+    // manual retry and report one video several times. Same line the codebase
+    // already draws for cooldownUntil.
+    analyticsOnce = new OncePerScope();
+    // Whether anything failed during this video, and when the first failure
+    // landed. Both must outlive resetForNewVideo() — which clears
+    // trackFailures — or a retry would erase the evidence that a recovery
+    // event is due, and there would be nothing to measure "waited_s" from.
+    hadFailures: boolean = false;
+    firstFailureAt: number = 0;
+    // Set by the retry paths so a recovery can say whether it was the user or
+    // the auto-probe that fixed it.
+    lastRecoveryTrigger: 'auto_probe' | 'manual_retry' | 'late_arrival' = 'late_arrival';
 
     constructor() {
         this.state = new AppState();
@@ -355,6 +400,13 @@ export abstract class BaseVttApp implements AppInterface {
         const sidebar = document.getElementById('vtt-sidebar');
         if (!sidebar || document.getElementById('vtt-lang-onboarding')) return;
 
+        // After the early return, so this counts banners actually shown rather
+        // than calls made. The gap between this and languages_configured is the
+        // first suspected funnel hole.
+        this.analyticsOnce.fire('onboarding_shown', () => {
+            trackVia('onboarding_shown', { site: platformOf(location.hostname) });
+        });
+
         const banner = document.createElement('div');
         banner.id = 'vtt-lang-onboarding';
         banner.className = 'vtt-lang-onboarding';
@@ -381,7 +433,7 @@ export abstract class BaseVttApp implements AppInterface {
             const l = learning.select.value;
             const n = native.select.value;
             if (!l || !n) return; // both required
-            void saveLanguagePrefs({ learning: l, native: n });
+            void saveLanguagePrefs({ learning: l, native: n }, 'onboarding');
         };
         learning.select.addEventListener('change', persist);
         native.select.addEventListener('change', persist);
@@ -449,6 +501,71 @@ export abstract class BaseVttApp implements AppInterface {
         }, graceMs);
     }
 
+    /**
+     * Catches the request that never answers at all.
+     *
+     * scheduleNoSubtitlesCheck() bails once anything has loaded, and
+     * trackFailures only gains an entry when a result actually comes back — so
+     * a second track whose reply is lost (a wedged page-script, a dropped
+     * postMessage) leaves the app in a silent half-loaded state: Dual is
+     * disabled, no notice explains why, and nothing is recorded. This timer is
+     * the only thing that makes that case observable.
+     */
+    schedulePendingTrackCheck(graceMs: number = 12_000): void {
+        this.clearPendingTrackTimer();
+        this.pendingTrackTimer = window.setTimeout(() => {
+            this.pendingTrackTimer = null;
+            if (this.getVideoId() === null) return;
+            // Only interesting while something IS playing and something else is
+            // still outstanding — the all-empty case is declareNoSubtitles'.
+            if (this.state.tracks.length === 0) return;
+            if (this.pendingRequests.size === 0) return;
+            for (const name of this.pendingRequests.values()) {
+                this.noteTrackFailure(name, { failure: 'timeout' });
+            }
+            this.pendingRequests.clear();
+        }, graceMs);
+    }
+
+    clearPendingTrackTimer(): void {
+        if (this.pendingTrackTimer !== null) {
+            clearTimeout(this.pendingTrackTimer);
+            this.pendingTrackTimer = null;
+        }
+    }
+
+    /**
+     * Reports subtitles_loaded once the tracks have stopped arriving.
+     *
+     * Each new track pushes the timer out, so the count reflects everything
+     * that landed rather than whatever happened to be first. Measured gap
+     * between the two tracks of a dual load is ~100ms; the window is much
+     * larger than that so a slow second track still counts, and small enough
+     * that a video abandoned early still reports.
+     *
+     * The one-shot is claimed only when the event is actually sent, so a
+     * cancelled timer (video changed mid-flight) leaves it re-armed.
+     */
+    scheduleSubtitlesLoadedReport(site: Platform, settleMs: number = 1_500): void {
+        if (this.analyticsOnce.hasFired('subtitles_loaded')) return;
+        this.clearSubsLoadedTimer();
+        this.subsLoadedTimer = window.setTimeout(() => {
+            this.subsLoadedTimer = null;
+            const count = this.state.tracks.length;
+            if (count === 0) return;
+            this.analyticsOnce.fire('subtitles_loaded', () => {
+                trackVia('subtitles_loaded', { site, track_count: count });
+            });
+        }, settleMs);
+    }
+
+    clearSubsLoadedTimer(): void {
+        if (this.subsLoadedTimer !== null) {
+            clearTimeout(this.subsLoadedTimer);
+            this.subsLoadedTimer = null;
+        }
+    }
+
     // Show the "no subtitles" notice now (used both by the grace-period timeout
     // and when the site reports a video has no caption tracks at all).
     declareNoSubtitles(): void {
@@ -456,6 +573,22 @@ export abstract class BaseVttApp implements AppInterface {
         if (!this.langPrefs) return;
         if (this.getVideoId() === null) return;
         if (this.state.tracks.length > 0) return;
+
+        // The failure fields come from trackFailures rather than being
+        // recomputed: by now the original fetch result is long gone, and
+        // "nothing loaded" is far less actionable than "nothing loaded because
+        // we were rate-limited after 4 attempts".
+        this.analyticsOnce.fire('no_subtitles', () => {
+            const worst = this.dominantFailure();
+            const detail = [...this.trackFailures.values()].find((i) => i.failure === worst);
+            trackVia('no_subtitles', {
+                site: platformOf(location.hostname),
+                retried: this.noSubsRetries > 0,
+                failure: worst ?? '',
+                status: detail?.status ?? 0,
+                attempts: detail?.attempts ?? 0,
+            });
+        });
 
         // Throttled, not subtitle-less. Saying "this video has no subtitles"
         // here is simply false — the tracks exist, YouTube declined to serve
@@ -548,6 +681,10 @@ export abstract class BaseVttApp implements AppInterface {
     // about what the USER has already tried.
     retrySubtitleSearch(opts: { auto?: boolean } = {}): void {
         if (!opts.auto) this.noSubsRetries++;
+        // Labels whichever recovery follows: it answers whether AUTO_PROBE_LIMIT
+        // is set high enough, or whether people are having to click their way
+        // out of every throttle.
+        this.lastRecoveryTrigger = opts.auto ? 'auto_probe' : 'manual_retry';
         this.reprocessCurrentVideo({ preserveTracks: true, probe: opts.auto });
     }
 
@@ -590,6 +727,12 @@ export abstract class BaseVttApp implements AppInterface {
                             // the no-subs banner only renders with prefs.
                             learning: this.langPrefs?.learning ?? '',
                             native: this.langPrefs?.native ?? '',
+                            // The app already knows why; sending it turns
+                            // "subtitles missing" into an actionable report.
+                            failure: this.dominantFailure() ?? '',
+                            status: this.failureDetail()?.status ?? 0,
+                            attempts: this.failureDetail()?.attempts ?? 0,
+                            tracksLoaded: this.state.tracks.length,
                         })
                         .catch(() => undefined),
                     new Promise((resolve) => setTimeout(resolve, 400)),
@@ -607,6 +750,11 @@ export abstract class BaseVttApp implements AppInterface {
             this.noSubsTimer = null;
         }
         this.clearCooldownTick();
+        // NOTE: deliberately does NOT clear pendingTrackTimer. addParsedTrack()
+        // calls this on the FIRST track, which is exactly the half-loaded state
+        // the pending-track backstop exists to catch — cancelling it there made
+        // it unreachable. Its own lifetime is resetForNewVideo() and the moment
+        // pendingRequests empties out.
     }
 
     // Re-render the banner once a second so the cooldown counts down, and stop
@@ -741,6 +889,9 @@ export abstract class BaseVttApp implements AppInterface {
     takePending(key: string): string | undefined {
         const name = this.pendingRequests.get(key);
         if (name !== undefined) this.pendingRequests.delete(key);
+        // Every request answered: the backstop would find an empty map and
+        // return, so drop the timer rather than let it wake up for nothing.
+        if (this.pendingRequests.size === 0) this.clearPendingTrackTimer();
         return name;
     }
 
@@ -755,11 +906,45 @@ export abstract class BaseVttApp implements AppInterface {
         this.hideStatusBanner();
         this.noSubsRetries = 0;
         this.trackFailures.delete(name);
+
+        const site = platformOf(location.hostname);
+        // Reported once per video, but only after the tracks stop arriving.
+        //
+        // Sending it from the first track would freeze track_count at 1: the
+        // second track typically lands ~100ms later (measured on Netflix), and
+        // the one-shot has already fired by then. That understated every dual
+        // load as a single-track one — the metric would have said the product
+        // works half as often as it does.
+        this.scheduleSubtitlesLoadedReport(site);
+        // The funnel's real second step. subtitles_loaded also fires for a
+        // single track, so it can't stand in for "the product actually worked".
+        if (this.state.tracks.length >= 2) {
+            this.analyticsOnce.fire('dual_subs_shown', () => {
+                trackVia('dual_subs_shown', {
+                    site,
+                    learning: this.langPrefs?.learning ?? '',
+                    native: this.langPrefs?.native ?? '',
+                });
+            });
+        }
+
         // Only clear the cooldown once nothing is still failing. In the exact
         // case this feature exists for — one track lands, the other is
         // throttled — zeroing it here would show a live retry button while the
         // page-script breaker is still open, so the click would do nothing.
         if (this.trackFailures.size === 0) {
+            // Recovery, not a first load: something failed earlier on this
+            // video and now everything is present. Keyed off hadFailures rather
+            // than the map emptying, because resetForNewVideo() clears the map
+            // on every manual retry — the transition alone would fire on a
+            // retry that never actually recovered anything.
+            if (this.hadFailures) {
+                const waitedS = Math.round((Date.now() - this.firstFailureAt) / 1000);
+                const via = this.lastRecoveryTrigger;
+                this.hadFailures = false;
+                this.firstFailureAt = 0;
+                trackVia('subs_recovered', { site, via, waited_s: waitedS });
+            }
             this.cooldownUntil = 0;
             this.autoProbes = 0; // full recovery ends the throttle episode
         }
@@ -778,10 +963,48 @@ export abstract class BaseVttApp implements AppInterface {
 
     // ── track failure bookkeeping ───────────────────────────────────────────
     // Record why a track didn't load, then decide what (if anything) to show.
-    noteTrackFailure(name: string, info: { failure?: VttFailure; retryAfterMs?: number }): void {
-        this.trackFailures.set(name, info.failure ?? 'unknown');
+    noteTrackFailure(
+        name: string,
+        info: {
+            failure?: VttFailure;
+            retryAfterMs?: number;
+            status?: number;
+            attempts?: number;
+            breakerStep?: number;
+            /** True for machine-translation (tlang=) requests — what YouTube throttles. */
+            translation?: boolean;
+        },
+    ): void {
+        const now = Date.now();
+        const failure = info.failure ?? 'unknown';
+        this.trackFailures.set(name, {
+            failure,
+            status: info.status,
+            attempts: info.attempts,
+            breakerStep: info.breakerStep,
+            at: now,
+        });
+        if (!this.hadFailures) {
+            this.hadFailures = true;
+            this.firstFailureAt = now;
+        }
         if (info.retryAfterMs && info.retryAfterMs > 0) {
-            this.cooldownUntil = Math.max(this.cooldownUntil, Date.now() + info.retryAfterMs);
+            this.cooldownUntil = Math.max(this.cooldownUntil, now + info.retryAfterMs);
+        }
+        if (failure === 'rate-limited') {
+            // Once per video: this fires per failed track and the evaluation
+            // loop runs repeatedly, so an unguarded send turns one throttling
+            // episode into dozens of hits. breaker_step still shows the
+            // escalation because it is read at the moment of the first report.
+            this.analyticsOnce.fire('subs_rate_limited', () => {
+                trackVia('subs_rate_limited', {
+                    site: platformOf(location.hostname),
+                    translation: info.translation === true,
+                    attempts: info.attempts ?? 0,
+                    retry_after_s: Math.round((info.retryAfterMs ?? 0) / 1000),
+                    breaker_step: info.breakerStep ?? 0,
+                });
+            });
         }
         this.evaluateSubtitleOutcome();
     }
@@ -920,12 +1143,22 @@ export abstract class BaseVttApp implements AppInterface {
             'stale-url',
             'no-pot',
             'network',
+            // Below network: a reply that never came is less diagnostic than
+            // one that came back with a reason, so a real error wins the label.
+            'timeout',
             'not-offered',
             'unavailable',
             'unknown',
         ];
-        const seen = new Set(this.trackFailures.values());
+        const seen = new Set([...this.trackFailures.values()].map((i) => i.failure));
         return order.find((f) => seen.has(f));
+    }
+
+    /** The recorded detail behind dominantFailure(), for reports and events. */
+    failureDetail(): TrackFailureInfo | undefined {
+        const worst = this.dominantFailure();
+        if (!worst) return undefined;
+        return [...this.trackFailures.values()].find((i) => i.failure === worst);
     }
 
     /**
@@ -953,6 +1186,26 @@ export abstract class BaseVttApp implements AppInterface {
     evaluateSubtitleOutcome(): void {
         if (this.state.tracks.length > 0) {
             this.updatePartialFailureNotice();
+            // Something plays but something else didn't. The `failure` param is
+            // the whole point: "YouTube throttled us" and "no translation
+            // exists for this pair" look identical to the user and are fixed
+            // in entirely different ways.
+            if (this.trackFailures.size > 0) {
+                this.analyticsOnce.fire('subs_partial', () => {
+                    trackVia('subs_partial', {
+                        site: platformOf(location.hostname),
+                        failure: this.dominantFailure() ?? 'unknown',
+                        missing: !this.state.hasNativeTrack()
+                            ? 'native'
+                            : !this.state.hasLearningTrack()
+                              ? 'learning'
+                              : 'other',
+                        throttled: this.isThrottled(),
+                        learning: this.langPrefs?.learning ?? '',
+                        native: this.langPrefs?.native ?? '',
+                    });
+                });
+            }
             // The banner path arms the cooldown tick for its countdown; the
             // partial notice shows none, so arm it here purely so the auto
             // probe can fire at expiry. Skip it once the budget is spent —
@@ -975,6 +1228,10 @@ export abstract class BaseVttApp implements AppInterface {
     // finally loads (addParsedTrack).
     resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
         this.pendingRequests.clear();
+        // Nothing is outstanding any more, so the backstop has nothing to
+        // report; leaving it armed would fire it against the next video's
+        // requests on a grace period measured from the previous one.
+        this.clearPendingTrackTimer();
         this.trackFailures.clear();
         document.getElementById('vtt-partial-notice')?.remove();
         // NOTE: cooldownUntil deliberately survives — see resetNoSubsRetries.
@@ -1005,6 +1262,18 @@ export abstract class BaseVttApp implements AppInterface {
         this.noSubsRetries = 0;
         this.cooldownUntil = 0;
         this.autoProbes = 0;
+        // Analytics one-shots re-arm HERE, for the same reason the cooldown
+        // clears here: this runs only on a genuine video change, while
+        // resetForNewVideo() also runs on every "Search again" — re-arming
+        // there would report the same video once per retry.
+        this.analyticsOnce.reset();
+        // Drop a pending subtitles_loaded with it: its captured count belongs to
+        // the video we just left, and firing it here would attribute the old
+        // load to the new one.
+        this.clearSubsLoadedTimer();
+        this.hadFailures = false;
+        this.firstFailureAt = 0;
+        this.lastRecoveryTrigger = 'late_arrival';
     }
 
     updateHighlight(): void {

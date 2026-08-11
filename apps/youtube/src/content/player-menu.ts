@@ -376,7 +376,13 @@ class PlayerMenu {
         const signedIn = this.accountRow.dataset.signedIn === 'true';
         this.close();
         try {
-            await sendMessage({ action: signedIn ? 'OPEN_LINGOGRAM' : 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+            // `from` only rides along on the sign-in branch — it labels which
+            // surface converted, and OPEN_LINGOGRAM isn't a sign-in.
+            await sendMessage(
+                signedIn
+                    ? { action: 'OPEN_LINGOGRAM' }
+                    : { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'player_menu' },
+            );
         } catch (e) {
             console.warn('[Lingogram] menu account action failed', e);
         }

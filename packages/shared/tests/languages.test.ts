@@ -35,7 +35,19 @@ function makeChromeStorage() {
 }
 
 const chromeStorage = makeChromeStorage();
-(global as any).chrome = { storage: chromeStorage, runtime: { id: 'test-extension-id' } };
+// trackVia() reports through sendMessage, so the analytics assertions below
+// read this mock rather than reaching for the network.
+const sendMessageMock = jest.fn();
+(global as any).chrome = {
+    storage: chromeStorage,
+    runtime: {
+        id: 'test-extension-id',
+        sendMessage: sendMessageMock,
+        // isEmbed() treats a runtime without getManifest as the embed shim and
+        // drops every event, so the stub needs one to exercise reporting.
+        getManifest: () => ({ version: '1.0.0' }),
+    },
+};
 
 import {
     SUPPORTED_LANGUAGES,
@@ -49,7 +61,13 @@ beforeEach(() => {
     Object.keys((chromeStorage.local as any)._store).forEach((k) => {
         delete (chromeStorage.local as any)._store[k];
     });
+    sendMessageMock.mockClear();
 });
+
+const configuredEvents = () =>
+    sendMessageMock.mock.calls
+        .map((c) => c[0])
+        .filter((m) => m?.action === 'TRACK_EVENT' && m.event === 'languages_configured');
 
 describe('SUPPORTED_LANGUAGES', () => {
     test('includes the core languages and has unique codes', () => {
@@ -125,6 +143,41 @@ describe('language prefs storage', () => {
         // simulate a write of a malformed value under the key
         await (chromeStorage.local as any).set({ 'lang.v1': { learning: 'en' } });
         expect(cb).toHaveBeenCalledWith(null);
+    });
+
+    test('one configured pair reports one languages_configured', async () => {
+        // Every picker binds a single `persist` to both selects, so choosing a
+        // learning language and then a native one calls save twice — the second
+        // time with the pair the first call already stored. This event is the
+        // denominator of the onboarding funnel step, so a double count reads as
+        // a step people pass more often than they do.
+        await saveLanguagePrefs({ learning: 'es', native: 'en' }, 'onboarding');
+        await saveLanguagePrefs({ learning: 'es', native: 'en' }, 'onboarding');
+        expect(configuredEvents()).toHaveLength(1);
+        expect(configuredEvents()[0].params).toMatchObject({
+            learning: 'es',
+            native: 'en',
+            via: 'onboarding',
+        });
+    });
+
+    test('a genuine re-pick still reports', async () => {
+        // Deliberate: reconsidering is a signal about the picker's clarity, and
+        // only the no-op repeat above is filtered.
+        await saveLanguagePrefs({ learning: 'es', native: 'en' }, 'onboarding');
+        await saveLanguagePrefs({ learning: 'fr', native: 'en' }, 'popup');
+        expect(configuredEvents()).toHaveLength(2);
+        expect(configuredEvents()[1].params.learning).toBe('fr');
+    });
+
+    test('an unchanged save still writes the pair through to storage', async () => {
+        // Only the reporting is suppressed — the write is what other surfaces
+        // observe via onLanguagePrefsChanged.
+        await saveLanguagePrefs({ learning: 'de', native: 'ru' }, 'popup');
+        (chromeStorage.local.set as jest.Mock).mockClear();
+        await saveLanguagePrefs({ learning: 'de', native: 'ru' }, 'popup');
+        expect(chromeStorage.local.set).toHaveBeenCalledTimes(1);
+        expect(await loadLanguagePrefs()).toEqual({ learning: 'de', native: 'ru' });
     });
 
     test('saveLanguagePrefs no-ops when the extension context is invalidated', async () => {

@@ -27,7 +27,9 @@
     "clearSearch": "Xóa tìm kiếm",
     "noMatch": "Không có ngôn ngữ nào khớp",
     "noMatchHint": "Thử tên tiếng Anh, hoặc mã hai chữ cái của nó.",
-    "count": { "other": "{n} ngôn ngữ" },
+    "count": {
+      "other": "{n} ngôn ngữ"
+    },
     "region": {
       "westEurope": "Tây Âu và Bắc Âu",
       "eastEurope": "Trung Âu và Đông Âu",
@@ -211,7 +213,9 @@
     "keyDual": "phụ đề song ngữ",
     "keySwap": "đổi ngôn ngữ",
     "keyGuess": "chế độ đoán nghĩa",
-    "keyOverlay": "chế độ hiển thị trên video"
+    "keyOverlay": "chế độ hiển thị trên video",
+    "privacy": "Thống kê sử dụng ẩn danh đang bật để chúng tôi biết người dùng mắc kẹt ở đâu. Không tài khoản, không video, không từ đã lưu — bạn có thể tắt bất cứ lúc nào trong cửa sổ tiện ích. {link}",
+    "privacyLink": "Chính sách quyền riêng tư"
   },
   "uninstall": {
     "title": "Rất tiếc khi bạn rời đi — Lingogram",

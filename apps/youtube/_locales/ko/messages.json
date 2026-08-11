@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n}자 남음",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "개인정보 보호",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "익명 사용 통계 공유",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "‘자막 불러옴’, ‘단어 저장함’ 같은 횟수만 집계합니다. 계정, 시청한 동영상, 저장한 단어는 절대 수집하지 않습니다.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

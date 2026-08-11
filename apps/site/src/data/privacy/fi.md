@@ -1,3 +1,5 @@
+*Tämä käännös perustuu käytännön vanhempaan versioon eikä sisällä viimeisimpiä muutoksia. Englanninkielinen versio osoitteessa https://lingogram.ai/privacy/ on määräävä.*
+
 # Tietosuojakäytäntö — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Voimaantulopäivä:** 22. kesäkuuta 2026

@@ -583,7 +583,11 @@ describe('account row', () => {
         const row = document.getElementById('vtt-ytp-menu-account')!;
         expect(row.textContent).toContain('Sign in to save words');
         row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(lastMessage).toEqual({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+        // `from` labels which surface converted the sign-in, for the funnel.
+        expect(lastMessage).toEqual({
+            action: 'AUTH_SIGN_IN_VIA_LINGOGRAM',
+            from: 'player_menu',
+        });
     });
 
     test('signed in: shows email + word count and opens the site', async () => {

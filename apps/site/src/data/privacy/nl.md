@@ -1,3 +1,5 @@
+*Deze vertaling is gebaseerd op een oudere versie van het beleid en bevat de recentste wijzigingen niet. De Engelse versie op https://lingogram.ai/privacy/ is doorslaggevend.*
+
 # Privacybeleid — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Ingangsdatum:** 22 juni 2026

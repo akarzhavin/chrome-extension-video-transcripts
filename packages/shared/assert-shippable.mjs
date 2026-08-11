@@ -55,6 +55,23 @@ const RULES = [
         test: (s) => s.includes('localhost:') || s.includes('127.0.0.1:'),
         why: 'it carries a localhost origin',
     },
+    {
+        id: 'unsubstituted-define',
+        // A __EXT_*__ / __GA4_*__ / __LIMIT_*__ identifier that survived into
+        // the bundle was never given a `define` in that app's vite.config.ts.
+        // At runtime it is a ReferenceError thrown during module evaluation —
+        // in a service worker that means NO listener is ever registered and the
+        // extension is silently dead, with nothing shown on chrome://extensions.
+        // Cost us a real regression: importing auth/devEnvSwitch into apps/web,
+        // which has no __EXT_ALT_*__ defines, disabled that whole extension.
+        // JS only: an identifier is only dangerous where it gets evaluated.
+        // CSS and HTML mention these names in comments (styles.css explains
+        // that a dev-only affordance sits behind an __EXT_ENV__ literal), and
+        // flagging prose would make the gate cry wolf until someone disables it.
+        files: (f) => f.endsWith('.js'),
+        test: (s) => /(?:^|[^.\w])__(?:EXT|GA4|LIMIT)_[A-Z0-9_]+__/.test(s),
+        why: 'it references a build constant that was never substituted (the worker will throw on load and register no listeners)',
+    },
 ];
 
 /**
@@ -184,7 +201,8 @@ const files = collect(buildDir);
 const findings = [];
 
 for (const rule of RULES) {
-    const hits = files.filter((f) => rule.test(readFileSync(f, 'utf8')));
+    const scope = rule.files ? files.filter(rule.files) : files;
+    const hits = scope.filter((f) => rule.test(readFileSync(f, 'utf8')));
     if (hits.length) {
         findings.push(`${rule.why}\n      ${hits.map((h) => h.replace(buildDir + '/', '')).join('\n      ')}`);
     }

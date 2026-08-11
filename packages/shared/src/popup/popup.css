@@ -188,3 +188,38 @@ input:focus-visible {
     color: var(--lg-text);
     font-family: inherit;
 }
+
+/* Analytics opt-out. Native checkbox on purpose — it inherits the dark-mode
+   rendering from `color-scheme` above, the focus ring declared for `input`,
+   and the platform's own accessibility affordances. The <label> wrapper makes
+   the text a click target too, matching .lang-row. */
+.toggle-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.toggle-box {
+    /* Native boxes render ~13px; nudge down to sit on the label's cap height
+       rather than its line box. */
+    margin: 1px 0 0;
+    flex: 0 0 auto;
+    accent-color: var(--lg-accent);
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: var(--lg-text-soft);
+    line-height: 1.35;
+}
+
+.toggle-hint {
+    margin-top: 6px;
+    /* Aligns under .toggle-label, clearing the checkbox. */
+    padding-left: 21px;
+    font-size: 11px;
+    color: var(--lg-text-dim);
+    line-height: 1.4;
+}

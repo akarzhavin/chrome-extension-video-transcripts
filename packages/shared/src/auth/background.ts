@@ -1,3 +1,6 @@
+// Relative import (not the package barrel) because analytics-bg carries the
+// GA4 api_secret and must never be pulled into a content-script bundle.
+import { handleTrackMessage, track } from '../analytics-bg';
 import { config } from './config';
 // Static, not dynamic: a dynamic import() makes Vite emit sibling .mjs chunks
 // that an MV3 service worker cannot load. Static keeps one file, and the
@@ -28,11 +31,16 @@ export type AuthAction =
     | 'ADD_WORD'
     | 'REPORT_NO_SUBS'
     | 'SEND_FEEDBACK'
+    | 'TRACK_EVENT'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
     | 'DEV_GET_ENV';
 
+// Membership here is what isAuthAction() filters on, so an action missing from
+// this set is dropped before the handler ever sees it — silently, with no error
+// anywhere. (The DEV_* actions are the deliberate exception: they're matched by
+// prefix below so their names never appear in a prod bundle.)
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
@@ -41,6 +49,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'ADD_WORD',
     'REPORT_NO_SUBS',
     'SEND_FEEDBACK',
+    'TRACK_EVENT',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -121,6 +130,10 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             // service worker may recycle before the user finishes signing in.
             const nonce = crypto.randomUUID();
             await setPendingAuthNonce(nonce);
+            // Which surface sent the user here — the popup, the in-page badge,
+            // or the player menu. Signed-out saves are a suspected funnel hole,
+            // so knowing which prompt actually converts is the point.
+            void track('signin_started', { from: String(request.from ?? 'unknown') });
             const url =
                 `${config.frontendBaseUrl}/extension-auth` +
                 `?ext=${encodeURIComponent(extId)}` +
@@ -146,6 +159,15 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             const context = typeof request.context === 'string' ? request.context : '';
             if (!term) throw new Error('term required');
             const input = { term, context };
+            // Every save funnels through here from all three extensions, so the
+            // attempt/success pair is measured in one place. The attempt is
+            // recorded before the write so signed-out and failed saves show up
+            // too — the gap between the two is the "sign in to save" funnel
+            // hole. `site` is the coarse platform label from the caller; the
+            // saved word itself is never a parameter (deny-list in analytics.ts).
+            const site = String(request.site ?? '');
+            const signedIn = !!(await getAuthState());
+            void track('word_save_attempt', { site, signed_in: signedIn });
             try {
                 const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();
@@ -159,6 +181,10 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                     await markRatePromptShown();
                     promptRate = true;
                 }
+                // The funnel's terminal step. saved_count is this install's
+                // running total, which is what makes "how many people reach
+                // their 5th / 30th word" answerable.
+                void track('word_saved', { site, saved_count: savedWordCount });
                 return { ok: true, wordId: r.wordId, inboxCount, promptRate };
             } catch (err) {
                 // Refresh-token revoked / Firestore rejected the token —
@@ -171,6 +197,14 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 }
                 throw err;
             }
+        }
+        case 'TRACK_EVENT': {
+            // Usage analytics relayed from a content script or the popup.
+            // Fire-and-forget by construction: handleTrackMessage never
+            // rejects, and the opt-out gate lives inside track() so this
+            // handler cannot bypass it. Same posture as REPORT_NO_SUBS —
+            // nobody is watching the result.
+            return handleTrackMessage(request);
         }
         case 'REPORT_NO_SUBS': {
             // Best-effort diagnostics from the emergency "Reload page" button —
@@ -187,6 +221,11 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                     locale: String(request.locale ?? ''),
                     learning: String(request.learning ?? ''),
                     native: String(request.native ?? ''),
+                    // Optional: a caller that predates these fields still works.
+                    failure: String(request.failure ?? ''),
+                    status: Number(request.status ?? 0),
+                    attempts: Number(request.attempts ?? 0),
+                    tracksLoaded: Number(request.tracksLoaded ?? 0),
                 });
                 return { ok: true };
             } catch {

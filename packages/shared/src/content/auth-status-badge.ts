@@ -108,7 +108,7 @@ function showSignInPanel(badge: HTMLElement): void {
         viaLingogram.disabled = true;
         errEl.style.display = 'none';
         try {
-            const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' });
+            const res = await sendMessage<{ ok: boolean; error?: string }>({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'badge' });
             if (!res.ok) throw new Error(res.error ?? i18nMsg('ytAuthOpenFailed', "Couldn't open the sign-in page. Try again."));
             closePanel();
         } catch (err) {

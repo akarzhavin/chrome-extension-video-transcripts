@@ -1,3 +1,5 @@
+*Terjemahan ini mengacu pada versi kebijakan yang lebih lama dan belum memuat perubahan terbaru. Versi bahasa Inggris di https://lingogram.ai/privacy/ adalah versi yang berlaku.*
+
 # Kebijakan Privasi — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Tanggal berlaku:** 22 Juni 2026

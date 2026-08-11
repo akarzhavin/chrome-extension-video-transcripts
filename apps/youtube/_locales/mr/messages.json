@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} अक्षरे शिल्लक",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "गोपनीयता",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "निनावी वापर आकडेवारी सामायिक करा",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "फक्त “उपशीर्षके लोड झाली” आणि “शब्द जतन झाला” यांसारखी मोजणी. तुमचे खाते, तुम्ही पाहत असलेले व्हिडिओ किंवा तुम्ही जतन केलेले शब्द कधीच नाहीत.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

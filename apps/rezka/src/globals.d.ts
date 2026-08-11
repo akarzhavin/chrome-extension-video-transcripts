@@ -18,3 +18,8 @@ declare const __LIMIT_MAX_SOURCE_URL_BYTES__: number;
 declare const __LIMIT_MAX_CONTEXT_BYTES__: number;
 declare const __LIMIT_MAX_TITLE_BYTES__: number;
 declare const __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: number;
+// GA4 Measurement Protocol (see apps/*/vite.config.ts). Empty in builds that
+// weren't given credentials, which makes analytics a no-op.
+declare const __GA4_MEASUREMENT_ID__: string;
+declare const __GA4_API_SECRET__: string;
+declare const __GA4_ENDPOINT__: string;

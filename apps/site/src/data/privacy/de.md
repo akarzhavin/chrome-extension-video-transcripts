@@ -1,7 +1,7 @@
 # Datenschutzerklärung — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Datum des Inkrafttretens:** 22. Juni 2026
-**Zuletzt aktualisiert:** 13. Juli 2026
+**Zuletzt aktualisiert:** 10. August 2026
 
 Diese Datenschutzerklärung erklärt, welche Informationen die Browser-Erweiterung
 **Lingogram: Dual Subtitles & Transcript for YouTube** ("die Erweiterung") erfasst,
@@ -27,8 +27,16 @@ haben.
   Diagnosebericht an uns — die Adresse des Videos sowie technische Details —,
   damit wir das Problem beheben können. Der Banner weist genau neben der
   Schaltfläche darauf hin; nichts wird automatisch gemeldet.
+* **Wir zählen die Nutzung anonym, und Sie können das abschalten.** Die
+  Erweiterung sendet uns anonyme Nutzungsereignisse (zum Beispiel: die
+  Erweiterung wurde installiert, Untertitel wurden geladen, ein Wort wurde
+  gespeichert), gekennzeichnet mit einer **zufälligen, auf Ihrem Gerät
+  erzeugten Kennung** — nicht mit Ihrer E-Mail-Adresse und nicht mit Ihrem
+  Konto. Diese Kennung wird niemals mit Ihrem Lingogram-Konto verknüpft. Öffnen
+  Sie das Popup in der Symbolleiste → **Datenschutz** → deaktivieren Sie
+  **"Anonyme Nutzungsstatistiken teilen"**, und die Erfassung stoppt sofort.
 * Wir verkaufen Ihre Daten **nicht**, zeigen keine Werbung, betreiben keine
-  Werbe- oder Analyse-Tracker von Drittanbietern und verfolgen nicht Ihren
+  Werbe-Tracker, erstellen keine Werbeprofile und verfolgen nicht Ihren
   Browserverlauf.
 
 ---
@@ -36,8 +44,9 @@ haben.
 ## 1. Informationen, die wir erfassen
 
 ### a. Wenn Sie sich **nicht** anmelden
-Die Erweiterung erfasst, überträgt oder speichert **keine** personenbezogenen
-Daten auf unseren Servern. Ihre Sprach- und Layout-Einstellungen sowie ein
+Abgesehen von der in Abschnitt 1c beschriebenen anonymen Nutzungsanalyse (die
+Sie mit einem Klick abschalten können) erfasst, überträgt oder speichert die
+Erweiterung **keine** personenbezogenen Daten auf unseren Servern. Ihre Sprach- und Layout-Einstellungen sowie ein
 lokaler Zähler für "gespeicherte Wörter" werden nur in Ihrem Browser gespeichert
 (siehe Abschnitt 3). Kein Konto, keine E-Mail und kein gespeichertes Wort
 verlassen jemals Ihr Gerät.
@@ -75,12 +84,83 @@ wir:
 Wir erfassen **nicht**: Ihren Browserverlauf, die von Ihnen angesehenen Videos
 (abgesehen vom Untertiteltext, den Sie ausdrücklich speichern, und der einzelnen
 Videoadresse, die in einem von Ihnen ausdrücklich ausgelösten Diagnosebericht
-enthalten ist), IP-basierte Standortverfolgung, Werbe-IDs, Tracking-Cookies oder
-jegliche Analysen darüber, wie Sie die Erweiterung nutzen.
+enthalten ist; die Analyse aus Abschnitt 1c erfasst nur eine grobe
+Plattformkennzeichnung wie `youtube`, niemals ein Video oder eine URL),
+IP-basierte Standortverfolgung, Werbe-IDs oder Tracking-Cookies.
 
 > Ihr Lingogram-Konto funktioniert auch mit unseren anderen Lingogram-Erweiterungen;
 > wenn Sie sich mit demselben Konto anmelden, wird Ihr gespeicherter Wortschatz
 > gemeinsam synchronisiert.
+
+### c. Anonyme Nutzungsanalyse (standardmäßig aktiv, mit einem Klick abschaltbar)
+
+Die Erweiterung sendet anonyme Nutzungsereignisse an **Google Analytics 4**,
+damit wir sehen können, wie viele Menschen sie installieren, wo die Erweiterung
+scheitert und bei welchen Schritten Menschen aufgeben. Das ist **standardmäßig
+aktiviert**. Zum Abschalten öffnen Sie das Popup in der Symbolleiste, gehen zum
+Abschnitt **Datenschutz** und deaktivieren **"Anonyme Nutzungsstatistiken
+teilen"**. Die Erfassung stoppt sofort.
+
+**Die Kennung.** Jedes Ereignis trägt eine **zufällige Kennung, die beim ersten
+Start der Erweiterung auf Ihrem Gerät erzeugt** und im lokalen
+Erweiterungsspeicher Ihres Browsers abgelegt wird. Sie ist nicht Ihre
+E-Mail-Adresse, nicht Ihre Firebase-Benutzer-ID und auch nicht aus einer von
+beiden abgeleitet. **Wir senden Ihre Kontoidentität niemals an Google
+Analytics**, es gibt also keinen Schlüssel, mit dem sich Ihre Analyseereignisse
+mit Ihrem Konto verbinden ließen — die Trennung ist strukturell, nicht bloß ein
+Versprechen. Das Löschen des Erweiterungsspeichers oder eine Neuinstallation
+erzeugt eine neue, damit in keiner Beziehung stehende Kennung.
+
+**Die Ereignisse, die wir senden** (insgesamt 17):
+
+* `extension_installed`, `extension_updated` — die Erweiterung wurde installiert
+  oder aktualisiert;
+* `onboarding_shown`, `languages_configured` — Sie haben den Startbildschirm
+  gesehen, Sie haben Ihre Sprachen gewählt;
+* `subtitles_loaded`, `dual_subs_shown`, `no_subtitles`, `subs_partial`,
+  `subs_rate_limited`, `subs_recovered` — Untertitel wurden geladen, beide
+  Sprachen wurden angezeigt, es wurden keine gefunden, es wurde nur ein Teil
+  geladen, die Plattform hat unsere Anfragen gedrosselt, oder ein erneuter
+  Versuch war erfolgreich;
+* `word_save_attempt`, `word_saved` — Sie haben versucht, ein Wort zu speichern,
+  und es wurde gespeichert;
+* `signin_started` — Sie haben den Anmeldevorgang begonnen;
+* `analytics_opt_out` — Sie haben diese Analyse abgeschaltet (wird einmal
+  gesendet, damit wir wissen, wie viele Menschen widersprechen);
+* `retained_d2`, `retained_d7`, `retained_d14` — die Erweiterung war 2, 7 und 14
+  Tage nach der Installation noch in Gebrauch.
+
+**Die an diese Ereignisse angehängten Felder**, und nichts sonst:
+
+* eine **grobe Plattformkennzeichnung** — eines von `youtube`, `netflix`,
+  `rezka` oder `web`; kein Hostname, keine URL;
+* das von Ihnen gewählte **Untertitelsprachenpaar** (zum Beispiel `"en"` und
+  `"de"`);
+* **wie viele Untertitelspuren** geladen wurden;
+* **ob Sie angemeldet waren** — ein Ja/Nein-Kennzeichen, ohne jede Konto-ID;
+* ein **laufender Zähler der auf diesem Gerät gespeicherten Wörter**;
+* die **Version und Edition der Erweiterung**;
+* nur in Entwickler-Testversionen: **auf welchen unserer eigenen Testserver**
+  die Version ausgerichtet war — eine Angabe über unsere Infrastruktur, nicht
+  über Sie; aus dem Chrome Web Store installierte Versionen senden sie nie;
+* die **Anzahl der Tage seit der Installation**;
+* ein **technischer Fehlercode**, wenn Untertitel fehlschlagen;
+* eine **Sitzungs-ID**, die Ereignisse einer Browsersitzung zusammenfasst.
+
+**Was niemals gesendet wird:** das Video, das Sie ansehen (kein Titel, keine
+URL, keine ID), die Wörter, die Sie speichern, Untertiteltext, Seiteninhalte,
+Ihre E-Mail-Adresse, Ihre Firebase-Benutzer-ID und Ihr Browserverlauf.
+
+**Googles Rolle.** Google Analytics verarbeitet diese Ereignisse für uns als
+unser Dienstleister; siehe die Datenschutzerklärung von Google unter
+https://policies.google.com/privacy. In unserer Analytics-Property ist **Google
+Signals abgeschaltet**, sodass Google diesen Ereignissen kein Alter, kein
+Geschlecht, keine Interessenkategorie und keine Werbezielgruppe zuordnet und sie
+nicht über Ihre Geräte hinweg verknüpft. **Die granulare Standorterfassung ist
+deaktiviert**: Ereignisse werden **nur bis zum Land** aufgelöst, niemals bis zu
+einer Stadt oder Region. Jede Übertragung wird mit
+`non_personalized_ads: true` gesendet. Google Analytics wird nicht dazu
+verwendet, ein Profil von Ihnen zu erstellen oder Werbung auszurichten.
 
 ## 2. Wie wir Ihre Informationen verwenden
 
@@ -92,11 +172,17 @@ Wir verwenden die oben genannten Informationen **ausschließlich**, um:
 * ein angemessenes tägliches Limit für gespeicherte Wörter durchzusetzen, um
   Missbrauch zu verhindern;
 * die von Ihnen ausdrücklich über die Schaltfläche **"Reload page"** gemeldeten
-  Fehler beim Laden von Untertiteln zu untersuchen, damit wir sie beheben können.
+  Fehler beim Laden von Untertiteln zu untersuchen, damit wir sie beheben können;
+* die Nutzung anonym und aggregiert zu zählen — wie viele Installationen es
+  gibt, wie oft Untertitel fehlschlagen, an welcher Stelle Menschen die
+  Einrichtung abbrechen —, damit wir Kaputtes reparieren und Verwirrendes
+  verbessern können. Wir verwenden das niemals, um Sie zu identifizieren oder
+  ein Profil von Ihnen zu erstellen.
 
 Wir verwenden Ihre Informationen nicht für Werbung, Profilerstellung oder einen
 anderen Zweck als die Bereitstellung der hier beschriebenen
-Synchronisierungs- und Diagnosefunktionen.
+Synchronisierungs- und Diagnosefunktionen sowie der hier beschriebenen
+aggregierten Nutzungszählung.
 
 ## 3. Lokale Speicherung (auf Ihrem Gerät)
 
@@ -105,6 +191,9 @@ Die Erweiterung verwendet den Erweiterungsspeicher Ihres Browsers
 
 * Ihre Sprach- und Untertitel-Layout-Einstellungen;
 * eine lokale Zählung, wie viele Wörter Sie gespeichert haben;
+* Ihre **Ein/Aus-Einstellung für die Analyse**, die in Abschnitt 1c beschriebene
+  **zufällige Analyse-Kennung** und das **Datum Ihrer Installation** der
+  Erweiterung sowie eine **Analyse-Sitzungs-ID** im Sitzungsspeicher;
 * wenn Sie angemeldet sind: Ihre Authentifizierungstoken, Ihre E-Mail-Adresse
   und Ihre Benutzer-ID (damit Sie angemeldet bleiben) sowie eine kurzlebige
   Anmelde-Nonce im Sitzungsspeicher.
@@ -124,6 +213,13 @@ die Datenschutzerklärung von Google unter https://policies.google.com/privacy.
 Der Zugriff ist durch Firestore-Sicherheitsregeln eingeschränkt, sodass Sie nur
 Ihre eigenen Daten lesen und schreiben können.
 
+Die in Abschnitt 1c beschriebenen anonymen Nutzungsereignisse werden an **Google
+Analytics 4** (über das Measurement Protocol) gesendet, sofern Sie die Analyse
+nicht abschalten. Google verarbeitet diese Ereignisse für uns als unser
+Dienstleister, unter derselben Datenschutzerklärung von Google. Firebase und
+Google Analytics werden als zwei getrennte Dienste eingesetzt, und wir senden
+nichts an Google Analytics, womit sich die beiden zusammenführen ließen.
+
 Um Untertitel anzuzeigen, liest die Erweiterung die Untertitelspuren, die der
 YouTube-Player für das von Ihnen angesehene Video bereits bereitstellt,
 **direkt in Ihrem Browser**. Diese Untertitelverarbeitung:
@@ -137,9 +233,9 @@ YouTube-Player für das von Ihnen angesehene Video bereits bereitstellt,
 ## 5. Datenweitergabe und -verkauf
 
 Wir verkaufen, vermieten oder handeln **nicht** mit Ihren personenbezogenen
-Daten. Wir geben sie an keine Drittpartei weiter, außer an Google Firebase als
-den in Abschnitt 4 beschriebenen Infrastrukturanbieter oder wenn dies
-gesetzlich vorgeschrieben ist. Wir verwenden Ihre Daten nicht für Werbung.
+Daten. Wir geben sie an keine Drittpartei weiter, außer an Google Firebase und
+Google Analytics als die in Abschnitt 4 beschriebenen Infrastruktur- und
+Analyseanbieter oder wenn dies gesetzlich vorgeschrieben ist. Wir verwenden Ihre Daten nicht für Werbung.
 
 ## 6. Datenspeicherung und -löschung
 
@@ -147,9 +243,17 @@ gesetzlich vorgeschrieben ist. Wir verwenden Ihre Daten nicht für Werbung.
   oder die Löschung Ihres Kontos beantragen.
 * **Diagnoseberichte** werden nur zur Fehlerbehebung aufbewahrt und sind von
   Anträgen auf Kontolöschung erfasst (sie sind an Ihre Benutzer-ID gebunden).
+* **Anonyme Nutzungsereignisse** werden von Google Analytics **2 Monate** lang
+  aufbewahrt und dann gelöscht. Da diese Ereignisse keine Konto-ID tragen,
+  **können wir die Ereignisse einer bestimmten Person weder nachschlagen noch
+  löschen — und Sie können es ebenso wenig.** Wir haben keine Möglichkeit
+  festzustellen, welche Ereignisse von Ihnen stammen. Das Abschalten der
+  Analyse im Popup der Symbolleiste stoppt jede weitere Erfassung, kann aber
+  bereits gesendete Ereignisse nicht rückwirkend entfernen; diese verfallen nach
+  dem 2-Monats-Zeitplan.
 * **Lokale Daten** können jederzeit durch Abmelden (entfernt Ihre Token,
   E-Mail und Benutzer-ID) oder durch Entfernen der Erweiterung aus Ihrem
-  Browser gelöscht werden.
+  Browser gelöscht werden (was auch die zufällige Analyse-Kennung entfernt).
 * Um **Ihr Konto und alle zugehörigen Cloud-Daten zu löschen** (E-Mail,
   gespeicherte Wörter und Diagnoseberichte), kontaktieren Sie den Entwickler
   über Abschnitt 9. Wir werden sie innerhalb eines angemessenen Zeitraums

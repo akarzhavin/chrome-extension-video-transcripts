@@ -18,6 +18,10 @@ export type VttFailure =
     | 'not-offered' // HTTP 200 with no events — no translation for this lang.
     | 'no-pot' // never minted a pot for this video (CC toggle never worked).
     | 'unavailable' // 404/410. The track is gone.
+    // No reply ever came back (a wedged page-script, a dropped
+    // postMessage). Distinct from 'network', which means a request was
+    // made and failed.
+    | 'timeout'
     | 'network' // fetch() threw (offline, CORS).
     | 'cooldown' // breaker open; we did not even send the request.
     | 'aborted' // the user navigated away.
@@ -169,6 +173,17 @@ export class RateLimitBreaker {
         this.openUntil = this.now() + Math.max(step, retryAfterMs ?? 0);
     }
 
+    /**
+     * How deep the escalation has gone: 0 when the breaker never tripped, then
+     * 1..steps.length as the windows widen. Reported with the rate-limit
+     * analytics event so a brief hiccup is distinguishable from a client that
+     * YouTube has decided to hold down for five minutes.
+     */
+    step(): number {
+        if (this.consecutive < this.threshold) return 0;
+        return Math.min(this.consecutive - this.threshold, this.steps.length - 1) + 1;
+    }
+
     /** Any success means the throttling lifted. */
     reset(): void {
         this.consecutive = 0;
@@ -313,4 +328,12 @@ export interface YtVttResultMessage {
     status?: number;
     retryAfterMs?: number;
     attempts?: number;
+    /**
+     * The breaker's escalation depth at the time of the failure. Carried across
+     * the world boundary because the breaker lives in the MAIN world and the
+     * isolated-world app — which reports analytics — cannot see it.
+     */
+    breakerStep?: number;
+    /** True when this was a machine-translation (tlang=) request. */
+    translation?: boolean;
 }

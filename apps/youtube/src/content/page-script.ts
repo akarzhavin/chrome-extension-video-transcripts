@@ -466,6 +466,10 @@ function installYouTubeHook() {
             // retry while its own copy said retrying cannot help.
             retryAfterMs: outcome.retryAfterMs || undefined,
             attempts: outcome.attempts,
+            // Diagnostics for the isolated world, which reports analytics but
+            // cannot see the breaker (it lives here, in the MAIN world).
+            breakerStep: breaker.step(),
+            translation: !!tlang,
         });
     }
 

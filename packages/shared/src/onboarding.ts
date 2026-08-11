@@ -19,10 +19,38 @@ import { config } from './auth/config';
 const WELCOME_URL = `${config.frontendBaseUrl}/welcome/`;
 const UNINSTALL_URL = `${config.frontendBaseUrl}/uninstall/`;
 
-export function installOnboarding(ext: 'youtube' | 'netflix' | 'rezka' | 'web'): void {
+/**
+ * Optional lifecycle callbacks. Analytics is delivered as a hook rather than an
+ * import because this module is re-exported from the package barrel and is
+ * therefore reachable from content bundles — importing analytics-bg here would
+ * risk pulling the GA4 api_secret into a page-readable file, and `define`-
+ * substituted string literals are notoriously resistant to tree-shaking. The
+ * three background entry points pass the callbacks instead, so this file keeps
+ * no dependencies at all.
+ */
+export interface OnboardingHooks {
+    onInstall?: () => void;
+    onUpdate?: (previousVersion: string) => void;
+}
+
+export function installOnboarding(
+    ext: 'youtube' | 'netflix' | 'rezka' | 'web',
+    hooks?: OnboardingHooks,
+): void {
     chrome.runtime.onInstalled.addListener((details) => {
-        if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) return;
-        void chrome.tabs.create({ url: `${WELCOME_URL}?ext=${ext}` });
+        if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+            // Fire before opening the tab: the worker stays alive for the
+            // chrome.tabs.create that follows, which gives the (keepalive)
+            // request the best chance of leaving before teardown. This is still
+            // the event most likely to be lost — treat installs as slightly
+            // undercounted rather than engineering a queue for it.
+            hooks?.onInstall?.();
+            void chrome.tabs.create({ url: `${WELCOME_URL}?ext=${ext}` });
+            return;
+        }
+        if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
+            hooks?.onUpdate?.(details.previousVersion ?? '');
+        }
     });
     chrome.runtime.setUninstallURL(`${UNINSTALL_URL}?ext=${ext}`);
 }

@@ -1,3 +1,5 @@
+*本译文基于本政策的较早版本，未包含最近的修改。以 https://lingogram.ai/privacy/ 上的英文版本为准。*
+
 # 隐私政策 — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **生效日期：** 2026年6月22日

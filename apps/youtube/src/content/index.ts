@@ -137,6 +137,9 @@ class YouTubeVttApp extends BaseVttApp {
     // post-cooldown retry; see ReprocessOptions.probe).
     requestVtt(req: TrackRequest, videoId: string, probe = false): void {
         this.pendingRequests.set(req.key, req.name);
+        // Backstop for a request that never answers at all — without it a lost
+        // reply leaves Dual silently disabled and nothing recorded anywhere.
+        this.schedulePendingTrackCheck();
         console.log('[YT-VTT] FETCH_VTT ->', req.name, probe ? '(probe)' : '');
         window.postMessage(
             { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang, probe },
@@ -587,19 +590,31 @@ class YouTubeCaptionDetector {
         }
 
         if (this.captionsLoadedForVideo === videoId) return;
-        this.captionsLoadedForVideo = videoId;
         const probe = this.probeNextLoad;
-        this.probeNextLoad = false;
 
         console.log('[YT-VTT] caption tracks for', videoId, tracks.map((t) => t.lang));
 
         // First-run gate: don't load anything until the user picks a language
         // pair. The banner tells them to open the popup; storage.onChanged then
         // re-processes this video automatically.
+        //
+        // Returning BEFORE claiming captionsLoadedForVideo is load-bearing.
+        // page-script emits "sending tracks" several times per video (the
+        // player response is re-read on player events), and langPrefs is read
+        // from storage asynchronously — so on a cold start the first message
+        // often arrives before prefs resolve. Claiming the video here would
+        // make every later message hit the guard above and return, so no fetch
+        // was ever issued and the sidebar said "No subtitles available" for a
+        // video whose captions were perfectly fine. Non-deterministic by
+        // nature: it only bites when the message wins the race against storage.
         if (!this.app.langPrefs) {
             this.app.showLanguageOnboarding();
             return;
         }
+
+        // Claimed only now that we are actually going to load something.
+        this.captionsLoadedForVideo = videoId;
+        this.probeNextLoad = false;
 
         // A track that's already loaded (retries preserve them) needs no
         // re-fetch: re-asking would spend network on subtitles the user is

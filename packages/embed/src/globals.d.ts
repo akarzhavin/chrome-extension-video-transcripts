@@ -10,7 +10,17 @@ declare const __SECURE_TOKEN_URL__: string;
 declare const __FIRESTORE_URL__: string;
 declare const __FRONTEND_BASE_URL__: string;
 declare const __EXT_SOURCE__: string;
+// Dev-only backend switch. Never set in an embed build, but devEnvSwitch.ts is
+// reachable from the auth module this program imports, so tsc needs the names.
+declare const __EXT_ALT_PROJECT_ID__: string;
+declare const __EXT_ALT_API_KEY__: string;
+declare const __EXT_ALT_FRONTEND_BASE_URL__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_CONTEXT_BYTES__: number;
 declare const __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: number;
+// GA4 Measurement Protocol (see apps/*/vite.config.ts). Empty in builds that
+// weren't given credentials, which makes analytics a no-op.
+declare const __GA4_MEASUREMENT_ID__: string;
+declare const __GA4_API_SECRET__: string;
+declare const __GA4_ENDPOINT__: string;

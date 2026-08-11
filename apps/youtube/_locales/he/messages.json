@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "נותרו {n} תווים",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "פרטיות",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "שיתוף נתוני שימוש אנונימיים",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "מונים כמו ״כתוביות נטענו״ ו״מילה נשמרה״ בלבד. אף פעם לא החשבון שלך, הסרטונים שאתה צופה בהם או המילים שאתה שומר.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

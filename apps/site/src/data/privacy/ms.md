@@ -1,3 +1,5 @@
+*Terjemahan ini merujuk versi dasar yang lebih lama dan tidak merangkumi perubahan terkini. Versi bahasa Inggeris di https://lingogram.ai/privacy/ ialah versi yang sah.*
+
 # Dasar Privasi — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Tarikh berkuat kuasa:** 22 Jun 2026

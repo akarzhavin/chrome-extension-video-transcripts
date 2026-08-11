@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Filipino", "htmlLang": "fil" },
-
+  "meta": {
+    "name": "Filipino",
+    "htmlLang": "fil"
+  },
   "nav": {
     "editions": "Mga edisyon",
     "how": "Paano gumagana",
@@ -15,7 +17,6 @@
     "allLanguages": "Lahat ng wika",
     "noLanguageMatch": "Walang tumutugmang wika"
   },
-
   "languages": {
     "title": "Mga wika — Lingogram",
     "description": "Ang site ng Lingogram sa 42 wika — piliin ang wikang binabasa mo.",
@@ -26,7 +27,9 @@
     "clearSearch": "I-clear ang paghahanap",
     "noMatch": "Walang tumutugmang wika",
     "noMatchHint": "Subukan ang Ingles na pangalan nito, o ang dalawang-titik na code.",
-    "count": { "other": "{n} na wika" },
+    "count": {
+      "other": "{n} na wika"
+    },
     "region": {
       "westEurope": "Kanluran at Hilagang Europa",
       "eastEurope": "Gitna at Silangang Europa",
@@ -34,7 +37,6 @@
       "middleEast": "Gitnang Silangan"
     }
   },
-
   "footer": {
     "tagline": "Matuto ng wika mula sa pinapanood mo.",
     "product": "Produkto",
@@ -49,13 +51,11 @@
     "legal": "Legal",
     "privacyPolicy": "Patakaran sa privacy"
   },
-
   "proof": {
     "rating": "sa Chrome Web Store",
     "learners": "natututo",
     "free": "Libre, walang ads"
   },
-
   "demo": {
     "hintPrefix": "Ang demo na ito ay ang tunay na extension mismo, aktwal na tumatakbo dito sa page na ito —",
     "hintBold": "pumili ng salita",
@@ -64,25 +64,44 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(public domain)"
   },
-
   "modes": {
-    "dual": { "tab": "Dalawahang subtitle", "h": "Parehong wika, sabay", "p": "Ang linyang naririnig mo, katabi ng linyang naiintindihan mo — walang pause, walang paglipat ng track." },
-    "guess": { "tab": "Mode na Hulaan", "h": "I-click para makita — at sanayin ang iyong pandinig", "p": "Nananatiling nakatago ang linya hanggang sa i-click mo ito. Manghula muna gamit ang tainga, tapos suriin mo ang sarili mo: ang puwang sa pagitan ng dalawa ang eksaktong lugar kung saan bumubuti ang pakikinig mo." },
-    "single": { "tab": "Nasa video", "h": "Nasa screen, o nasa sidebar — desisyon mo", "p": "Panatilihin ang dalawang linya sa ibabaw ng pelikula, kung saan nakatingin ka na. O tanggalin ang mga ito sa isang pindot lang at basahin na lang mula sa panel, sa sarili mong bilis. Hindi kailanman nawawala ang mga subtitle — lumilipat lang sila." },
-    "save": { "tab": "Mga salita ko", "h": "Itago ang bawat salitang nakakasalubong mo", "p": "Pumili ng salita — isang tap para i-save ito kasama ang pangungusap na pinagmulan nito, diretso sa iyong diksyunaryo dito mismo sa lingogram.ai." }
+    "dual": {
+      "tab": "Dalawahang subtitle",
+      "h": "Parehong wika, sabay",
+      "p": "Ang linyang naririnig mo, katabi ng linyang naiintindihan mo — walang pause, walang paglipat ng track."
+    },
+    "guess": {
+      "tab": "Mode na Hulaan",
+      "h": "I-click para makita — at sanayin ang iyong pandinig",
+      "p": "Nananatiling nakatago ang linya hanggang sa i-click mo ito. Manghula muna gamit ang tainga, tapos suriin mo ang sarili mo: ang puwang sa pagitan ng dalawa ang eksaktong lugar kung saan bumubuti ang pakikinig mo."
+    },
+    "single": {
+      "tab": "Nasa video",
+      "h": "Nasa screen, o nasa sidebar — desisyon mo",
+      "p": "Panatilihin ang dalawang linya sa ibabaw ng pelikula, kung saan nakatingin ka na. O tanggalin ang mga ito sa isang pindot lang at basahin na lang mula sa panel, sa sarili mong bilis. Hindi kailanman nawawala ang mga subtitle — lumilipat lang sila."
+    },
+    "save": {
+      "tab": "Mga salita ko",
+      "h": "Itago ang bawat salitang nakakasalubong mo",
+      "p": "Pumili ng salita — isang tap para i-save ito kasama ang pangungusap na pinagmulan nito, diretso sa iyong diksyunaryo dito mismo sa lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
-  "editionsCard": { "yt": "Pinupunan ang nawawalang pangalawang track gamit ang awtomatikong salin ng YouTube.", "nf": "Orihinal na mga subtitle track, walang machine translation.", "hd": "Dalawahang track kapag taglay ito ng titulo." },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Pinupunan ang nawawalang pangalawang track gamit ang awtomatikong salin ng YouTube.",
+    "nf": "Orihinal na mga subtitle track, walang machine translation.",
+    "hd": "Dalawahang track kapag taglay ito ng titulo."
+  },
   "home": {
     "h1Lead": "Matuto ng English at iba pang wika",
     "h1Pop": "habang nanonood ng mga video na gusto mo.",
     "heroLede": "Manood na may subtitle sa dalawang wika, o sanayin ang iyong pandinig sa pamamagitan ng pagbubukas lang ng mga salitang hindi mo nahuli. I-save ang mga bagong salita sa sarili mong diksyunaryo.",
     "ctaPrimary": "Idagdag sa Chrome — libre ito",
     "ctaSecondary": "Piliin ang edisyon para sa site na pinapanood mo ↓",
-
     "platformsKicker": "Mga edisyon",
     "platformsH2": "Iisang Lingogram, naka-tune para sa site na pinapanood mo",
     "platformsLede": "Ang bawat edisyon ay hiwalay na Chrome extension, ginawa para sa player ng sarili nitong site — native na subtitle track, overlay na tumatakip sa buong video, ang mga ayos na kailangan ng site na iyon. Pareho silang gumagamit ng parehong mga tool sa pag-aaral at parehong account, kaya nasa isang lugar lang ang mga na-save mong salita kahit alin ang gamitin mo. Dalawang extension ang sumasaklaw sa lahat ng tatlong site: ang para sa YouTube ay gumagana rin sa Netflix.",
@@ -90,7 +109,6 @@
     "editionSoonTitle": "Nanonood ka ba sa ibang site?",
     "editionSoonBody": "Regular na naglalabas kami ng bagong dedikadong edisyon — sabihin mo sa amin kung saan ka nanonood.",
     "editionSoonCta": "Magmungkahi ng site →",
-
     "howKicker": "Paano ito gumagana",
     "howH2": "Mula sa pag-install hanggang sa unang na-save na salita, sa isang video lang",
     "step1T": "I-install at piliin ang mga wika mo",
@@ -99,49 +117,72 @@
     "step2D": "Pindutin ang play — lalabas nang magkasama ang dalawang wika, sa video mismo at sa transcript na kasabay mag-scroll sa eksena.",
     "step3T": "Mag-save ng mga salita, balikan sa site na ito",
     "step3D": "Itago ang isang salita sa isang tap habang nanonood — pagkatapos, buksan ang iyong diksyunaryo sa lingogram.ai at balikan ito kasama ang eksenang pinagmulan nito.",
-
     "dictKicker": "Iyong diksyunaryo",
     "dictH2": "Bawat salitang i-save mo ay bumubuo ng diksyunaryong talagang sa iyo",
     "dictLede": "Hindi ito listahan ng dalas mula sa isang textbook — mga salitang nasalubong mo sa mga eksenang pinili mo mismo, na naka-save kasama ang mga linyang pinagmulan nila. Anumang edisyon ang gamitin mo, lahat ay napupunta sa iisang account, at naghihintay ito sa iyo sa site na ito pagkatapos mong mag-log in.",
     "dictMyWords": "Ang mga salita ko",
     "dictCount": "247 na-save · 12 ngayong linggo",
-    "dictWord1": "reluctantly", "dictTr1": "nang atubili", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "takasan / pagtakas", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "naubusan ng gas", "dictTr3": "walang natitirang gasolina", "dictCtx3": "“{w} na kami mula noong huling gasolinahan.”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "nang atubili",
+    "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "takasan / pagtakas",
+    "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "naubusan ng gas",
+    "dictTr3": "walang natitirang gasolina",
+    "dictCtx3": "“{w} na kami mula noong huling gasolinahan.”",
     "dictFoot": "Nagsi-sync ang mga salita mo sa lahat ng device at bawat edisyon ng Lingogram — {b}.",
     "dictFootBold": "iisang account, iisang diksyunaryo",
-
     "featKicker": "Bakit natatatak ito",
     "featH2": "Karamihan sa mga tool ay hanggang sa pagsasalin lang. Ginagawa ng Lingogram na tumatak ang mga salita.",
     "featLede": "Umaasa ang Lingogram sa aktibong pag-alala: hindi ka lang basta sumusunod sa binabasa — sinusubukan mong tandaan ito sa sarili mong isip, nanghuhula ka, nire-replay, at kinokolekta, kaya ang mga oras na ginugugol mo na sa panonood ay nagiging tunay na pag-unlad.",
-    "feat1Tag": "Dalawahang subtitle", "feat1H": "Dalawang wika, isang screen", "feat1P": "Mahuli ang bawat linya sa orihinal at itugma ito sa sarili mong wika nang walang pause. Kapag handa ka na, itago ang salin — ang dalawahang subtitle ay isang panimulang punto lang, at tinutulungan ka ng Lingogram na lumampas dito.",
-    "feat2Tag": "Interactive na transcript", "feat2H": "I-replay ang linya, hindi ang buong pelikula", "feat2P": "Kusang gumagalaw ang transcript kasabay ng video. I-click ang kahit anong linya para bumalik at ulitin nang paikot ang eksenang iyon, hanggang sa ang mga tunog na hindi mo naunawaan ay maging mga salitang agad mong nakikilala.",
-    "feat3Tag": "Mode na Hulaan", "feat3H": "Makinig muna, tapos suriin", "feat3P": "Nagsisimulang nakatago ang mga salita: hulihin ang linya gamit ang tainga, tapos ipakita ito. Ang loop na ito na makinig-muna ay bumubuo ng kakayahang makinig na maaasahan mo — hindi lang subtitle na sinusundan mong basahin. I-toggle ito gamit ang {kbd}.",
-    "feat4Tag": "Mga na-save na salita", "feat4H": "Ang bokabularyo mo, mula sa mga pelikula mo", "feat4P": "Isang tap para i-save ang isang salita kasama ang mga linya ng subtitle sa paligid nito. Diretso itong pupunta sa {link} sa lingogram.ai, kung saan babalikan mo ang bawat salita sa orihinal nitong eksena.",
+    "feat1Tag": "Dalawahang subtitle",
+    "feat1H": "Dalawang wika, isang screen",
+    "feat1P": "Mahuli ang bawat linya sa orihinal at itugma ito sa sarili mong wika nang walang pause. Kapag handa ka na, itago ang salin — ang dalawahang subtitle ay isang panimulang punto lang, at tinutulungan ka ng Lingogram na lumampas dito.",
+    "feat2Tag": "Interactive na transcript",
+    "feat2H": "I-replay ang linya, hindi ang buong pelikula",
+    "feat2P": "Kusang gumagalaw ang transcript kasabay ng video. I-click ang kahit anong linya para bumalik at ulitin nang paikot ang eksenang iyon, hanggang sa ang mga tunog na hindi mo naunawaan ay maging mga salitang agad mong nakikilala.",
+    "feat3Tag": "Mode na Hulaan",
+    "feat3H": "Makinig muna, tapos suriin",
+    "feat3P": "Nagsisimulang nakatago ang mga salita: hulihin ang linya gamit ang tainga, tapos ipakita ito. Ang loop na ito na makinig-muna ay bumubuo ng kakayahang makinig na maaasahan mo — hindi lang subtitle na sinusundan mong basahin. I-toggle ito gamit ang {kbd}.",
+    "feat4Tag": "Mga na-save na salita",
+    "feat4H": "Ang bokabularyo mo, mula sa mga pelikula mo",
+    "feat4P": "Isang tap para i-save ang isang salita kasama ang mga linya ng subtitle sa paligid nito. Diretso itong pupunta sa {link} sa lingogram.ai, kung saan babalikan mo ang bawat salita sa orihinal nitong eksena.",
     "feat4Link": "iyong personal na diksyunaryo",
-
     "privKicker": "Private bilang default",
     "privH2": "Ang pinapanood mo ay nananatiling sarili mong usapin",
-    "priv1": "{b} Ang mga setting ng wika at layout ay naka-store nang local sa iyong browser.", "priv1Bold": "Walang telemetry, walang tracking.",
-    "priv2": "{b} Pinoproseso ang mga subtitle mismo sa iyong device.", "priv2Bold": "Hindi namin kailanman nakikita ang history ng panonood mo.",
-    "priv3": "{b} Kung mag-si-sign in ka, itinatabi namin ang iyong email at ang mga na-save mong salita — wala nang iba, at hindi namin kailanman ito ibinebenta.", "priv3Bold": "Opt-in ang diksyunaryo mo.",
-    "priv4": "{b} Kung may masira dahil sa update ng site, isang click lang para i-report ito para mabilis naming maayos.", "priv4Bold": "Mabilis namin itong aayusin.",
-
+    "priv1": "{b} Ang mga setting ng wika at layout ay naka-store nang local sa iyong browser.",
+    "priv1Bold": "Walang telemetry, walang tracking.",
+    "priv2": "{b} Pinoproseso ang mga subtitle mismo sa iyong device.",
+    "priv2Bold": "Hindi namin kailanman nakikita ang history ng panonood mo.",
+    "priv3": "{b} Kung mag-si-sign in ka, itinatabi namin ang iyong email at ang mga na-save mong salita — wala nang iba, at hindi namin kailanman ito ibinebenta.",
+    "priv3Bold": "Opt-in ang diksyunaryo mo.",
+    "priv4": "{b} Kung may masira dahil sa update ng site, isang click lang para i-report ito para mabilis naming maayos.",
+    "priv4Bold": "Mabilis namin itong aayusin.",
     "faqKicker": "Mga tanong",
     "faqH2": "Mga tanong na itinatanong bago mag-install",
-
     "finalH2": "Gawing aralin sa wika ang episode ngayong gabi",
     "finalCta": "Idagdag ang Lingogram sa Chrome",
     "finalProof": "Libre · Nase-setup sa loob ng isang minuto"
   },
-
   "faq": {
-    "free": { "q": "Libre ba ito?", "a": "Oo. Libre ang dalawahang subtitle, ang transcript, at ang mode na Hulaan. Kailangan lang ng libreng account kung gusto mong ma-sync ang mga na-save mong salita sa lahat ng device." },
-    "languages": { "q": "Anong mga wika ang suportado nito?", "a": "Kahit anong pares na may caption ang video. Sa YouTube, kung wala ang isa sa dalawa mong wika, pupunan ito ng Lingogram gamit ang awtomatikong salin ng YouTube para makuha mo pa rin ang dalawahang view. Sa Netflix at HDrezka, ipinapakita nito ang mga subtitle track na talagang taglay ng titulo — walang machine translation." },
-    "edition": { "q": "Aling edisyon ang dapat kong i-install?", "a": "Ang para sa site na pinapanood mo. May dalawang extension: isa ang sumasaklaw sa YouTube at Netflix nang sabay, ang isa naman ay HDrezka. I-install ang dalawa kung nanonood ka sa pareho — pareho silang gumagamit ng parehong mga tool sa pag-aaral at parehong account, kaya nananatili sa isang lugar ang mga na-save mong salita." },
-    "words": { "q": "Saan itinatago ang mga na-save kong salita?", "a": "Sa iyong personal na diksyunaryo, dito mismo sa lingogram.ai. Mag-log in at nariyan ang bawat salitang na-save mo kasama ang eksenang pinagmulan nito — anuman ang edisyon o device na ginamit mo sa pag-save nito." }
+    "free": {
+      "q": "Libre ba ito?",
+      "a": "Oo. Libre ang dalawahang subtitle, ang transcript, at ang mode na Hulaan. Kailangan lang ng libreng account kung gusto mong ma-sync ang mga na-save mong salita sa lahat ng device."
+    },
+    "languages": {
+      "q": "Anong mga wika ang suportado nito?",
+      "a": "Kahit anong pares na may caption ang video. Sa YouTube, kung wala ang isa sa dalawa mong wika, pupunan ito ng Lingogram gamit ang awtomatikong salin ng YouTube para makuha mo pa rin ang dalawahang view. Sa Netflix at HDrezka, ipinapakita nito ang mga subtitle track na talagang taglay ng titulo — walang machine translation."
+    },
+    "edition": {
+      "q": "Aling edisyon ang dapat kong i-install?",
+      "a": "Ang para sa site na pinapanood mo. May dalawang extension: isa ang sumasaklaw sa YouTube at Netflix nang sabay, ang isa naman ay HDrezka. I-install ang dalawa kung nanonood ka sa pareho — pareho silang gumagamit ng parehong mga tool sa pag-aaral at parehong account, kaya nananatili sa isang lugar ang mga na-save mong salita."
+    },
+    "words": {
+      "q": "Saan itinatago ang mga na-save kong salita?",
+      "a": "Sa iyong personal na diksyunaryo, dito mismo sa lingogram.ai. Mag-log in at nariyan ang bawat salitang na-save mo kasama ang eksenang pinagmulan nito — anuman ang edisyon o device na ginamit mo sa pag-save nito."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram para sa {site}",
     "ctaPrimary": "Idagdag sa Chrome — libre ito",
@@ -153,24 +194,29 @@
     "finalCta": "Idagdag ang {name}",
     "finalProof": "Libre · Nase-setup sa loob ng isang minuto"
   },
-
   "privacy": {
     "title": "Patakaran sa privacy — Lingogram",
     "description": "Kung ano ang kinokolekta ng Lingogram, paano ito ginagamit, at ang mga pagpipiliang mayroon ka."
   },
-
   "welcome": {
     "title": "Maligayang pagdating sa Lingogram",
     "description": "Handa ka na — narito ang iyong unang na-save na salita sa tatlong hakbang.",
     "h1": "ay na-install",
     "sub": "Tatlong hakbang tungo sa iyong unang na-save na salita — isang video lang ang kailangan.",
-    "step1T": "Piliin ang mga wika mo", "step1D": "I-click ang icon ng Lingogram sa toolbar at piliin ang wikang pinag-aaralan mo at ang sarili mong wika.",
-    "step2T": "Magbukas ng video na may caption", "step2D": "Pindutin ang play — lalabas nang magkasama ang dalawang wika, sa video mismo at sa transcript.",
-    "step3T": "I-save ang una mong salita", "step3D": "I-highlight ang isang salita sa subtitle at tapikin para itago ito — mapupunta ito sa {link}.",
+    "step1T": "Piliin ang mga wika mo",
+    "step1D": "I-click ang icon ng Lingogram sa toolbar at piliin ang wikang pinag-aaralan mo at ang sarili mong wika.",
+    "step2T": "Magbukas ng video na may caption",
+    "step2D": "Pindutin ang play — lalabas nang magkasama ang dalawang wika, sa video mismo at sa transcript.",
+    "step3T": "I-save ang una mong salita",
+    "step3D": "I-highlight ang isang salita sa subtitle at tapikin para itago ito — mapupunta ito sa {link}.",
     "step3Link": "iyong diksyunaryo",
-    "keyDual": "dalawahang subtitle", "keySwap": "palitan ang mga wika", "keyGuess": "mode na Hulaan", "keyOverlay": "subtitle sa ibabaw ng video (overlay)"
+    "keyDual": "dalawahang subtitle",
+    "keySwap": "palitan ang mga wika",
+    "keyGuess": "mode na Hulaan",
+    "keyOverlay": "subtitle sa ibabaw ng video (overlay)",
+    "privacy": "Naka-on ang anonymous na istatistika ng paggamit para makita namin kung saan natitigil ang mga user. Walang account, walang video, walang naka-save na salita — puwedeng i-off anumang oras sa popup ng extension. {link}",
+    "privacyLink": "Patakaran sa privacy"
   },
-
   "uninstall": {
     "title": "Nakakalungkot na aalis ka na — Lingogram",
     "description": "Sabihin mo sa amin kung bakit mo tinanggal ang Lingogram para maayos namin ito.",
@@ -184,7 +230,6 @@
     "footMid": "pa rin ang mga na-save mong salita — maghihintay sila kung babalik ka.",
     "reinstall": "Mag-reinstall anumang oras."
   },
-
   "auth": {
     "or": "o",
     "showPassword": "Ipakita ang password",
@@ -194,32 +239,44 @@
       "title": "Gawin ang iyong account — Lingogram",
       "description": "Mag-sign up para i-sync ang mga na-save mong salita sa lahat ng device at edisyon.",
       "eyebrow": "Libreng account",
-      "h1Lead": "Simulan ang iyong", "h1Pop": "listahan ng salita",
+      "h1Lead": "Simulan ang iyong",
+      "h1Pop": "listahan ng salita",
       "sub": "I-save ang mga salita mula sa anumang pinapanood mo — naka-sync sa lahat ng device at edisyon.",
       "googleCta": "Mag-sign up gamit ang Google",
-      "nameLabel": "Pangalan mo", "namePlaceholder": "Jane",
-      "emailLabel": "Email", "emailPlaceholder": "jane@example.com",
-      "passwordLabel": "Password", "passwordPlaceholder": "Hindi bababa sa 8 karakter",
-      "submit": "Gumawa ng account", "submitBusy": "Ginagawa ang account…",
-      "altPrefix": "May account ka na ba?", "altLink": "Mag-log in",
-      "finePrefix": "Sa pagpapatuloy, sumasang-ayon ka sa aming", "fineLink": "Patakaran sa privacy"
+      "nameLabel": "Pangalan mo",
+      "namePlaceholder": "Jane",
+      "emailLabel": "Email",
+      "emailPlaceholder": "jane@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Hindi bababa sa 8 karakter",
+      "submit": "Gumawa ng account",
+      "submitBusy": "Ginagawa ang account…",
+      "altPrefix": "May account ka na ba?",
+      "altLink": "Mag-log in",
+      "finePrefix": "Sa pagpapatuloy, sumasang-ayon ka sa aming",
+      "fineLink": "Patakaran sa privacy"
     },
     "login": {
       "title": "Mag-log in — Lingogram",
       "description": "Mag-log in sa iyong diksyunaryo sa Lingogram.",
       "eyebrow": "Maligayang pagbabalik",
-      "h1Lead": "Ang", "h1Pop": "diksyunaryo mo", "h1Tail": "ay naghihintay",
+      "h1Lead": "Ang",
+      "h1Pop": "diksyunaryo mo",
+      "h1Tail": "ay naghihintay",
       "sub": "Mag-log in para magpatuloy mula sa iyong huling iniwan.",
       "googleCta": "Mag-log in gamit ang Google",
-      "emailLabel": "Email", "emailPlaceholder": "jane@example.com",
-      "passwordLabel": "Password", "passwordPlaceholder": "Ang password mo",
+      "emailLabel": "Email",
+      "emailPlaceholder": "jane@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Ang password mo",
       "forgot": "Nakalimutan ang password?",
       "resetNote": "Tingnan ang iyong inbox — paparating na ang link para i-reset ang password.",
-      "submit": "Mag-log in", "submitBusy": "Nag-lo-log in…",
-      "altPrefix": "Bago ka sa Lingogram?", "altLink": "Gumawa ng account"
+      "submit": "Mag-log in",
+      "submitBusy": "Nag-lo-log in…",
+      "altPrefix": "Bago ka sa Lingogram?",
+      "altLink": "Gumawa ng account"
     }
   },
-
   "notFound": {
     "title": "Hindi nahanap ang page — Lingogram",
     "description": "Walang ganitong page.",

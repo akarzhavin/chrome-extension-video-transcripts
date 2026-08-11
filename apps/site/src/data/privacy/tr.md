@@ -1,3 +1,5 @@
+*Bu çeviri politikanın daha eski bir sürümüne dayanmaktadır ve son değişiklikleri içermez. https://lingogram.ai/privacy/ adresindeki İngilizce sürüm esas alınır.*
+
 # Gizlilik Politikası — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Yürürlük tarihi:** 22 Haziran 2026

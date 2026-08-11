@@ -27,7 +27,11 @@
     "clearSearch": "Obriši pretragu",
     "noMatch": "Nijedan jezik ne odgovara",
     "noMatchHint": "Pokušajte s engleskim nazivom ili dvoslovnom oznakom.",
-    "count": { "one": "{n} jezik", "few": "{n} jezika", "other": "{n} jezika" },
+    "count": {
+      "one": "{n} jezik",
+      "few": "{n} jezika",
+      "other": "{n} jezika"
+    },
     "region": {
       "westEurope": "Zapadna i sjeverna Europa",
       "eastEurope": "Srednja i istočna Europa",
@@ -211,7 +215,9 @@
     "keyDual": "dvojezični titlovi",
     "keySwap": "zamijeni jezike",
     "keyGuess": "način Pogodi",
-    "keyOverlay": "titlovi na videu (prikaz preko slike)"
+    "keyOverlay": "titlovi na videu (prikaz preko slike)",
+    "privacy": "Anonimna statistika korištenja je uključena kako bismo vidjeli gdje se korisnici zaglave. Bez računa, bez videozapisa, bez spremljenih riječi — možete je isključiti bilo kada u skočnom prozoru proširenja. {link}",
+    "privacyLink": "Pravila privatnosti"
   },
   "uninstall": {
     "title": "Žao nam je što odlazite — Lingogram",

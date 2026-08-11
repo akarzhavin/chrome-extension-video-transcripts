@@ -442,5 +442,17 @@
   "ytFeedbackBackToSettings": {
     "message": "Settings",
     "description": "Button shown after feedback is sent; returns to the settings panel."
+  },
+  "ytGroupPrivacy": {
+    "message": "Privacy",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "Share anonymous usage stats",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "Counts like “subtitles loaded” and “word saved”. Never your account, the videos you watch, or the words you save.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

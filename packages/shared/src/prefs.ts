@@ -20,9 +20,16 @@ export interface Prefs {
     overlayBottomOffset: OverlayLevelToken;
     overlayBgOpacity: OverlayLevelToken;
     overlayEdgeStyle: OverlayEdgeToken;
+    // Anonymous usage analytics. On by default; the popup's Privacy row flips
+    // it. Read only by analytics-bg's track() gate — never branch on it
+    // anywhere else (one gate, one place).
+    analyticsEnabled: boolean;
 }
 
-const PREFS_KEY = 'prefs.v1';
+// Exported for analytics-bg's gate, which reads the raw blob directly: it
+// needs "storage error → treat as opted out", which loadPrefs (defaults on
+// error, by design) cannot express.
+export const PREFS_KEY = 'prefs.v1';
 
 const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
@@ -34,6 +41,10 @@ const DEFAULT_PREFS: Prefs = {
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.
     overlayEdgeStyle: 'shadow',
+    // ON by default for new AND existing installs: loadPrefs spreads these
+    // defaults first, so a stored blob written before this field existed
+    // resolves to true with no migration.
+    analyticsEnabled: true,
 };
 
 function isPrefs(value: unknown): value is Partial<Prefs> {

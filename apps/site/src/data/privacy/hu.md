@@ -1,3 +1,5 @@
+*Ez a fordítás a szabályzat egy korábbi változatán alapul, és nem tartalmazza a legutóbbi módosításokat. Az irányadó az angol nyelvű változat a https://lingogram.ai/privacy/ címen.*
+
 # Adatvédelmi szabályzat — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Hatálybalépés dátuma:** 2026. június 22.

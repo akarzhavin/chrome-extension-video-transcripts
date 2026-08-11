@@ -1,3 +1,5 @@
+*Această traducere corespunde unei versiuni anterioare a politicii și nu include modificările recente. Versiunea în limba engleză de la https://lingogram.ai/privacy/ este cea valabilă.*
+
 # Politica de confidențialitate — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Data intrării în vigoare:** 22 iunie 2026

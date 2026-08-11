@@ -1,10 +1,29 @@
 import { getAuthState, handleAuthMessage, installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+// Relative path, not the barrel: analytics-bg carries the GA4 api_secret and
+// must stay out of anything a content script can pull in.
+import { markInstalled, track } from '../../../../packages/shared/src/analytics-bg';
+
+// No backend resolver here, unlike the youtube and rezka editions. This build
+// has no alternate backend to switch to: vite.config.ts defines no __EXT_ALT_*__
+// constants, so importing auth/devEnvSwitch would pull an undefined identifier
+// into the worker and throw during module evaluation — before a single listener
+// is registered, which silently disables the whole extension. Events from this
+// edition simply carry no `backend` param, which is correct: there is only one.
 
 // Reuse the exact auth stack shipped in the youtube / rezka extensions:
 // popup sign-in (AUTH_* messages), the external token handoff from the
 // Lingogram SPA, and ADD_WORD → Firestore writes.
 installAuthBackground();
-installOnboarding('web');
+installOnboarding('web', {
+    onInstall: () => {
+        void markInstalled();
+        // See the youtube edition: ext_source already carries this.
+        void track('extension_installed');
+    },
+    onUpdate: (previousVersion) => {
+        void track('extension_updated', { previous_version: previousVersion });
+    },
+});
 
 const MENU_ID = 'lingogram-add-to-inbox';
 const MAX_TERM_LEN = 256;
@@ -71,6 +90,9 @@ async function handleAddToInbox(
             sourceUrl: info.pageUrl ?? tab?.url ?? '',
             context,
             title: tab?.title ?? '',
+            // Coarse platform label for analytics — this edition saves from
+            // anywhere on the web, so it reports itself rather than a hostname.
+            site: 'web',
         });
         await toast(tabId, `Added to Lingogram: ${term}`, true);
     } catch (err) {
@@ -89,6 +111,10 @@ async function handleAddToInbox(
 // and can still fail (no focused window, unsupported channel) — fall back to a
 // badge + toast so the prompt is never silently dropped.
 async function promptSignIn(tab: chrome.tabs.Tab | undefined): Promise<void> {
+    // This edition's sign-in prompt doesn't go through
+    // AUTH_SIGN_IN_VIA_LINGOGRAM (it opens the popup instead), so the event is
+    // recorded here to keep the funnel comparable across editions.
+    void track('signin_started', { from: 'context_menu' });
     try {
         chrome.action.setBadgeText({ text: '!' });
         chrome.action.setBadgeBackgroundColor?.({ color: '#dc2626' });
