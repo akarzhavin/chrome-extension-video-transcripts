@@ -859,83 +859,44 @@ const editionsMap = JSON.stringify(
   Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e.name])),
 );
 
-// welcome/uninstall are reached from the extension (chrome.runtime.onInstalled
-// / setUninstallURL — not wired up in any of the three extensions yet, but the
-// pages are edition-aware via ?ext=<slug> for when they are), so they render
-// per locale exactly like the home page.
+// ----------------------------------------------------------------- welcome
+//
+// Reached from the extension right after install (chrome.runtime.onInstalled —
+// not wired up in any of the three extensions yet, but the page is
+// edition-aware via ?ext=<slug> for when they are), so it renders per locale
+// exactly like the home page.
+//
+// This replaced a page that opened with three numbered steps. Those steps
+// restated the home page's "How it works" almost verbatim — a re-pitch aimed at
+// someone who had just installed and was already sold — and step 2 ("open a
+// video with captions") was homework with no link attached, so the moment
+// someone was most likely to try the thing was the moment they were left to
+// figure out where. What replaced it:
+//   - Thanks first, then a one-minute video instead of the steps.
+//   - A real destination: the demoUrl already in editions.json.
+//   - Edition-awareness that actually shows. ?ext= and the `data-ext-name` span
+//     both predate this page and always worked, but the copy they fed named no
+//     site at all, so every edition read identically. See EXT_COPY below.
+//   - Privacy next to the sign-in ask, where the decision is made, rather than
+//     only in the footer.
+const WELCOME_VIDEO = 't2oye9CA7Vw';
+
+// Which sites each install actually covers, keyed by editions.json slug. The
+// YouTube extension matches netflix.com too, so its visitors are Netflix
+// visitors as often as not and both names belong on the page; the first entry
+// is the site the visitor came from, and the buttons follow the same order.
+//
+// Only the ORDER lives here. The names are brands, but the list that joins them
+// is not: "YouTube and Netflix" has to become "YouTube и Netflix" in Russian,
+// so the pair is assembled per locale through welcome.sitesPair below. Hardcoding
+// the English "and" here leaked it into all 41 translations.
+const EXT_SITES = {
+  youtube: ['youtube', 'netflix'],
+  netflix: ['netflix', 'youtube'],
+  rezka: ['rezka', 'youtube'],
+};
+
 const welcomePage = (locale, hrefLang) => {
-  const { code: lang, strings } = locale;
-  const t = makeT(strings);
-  const root = lang === 'en' ? '' : `/${lang}`;
-  return layout({
-    lang, htmlLang: strings.meta.htmlLang, hrefLang,
-    title: t('welcome.title'),
-    description: t('welcome.description'),
-    pathName: `${root}/welcome/`,
-    body: `
-${header(t, root)}
-<main class="narrow">
-  <span class="logo-mark" style="width:64px;height:64px;border-radius:18px;margin:20px auto">${CHAMELEON(40)}</span>
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em"><span data-ext-name>Lingogram</span> ${esc(t('welcome.h1'))}</h1>
-  <p class="sub">${esc(t('welcome.sub'))}</p>
-  <div class="steps">
-    <div class="step"><span class="step-n">1</span><b>${esc(t('welcome.step1T'))}</b><p>${esc(t('welcome.step1D'))}</p></div>
-    <div class="step"><span class="step-n">2</span><b>${esc(t('welcome.step2T'))}</b><p>${esc(t('welcome.step2D'))}</p></div>
-    <div class="step"><span class="step-n">3</span><b>${esc(t('welcome.step3T'))}</b><p>${t('welcome.step3D', { link: `<a href="${SITE.appUrl}">${esc(t('welcome.step3Link'))}</a>` })}</p></div>
-  </div>
-  <div class="keys">
-    <span><kbd>Shift + D</kbd> ${esc(t('welcome.keyDual'))}</span>
-    <span><kbd>Shift + S</kbd> ${esc(t('welcome.keySwap'))}</span>
-    <span><kbd>Shift + G</kbd> ${esc(t('welcome.keyGuess'))}</span>
-    <span><kbd>Shift + O</kbd> ${esc(t('welcome.keyOverlay'))}</span>
-  </div>
-  <!-- Disclosed here rather than as a fourth step: analytics is on by default,
-       so the first run is the honest moment to say so — but making it a step
-       would put a settings chore in a flow that exists to reach the first saved
-       word. Quiet line, real link. -->
-  <p class="welcome-privacy">${t('welcome.privacy', {
-      link: `<a href="${root}/privacy/">${esc(t('welcome.privacyLink'))}</a>`,
-  })}</p>
-</main>
-${footer(t, root)}
-<script>window.__EDITIONS = ${editionsMap};</script>`,
-  });
-};
-
-// ---------------------------------------------------------------- welcome2
-//
-// EXPERIMENT, English-only, noindex. A rewrite of /welcome/ that lives beside
-// it so the two can be compared on the real site before either is retired;
-// nothing here touches welcomePage above.
-//
-// What it changes, and why:
-//   - Thanks first. The visitor just installed; the old page opened by
-//     re-pitching the product at someone already sold.
-//   - One video instead of three numbered steps. The steps restated the home
-//     page's "How it works" almost verbatim.
-//   - A real destination. "Open a video with captions" was homework with no
-//     link; the demoUrl already in editions.json is the answer.
-//   - Edition-aware for real. ?ext= has been in the URL all along, and the
-//     `data-ext-name` span was already here, but nothing ever read either —
-//     see EXT_COPY below.
-//
-// The copy stays out of i18n/ deliberately: every new key must be added to all
-// 42 locale files or the LOCALES check throws, and an experiment shouldn't
-// force 41 translations. Same call the edition pages make (see the i18n
-// rollout note at the top of this file). Localize when it replaces /welcome/.
-const WELCOME2_VIDEO = 't2oye9CA7Vw';
-
-// Per-edition copy, keyed by editions.json slug. `sites` names what the
-// install actually covers: the YouTube extension matches netflix.com too, so
-// its visitors are Netflix visitors as often as not, and the old page named
-// neither.
-const EXT_COPY = {
-  youtube: { sites: 'YouTube and Netflix', order: ['youtube', 'netflix'] },
-  netflix: { sites: 'Netflix and YouTube', order: ['netflix', 'youtube'] },
-  rezka: { sites: 'HDrezka', order: ['rezka', 'youtube'] },
-};
-
-const welcome2Page = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
   const root = lang === 'en' ? '' : `/${lang}`;
@@ -963,15 +924,13 @@ const welcome2Page = (locale, hrefLang) => {
     if (!e) return '';
     const url = openUrl(e);
     if (!url) return '';
-    const note = {
-      youtube: 'A video we know works, captions and all',
-      netflix: 'If you have a subscription',
-      rezka: 'When the title carries a second track',
-    }[slug] || '';
-    return `      <a class="w2-open${primary ? ' w2-open-primary' : ''}" href="https://${esc(url)}" target="_blank" rel="noopener">
+    // e.site is a brand name (YouTube / Netflix / HDrezka), so it is injected
+    // into the localized "Open {site}" frame rather than translated.
+    const note = t(`welcome.note.${slug}`);
+    return `      <a class="wl-open${primary ? ' wl-open-primary' : ''}" href="https://${esc(url)}" target="_blank" rel="noopener">
         ${mark(e.mark, true)}
-        <span class="w2-open-body"><b>Open ${esc(e.site)}</b><span>${esc(note)}</span></span>
-        <svg class="w2-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        <span class="wl-open-body"><b>${esc(t('welcome.open', { site: e.site }))}</b><span>${esc(note)}</span></span>
+        <svg class="wl-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>`;
   };
 
@@ -979,52 +938,70 @@ const welcome2Page = (locale, hrefLang) => {
 
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
-    title: 'Thanks for installing Lingogram',
-    description: 'Watch a one-minute tour, then open a video and save your first word.',
-    pathName: `${root}/welcome2/`,
-    // Experiment: keep it out of search results while both pages are live.
-    extraHead: '<meta name="robots" content="noindex">\n',
+    title: t('welcome.title'),
+    description: t('welcome.description'),
+    pathName: `${root}/welcome/`,
     body: `
 ${header(t, root)}
-<main class="w2">
-  <div class="w2-hello">
+<main class="wl">
+  <div class="wl-hello">
     <span class="logo-mark" style="width:44px;height:44px;border-radius:14px">${CHAMELEON(28)}</span>
-    <span class="w2-hello-note">We're a small team,<br>and we're glad you're here.</span>
+    <span class="wl-hello-note">${t('welcome.hello')}</span>
   </div>
 
-  <h1 class="w2-h1">Thanks for installing <span data-ext-name>Lingogram</span></h1>
+  <h1 class="wl-h1">${t('welcome.h1', { ext: '<span data-ext-name>Lingogram</span>' })}</h1>
 
-  <p class="w2-lede">Now just watch the way you always do — <b>subtitles turn dual on their own</b>, and any word in them is one tap from your dictionary.</p>
+  <p class="wl-lede">${t('welcome.lede', { b: `<b>${esc(t('welcome.ledeBold'))}</b>` })}</p>
 
-  <div class="w2-tut">
-    <div id="w2-video">
-      <button type="button" class="w2-facade" id="w2-facade" aria-label="Play the one-minute tour">
-        <img src="https://i.ytimg.com/vi/${WELCOME2_VIDEO}/maxresdefault.jpg" alt="" width="1280" height="720" loading="lazy">
-        <span class="w2-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-        <span class="w2-facade-meta"><span>See how it works</span></span>
+  <div class="wl-tut">
+    <div id="wl-video">
+      <button type="button" class="wl-facade" id="wl-facade" aria-label="${esc(t('welcome.playAria'))}">
+        <img src="https://i.ytimg.com/vi/${WELCOME_VIDEO}/maxresdefault.jpg" alt="" width="1280" height="720" loading="lazy">
+        <span class="wl-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="wl-facade-meta"><span>${esc(t('welcome.seeHow'))}</span></span>
       </button>
     </div>
-    <div class="w2-tut-foot">
-      <span>One minute, and the rest explains itself.</span>
-      <a href="https://www.youtube.com/watch?v=${WELCOME2_VIDEO}" target="_blank" rel="noopener">Watch on YouTube</a>
+    <div class="wl-tut-foot">
+      <span>${esc(t('welcome.oneMinute'))}</span>
+      <a href="https://www.youtube.com/watch?v=${WELCOME_VIDEO}" target="_blank" rel="noopener">${esc(t('welcome.watchOnYt'))}</a>
     </div>
   </div>
-  <p class="w2-note">The player only loads once you press play — nothing from YouTube touches this page before that.</p>
+  <p class="wl-note">${esc(t('welcome.playerNote'))}</p>
 
-  <p class="w2-cta-h" id="w2-cta-h">Where would you like to start?</p>
-  <p class="w2-cta-s" id="w2-cta-s">Open something with subtitles and try it right now.</p>
-  <div class="w2-opens" id="w2-opens">
+  <p class="wl-cta-h" id="wl-cta-h">${esc(t('welcome.ctaH'))}</p>
+  <p class="wl-cta-s" id="wl-cta-s">${esc(t('welcome.ctaS'))}</p>
+  <div class="wl-opens" id="wl-opens">
 ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
   </div>
 
-  <div class="w2-asides">
-    <p id="w2-refresh"><b>If a video is already open in another tab</b>, please reload it. Chrome only connects a new extension to pages opened after it was installed. After that you can forget this ever came up.</p>
-    <p><b>So your words are kept</b>, sign in: click the Lingogram icon in the toolbar and choose Sign in. Once is enough — everything saves by itself from there.</p>
-    <p><b>If we guessed your languages wrong</b>, the same icon is where you set the one you're learning and your own.</p>
+  <div class="wl-asides">
+    <p id="wl-refresh">${t('welcome.reload', { b: `<b>${esc(t('welcome.reloadBold'))}</b>` })}</p>
+    <p>${t('welcome.signIn', { b: `<b>${esc(t('welcome.signInBold'))}</b>` })}</p>
+    <p>${t('welcome.langs', { b: `<b>${esc(t('welcome.langsBold'))}</b>` })}</p>
   </div>
 
-  <div class="w2-keys">
-    <p>Once you've settled in, these come in handy:</p>
+  <!-- Privacy sits directly under the sign-in ask, because that is the moment
+       someone is deciding whether to hand us anything. The three lines are the
+       policy's own TL;DR, not marketing copy: without an account nothing
+       leaves the device; signing in stores an email and the words you chose to
+       save; nothing is sold. Kept as a <details> so it informs without
+       becoming a wall in front of the first saved word. -->
+  <details class="wl-priv">
+    <summary>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>${esc(t('welcome.privSummary'))}</span>
+      <svg class="wl-priv-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="wl-priv-body">
+      <p>${t('welcome.priv1', { b: `<b>${esc(t('welcome.priv1Bold'))}</b>` })}</p>
+      <p>${t('welcome.priv2', { b: `<b>${esc(t('welcome.priv2Bold'))}</b>` })}</p>
+      <p>${t('welcome.priv3', { b: `<b>${esc(t('welcome.priv3Bold'))}</b>` })}</p>
+      <p class="wl-priv-more"><a href="${root}/privacy/">${esc(t('welcome.privLink'))}</a></p>
+    </div>
+  </details>
+
+  <div class="wl-keys">
+    <p>${esc(t('welcome.keysIntro'))}</p>
     <div class="keys">
       <span><kbd>Shift + D</kbd> ${esc(t('welcome.keyDual'))}</span>
       <span><kbd>Shift + S</kbd> ${esc(t('welcome.keySwap'))}</span>
@@ -1033,11 +1010,34 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
     </div>
   </div>
 
-  <p class="w2-signoff">Something not working, or just have thoughts — <a href="mailto:${SITE.supportEmail}">write to us</a>. We read every message ourselves.</p>
+  <p class="wl-signoff">${t('welcome.signoff', { link: `<a href="mailto:${SITE.supportEmail}">${esc(t('welcome.signoffLink'))}</a>` })}</p>
 </main>
 ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};
-window.__W2 = { video: ${JSON.stringify(WELCOME2_VIDEO)}, copy: ${JSON.stringify(EXT_COPY)} };</script>`,
+window.__WELCOME = ${JSON.stringify({
+  video: WELCOME_VIDEO,
+  // Per-slug: the site list already joined in this locale's own words, plus
+  // the button order. Joining here rather than in main.js keeps that file free
+  // of language rules — it ships once for all 42 locales.
+  copy: Object.fromEntries(Object.entries(EXT_SITES).map(([slug, order]) => [
+    slug,
+    {
+      sites: order.length > 1 && bySlug[order[1]]
+        ? t('welcome.sitesPair', { a: bySlug[order[0]].site, b: bySlug[order[1]].site })
+        : bySlug[order[0]].site,
+      order,
+    },
+  ])),
+  // Strings main.js swaps in for ?ext=. Passed from here so that file — one
+  // bundle shared by all 42 locales — never holds English of its own.
+  i18n: {
+    // `{sites}` is filled client-side from copy[slug].sites above.
+    h1: t('welcome.h1For'),
+    lede: t('welcome.ledeFor', { b: `<b>${esc(t('welcome.ledeBold'))}</b>` }),
+    rezkaCtaH: t('welcome.rezkaCtaH'),
+    rezkaCtaS: t('welcome.rezkaCtaS'),
+  },
+})};</script>`,
   });
 };
 
@@ -1243,8 +1243,6 @@ function build() {
   ]);
   const homeHrefLang = hrefLangFor((c) => (c === 'en' ? '/' : `/${c}/`));
   const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
-  // welcome2 is the English-only experiment beside /welcome/ — no hreflang
-  // map, since there are no sibling locales to point at yet.
   const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
   const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
   const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
@@ -1255,10 +1253,6 @@ function build() {
     const root = locale.code === 'en' ? '' : locale.code;
     write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
     write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
-    // English only: the experiment's copy isn't in i18n/ yet (see welcome2Page).
-    if (locale.code === 'en') {
-      write(path.join(root, 'welcome2', 'index.html'), welcome2Page(locale, null));
-    }
     write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
     write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
     write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));

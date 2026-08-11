@@ -1284,18 +1284,17 @@ footer.site {
   .dfav { width: 13px; height: 13px; }
 }
 
-/* ------------------------------------------------------------------ welcome2
-   English-only experiment beside /welcome/ (see welcome2Page in build.mjs).
-   Scoped under .w2 so nothing here can leak into the page it is competing
-   with. Reuses the existing tokens and the .mark-* badges from the editions
-   section — the point is a different page, not a different design system. */
+/* ------------------------------------------------------------------- welcome
+   The post-install page (see welcomePage in build.mjs). Scoped under .wl, and
+   reuses the existing tokens plus the .mark-* badges from the editions section
+   rather than introducing a parallel design system. */
 
 .w2 { max-width: 660px; margin: 34px auto 90px; padding: 0 24px; }
 
-.w2-hello { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-.w2-hello-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.wl-hello { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.wl-hello-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
 
-.w2-h1 {
+.wl-h1 {
   font-size: clamp(29px, 4.6vw, 40px);
   line-height: 1.14;
   letter-spacing: -0.03em;
@@ -1303,18 +1302,18 @@ footer.site {
   text-wrap: balance;
 }
 
-.w2-lede {
+.wl-lede {
   font-size: 18.5px;
   line-height: 1.55;
   color: var(--muted);
   margin: 0 0 30px;
   max-width: 40ch;
 }
-.w2-lede b { color: var(--ink); font-weight: 600; }
+.wl-lede b { color: var(--ink); font-weight: 600; }
 
 /* --- the tour --- */
 
-.w2-tut {
+.wl-tut {
   margin: 0 0 14px;
   border-radius: 16px;
   overflow: hidden;
@@ -1325,7 +1324,7 @@ footer.site {
 
 /* Click-to-play facade. The <img> is the whole page weight until the visitor
    presses play; main.js swaps in the iframe on click. */
-.w2-facade {
+.wl-facade {
   position: relative;
   display: block;
   width: 100%;
@@ -1336,19 +1335,19 @@ footer.site {
   cursor: pointer;
   overflow: hidden;
 }
-.w2-facade img {
+.wl-facade img {
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
   transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.w2-facade::after {
+.wl-facade::after {
   content: "";
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(10,8,16,.05) 0%, rgba(10,8,16,.45) 100%);
 }
 
-.w2-play {
+.wl-play {
   position: absolute;
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
@@ -1361,9 +1360,9 @@ footer.site {
   box-shadow: 0 8px 28px -8px rgba(0,0,0,.55);
   transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), background 200ms ease;
 }
-.w2-play svg { width: 24px; height: 24px; margin-left: 3px; }
+.wl-play svg { width: 24px; height: 24px; margin-left: 3px; }
 
-.w2-facade-meta {
+.wl-facade-meta {
   position: absolute;
   left: 16px; bottom: 14px;
   z-index: 2;
@@ -1374,15 +1373,15 @@ footer.site {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .w2-facade:hover img { transform: scale(1.03); }
-  .w2-facade:hover .w2-play { transform: translate(-50%,-50%) scale(1.06); background: #fff; }
+  .wl-facade:hover img { transform: scale(1.03); }
+  .wl-facade:hover .wl-play { transform: translate(-50%,-50%) scale(1.06); background: #fff; }
 }
-.w2-facade:active .w2-play { transform: translate(-50%,-50%) scale(0.97); }
-.w2-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.wl-facade:active .wl-play { transform: translate(-50%,-50%) scale(0.97); }
+.wl-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 
-.w2-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; }
+.wl-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; }
 
-.w2-tut-foot {
+.wl-tut-foot {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
   padding: 11px 14px;
@@ -1391,7 +1390,7 @@ footer.site {
   font-size: 12.5px;
   color: #a49fb5;
 }
-.w2-tut-foot a {
+.wl-tut-foot a {
   color: #f5f3fa;
   font-weight: 600;
   text-decoration: none;
@@ -1400,18 +1399,18 @@ footer.site {
   padding: 7px 12px;
   white-space: nowrap;
 }
-.w2-tut-foot a:hover { background: rgba(255,255,255,.18); }
+.wl-tut-foot a:hover { background: rgba(255,255,255,.18); }
 
-.w2-note { font-size: 12.5px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+.wl-note { font-size: 12.5px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
 
 /* --- open a video --- */
 
-.w2-cta-h { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
-.w2-cta-s { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+.wl-cta-h { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+.wl-cta-s { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
 
-.w2-opens { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.wl-opens { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 
-.w2-open {
+.wl-open {
   display: flex; align-items: center; gap: 13px;
   padding: 15px 17px;
   border-radius: 13px;
@@ -1421,40 +1420,40 @@ footer.site {
   text-decoration: none;
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
 }
-.w2-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
-.w2-open-body { flex: 1; min-width: 0; }
-.w2-open-body span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-.w2-open-go { width: 16px; height: 16px; flex: none; opacity: .55; }
+.wl-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.wl-open-body { flex: 1; min-width: 0; }
+.wl-open-body span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.wl-open-go { width: 16px; height: 16px; flex: none; opacity: .55; }
 
-.w2-open-primary {
+.wl-open-primary {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
 }
-.w2-open-primary .w2-open-body span { color: rgba(255,255,255,.75); }
-.w2-open-primary .w2-open-go { opacity: .85; }
+.wl-open-primary .wl-open-body span { color: rgba(255,255,255,.75); }
+.wl-open-primary .wl-open-go { opacity: .85; }
 
 @media (hover: hover) and (pointer: fine) {
-  .w2-open:hover { border-color: var(--accent); }
+  .wl-open:hover { border-color: var(--accent); }
 }
-.w2-open:active { transform: scale(0.985); }
+.wl-open:active { transform: scale(0.985); }
 
 /* --- the asides --- */
 
-.w2-asides {
+.wl-asides {
   border-top: 1px solid var(--line);
   padding-top: 24px;
   margin-bottom: 26px;
   display: flex; flex-direction: column; gap: 18px;
 }
-.w2-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
-.w2-asides b { color: var(--ink); font-weight: 600; }
+.wl-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.wl-asides b { color: var(--ink); font-weight: 600; }
 
-.w2-keys { border-top: 1px solid var(--line); padding-top: 24px; }
-.w2-keys > p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; }
-.w2-keys .keys { justify-content: flex-start; margin-top: 0; }
+.wl-keys { border-top: 1px solid var(--line); padding-top: 24px; }
+.wl-keys > p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; }
+.wl-keys .keys { justify-content: flex-start; margin-top: 0; }
 
-.w2-signoff {
+.wl-signoff {
   margin-top: 30px;
   padding-top: 24px;
   border-top: 1px solid var(--line);
@@ -1462,14 +1461,89 @@ footer.site {
   line-height: 1.6;
   color: var(--muted);
 }
-.w2-signoff a { color: var(--accent); font-weight: 600; }
+.wl-signoff a { color: var(--accent); font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
-  .w2-facade img, .w2-play, .w2-open { transition: none; }
+  .wl-facade img, .wl-play, .wl-open { transition: none; }
 }
 
 @media (max-width: 560px) {
-  .w2-h1 { font-size: 27px; }
-  .w2-play { width: 54px; height: 54px; }
-  .w2-play svg { width: 20px; height: 20px; }
+  .wl-h1 { font-size: 27px; }
+  .wl-play { width: 54px; height: 54px; }
+  .wl-play svg { width: 20px; height: 20px; }
+}
+
+/* Privacy disclosure on /welcome/. Closed by default: it belongs next to the
+   sign-in ask, but it must not stand between someone and their first saved
+   word. The shield and the chevron carry the "this is about your data" and
+   "there is more here" signals without a paragraph of preamble. */
+.wl-priv {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+  margin-bottom: 26px;
+  overflow: hidden;
+}
+
+.wl-priv summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+/* Safari still paints its own triangle without this. */
+.wl-priv summary::-webkit-details-marker { display: none; }
+
+.wl-priv summary > svg:first-child {
+  width: 17px; height: 17px;
+  flex: none;
+  color: var(--accent);
+}
+
+.wl-priv summary > span { flex: 1; }
+
+.wl-priv-chev {
+  width: 16px; height: 16px;
+  flex: none;
+  color: var(--muted);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wl-priv[open] .wl-priv-chev { transform: rotate(180deg); }
+
+@media (hover: hover) and (pointer: fine) {
+  .wl-priv summary:hover { background: var(--ground); }
+}
+.wl-priv summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.wl-priv-body {
+  padding: 2px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wl-priv-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.wl-priv-body b { color: var(--ink); font-weight: 600; }
+
+.wl-priv-more a {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-priv-chev { transition: none; }
 }

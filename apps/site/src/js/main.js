@@ -19,24 +19,27 @@
     if (ed) extName.textContent = ed;
   }
 
-  // /welcome2/ (English-only experiment): name the sites the install actually
-  // covers, and lead with the one the visitor came from. `slug` is a URL
-  // parameter, so it is only ever used to look up a key in the build-time
-  // __W2.copy map — an unknown value falls through to the generic page rather
-  // than reaching the DOM.
-  var w2Opens = document.getElementById('w2-opens');
-  if (w2Opens && window.__W2 && window.__W2.copy[extSlug]) {
-    var w2 = window.__W2.copy[extSlug];
+  // /welcome/: name the sites this install actually covers, and lead with the
+  // one the visitor came from. extSlug is a URL parameter, so it is only ever
+  // used to look up a key in the build-time __WELCOME.copy map — an unknown
+  // value fails the guard and leaves the generic page standing, and never
+  // reaches the DOM.
+  var wlOpens = document.getElementById('wl-opens');
+  if (wlOpens && window.__WELCOME && window.__WELCOME.copy[extSlug]) {
+    var wl = window.__WELCOME.copy[extSlug];
+
+    // Every string comes from window.__WELCOME.i18n, already translated by
+    // build.mjs — this file ships one copy for all 42 locales and so must
+    // never hold English of its own (same rule as the /languages/ filter).
+    // `sites` is a list of brand names, so it is the one part not translated.
+    var wlT = window.__WELCOME.i18n || {};
+    var sites = wl.sites.replace(/&/g, '&amp;');
 
     // "Thanks for installing Lingogram" -> "... for YouTube and Netflix".
-    if (extName) extName.textContent = 'Lingogram for ' + w2.sites;
+    if (extName && wlT.h1) extName.textContent = wlT.h1.replace('{sites}', wl.sites);
 
-    var lede = document.querySelector('.w2-lede');
-    if (lede) {
-      lede.innerHTML = 'Now just watch ' + w2.sites.replace(/&/g, '&amp;') +
-        ' the way you always do — <b>subtitles turn dual on their own</b>, ' +
-        'and any word in them is one tap from your dictionary.';
-    }
+    var lede = document.querySelector('.wl-lede');
+    if (lede && wlT.lede) lede.innerHTML = wlT.lede.replace('{sites}', sites);
 
     // Reorder the buttons so the visitor's own site comes first, and drop the
     // ones this install doesn't cover.
@@ -44,30 +47,30 @@
     // `mark mark-sm mark-yt`, so a greedy /.*mark-(\w+)/ would capture "sm".
     var order = { yt: 'youtube', nf: 'netflix', hd: 'rezka' };
     var cards = {};
-    [].slice.call(w2Opens.children).forEach(function (a) {
+    [].slice.call(wlOpens.children).forEach(function (a) {
       var m = a.querySelector('.mark');
       if (!m) return;
       for (var k in order) {
         if (m.classList.contains('mark-' + k)) cards[order[k]] = a;
       }
     });
-    var wanted = w2.order.map(function (s) { return cards[s]; }).filter(Boolean);
+    var wanted = wl.order.map(function (s) { return cards[s]; }).filter(Boolean);
 
     if (wanted.length) {
-      w2Opens.replaceChildren.apply(w2Opens, wanted);
+      wlOpens.replaceChildren.apply(wlOpens, wanted);
       wanted.forEach(function (a, i) {
-        a.classList.toggle('w2-open-primary', i === 0);
+        a.classList.toggle('wl-open-primary', i === 0);
       });
     }
 
     // Rezka installs almost always happen from an open film tab, so the page
     // leads with "go back and reload" — repeating it below would nag.
     if (extSlug === 'rezka') {
-      var h = document.getElementById('w2-cta-h');
-      var s = document.getElementById('w2-cta-s');
-      if (h) h.textContent = 'Your film is probably already open?';
-      if (s) s.textContent = 'Go back to that tab and reload it — then just press play.';
-      var refresh = document.getElementById('w2-refresh');
+      var h = document.getElementById('wl-cta-h');
+      var s = document.getElementById('wl-cta-s');
+      if (h && wlT.rezkaCtaH) h.textContent = wlT.rezkaCtaH;
+      if (s && wlT.rezkaCtaS) s.textContent = wlT.rezkaCtaS;
+      var refresh = document.getElementById('wl-refresh');
       if (refresh) refresh.hidden = true;
     }
   }
@@ -75,17 +78,18 @@
   // Click-to-play: the poster is a plain image until someone asks for the
   // video, so YouTube's player (and its cookies) never load on a page most
   // people only glance at.
-  var w2Facade = document.getElementById('w2-facade');
-  if (w2Facade && window.__W2) {
-    w2Facade.addEventListener('click', function () {
+  var wlFacade = document.getElementById('wl-facade');
+  if (wlFacade && window.__WELCOME) {
+    wlFacade.addEventListener('click', function () {
       var frame = document.createElement('iframe');
-      frame.className = 'w2-frame';
-      frame.src = 'https://www.youtube-nocookie.com/embed/' + window.__W2.video +
+      frame.className = 'wl-frame';
+      frame.src = 'https://www.youtube-nocookie.com/embed/' + window.__WELCOME.video +
         '?autoplay=1&rel=0&modestbranding=1';
-      frame.title = 'How Lingogram works';
+      // Falls back to the facade's own localized aria-label.
+      frame.title = wlFacade.getAttribute('aria-label') || 'Lingogram';
       frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
       frame.setAttribute('allowfullscreen', '');
-      document.getElementById('w2-video').replaceChildren(frame);
+      document.getElementById('wl-video').replaceChildren(frame);
     });
   }
 
