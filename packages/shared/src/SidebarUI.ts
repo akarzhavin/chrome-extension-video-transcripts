@@ -80,6 +80,7 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
+    privacy: svgIcon('<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'),
     // Speech bubble, not a warning triangle or a bug: this is an invitation to
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
@@ -452,17 +453,16 @@ export class SidebarUI {
      * it mid-load would think collection was already disabled.
      */
     private buildAnalyticsToggle(): HTMLLabelElement {
+        // Anatomy mirrors .vtt-feedback-link below it — icon, label, one line —
+        // so the footer reads as one band, not two leftovers. The state lives
+        // in a trailing mini-switch, the settings idiom for a live toggle
+        // (a checkbox here read as "form field", which this is not).
         const label = document.createElement('label');
         label.className = 'vtt-privacy-link';
-
-        const box = document.createElement('input');
-        box.type = 'checkbox';
-        box.id = 'vtt-analytics-toggle';
-        box.className = 'vtt-privacy-box';
-        box.checked = true;
-
-        const text = document.createElement('span');
-        text.textContent = msg('ytPrivacyAnalyticsLabel', 'Share anonymous usage stats');
+        label.innerHTML = `${ICONS.privacy}<span class="vtt-privacy-text">${msg(
+            'ytPrivacyAnalyticsLabel',
+            'Share anonymous usage stats',
+        )}</span>`;
 
         // The full sentence lives in the tooltip rather than a second line:
         // the footer is a one-line-per-row band, and spelling out what is and
@@ -473,8 +473,21 @@ export class SidebarUI {
             'Counts like "subtitles loaded" and "word saved". Never your account, the videos you watch, or the words you save.',
         );
 
+        // A real checkbox drives the switch: keyboard, focus and screen-reader
+        // semantics stay native, only the pixels are ours. It is visually
+        // hidden by CSS, and :focus-visible re-surfaces as a ring on the track.
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-analytics-toggle';
+        box.className = 'vtt-switch-input';
+        box.checked = true;
+
+        const track = document.createElement('span');
+        track.className = 'vtt-switch';
+        track.setAttribute('aria-hidden', 'true');
+
         label.appendChild(box);
-        label.appendChild(text);
+        label.appendChild(track);
 
         void loadPrefs().then((p) => {
             box.checked = p.analyticsEnabled;
