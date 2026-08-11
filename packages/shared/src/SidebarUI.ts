@@ -1,4 +1,7 @@
 import { AppState } from './AppState';
+// Content-safe half only: analytics.ts never reads the GA4 api_secret, so it is
+// safe in a bundle the page can read. analytics-bg must never be imported here.
+import { trackVia } from './analytics';
 import {
     loadPrefs,
     onPrefsChanged,
@@ -77,6 +80,7 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
+    privacy: svgIcon('<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'),
     // Speech bubble, not a warning triangle or a bug: this is an invitation to
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
@@ -338,6 +342,15 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
+        // -- Group 4: Privacy ----------------------------------------------------
+        // The opt-out also exists in the toolbar popup, but almost nobody opens
+        // that popup — the sidebar gear is where people actually change things.
+        // A control the user cannot find is not a choice, and the policy claims
+        // one click stops collection.
+        const privacyGroup = this.buildGroup(ICONS.privacy, msg('ytGroupPrivacy', 'Privacy'));
+        privacyGroup.appendChild(this.buildAnalyticsToggle());
+        settingsPanel.appendChild(privacyGroup);
+
         // -- Feedback entry ------------------------------------------------------
         // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
         // same weight as Languages and Reading mode, and this is not a setting —
@@ -426,6 +439,63 @@ export class SidebarUI {
         head.innerHTML = `${iconSvg}<span>${title}</span><span class="vtt-group-spacer"></span>`;
         group.appendChild(head);
         return group;
+    }
+
+    /**
+     * The analytics opt-out, mirroring the one in the toolbar popup.
+     *
+     * A native checkbox rather than a styled div: it gets keyboard focus, the
+     * platform focus ring, and screen-reader semantics for free — and this is
+     * the one control in the panel where being operable matters legally, not
+     * just aesthetically.
+     *
+     * Rendered checked, then corrected once prefs resolve. Flashing "off" on a
+     * privacy control reads far worse than the reverse: a user who glances at
+     * it mid-load would think collection was already disabled.
+     */
+    private buildAnalyticsToggle(): HTMLDivElement {
+        const row = document.createElement('div');
+        row.className = 'vtt-privacy-row';
+
+        const label = document.createElement('label');
+        label.className = 'vtt-privacy-label';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-analytics-toggle';
+        box.className = 'vtt-privacy-box';
+        box.checked = true;
+
+        const text = document.createElement('span');
+        text.textContent = msg('ytPrivacyAnalyticsLabel', 'Share anonymous usage stats');
+
+        label.appendChild(box);
+        label.appendChild(text);
+
+        const hint = document.createElement('div');
+        hint.className = 'vtt-privacy-hint';
+        hint.textContent = msg(
+            'ytPrivacyAnalyticsHint',
+            'Counts like "subtitles loaded" and "word saved". Never your account, the videos you watch, or the words you save.',
+        );
+
+        row.appendChild(label);
+        row.appendChild(hint);
+
+        void loadPrefs().then((p) => {
+            box.checked = p.analyticsEnabled;
+        });
+        box.addEventListener('change', () => {
+            const on = box.checked;
+            // Sent BEFORE the preference is written, so this final hit still
+            // passes the gate. Opting back in isn't tracked: analytics is on
+            // for everyone by default, so that event could only ever measure
+            // re-enables. Same ordering as the popup's copy of this control.
+            if (!on) trackVia('analytics_opt_out');
+            void savePrefs({ analyticsEnabled: on });
+        });
+
+        return row;
     }
 
     // Label + select field row with a custom chevron (the select itself is

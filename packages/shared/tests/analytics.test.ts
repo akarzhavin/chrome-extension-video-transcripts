@@ -477,6 +477,27 @@ describe('track', () => {
         expect((global as any).fetch).not.toHaveBeenCalled();
     });
 
+    test('analytics_opt_out still sends once the preference is already false', async () => {
+        // The event that reports the gate closing cannot be stopped by the gate
+        // it is reporting on. From a content script the write wins the race:
+        // sendMessage cold-starts the worker (tens of ms) while savePrefs lands
+        // ~0.1ms later, so the worker reads a preference that already says no.
+        // Without this exemption the sidebar toggle produced no hit at all.
+        storage.local._store[PREFS_KEY] = { analyticsEnabled: false };
+        await track('analytics_opt_out');
+        expect((global as any).fetch).toHaveBeenCalledTimes(1);
+        const body = JSON.parse((global as any).fetch.mock.calls[0][1].body);
+        expect(body.events[0].name).toBe('analytics_opt_out');
+    });
+
+    test('the exemption is one event, not a hole in the gate', async () => {
+        storage.local._store[PREFS_KEY] = { analyticsEnabled: false };
+        for (const e of ['word_saved', 'subtitles_loaded', 'extension_installed'] as const) {
+            await track(e);
+        }
+        expect((global as any).fetch).not.toHaveBeenCalled();
+    });
+
     test('does not send from the embed shim', async () => {
         (global as any).chrome.runtime.id = 'lingogram-embed';
         await track('word_saved');

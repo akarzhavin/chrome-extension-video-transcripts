@@ -257,7 +257,22 @@ export async function track(event: AnalyticsEvent, params: AnalyticsParams = {})
         // A build without credentials is a no-op, not a stream of broken hits.
         if (!__GA4_MEASUREMENT_ID__ || !__GA4_API_SECRET__) return;
         if (isEmbed()) return;
-        if (!(await isAnalyticsEnabled())) return;
+        // analytics_opt_out is the one event the gate must not swallow: it
+        // reports that the gate is being closed, so by the time anyone can act
+        // on it the preference already says no.
+        //
+        // Call sites send it before writing the preference, which is enough
+        // when the worker is already awake. It is not enough from a content
+        // script: sendMessage has to COLD-START the worker, and that takes
+        // tens of milliseconds while the write lands ~0.1ms after the send.
+        // The worker then reads a preference that is already false and drops
+        // the event. Measured, not assumed — the sidebar toggle produced zero
+        // hits until this exemption existed.
+        //
+        // Exempting one event by name is narrower than it looks: it carries no
+        // parameters, it is sent once, and every other path still goes through
+        // the gate untouched.
+        if (event !== 'analytics_opt_out' && !(await isAnalyticsEnabled())) return;
 
         const now = Date.now();
         const [clientId, sessionId, days] = await Promise.all([

@@ -2427,3 +2427,48 @@
         transition: none;
     }
 }
+
+/* ── Privacy group: the analytics opt-out ───────────────────────────────────
+   Also present in the toolbar popup, but that popup is rarely opened — the
+   gear in the sidebar is where settings actually get changed, and a control
+   nobody can find is not a real choice. The privacy policy promises one click
+   stops collection, so this one has to be reachable. */
+.vtt-privacy-row {
+    padding: 0 2px;
+}
+
+.vtt-privacy-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vtt-text);
+    /* The row is the hit target, not just the 15px box. */
+    padding: 3px 0;
+}
+
+.vtt-privacy-box {
+    /* Native checkbox on purpose: it brings keyboard focus, the platform focus
+       ring and screen-reader semantics with it. accent-color is the one line
+       needed to make it match the panel instead of the browser default. */
+    accent-color: var(--vtt-accent);
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    flex: none;
+    cursor: pointer;
+}
+
+.vtt-privacy-box:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring);
+    outline-offset: 2px;
+}
+
+.vtt-privacy-hint {
+    /* Indented to the label text, not the checkbox, so it reads as one block. */
+    margin: 4px 0 0 24px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--vtt-text-dim);
+}
