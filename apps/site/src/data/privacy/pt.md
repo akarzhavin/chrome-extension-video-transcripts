@@ -61,6 +61,10 @@ A Extensão envia eventos de utilização anónimos para o **Google Analytics 4*
 * **se tinha sessão iniciada** — um indicador verdadeiro/falso, sem qualquer identificador de conta;
 * uma **contagem acumulada de palavras guardadas neste dispositivo**;
 * a **versão e a edição da Extensão**;
+* apenas em compilações de teste do programador: **para qual dos nossos
+  próprios servidores de teste** a compilação apontava; é uma informação sobre
+  a nossa infraestrutura, não sobre si, e as compilações instaladas a partir da
+  Chrome Web Store nunca a enviam;
 * os **dias decorridos desde a instalação**;
 * um **código técnico de falha** quando as legendas falham;
 * um **ID de sessão** que agrupa os eventos de uma mesma sessão de navegação.

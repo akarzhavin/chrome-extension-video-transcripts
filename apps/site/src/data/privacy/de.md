@@ -140,6 +140,9 @@ erzeugt eine neue, damit in keiner Beziehung stehende Kennung.
 * **ob Sie angemeldet waren** — ein Ja/Nein-Kennzeichen, ohne jede Konto-ID;
 * ein **laufender Zähler der auf diesem Gerät gespeicherten Wörter**;
 * die **Version und Edition der Erweiterung**;
+* nur in Entwickler-Testversionen: **auf welchen unserer eigenen Testserver**
+  die Version ausgerichtet war — eine Angabe über unsere Infrastruktur, nicht
+  über Sie; aus dem Chrome Web Store installierte Versionen senden sie nie;
 * die **Anzahl der Tage seit der Installation**;
 * ein **technischer Fehlercode**, wenn Untertitel fehlschlagen;
 * eine **Sitzungs-ID**, die Ereignisse einer Browsersitzung zusammenfasst.

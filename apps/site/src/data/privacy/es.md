@@ -134,6 +134,10 @@ anterior.
   identificador de cuenta;
 * un **recuento acumulado de palabras guardadas en este dispositivo**;
 * la **versión y la edición de la Extensión**;
+* solo en compilaciones de prueba del desarrollador: **a cuál de nuestros
+  propios servidores de prueba** apuntaba la compilación; es un dato sobre
+  nuestra infraestructura, no sobre usted, y las compilaciones instaladas desde
+  Chrome Web Store nunca lo envían;
 * los **días transcurridos desde la instalación**;
 * un **código técnico de fallo** cuando los subtítulos fallan;
 * un **ID de sesión** que agrupa los eventos de una misma sesión de navegación.
