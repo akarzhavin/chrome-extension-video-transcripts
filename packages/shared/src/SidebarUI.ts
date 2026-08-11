@@ -342,7 +342,14 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
-        // -- Footer: privacy, then the way out -----------------------------------
+        // -- Privacy -------------------------------------------------------------
+        // Part of the panel's scrolling content, after the last group — a
+        // setting, so it lives with the settings. Deliberately not a
+        // buildGroup: a heading would out-shout Languages for a control most
+        // people touch once or never. One switch row, group-aligned.
+        settingsPanel.appendChild(this.buildAnalyticsToggle());
+
+        // -- Footer: the way out -------------------------------------------------
         // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
         // same weight as Languages and Reading mode, and this is not a setting —
         // it's an exit for someone who is already annoyed.
@@ -358,14 +365,6 @@ export class SidebarUI {
         // position while still reading as the end of the panel.
         const feedbackFooter = document.createElement('div');
         feedbackFooter.className = 'vtt-panel-footer';
-
-        // The analytics opt-out shares this band rather than claiming a group
-        // of its own: same weight as the feedback line, which is the right
-        // weight — a one-off choice, not a setting people return to. It sits
-        // above "Report a problem" so the sticky footer still ends with the
-        // exit. Reachable in one click from the gear, which is what the privacy
-        // policy points at.
-        feedbackFooter.appendChild(this.buildAnalyticsToggle());
 
         const feedbackLink = document.createElement('button');
         feedbackLink.id = 'vtt-feedback-link';

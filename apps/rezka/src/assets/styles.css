@@ -2428,20 +2428,20 @@
     }
 }
 
-/* ── Analytics opt-out: a footer row with a trailing switch ─────────────────
-   Shares the band with "Report a problem" and mirrors its anatomy exactly —
-   14px icon, 7px gap, dim 12px label, the same hover wash — so the footer
-   reads as one band. The state affordance is a mini-switch on the trailing
-   edge (the settings idiom for a live toggle; a bare checkbox here read as a
-   form field). A native checkbox underneath keeps keyboard and screen-reader
-   semantics; only the pixels are drawn. */
+/* ── Analytics opt-out: the panel's last row, a trailing switch ─────────────
+   Scrolls with the settings groups (it is a setting), separated by the same
+   hairline the groups use, but without a group heading — a heading would
+   out-shout Languages for a control most people touch once or never. Icon
+   sits in the groups' 18px icon column; the state affordance is a mini-switch
+   on the trailing edge, the settings idiom for a live toggle. A native
+   checkbox underneath keeps keyboard and screen-reader semantics; only the
+   pixels are drawn. */
 .vtt-privacy-link {
     display: flex;
     align-items: center;
     gap: 7px;
-    width: 100%;
-    padding: 5px 2px;
-    border-radius: 5px;
+    padding: 10px 18px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
     font-size: 12px;
     color: var(--vtt-text-dim);
