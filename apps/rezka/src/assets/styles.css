@@ -2428,75 +2428,27 @@
     }
 }
 
-/* ── Privacy: a collapsed disclosure, not a settings group ──────────────────
-   The analytics opt-out has to be reachable — the policy promises one click
-   stops collection — but it is not something people come here to adjust.
-   Quieter than the groups above and closed by default, so it reads as "here
-   if you want it" rather than competing with Languages and Reading mode. */
-.vtt-privacy {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 4px 16px 8px;
-}
-
-.vtt-privacy-summary {
+/* ── Analytics opt-out: a footer row, not a settings group ──────────────────
+   Sits with "Report a problem" because it carries the same weight — a one-off
+   choice rather than something people come back to adjust. Given a group of
+   its own it read louder than Languages, which is the wrong emphasis for a
+   control most users will touch once or never. The full explanation is in the
+   tooltip and the privacy policy; the row itself stays one line. */
+.vtt-privacy-link {
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 7px 2px;
+    width: 100%;
+    padding: 5px 2px;
+    border-radius: 5px;
     cursor: pointer;
-    list-style: none;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    /* Dimmer than .vtt-group-head on purpose: same shape, less weight. */
-    color: rgba(255, 255, 255, 0.42);
+    font-size: 12px;
+    color: var(--vtt-text-dim);
+    transition: color 0.15s;
 }
 
-/* Safari/Chrome default disclosure triangle — we draw our own chevron. */
-.vtt-privacy-summary::-webkit-details-marker {
-    display: none;
-}
-
-.vtt-privacy-summary:hover {
-    color: rgba(255, 255, 255, 0.62);
-}
-
-.vtt-privacy-summary:focus-visible {
-    outline: 2px solid var(--vtt-accent-ring);
-    outline-offset: 2px;
-    border-radius: 4px;
-}
-
-.vtt-privacy-summary svg {
-    width: 13px;
-    height: 13px;
-    flex: none;
-}
-
-/* The chevron is the last child; push it to the far edge and rotate on open. */
-.vtt-privacy-summary svg:last-child {
-    margin-left: auto;
-    transition: transform 0.15s ease;
-}
-
-.vtt-privacy[open] .vtt-privacy-summary svg:last-child {
-    transform: rotate(180deg);
-}
-
-.vtt-privacy-row {
-    padding: 2px 2px 4px;
-}
-
-.vtt-privacy-label {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    cursor: pointer;
-    font-size: 13px;
+.vtt-privacy-link:hover {
     color: var(--vtt-text);
-    /* The whole row is the hit target, not just the 15px box. */
-    padding: 3px 0;
 }
 
 .vtt-privacy-box {
@@ -2504,8 +2456,8 @@
        screen-reader semantics come with it. accent-color is the single line
        that makes it match the panel instead of the browser default. */
     accent-color: var(--vtt-accent);
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
     margin: 0;
     flex: none;
     cursor: pointer;
@@ -2516,16 +2468,8 @@
     outline-offset: 2px;
 }
 
-.vtt-privacy-hint {
-    /* Indented to the label text, not the checkbox, so it reads as one block. */
-    margin: 4px 0 0 24px;
-    font-size: 11.5px;
-    line-height: 1.45;
-    color: var(--vtt-text-dim);
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .vtt-privacy-summary svg:last-child {
+    .vtt-privacy-link {
         transition: none;
     }
 }

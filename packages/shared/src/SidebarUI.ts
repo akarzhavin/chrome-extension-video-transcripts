@@ -80,7 +80,6 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
-    privacy: svgIcon('<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'),
     // Speech bubble, not a warning triangle or a bug: this is an invitation to
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
@@ -342,15 +341,7 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
-        // -- Privacy -------------------------------------------------------------
-        // Deliberately NOT a fourth buildGroup: an icon + heading would give
-        // this the same weight as Languages and Reading mode, and it is not
-        // something people come here to adjust — most will set it once, or
-        // never. Collapsed by default, quieter than the groups above it, but
-        // still one click from the gear the policy points at.
-        settingsPanel.appendChild(this.buildPrivacyDisclosure());
-
-        // -- Feedback entry ------------------------------------------------------
+        // -- Footer: privacy, then the way out -----------------------------------
         // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
         // same weight as Languages and Reading mode, and this is not a setting —
         // it's an exit for someone who is already annoyed.
@@ -366,6 +357,14 @@ export class SidebarUI {
         // position while still reading as the end of the panel.
         const feedbackFooter = document.createElement('div');
         feedbackFooter.className = 'vtt-panel-footer';
+
+        // The analytics opt-out shares this band rather than claiming a group
+        // of its own: same weight as the feedback line, which is the right
+        // weight — a one-off choice, not a setting people return to. It sits
+        // above "Report a problem" so the sticky footer still ends with the
+        // exit. Reachable in one click from the gear, which is what the privacy
+        // policy points at.
+        feedbackFooter.appendChild(this.buildAnalyticsToggle());
 
         const feedbackLink = document.createElement('button');
         feedbackLink.id = 'vtt-feedback-link';
@@ -441,27 +440,6 @@ export class SidebarUI {
     }
 
     /**
-     * Privacy, as a collapsed disclosure rather than a settings group.
-     *
-     * Native <details>/<summary>: keyboard operation, the disclosure role and
-     * open/closed state all come from the platform, and none of it needs JS —
-     * which matters for a control whose whole job is to still work when
-     * something else on the page has broken.
-     */
-    private buildPrivacyDisclosure(): HTMLDetailsElement {
-        const wrap = document.createElement('details');
-        wrap.className = 'vtt-privacy';
-
-        const head = document.createElement('summary');
-        head.className = 'vtt-privacy-summary';
-        head.innerHTML = `${ICONS.privacy}<span>${msg('ytGroupPrivacy', 'Privacy')}</span>${ICONS.chevron}`;
-
-        wrap.appendChild(head);
-        wrap.appendChild(this.buildAnalyticsToggle());
-        return wrap;
-    }
-
-    /**
      * The analytics opt-out, mirroring the one in the toolbar popup.
      *
      * A native checkbox rather than a styled div: it gets keyboard focus, the
@@ -473,12 +451,9 @@ export class SidebarUI {
      * privacy control reads far worse than the reverse: a user who glances at
      * it mid-load would think collection was already disabled.
      */
-    private buildAnalyticsToggle(): HTMLDivElement {
-        const row = document.createElement('div');
-        row.className = 'vtt-privacy-row';
-
+    private buildAnalyticsToggle(): HTMLLabelElement {
         const label = document.createElement('label');
-        label.className = 'vtt-privacy-label';
+        label.className = 'vtt-privacy-link';
 
         const box = document.createElement('input');
         box.type = 'checkbox';
@@ -489,18 +464,17 @@ export class SidebarUI {
         const text = document.createElement('span');
         text.textContent = msg('ytPrivacyAnalyticsLabel', 'Share anonymous usage stats');
 
-        label.appendChild(box);
-        label.appendChild(text);
-
-        const hint = document.createElement('div');
-        hint.className = 'vtt-privacy-hint';
-        hint.textContent = msg(
+        // The full sentence lives in the tooltip rather than a second line:
+        // the footer is a one-line-per-row band, and spelling out what is and
+        // is not collected inline would make privacy the loudest thing here.
+        // The policy carries the same wording in full.
+        label.title = msg(
             'ytPrivacyAnalyticsHint',
             'Counts like "subtitles loaded" and "word saved". Never your account, the videos you watch, or the words you save.',
         );
 
-        row.appendChild(label);
-        row.appendChild(hint);
+        label.appendChild(box);
+        label.appendChild(text);
 
         void loadPrefs().then((p) => {
             box.checked = p.analyticsEnabled;
@@ -515,7 +489,7 @@ export class SidebarUI {
             void savePrefs({ analyticsEnabled: on });
         });
 
-        return row;
+        return label;
     }
 
     // Label + select field row with a custom chevron (the select itself is
