@@ -342,14 +342,13 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
-        // -- Group 4: Privacy ----------------------------------------------------
-        // The opt-out also exists in the toolbar popup, but almost nobody opens
-        // that popup — the sidebar gear is where people actually change things.
-        // A control the user cannot find is not a choice, and the policy claims
-        // one click stops collection.
-        const privacyGroup = this.buildGroup(ICONS.privacy, msg('ytGroupPrivacy', 'Privacy'));
-        privacyGroup.appendChild(this.buildAnalyticsToggle());
-        settingsPanel.appendChild(privacyGroup);
+        // -- Privacy -------------------------------------------------------------
+        // Deliberately NOT a fourth buildGroup: an icon + heading would give
+        // this the same weight as Languages and Reading mode, and it is not
+        // something people come here to adjust — most will set it once, or
+        // never. Collapsed by default, quieter than the groups above it, but
+        // still one click from the gear the policy points at.
+        settingsPanel.appendChild(this.buildPrivacyDisclosure());
 
         // -- Feedback entry ------------------------------------------------------
         // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
@@ -439,6 +438,27 @@ export class SidebarUI {
         head.innerHTML = `${iconSvg}<span>${title}</span><span class="vtt-group-spacer"></span>`;
         group.appendChild(head);
         return group;
+    }
+
+    /**
+     * Privacy, as a collapsed disclosure rather than a settings group.
+     *
+     * Native <details>/<summary>: keyboard operation, the disclosure role and
+     * open/closed state all come from the platform, and none of it needs JS —
+     * which matters for a control whose whole job is to still work when
+     * something else on the page has broken.
+     */
+    private buildPrivacyDisclosure(): HTMLDetailsElement {
+        const wrap = document.createElement('details');
+        wrap.className = 'vtt-privacy';
+
+        const head = document.createElement('summary');
+        head.className = 'vtt-privacy-summary';
+        head.innerHTML = `${ICONS.privacy}<span>${msg('ytGroupPrivacy', 'Privacy')}</span>${ICONS.chevron}`;
+
+        wrap.appendChild(head);
+        wrap.appendChild(this.buildAnalyticsToggle());
+        return wrap;
     }
 
     /**
