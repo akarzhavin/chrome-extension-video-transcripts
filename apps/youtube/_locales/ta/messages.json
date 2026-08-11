@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} எழுத்துகள் மீதம்",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "தனியுரிமை",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "அநாமதேய பயன்பாட்டுப் புள்ளிவிவரங்களைப் பகிர்",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "“வசனங்கள் ஏற்றப்பட்டன”, “சொல் சேமிக்கப்பட்டது” போன்ற எண்ணிக்கைகள் மட்டுமே. உங்கள் கணக்கு, நீங்கள் பார்க்கும் வீடியோக்கள் அல்லது நீங்கள் சேமிக்கும் சொற்கள் ஒருபோதும் இல்லை.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

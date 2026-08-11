@@ -1,3 +1,5 @@
+*Ang pagsasaling ito ay batay sa mas lumang bersyon ng patakaran at hindi kasama ang mga pinakabagong pagbabago. Ang bersyong Ingles sa https://lingogram.ai/privacy/ ang siyang masusunod.*
+
 # Patakaran sa Privacy — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Petsa ng bisa:** Hunyo 22, 2026

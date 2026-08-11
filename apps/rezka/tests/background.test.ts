@@ -63,8 +63,67 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
     },
 };
 
-import { fetchWithRetry } from '../src/background/background';
-import { buildAllowedExternalOrigins, getAuthState } from '@video-transcripts/shared';
+import { HttpError, classifyStatus, fetchWithRetry } from '../src/background/background';
+
+describe('fetch failure classification', () => {
+    // Before this, the status was formatted into an Error message and lost, so
+    // the content script had only a timeout to go on and told the user the
+    // video had no subtitles — for what was often a rate limit.
+    test('HttpError carries the status, not just a message', async () => {
+        (global as any).fetch = jest
+            .fn()
+            .mockResolvedValue({ ok: false, status: 429, text: () => Promise.resolve('') });
+        await expect(fetchWithRetry('http://x/subs.vtt', 1, 1)).rejects.toBeInstanceOf(HttpError);
+        try {
+            await fetchWithRetry('http://x/subs.vtt', 1, 1);
+        } catch (err) {
+            expect((err as HttpError).status).toBe(429);
+        }
+    });
+
+    test.each([
+        [429, 'rate-limited'],
+        [503, 'rate-limited'],
+        [403, 'stale-url'],
+        [404, 'unavailable'],
+        [410, 'unavailable'],
+        [500, 'unknown'],
+        [undefined, 'network'],
+    ])('status %s → %s', (status, expected) => {
+        expect(classifyStatus(status as number | undefined)).toBe(expected);
+    });
+});
+import {
+    AUTH_ACTIONS,
+    buildAllowedExternalOrigins,
+    getAuthState,
+    handleAuthMessage,
+    isAuthAction,
+} from '@video-transcripts/shared';
+
+describe('message action registry', () => {
+    // isAuthAction() filters on AUTH_ACTIONS before the handler ever runs, so
+    // an action present in the type union but missing from the Set is dropped
+    // silently — no error, no log, just events that never arrive. These two
+    // assertions are the only thing standing between that bug and production.
+    test('TRACK_EVENT is registered', () => {
+        expect(isAuthAction('TRACK_EVENT')).toBe(true);
+        expect(AUTH_ACTIONS.has('TRACK_EVENT')).toBe(true);
+    });
+
+    test('the registry holds exactly the eight non-dev actions', () => {
+        // Fails loudly when an action is added to the union but not the Set.
+        expect(AUTH_ACTIONS.size).toBe(8);
+    });
+
+    test('an unknown analytics event is rejected at the boundary', async () => {
+        (global as any).fetch = jest.fn();
+        await expect(
+            handleAuthMessage({ action: 'TRACK_EVENT', event: 'not_a_real_event' }),
+        ).resolves.toEqual({ ok: false });
+        expect((global as any).fetch).not.toHaveBeenCalled();
+    });
+});
 
 describe('background script', () => {
     beforeEach(() => {

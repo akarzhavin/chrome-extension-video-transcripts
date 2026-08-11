@@ -108,12 +108,19 @@ Hear the language the way people really use it, while you watch titles you
 already enjoy. Works across single movies and full multi-season series alike.
 
 
+PREPARING FOR AN EXAM
+Working toward IELTS or TOEFL? Listening is the part you can't cram for a week
+before — it takes months of hearing people talk at full speed, over each other,
+with accents. A season of a show gets you that without it feeling like study,
+and the words you had to look up stay in your list with the scene they came
+from.
+
+
 WHO IT'S FOR
 • If you watch HDrezka in the original and want to understand it without pausing
   for the dictionary — this is built for you.
 • Anyone who watches HDrezka in the original to level up their English.
 • People learning Russian from the movies and series everyone's streaming.
-• Students preparing for IELTS, TOEFL, or TORFL.
 • Self-learners who'd rather learn from movies than grind a textbook.
 • Anyone who wants their next movie night to teach them something.
 

@@ -137,6 +137,9 @@ class YouTubeVttApp extends BaseVttApp {
     // post-cooldown retry; see ReprocessOptions.probe).
     requestVtt(req: TrackRequest, videoId: string, probe = false): void {
         this.pendingRequests.set(req.key, req.name);
+        // Backstop for a request that never answers at all — without it a lost
+        // reply leaves Dual silently disabled and nothing recorded anywhere.
+        this.schedulePendingTrackCheck();
         console.log('[YT-VTT] FETCH_VTT ->', req.name, probe ? '(probe)' : '');
         window.postMessage(
             { type: 'YT_FETCH_VTT', url: req.key, baseUrl: req.baseUrl, videoId, tlang: req.tlang, probe },

@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Suomi", "htmlLang": "fi" },
-
+  "meta": {
+    "name": "Suomi",
+    "htmlLang": "fi"
+  },
   "nav": {
     "editions": "Versiot",
     "how": "Miten se toimii",
@@ -15,7 +17,6 @@
     "allLanguages": "Kaikki kielet",
     "noLanguageMatch": "Yksikään kieli ei täsmää"
   },
-
   "languages": {
     "title": "Kielet — Lingogram",
     "description": "Lingogramin sivusto 42 kielellä — valitse se, jolla luet.",
@@ -26,7 +27,10 @@
     "clearSearch": "Tyhjennä haku",
     "noMatch": "Yksikään kieli ei täsmää",
     "noMatchHint": "Kokeile sen englanninkielistä nimeä tai kaksikirjaimista koodia.",
-    "count": { "one": "{n} kieli", "other": "{n} kieltä" },
+    "count": {
+      "one": "{n} kieli",
+      "other": "{n} kieltä"
+    },
     "region": {
       "westEurope": "Länsi- ja Pohjois-Eurooppa",
       "eastEurope": "Keski- ja Itä-Eurooppa",
@@ -34,7 +38,6 @@
       "middleEast": "Lähi-itä"
     }
   },
-
   "footer": {
     "tagline": "Opi kieliä sen kautta, mitä katsot.",
     "product": "Tuote",
@@ -49,13 +52,11 @@
     "legal": "Lakiasiat",
     "privacyPolicy": "Tietosuojakäytäntö"
   },
-
   "proof": {
     "rating": "Chrome-verkkokaupassa",
     "learners": "oppijaa",
     "free": "Ilmainen, ei mainoksia"
   },
-
   "demo": {
     "hintPrefix": "Tämä demo on itse laajennus, oikeasti käynnissä juuri tällä sivulla —",
     "hintBold": "valitse sana",
@@ -64,25 +65,44 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(vapaasti käytettävissä)"
   },
-
   "modes": {
-    "dual": { "tab": "Kaksoistekstitys", "h": "Molemmat kielet yhtä aikaa", "p": "Rivi, jonka kuulet, rivin vieressä, jonka ymmärrät — ei taukoja, ei raidan vaihtoa." },
-    "guess": { "tab": "Arvaustila", "h": "Klikkaa paljastaaksesi — ja harjoita korvaasi", "p": "Rivi pysyy piilossa, kunnes klikkaat sitä. Arvaa ensin kuulon perusteella, tarkista sitten: näiden kahden välinen ero on juuri se kohta, jossa kuullun ymmärtäminen kehittyy." },
-    "single": { "tab": "Videolla", "h": "Ruudulla tai sivupaneelissa — sinä valitset", "p": "Pidä molemmat rivit elokuvan päällä, siellä minne katseesi jo osuu. Tai poista ne yhdellä painikkeella ja lue paneelista omaan tahtiisi. Tekstitykset eivät koskaan katoa — ne vain siirtyvät." },
-    "save": { "tab": "Sanasto", "h": "Tallenna jokainen kohtaamasi sana", "p": "Valitse sana — yksi napautus tallentaa sen lauseen kanssa, josta se tuli, suoraan sanastoosi tässä, osoitteessa lingogram.ai." }
+    "dual": {
+      "tab": "Kaksoistekstitys",
+      "h": "Molemmat kielet yhtä aikaa",
+      "p": "Rivi, jonka kuulet, rivin vieressä, jonka ymmärrät — ei taukoja, ei raidan vaihtoa."
+    },
+    "guess": {
+      "tab": "Arvaustila",
+      "h": "Klikkaa paljastaaksesi — ja harjoita korvaasi",
+      "p": "Rivi pysyy piilossa, kunnes klikkaat sitä. Arvaa ensin kuulon perusteella, tarkista sitten: näiden kahden välinen ero on juuri se kohta, jossa kuullun ymmärtäminen kehittyy."
+    },
+    "single": {
+      "tab": "Videolla",
+      "h": "Ruudulla tai sivupaneelissa — sinä valitset",
+      "p": "Pidä molemmat rivit elokuvan päällä, siellä minne katseesi jo osuu. Tai poista ne yhdellä painikkeella ja lue paneelista omaan tahtiisi. Tekstitykset eivät koskaan katoa — ne vain siirtyvät."
+    },
+    "save": {
+      "tab": "Sanasto",
+      "h": "Tallenna jokainen kohtaamasi sana",
+      "p": "Valitse sana — yksi napautus tallentaa sen lauseen kanssa, josta se tuli, suoraan sanastoosi tässä, osoitteessa lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
-  "editionsCard": { "yt": "Täyttää puuttuvan toisen raidan YouTuben automaattikäännöksellä.", "nf": "Alkuperäiset tekstitysraidat, ei konekäännöstä.", "hd": "Kaksoistekstitys, kun nimikkeellä on molemmat raidat." },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Täyttää puuttuvan toisen raidan YouTuben automaattikäännöksellä.",
+    "nf": "Alkuperäiset tekstitysraidat, ei konekäännöstä.",
+    "hd": "Kaksoistekstitys, kun nimikkeellä on molemmat raidat."
+  },
   "home": {
     "h1Lead": "Opi kieltä samalla, kun katsot",
     "h1Pop": "videoita, joita rakastat.",
     "heroLede": "Katso tekstityksiä kahdella kielellä tai harjoita korvaasi paljastamalla vain ne sanat, joita et kuullut kunnolla. Tallenna uudet sanat henkilökohtaiseen sanastoosi.",
     "ctaPrimary": "Lisää Chromeen — ilmaiseksi",
     "ctaSecondary": "Valitse versio sille sivustolle, jolla katsot ↓",
-
     "platformsKicker": "Versiot",
     "platformsH2": "Yksi Lingogram, viritetty sivustollesi",
     "platformsLede": "Jokainen versio on oma Chrome-laajennuksensa, rakennettu yhden sivuston soittimelle — natiivit tekstitysraidat, koko videon päälle piirtyvä tekstitystaso, juuri sen sivuston tarvitsemat korjaukset. Ne jakavat samat oppimistyökalut ja saman tilin, joten tallennetut sanasi ovat aina yhdessä paikassa, käytit mitä versiota tahansa. Kaksi laajennusta kattaa kaikki kolme sivustoa: YouTube-versio hoitaa myös Netflixin.",
@@ -90,7 +110,6 @@
     "editionSoonTitle": "Katsotko jossain muualla?",
     "editionSoonBody": "Uusia versioita julkaistaan säännöllisesti — kerro meille, missä katsot.",
     "editionSoonCta": "Ehdota sivustoa →",
-
     "howKicker": "Miten se toimii",
     "howH2": "Asennuksesta ensimmäiseen tallennettuun sanaan yhdessä videossa",
     "step1T": "Asenna ja valitse kielesi",
@@ -99,49 +118,72 @@
     "step2D": "Paina play — molemmat kielet ilmestyvät yhdessä, videolla ja kohtauksen mukana vierivässä tekstissä.",
     "step3T": "Tallenna sanoja, kertaa niitä tällä sivustolla",
     "step3D": "Tallenna sana yhdellä napautuksella katsoessasi — avaa sitten sanastosi osoitteessa lingogram.ai ja kertaa se yhdessä kohtauksen kanssa, josta se tuli.",
-
     "dictKicker": "Sanastosi",
     "dictH2": "Jokainen tallentamasi sana rakentaa sanastoa, joka on todella sinun",
     "dictLede": "Ei oppikirjan frekvenssilistaa — sanoja, joita kohtasit valitsemissasi kohtauksissa, tallennettuna niiden rivien kanssa, joista ne tulivat. Käytitpä mitä versiota tahansa, kaikki päätyy yhteen tiliin, ja se odottaa sinua tällä sivustolla kirjautumisen jälkeen.",
     "dictMyWords": "Omat sanani",
     "dictCount": "247 tallennettu · 12 tällä viikolla",
-    "dictWord1": "reluctantly", "dictTr1": "vastahakoisesti", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "pakomatka", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "bensa loppu", "dictTr3": "polttoaine lopussa", "dictCtx3": "“Olemme olleet {w} viime bensa-asemalta lähtien.”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "vastahakoisesti",
+    "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "pakomatka",
+    "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "bensa loppu",
+    "dictTr3": "polttoaine lopussa",
+    "dictCtx3": "“Olemme olleet {w} viime bensa-asemalta lähtien.”",
     "dictFoot": "Sanasi synkronoituvat laitteiden ja kaikkien Lingogram-versioiden välillä — {b}.",
     "dictFootBold": "yksi tili, yksi sanasto",
-
     "featKicker": "Miksi se jää mieleen",
     "featH2": "Useimmat työkalut pysähtyvät käännökseen. Lingogram saa sanat jäämään mieleen.",
     "featLede": "Lingogram nojaa aktiiviseen muistista hakemiseen: et vain lue mukana — yrität itse muistaa, arvaat, toistat ja keräät, jolloin tunnit, jotka jo vietät katsomiseen, muuttuvat todelliseksi edistymiseksi.",
-    "feat1Tag": "Kaksoistekstitys", "feat1H": "Kaksi kieltä, yksi ruutu", "feat1P": "Poimi jokainen rivi alkukielellä ja vertaa sitä omaan kieleesi ilman taukoa. Kun olet valmis, piilota käännös — kaksoistekstitys on lähtökohta, josta Lingogram auttaa sinua kasvamaan yli.",
-    "feat2Tag": "Interaktiivinen transkriptio", "feat2H": "Toista rivi, älä koko elokuvaa", "feat2P": "Transkriptio vierii itsestään videon mukana. Klikkaa mitä tahansa riviä hypätäksesi takaisin ja silmukoidaksesi juuri sen kohtauksen, kunnes äänet, joita et pystynyt erottamaan, muuttuvat sanoiksi, jotka tunnistat välittömästi.",
-    "feat3Tag": "Arvaa-tila", "feat3H": "Kuuntele ensin, tarkista sitten", "feat3P": "Sanat alkavat piilossa: poimi rivi korvalla, paljasta se sitten. Tämä kuuntele-ensin-silmukka rakentaa kuullun ymmärtämistä, johon voit luottaa — ei tekstityksiä, joita vain luet mukana. Vaihda tilaa näppäimellä {kbd}.",
-    "feat4Tag": "Tallennetut sanat", "feat4H": "Sanastosi, omista elokuvistasi", "feat4P": "Yksi napautus tallentaa sanan sitä ympäröivien tekstitysrivien kanssa. Se päätyy suoraan {link}, osoitteessa lingogram.ai, jossa kertaat jokaisen sanan sen alkuperäisessä kohtauksessa.",
+    "feat1Tag": "Kaksoistekstitys",
+    "feat1H": "Kaksi kieltä, yksi ruutu",
+    "feat1P": "Poimi jokainen rivi alkukielellä ja vertaa sitä omaan kieleesi ilman taukoa. Kun olet valmis, piilota käännös — kaksoistekstitys on lähtökohta, josta Lingogram auttaa sinua kasvamaan yli.",
+    "feat2Tag": "Interaktiivinen transkriptio",
+    "feat2H": "Toista rivi, älä koko elokuvaa",
+    "feat2P": "Transkriptio vierii itsestään videon mukana. Klikkaa mitä tahansa riviä hypätäksesi takaisin ja silmukoidaksesi juuri sen kohtauksen, kunnes äänet, joita et pystynyt erottamaan, muuttuvat sanoiksi, jotka tunnistat välittömästi.",
+    "feat3Tag": "Arvaa-tila",
+    "feat3H": "Kuuntele ensin, tarkista sitten",
+    "feat3P": "Sanat alkavat piilossa: poimi rivi korvalla, paljasta se sitten. Tämä kuuntele-ensin-silmukka rakentaa kuullun ymmärtämistä, johon voit luottaa — ei tekstityksiä, joita vain luet mukana. Vaihda tilaa näppäimellä {kbd}.",
+    "feat4Tag": "Tallennetut sanat",
+    "feat4H": "Sanastosi, omista elokuvistasi",
+    "feat4P": "Yksi napautus tallentaa sanan sitä ympäröivien tekstitysrivien kanssa. Se päätyy suoraan {link}, osoitteessa lingogram.ai, jossa kertaat jokaisen sanan sen alkuperäisessä kohtauksessa.",
     "feat4Link": "henkilökohtaiseen sanastoosi",
-
     "privKicker": "Yksityinen oletuksena",
     "privH2": "Se, mitä katsot, pysyy omana asianasi",
-    "priv1": "{b} Kieli- ja asetteluasetukset tallennetaan paikallisesti selaimeesi.", "priv1Bold": "Ei telemetriaa, ei seurantaa.",
-    "priv2": "{b} Tekstitykset käsitellään suoraan laitteellasi.", "priv2Bold": "Emme näe koskaan katseluhistoriaasi.",
-    "priv3": "{b} Jos kirjaudut sisään, tallennamme sähköpostisi ja tallennetut sanasi — ei muuta, emmekä koskaan myy niitä.", "priv3Bold": "Sanasto on vapaaehtoinen.",
-    "priv4": "{b} Jos sivustopäivitys rikkoo jotain, yksi klikkaus ilmoittaa siitä, jotta voimme korjata sen nopeasti.", "priv4Bold": "Korjaamme sen nopeasti.",
-
+    "priv1": "{b} Kieli- ja asetteluasetukset tallennetaan paikallisesti selaimeesi.",
+    "priv1Bold": "Ei telemetriaa, ei seurantaa.",
+    "priv2": "{b} Tekstitykset käsitellään suoraan laitteellasi.",
+    "priv2Bold": "Emme näe koskaan katseluhistoriaasi.",
+    "priv3": "{b} Jos kirjaudut sisään, tallennamme sähköpostisi ja tallennetut sanasi — ei muuta, emmekä koskaan myy niitä.",
+    "priv3Bold": "Sanasto on vapaaehtoinen.",
+    "priv4": "{b} Jos sivustopäivitys rikkoo jotain, yksi klikkaus ilmoittaa siitä, jotta voimme korjata sen nopeasti.",
+    "priv4Bold": "Korjaamme sen nopeasti.",
     "faqKicker": "Kysymykset",
     "faqH2": "Kysymyksiä, joita ihmiset kysyvät ennen asennusta",
-
     "finalH2": "Tee tämän illan jaksosta kielitunti",
     "finalCta": "Lisää Lingogram Chromeen",
     "finalProof": "Ilmainen · Käyttöönotto alle minuutissa"
   },
-
   "faq": {
-    "free": { "q": "Onko se ilmainen?", "a": "Kyllä. Kaksoistekstitys, transkriptio ja Arvaa-tila ovat ilmaisia. Ilmainen tili tarvitaan vain, jos haluat synkronoida tallennetut sanasi laitteiden välillä." },
-    "languages": { "q": "Mitä kieliä se tukee?", "a": "Mitä tahansa paria, jolle videolla on tekstitys. YouTubessa, jos jompikumpi kielistäsi puuttuu, Lingogram täydentää sen YouTuben automaattisella käännöksellä, jotta saat silti kaksoisnäkymän. Netflixissä ja HDrezkassa näytetään ne tekstitysraidat, jotka nimikkeellä todella on — ei konekäännöstä." },
-    "edition": { "q": "Minkä version asennan?", "a": "Sen, joka on sivustolle, jolla katsot. Laajennuksia on kaksi: toinen kattaa YouTuben ja Netflixin yhdessä, toinen HDrezkan. Asenna molemmat, jos katsot molemmilla — ne jakavat samat oppimistyökalut ja saman tilin, joten tallennetut sanasi pysyvät yhdessä paikassa." },
-    "words": { "q": "Missä tallentamani sanat säilytetään?", "a": "Henkilökohtaisessa sanastossasi, juuri täällä osoitteessa lingogram.ai. Kirjaudu sisään, niin jokainen tallentamasi sana on siellä sen kohtauksen kanssa, josta se tuli — riippumatta siitä, millä versiolla tai laitteella tallensit sen." }
+    "free": {
+      "q": "Onko se ilmainen?",
+      "a": "Kyllä. Kaksoistekstitys, transkriptio ja Arvaa-tila ovat ilmaisia. Ilmainen tili tarvitaan vain, jos haluat synkronoida tallennetut sanasi laitteiden välillä."
+    },
+    "languages": {
+      "q": "Mitä kieliä se tukee?",
+      "a": "Mitä tahansa paria, jolle videolla on tekstitys. YouTubessa, jos jompikumpi kielistäsi puuttuu, Lingogram täydentää sen YouTuben automaattisella käännöksellä, jotta saat silti kaksoisnäkymän. Netflixissä ja HDrezkassa näytetään ne tekstitysraidat, jotka nimikkeellä todella on — ei konekäännöstä."
+    },
+    "edition": {
+      "q": "Minkä version asennan?",
+      "a": "Sen, joka on sivustolle, jolla katsot. Laajennuksia on kaksi: toinen kattaa YouTuben ja Netflixin yhdessä, toinen HDrezkan. Asenna molemmat, jos katsot molemmilla — ne jakavat samat oppimistyökalut ja saman tilin, joten tallennetut sanasi pysyvät yhdessä paikassa."
+    },
+    "words": {
+      "q": "Missä tallentamani sanat säilytetään?",
+      "a": "Henkilökohtaisessa sanastossasi, juuri täällä osoitteessa lingogram.ai. Kirjaudu sisään, niin jokainen tallentamasi sana on siellä sen kohtauksen kanssa, josta se tuli — riippumatta siitä, millä versiolla tai laitteella tallensit sen."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram sivustolle {site}",
     "ctaPrimary": "Lisää Chromeen — ilmaiseksi",
@@ -153,24 +195,29 @@
     "finalCta": "Lisää {name}",
     "finalProof": "Ilmainen · Käyttöönotto alle minuutissa"
   },
-
   "privacy": {
     "title": "Tietosuojakäytäntö — Lingogram",
     "description": "Mitä Lingogram kerää, miten sitä käytetään ja mitä valintoja sinulla on."
   },
-
   "welcome": {
     "title": "Tervetuloa Lingogramiin",
     "description": "Kaikki on valmiina — tässä on ensimmäinen tallennettu sanasi kolmessa vaiheessa.",
     "h1": "on asennettu",
     "sub": "Kolme vaihetta ensimmäiseen tallennettuun sanaasi — se vaatii yhden videon.",
-    "step1T": "Valitse kielesi", "step1D": "Klikkaa Lingogram-kuvaketta työkalupalkissa ja valitse kieli, jota opit, sekä oma kielesi.",
-    "step2T": "Avaa video, jossa on tekstitys", "step2D": "Paina play — molemmat kielet ilmestyvät yhdessä, videolla ja transkriptiossa.",
-    "step3T": "Tallenna ensimmäinen sanasi", "step3D": "Korosta sana tekstityksessä ja napauta tallentaaksesi sen — se päätyy kohteeseen {link}.",
+    "step1T": "Valitse kielesi",
+    "step1D": "Klikkaa Lingogram-kuvaketta työkalupalkissa ja valitse kieli, jota opit, sekä oma kielesi.",
+    "step2T": "Avaa video, jossa on tekstitys",
+    "step2D": "Paina play — molemmat kielet ilmestyvät yhdessä, videolla ja transkriptiossa.",
+    "step3T": "Tallenna ensimmäinen sanasi",
+    "step3D": "Korosta sana tekstityksessä ja napauta tallentaaksesi sen — se päätyy kohteeseen {link}.",
     "step3Link": "sanastosi",
-    "keyDual": "kaksoistekstitys", "keySwap": "vaihda kielet", "keyGuess": "arvaustila", "keyOverlay": "tekstitys videon päällä (overlay)"
+    "keyDual": "kaksoistekstitys",
+    "keySwap": "vaihda kielet",
+    "keyGuess": "arvaustila",
+    "keyOverlay": "tekstitys videon päällä (overlay)",
+    "privacy": "Anonyymit käyttötilastot ovat päällä, jotta näemme missä käyttäjät jumittuvat. Ei tiliä, ei videoita, ei tallennettuja sanoja — voit kytkeä ne pois milloin tahansa laajennuksen ponnahdusikkunasta. {link}",
+    "privacyLink": "Tietosuojakäytäntö"
   },
-
   "uninstall": {
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
@@ -184,7 +231,6 @@
     "footMid": "— ne odottavat sinua, jos palaat.",
     "reinstall": "Asenna uudelleen milloin vain."
   },
-
   "auth": {
     "or": "tai",
     "showPassword": "Näytä salasana",
@@ -194,32 +240,44 @@
       "title": "Luo tilisi — Lingogram",
       "description": "Rekisteröidy synkronoidaksesi tallennetut sanasi kaikkien laitteiden ja versioiden välillä.",
       "eyebrow": "Ilmainen tili",
-      "h1Lead": "Aloita", "h1Pop": "sanalistasi",
+      "h1Lead": "Aloita",
+      "h1Pop": "sanalistasi",
       "sub": "Tallenna sanoja kaikesta, mitä katsot — synkronoituna kaikkien laitteiden ja versioiden välillä.",
       "googleCta": "Rekisteröidy Googlella",
-      "nameLabel": "Nimesi", "namePlaceholder": "Anna",
-      "emailLabel": "Sähköposti", "emailPlaceholder": "anna@esimerkki.com",
-      "passwordLabel": "Salasana", "passwordPlaceholder": "Vähintään 8 merkkiä",
-      "submit": "Luo tili", "submitBusy": "Luodaan tiliä…",
-      "altPrefix": "Onko sinulla jo tili?", "altLink": "Kirjaudu sisään",
-      "finePrefix": "Jatkamalla hyväksyt", "fineLink": "tietosuojakäytäntömme"
+      "nameLabel": "Nimesi",
+      "namePlaceholder": "Anna",
+      "emailLabel": "Sähköposti",
+      "emailPlaceholder": "anna@esimerkki.com",
+      "passwordLabel": "Salasana",
+      "passwordPlaceholder": "Vähintään 8 merkkiä",
+      "submit": "Luo tili",
+      "submitBusy": "Luodaan tiliä…",
+      "altPrefix": "Onko sinulla jo tili?",
+      "altLink": "Kirjaudu sisään",
+      "finePrefix": "Jatkamalla hyväksyt",
+      "fineLink": "tietosuojakäytäntömme"
     },
     "login": {
       "title": "Kirjaudu sisään — Lingogram",
       "description": "Kirjaudu Lingogram-sanastoosi.",
       "eyebrow": "Tervetuloa takaisin",
-      "h1Lead": "Sanastosi", "h1Pop": "odottaa", "h1Tail": "sinua",
+      "h1Lead": "Sanastosi",
+      "h1Pop": "odottaa",
+      "h1Tail": "sinua",
       "sub": "Kirjaudu sisään jatkaaksesi siitä, mihin jäit.",
       "googleCta": "Kirjaudu Googlella",
-      "emailLabel": "Sähköposti", "emailPlaceholder": "anna@esimerkki.com",
-      "passwordLabel": "Salasana", "passwordPlaceholder": "Salasanasi",
+      "emailLabel": "Sähköposti",
+      "emailPlaceholder": "anna@esimerkki.com",
+      "passwordLabel": "Salasana",
+      "passwordPlaceholder": "Salasanasi",
       "forgot": "Unohditko salasanan?",
       "resetNote": "Tarkista sähköpostisi — salasanan palautuslinkki on jo matkalla.",
-      "submit": "Kirjaudu sisään", "submitBusy": "Kirjaudutaan sisään…",
-      "altPrefix": "Uusi Lingogramissa?", "altLink": "Luo tili"
+      "submit": "Kirjaudu sisään",
+      "submitBusy": "Kirjaudutaan sisään…",
+      "altPrefix": "Uusi Lingogramissa?",
+      "altLink": "Luo tili"
     }
   },
-
   "notFound": {
     "title": "Sivua ei löytynyt — Lingogram",
     "description": "Tätä sivua ei ole olemassa.",

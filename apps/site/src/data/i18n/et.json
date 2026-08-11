@@ -27,7 +27,10 @@
     "clearSearch": "Tühjenda otsing",
     "noMatch": "Ükski keel ei sobi",
     "noMatchHint": "Proovi selle ingliskeelset nime või kahetähelist koodi.",
-    "count": { "one": "{n} keel", "other": "{n} keelt" },
+    "count": {
+      "one": "{n} keel",
+      "other": "{n} keelt"
+    },
     "region": {
       "westEurope": "Lääne- ja Põhja-Euroopa",
       "eastEurope": "Kesk- ja Ida-Euroopa",
@@ -211,7 +214,9 @@
     "keyDual": "kahekeelsed subtiitrid",
     "keySwap": "vaheta keeled",
     "keyGuess": "Arva ära režiim",
-    "keyOverlay": "subtiitrid otse video peal (ülekate)"
+    "keyOverlay": "subtiitrid otse video peal (ülekate)",
+    "privacy": "Anonüümne kasutusstatistika on sees, et näeksime, kus kasutajad kinni jäävad. Ei mingit kontot, videoid ega salvestatud sõnu — saad selle igal ajal laienduse aknas välja lülitada. {link}",
+    "privacyLink": "Privaatsuspoliitika"
   },
   "uninstall": {
     "title": "Kahju, et lahkud — Lingogram",

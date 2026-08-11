@@ -27,7 +27,11 @@
     "clearSearch": "Išvalyti paiešką",
     "noMatch": "Tokios kalbos nerasta",
     "noMatchHint": "Pabandykite jos pavadinimą angliškai arba dviejų raidžių kodą.",
-    "count": { "one": "{n} kalba", "few": "{n} kalbos", "other": "{n} kalbų" },
+    "count": {
+      "one": "{n} kalba",
+      "few": "{n} kalbos",
+      "other": "{n} kalbų"
+    },
     "region": {
       "westEurope": "Vakarų ir Šiaurės Europa",
       "eastEurope": "Vidurio ir Rytų Europa",
@@ -211,7 +215,9 @@
     "keyDual": "dvigubi subtitrai",
     "keySwap": "sukeisti kalbas",
     "keyGuess": "atspėjimo režimas",
-    "keyOverlay": "subtitrai ant vaizdo (perdanga)"
+    "keyOverlay": "subtitrai ant vaizdo (perdanga)",
+    "privacy": "Anoniminė naudojimo statistika įjungta, kad matytume, kur naudotojai užstringa. Jokios paskyros, jokių vaizdo įrašų, jokių išsaugotų žodžių — bet kada išjungsite plėtinio lange. {link}",
+    "privacyLink": "Privatumo politika"
   },
   "uninstall": {
     "title": "Gaila, kad išeinate — Lingogram",

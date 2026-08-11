@@ -1,3 +1,5 @@
+*Den här översättningen bygger på en äldre version av policyn och innehåller inte de senaste ändringarna. Den engelska versionen på https://lingogram.ai/privacy/ är den gällande.*
+
 # Integritetspolicy — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Datum för ikraftträdande:** 22 juni 2026

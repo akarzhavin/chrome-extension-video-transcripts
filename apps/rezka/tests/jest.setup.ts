@@ -19,6 +19,13 @@
 (global as any).__LIMIT_MAX_CONTEXT_BYTES__ = 2048;
 (global as any).__LIMIT_MAX_TITLE_BYTES__ = 512;
 (global as any).__LIMIT_MAX_FEEDBACK_TEXT_BYTES__ = 2000;
+// GA4 build constants. A non-empty secret here keeps the analytics module's
+// "unconfigured build" early-return from silently short-circuiting every test
+// that means to exercise the real path; tests that want the no-op path
+// override these locally.
+(global as any).__GA4_MEASUREMENT_ID__ = 'G-TEST';
+(global as any).__GA4_API_SECRET__ = 'test-secret';
+(global as any).__GA4_ENDPOINT__ = 'https://ga4.test';
 
 // jsdom doesn't expose TextEncoder/Decoder by default; pull from Node util.
 if (typeof (global as any).TextEncoder === 'undefined') {

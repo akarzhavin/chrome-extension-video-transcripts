@@ -1,3 +1,5 @@
+*See tõlge põhineb poliitika vanemal versioonil ega sisalda viimaseid muudatusi. Määrav on ingliskeelne versioon aadressil https://lingogram.ai/privacy/.*
+
 # Privaatsuspoliitika — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Jõustumiskuupäev:** 22. juuni 2026

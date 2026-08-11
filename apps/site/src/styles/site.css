@@ -975,6 +975,13 @@ footer.site {
 .keys span { font-size: 13.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; }
 .keys kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 1px 6px; }
 
+/* First-run disclosure that anonymous stats are on. Deliberately quiet — it is
+   a fact the user is entitled to on day one, not a step in the three-step flow
+   above, and styling it louder would compete with "save your first word". */
+.welcome-privacy { max-width: 60ch; margin: 26px auto 0; font-size: 13px; line-height: 1.6; color: var(--muted); text-align: center; }
+.welcome-privacy a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.welcome-privacy a:hover { color: var(--accent); }
+
 /* ---------- login / register ---------- */
 /* Styled in the landing's own visual language: an accent aura behind the card
    (same radial-gradient trick as .demo), the eyebrow pill and the big

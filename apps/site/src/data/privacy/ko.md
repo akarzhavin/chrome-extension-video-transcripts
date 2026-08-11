@@ -1,3 +1,5 @@
+*이 번역은 이전 버전의 정책을 기준으로 하며 최근 변경 사항이 반영되어 있지 않습니다. https://lingogram.ai/privacy/ 의 영어 버전이 정본입니다.*
+
 # 개인정보 처리방침 — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **시행일:** 2026년 6월 22일

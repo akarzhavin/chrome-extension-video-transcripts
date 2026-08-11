@@ -30,6 +30,35 @@ const buildDefines = {
   // the live site so their "Sign in" flow works without running the SPA.
   __FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_FRONTEND_BASE_URL ?? 'https://lingogram.ai'),
   __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
+  // The alternate backend the dev sidebar can switch to. Empty here and in
+  // every build not handed the values, which leaves the switch inert — no
+  // environment's project id, key, or host is stored in this repo.
+  //
+  // These MUST be defined even though this edition has no environment switch in
+  // its UI: auth/background.ts imports auth/devEnvSwitch unconditionally, so the
+  // identifiers reach the bundle regardless. Left undefined they survive
+  // minification and throw a ReferenceError while the service worker evaluates
+  // its module — before a single listener is registered, which disables the
+  // whole extension with nothing shown on chrome://extensions. That is exactly
+  // what happened here: this edition shipped dead from #30 until 2026-08-10.
+  // assert-shippable now fails on any unsubstituted __EXT_*__ for this reason.
+  __EXT_ALT_PROJECT_ID__: JSON.stringify(process.env.EXT_ALT_PROJECT_ID ?? ''),
+  __EXT_ALT_API_KEY__: JSON.stringify(process.env.EXT_ALT_API_KEY ?? ''),
+  __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_ALT_FRONTEND_BASE_URL ?? ''),
+  // GA4 Measurement Protocol. The api_secret is a WRITE-ONLY credential: it can
+  // send events to our property, not read from it. It ships inside the service
+  // worker bundle, so treat a leak as a data-poisoning risk (rotate it in the
+  // GA4 admin), not an exfiltration one. Empty by default — analytics-bg's
+  // track() early-returns on an empty secret, so a build without
+  // EXT_GA4_API_SECRET is a silent no-op rather than a stream of broken hits.
+  //
+  // Dev and prod use SEPARATE GA4 properties; dev additionally posts to
+  // /debug/mp/collect, which validates the payload instead of silently 204-ing.
+  __GA4_MEASUREMENT_ID__: JSON.stringify(process.env.EXT_GA4_MEASUREMENT_ID ?? ''),
+  __GA4_API_SECRET__: JSON.stringify(process.env.EXT_GA4_API_SECRET ?? ''),
+  __GA4_ENDPOINT__: JSON.stringify(
+    process.env.EXT_GA4_ENDPOINT ?? 'https://www.google-analytics.com',
+  ),
   ...limitDefines(limits),
 };
 

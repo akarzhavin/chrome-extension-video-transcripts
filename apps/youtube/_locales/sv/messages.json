@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} tecken kvar",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "Integritet",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "Dela anonym användningsstatistik",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "Räknare som ”undertexter inlästa” och ”ord sparat”. Aldrig ditt konto, videorna du tittar på eller orden du sparar.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

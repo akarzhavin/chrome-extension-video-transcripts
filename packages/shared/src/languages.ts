@@ -2,6 +2,7 @@
 // because "unset" is meaningful here: until the user picks BOTH languages we
 // show the first-run onboarding gate instead of guessing en/ru. Persisted in
 // chrome.storage.local under its own key so absence == not-yet-configured.
+import { trackVia } from './analytics';
 
 export interface LanguagePrefs {
     /** BCP-47 primary code of the language being learned, e.g. 'en', 'es'. */
@@ -129,11 +130,28 @@ export async function loadLanguagePrefs(): Promise<LanguagePrefs | null> {
     }
 }
 
-export async function saveLanguagePrefs(prefs: LanguagePrefs): Promise<void> {
+/**
+ * @param via Which surface the pair was chosen on, for analytics. Optional so
+ *   the existing call sites keep compiling; they pass it explicitly.
+ *
+ * The event lives here rather than at the three call sites so "the pair was
+ * configured" cannot be recorded in one place and missed in another. It fires
+ * on every change, so a user who reconsiders produces several — accepted
+ * deliberately: re-picking is itself a signal about the picker's clarity.
+ */
+export async function saveLanguagePrefs(
+    prefs: LanguagePrefs,
+    via: 'onboarding' | 'popup' | 'sidebar' | 'unknown' = 'unknown',
+): Promise<void> {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
     if (!chrome.runtime?.id) return;
     try {
         await chrome.storage.local.set({ [LANG_KEY]: prefs });
+        trackVia('languages_configured', {
+            learning: prefs.learning,
+            native: prefs.native,
+            via,
+        });
     } catch {
         // best-effort; next session re-reads or re-prompts.
     }

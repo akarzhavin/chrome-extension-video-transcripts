@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} caractères restants",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "Confidentialité",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "Partager des statistiques d'usage anonymes",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "Des compteurs comme « sous-titres chargés » et « mot enregistré ». Jamais votre compte, les vidéos que vous regardez ni les mots que vous enregistrez.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

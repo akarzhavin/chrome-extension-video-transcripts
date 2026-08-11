@@ -27,7 +27,9 @@
     "clearSearch": "Aramayı temizle",
     "noMatch": "Eşleşen dil yok",
     "noMatchHint": "İngilizce adını ya da iki harfli kodunu deneyin.",
-    "count": { "other": "{n} dil" },
+    "count": {
+      "other": "{n} dil"
+    },
     "region": {
       "westEurope": "Batı ve Kuzey Avrupa",
       "eastEurope": "Orta ve Doğu Avrupa",
@@ -211,7 +213,9 @@
     "keyDual": "çift altyazı",
     "keySwap": "dilleri değiştir",
     "keyGuess": "tahmin modu",
-    "keyOverlay": "video üzerinde altyazı (bindirme katmanı)"
+    "keyOverlay": "video üzerinde altyazı (bindirme katmanı)",
+    "privacy": "Anonim kullanım istatistikleri açık; insanların nerede takıldığını görmemizi sağlıyor. Hesabınız, izlediğiniz videolar ve kaydettiğiniz kelimeler gönderilmez — uzantı penceresinden istediğiniz zaman kapatabilirsiniz. {link}",
+    "privacyLink": "Gizlilik politikası"
   },
   "uninstall": {
     "title": "Gitmenize üzüldük — Lingogram",

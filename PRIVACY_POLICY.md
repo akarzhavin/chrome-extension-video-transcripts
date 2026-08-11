@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** July 13, 2026
+**Last updated:** August 10, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
@@ -29,18 +29,25 @@ backend, so this single policy covers both ("the Extension").
   diagnostic report — the video's address plus technical details — so we can fix
   the problem. The banner says so right next to the button; nothing is reported
   automatically.
-* We do **not** sell your data, show ads, run third-party advertising or analytics
-  trackers, or track your browsing history.
+* **We count anonymous usage, and you can turn it off.** The Extension sends us
+  anonymous usage events (for example: the Extension was installed, subtitles
+  loaded, a word was saved) tagged with a **random identifier generated on your
+  device** — not your email, not your account. That identifier is never joined to
+  your Lingogram account. Open the toolbar popup → **Privacy** → uncheck **"Share
+  anonymous usage stats"** and collection stops immediately.
+* We do **not** sell your data, show ads, run advertising trackers, build
+  advertising profiles, or track your browsing history.
 
 ---
 
 ## 1. Information We Collect
 
 ### a. If you do **not** sign in
-The Extension does **not** collect, transmit, or store any personal data on our
-servers. Your language and layout preferences and a local "words saved" counter are
-kept only in your browser (see Section 3). No account, email, or saved word ever
-leaves your device.
+Apart from the anonymous usage analytics described in Section 1c (which you can turn
+off in one click), the Extension does **not** collect, transmit, or store any
+personal data on our servers. Your language and layout preferences and a local
+"words saved" counter are kept only in your browser (see Section 3). No account,
+email, or saved word ever leaves your device.
 
 ### b. If you choose to sign in (optional account)
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
@@ -67,8 +74,73 @@ collect and process:
 
 We do **not** collect: your browsing history, the videos you watch (beyond the
 subtitle text you explicitly save and the single video address included in a
-diagnostic report you explicitly trigger), IP-based location tracking, advertising
-identifiers, cookies for tracking, or any analytics about how you use the Extension.
+diagnostic report you explicitly trigger; the analytics in Section 1c record only a
+coarse platform label such as `youtube` or `rezka`, never a video or a URL),
+IP-based location tracking, advertising identifiers, or cookies for tracking.
+
+### c. Anonymous usage analytics (on by default, one click to turn off)
+
+The Extension sends anonymous usage events to **Google Analytics 4** so we can see
+how many people install it, where the Extension breaks, and which steps people give
+up on. This is **on by default**. To turn it off, open the toolbar popup, go to the
+**Privacy** section, and uncheck **"Share anonymous usage stats"**. Collection stops
+immediately.
+
+**The identifier.** Each event carries a **random identifier generated on your
+device** the first time the Extension runs, stored in your browser's local extension
+storage. It is not your email, not your Firebase user ID, and not derived from
+either. **We never send your account identity to Google Analytics**, so there is no
+key that could join your analytics events to your account — the separation is
+structural, not just a promise. Clearing the Extension's storage or reinstalling
+produces a new, unrelated identifier.
+
+**The events we send** (17 in total):
+
+* `extension_installed`, `extension_updated` — the Extension was installed or
+  updated;
+* `onboarding_shown`, `languages_configured` — you saw the first-run screen, you
+  picked your languages;
+* `subtitles_loaded`, `dual_subs_shown`, `no_subtitles`, `subs_partial`,
+  `subs_rate_limited`, `subs_recovered` — subtitles loaded, both languages were
+  shown, none were found, only part loaded, the platform rate-limited us, or a
+  retry succeeded;
+* `word_save_attempt`, `word_saved` — you tried to save a word, and it saved;
+* `signin_started` — you began the sign-in flow;
+* `analytics_opt_out` — you turned this analytics off (sent once, so we know how
+  many people opt out);
+* `retained_d2`, `retained_d7`, `retained_d14` — the Extension was still in use 2,
+  7, and 14 days after install.
+
+**The fields attached to those events**, and nothing else:
+
+* a **coarse platform label** — one of `youtube`, `netflix`, `rezka`, or `web`; not
+  a hostname, not a URL;
+* the **subtitle language pair** you picked (for example `"en"` and `"ru"`);
+* **how many subtitle tracks** loaded;
+* **whether you were signed in** — a true/false flag, with no account identifier;
+* a **running count of words saved on this device**;
+* the **Extension version and edition**;
+* on developer test builds only, **which of our own test servers** the build was
+  pointed at — a label about our infrastructure, not about you; builds installed
+  from the Chrome Web Store never send it;
+* **days since install**;
+* a **technical failure code** when subtitles fail;
+* a **session ID** that groups events from one browsing session.
+
+**What is never sent:** the video you are watching (no title, no URL, no ID), the
+words you save, subtitle text, page content, your email address, your Firebase user
+ID, and your browsing history.
+
+**Google's role.** Google Analytics processes these events for us as our service
+provider; see Google's Privacy Policy at https://policies.google.com/privacy. On our
+Analytics property, **Google Signals is switched off**, so Google does not attach an
+age, gender, interest category, or advertising audience to these events and does not
+link them across your devices. **Granular location collection is off**: events are
+resolved to **country and region only**, never to a city. Google collects
+country and region for every property regardless of this setting; what we
+switched off is the finer-grained collection on top of it. Every payload is sent with
+`non_personalized_ads: true`. Google Analytics is not used to build a profile of you
+or to target advertising.
 
 ## 2. How We Use Your Information
 
@@ -79,10 +151,15 @@ We use the information above **only** to:
   later;
 * enforce a reasonable daily limit on saved words to prevent abuse;
 * investigate the subtitle-loading failures you explicitly report via the
-  **"Reload page"** button, so we can fix them.
+  **"Reload page"** button, so we can fix them;
+* count anonymous, aggregate usage — how many installs, how often subtitles fail,
+  where people stop before finishing setup — so we can fix what is broken and
+  improve what is confusing. We never use it to identify you or to build a profile
+  of you.
 
 We do not use your information for advertising, profiling, or any purpose beyond
-providing the sync and diagnostics features described here.
+providing the sync and diagnostics features and the aggregate usage counting
+described here.
 
 ## 3. Local Storage (On Your Device)
 
@@ -91,6 +168,9 @@ your device only:
 
 * your language and subtitle layout preferences;
 * a local count of how many words you've saved;
+* your **analytics on/off setting**, the **random analytics identifier** described
+  in Section 1c, and the **date you installed** the Extension, plus an analytics
+  **session ID** in session storage;
 * if you are signed in: your authentication tokens, your email address, and your
   user ID (so you stay signed in), and a short-lived sign-in nonce in session
   storage.
@@ -108,6 +188,12 @@ as our service provider; see Google's Privacy Policy at
 https://policies.google.com/privacy. Access is restricted by Firestore security
 rules so that you can only read and write your own data.
 
+The anonymous usage events described in Section 1c are sent to **Google Analytics 4**
+(via the Measurement Protocol) unless you turn analytics off. Google processes those
+events for us as our service provider, under the same Google Privacy Policy. Firebase
+and Google Analytics are used as two separate services and we do not send anything to
+Google Analytics that would let the two be joined together.
+
 To display subtitles, the Extension fetches subtitle (`.vtt`) files **directly from
 your browser** to the relevant video platform's content delivery network — HDrezka /
 Voidboost for the HDrezka edition, YouTube for the YouTube edition. These requests:
@@ -120,8 +206,9 @@ Voidboost for the HDrezka edition, YouTube for the YouTube edition. These reques
 ## 5. Data Sharing and Sale
 
 We do **not** sell, rent, or trade your personal data. We do not share it with any
-third party except Google Firebase as the infrastructure provider described in
-Section 4, or where required by law. We do not use your data for advertising.
+third party except Google Firebase and Google Analytics as the infrastructure and
+analytics providers described in Section 4, or where required by law. We do not use
+your data for advertising.
 
 ## 6. Data Retention and Deletion
 
@@ -129,8 +216,15 @@ Section 4, or where required by law. We do not use your data for advertising.
   account deletion.
 * **Diagnostic reports** are kept only for troubleshooting and are covered by
   account deletion requests (they are keyed to your user ID).
+* **Anonymous usage events** are retained by Google Analytics for **2 months**, then
+  deleted. Because these events carry no account identifier, **we cannot look up or
+  delete the events belonging to a specific person — and neither can you.** There is
+  no way for us to tell which events came from you. Turning analytics off in the
+  toolbar popup stops any further collection, but it cannot retroactively remove
+  events already sent; those expire on the 2-month schedule.
 * **Local data** can be cleared at any time by signing out (removes your tokens,
-  email, and user ID) or by removing the Extension from your browser.
+  email, and user ID) or by removing the Extension from your browser (which also
+  removes the random analytics identifier).
 * To **delete your account and all associated cloud data** (email, saved words, and
   diagnostic reports),
   contact the developer using Section 9. We will delete it within a reasonable

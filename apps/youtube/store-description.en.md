@@ -101,18 +101,25 @@ Hear the language the way native speakers use it — on regular videos, YouTube
 Shorts, and Netflix shows alike.
 
 
+PREPARING FOR AN EXAM
+If you're working toward IELTS or TOEFL, the section that usually hurts is
+listening: real speed, unscripted speech, no second take. That's exactly what you
+get here — you spend the time on actual videos instead of practice tracks, and
+the words you didn't catch end up in your own saved list, each one with the line
+you first heard it in.
+
+
 WHO IT'S FOR
 • If you watch YouTube or Netflix and want to understand it without pausing for
   the dictionary — this is built for you.
 • Learners at every level, from beginner to advanced.
 • Expats and immigrants sharpening their everyday listening.
-• Students preparing for IELTS, TOEFL, DELE, DELF, JLPT, or TOPIK.
 • Professionals who need the language for work or study.
 • Self-learners who would rather learn a language from real videos than a
   textbook.
 
-Learning English, Spanish, French, German, Japanese, Korean, Chinese, Italian,
-Portuguese, or dozens of other languages? It works the same way: press play.
+English, Japanese, or one of dozens of other languages — it works the same way:
+press play.
 
 
 SAVING & PRIVACY

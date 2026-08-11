@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} അക്ഷരങ്ങൾ ബാക്കി",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "സ്വകാര്യത",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "അജ്ഞാത ഉപയോഗ സ്ഥിതിവിവരം പങ്കിടുക",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "“സബ്ടൈറ്റിൽ ലോഡ് ചെയ്തു”, “വാക്ക് സംരക്ഷിച്ചു” എന്നിവ പോലുള്ള എണ്ണങ്ങൾ മാത്രം. നിങ്ങളുടെ അക്കൗണ്ടോ കാണുന്ന വീഡിയോകളോ സംരക്ഷിക്കുന്ന വാക്കുകളോ ഒരിക്കലും അല്ല.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

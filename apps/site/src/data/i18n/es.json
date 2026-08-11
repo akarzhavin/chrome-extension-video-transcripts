@@ -27,7 +27,10 @@
     "clearSearch": "Borrar búsqueda",
     "noMatch": "Ningún idioma coincide",
     "noMatchHint": "Prueba con su nombre en inglés o con su código de dos letras.",
-    "count": { "one": "{n} idioma", "other": "{n} idiomas" },
+    "count": {
+      "one": "{n} idioma",
+      "other": "{n} idiomas"
+    },
     "region": {
       "westEurope": "Europa occidental y del norte",
       "eastEurope": "Europa central y del este",
@@ -211,7 +214,9 @@
     "keyDual": "subtítulos duales",
     "keySwap": "intercambiar idiomas",
     "keyGuess": "modo Adivina",
-    "keyOverlay": "subtítulos sobre el video (superposición)"
+    "keyOverlay": "subtítulos sobre el video (superposición)",
+    "privacy": "Las estadísticas de uso anónimas están activadas para ver dónde se atasca la gente. Ni tu cuenta, ni los vídeos, ni las palabras guardadas: puedes desactivarlas cuando quieras en la ventana de la extensión. {link}",
+    "privacyLink": "Política de privacidad"
   },
   "uninstall": {
     "title": "Lamentamos verte partir — Lingogram",

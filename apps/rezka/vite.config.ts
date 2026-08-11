@@ -68,6 +68,20 @@ const buildDefines = {
   __EXT_ALT_PROJECT_ID__: JSON.stringify(process.env.EXT_ALT_PROJECT_ID ?? ''),
   __EXT_ALT_API_KEY__: JSON.stringify(process.env.EXT_ALT_API_KEY ?? ''),
   __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_ALT_FRONTEND_BASE_URL ?? ''),
+  // GA4 Measurement Protocol. The api_secret is a WRITE-ONLY credential: it can
+  // send events to our property, not read from it. It ships inside the service
+  // worker bundle, so treat a leak as a data-poisoning risk (rotate it in the
+  // GA4 admin), not an exfiltration one. Empty by default — analytics-bg's
+  // track() early-returns on an empty secret, so a build without
+  // EXT_GA4_API_SECRET is a silent no-op rather than a stream of broken hits.
+  //
+  // Dev and prod use SEPARATE GA4 properties; dev additionally posts to
+  // /debug/mp/collect, which validates the payload instead of silently 204-ing.
+  __GA4_MEASUREMENT_ID__: JSON.stringify(process.env.EXT_GA4_MEASUREMENT_ID ?? ''),
+  __GA4_API_SECRET__: JSON.stringify(process.env.EXT_GA4_API_SECRET ?? ''),
+  __GA4_ENDPOINT__: JSON.stringify(
+    process.env.EXT_GA4_ENDPOINT ?? 'https://www.google-analytics.com',
+  ),
   ...limitDefines(limits),
 };
 

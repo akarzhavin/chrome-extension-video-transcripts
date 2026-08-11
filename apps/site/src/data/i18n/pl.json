@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Polski", "htmlLang": "pl" },
-
+  "meta": {
+    "name": "Polski",
+    "htmlLang": "pl"
+  },
   "nav": {
     "editions": "Edycje",
     "how": "Jak to działa",
@@ -15,7 +17,6 @@
     "allLanguages": "Wszystkie języki",
     "noLanguageMatch": "Brak pasującego języka"
   },
-
   "languages": {
     "title": "Języki — Lingogram",
     "description": "Strona Lingogramu w 42 językach — wybierz ten, w którym czytasz.",
@@ -26,7 +27,12 @@
     "clearSearch": "Wyczyść wyszukiwanie",
     "noMatch": "Brak pasującego języka",
     "noMatchHint": "Spróbuj jego angielskiej nazwy albo dwuliterowego kodu.",
-    "count": { "one": "{n} język", "few": "{n} języki", "many": "{n} języków", "other": "{n} języka" },
+    "count": {
+      "one": "{n} język",
+      "few": "{n} języki",
+      "many": "{n} języków",
+      "other": "{n} języka"
+    },
     "region": {
       "westEurope": "Europa Zachodnia i Północna",
       "eastEurope": "Europa Środkowa i Wschodnia",
@@ -34,7 +40,6 @@
       "middleEast": "Bliski Wschód"
     }
   },
-
   "footer": {
     "tagline": "Ucz się języków dzięki temu, co oglądasz.",
     "product": "Produkt",
@@ -49,13 +54,11 @@
     "legal": "Informacje prawne",
     "privacyPolicy": "Polityka prywatności"
   },
-
   "proof": {
     "rating": "w Chrome Web Store",
     "learners": "uczących się",
     "free": "Za darmo, bez reklam"
   },
-
   "demo": {
     "hintPrefix": "To demo prawdziwego rozszerzenia — działa naprawdę, tu, na tej stronie —",
     "hintBold": "zaznacz słowo",
@@ -64,29 +67,44 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(domena publiczna)"
   },
-
   "modes": {
-    "dual": { "tab": "Podwójne napisy", "h": "Oba języki naraz", "p": "Linijka, którą słyszysz, obok linijki, którą rozumiesz — bez pauzowania, bez przełączania ścieżek." },
-    "guess": { "tab": "Tryb Zgadnij", "h": "Kliknij, aby odsłonić — i ćwicz słuch", "p": "Linijka pozostaje ukryta, dopóki jej nie klikniesz. Najpierw zgadnij ze słuchu, potem sprawdź się: właśnie w tej różnicy rośnie Twoje rozumienie ze słuchu." },
-    "single": { "tab": "Na wideo", "h": "Na wideo albo w panelu bocznym — Twój wybór", "p": "Zostaw obie linijki nad filmem, tam gdzie i tak patrzysz. Albo zdejmij je jednym przyciskiem i czytaj z panelu we własnym tempie. Napisy nigdy nie znikają — po prostu się przenoszą." },
-    "save": { "tab": "Moje słowa", "h": "Zachowaj każde napotkane słowo", "p": "Zaznacz słowo — jedno dotknięcie zapisuje je razem ze zdaniem, z którego pochodzi, prosto tutaj, do Twojego słownika na lingogram.ai." }
+    "dual": {
+      "tab": "Podwójne napisy",
+      "h": "Oba języki naraz",
+      "p": "Linijka, którą słyszysz, obok linijki, którą rozumiesz — bez pauzowania, bez przełączania ścieżek."
+    },
+    "guess": {
+      "tab": "Tryb Zgadnij",
+      "h": "Kliknij, aby odsłonić — i ćwicz słuch",
+      "p": "Linijka pozostaje ukryta, dopóki jej nie klikniesz. Najpierw zgadnij ze słuchu, potem sprawdź się: właśnie w tej różnicy rośnie Twoje rozumienie ze słuchu."
+    },
+    "single": {
+      "tab": "Na wideo",
+      "h": "Na wideo albo w panelu bocznym — Twój wybór",
+      "p": "Zostaw obie linijki nad filmem, tam gdzie i tak patrzysz. Albo zdejmij je jednym przyciskiem i czytaj z panelu we własnym tempie. Napisy nigdy nie znikają — po prostu się przenoszą."
+    },
+    "save": {
+      "tab": "Moje słowa",
+      "h": "Zachowaj każde napotkane słowo",
+      "p": "Zaznacz słowo — jedno dotknięcie zapisuje je razem ze zdaniem, z którego pochodzi, prosto tutaj, do Twojego słownika na lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
   "editionsCard": {
     "yt": "Uzupełnia brakującą drugą ścieżkę automatycznym tłumaczeniem YouTube.",
     "nf": "Oryginalne ścieżki napisów, bez tłumaczenia maszynowego.",
     "hd": "Podwójne ścieżki, gdy tytuł je zawiera."
   },
-
   "home": {
     "h1Lead": "Ucz się angielskiego i innych języków,",
     "h1Pop": "oglądając filmy, które kochasz.",
     "heroLede": "Oglądaj z napisami w dwóch językach albo trenuj słuch, odsłaniając tylko te słowa, których nie dosłyszałeś. Nowe słowa zapisuj w swoim osobistym słowniku.",
     "ctaPrimary": "Dodaj do Chrome — za darmo",
     "ctaSecondary": "Wybierz edycję dla strony, na której oglądasz ↓",
-
     "platformsKicker": "Edycje",
     "platformsH2": "Jeden Lingogram, dopasowany do strony, na której oglądasz",
     "platformsLede": "Każda edycja to osobne rozszerzenie Chrome, zbudowane pod odtwarzacz jednej konkretnej strony — natywne ścieżki napisów, nakładka z napisami na pełnym ekranie wideo, poprawki, których dana strona wymaga. Wszystkie korzystają z tych samych narzędzi do nauki i tego samego konta, więc zapisane słowa zawsze są w jednym miejscu, niezależnie od tego, której używasz. Dwa rozszerzenia obejmują wszystkie trzy strony: to dla YouTube obsługuje też Netflix.",
@@ -94,7 +112,6 @@
     "editionSoonTitle": "Oglądasz gdzie indziej?",
     "editionSoonBody": "Nowe dedykowane edycje pojawiają się regularnie — daj nam znać, gdzie oglądasz.",
     "editionSoonCta": "Zaproponuj stronę →",
-
     "howKicker": "Jak to działa",
     "howH2": "Od instalacji do pierwszego zapisanego słowa w jednym filmie",
     "step1T": "Zainstaluj i wybierz swoje języki",
@@ -103,49 +120,72 @@
     "step2D": "Naciśnij play — oba języki pojawią się razem, na wideo i w transkrypcji, która przewija się razem ze sceną.",
     "step3T": "Zapisuj słowa, powtarzaj je na tej stronie",
     "step3D": "Zapisz słowo jednym dotknięciem podczas oglądania — potem otwórz swój słownik na tej stronie i powtórz je razem ze sceną, z której pochodzi.",
-
     "dictKicker": "Twój słownik",
     "dictH2": "Każde zapisane słowo buduje słownik, który naprawdę jest Twój",
     "dictLede": "Nie lista frekwencyjna z podręcznika — słowa, które napotkałeś w scenach, które sam wybrałeś, zapisane razem ze zdaniami, z których pochodzą. Niezależnie od tego, z której edycji korzystasz, wszystko trafia na jedno konto i czeka na Ciebie na tej stronie po zalogowaniu.",
     "dictMyWords": "Moje słowa",
     "dictCount": "247 zapisanych · 12 w tym tygodniu",
-    "dictWord1": "reluctantly", "dictTr1": "niechętnie", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "ucieczka", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "na oparach benzyny", "dictTr3": "prawie bez paliwa", "dictCtx3": "“Jedziemy {w} od ostatniej stacji benzynowej.”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "niechętnie",
+    "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "ucieczka",
+    "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "na oparach benzyny",
+    "dictTr3": "prawie bez paliwa",
+    "dictCtx3": "“Jedziemy {w} od ostatniej stacji benzynowej.”",
     "dictFoot": "Twoje słowa synchronizują się między urządzeniami i wszystkimi edycjami Lingogram — {b}.",
     "dictFootBold": "jedno konto, jeden słownik",
-
     "featKicker": "Dlaczego to zapada w pamięć",
     "featH2": "Większość narzędzi kończy na tłumaczeniu. Lingogram sprawia, że słowa zapadają w pamięć.",
     "featLede": "Lingogram opiera się na aktywnym przypominaniu sobie: nie tylko czytasz razem z filmem — zgadujesz, powtarzasz i kolekcjonujesz, dzięki czemu godziny, które i tak spędzasz na oglądaniu, zamieniają się w realny postęp.",
-    "feat1Tag": "Podwójne napisy", "feat1H": "Dwa języki, jeden ekran", "feat1P": "Łap każdą linijkę w oryginale i od razu zestawiaj ją z własnym językiem, bez pauzowania. Gdy będziesz gotowy, ukryj tłumaczenie — podwójne napisy to dopiero punkt wyjścia, a Lingogram pomaga Ci z czasem się bez nich obejść.",
-    "feat2Tag": "Interaktywna transkrypcja", "feat2H": "Powtórz linijkę, nie cały film", "feat2P": "Transkrypcja przewija się sama razem z wideo. Kliknij dowolną linijkę, aby cofnąć się i zapętlić właśnie tę scenę, aż dźwięki, których nie potrafiłeś rozróżnić, staną się słowami, które rozpoznajesz od razu.",
-    "feat3Tag": "Tryb Zgadnij", "feat3H": "Najpierw posłuchaj, potem sprawdź", "feat3P": "Słowa zaczynają się ukryte: złap linijkę ze słuchu, potem ją odsłoń. Ten cykl „najpierw słuchaj” buduje rozumienie ze słuchu, na którym można polegać — a nie napisy, wzdłuż których tylko wodzisz wzrokiem. Przełączaj klawiszem {kbd}.",
-    "feat4Tag": "Zapisane słowa", "feat4H": "Twoje słownictwo, z Twoich filmów", "feat4P": "Jedno dotknięcie zapisuje słowo razem z otaczającymi je linijkami napisów. Trafia od razu do {link} na lingogram.ai, gdzie powtarzasz każde słowo w jego oryginalnej scenie.",
+    "feat1Tag": "Podwójne napisy",
+    "feat1H": "Dwa języki, jeden ekran",
+    "feat1P": "Łap każdą linijkę w oryginale i od razu zestawiaj ją z własnym językiem, bez pauzowania. Gdy będziesz gotowy, ukryj tłumaczenie — podwójne napisy to dopiero punkt wyjścia, a Lingogram pomaga Ci z czasem się bez nich obejść.",
+    "feat2Tag": "Interaktywna transkrypcja",
+    "feat2H": "Powtórz linijkę, nie cały film",
+    "feat2P": "Transkrypcja przewija się sama razem z wideo. Kliknij dowolną linijkę, aby cofnąć się i zapętlić właśnie tę scenę, aż dźwięki, których nie potrafiłeś rozróżnić, staną się słowami, które rozpoznajesz od razu.",
+    "feat3Tag": "Tryb Zgadnij",
+    "feat3H": "Najpierw posłuchaj, potem sprawdź",
+    "feat3P": "Słowa zaczynają się ukryte: złap linijkę ze słuchu, potem ją odsłoń. Ten cykl „najpierw słuchaj” buduje rozumienie ze słuchu, na którym można polegać — a nie napisy, wzdłuż których tylko wodzisz wzrokiem. Przełączaj klawiszem {kbd}.",
+    "feat4Tag": "Zapisane słowa",
+    "feat4H": "Twoje słownictwo, z Twoich filmów",
+    "feat4P": "Jedno dotknięcie zapisuje słowo razem z otaczającymi je linijkami napisów. Trafia od razu do {link} na lingogram.ai, gdzie powtarzasz każde słowo w jego oryginalnej scenie.",
     "feat4Link": "Twojego osobistego słownika",
-
     "privKicker": "Prywatność domyślnie",
     "privH2": "To, co oglądasz, zostaje Twoją sprawą",
-    "priv1": "{b} Ustawienia języka i układu są przechowywane lokalnie w Twojej przeglądarce.", "priv1Bold": "Żadnej telemetrii, żadnego śledzenia.",
-    "priv2": "{b} Napisy są przetwarzane bezpośrednio na Twoim urządzeniu.", "priv2Bold": "Nigdy nie widzimy historii Twoich seansów.",
-    "priv3": "{b} Jeśli się zalogujesz, przechowujemy Twój e-mail i zapisane słowa — nic poza tym, i nigdy ich nie sprzedajemy.", "priv3Bold": "Słownik jest opcjonalny.",
-    "priv4": "{b} Jeśli aktualizacja strony coś popsuje, jedno kliknięcie zgłasza to nam, byśmy mogli szybko to naprawić.", "priv4Bold": "Szybko to naprawiamy.",
-
+    "priv1": "{b} Ustawienia języka i układu są przechowywane lokalnie w Twojej przeglądarce.",
+    "priv1Bold": "Żadnej telemetrii, żadnego śledzenia.",
+    "priv2": "{b} Napisy są przetwarzane bezpośrednio na Twoim urządzeniu.",
+    "priv2Bold": "Nigdy nie widzimy historii Twoich seansów.",
+    "priv3": "{b} Jeśli się zalogujesz, przechowujemy Twój e-mail i zapisane słowa — nic poza tym, i nigdy ich nie sprzedajemy.",
+    "priv3Bold": "Słownik jest opcjonalny.",
+    "priv4": "{b} Jeśli aktualizacja strony coś popsuje, jedno kliknięcie zgłasza to nam, byśmy mogli szybko to naprawić.",
+    "priv4Bold": "Szybko to naprawiamy.",
     "faqKicker": "FAQ",
     "faqH2": "Pytania, które ludzie zadają przed instalacją",
-
     "finalH2": "Zamień dzisiejszy odcinek w swoją lekcję języka",
     "finalCta": "Dodaj Lingogram do Chrome",
     "finalProof": "Za darmo · Konfiguracja w mniej niż minutę"
   },
-
   "faq": {
-    "free": { "q": "Czy to jest darmowe?", "a": "Tak. Podwójne napisy, transkrypcja i tryb Zgadnij są bezpłatne. Darmowe konto jest potrzebne tylko wtedy, gdy chcesz synchronizować zapisane słowa między urządzeniami." },
-    "languages": { "q": "Jakie języki są obsługiwane?", "a": "Każda para, dla której film ma napisy. Na YouTube, jeśli brakuje jednego z Twoich dwóch języków, Lingogram uzupełnia go automatycznym tłumaczeniem YouTube, dzięki czemu nadal masz widok podwójny. Na Netflix i HDrezka pokazywane są tylko te ścieżki napisów, które dany tytuł faktycznie ma — bez tłumaczenia maszynowego." },
-    "edition": { "q": "Którą edycję zainstalować?", "a": "Tę dla strony, na której oglądasz. Są dwa rozszerzenia: jedno obejmuje razem YouTube i Netflix, drugie obejmuje HDrezka. Zainstaluj oba, jeśli oglądasz na obu — korzystają z tych samych narzędzi do nauki i tego samego konta, więc zapisane słowa zostają w jednym miejscu." },
-    "words": { "q": "Gdzie są przechowywane moje zapisane słowa?", "a": "W Twoim osobistym słowniku, właśnie tutaj, na lingogram.ai. Zaloguj się, a każde zapisane słowo znajdziesz tam razem ze sceną, z której pochodzi — niezależnie od tego, w której edycji lub na którym urządzeniu je zapisałeś." }
+    "free": {
+      "q": "Czy to jest darmowe?",
+      "a": "Tak. Podwójne napisy, transkrypcja i tryb Zgadnij są bezpłatne. Darmowe konto jest potrzebne tylko wtedy, gdy chcesz synchronizować zapisane słowa między urządzeniami."
+    },
+    "languages": {
+      "q": "Jakie języki są obsługiwane?",
+      "a": "Każda para, dla której film ma napisy. Na YouTube, jeśli brakuje jednego z Twoich dwóch języków, Lingogram uzupełnia go automatycznym tłumaczeniem YouTube, dzięki czemu nadal masz widok podwójny. Na Netflix i HDrezka pokazywane są tylko te ścieżki napisów, które dany tytuł faktycznie ma — bez tłumaczenia maszynowego."
+    },
+    "edition": {
+      "q": "Którą edycję zainstalować?",
+      "a": "Tę dla strony, na której oglądasz. Są dwa rozszerzenia: jedno obejmuje razem YouTube i Netflix, drugie obejmuje HDrezka. Zainstaluj oba, jeśli oglądasz na obu — korzystają z tych samych narzędzi do nauki i tego samego konta, więc zapisane słowa zostają w jednym miejscu."
+    },
+    "words": {
+      "q": "Gdzie są przechowywane moje zapisane słowa?",
+      "a": "W Twoim osobistym słowniku, właśnie tutaj, na lingogram.ai. Zaloguj się, a każde zapisane słowo znajdziesz tam razem ze sceną, z której pochodzi — niezależnie od tego, w której edycji lub na którym urządzeniu je zapisałeś."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram dla {site}",
     "ctaPrimary": "Dodaj do Chrome — za darmo",
@@ -157,24 +197,29 @@
     "finalCta": "Dodaj {name}",
     "finalProof": "Za darmo · Konfiguracja w mniej niż minutę"
   },
-
   "privacy": {
     "title": "Polityka prywatności — Lingogram",
     "description": "Co zbiera Lingogram, jak to jest wykorzystywane i jaki masz wybór."
   },
-
   "welcome": {
     "title": "Witaj w Lingogram",
     "description": "Wszystko gotowe — oto Twoje pierwsze zapisane słowo, w trzech krokach.",
     "h1": "jest zainstalowany",
     "sub": "Trzy kroki do pierwszego zapisanego słowa — wystarczy jeden film.",
-    "step1T": "Wybierz swoje języki", "step1D": "Kliknij ikonę Lingogram na pasku narzędzi i wybierz język, którego się uczysz, oraz swój własny.",
-    "step2T": "Otwórz film z napisami", "step2D": "Naciśnij play — oba języki pojawią się razem, na wideo i w transkrypcji.",
-    "step3T": "Zapisz swoje pierwsze słowo", "step3D": "Zaznacz słowo w napisach i dotknij, aby je zachować — trafi do {link}.",
+    "step1T": "Wybierz swoje języki",
+    "step1D": "Kliknij ikonę Lingogram na pasku narzędzi i wybierz język, którego się uczysz, oraz swój własny.",
+    "step2T": "Otwórz film z napisami",
+    "step2D": "Naciśnij play — oba języki pojawią się razem, na wideo i w transkrypcji.",
+    "step3T": "Zapisz swoje pierwsze słowo",
+    "step3D": "Zaznacz słowo w napisach i dotknij, aby je zachować — trafi do {link}.",
     "step3Link": "Twojego słownika",
-    "keyDual": "podwójne napisy", "keySwap": "zamień języki", "keyGuess": "tryb Zgadnij", "keyOverlay": "napisy na wideo (nakładka)"
+    "keyDual": "podwójne napisy",
+    "keySwap": "zamień języki",
+    "keyGuess": "tryb Zgadnij",
+    "keyOverlay": "napisy na wideo (nakładka)",
+    "privacy": "Anonimowe statystyki użycia są włączone — pokazują nam, gdzie użytkownicy utykają. Żadnego konta, filmów ani zapisanych słów; możesz je wyłączyć w każdej chwili w oknie rozszerzenia. {link}",
+    "privacyLink": "Polityka prywatności"
   },
-
   "uninstall": {
     "title": "Szkoda, że odchodzisz — Lingogram",
     "description": "Powiedz nam, dlaczego usunąłeś Lingogram, abyśmy mogli to naprawić.",
@@ -188,7 +233,6 @@
     "footMid": "— będą czekać, jeśli wrócisz.",
     "reinstall": "Zainstaluj ponownie w dowolnym momencie."
   },
-
   "auth": {
     "or": "lub",
     "showPassword": "Pokaż hasło",
@@ -198,32 +242,44 @@
       "title": "Utwórz konto — Lingogram",
       "description": "Zarejestruj się, aby synchronizować zapisane słowa na wszystkich urządzeniach i we wszystkich edycjach.",
       "eyebrow": "Darmowe konto",
-      "h1Lead": "Zacznij swoją", "h1Pop": "listę słów",
+      "h1Lead": "Zacznij swoją",
+      "h1Pop": "listę słów",
       "sub": "Zapisuj słowa ze wszystkiego, co oglądasz — zsynchronizowane na wszystkich urządzeniach i edycjach.",
       "googleCta": "Zarejestruj się przez Google",
-      "nameLabel": "Twoje imię", "namePlaceholder": "Anna",
-      "emailLabel": "E-mail", "emailPlaceholder": "anna@przyklad.pl",
-      "passwordLabel": "Hasło", "passwordPlaceholder": "Co najmniej 8 znaków",
-      "submit": "Utwórz konto", "submitBusy": "Tworzenie konta…",
-      "altPrefix": "Masz już konto?", "altLink": "Zaloguj się",
-      "finePrefix": "Kontynuując, akceptujesz naszą", "fineLink": "Politykę prywatności"
+      "nameLabel": "Twoje imię",
+      "namePlaceholder": "Anna",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "anna@przyklad.pl",
+      "passwordLabel": "Hasło",
+      "passwordPlaceholder": "Co najmniej 8 znaków",
+      "submit": "Utwórz konto",
+      "submitBusy": "Tworzenie konta…",
+      "altPrefix": "Masz już konto?",
+      "altLink": "Zaloguj się",
+      "finePrefix": "Kontynuując, akceptujesz naszą",
+      "fineLink": "Politykę prywatności"
     },
     "login": {
       "title": "Zaloguj się — Lingogram",
       "description": "Zaloguj się do swojego słownika Lingogram.",
       "eyebrow": "Witaj ponownie",
-      "h1Lead": "Twój", "h1Pop": "słownik", "h1Tail": "czeka",
+      "h1Lead": "Twój",
+      "h1Pop": "słownik",
+      "h1Tail": "czeka",
       "sub": "Zaloguj się i wróć dokładnie tam, gdzie skończyłeś.",
       "googleCta": "Zaloguj się przez Google",
-      "emailLabel": "E-mail", "emailPlaceholder": "anna@przyklad.pl",
-      "passwordLabel": "Hasło", "passwordPlaceholder": "Twoje hasło",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "anna@przyklad.pl",
+      "passwordLabel": "Hasło",
+      "passwordPlaceholder": "Twoje hasło",
       "forgot": "Nie pamiętasz hasła?",
       "resetNote": "Sprawdź skrzynkę odbiorczą — link do zresetowania hasła już do Ciebie leci.",
-      "submit": "Zaloguj się", "submitBusy": "Logowanie…",
-      "altPrefix": "Nowy w Lingogram?", "altLink": "Utwórz konto"
+      "submit": "Zaloguj się",
+      "submitBusy": "Logowanie…",
+      "altPrefix": "Nowy w Lingogram?",
+      "altLink": "Utwórz konto"
     }
   },
-
   "notFound": {
     "title": "Nie znaleziono strony — Lingogram",
     "description": "Ta strona nie istnieje.",

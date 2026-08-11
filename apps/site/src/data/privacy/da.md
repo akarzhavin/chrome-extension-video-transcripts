@@ -1,3 +1,5 @@
+*Denne oversættelse er baseret på en ældre version af politikken og indeholder ikke de seneste ændringer. Den engelske version på https://lingogram.ai/privacy/ er den gældende.*
+
 # Privatlivspolitik — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Ikrafttrædelsesdato:** 22. juni 2026

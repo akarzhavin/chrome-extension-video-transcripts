@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Nederlands", "htmlLang": "nl" },
-
+  "meta": {
+    "name": "Nederlands",
+    "htmlLang": "nl"
+  },
   "nav": {
     "editions": "Edities",
     "how": "Hoe het werkt",
@@ -15,7 +17,6 @@
     "allLanguages": "Alle talen",
     "noLanguageMatch": "Geen taal komt overeen"
   },
-
   "languages": {
     "title": "Talen — Lingogram",
     "description": "De site van Lingogram in 42 talen — kies de taal waarin je leest.",
@@ -26,7 +27,10 @@
     "clearSearch": "Zoekopdracht wissen",
     "noMatch": "Geen taal komt overeen",
     "noMatchHint": "Probeer de Engelse naam of de code van twee letters.",
-    "count": { "one": "{n} taal", "other": "{n} talen" },
+    "count": {
+      "one": "{n} taal",
+      "other": "{n} talen"
+    },
     "region": {
       "westEurope": "West- en Noord-Europa",
       "eastEurope": "Midden- en Oost-Europa",
@@ -34,7 +38,6 @@
       "middleEast": "Midden-Oosten"
     }
   },
-
   "footer": {
     "tagline": "Leer talen met wat je kijkt.",
     "product": "Product",
@@ -49,13 +52,11 @@
     "legal": "Juridisch",
     "privacyPolicy": "Privacybeleid"
   },
-
   "proof": {
     "rating": "op de Chrome Web Store",
     "learners": "taalleerders",
     "free": "Gratis, geen advertenties"
   },
-
   "demo": {
     "hintPrefix": "Dit is de extensie zelf, die hier draait —",
     "hintBold": "selecteer een woord",
@@ -64,29 +65,44 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(publiek domein)"
   },
-
   "modes": {
-    "dual": { "tab": "Dubbele ondertitels", "h": "Beide talen tegelijk", "p": "De regel die je hoort naast de regel die je begrijpt — zonder pauzeren, zonder van track wisselen." },
-    "guess": { "tab": "Raad mee", "h": "Klik om te onthullen — en train je gehoor", "p": "De regel blijft verborgen tot je erop klikt. Raad eerst op het gehoor, controleer dan jezelf: precies in dat verschil verbetert je luistervaardigheid." },
-    "single": { "tab": "Op het scherm", "h": "Op het scherm, of in het zijpaneel — jouw keuze", "p": "Houd beide regels over de film, waar je ogen al kijken. Of haal ze met één knop weg en lees ze liever van het paneel, in je eigen tempo. De ondertitels verdwijnen nooit — ze verplaatsen alleen." },
-    "save": { "tab": "Woordenboek", "h": "Bewaar elk woord dat je tegenkomt", "p": "Selecteer een woord — één tik slaat het op met de zin waarin het stond, rechtstreeks in je woordenboek op lingogram.ai." }
+    "dual": {
+      "tab": "Dubbele ondertitels",
+      "h": "Beide talen tegelijk",
+      "p": "De regel die je hoort naast de regel die je begrijpt — zonder pauzeren, zonder van track wisselen."
+    },
+    "guess": {
+      "tab": "Raad mee",
+      "h": "Klik om te onthullen — en train je gehoor",
+      "p": "De regel blijft verborgen tot je erop klikt. Raad eerst op het gehoor, controleer dan jezelf: precies in dat verschil verbetert je luistervaardigheid."
+    },
+    "single": {
+      "tab": "Op het scherm",
+      "h": "Op het scherm, of in het zijpaneel — jouw keuze",
+      "p": "Houd beide regels over de film, waar je ogen al kijken. Of haal ze met één knop weg en lees ze liever van het paneel, in je eigen tempo. De ondertitels verdwijnen nooit — ze verplaatsen alleen."
+    },
+    "save": {
+      "tab": "Woordenboek",
+      "h": "Bewaar elk woord dat je tegenkomt",
+      "p": "Selecteer een woord — één tik slaat het op met de zin waarin het stond, rechtstreeks in je woordenboek op lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
   "editionsCard": {
     "yt": "Vult de ontbrekende tweede track aan met de automatische vertaling van YouTube.",
     "nf": "De eigen ondertiteltracks, zonder machinevertaling.",
     "hd": "Dubbele tracks als de titel ze heeft."
   },
-
   "home": {
     "h1Lead": "Leer een taal tijdens het kijken",
     "h1Pop": "naar je favoriete video's.",
     "heroLede": "Kijk met ondertitels in twee talen, of train je gehoor door alleen de woorden te onthullen die je niet verstond. Sla nieuwe woorden op in je persoonlijke woordenboek.",
     "ctaPrimary": "Toevoegen aan Chrome — gratis",
     "ctaSecondary": "Kies de editie voor jouw site ↓",
-
     "platformsKicker": "Edities",
     "platformsH2": "Eén Lingogram, afgestemd op de site waarop je kijkt",
     "platformsLede": "Elke editie is gebouwd voor de speler van die site — eigen ondertiteltracks, volledige-schermoverlay, precies de aanpassingen die die site nodig heeft. Ze delen dezelfde leertools en hetzelfde account, dus je opgeslagen woorden staan altijd op één plek, welke je ook gebruikt. Twee extensies dekken alle drie de sites: die voor YouTube werkt ook op Netflix.",
@@ -94,7 +110,6 @@
     "editionSoonTitle": "Jouw site is de volgende",
     "editionSoonBody": "Er komen regelmatig nieuwe edities bij — laat ons weten waar jij kijkt.",
     "editionSoonCta": "Site voorstellen →",
-
     "howKicker": "Hoe het werkt",
     "howH2": "Van installatie tot je eerste opgeslagen woord, in één video",
     "step1T": "Installeer en kies je talen",
@@ -103,49 +118,72 @@
     "step2D": "Druk op play — beide talen verschijnen samen, op de video en in een transcript dat meescrolt met de scène.",
     "step3T": "Sla woorden op, herhaal ze hier",
     "step3D": "Bewaar een woord met één tik terwijl je kijkt — open daarna je woordenboek op lingogram.ai en herhaal het met de scène waaruit het komt.",
-
     "dictKicker": "Jouw woordenboek",
     "dictH2": "Elk opgeslagen woord bouwt aan een woordenboek dat echt van jou is",
     "dictLede": "Geen frequentielijst uit een lesboek — woorden die je tegenkwam in scènes die jij koos, bewaard met de zinnen waarin ze stonden. Welke editie je ook gebruikt, alles komt in één account terecht en staat hier klaar zodra je inlogt.",
     "dictMyWords": "Mijn woorden",
     "dictCount": "247 opgeslagen · 12 deze week",
-    "dictWord1": "reluctantly", "dictTr1": "aarzelend", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "ontsnapping", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "zonder benzine zitten", "dictTr3": "geen brandstof meer", "dictCtx3": "“We zitten al {w} sinds het laatste tankstation.”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "aarzelend",
+    "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "ontsnapping",
+    "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "zonder benzine zitten",
+    "dictTr3": "geen brandstof meer",
+    "dictCtx3": "“We zitten al {w} sinds het laatste tankstation.”",
     "dictFoot": "Je woorden synchroniseren tussen apparaten en elke Lingogram-editie — {b}.",
     "dictFootBold": "één account, één woordenboek",
-
     "featKicker": "Waarom het blijft hangen",
     "featH2": "De meeste tools stoppen bij vertalen. Lingogram zorgt dat woorden blijven hangen.",
     "featLede": "Lingogram draait om actief terughalen: je leest niet alleen mee — je raadt, herhaalt en verzamelt, zodat de uren die je toch al kijkt, echte vooruitgang worden.",
-    "feat1Tag": "Dubbele ondertitels", "feat1H": "Twee talen, één scherm", "feat1P": "Vang elke regel in het origineel op en koppel hem meteen aan je eigen taal, zonder pauzeren. Zodra je er klaar voor bent, verberg je de vertaling: dubbele ondertitels zijn zwembandjes, en Lingogram helpt je ze af te doen.",
-    "feat2Tag": "Interactief transcript", "feat2H": "Herhaal de regel, niet de hele film", "feat2P": "Het transcript scrolt vanzelf mee met de video. Klik op een regel om terug te springen en juist die scène te herhalen, tot de klanken die je niet kon plaatsen woorden worden die je meteen herkent.",
-    "feat3Tag": "Raadmodus", "feat3H": "Eerst luisteren, dan controleren", "feat3P": "Woorden beginnen verborgen: vang de regel eerst op het gehoor, onthul hem daarna. Deze eerst-luisteren-cyclus bouwt luistervaardigheid waar je op kunt vertrouwen — geen ondertitels waar je alleen maar naar meeleest. Schakel met {kbd}.",
-    "feat4Tag": "Opgeslagen woorden", "feat4H": "Jouw woordenschat, uit jouw films", "feat4P": "Eén tik slaat een woord op met de ondertitelregels eromheen. Het komt meteen in {link} op lingogram.ai terecht, waar je elk woord herbekijkt in de scène waaruit het komt.",
+    "feat1Tag": "Dubbele ondertitels",
+    "feat1H": "Twee talen, één scherm",
+    "feat1P": "Vang elke regel in het origineel op en koppel hem meteen aan je eigen taal, zonder pauzeren. Zodra je er klaar voor bent, verberg je de vertaling: dubbele ondertitels zijn zwembandjes, en Lingogram helpt je ze af te doen.",
+    "feat2Tag": "Interactief transcript",
+    "feat2H": "Herhaal de regel, niet de hele film",
+    "feat2P": "Het transcript scrolt vanzelf mee met de video. Klik op een regel om terug te springen en juist die scène te herhalen, tot de klanken die je niet kon plaatsen woorden worden die je meteen herkent.",
+    "feat3Tag": "Raadmodus",
+    "feat3H": "Eerst luisteren, dan controleren",
+    "feat3P": "Woorden beginnen verborgen: vang de regel eerst op het gehoor, onthul hem daarna. Deze eerst-luisteren-cyclus bouwt luistervaardigheid waar je op kunt vertrouwen — geen ondertitels waar je alleen maar naar meeleest. Schakel met {kbd}.",
+    "feat4Tag": "Opgeslagen woorden",
+    "feat4H": "Jouw woordenschat, uit jouw films",
+    "feat4P": "Eén tik slaat een woord op met de ondertitelregels eromheen. Het komt meteen in {link} op lingogram.ai terecht, waar je elk woord herbekijkt in de scène waaruit het komt.",
     "feat4Link": "je persoonlijke woordenboek",
-
     "privKicker": "Standaard privé",
     "privH2": "Wat jij kijkt, blijft jouw zaak",
-    "priv1": "{b} Taal- en indelingsinstellingen worden lokaal in je browser opgeslagen.", "priv1Bold": "Geen telemetrie, geen tracking.",
-    "priv2": "{b} Ondertitels worden rechtstreeks op je eigen apparaat verwerkt.", "priv2Bold": "Wij zien je kijkgeschiedenis nooit.",
-    "priv3": "{b} Als je inlogt, bewaren we je e-mailadres en je opgeslagen woorden — verder niets, en we verkopen ze nooit.", "priv3Bold": "Je woordenboek is optioneel.",
-    "priv4": "{b} Breekt een site-update iets, dan meld je dat met één klik, zodat wij het snel kunnen oplossen.", "priv4Bold": "Gebouwd om te blijven werken.",
-
+    "priv1": "{b} Taal- en indelingsinstellingen worden lokaal in je browser opgeslagen.",
+    "priv1Bold": "Geen telemetrie, geen tracking.",
+    "priv2": "{b} Ondertitels worden rechtstreeks op je eigen apparaat verwerkt.",
+    "priv2Bold": "Wij zien je kijkgeschiedenis nooit.",
+    "priv3": "{b} Als je inlogt, bewaren we je e-mailadres en je opgeslagen woorden — verder niets, en we verkopen ze nooit.",
+    "priv3Bold": "Je woordenboek is optioneel.",
+    "priv4": "{b} Breekt een site-update iets, dan meld je dat met één klik, zodat wij het snel kunnen oplossen.",
+    "priv4Bold": "Gebouwd om te blijven werken.",
     "faqKicker": "Veelgestelde vragen",
     "faqH2": "Vragen die mensen stellen voordat ze installeren",
-
     "finalH2": "Maak van de aflevering van vanavond je taalles",
     "finalCta": "Lingogram toevoegen aan Chrome",
     "finalProof": "Gratis · Ingesteld in minder dan een minuut"
   },
-
   "faq": {
-    "free": { "q": "Is het gratis?", "a": "Ja. Dubbele ondertitels, het transcript en de raadmodus zijn gratis. Een gratis account heb je alleen nodig als je je opgeslagen woorden tussen apparaten wilt synchroniseren." },
-    "languages": { "q": "Welke talen worden ondersteund?", "a": "Elk taalpaar waarvoor de video ondertitels heeft. Ontbreekt op YouTube een van je twee talen, dan vult Lingogram die aan met YouTube's automatische vertaling, zodat je toch de dubbele weergave krijgt. Op Netflix en HDrezka toont het alleen de ondertiteltracks die de titel echt heeft — geen automatische vertaling." },
-    "edition": { "q": "Welke editie installeer ik?", "a": "Die van de site waarop je kijkt. Er zijn twee extensies: één voor YouTube en Netflix samen, de andere voor HDrezka. Installeer beide als je op beide kijkt — ze delen dezelfde leertools en hetzelfde account, zodat je opgeslagen woorden op één plek blijven." },
-    "words": { "q": "Waar staan mijn opgeslagen woorden?", "a": "In je persoonlijke woordenboek, hier op lingogram.ai. Log in en elk woord dat je hebt opgeslagen staat daar, samen met de scène waaruit het komt — ongeacht met welke editie of op welk apparaat je het hebt opgeslagen." }
+    "free": {
+      "q": "Is het gratis?",
+      "a": "Ja. Dubbele ondertitels, het transcript en de raadmodus zijn gratis. Een gratis account heb je alleen nodig als je je opgeslagen woorden tussen apparaten wilt synchroniseren."
+    },
+    "languages": {
+      "q": "Welke talen worden ondersteund?",
+      "a": "Elk taalpaar waarvoor de video ondertitels heeft. Ontbreekt op YouTube een van je twee talen, dan vult Lingogram die aan met YouTube's automatische vertaling, zodat je toch de dubbele weergave krijgt. Op Netflix en HDrezka toont het alleen de ondertiteltracks die de titel echt heeft — geen automatische vertaling."
+    },
+    "edition": {
+      "q": "Welke editie installeer ik?",
+      "a": "Die van de site waarop je kijkt. Er zijn twee extensies: één voor YouTube en Netflix samen, de andere voor HDrezka. Installeer beide als je op beide kijkt — ze delen dezelfde leertools en hetzelfde account, zodat je opgeslagen woorden op één plek blijven."
+    },
+    "words": {
+      "q": "Waar staan mijn opgeslagen woorden?",
+      "a": "In je persoonlijke woordenboek, hier op lingogram.ai. Log in en elk woord dat je hebt opgeslagen staat daar, samen met de scène waaruit het komt — ongeacht met welke editie of op welk apparaat je het hebt opgeslagen."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram voor {site}",
     "ctaPrimary": "Toevoegen aan Chrome — gratis",
@@ -157,24 +195,29 @@
     "finalCta": "{name} toevoegen",
     "finalProof": "Gratis · Ingesteld in minder dan een minuut"
   },
-
   "privacy": {
     "title": "Privacybeleid — Lingogram",
     "description": "Wat Lingogram verzamelt, hoe het wordt gebruikt, en welke keuzes je hebt."
   },
-
   "welcome": {
     "title": "Welkom bij Lingogram",
     "description": "Je bent klaar om te beginnen — hier is je eerste opgeslagen woord, in drie stappen.",
     "h1": "is geïnstalleerd",
     "sub": "Drie stappen naar je eerste opgeslagen woord — één video is genoeg.",
-    "step1T": "Kies je talen", "step1D": "Klik op het Lingogram-icoon in de werkbalk en kies de taal die je leert en je eigen taal.",
-    "step2T": "Open een video met ondertitels", "step2D": "Druk op play — beide talen verschijnen samen, op de video en in het transcript.",
-    "step3T": "Sla je eerste woord op", "step3D": "Markeer een woord in de ondertitels en tik om het te bewaren — het komt terecht in {link}.",
+    "step1T": "Kies je talen",
+    "step1D": "Klik op het Lingogram-icoon in de werkbalk en kies de taal die je leert en je eigen taal.",
+    "step2T": "Open een video met ondertitels",
+    "step2D": "Druk op play — beide talen verschijnen samen, op de video en in het transcript.",
+    "step3T": "Sla je eerste woord op",
+    "step3D": "Markeer een woord in de ondertitels en tik om het te bewaren — het komt terecht in {link}.",
     "step3Link": "je woordenboek",
-    "keyDual": "dubbele ondertitels", "keySwap": "talen wisselen", "keyGuess": "raadmodus", "keyOverlay": "overlaymodus"
+    "keyDual": "dubbele ondertitels",
+    "keySwap": "talen wisselen",
+    "keyGuess": "raadmodus",
+    "keyOverlay": "overlaymodus",
+    "privacy": "Anonieme gebruiksstatistieken staan aan, zodat we zien waar mensen vastlopen. Geen account, geen video’s, geen opgeslagen woorden — je kunt het altijd uitzetten in de pop-up van de extensie. {link}",
+    "privacyLink": "Privacybeleid"
   },
-
   "uninstall": {
     "title": "Jammer dat je weggaat — Lingogram",
     "description": "Vertel ons waarom je Lingogram hebt verwijderd, zodat we het kunnen verbeteren.",
@@ -188,7 +231,6 @@
     "footMid": "— ze wachten op je als je terugkomt.",
     "reinstall": "Op elk moment opnieuw te installeren."
   },
-
   "auth": {
     "or": "of",
     "showPassword": "Wachtwoord tonen",
@@ -198,32 +240,44 @@
       "title": "Maak je account aan — Lingogram",
       "description": "Registreer je om je opgeslagen woorden te synchroniseren tussen elk apparaat en elke editie.",
       "eyebrow": "Gratis account",
-      "h1Lead": "Begin je", "h1Pop": "woordenlijst",
+      "h1Lead": "Begin je",
+      "h1Pop": "woordenlijst",
       "sub": "Sla woorden op uit alles wat je kijkt — gesynchroniseerd tussen elk apparaat en elke editie.",
       "googleCta": "Registreren met Google",
-      "nameLabel": "Je naam", "namePlaceholder": "Anna",
-      "emailLabel": "E-mail", "emailPlaceholder": "anna@voorbeeld.nl",
-      "passwordLabel": "Wachtwoord", "passwordPlaceholder": "Minimaal 8 tekens",
-      "submit": "Account aanmaken", "submitBusy": "Account wordt aangemaakt…",
-      "altPrefix": "Heb je al een account?", "altLink": "Inloggen",
-      "finePrefix": "Door verder te gaan ga je akkoord met ons", "fineLink": "Privacybeleid"
+      "nameLabel": "Je naam",
+      "namePlaceholder": "Anna",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "anna@voorbeeld.nl",
+      "passwordLabel": "Wachtwoord",
+      "passwordPlaceholder": "Minimaal 8 tekens",
+      "submit": "Account aanmaken",
+      "submitBusy": "Account wordt aangemaakt…",
+      "altPrefix": "Heb je al een account?",
+      "altLink": "Inloggen",
+      "finePrefix": "Door verder te gaan ga je akkoord met ons",
+      "fineLink": "Privacybeleid"
     },
     "login": {
       "title": "Inloggen — Lingogram",
       "description": "Log in op je Lingogram-woordenboek.",
       "eyebrow": "Welkom terug",
-      "h1Lead": "Jouw", "h1Pop": "woordenboek", "h1Tail": "wacht op je",
+      "h1Lead": "Jouw",
+      "h1Pop": "woordenboek",
+      "h1Tail": "wacht op je",
       "sub": "Log in en ga verder waar je gebleven was.",
       "googleCta": "Inloggen met Google",
-      "emailLabel": "E-mail", "emailPlaceholder": "anna@voorbeeld.nl",
-      "passwordLabel": "Wachtwoord", "passwordPlaceholder": "Je wachtwoord",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "anna@voorbeeld.nl",
+      "passwordLabel": "Wachtwoord",
+      "passwordPlaceholder": "Je wachtwoord",
       "forgot": "Wachtwoord vergeten?",
       "resetNote": "Kijk in je inbox — er is een link onderweg om je wachtwoord opnieuw in te stellen.",
-      "submit": "Inloggen", "submitBusy": "Bezig met inloggen…",
-      "altPrefix": "Nieuw bij Lingogram?", "altLink": "Account aanmaken"
+      "submit": "Inloggen",
+      "submitBusy": "Bezig met inloggen…",
+      "altPrefix": "Nieuw bij Lingogram?",
+      "altLink": "Account aanmaken"
     }
   },
-
   "notFound": {
     "title": "Pagina niet gevonden — Lingogram",
     "description": "Deze pagina bestaat niet.",

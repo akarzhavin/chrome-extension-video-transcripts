@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "Zostáva {n} znakov",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "Súkromie",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "Zdieľať anonymné štatistiky používania",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "Počty ako „titulky načítané“ a „slovo uložené“. Nikdy váš účet, videá, ktoré sledujete, ani slová, ktoré si ukladáte.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

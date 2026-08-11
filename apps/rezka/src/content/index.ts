@@ -13,6 +13,10 @@ import {
     shortCodeForLanguage,
     msg as i18nMsg,
     setI18nOverride,
+    OncePerScope,
+    platformOf,
+    type Platform,
+    trackVia,
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
 } from '@video-transcripts/shared';
@@ -45,6 +49,19 @@ class VttApp implements AppInterface {
     // without a track loading. Once they've retried and it's still empty we offer
     // a page reload as the next fallback. Reset when a track finally loads.
     noSubsRetries: number = 0;
+    // ── analytics bookkeeping ───────────────────────────────────────────────
+    // One page is one title on rezka, so the one-shot scope is the page load;
+    // there is no per-video reset like YouTube's.
+    analyticsOnce = new OncePerScope();
+    /** Debounce for subtitles_loaded, so track_count counts every track. */
+    subsLoadedTimer: number | null = null;
+    hadFailures: boolean = false;
+    firstFailureAt: number = 0;
+    lastRecoveryTrigger: 'auto_probe' | 'manual_retry' | 'late_arrival' = 'late_arrival';
+    // Last reported fetch failure, so declareNoSubtitles() can say why rather
+    // than blaming the video.
+    lastFailure: string = '';
+    lastFailureStatus?: number;
 
     constructor() {
         this.isTopWindow = window === window.top;
@@ -92,6 +109,8 @@ class VttApp implements AppInterface {
         chrome.runtime.onMessage.addListener((request) => {
             if (request.action === "VTT_LOADED") {
                 this.handleNewSubtitles(request.payload);
+            } else if (request.action === "VTT_LOAD_FAILED") {
+                this.handleVttLoadFailed({ status: request.status, failure: request.failure });
             } else if (request.action === "TIME_UPDATE") {
                 this.ui.highlightSubtitle(request.time);
             } else if (request.action === "SEEK_VIDEO") {
@@ -112,6 +131,28 @@ class VttApp implements AppInterface {
         });
     }
 
+    /**
+     * Reports subtitles_loaded once the tracks have stopped arriving.
+     *
+     * Mirrors BaseVttApp.scheduleSubtitlesLoadedReport — rezka does not extend
+     * that class, so the same bug had to be fixed in both places. Each new
+     * track pushes the timer out, so the count reflects everything that landed.
+     * No cancellation path here: one page is one title, so there is no video
+     * change that could mis-attribute a pending report.
+     */
+    scheduleSubtitlesLoadedReport(site: Platform, settleMs: number = 1_500): void {
+        if (this.analyticsOnce.hasFired('subtitles_loaded')) return;
+        if (this.subsLoadedTimer !== null) clearTimeout(this.subsLoadedTimer);
+        this.subsLoadedTimer = window.setTimeout(() => {
+            this.subsLoadedTimer = null;
+            const count = this.state.tracks.length;
+            if (count === 0) return;
+            this.analyticsOnce.fire('subtitles_loaded', () => {
+                trackVia('subtitles_loaded', { site, track_count: count });
+            });
+        }, settleMs);
+    }
+
     handleNewSubtitles(vttText: string): void {
         const newSubs = parseVTT(vttText);
         if (newSubs.length === 0) return;
@@ -121,12 +162,83 @@ class VttApp implements AppInterface {
             this.state.addTrack(name, newSubs);
         }
         this.ui.refresh();
+
+        // One page is one title here, so the scope is the page load — there is
+        // no per-video reset to hang the one-shots off, unlike YouTube.
+        const site = platformOf(location.hostname);
+        // Debounced for the same reason as the YouTube edition: reporting from
+        // the first track freezes track_count at 1, and the second track lands
+        // ~100ms later. Measured here too — every dual load was arriving as a
+        // single-track one.
+        this.scheduleSubtitlesLoadedReport(site);
+        if (this.state.tracks.length >= 2) {
+            this.analyticsOnce.fire('dual_subs_shown', () => {
+                trackVia('dual_subs_shown', {
+                    site,
+                    learning: this.langPrefs?.learning ?? '',
+                    native: this.langPrefs?.native ?? '',
+                });
+            });
+        }
+        if (this.hadFailures) {
+            this.hadFailures = false;
+            trackVia('subs_recovered', {
+                site,
+                via: this.lastRecoveryTrigger,
+                waited_s: Math.round((Date.now() - this.firstFailureAt) / 1000),
+            });
+        }
+
         // Subtitles arrived — drop any pending/visible "searching"/"no subtitles"
         // notice (only the top window shows one).
         if (this.isTopWindow) {
             this.clearNoSubtitlesTimer();
             this.hideStatusBanner();
             this.noSubsRetries = 0;
+        }
+    }
+
+    /**
+     * A subtitle fetch failed in the background worker. Before this existed the
+     * status was swallowed in a console.error and the UI blamed the video for
+     * what was often a rate limit — the same bug that was fixed on the YouTube
+     * side. Records the reason and reports it.
+     */
+    handleVttLoadFailed(info: { status?: number; failure?: string }): void {
+        const failure = info.failure ?? 'unknown';
+        if (!this.hadFailures) {
+            this.hadFailures = true;
+            this.firstFailureAt = Date.now();
+        }
+        this.lastFailure = failure;
+        this.lastFailureStatus = info.status;
+        if (failure === 'rate-limited') {
+            this.analyticsOnce.fire('rate_limited', () => {
+                trackVia('subs_rate_limited', {
+                    site: platformOf(location.hostname),
+                    // Rezka serves ready-made tracks; there is no machine
+                    // translation request to distinguish.
+                    translation: false,
+                    attempts: 0,
+                    retry_after_s: 0,
+                    breaker_step: 0,
+                });
+            });
+        }
+        // Something already plays and something else didn't: same partial state
+        // YouTube reports, minus the learning/native split (rezka names tracks
+        // by sniffing their content, so it cannot say which half is missing).
+        if (this.state.tracks.length > 0) {
+            this.analyticsOnce.fire('subs_partial', () => {
+                trackVia('subs_partial', {
+                    site: platformOf(location.hostname),
+                    failure,
+                    missing: 'other',
+                    throttled: failure === 'rate-limited',
+                    learning: this.langPrefs?.learning ?? '',
+                    native: this.langPrefs?.native ?? '',
+                });
+            });
         }
     }
 
@@ -276,6 +388,11 @@ class VttApp implements AppInterface {
         const sidebar = document.getElementById('vtt-sidebar');
         if (!sidebar || document.getElementById('vtt-lang-onboarding')) return;
 
+        // After the early return: counts banners actually shown, not calls made.
+        this.analyticsOnce.fire('onboarding_shown', () => {
+            trackVia('onboarding_shown', { site: platformOf(location.hostname) });
+        });
+
         const banner = document.createElement('div');
         banner.id = 'vtt-lang-onboarding';
         banner.className = 'vtt-lang-onboarding';
@@ -302,7 +419,7 @@ class VttApp implements AppInterface {
             const l = learning.select.value;
             const n = native.select.value;
             if (!l || !n) return; // both required
-            void saveLanguagePrefs({ learning: l, native: n });
+            void saveLanguagePrefs({ learning: l, native: n }, 'onboarding');
         };
         learning.select.addEventListener('change', persist);
         native.select.addEventListener('change', persist);
@@ -373,6 +490,19 @@ class VttApp implements AppInterface {
         this.clearNoSubtitlesTimer();
         if (!this.langPrefs) return;
         if (this.state.tracks.length > 0) return;
+
+        // `failure` is empty when nothing reported one — on rezka the player
+        // only fetches a track once it's picked in the CC menu, so "nothing
+        // arrived" is usually the user not having picked one yet, not an error.
+        this.analyticsOnce.fire('no_subtitles', () => {
+            trackVia('no_subtitles', {
+                site: platformOf(location.hostname),
+                retried: this.noSubsRetries > 0,
+                failure: this.lastFailure,
+                status: this.lastFailureStatus ?? 0,
+                attempts: 0,
+            });
+        });
         // Auto-search came up empty. The player only fetches a track when it's
         // picked in the CC menu, so walk the user through loading them by hand —
         // the (always-on) interceptor grabs each one as it's selected.

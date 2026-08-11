@@ -1,3 +1,5 @@
+*Šis tulkojums attiecas uz vecāku politikas versiju un neietver jaunākās izmaiņas. Noteicošā ir angļu valodas versija vietnē https://lingogram.ai/privacy/.*
+
 # Privātuma politika — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Spēkā stāšanās datums:** 2026. gada 22. jūnijs

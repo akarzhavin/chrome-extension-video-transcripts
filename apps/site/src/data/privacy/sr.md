@@ -1,3 +1,5 @@
+*Ovaj prevod se odnosi na stariju verziju politike i ne obuhvata najnovije izmene. Merodavna je verzija na engleskom na https://lingogram.ai/privacy/.*
+
 # Politika privatnosti — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Datum stupanja na snagu:** 22. jun 2026.

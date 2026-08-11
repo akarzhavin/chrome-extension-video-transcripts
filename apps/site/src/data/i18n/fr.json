@@ -27,7 +27,10 @@
     "clearSearch": "Effacer la recherche",
     "noMatch": "Aucune langue ne correspond",
     "noMatchHint": "Essayez son nom anglais ou son code à deux lettres.",
-    "count": { "one": "{n} langue", "other": "{n} langues" },
+    "count": {
+      "one": "{n} langue",
+      "other": "{n} langues"
+    },
     "region": {
       "westEurope": "Europe de l'Ouest et du Nord",
       "eastEurope": "Europe centrale et de l'Est",
@@ -211,7 +214,9 @@
     "keyDual": "sous-titres bilingues",
     "keySwap": "inverser les langues",
     "keyGuess": "mode Deviner",
-    "keyOverlay": "sous-titres sur la vidéo (overlay)"
+    "keyOverlay": "sous-titres sur la vidéo (overlay)",
+    "privacy": "Les statistiques d’usage anonymes sont activées : elles nous montrent où les gens bloquent. Ni compte, ni vidéos, ni mots enregistrés — désactivable à tout moment dans la fenêtre de l’extension. {link}",
+    "privacyLink": "Politique de confidentialité"
   },
   "uninstall": {
     "title": "Triste de vous voir partir — Lingogram",

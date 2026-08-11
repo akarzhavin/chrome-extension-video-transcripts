@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} అక్షరాలు మిగిలి ఉన్నాయి",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "గోప్యత",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "అనామక వినియోగ గణాంకాలను షేర్ చేయండి",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "“ఉపశీర్షికలు లోడ్ అయ్యాయి”, “పదం సేవ్ అయింది” వంటి లెక్కలు మాత్రమే. మీ ఖాతా, మీరు చూసే వీడియోలు లేదా మీరు సేవ్ చేసే పదాలు ఎప్పటికీ కాదు.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

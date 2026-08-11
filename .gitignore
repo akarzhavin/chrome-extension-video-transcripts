@@ -57,3 +57,17 @@ apps/site/dev-serve.mjs
 # web app. This happened on 2026-08-04. Deploy from the english repo instead.
 firebase.json
 .firebase/
+
+# Jest coverage output. Regenerated on every `npm test -- --coverage`, which is
+# now the normal invocation: jest.config.js enforces a coverage threshold on
+# the analytics modules, so the report is a build artifact, not a source file.
+coverage/
+
+# GA4 Measurement Protocol credentials. The api_secret is write-only (it can
+# send events to a property, never read from it), so a leak is data poisoning
+# rather than exfiltration — but a poisoned funnel is exactly the failure this
+# whole iteration exists to avoid, and rotating means re-issuing in the GA4
+# admin. Builds read these from the environment; see docs/analytics-setup.md.
+.env
+.env.*
+!.env.example

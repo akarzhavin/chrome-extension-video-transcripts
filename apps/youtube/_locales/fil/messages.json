@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "{n} character na natitira",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "Privacy",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "Ibahagi ang anonymous na istatistika ng paggamit",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "Mga bilang tulad ng “na-load ang subtitles” at “na-save ang salita”. Hinding-hindi ang iyong account, ang mga video na pinapanood mo, o ang mga salitang sine-save mo.",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

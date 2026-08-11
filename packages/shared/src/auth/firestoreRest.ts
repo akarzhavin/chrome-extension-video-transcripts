@@ -291,6 +291,19 @@ export interface NoSubsReportInput {
     learning: string;
     /** The user's native language from the same pair (e.g. "ru"). */
     native: string;
+    /**
+     * Why the fetch failed, in the extension's own vocabulary ('rate-limited',
+     * 'not-offered', …). The app already computes this for the UI; without it
+     * a report says only that subtitles were missing, which is the one thing we
+     * could already tell from the fact that a report exists.
+     */
+    failure?: string;
+    /** HTTP status behind the failure, when there was one. */
+    status?: number;
+    /** How many fetch attempts were made before giving up. */
+    attempts?: number;
+    /** Tracks that DID load — distinguishes "nothing" from "half of it". */
+    tracksLoaded?: number;
 }
 
 // One-shot diagnostic written when the user hits the emergency "Reload page"
@@ -318,6 +331,10 @@ export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput)
                     locale: { stringValue: truncateBytes(input.locale, 16) },
                     learning: { stringValue: truncateBytes(input.learning, 16) },
                     native: { stringValue: truncateBytes(input.native, 16) },
+                    failure: { stringValue: truncateBytes(input.failure ?? '', 32) },
+                    status: { integerValue: String(input.status ?? 0) },
+                    attempts: { integerValue: String(input.attempts ?? 0) },
+                    tracksLoaded: { integerValue: String(input.tracksLoaded ?? 0) },
                     source: { stringValue: cfg.source },
                 },
             },

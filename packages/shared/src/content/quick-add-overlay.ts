@@ -1,3 +1,4 @@
+import { platformOf } from '../analytics';
 import { msg as i18nMsg } from '../i18n';
 import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feedback';
 
@@ -690,6 +691,10 @@ async function saveTerm(
             action: 'ADD_WORD',
             term,
             context,
+            // Coarse platform label for analytics — the worker can't see the
+            // page. Never the hostname or URL: the deny-list in analytics.ts
+            // would strip those anyway.
+            site: platformOf(location.hostname),
         });
         console.log('[Lingogram] ADD_WORD ←', res);
         if (!res.ok) throw new Error(res.error ?? 'add failed');

@@ -1,3 +1,5 @@
+*Questa traduzione si riferisce a una versione precedente dell'informativa e non include le modifiche più recenti. Fa fede la versione inglese su https://lingogram.ai/privacy/.*
+
 # Informativa sulla privacy — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Data di entrata in vigore:** 22 giugno 2026

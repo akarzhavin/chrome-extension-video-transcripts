@@ -1,3 +1,5 @@
+*Šis vertimas parengtas pagal senesnę politikos versiją ir neapima naujausių pakeitimų. Pirmenybė teikiama angliškai versijai adresu https://lingogram.ai/privacy/.*
+
 # Privatumo politika — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Įsigaliojimo data:** 2026 m. birželio 22 d.

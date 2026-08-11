@@ -442,5 +442,17 @@
   "ytFeedbackCharsLeft": {
     "message": "เหลืออีก {n} ตัวอักษร",
     "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
+  "ytGroupPrivacy": {
+    "message": "ความเป็นส่วนตัว",
+    "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
+  },
+  "ytPrivacyAnalyticsLabel": {
+    "message": "แชร์สถิติการใช้งานแบบไม่ระบุตัวตน",
+    "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
+  },
+  "ytPrivacyAnalyticsHint": {
+    "message": "นับเฉพาะเหตุการณ์อย่าง “โหลดคำบรรยายแล้ว” และ “บันทึกคำแล้ว” ไม่มีบัญชีของคุณ วิดีโอที่คุณดู หรือคำที่คุณบันทึกไว้",
+    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
   }
 }

@@ -1,3 +1,5 @@
+*Ta prevod se nanaša na starejšo različico pravilnika in ne vključuje najnovejših sprememb. Merodajna je angleška različica na https://lingogram.ai/privacy/.*
+
 # Pravilnik o zasebnosti — Lingogram: Dual Subtitles & Transcript for YouTube
 
 **Datum začetka veljavnosti:** 22. junij 2026

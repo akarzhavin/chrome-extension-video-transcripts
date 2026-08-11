@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Norsk", "htmlLang": "no" },
-
+  "meta": {
+    "name": "Norsk",
+    "htmlLang": "no"
+  },
   "nav": {
     "editions": "Utgaver",
     "how": "Slik fungerer det",
@@ -15,7 +17,6 @@
     "allLanguages": "Alle språk",
     "noLanguageMatch": "Ingen språk passer"
   },
-
   "languages": {
     "title": "Språk — Lingogram",
     "description": "Lingogram-nettstedet på 42 språk — velg det du leser på.",
@@ -26,7 +27,10 @@
     "clearSearch": "Tøm søket",
     "noMatch": "Ingen språk passer",
     "noMatchHint": "Prøv det engelske navnet, eller tobokstavskoden.",
-    "count": { "one": "{n} språk", "other": "{n} språk" },
+    "count": {
+      "one": "{n} språk",
+      "other": "{n} språk"
+    },
     "region": {
       "westEurope": "Vest- og Nord-Europa",
       "eastEurope": "Sentral- og Øst-Europa",
@@ -34,7 +38,6 @@
       "middleEast": "Midtøsten"
     }
   },
-
   "footer": {
     "tagline": "Lær språk gjennom det du ser på.",
     "product": "Produkt",
@@ -49,13 +52,11 @@
     "legal": "Juridisk",
     "privacyPolicy": "Personvernerklæring"
   },
-
   "proof": {
     "rating": "på Chrome Web Store",
     "learners": "som lærer et språk",
     "free": "Gratis, ingen reklame"
   },
-
   "demo": {
     "hintPrefix": "Dette er en demo av selve utvidelsen — ekte og i aksjon her på siden —",
     "hintBold": "velg et ord",
@@ -64,29 +65,44 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(fri for opphavsrett)"
   },
-
   "modes": {
-    "dual": { "tab": "Doble undertekster", "h": "Begge språk samtidig", "p": "Linjen du hører, ved siden av linjen du forstår — uten pause, uten å bytte spor." },
-    "guess": { "tab": "Gjettemodus", "h": "Klikk for å avsløre — og tren hørselen", "p": "Linjen holdes skjult til du klikker på den. Gjett først på gehør, sjekk deg selv etterpå: nettopp det gapet er der lytteforståelsen din vokser." },
-    "single": { "tab": "På videoen", "h": "På skjermen, eller i sidepanelet — du velger", "p": "Behold begge linjene over filmen, der øynene dine allerede er. Eller fjern dem med ett klikk og les fra panelet i stedet, i ditt eget tempo. Undertekstene forsvinner aldri — de bare flytter seg." },
-    "save": { "tab": "Mine ord", "h": "Ta vare på hvert ord du møter", "p": "Velg et ord — ett trykk lagrer det sammen med setningen det stod i, rett hit, til ordboken din på lingogram.ai." }
+    "dual": {
+      "tab": "Doble undertekster",
+      "h": "Begge språk samtidig",
+      "p": "Linjen du hører, ved siden av linjen du forstår — uten pause, uten å bytte spor."
+    },
+    "guess": {
+      "tab": "Gjettemodus",
+      "h": "Klikk for å avsløre — og tren hørselen",
+      "p": "Linjen holdes skjult til du klikker på den. Gjett først på gehør, sjekk deg selv etterpå: nettopp det gapet er der lytteforståelsen din vokser."
+    },
+    "single": {
+      "tab": "På videoen",
+      "h": "På skjermen, eller i sidepanelet — du velger",
+      "p": "Behold begge linjene over filmen, der øynene dine allerede er. Eller fjern dem med ett klikk og les fra panelet i stedet, i ditt eget tempo. Undertekstene forsvinner aldri — de bare flytter seg."
+    },
+    "save": {
+      "tab": "Mine ord",
+      "h": "Ta vare på hvert ord du møter",
+      "p": "Velg et ord — ett trykk lagrer det sammen med setningen det stod i, rett hit, til ordboken din på lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
   "editionsCard": {
     "yt": "Fyller det manglende sporet med YouTubes automatiske oversettelse.",
     "nf": "Originale undertekstspor, ingen maskinoversettelse.",
     "hd": "Doble spor når tittelen har dem."
   },
-
   "home": {
     "h1Lead": "Lær et språk mens du ser på",
     "h1Pop": "videoene du elsker.",
     "heroLede": "Se med undertekster på to språk, eller tren hørselen ved å avsløre bare ordene du ikke fikk med deg. Lagre nye ord i din personlige ordbok.",
     "ctaPrimary": "Legg til i Chrome — det er gratis",
     "ctaSecondary": "Velg utgaven for nettstedet du ser på ↓",
-
     "platformsKicker": "Utgaver",
     "platformsH2": "Én Lingogram, tilpasset nettstedet du ser på",
     "platformsLede": "Hver utgave er en egen Chrome-utvidelse, bygget for akkurat det ene nettstedets spiller — egne undertekstspor, et fullskjermoverlegg lagt over videobildet, de rettelsene nettopp det nettstedet trenger. De deler de samme læringsverktøyene og samme konto, så de lagrede ordene dine ligger på ett sted uansett hvilken du bruker. To utvidelser dekker alle tre nettstedene: YouTube-utgaven håndterer også Netflix.",
@@ -94,7 +110,6 @@
     "editionSoonTitle": "Ser du på noe annet sted?",
     "editionSoonBody": "Nye utgaver kommer jevnlig — si fra hvor du ser på.",
     "editionSoonCta": "Foreslå et nettsted →",
-
     "howKicker": "Slik fungerer det",
     "howH2": "Fra installasjon til første lagrede ord — på én video",
     "step1T": "Installer og velg språkene dine",
@@ -103,49 +118,72 @@
     "step2D": "Trykk play — begge språkene vises sammen, på videoen og i et transkript som ruller med scenen.",
     "step3T": "Lagre ord, øv på dem på dette nettstedet",
     "step3D": "Lagre et ord med ett trykk mens du ser på — åpne så ordboken din på dette nettstedet og gå gjennom det med scenen det kom fra.",
-
     "dictKicker": "Din ordbok",
     "dictH2": "Hvert ord du lagrer, bygger en ordbok som faktisk er din",
     "dictLede": "Ikke en frekvensliste fra en lærebok — ord du møtte i scener du selv valgte, lagret sammen med linjene de kom fra. Uansett hvilken utgave du bruker, havner alt i én konto, og det venter på deg på dette nettstedet når du logger inn.",
     "dictMyWords": "Mine ord",
     "dictCount": "247 lagret · 12 denne uken",
-    "dictWord1": "reluctantly", "dictTr1": "motvillig", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
-    "dictWord2": "getaway", "dictTr2": "rømning", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "gått tom for bensin", "dictTr3": "tom for drivstoff", "dictCtx3": "“Vi har {w} siden siste bensinstasjon.”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "motvillig",
+    "dictCtx1": "“He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "rømning",
+    "dictCtx2": "“This isn't a heist, it's a {w}.”",
+    "dictWord3": "gått tom for bensin",
+    "dictTr3": "tom for drivstoff",
+    "dictCtx3": "“Vi har {w} siden siste bensinstasjon.”",
     "dictFoot": "Ordene dine synkroniseres på tvers av enheter og alle Lingogram-utgaver — {b}.",
     "dictFootBold": "én konto, én ordbok",
-
     "featKicker": "Hvorfor det sitter",
     "featH2": "De fleste verktøy stopper ved oversettelse. Lingogram gjør at ord sitter.",
     "featLede": "Lingogram bygger på aktiv gjenkalling: du husker og henter ordene selv i stedet for bare å lese med — du gjetter, spiller av på nytt og samler, slik at timene du uansett bruker på å se på ting, blir til reell fremgang.",
-    "feat1Tag": "Doble undertekster", "feat1H": "To språk, én skjerm", "feat1P": "Fang opp hver linje på originalspråket og koble den til ditt eget språk uten å pause. Når du er klar, skjuler du oversettelsen — doble undertekster er et utgangspunkt, og Lingogram hjelper deg å etter hvert klare deg uten dem.",
-    "feat2Tag": "Interaktivt transkript", "feat2H": "Spill av linjen på nytt, ikke hele filmen", "feat2P": "Transkriptet ruller av seg selv sammen med videoen. Klikk på en linje for å hoppe tilbake og loope akkurat den scenen, til lydene du ikke klarte å oppfatte blir ord du kjenner igjen momentant.",
-    "feat3Tag": "Gjettemodus", "feat3H": "Lytt først, sjekk etterpå", "feat3P": "Ordene starter skjult: fang opp linjen på gehør, avslør den så. Denne lytt-først-syklusen bygger lytteforståelse du kan stole på — ikke undertekster du bare leser med. Slå av og på med {kbd}.",
-    "feat4Tag": "Lagrede ord", "feat4H": "Ordforrådet ditt, fra dine egne filmer", "feat4P": "Ett trykk lagrer et ord sammen med undertekstlinjene rundt det. Det havner rett i {link} på lingogram.ai, hvor du går gjennom hvert ord i sin opprinnelige scene.",
+    "feat1Tag": "Doble undertekster",
+    "feat1H": "To språk, én skjerm",
+    "feat1P": "Fang opp hver linje på originalspråket og koble den til ditt eget språk uten å pause. Når du er klar, skjuler du oversettelsen — doble undertekster er et utgangspunkt, og Lingogram hjelper deg å etter hvert klare deg uten dem.",
+    "feat2Tag": "Interaktivt transkript",
+    "feat2H": "Spill av linjen på nytt, ikke hele filmen",
+    "feat2P": "Transkriptet ruller av seg selv sammen med videoen. Klikk på en linje for å hoppe tilbake og loope akkurat den scenen, til lydene du ikke klarte å oppfatte blir ord du kjenner igjen momentant.",
+    "feat3Tag": "Gjettemodus",
+    "feat3H": "Lytt først, sjekk etterpå",
+    "feat3P": "Ordene starter skjult: fang opp linjen på gehør, avslør den så. Denne lytt-først-syklusen bygger lytteforståelse du kan stole på — ikke undertekster du bare leser med. Slå av og på med {kbd}.",
+    "feat4Tag": "Lagrede ord",
+    "feat4H": "Ordforrådet ditt, fra dine egne filmer",
+    "feat4P": "Ett trykk lagrer et ord sammen med undertekstlinjene rundt det. Det havner rett i {link} på lingogram.ai, hvor du går gjennom hvert ord i sin opprinnelige scene.",
     "feat4Link": "din personlige ordbok",
-
     "privKicker": "Privat som standard",
     "privH2": "Det du ser på, er din egen sak",
-    "priv1": "{b} Språk- og layoutinnstillinger lagres lokalt i nettleseren din.", "priv1Bold": "Ingen telemetri, ingen sporing.",
-    "priv2": "{b} Undertekster behandles direkte på din egen enhet.", "priv2Bold": "Vi ser aldri seerhistorikken din.",
-    "priv3": "{b} Hvis du logger inn, lagrer vi e-posten din og de lagrede ordene dine — ikke noe annet, og vi selger dem aldri.", "priv3Bold": "Ordboken er valgfri.",
-    "priv4": "{b} Hvis en nettstedoppdatering ødelegger noe, melder du fra med ett klikk, så vi kan fikse det raskt.", "priv4Bold": "Vi fikser det raskt.",
-
+    "priv1": "{b} Språk- og layoutinnstillinger lagres lokalt i nettleseren din.",
+    "priv1Bold": "Ingen telemetri, ingen sporing.",
+    "priv2": "{b} Undertekster behandles direkte på din egen enhet.",
+    "priv2Bold": "Vi ser aldri seerhistorikken din.",
+    "priv3": "{b} Hvis du logger inn, lagrer vi e-posten din og de lagrede ordene dine — ikke noe annet, og vi selger dem aldri.",
+    "priv3Bold": "Ordboken er valgfri.",
+    "priv4": "{b} Hvis en nettstedoppdatering ødelegger noe, melder du fra med ett klikk, så vi kan fikse det raskt.",
+    "priv4Bold": "Vi fikser det raskt.",
     "faqKicker": "Ofte stilte spørsmål",
     "faqH2": "Spørsmål folk stiller før de installerer",
-
     "finalH2": "Gjør kveldens episode til språktimen din",
     "finalCta": "Legg til Lingogram i Chrome",
     "finalProof": "Gratis · Klart på under ett minutt"
   },
-
   "faq": {
-    "free": { "q": "Er det gratis?", "a": "Ja. Doble undertekster, transkriptet og gjettemodus er gratis. En gratis konto trengs bare hvis du vil synkronisere lagrede ord på tvers av enheter." },
-    "languages": { "q": "Hvilke språk støttes?", "a": "Ethvert språkpar videoen har undertekster for. På YouTube, hvis ett av de to språkene dine mangler, fyller Lingogram det inn med YouTubes automatiske oversettelse, slik at du likevel får dobbeltvisningen. På Netflix og HDrezka vises kun de undertekstsporene tittelen faktisk har — ingen maskinoversettelse." },
-    "edition": { "q": "Hvilken utgave skal jeg installere?", "a": "Den for nettstedet du ser på. Det finnes to utvidelser: én dekker YouTube og Netflix sammen, den andre dekker HDrezka. Installer begge hvis du ser på begge — de deler de samme læringsverktøyene og samme konto, slik at de lagrede ordene dine holder seg på ett sted." },
-    "words": { "q": "Hvor lagres de lagrede ordene mine?", "a": "I din personlige ordbok, rett her på lingogram.ai. Logg inn, så ligger hvert ord du har lagret der, sammen med scenen det kom fra — uansett hvilken utgave eller enhet du lagret det på." }
+    "free": {
+      "q": "Er det gratis?",
+      "a": "Ja. Doble undertekster, transkriptet og gjettemodus er gratis. En gratis konto trengs bare hvis du vil synkronisere lagrede ord på tvers av enheter."
+    },
+    "languages": {
+      "q": "Hvilke språk støttes?",
+      "a": "Ethvert språkpar videoen har undertekster for. På YouTube, hvis ett av de to språkene dine mangler, fyller Lingogram det inn med YouTubes automatiske oversettelse, slik at du likevel får dobbeltvisningen. På Netflix og HDrezka vises kun de undertekstsporene tittelen faktisk har — ingen maskinoversettelse."
+    },
+    "edition": {
+      "q": "Hvilken utgave skal jeg installere?",
+      "a": "Den for nettstedet du ser på. Det finnes to utvidelser: én dekker YouTube og Netflix sammen, den andre dekker HDrezka. Installer begge hvis du ser på begge — de deler de samme læringsverktøyene og samme konto, slik at de lagrede ordene dine holder seg på ett sted."
+    },
+    "words": {
+      "q": "Hvor lagres de lagrede ordene mine?",
+      "a": "I din personlige ordbok, rett her på lingogram.ai. Logg inn, så ligger hvert ord du har lagret der, sammen med scenen det kom fra — uansett hvilken utgave eller enhet du lagret det på."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram for {site}",
     "ctaPrimary": "Legg til i Chrome — det er gratis",
@@ -157,24 +195,29 @@
     "finalCta": "Legg til {name}",
     "finalProof": "Gratis · Klart på under ett minutt"
   },
-
   "privacy": {
     "title": "Personvernerklæring — Lingogram",
     "description": "Hva Lingogram samler inn, hvordan det brukes, og hvilke valg du har."
   },
-
   "welcome": {
     "title": "Velkommen til Lingogram",
     "description": "Alt er klart — her er ditt første lagrede ord, i tre trinn.",
     "h1": "er installert",
     "sub": "Tre trinn til ditt første lagrede ord — det tar én video.",
-    "step1T": "Velg språkene dine", "step1D": "Klikk på Lingogram-ikonet i verktøylinjen og velg språket du lærer, og ditt eget.",
-    "step2T": "Åpne en video med undertekster", "step2D": "Trykk play — begge språkene vises sammen, på videoen og i transkriptet.",
-    "step3T": "Lagre ditt første ord", "step3D": "Marker et ord i undertekstene og trykk for å lagre det — det havner i {link}.",
+    "step1T": "Velg språkene dine",
+    "step1D": "Klikk på Lingogram-ikonet i verktøylinjen og velg språket du lærer, og ditt eget.",
+    "step2T": "Åpne en video med undertekster",
+    "step2D": "Trykk play — begge språkene vises sammen, på videoen og i transkriptet.",
+    "step3T": "Lagre ditt første ord",
+    "step3D": "Marker et ord i undertekstene og trykk for å lagre det — det havner i {link}.",
     "step3Link": "ordboken din",
-    "keyDual": "doble undertekster", "keySwap": "bytt språk", "keyGuess": "gjettemodus", "keyOverlay": "undertekster på videoen (overlegg)"
+    "keyDual": "doble undertekster",
+    "keySwap": "bytt språk",
+    "keyGuess": "gjettemodus",
+    "keyOverlay": "undertekster på videoen (overlegg)",
+    "privacy": "Anonym bruksstatistikk er på, så vi ser hvor folk står fast. Ingen konto, ingen videoer, ingen lagrede ord — skru det av når som helst i utvidelsens popup. {link}",
+    "privacyLink": "Personvernerklæring"
   },
-
   "uninstall": {
     "title": "Leit at du drar — Lingogram",
     "description": "Fortell oss hvorfor du fjernet Lingogram, så vi kan fikse det.",
@@ -188,7 +231,6 @@
     "footMid": "— de venter på deg hvis du kommer tilbake.",
     "reinstall": "Installer på nytt når som helst."
   },
-
   "auth": {
     "or": "eller",
     "showPassword": "Vis passord",
@@ -198,32 +240,44 @@
       "title": "Opprett kontoen din — Lingogram",
       "description": "Registrer deg for å synkronisere lagrede ord på tvers av alle enheter og utgaver.",
       "eyebrow": "Gratis konto",
-      "h1Lead": "Start", "h1Pop": "ordlisten din",
+      "h1Lead": "Start",
+      "h1Pop": "ordlisten din",
       "sub": "Lagre ord fra alt du ser på — synkronisert på tvers av alle enheter og utgaver.",
       "googleCta": "Registrer deg med Google",
-      "nameLabel": "Navnet ditt", "namePlaceholder": "Anna",
-      "emailLabel": "E-post", "emailPlaceholder": "anna@eksempel.no",
-      "passwordLabel": "Passord", "passwordPlaceholder": "Minst 8 tegn",
-      "submit": "Opprett konto", "submitBusy": "Oppretter konto …",
-      "altPrefix": "Har du allerede en konto?", "altLink": "Logg inn",
-      "finePrefix": "Ved å fortsette godtar du vår", "fineLink": "personvernerklæring"
+      "nameLabel": "Navnet ditt",
+      "namePlaceholder": "Anna",
+      "emailLabel": "E-post",
+      "emailPlaceholder": "anna@eksempel.no",
+      "passwordLabel": "Passord",
+      "passwordPlaceholder": "Minst 8 tegn",
+      "submit": "Opprett konto",
+      "submitBusy": "Oppretter konto …",
+      "altPrefix": "Har du allerede en konto?",
+      "altLink": "Logg inn",
+      "finePrefix": "Ved å fortsette godtar du vår",
+      "fineLink": "personvernerklæring"
     },
     "login": {
       "title": "Logg inn — Lingogram",
       "description": "Logg inn på Lingogram-ordboken din.",
       "eyebrow": "Velkommen tilbake",
-      "h1Lead": "Ordboken", "h1Pop": "din", "h1Tail": "venter",
+      "h1Lead": "Ordboken",
+      "h1Pop": "din",
+      "h1Tail": "venter",
       "sub": "Logg inn og fortsett akkurat der du slapp.",
       "googleCta": "Logg inn med Google",
-      "emailLabel": "E-post", "emailPlaceholder": "anna@eksempel.no",
-      "passwordLabel": "Passord", "passwordPlaceholder": "Passordet ditt",
+      "emailLabel": "E-post",
+      "emailPlaceholder": "anna@eksempel.no",
+      "passwordLabel": "Passord",
+      "passwordPlaceholder": "Passordet ditt",
       "forgot": "Glemt passord?",
       "resetNote": "Sjekk innboksen din — en lenke for å tilbakestille passordet er på vei.",
-      "submit": "Logg inn", "submitBusy": "Logger inn …",
-      "altPrefix": "Ny hos Lingogram?", "altLink": "Opprett en konto"
+      "submit": "Logg inn",
+      "submitBusy": "Logger inn …",
+      "altPrefix": "Ny hos Lingogram?",
+      "altLink": "Opprett en konto"
     }
   },
-
   "notFound": {
     "title": "Siden finnes ikke — Lingogram",
     "description": "Denne siden finnes ikke.",

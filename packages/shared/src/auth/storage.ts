@@ -27,6 +27,31 @@ const KEYS = {
     ratePromptShown: 'rate.promptShown',
 } as const;
 
+// Anonymous-analytics storage keys. Read/written only by analytics-bg.ts;
+// declared here so this file stays the single inventory of extension storage
+// keys that the privacy policy's "Local Storage" section documents. None of
+// these is ever derived from (or joined to) auth.uid / auth.email above —
+// that separation is what the policy's "not linked to your account" claim
+// rests on.
+export const ANALYTICS_KEYS = {
+    // Random per-install UUID (chrome.storage.local). The GA4 client_id.
+    clientId: 'analytics.clientId',
+    // UTC midnight of the install day; absent on installs that predate
+    // analytics (their events simply carry no days_since_install).
+    installedAt: 'analytics.installedAt',
+    // One-shot flags for the retention milestone events.
+    d2Sent: 'analytics.d2Sent',
+    d7Sent: 'analytics.d7Sent',
+    d14Sent: 'analytics.d14Sent',
+} as const;
+
+// chrome.storage.session (cleared on browser restart — exactly GA4's session
+// semantics; survives MV3 service-worker recycling, unlike module scope).
+export const ANALYTICS_SESSION_KEYS = {
+    sessionId: 'analytics.sessionId',
+    sessionAt: 'analytics.sessionAt',
+} as const;
+
 export async function getAuthState(): Promise<AuthState | null> {
     const v = (await chrome.storage.local.get([
         KEYS.idToken,
