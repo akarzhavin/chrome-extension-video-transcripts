@@ -750,7 +750,11 @@ export abstract class BaseVttApp implements AppInterface {
             this.noSubsTimer = null;
         }
         this.clearCooldownTick();
-        this.clearPendingTrackTimer();
+        // NOTE: deliberately does NOT clear pendingTrackTimer. addParsedTrack()
+        // calls this on the FIRST track, which is exactly the half-loaded state
+        // the pending-track backstop exists to catch — cancelling it there made
+        // it unreachable. Its own lifetime is resetForNewVideo() and the moment
+        // pendingRequests empties out.
     }
 
     // Re-render the banner once a second so the cooldown counts down, and stop
@@ -885,6 +889,9 @@ export abstract class BaseVttApp implements AppInterface {
     takePending(key: string): string | undefined {
         const name = this.pendingRequests.get(key);
         if (name !== undefined) this.pendingRequests.delete(key);
+        // Every request answered: the backstop would find an empty map and
+        // return, so drop the timer rather than let it wake up for nothing.
+        if (this.pendingRequests.size === 0) this.clearPendingTrackTimer();
         return name;
     }
 
@@ -989,7 +996,7 @@ export abstract class BaseVttApp implements AppInterface {
             // loop runs repeatedly, so an unguarded send turns one throttling
             // episode into dozens of hits. breaker_step still shows the
             // escalation because it is read at the moment of the first report.
-            this.analyticsOnce.fire('rate_limited', () => {
+            this.analyticsOnce.fire('subs_rate_limited', () => {
                 trackVia('subs_rate_limited', {
                     site: platformOf(location.hostname),
                     translation: info.translation === true,
@@ -1221,6 +1228,10 @@ export abstract class BaseVttApp implements AppInterface {
     // finally loads (addParsedTrack).
     resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
         this.pendingRequests.clear();
+        // Nothing is outstanding any more, so the backstop has nothing to
+        // report; leaving it armed would fire it against the next video's
+        // requests on a grace period measured from the previous one.
+        this.clearPendingTrackTimer();
         this.trackFailures.clear();
         document.getElementById('vtt-partial-notice')?.remove();
         // NOTE: cooldownUntil deliberately survives — see resetNoSubsRetries.

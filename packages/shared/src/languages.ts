@@ -136,8 +136,17 @@ export async function loadLanguagePrefs(): Promise<LanguagePrefs | null> {
  *
  * The event lives here rather than at the three call sites so "the pair was
  * configured" cannot be recorded in one place and missed in another. It fires
- * on every change, so a user who reconsiders produces several — accepted
+ * on every *change*, so a user who reconsiders produces several — accepted
  * deliberately: re-picking is itself a signal about the picker's clarity.
+ *
+ * A save that changes neither language is not a re-pick, though, and is
+ * reported by nobody. Every picker binds one `persist` to both selects, so
+ * choosing a learning language and then a native one calls this twice, the
+ * second time with the pair the first call already stored. Left unfiltered
+ * that made languages_configured outnumber the users who configured anything
+ * — and this event is the denominator of the onboarding funnel step the whole
+ * feature exists to measure, so an inflated count reads as a step people pass
+ * more often than they do.
  */
 export async function saveLanguagePrefs(
     prefs: LanguagePrefs,
@@ -146,7 +155,16 @@ export async function saveLanguagePrefs(
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
     if (!chrome.runtime?.id) return;
     try {
+        const previous = await loadLanguagePrefs();
         await chrome.storage.local.set({ [LANG_KEY]: prefs });
+        // Compared before the write, against what was actually stored rather
+        // than against a cached copy — the popup and the sidebar can both be
+        // open on the same pair.
+        const unchanged =
+            previous !== null &&
+            previous.learning === prefs.learning &&
+            previous.native === prefs.native;
+        if (unchanged) return;
         trackVia('languages_configured', {
             learning: prefs.learning,
             native: prefs.native,

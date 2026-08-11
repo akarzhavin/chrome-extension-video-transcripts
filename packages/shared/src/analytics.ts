@@ -167,10 +167,30 @@ export function sanitizeParams(params: AnalyticsParams = {}): Record<string, Ana
     let n = 0;
     for (const [rawKey, value] of Object.entries(params)) {
         if (value === undefined || value === null) continue;
+        // The declared type is string|number|boolean, but these params arrive
+        // over sendMessage from content scripts, where the type is a claim
+        // rather than a guarantee. An allow-list keeps an object or array —
+        // exactly what a careless `...request` spread produces — from riding
+        // into the payload as "[object Object]" or as a nested user-content
+        // structure the deny-list never gets to inspect.
+        if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+            continue;
+        }
         if (typeof value === 'number' && !Number.isFinite(value)) continue;
-        const key = rawKey.slice(0, MAX_PARAM_NAME);
-        if (DENIED_PARAM_KEYS.includes(key.toLowerCase())) continue;
+        // Matched on the name as written. Every denied name is far shorter than
+        // MAX_PARAM_NAME, so this happens to agree with matching the truncated
+        // name on every possible input — but only by arithmetic that a longer
+        // entry in the list would quietly break. Checking the raw name keeps
+        // the backstop independent of what is in the list.
+        if (DENIED_PARAM_KEYS.includes(rawKey.toLowerCase())) continue;
         if (n >= MAX_PARAMS) break;
+        const key = rawKey.slice(0, MAX_PARAM_NAME);
+        // Two names differing only past the 40-char limit collapse onto one
+        // key: the later value would overwrite the earlier while both consumed
+        // the MAX_PARAMS budget, so the payload silently lost a parameter it
+        // had already paid for. First writer wins, which matches the drop-on-
+        // budget behaviour above.
+        if (key in out) continue;
         out[key] = typeof value === 'string' ? value.slice(0, MAX_PARAM_VALUE) : value;
         n++;
     }

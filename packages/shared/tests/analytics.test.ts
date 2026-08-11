@@ -190,6 +190,37 @@ describe('sanitizeParams', () => {
     test('preserves booleans and numbers unchanged', () => {
         expect(sanitizeParams({ ok: true, n: 0 })).toEqual({ ok: true, n: 0 });
     });
+
+    test('the deny-list survives an entry longer than the name limit', () => {
+        // Guards the arithmetic the raw-name match relies on: today every
+        // denied name is far shorter than the 40-char cap, so matching before
+        // or after truncation agrees on every input. Add a longer entry and
+        // matching the truncated name would silently stop denying it.
+        expect(DENIED_PARAM_KEYS.every((k) => k.length < 40)).toBe(true);
+        const long = 'x'.repeat(60);
+        expect(sanitizeParams({ [long]: 'kept' })[long.slice(0, 40)]).toBe('kept');
+    });
+
+    test('names colliding after truncation keep the first, not the last', () => {
+        // Both spend from the 18-param budget, so letting the second overwrite
+        // the first silently dropped a parameter the payload had paid for.
+        const prefix = 'a'.repeat(40);
+        const out = sanitizeParams({ [`${prefix}_one`]: 'first', [`${prefix}_two`]: 'second' });
+        expect(out[prefix]).toBe('first');
+        expect(Object.keys(out)).toHaveLength(1);
+    });
+
+    test('drops objects and arrays', () => {
+        // The declared type says string|number|boolean, but these arrive over
+        // sendMessage where the type is a claim. A careless `...request` spread
+        // must not put a nested structure into the payload.
+        const out = sanitizeParams({
+            obj: { uid: 'leak' },
+            arr: ['leak'],
+            site: 'youtube',
+        } as any);
+        expect(out).toEqual({ site: 'youtube' });
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -363,6 +394,30 @@ describe('client id', () => {
         storage.local._store['auth.uid'] = 'firebase-uid-42';
         const id = await getClientId();
         expect(id).not.toContain('firebase-uid-42');
+    });
+
+    test('an unreadable store yields null rather than a fresh id', async () => {
+        // Fails closed on the READ. A throwing get cannot distinguish "no id
+        // yet" from "the id is there but unreachable", and the worker recycles
+        // after ~30s idle — minting on that guess would report one machine as
+        // a new user every wake and inflate every retention cohort.
+        storage.local.get.mockRejectedValueOnce(new Error('storage unavailable'));
+        expect(await getClientId()).toBeNull();
+        expect(storage.local.set).not.toHaveBeenCalled();
+    });
+
+    test('an unwritable store still reports under the fresh id', async () => {
+        // Fails OPEN on the WRITE, and safely: storage answered the read, so
+        // there genuinely is no id yet and this is a first mint, not a possible
+        // duplicate of one already on disk.
+        storage.local.set.mockRejectedValueOnce(new Error('quota'));
+        expect(await getClientId()).toBeTruthy();
+    });
+
+    test('track() sends nothing when there is no readable identity', async () => {
+        storage.local.get.mockRejectedValue(new Error('storage unavailable'));
+        await track('extension_installed');
+        expect((global as any).fetch).not.toHaveBeenCalled();
     });
 });
 

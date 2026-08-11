@@ -61,25 +61,35 @@ export function _resetAnalyticsCacheForTests(): void {
  * always fall in different browser sessions: a session-scoped id would leave
  * only the tail of the funnel visible and make retention impossible.
  */
-export async function getClientId(): Promise<string> {
+export async function getClientId(): Promise<string | null> {
     if (cachedClientId) return cachedClientId;
+    let stored: unknown;
     try {
         const v = await chrome.storage.local.get(ANALYTICS_KEYS.clientId);
-        const stored = v[ANALYTICS_KEYS.clientId];
-        if (typeof stored === 'string' && stored) {
-            cachedClientId = stored;
-            return stored;
-        }
+        stored = v[ANALYTICS_KEYS.clientId];
     } catch {
-        // Unreadable storage — mint a fresh id for this wake rather than
-        // dropping the event.
+        // Fails CLOSED, unlike the write below. A read that throws cannot tell
+        // "no id yet" apart from "the id is there but unreachable", and minting
+        // one on that guess is the expensive answer: MV3 recycles the worker
+        // after ~30s idle, so a persistently unreadable storage would mint a
+        // new UUID every wake and report one machine as an endless stream of
+        // new users — every retention cohort poisoned, in the direction that
+        // flatters. Dropping the event loses one hit instead. Same reasoning as
+        // daysSinceInstall's refusal to fake a date.
+        return null;
+    }
+    if (typeof stored === 'string' && stored) {
+        cachedClientId = stored;
+        return stored;
     }
     const fresh = crypto.randomUUID();
     cachedClientId = fresh;
     try {
         await chrome.storage.local.set({ [ANALYTICS_KEYS.clientId]: fresh });
     } catch {
-        // Unpersisted: this wake still reports under `fresh`.
+        // Unpersisted: this wake still reports under `fresh`. Safe where the
+        // read is not, because storage answered — there is genuinely no id yet,
+        // so this is a first mint rather than a possible duplicate.
     }
     return fresh;
 }
@@ -105,7 +115,12 @@ export async function getSessionId(now: number = Date.now()): Promise<string> {
     } catch {
         // Session storage unavailable — fall through to a fresh id.
     }
-    const fresh = String(now);
+    // Random rather than String(now), which is not actually unique: when
+    // session storage is unavailable every hit in the same millisecond shares
+    // an id, and a clock moved backwards (NTP correction, manual change) hands
+    // out an id belonging to a session GA4 has already closed. A UUID cannot
+    // collide either way, and nothing reads a timestamp back out of this value.
+    const fresh = crypto.randomUUID();
     try {
         await chrome.storage.session.set({
             [ANALYTICS_SESSION_KEYS.sessionId]: fresh,
@@ -280,6 +295,10 @@ export async function track(event: AnalyticsEvent, params: AnalyticsParams = {})
             getSessionId(now),
             daysSinceInstall(now),
         ]);
+        // No readable identity, no hit. Reporting under an invented id would
+        // add a phantom user to every count it touches; losing the event only
+        // undercounts a machine whose storage is already broken.
+        if (clientId === null) return;
         const ctx = {
             clientId,
             sessionId,

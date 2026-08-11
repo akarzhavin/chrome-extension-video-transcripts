@@ -163,6 +163,13 @@ class VttApp implements AppInterface {
         }
         this.ui.refresh();
 
+        // Everything below is top-window only. The tracks above are not: every
+        // frame needs its own to render, but VTT_LOADED is broadcast to every
+        // frame and each one carries a private OncePerScope, so reporting from
+        // all of them multiplied each event by the frame count. The sidebar
+        // notices at the end were already scoped this way.
+        if (!this.isTopWindow) return;
+
         // One page is one title here, so the scope is the page load — there is
         // no per-video reset to hang the one-shots off, unlike YouTube.
         const site = platformOf(location.hostname);
@@ -191,11 +198,9 @@ class VttApp implements AppInterface {
 
         // Subtitles arrived — drop any pending/visible "searching"/"no subtitles"
         // notice (only the top window shows one).
-        if (this.isTopWindow) {
-            this.clearNoSubtitlesTimer();
-            this.hideStatusBanner();
-            this.noSubsRetries = 0;
-        }
+        this.clearNoSubtitlesTimer();
+        this.hideStatusBanner();
+        this.noSubsRetries = 0;
     }
 
     /**
@@ -212,8 +217,14 @@ class VttApp implements AppInterface {
         }
         this.lastFailure = failure;
         this.lastFailureStatus = info.status;
+        // The worker answers with chrome.tabs.sendMessage(tabId, …), which
+        // reaches EVERY frame, and this script runs in all of them
+        // (all_frames: true) with a private OncePerScope each. Without this
+        // gate one 429 arrived as N copies of every event below. The top
+        // window is the same scope the sidebar and its notices already use.
+        if (!this.isTopWindow) return;
         if (failure === 'rate-limited') {
-            this.analyticsOnce.fire('rate_limited', () => {
+            this.analyticsOnce.fire('subs_rate_limited', () => {
                 trackVia('subs_rate_limited', {
                     site: platformOf(location.hostname),
                     // Rezka serves ready-made tracks; there is no machine

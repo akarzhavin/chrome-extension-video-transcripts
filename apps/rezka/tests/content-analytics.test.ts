@@ -126,7 +126,11 @@ describe('a 429 from the CDN reaches analytics as throttling', () => {
         lastFailureStatus: number | undefined;
         state = { tracks: [] as unknown[] };
         langPrefs: { learning: string; native: string } | null = { learning: 'en', native: 'ru' };
+        // Each frame runs its own content script with its own one-shots, so the
+        // set is per-instance exactly as OncePerScope is in production.
         private fired = new Set<string>();
+
+        constructor(readonly isTopWindow: boolean = true) {}
 
         /** Mirrors index.ts handleVttLoadFailed — same order, same one-shots. */
         handleVttLoadFailed(info: { status?: number; failure?: string }): void {
@@ -137,8 +141,9 @@ describe('a 429 from the CDN reaches analytics as throttling', () => {
             }
             this.lastFailure = failure;
             this.lastFailureStatus = info.status;
-            if (failure === 'rate-limited' && !this.fired.has('rate_limited')) {
-                this.fired.add('rate_limited');
+            if (!this.isTopWindow) return;
+            if (failure === 'rate-limited' && !this.fired.has('subs_rate_limited')) {
+                this.fired.add('subs_rate_limited');
                 sendMessageMock({
                     action: 'TRACK_EVENT',
                     event: 'subs_rate_limited',
@@ -179,6 +184,22 @@ describe('a 429 from the CDN reaches analytics as throttling', () => {
         // Rezka loads several tracks per title; without the one-shot a single
         // throttling episode would bill as three.
         expect(named('subs_rate_limited')).toHaveLength(1);
+    });
+
+    test('one event per tab however many frames receive the broadcast', () => {
+        // The worker answers with chrome.tabs.sendMessage(tabId, …), which
+        // reaches every frame, and this content script runs in all of them
+        // (all_frames: true) with a private one-shot each. HDrezka's player is
+        // an iframe, so a real page has at least two — one 429 was arriving as
+        // one event per frame.
+        const frames = [new Harness(true), new Harness(false), new Harness(false)];
+        for (const frame of frames) {
+            frame.handleVttLoadFailed({ status: 429, failure: 'rate-limited' });
+        }
+        expect(named('subs_rate_limited')).toHaveLength(1);
+        // The failure state itself is still recorded in every frame — only the
+        // reporting is scoped, because each frame still renders its own UI.
+        expect(frames.every((f) => f.lastFailure === 'rate-limited')).toBe(true);
     });
 
     test('a 404 is not reported as throttling', async () => {

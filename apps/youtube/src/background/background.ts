@@ -25,7 +25,10 @@ installOnboarding('youtube', {
         // date and simply never appear in retention — deliberately, since
         // back-filling one would invent a false cohort.
         void markInstalled();
-        void track('extension_installed', { ext: 'youtube' });
+        // No `ext` param: buildPayload stamps ext_source on every hit, so
+        // naming the edition here only gave it a second spelling to disagree
+        // with. extension_updated below never carried one.
+        void track('extension_installed');
     },
     onUpdate: (previousVersion) => {
         void track('extension_updated', { previous_version: previousVersion });

@@ -17,7 +17,8 @@ installAuthBackground();
 installOnboarding('web', {
     onInstall: () => {
         void markInstalled();
-        void track('extension_installed', { ext: 'web' });
+        // See the youtube edition: ext_source already carries this.
+        void track('extension_installed');
     },
     onUpdate: (previousVersion) => {
         void track('extension_updated', { previous_version: previousVersion });

@@ -405,13 +405,20 @@ describe('silent second track (the timeout backstop)', () => {
     beforeEach(() => jest.useFakeTimers());
     afterEach(() => jest.useRealTimers());
 
+    // Production order matters here and these tests enforce it: requestVtt()
+    // arms the timer for BOTH tracks up front, and the first reply arrives
+    // afterwards. Arming last (as an earlier version of these tests did) hides
+    // the case where landing a track cancels the backstop that was watching the
+    // other one.
     test('a request that never answers becomes a visible failure', () => {
         // Without this the app sits in a half-loaded state forever: Dual is
         // disabled, no notice explains why, and nothing is recorded anywhere.
         const app = makeApp();
-        app.addParsedTrack('English', [sub('a')]);
+        app.pendingRequests.set('key-en', 'English');
         app.pendingRequests.set('key-ru', 'Russian');
         app.schedulePendingTrackCheck(1000);
+        app.takePending('key-en'); // English replies
+        app.addParsedTrack('English', [sub('a')]);
         expect(app.trackFailures.size).toBe(0);
 
         jest.advanceTimersByTime(1000);
@@ -423,11 +430,25 @@ describe('silent second track (the timeout backstop)', () => {
 
     test('does not fire once the reply actually arrives', () => {
         const app = makeApp();
-        app.addParsedTrack('English', [sub('a')]);
+        app.pendingRequests.set('key-en', 'English');
         app.pendingRequests.set('key-ru', 'Russian');
         app.schedulePendingTrackCheck(1000);
-        app.pendingRequests.delete('key-ru'); // reply landed
+        app.takePending('key-en');
+        app.addParsedTrack('English', [sub('a')]);
+        app.takePending('key-ru'); // the slow reply landed after all
+        app.addParsedTrack('Russian', [sub('b')]);
         jest.advanceTimersByTime(1000);
+        expect(app.trackFailures.size).toBe(0);
+    });
+
+    test('a new video drops the backstop armed for the old one', () => {
+        const app = makeApp();
+        app.pendingRequests.set('key-ru', 'Russian');
+        app.schedulePendingTrackCheck(1000);
+        app.resetForNewVideo();
+        app.pendingRequests.set('key-de', 'German'); // next video's request
+        jest.advanceTimersByTime(1000);
+        // The old timer must not report the new video's still-young request.
         expect(app.trackFailures.size).toBe(0);
     });
 
