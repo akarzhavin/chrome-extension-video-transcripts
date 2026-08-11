@@ -13,10 +13,80 @@
 
   // Welcome / uninstall pages: tailor copy to the edition from ?ext=<slug>.
   var extName = document.querySelector('[data-ext-name]');
+  var extSlug = new URLSearchParams(location.search).get('ext');
   if (extName && window.__EDITIONS) {
-    var slug = new URLSearchParams(location.search).get('ext');
-    var ed = window.__EDITIONS[slug];
+    var ed = window.__EDITIONS[extSlug];
     if (ed) extName.textContent = ed;
+  }
+
+  // /welcome2/ (English-only experiment): name the sites the install actually
+  // covers, and lead with the one the visitor came from. `slug` is a URL
+  // parameter, so it is only ever used to look up a key in the build-time
+  // __W2.copy map — an unknown value falls through to the generic page rather
+  // than reaching the DOM.
+  var w2Opens = document.getElementById('w2-opens');
+  if (w2Opens && window.__W2 && window.__W2.copy[extSlug]) {
+    var w2 = window.__W2.copy[extSlug];
+
+    // "Thanks for installing Lingogram" -> "... for YouTube and Netflix".
+    if (extName) extName.textContent = 'Lingogram for ' + w2.sites;
+
+    var lede = document.querySelector('.w2-lede');
+    if (lede) {
+      lede.innerHTML = 'Now just watch ' + w2.sites.replace(/&/g, '&amp;') +
+        ' the way you always do — <b>subtitles turn dual on their own</b>, ' +
+        'and any word in them is one tap from your dictionary.';
+    }
+
+    // Reorder the buttons so the visitor's own site comes first, and drop the
+    // ones this install doesn't cover.
+    // Keyed off the badge class. Matching must be exact: the element carries
+    // `mark mark-sm mark-yt`, so a greedy /.*mark-(\w+)/ would capture "sm".
+    var order = { yt: 'youtube', nf: 'netflix', hd: 'rezka' };
+    var cards = {};
+    [].slice.call(w2Opens.children).forEach(function (a) {
+      var m = a.querySelector('.mark');
+      if (!m) return;
+      for (var k in order) {
+        if (m.classList.contains('mark-' + k)) cards[order[k]] = a;
+      }
+    });
+    var wanted = w2.order.map(function (s) { return cards[s]; }).filter(Boolean);
+
+    if (wanted.length) {
+      w2Opens.replaceChildren.apply(w2Opens, wanted);
+      wanted.forEach(function (a, i) {
+        a.classList.toggle('w2-open-primary', i === 0);
+      });
+    }
+
+    // Rezka installs almost always happen from an open film tab, so the page
+    // leads with "go back and reload" — repeating it below would nag.
+    if (extSlug === 'rezka') {
+      var h = document.getElementById('w2-cta-h');
+      var s = document.getElementById('w2-cta-s');
+      if (h) h.textContent = 'Your film is probably already open?';
+      if (s) s.textContent = 'Go back to that tab and reload it — then just press play.';
+      var refresh = document.getElementById('w2-refresh');
+      if (refresh) refresh.hidden = true;
+    }
+  }
+
+  // Click-to-play: the poster is a plain image until someone asks for the
+  // video, so YouTube's player (and its cookies) never load on a page most
+  // people only glance at.
+  var w2Facade = document.getElementById('w2-facade');
+  if (w2Facade && window.__W2) {
+    w2Facade.addEventListener('click', function () {
+      var frame = document.createElement('iframe');
+      frame.className = 'w2-frame';
+      frame.src = 'https://www.youtube-nocookie.com/embed/' + window.__W2.video +
+        '?autoplay=1&rel=0&modestbranding=1';
+      frame.title = 'How Lingogram works';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.setAttribute('allowfullscreen', '');
+      document.getElementById('w2-video').replaceChildren(frame);
+    });
   }
 
   // /languages/: filter the region lists down as you type.

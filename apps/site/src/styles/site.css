@@ -1283,3 +1283,193 @@ footer.site {
   .dtab { padding: 7px 8px; gap: 5px; font-size: 11.5px; }
   .dfav { width: 13px; height: 13px; }
 }
+
+/* ------------------------------------------------------------------ welcome2
+   English-only experiment beside /welcome/ (see welcome2Page in build.mjs).
+   Scoped under .w2 so nothing here can leak into the page it is competing
+   with. Reuses the existing tokens and the .mark-* badges from the editions
+   section — the point is a different page, not a different design system. */
+
+.w2 { max-width: 660px; margin: 34px auto 90px; padding: 0 24px; }
+
+.w2-hello { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.w2-hello-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+
+.w2-h1 {
+  font-size: clamp(29px, 4.6vw, 40px);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+
+.w2-lede {
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0 0 30px;
+  max-width: 40ch;
+}
+.w2-lede b { color: var(--ink); font-weight: 600; }
+
+/* --- the tour --- */
+
+.w2-tut {
+  margin: 0 0 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--player);
+  box-shadow: var(--shadow);
+}
+
+/* Click-to-play facade. The <img> is the whole page weight until the visitor
+   presses play; main.js swaps in the iframe on click. */
+.w2-facade {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  padding: 0;
+  background: var(--player);
+  cursor: pointer;
+  overflow: hidden;
+}
+.w2-facade img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.w2-facade::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,8,16,.05) 0%, rgba(10,8,16,.45) 100%);
+}
+
+.w2-play {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  color: #17131f;
+  display: grid; place-items: center;
+  z-index: 2;
+  box-shadow: 0 8px 28px -8px rgba(0,0,0,.55);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), background 200ms ease;
+}
+.w2-play svg { width: 24px; height: 24px; margin-left: 3px; }
+
+.w2-facade-meta {
+  position: absolute;
+  left: 16px; bottom: 14px;
+  z-index: 2;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgba(0,0,0,.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .w2-facade:hover img { transform: scale(1.03); }
+  .w2-facade:hover .w2-play { transform: translate(-50%,-50%) scale(1.06); background: #fff; }
+}
+.w2-facade:active .w2-play { transform: translate(-50%,-50%) scale(0.97); }
+.w2-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+.w2-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; }
+
+.w2-tut-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: var(--player-panel);
+  border-top: 1px solid rgba(255,255,255,.07);
+  font-size: 12.5px;
+  color: #a49fb5;
+}
+.w2-tut-foot a {
+  color: #f5f3fa;
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(255,255,255,.1);
+  border-radius: 7px;
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+.w2-tut-foot a:hover { background: rgba(255,255,255,.18); }
+
+.w2-note { font-size: 12.5px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+
+/* --- open a video --- */
+
+.w2-cta-h { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+.w2-cta-s { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+
+.w2-opens { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+
+.w2-open {
+  display: flex; align-items: center; gap: 13px;
+  padding: 15px 17px;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
+}
+.w2-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.w2-open-body { flex: 1; min-width: 0; }
+.w2-open-body span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.w2-open-go { width: 16px; height: 16px; flex: none; opacity: .55; }
+
+.w2-open-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.w2-open-primary .w2-open-body span { color: rgba(255,255,255,.75); }
+.w2-open-primary .w2-open-go { opacity: .85; }
+
+@media (hover: hover) and (pointer: fine) {
+  .w2-open:hover { border-color: var(--accent); }
+}
+.w2-open:active { transform: scale(0.985); }
+
+/* --- the asides --- */
+
+.w2-asides {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  margin-bottom: 26px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.w2-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.w2-asides b { color: var(--ink); font-weight: 600; }
+
+.w2-keys { border-top: 1px solid var(--line); padding-top: 24px; }
+.w2-keys > p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; }
+.w2-keys .keys { justify-content: flex-start; margin-top: 0; }
+
+.w2-signoff {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.w2-signoff a { color: var(--accent); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .w2-facade img, .w2-play, .w2-open { transition: none; }
+}
+
+@media (max-width: 560px) {
+  .w2-h1 { font-size: 27px; }
+  .w2-play { width: 54px; height: 54px; }
+  .w2-play svg { width: 20px; height: 20px; }
+}

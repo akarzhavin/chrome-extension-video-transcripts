@@ -902,6 +902,145 @@ ${footer(t, root)}
   });
 };
 
+// ---------------------------------------------------------------- welcome2
+//
+// EXPERIMENT, English-only, noindex. A rewrite of /welcome/ that lives beside
+// it so the two can be compared on the real site before either is retired;
+// nothing here touches welcomePage above.
+//
+// What it changes, and why:
+//   - Thanks first. The visitor just installed; the old page opened by
+//     re-pitching the product at someone already sold.
+//   - One video instead of three numbered steps. The steps restated the home
+//     page's "How it works" almost verbatim.
+//   - A real destination. "Open a video with captions" was homework with no
+//     link; the demoUrl already in editions.json is the answer.
+//   - Edition-aware for real. ?ext= has been in the URL all along, and the
+//     `data-ext-name` span was already here, but nothing ever read either —
+//     see EXT_COPY below.
+//
+// The copy stays out of i18n/ deliberately: every new key must be added to all
+// 42 locale files or the LOCALES check throws, and an experiment shouldn't
+// force 41 translations. Same call the edition pages make (see the i18n
+// rollout note at the top of this file). Localize when it replaces /welcome/.
+const WELCOME2_VIDEO = 't2oye9CA7Vw';
+
+// Per-edition copy, keyed by editions.json slug. `sites` names what the
+// install actually covers: the YouTube extension matches netflix.com too, so
+// its visitors are Netflix visitors as often as not, and the old page named
+// neither.
+const EXT_COPY = {
+  youtube: { sites: 'YouTube and Netflix', order: ['youtube', 'netflix'] },
+  netflix: { sites: 'Netflix and YouTube', order: ['netflix', 'youtube'] },
+  rezka: { sites: 'HDrezka', order: ['rezka', 'youtube'] },
+};
+
+const welcome2Page = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  const bySlug = Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e]));
+
+  // One "open it now" button per edition, primary first.
+  //
+  // The whole point of this page is that nobody leaves it wondering where to
+  // try the thing, so a link that 404s would be worse than no link at all.
+  // Two of the three demoUrls in editions.json are still the `road-movie`
+  // placeholder (youtube, rezka) — those go to the site's own home page
+  // instead, and only youtube falls back to primary.demoUrl, which is a real
+  // video. Point an edition's demoUrl at something real and it is used as-is.
+  const PLACEHOLDER = /road-movie/;
+  const homeOf = { youtube: 'youtube.com', netflix: 'netflix.com', rezka: 'hdrezka.ag' };
+  const openUrl = (e) => {
+    if (e.demoUrl && !PLACEHOLDER.test(e.demoUrl)) return e.demoUrl;
+    if (e.slug === 'youtube' && EDITIONS.primary?.demoUrl &&
+        !PLACEHOLDER.test(EDITIONS.primary.demoUrl)) return EDITIONS.primary.demoUrl;
+    return homeOf[e.slug] || '';
+  };
+
+  const linkFor = (slug, primary) => {
+    const e = bySlug[slug];
+    if (!e) return '';
+    const url = openUrl(e);
+    if (!url) return '';
+    const note = {
+      youtube: 'A video we know works, captions and all',
+      netflix: 'If you have a subscription',
+      rezka: 'When the title carries a second track',
+    }[slug] || '';
+    return `      <a class="w2-open${primary ? ' w2-open-primary' : ''}" href="https://${esc(url)}" target="_blank" rel="noopener">
+        ${mark(e.mark, true)}
+        <span class="w2-open-body"><b>Open ${esc(e.site)}</b><span>${esc(note)}</span></span>
+        <svg class="w2-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>`;
+  };
+
+  const defaultOrder = ['youtube', 'netflix', 'rezka'];
+
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: 'Thanks for installing Lingogram',
+    description: 'Watch a one-minute tour, then open a video and save your first word.',
+    pathName: `${root}/welcome2/`,
+    // Experiment: keep it out of search results while both pages are live.
+    extraHead: '<meta name="robots" content="noindex">\n',
+    body: `
+${header(t, root)}
+<main class="w2">
+  <div class="w2-hello">
+    <span class="logo-mark" style="width:44px;height:44px;border-radius:14px">${CHAMELEON(28)}</span>
+    <span class="w2-hello-note">We're a small team,<br>and we're glad you're here.</span>
+  </div>
+
+  <h1 class="w2-h1">Thanks for installing <span data-ext-name>Lingogram</span></h1>
+
+  <p class="w2-lede">Now just watch the way you always do — <b>subtitles turn dual on their own</b>, and any word in them is one tap from your dictionary.</p>
+
+  <div class="w2-tut">
+    <div id="w2-video">
+      <button type="button" class="w2-facade" id="w2-facade" aria-label="Play the one-minute tour">
+        <img src="https://i.ytimg.com/vi/${WELCOME2_VIDEO}/maxresdefault.jpg" alt="" width="1280" height="720" loading="lazy">
+        <span class="w2-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="w2-facade-meta"><span>See how it works</span></span>
+      </button>
+    </div>
+    <div class="w2-tut-foot">
+      <span>One minute, and the rest explains itself.</span>
+      <a href="https://www.youtube.com/watch?v=${WELCOME2_VIDEO}" target="_blank" rel="noopener">Watch on YouTube</a>
+    </div>
+  </div>
+  <p class="w2-note">The player only loads once you press play — nothing from YouTube touches this page before that.</p>
+
+  <p class="w2-cta-h" id="w2-cta-h">Where would you like to start?</p>
+  <p class="w2-cta-s" id="w2-cta-s">Open something with subtitles and try it right now.</p>
+  <div class="w2-opens" id="w2-opens">
+${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
+  </div>
+
+  <div class="w2-asides">
+    <p id="w2-refresh"><b>If a video is already open in another tab</b>, please reload it. Chrome only connects a new extension to pages opened after it was installed. After that you can forget this ever came up.</p>
+    <p><b>So your words are kept</b>, sign in: click the Lingogram icon in the toolbar and choose Sign in. Once is enough — everything saves by itself from there.</p>
+    <p><b>If we guessed your languages wrong</b>, the same icon is where you set the one you're learning and your own.</p>
+  </div>
+
+  <div class="w2-keys">
+    <p>Once you've settled in, these come in handy:</p>
+    <div class="keys">
+      <span><kbd>Shift + D</kbd> ${esc(t('welcome.keyDual'))}</span>
+      <span><kbd>Shift + S</kbd> ${esc(t('welcome.keySwap'))}</span>
+      <span><kbd>Shift + G</kbd> ${esc(t('welcome.keyGuess'))}</span>
+      <span><kbd>Shift + O</kbd> ${esc(t('welcome.keyOverlay'))}</span>
+    </div>
+  </div>
+
+  <p class="w2-signoff">Something not working, or just have thoughts — <a href="mailto:${SITE.supportEmail}">write to us</a>. We read every message ourselves.</p>
+</main>
+${footer(t, root)}
+<script>window.__EDITIONS = ${editionsMap};
+window.__W2 = { video: ${JSON.stringify(WELCOME2_VIDEO)}, copy: ${JSON.stringify(EXT_COPY)} };</script>`,
+  });
+};
+
 const uninstallPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
@@ -1104,6 +1243,8 @@ function build() {
   ]);
   const homeHrefLang = hrefLangFor((c) => (c === 'en' ? '/' : `/${c}/`));
   const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
+  // welcome2 is the English-only experiment beside /welcome/ — no hreflang
+  // map, since there are no sibling locales to point at yet.
   const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
   const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
   const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
@@ -1114,6 +1255,10 @@ function build() {
     const root = locale.code === 'en' ? '' : locale.code;
     write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
     write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
+    // English only: the experiment's copy isn't in i18n/ yet (see welcome2Page).
+    if (locale.code === 'en') {
+      write(path.join(root, 'welcome2', 'index.html'), welcome2Page(locale, null));
+    }
     write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
     write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
     write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));
