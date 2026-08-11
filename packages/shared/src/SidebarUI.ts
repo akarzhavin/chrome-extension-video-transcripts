@@ -342,38 +342,23 @@ export class SidebarUI {
         styleGroup.appendChild(this.buildStyleControls());
         settingsPanel.appendChild(styleGroup);
 
-        // -- Privacy -------------------------------------------------------------
-        // Part of the panel's scrolling content, after the last group — a
-        // setting, so it lives with the settings. Deliberately not a
-        // buildGroup: a heading would out-shout Languages for a control most
-        // people touch once or never. One switch row, group-aligned.
+        // -- Tail rows -----------------------------------------------------------
+        // Two rows of one anatomy close the panel: the analytics opt-out (a
+        // setting, so it scrolls with the settings) and "Report a problem"
+        // (not "Leave feedback" — the point is to catch the unhappy user
+        // before they leave a one-star review instead). Neither is a
+        // buildGroup: a heading would out-shout Languages for things people
+        // touch once or never. Hairline-separated rows in the groups' icon
+        // column, same weight as each other.
         settingsPanel.appendChild(this.buildAnalyticsToggle());
-
-        // -- Footer: the way out -------------------------------------------------
-        // Deliberately NOT a fourth buildGroup: an icon + heading would claim the
-        // same weight as Languages and Reading mode, and this is not a setting —
-        // it's an exit for someone who is already annoyed.
-        // "Report a problem", not "Leave feedback": the point is to catch the
-        // unhappy user before they go leave a one-star review instead.
-        //
-        // Lives in a sticky footer band at the bottom of the panel rather than
-        // inline between groups. Two earlier placements failed for opposite
-        // reasons: last-child put it below the fold (Overlay appearance is long
-        // enough that the panel cuts off mid-group), and first-child left it
-        // floating in the gap above Languages, belonging to no group and
-        // aligned to neither edge. Sticky keeps it on screen at any scroll
-        // position while still reading as the end of the panel.
-        const feedbackFooter = document.createElement('div');
-        feedbackFooter.className = 'vtt-panel-footer';
 
         const feedbackLink = document.createElement('button');
         feedbackLink.id = 'vtt-feedback-link';
         feedbackLink.type = 'button';
-        feedbackLink.className = 'vtt-feedback-link';
+        feedbackLink.className = 'vtt-panel-row vtt-feedback-link';
         feedbackLink.innerHTML = `${ICONS.feedback}<span>${msg('ytFeedbackLink', 'Report a problem')}</span>`;
         feedbackLink.addEventListener('click', () => this.openFeedbackScreen());
-        feedbackFooter.appendChild(feedbackLink);
-        settingsPanel.appendChild(feedbackFooter);
+        settingsPanel.appendChild(feedbackLink);
         this.elements = { ...this.elements, feedbackLink };
 
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
@@ -457,7 +442,7 @@ export class SidebarUI {
         // in a trailing mini-switch, the settings idiom for a live toggle
         // (a checkbox here read as "form field", which this is not).
         const label = document.createElement('label');
-        label.className = 'vtt-privacy-link';
+        label.className = 'vtt-panel-row';
         label.innerHTML = `${ICONS.privacy}<span class="vtt-privacy-text">${msg(
             'ytPrivacyAnalyticsLabel',
             'Share anonymous usage stats',
