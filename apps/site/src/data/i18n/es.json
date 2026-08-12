@@ -1,21 +1,45 @@
 {
-  "meta": { "name": "Español", "htmlLang": "es" },
-
+  "meta": {
+    "name": "Español",
+    "htmlLang": "es"
+  },
   "nav": {
     "editions": "Ediciones",
     "how": "Cómo funciona",
-    "dictionary": "Tu diccionario",
-    "faq": "Preguntas frecuentes",
+    "dictionary": "Mis palabras",
+    "faq": "FAQ",
     "logIn": "Iniciar sesión",
     "signUp": "Registrarse",
-    "menu": "Menú"
+    "menu": "Menú",
+    "language": "Idioma",
+    "searchLanguage": "Buscar idioma…",
+    "suggested": "Sugeridos",
+    "allLanguages": "Todos los idiomas",
+    "noLanguageMatch": "Ningún idioma coincide"
   },
-
+  "languages": {
+    "title": "Idiomas — Lingogram",
+    "description": "El sitio de Lingogram en 42 idiomas — elige aquel en el que lees.",
+    "h1": "Lee Lingogram en tu idioma",
+    "lede": "Todo el sitio está traducido a {n} idiomas. Elige el tuyo — cada página que estás leyendo ahora tiene una versión en él.",
+    "reading": "Estás leyendo en {lang}.",
+    "searchPlaceholder": "Buscar idiomas…",
+    "clearSearch": "Borrar búsqueda",
+    "noMatch": "Ningún idioma coincide",
+    "noMatchHint": "Prueba con su nombre en inglés o con su código de dos letras.",
+    "count": { "one": "1 idioma", "other": "{n} idiomas" },
+    "region": {
+      "westEurope": "Europa occidental y del norte",
+      "eastEurope": "Europa central y del este",
+      "asia": "Asia",
+      "middleEast": "Oriente Medio"
+    }
+  },
   "footer": {
     "tagline": "Aprende idiomas con lo que ves.",
     "product": "Producto",
     "allEditions": "Todas las ediciones",
-    "yourDictionary": "Tu diccionario",
+    "yourDictionary": "Mis palabras",
     "howItWorks": "Cómo funciona",
     "help": "Ayuda",
     "faq": "Preguntas frecuentes",
@@ -25,97 +49,138 @@
     "legal": "Legal",
     "privacyPolicy": "Política de privacidad"
   },
-
   "proof": {
     "rating": "en Chrome Web Store",
     "learners": "usuarios aprendiendo",
     "free": "Gratis, sin anuncios"
   },
-
   "demo": {
-    "hintPrefix": "Esta es la propia extensión, funcionando aquí mismo —",
+    "hintPrefix": "Esta demo es la extensión real, funcionando aquí mismo, en esta página —",
     "hintBold": "selecciona una palabra",
     "hintSuffix": "para guardarla, o prueba un modo abajo.",
     "credit": "Video: NASA —",
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(dominio público)"
   },
-
   "modes": {
-    "dual": { "tab": "Subtítulos duales", "h": "Ambos idiomas, a la vez", "p": "La línea que oyes junto a la línea que entiendes, sin pausar ni cambiar de pista." },
-    "guess": { "tab": "Adivina", "h": "Haz clic para revelar — y entrena tu oído", "p": "La línea queda oculta hasta que haces clic en ella. Adivina primero de oído y luego compruébalo: en esa diferencia es justo donde mejora tu comprensión auditiva." },
-    "single": { "tab": "En pantalla", "h": "En pantalla o en el panel lateral — tú eliges", "p": "Mantén ambas líneas sobre la película, justo donde ya miras. O quítalas con un botón y léelas desde el panel, a tu propio ritmo. Los subtítulos nunca desaparecen: solo cambian de lugar." },
-    "save": { "tab": "Diccionario", "h": "Guarda cada palabra que encuentres", "p": "Selecciona una palabra: un toque la guarda junto con la frase de la que salió, directo a tu diccionario en lingogram.ai." }
+    "dual": {
+      "tab": "Subtítulos duales",
+      "h": "Ambos idiomas, a la vez",
+      "p": "La línea que oyes junto a la línea que entiendes, sin pausar ni cambiar de pista."
+    },
+    "guess": {
+      "tab": "Modo Adivina",
+      "h": "Haz clic para revelar — y entrena tu oído",
+      "p": "La línea queda oculta hasta que haces clic en ella. Adivina primero de oído y luego compruébalo: en esa diferencia es justo donde mejora tu comprensión auditiva."
+    },
+    "single": {
+      "tab": "En el video",
+      "h": "En pantalla o en el panel lateral — tú eliges",
+      "p": "Mantén ambas líneas sobre la película, justo donde ya miras. O quítalas con un botón y léelas desde el panel, a tu propio ritmo. Los subtítulos nunca desaparecen: solo cambian de lugar."
+    },
+    "save": {
+      "tab": "Mis palabras",
+      "h": "Guarda cada palabra que encuentres",
+      "p": "Selecciona una palabra: un toque la guarda junto con la frase de la que salió, directo a tu diccionario, aquí mismo en lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Completa la pista que falta con la traducción automática de YouTube.",
+    "nf": "Pistas de subtítulos originales, sin traducción automática.",
+    "hd": "Pistas duales cuando el título las incluye."
+  },
   "home": {
     "eyebrow": "Gratis · YouTube · Netflix · HDrezka",
     "h1Lead": "Ya has visto contenido con subtítulos antes.",
     "h1Pop": "Esta vez le vas a sacar mucho más provecho.",
     "ctaPrimary": "Añadir a Chrome — es gratis",
-    "ctaSecondary": "Elige la edición para tu sitio ↓",
-
+    "ctaSecondary": "Elige la edición para el sitio donde ves contenido ↓",
     "platformsKicker": "Ediciones",
     "platformsH2": "Un solo Lingogram, ajustado al sitio donde ves contenido",
-    "platformsLede": "Cada edición está hecha para el reproductor de su sitio: pistas de subtítulos nativas, superposición en pantalla completa, los ajustes que ese sitio necesita. Comparten las mismas herramientas de aprendizaje y la misma cuenta, así que tus palabras guardadas están todas en un solo lugar sin importar cuál uses. Dos extensiones cubren los tres sitios: la de YouTube también funciona en Netflix.",
+    "platformsLede": "Cada edición es una extensión de Chrome independiente, hecha para el reproductor de un sitio en concreto: pistas de subtítulos nativas, superposición en pantalla completa sobre la imagen, los ajustes que ese sitio necesita. Comparten las mismas herramientas de aprendizaje y la misma cuenta, así que tus palabras guardadas están todas en un solo lugar sin importar cuál uses. Dos extensiones cubren los tres sitios: la de YouTube también funciona en Netflix.",
     "editionGo": "Añadir a Chrome →",
-    "editionSoonTitle": "Tu sitio, el próximo",
+    "editionSoonTitle": "¿Ves contenido en otro sitio?",
     "editionSoonBody": "Lanzamos nuevas ediciones dedicadas con regularidad — cuéntanos dónde ves contenido.",
     "editionSoonCta": "Sugerir un sitio →",
-
     "howKicker": "Cómo funciona",
     "howH2": "De la instalación a tu primera palabra guardada, en un solo video",
     "step1T": "Instala y elige tus idiomas",
     "step1D": "Elige el idioma que estás aprendiendo y el tuyo propio. Una configuración rápida y única: no necesitas cuenta.",
     "step2T": "Abre cualquier video con subtítulos",
     "step2D": "Dale a reproducir — ambos idiomas aparecen juntos, sobre el video y en una transcripción que se desplaza con la escena.",
-    "step3T": "Guarda palabras y repásalas aquí",
-    "step3D": "Guarda una palabra con un solo toque mientras ves — luego abre tu diccionario en lingogram.ai y repásala junto con la escena de la que salió.",
-
+    "step3T": "Guarda palabras y repásalas en este sitio",
+    "step3D": "Guarda una palabra con un solo toque mientras ves — luego abre tu diccionario en este sitio y repásala junto con la escena de la que salió.",
     "dictKicker": "Tu diccionario",
     "dictH2": "Cada palabra que guardas construye un diccionario que de verdad es tuyo",
-    "dictLede": "No es una lista de frecuencia sacada de un libro de texto: son palabras que encontraste en escenas que tú elegiste, guardadas junto con las frases de las que salieron. Sea cual sea la edición que uses, todo llega a una sola cuenta y te espera aquí en cuanto inicies sesión.",
+    "dictLede": "No es una lista de frecuencia sacada de un libro de texto: son palabras que encontraste en escenas que tú elegiste, guardadas junto con las frases de las que salieron. Sea cual sea la edición que uses, todo llega a una sola cuenta — y te espera en este sitio en cuanto inicies sesión.",
     "dictMyWords": "Mis palabras",
     "dictCount": "247 guardadas · 12 esta semana",
-    "dictWord1": "reluctantly", "dictTr1": "a regañadientes", "dictCtx1": "«{w} aceptó conducir el coche de la huida».",
-    "dictWord2": "getaway", "dictTr2": "huida", "dictCtx2": "«Esto no es un atraco, es una {w}».",
-    "dictWord3": "spinning its wheels", "dictTr3": "patinando (sin avanzar)", "dictCtx3": "«¡Está {w} en sexta marcha!»",
+    "dictWord1": "reluctantly",
+    "dictTr1": "a regañadientes",
+    "dictCtx1": "«He {w} agreed to drive the getaway car.»",
+    "dictWord2": "getaway",
+    "dictTr2": "huida",
+    "dictCtx2": "«This isn't a heist, it's a {w}.»",
+    "dictWord3": "con la reserva puesta",
+    "dictTr3": "casi sin gasolina",
+    "dictCtx3": "«Vamos {w} desde la última gasolinera.»",
     "dictFoot": "Tus palabras se sincronizan entre dispositivos y todas las ediciones de Lingogram — {b}.",
     "dictFootBold": "una cuenta, un diccionario",
-
     "featKicker": "Por qué se te queda",
     "featH2": "La mayoría de las herramientas se quedan en la traducción. Lingogram hace que las palabras se te queden.",
-    "featLede": "Lingogram está construido en torno al recuerdo activo: no solo lees en paralelo — adivinas, repites y coleccionas, así que las horas que ya pasas viendo contenido se convierten en progreso real.",
-    "feat1Tag": "Subtítulos duales", "feat1H": "Dos idiomas, una pantalla", "feat1P": "Capta cada línea en el original y relaciónala con tu propio idioma sin pausar. Cuando estés listo, oculta la traducción — los subtítulos duales son las rueditas de entrenamiento, y Lingogram te ayuda a quitártelas.",
-    "feat2Tag": "Transcripción interactiva", "feat2H": "Repite la línea, no toda la película", "feat2P": "La transcripción se desplaza sola junto con el video. Haz clic en cualquier línea para volver atrás y repetir esa escena en bucle, hasta que los sonidos que no lograbas distinguir se conviertan en palabras que reconoces al instante.",
-    "feat3Tag": "Modo Adivina", "feat3H": "Escucha primero, comprueba después", "feat3P": "Las palabras empiezan ocultas: capta la línea de oído y luego revélala. Este ciclo de escuchar primero desarrolla una comprensión auditiva en la que puedes confiar, no subtítulos que solo lees en paralelo. Actívalo o desactívalo con {kbd}.",
-    "feat4Tag": "Palabras guardadas", "feat4H": "Tu vocabulario, de tus propias películas", "feat4P": "Un toque guarda una palabra junto con las líneas de subtítulos que la rodean. Va directo a {link} en lingogram.ai, donde repasas cada palabra en su escena original.",
+    "featLede": "Lingogram se basa en el recuerdo activo: no solo lees en paralelo — adivinas, repites y coleccionas, así que las horas que ya pasas viendo contenido se convierten en progreso real.",
+    "feat1Tag": "Subtítulos duales",
+    "feat1H": "Dos idiomas, una pantalla",
+    "feat1P": "Capta cada línea en el original y relaciónala con tu propio idioma sin pausar. Cuando estés listo, oculta la traducción — los subtítulos duales son un punto de partida, y Lingogram te ayuda a superarlos con el tiempo.",
+    "feat2Tag": "Transcripción interactiva",
+    "feat2H": "Repite la línea, no toda la película",
+    "feat2P": "La transcripción se desplaza sola junto con el video. Haz clic en cualquier línea para volver atrás y repetir esa escena en bucle, hasta que los sonidos que no lograbas distinguir se conviertan en palabras que reconoces al instante.",
+    "feat3Tag": "Modo Adivina",
+    "feat3H": "Escucha primero, comprueba después",
+    "feat3P": "Las palabras empiezan ocultas: capta la línea de oído y luego revélala. Este ciclo de escuchar primero desarrolla una comprensión auditiva en la que puedes confiar, no subtítulos que solo lees en paralelo. Actívalo o desactívalo con {kbd}.",
+    "feat4Tag": "Palabras guardadas",
+    "feat4H": "Tu vocabulario, de tus propias películas",
+    "feat4P": "Un toque guarda una palabra junto con las líneas de subtítulos que la rodean. Va directo a {link} en lingogram.ai, donde repasas cada palabra en su escena original.",
     "feat4Link": "tu diccionario personal",
-
     "privKicker": "Privado por defecto",
     "privH2": "Lo que ves sigue siendo asunto tuyo",
-    "priv1": "{b} La configuración de idioma y diseño se guarda localmente en tu navegador.", "priv1Bold": "Sin telemetría, sin rastreo.",
-    "priv2": "{b} Los subtítulos se procesan directamente en tu dispositivo.", "priv2Bold": "Nunca vemos tu historial de reproducción.",
-    "priv3": "{b} Si inicias sesión, guardamos tu correo y tus palabras guardadas — nada más, y jamás los vendemos.", "priv3Bold": "Tu diccionario es opcional.",
-    "priv4": "{b} Si una actualización del sitio rompe algo, un clic nos avisa para que lo arreglemos rápido.", "priv4Bold": "Hecho para seguir funcionando.",
-
+    "priv1": "{b} La configuración de idioma y diseño se guarda localmente en tu navegador.",
+    "priv1Bold": "Sin telemetría, sin rastreo.",
+    "priv2": "{b} Los subtítulos se procesan directamente en tu dispositivo.",
+    "priv2Bold": "Nunca vemos tu historial de reproducción.",
+    "priv3": "{b} Si inicias sesión, guardamos tu correo y tus palabras guardadas — nada más, y jamás los vendemos.",
+    "priv3Bold": "Tu diccionario es opcional.",
+    "priv4": "{b} Si una actualización del sitio rompe algo, un clic nos avisa para que lo arreglemos rápido.",
+    "priv4Bold": "Lo arreglamos rápido.",
     "faqKicker": "Preguntas frecuentes",
     "faqH2": "Preguntas que hace la gente antes de instalar",
-
     "finalH2": "Convierte el episodio de esta noche en tu clase de idiomas",
     "finalCta": "Añadir Lingogram a Chrome",
     "finalProof": "Gratis · Se configura en menos de un minuto"
   },
-
   "faq": {
-    "free": { "q": "¿Es gratis?", "a": "Sí. Los subtítulos duales, la transcripción y el modo Adivina son gratuitos. Solo necesitas una cuenta gratuita si quieres que tus palabras guardadas se sincronicen entre dispositivos." },
-    "languages": { "q": "¿Qué idiomas admite?", "a": "Cualquier par para el que el video tenga subtítulos. En YouTube, si falta uno de tus dos idiomas, Lingogram lo completa con la traducción automática de YouTube para que sigas teniendo la vista dual. En Netflix y HDrezka muestra las pistas de subtítulos que el título realmente tiene, sin traducción automática." },
-    "edition": { "q": "¿Qué edición instalo?", "a": "La del sitio donde ves contenido. Hay dos extensiones: una cubre YouTube y Netflix juntos, la otra cubre HDrezka. Instala ambas si ves contenido en los dos: comparten las mismas herramientas de aprendizaje y la misma cuenta, así que tus palabras guardadas quedan en un solo lugar." },
-    "words": { "q": "¿Dónde quedan mis palabras guardadas?", "a": "En tu diccionario personal, aquí mismo en lingogram.ai. Inicia sesión y ahí estará cada palabra que hayas guardado, junto con la escena de la que salió — sin importar en qué edición o dispositivo la guardaste." }
+    "free": {
+      "q": "¿Es gratis?",
+      "a": "Sí. Los subtítulos duales, la transcripción y el modo Adivina son gratuitos. Solo necesitas una cuenta gratuita si quieres que tus palabras guardadas se sincronicen entre dispositivos."
+    },
+    "languages": {
+      "q": "¿Qué idiomas admite?",
+      "a": "Cualquier par para el que el video tenga subtítulos. En YouTube, si falta uno de tus dos idiomas, Lingogram lo completa con la traducción automática de YouTube para que sigas teniendo la vista dual. En Netflix y HDrezka muestra las pistas de subtítulos que el título realmente tiene, sin traducción automática."
+    },
+    "edition": {
+      "q": "¿Qué edición instalo?",
+      "a": "La del sitio donde ves contenido. Hay dos extensiones: una cubre YouTube y Netflix juntos, la otra cubre HDrezka. Instala ambas si ves contenido en los dos: comparten las mismas herramientas de aprendizaje y la misma cuenta, así que tus palabras guardadas quedan en un solo lugar."
+    },
+    "words": {
+      "q": "¿Dónde quedan mis palabras guardadas?",
+      "a": "En tu diccionario personal, aquí mismo en lingogram.ai. Inicia sesión y ahí estará cada palabra que hayas guardado, junto con la escena de la que salió — sin importar en qué edición o dispositivo la guardaste."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram para {site}",
     "ctaPrimary": "Añadir a Chrome — es gratis",
@@ -127,24 +192,27 @@
     "finalCta": "Añadir {name}",
     "finalProof": "Gratis · Se configura en menos de un minuto"
   },
-
   "privacy": {
     "title": "Política de privacidad — Lingogram",
     "description": "Qué recopila Lingogram, cómo se usa, y qué opciones tienes."
   },
-
   "welcome": {
     "title": "Bienvenido a Lingogram",
     "description": "Todo está listo — aquí tienes tu primera palabra guardada en tres pasos.",
     "h1": "está instalado",
     "sub": "Tres pasos hasta tu primera palabra guardada — solo necesitas un video.",
-    "step1T": "Elige tus idiomas", "step1D": "Haz clic en el icono de Lingogram en la barra de herramientas y elige el idioma que estás aprendiendo y el tuyo propio.",
-    "step2T": "Abre un video con subtítulos", "step2D": "Dale a reproducir — ambos idiomas aparecen juntos, sobre el video y en la transcripción.",
-    "step3T": "Guarda tu primera palabra", "step3D": "Resalta una palabra en los subtítulos y toca para guardarla — va directo a {link}.",
+    "step1T": "Elige tus idiomas",
+    "step1D": "Haz clic en el icono de Lingogram en la barra de herramientas y elige el idioma que estás aprendiendo y el tuyo propio.",
+    "step2T": "Abre un video con subtítulos",
+    "step2D": "Dale a reproducir — ambos idiomas aparecen juntos, sobre el video y en la transcripción.",
+    "step3T": "Guarda tu primera palabra",
+    "step3D": "Resalta una palabra en los subtítulos y toca para guardarla — va directo a {link}.",
     "step3Link": "tu diccionario",
-    "keyDual": "subtítulos duales", "keySwap": "intercambiar idiomas", "keyGuess": "modo Adivina", "keyOverlay": "modo en pantalla"
+    "keyDual": "subtítulos duales",
+    "keySwap": "intercambiar idiomas",
+    "keyGuess": "modo Adivina",
+    "keyOverlay": "subtítulos sobre el video (superposición)"
   },
-
   "uninstall": {
     "title": "Lamentamos verte partir — Lingogram",
     "description": "Cuéntanos por qué desinstalaste Lingogram para que podamos mejorarlo.",
@@ -158,7 +226,6 @@
     "footMid": "— te estarán esperando si vuelves.",
     "reinstall": "Reinstala cuando quieras."
   },
-
   "auth": {
     "or": "o",
     "showPassword": "Mostrar contraseña",
@@ -168,32 +235,44 @@
       "title": "Crea tu cuenta — Lingogram",
       "description": "Regístrate para sincronizar tus palabras guardadas en todos tus dispositivos y ediciones.",
       "eyebrow": "Cuenta gratuita",
-      "h1Lead": "Empieza tu", "h1Pop": "lista de palabras",
+      "h1Lead": "Empieza tu",
+      "h1Pop": "lista de palabras",
       "sub": "Guarda palabras de todo lo que veas — sincronizadas en todos tus dispositivos y ediciones.",
       "googleCta": "Registrarse con Google",
-      "nameLabel": "Tu nombre", "namePlaceholder": "Juana",
-      "emailLabel": "Correo electrónico", "emailPlaceholder": "juana@ejemplo.com",
-      "passwordLabel": "Contraseña", "passwordPlaceholder": "Al menos 8 caracteres",
-      "submit": "Crear cuenta", "submitBusy": "Creando cuenta…",
-      "altPrefix": "¿Ya tienes una cuenta?", "altLink": "Iniciar sesión",
-      "finePrefix": "Al continuar aceptas nuestra", "fineLink": "Política de privacidad"
+      "nameLabel": "Tu nombre",
+      "namePlaceholder": "Juana",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "juana@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Al menos 8 caracteres",
+      "submit": "Crear cuenta",
+      "submitBusy": "Creando cuenta…",
+      "altPrefix": "¿Ya tienes una cuenta?",
+      "altLink": "Iniciar sesión",
+      "finePrefix": "Al continuar aceptas nuestra",
+      "fineLink": "Política de privacidad"
     },
     "login": {
       "title": "Iniciar sesión — Lingogram",
       "description": "Inicia sesión en tu diccionario de Lingogram.",
       "eyebrow": "Bienvenido de nuevo",
-      "h1Lead": "Tu", "h1Pop": "diccionario", "h1Tail": "te espera",
+      "h1Lead": "Tu",
+      "h1Pop": "diccionario",
+      "h1Tail": "te espera",
       "sub": "Inicia sesión para continuar justo donde lo dejaste.",
       "googleCta": "Iniciar sesión con Google",
-      "emailLabel": "Correo electrónico", "emailPlaceholder": "juana@ejemplo.com",
-      "passwordLabel": "Contraseña", "passwordPlaceholder": "Tu contraseña",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "juana@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Tu contraseña",
       "forgot": "¿Olvidaste tu contraseña?",
       "resetNote": "Revisa tu bandeja de entrada — un enlace para restablecer la contraseña ya está en camino.",
-      "submit": "Iniciar sesión", "submitBusy": "Iniciando sesión…",
-      "altPrefix": "¿Nuevo en Lingogram?", "altLink": "Crear una cuenta"
+      "submit": "Iniciar sesión",
+      "submitBusy": "Iniciando sesión…",
+      "altPrefix": "¿Nuevo en Lingogram?",
+      "altLink": "Crear una cuenta"
     }
   },
-
   "notFound": {
     "title": "Página no encontrada — Lingogram",
     "description": "Esta página no existe.",

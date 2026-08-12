@@ -46,3 +46,8 @@ competitor-extensions/
 # Local-only dev server that stitches the landing + SPA on one origin (mirrors
 # the prod firebase.json rewrite). Not shipped — CI builds and deploys the site.
 apps/site/dev-serve.mjs
+
+# Local secrets (GA4 measurement/API keys) and coverage output — never commit
+.env
+.env.local
+coverage/

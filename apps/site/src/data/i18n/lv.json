@@ -1,21 +1,45 @@
 {
-  "meta": { "name": "Latviešu", "htmlLang": "lv" },
-
+  "meta": {
+    "name": "Latviešu",
+    "htmlLang": "lv"
+  },
   "nav": {
-    "editions": "Izdevumi",
+    "editions": "Versijas",
     "how": "Kā tas darbojas",
-    "dictionary": "Tava vārdnīca",
-    "faq": "Biežāk uzdotie jautājumi",
+    "dictionary": "Mani vārdi",
+    "faq": "BUJ",
     "logIn": "Pieslēgties",
     "signUp": "Reģistrēties",
-    "menu": "Izvēlne"
+    "menu": "Izvēlne",
+    "language": "Valoda",
+    "searchLanguage": "Meklēt valodu…",
+    "suggested": "Ieteiktās",
+    "allLanguages": "Visas valodas",
+    "noLanguageMatch": "Neviena valoda neatbilst"
   },
-
+  "languages": {
+    "title": "Valodas — Lingogram",
+    "description": "Lingogram vietne 42 valodās — izvēlies to, kurā lasi.",
+    "h1": "Lasi Lingogram savā valodā",
+    "lede": "Valodu skaits, kurās tulkota visa vietne: {n}. Izvēlies savējo — katrai lapai, ko tu tagad lasi, ir versija arī tajā.",
+    "reading": "Tu lasi valodā: {lang}.",
+    "searchPlaceholder": "Meklēt valodas…",
+    "clearSearch": "Notīrīt meklēšanu",
+    "noMatch": "Neviena valoda neatbilst",
+    "noMatchHint": "Pamēģini tās nosaukumu angliski vai divburtu kodu.",
+    "count": { "one": "1 valoda", "other": "Valodu skaits: {n}" },
+    "region": {
+      "westEurope": "Rietumeiropa un Ziemeļeiropa",
+      "eastEurope": "Centrāleiropa un Austrumeiropa",
+      "asia": "Āzija",
+      "middleEast": "Tuvie Austrumi"
+    }
+  },
   "footer": {
     "tagline": "Mācies valodas no tā, ko skaties.",
     "product": "Produkts",
-    "allEditions": "Visi izdevumi",
-    "yourDictionary": "Tava vārdnīca",
+    "allEditions": "Visas versijas",
+    "yourDictionary": "Mani vārdi",
     "howItWorks": "Kā tas darbojas",
     "help": "Palīdzība",
     "faq": "Biežāk uzdotie jautājumi",
@@ -25,126 +49,170 @@
     "legal": "Juridiskā informācija",
     "privacyPolicy": "Privātuma politika"
   },
-
   "proof": {
     "rating": "Chrome Web Store",
     "learners": "mācās",
     "free": "Bez maksas, bez reklāmām"
   },
-
   "demo": {
-    "hintPrefix": "Šis ir pats paplašinājums, kas darbojas tieši šeit —",
+    "hintPrefix": "Šī demonstrācija ir pats paplašinājums, kas patiešām darbojas tieši šajā lapā —",
     "hintBold": "atlasi vārdu",
     "hintSuffix": "lai to saglabātu, vai izmēģini kādu no zemāk esošajiem režīmiem.",
     "credit": "Video: NASA —",
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(publiskais īpašums)"
   },
-
   "modes": {
-    "dual": { "tab": "Dubultie subtitri", "h": "Abas valodas vienlaikus", "p": "Rinda, ko dzirdi, blakus rindai, ko saproti — bez pauzēm, bez celiņu pārslēgšanas." },
-    "guess": { "tab": "Uzmini", "h": "Uzklikšķini, lai atklātu — un trenē dzirdi", "p": "Rinda paliek paslēpta, kamēr tai neuzklikšķini. Vispirms mēģini uzminēt pēc dzirdes, tad pārbaudi sevi: tieši šī atšķirība ir vieta, kur uzlabojas klausīšanās prasme." },
-    "single": { "tab": "Ekrānā", "h": "Ekrānā vai sānu panelī — tu izvēlies", "p": "Paturi abas rindas virs filmas, tur, kur jau raugās tavas acis. Vai noņem tās ar vienu pogu un lasi no paneļa savā tempā. Subtitri nekur nepazūd — tie tikai maina vietu." },
-    "save": { "tab": "Vārdnīca", "h": "Saglabā katru vārdu, ko sastopi", "p": "Atlasi vārdu — viens pieskāriens to saglabā kopā ar teikumu, no kura tas nāk, tieši tavā vārdnīcā vietnē lingogram.ai." }
+    "dual": {
+      "tab": "Dubultie subtitri",
+      "h": "Abas valodas vienlaikus",
+      "p": "Rinda, ko dzirdi, blakus rindai, ko saproti — bez pauzēm, bez celiņu pārslēgšanas."
+    },
+    "guess": {
+      "tab": "Uzminēšanas režīms",
+      "h": "Uzklikšķini, lai atklātu — un trenē dzirdi",
+      "p": "Rinda paliek paslēpta, kamēr tai neuzklikšķini. Vispirms mēģini uzminēt pēc dzirdes, tad pārbaudi sevi: tieši šī atšķirība ir vieta, kur uzlabojas klausīšanās prasme."
+    },
+    "single": {
+      "tab": "Uz video",
+      "h": "Ekrānā vai sānu panelī — tu izvēlies",
+      "p": "Paturi abas rindas virs filmas, tur, kur jau raugās tavas acis. Vai noņem tās ar vienu pogu un lasi no paneļa savā tempā. Subtitri nekur nepazūd — tie tikai maina vietu."
+    },
+    "save": {
+      "tab": "Mani vārdi",
+      "h": "Saglabā katru vārdu, ko sastopi",
+      "p": "Atlasi vārdu — viens pieskāriens to saglabā kopā ar teikumu, no kura tas nāk, tieši tavā vārdnīcā, šeit pat, vietnē lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Papildina trūkstošo otro celiņu ar YouTube automātisko tulkojumu.",
+    "nf": "Tikai oriģinālie subtitru celiņi, bez mašīntulkošanas.",
+    "hd": "Dubultie celiņi, ja tie ir konkrētajam titulam."
+  },
   "home": {
     "eyebrow": "Bez maksas · YouTube · Netflix · HDrezka",
     "h1Lead": "Ar subtitriem skatīties tev jau nācies.",
     "h1Pop": "Šoreiz no tā iegūsi vairāk.",
     "ctaPrimary": "Pievienot Chrome — tas ir bez maksas",
-    "ctaSecondary": "Izvēlies izdevumu savai vietnei ↓",
-
-    "platformsKicker": "Izdevumi",
+    "ctaSecondary": "Izvēlies versiju vietnei, kurā skaties ↓",
+    "platformsKicker": "Versijas",
     "platformsH2": "Viens Lingogram, pielāgots vietnei, kurā skaties",
-    "platformsLede": "Katrs izdevums ir veidots konkrētās vietnes atskaņotājam — savi subtitru celiņi, pilnekrāna pārklājums, tieši tai vietnei nepieciešamie labojumi. Tiem visiem ir kopīgi mācību rīki un konts, tāpēc saglabātie vārdi vienmēr atrodas vienuviet, lai kuru izdevumu izmantotu. Divi paplašinājumi aptver visas trīs vietnes: YouTube izdevums darbojas arī ar Netflix.",
+    "platformsLede": "Katra versija ir atsevišķs Chrome paplašinājums, veidots konkrētās vietnes atskaņotājam — savi subtitru celiņi, pilnekrāna pārklājums, kas rāda subtitrus tieši virs video attēla, un tieši tai vietnei nepieciešamie labojumi. Tiem visiem ir kopīgi mācību rīki un konts, tāpēc saglabātie vārdi vienmēr atrodas vienuviet, lai kuru versiju izmantotu. Divi paplašinājumi aptver visas trīs vietnes: YouTube versija darbojas arī ar Netflix.",
     "editionGo": "Pievienot Chrome →",
-    "editionSoonTitle": "Nākamā — tava vietne",
-    "editionSoonBody": "Jauni, konkrētai vietnei veidoti izdevumi parādās regulāri — pastāsti, kur skaties.",
+    "editionSoonTitle": "Skaties kaut kur citur?",
+    "editionSoonBody": "Jauni, konkrētai vietnei veidoti versijas parādās regulāri — pastāsti, kur skaties.",
     "editionSoonCta": "Ieteikt vietni →",
-
     "howKicker": "Kā tas darbojas",
     "howH2": "No instalēšanas līdz pirmajam saglabātajam vārdam — vienā video",
     "step1T": "Instalē un izvēlies valodas",
     "step1D": "Izvēlies valodu, ko mācies, un savu dzimto valodu. Ātra, vienreizēja iestatīšana — konts nav nepieciešams.",
     "step2T": "Atver jebkuru video ar subtitriem",
     "step2D": "Nospied atskaņot — abas valodas parādās kopā gan video, gan transkriptā, kas ritinās līdzi ainai.",
-    "step3T": "Saglabā vārdus, atkārto tos šeit",
-    "step3D": "Skatoties saglabā vārdu ar vienu pieskārienu — pēc tam atver savu vārdnīcu vietnē lingogram.ai un atkārto to kopā ar ainu, no kuras tas nāk.",
-
+    "step3T": "Saglabā vārdus, atkārto tos šajā vietnē",
+    "step3D": "Skatoties saglabā vārdu ar vienu pieskārienu — pēc tam atver savu vārdnīcu šajā vietnē, lingogram.ai, un atkārto to kopā ar ainu, no kuras tas nāk.",
     "dictKicker": "Tava vārdnīca",
     "dictH2": "Katrs saglabātais vārds veido vārdnīcu, kas patiešām pieder tev",
-    "dictLede": "Nevis biežuma saraksts no mācību grāmatas — vārdi, ko sastapi pašu izvēlētās ainās, saglabāti kopā ar rindām, no kurām tie nāk. Lai kuru izdevumu izmantotu skatīšanās laikā, viss nonāk vienā kontā un gaida tevi šeit pēc pieslēgšanās.",
+    "dictLede": "Nevis biežuma saraksts no mācību grāmatas — vārdi, ko sastapi pašu izvēlētās ainās, saglabāti kopā ar rindām, no kurām tie nāk. Lai kuru versiju izmantotu skatīšanās laikā, viss nonāk vienā kontā un gaida tevi šajā vietnē pēc pieslēgšanās.",
     "dictMyWords": "Mani vārdi",
     "dictCount": "247 saglabāti · 12 šonedēļ",
-    "dictWord1": "reluctantly", "dictTr1": "negribīgi", "dictCtx1": "\"Viņš {w} piekrita vadīt bēgšanas automašīnu.\"",
-    "dictWord2": "getaway", "dictTr2": "bēgšana", "dictCtx2": "\"Tā nav laupīšana, tā ir {w}.\"",
-    "dictWord3": "spinning its wheels", "dictTr3": "buksē", "dictCtx3": "\"Tas {w} sestajā ātrumā!\"",
-    "dictFoot": "Tavi vārdi sinhronizējas starp ierīcēm un visiem Lingogram izdevumiem — {b}.",
+    "dictWord1": "reluctantly",
+    "dictTr1": "negribīgi",
+    "dictCtx1": "\"He {w} agreed to drive the getaway car.\"",
+    "dictWord2": "getaway",
+    "dictTr2": "bēgšana",
+    "dictCtx2": "\"This isn't a heist, it's a {w}.\"",
+    "dictWord3": "beidzas degviela",
+    "dictTr3": "trūkst degvielas",
+    "dictCtx3": "\"Mums {w} kopš pēdējās degvielas uzpildes stacijas.\"",
+    "dictFoot": "Tavi vārdi sinhronizējas starp ierīcēm un visām Lingogram versijām — {b}.",
     "dictFootBold": "viens konts, viena vārdnīca",
-
     "featKicker": "Kāpēc tas paliek atmiņā",
     "featH2": "Vairums rīku apstājas pie tulkojuma. Lingogram panāk, ka vārdi paliek atmiņā.",
-    "featLede": "Lingogram ir veidots ap aktīvo atcerēšanos: tu ne tikai lasi līdzi video — tu minē, atskaņo vēlreiz un vāc vārdus, tāpēc stundas, ko tik un tā pavadi skatoties, pārvēršas reālā progresā.",
-    "feat1Tag": "Dubultie subtitri", "feat1H": "Divas valodas, viens ekrāns", "feat1P": "Uztver katru rindu oriģinālā un salīdzini to ar savu valodu bez pauzēm. Kad esi gatavs, paslēp tulkojumu — dubultie subtitri ir kā treniņritentiņi, un Lingogram palīdz tos noņemt.",
-    "feat2Tag": "Interaktīvs transkripts", "feat2H": "Atskaņo vēlreiz rindu, nevis visu filmu", "feat2P": "Transkripts pats ritinās līdzi video. Uzklikšķini jebkurai rindai, lai atgrieztos un atskaņotu tieši šo ainu ciklā, kamēr skaņas, ko nespēji atšifrēt, kļūst par vārdiem, ko atpazīsti uzreiz.",
-    "feat3Tag": "Uzminēšanas režīms", "feat3H": "Vispirms klausies, tad pārbaudi", "feat3P": "Vārdi sākotnēji ir paslēpti: uztver rindu pēc dzirdes, tad atklāj to. Šis \"vispirms klausies\" cikls veido klausīšanās prasmi, uz kuru vari paļauties — nevis subtitrus, kuriem tikai seko līdzi ar acīm. Pārslēdz ar {kbd}.",
-    "feat4Tag": "Saglabātie vārdi", "feat4H": "Tavs vārdu krājums — no taviem filmām", "feat4P": "Viens pieskāriens saglabā vārdu kopā ar apkārtējām subtitru rindām. Tas nonāk tieši {link} vietnē lingogram.ai, kur katru vārdu vari atkārtot tā oriģinālajā ainā.",
+    "featLede": "Lingogram balstās uz aktīvu atmiņas atsaukšanu: tu ne tikai lasi līdzi video — tu minē, atskaņo vēlreiz un vāc vārdus, tāpēc stundas, ko tik un tā pavadi skatoties, pārvēršas reālā progresā.",
+    "feat1Tag": "Dubultie subtitri",
+    "feat1H": "Divas valodas, viens ekrāns",
+    "feat1P": "Uztver katru rindu oriģinālā un salīdzini to ar savu valodu bez pauzēm. Kad esi gatavs, paslēp tulkojumu — dubultie subtitri ir tikai sākumpunkts, un Lingogram palīdz tev to pāraugt.",
+    "feat2Tag": "Interaktīvs transkripts",
+    "feat2H": "Atskaņo vēlreiz rindu, nevis visu filmu",
+    "feat2P": "Transkripts pats ritinās līdzi video. Uzklikšķini jebkurai rindai, lai atgrieztos un atskaņotu tieši šo ainu ciklā, kamēr skaņas, ko nespēji atšifrēt, kļūst par vārdiem, ko atpazīsti uzreiz.",
+    "feat3Tag": "Uzminēšanas režīms",
+    "feat3H": "Vispirms klausies, tad pārbaudi",
+    "feat3P": "Vārdi sākotnēji ir paslēpti: uztver rindu pēc dzirdes, tad atklāj to. Šis \"vispirms klausies\" cikls veido klausīšanās prasmi, uz kuru vari paļauties — nevis subtitrus, kuriem tikai seko līdzi ar acīm. Pārslēdz ar {kbd}.",
+    "feat4Tag": "Saglabātie vārdi",
+    "feat4H": "Tavs vārdu krājums — no taviem filmām",
+    "feat4P": "Viens pieskāriens saglabā vārdu kopā ar apkārtējām subtitru rindām. Tas nonāk tieši {link} vietnē lingogram.ai, kur katru vārdu vari atkārtot tā oriģinālajā ainā.",
     "feat4Link": "tavā personīgajā vārdnīcā",
-
     "privKicker": "Privāts pēc noklusējuma",
     "privH2": "Tas, ko skaties, paliek tikai tavā ziņā",
-    "priv1": "{b} Valodas un izkārtojuma iestatījumi tiek glabāti lokāli tavā pārlūkā.", "priv1Bold": "Bez telemetrijas, bez izsekošanas.",
-    "priv2": "{b} Subtitri tiek apstrādāti tieši tavā ierīcē.", "priv2Bold": "Mēs nekad neredzam tavu skatīšanās vēsturi.",
-    "priv3": "{b} Ja piesakies, mēs uzglabājam tavu e-pastu un saglabātos vārdus — neko citu, un mēs tos nekad nepārdodam.", "priv3Bold": "Vārdnīca ir pēc izvēles.",
-    "priv4": "{b} Ja vietnes atjauninājums kaut ko sabojā, viens klikšķis to ziņo mums, lai varam ātri to salabot.", "priv4Bold": "Veidots, lai turpinātu darboties.",
-
+    "priv1": "{b} Valodas un izkārtojuma iestatījumi tiek glabāti lokāli tavā pārlūkā.",
+    "priv1Bold": "Bez telemetrijas, bez izsekošanas.",
+    "priv2": "{b} Subtitri tiek apstrādāti tieši tavā ierīcē.",
+    "priv2Bold": "Mēs nekad neredzam tavu skatīšanās vēsturi.",
+    "priv3": "{b} Ja piesakies, mēs uzglabājam tavu e-pastu un saglabātos vārdus — neko citu, un mēs tos nekad nepārdodam.",
+    "priv3Bold": "Vārdnīca ir pēc izvēles.",
+    "priv4": "{b} Ja vietnes atjauninājums kaut ko sabojā, viens klikšķis to ziņo mums, lai varam ātri to salabot.",
+    "priv4Bold": "Mēs to salabojam ātri.",
     "faqKicker": "Biežāk uzdotie jautājumi",
     "faqH2": "Jautājumi, ko cilvēki uzdod pirms instalēšanas",
-
     "finalH2": "Pārvērt šīsvakara epizodi savā valodas stundā",
     "finalCta": "Pievienot Lingogram Chrome",
     "finalProof": "Bez maksas · Iestatīšana aizņem mazāk par minūti"
   },
-
   "faq": {
-    "free": { "q": "Vai tas ir bez maksas?", "a": "Jā. Dubultie subtitri, transkripts un Uzminēšanas režīms ir bez maksas. Bezmaksas konts nepieciešams tikai tad, ja vēlies, lai saglabātie vārdi sinhronizētos starp ierīcēm." },
-    "languages": { "q": "Kuras valodas tas atbalsta?", "a": "Jebkuru valodu pāri, kam video ir subtitri. YouTube gadījumā, ja trūkst vienas no divām tavām valodām, Lingogram to papildina ar YouTube automātisko tulkojumu, lai tu tik un tā redzētu abas valodas. Netflix un HDrezka tiek rādīti tikai tie subtitru celiņi, kas konkrētajam titulam patiešām ir — bez mašīntulkošanas." },
-    "edition": { "q": "Kuru izdevumu man instalēt?", "a": "To, kas paredzēts vietnei, kurā skaties. Ir divi paplašinājumi: viens aptver YouTube un Netflix kopā, otrs — HDrezka. Instalē abus, ja skaties abās — tiem ir kopīgi mācību rīki un konts, tāpēc saglabātie vārdi paliek vienuviet." },
-    "words": { "q": "Kur atrodas mani saglabātie vārdi?", "a": "Tavā personīgajā vārdnīcā, tepat vietnē lingogram.ai. Piesakies, un katrs tavs saglabātais vārds būs tur kopā ar ainu, no kuras tas nāk — lai kurā izdevumā vai ierīcē to būtu saglabājis." }
+    "free": {
+      "q": "Vai tas ir bez maksas?",
+      "a": "Jā. Dubultie subtitri, transkripts un Uzminēšanas režīms ir bez maksas. Bezmaksas konts nepieciešams tikai tad, ja vēlies, lai saglabātie vārdi sinhronizētos starp ierīcēm."
+    },
+    "languages": {
+      "q": "Kuras valodas tas atbalsta?",
+      "a": "Jebkuru valodu pāri, kam video ir subtitri. YouTube gadījumā, ja trūkst vienas no divām tavām valodām, Lingogram to papildina ar YouTube automātisko tulkojumu, lai tu tik un tā redzētu abas valodas. Netflix un HDrezka tiek rādīti tikai tie subtitru celiņi, kas konkrētajam titulam patiešām ir — bez mašīntulkošanas."
+    },
+    "edition": {
+      "q": "Kuru versiju man instalēt?",
+      "a": "To, kas paredzēts vietnei, kurā skaties. Ir divi paplašinājumi: viens aptver YouTube un Netflix kopā, otrs — HDrezka. Instalē abus, ja skaties abās — tiem ir kopīgi mācību rīki un konts, tāpēc saglabātie vārdi paliek vienuviet."
+    },
+    "words": {
+      "q": "Kur atrodas mani saglabātie vārdi?",
+      "a": "Tavā personīgajā vārdnīcā, tepat vietnē lingogram.ai. Piesakies, un katrs tavs saglabātais vārds būs tur kopā ar ainu, no kuras tas nāk — lai kurā versijā vai ierīcē to būtu saglabājis."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram vietnei {site}",
     "ctaPrimary": "Pievienot Chrome — tas ir bez maksas",
-    "ctaSecondary": "Skatīt visus izdevumus",
+    "ctaSecondary": "Skatīt visus versijus",
     "builtKicker": "Veidots {site}",
-    "builtH2": "Ko dara {site} izdevums",
+    "builtH2": "Ko dara {site} versija",
     "faqH2": "Pirms instalēšanas",
     "finalH2": "Skaties {site} šovakar — divās valodās",
     "finalCta": "Pievienot {name}",
     "finalProof": "Bez maksas · Iestatīšana aizņem mazāk par minūti"
   },
-
   "privacy": {
     "title": "Privātuma politika — Lingogram",
     "description": "Ko Lingogram vāc, kā tas tiek izmantots un kāda izvēle tev ir."
   },
-
   "welcome": {
     "title": "Laipni lūdzam Lingogram",
     "description": "Viss ir sagatavots — lūk, kā trīs soļos saglabāt savu pirmo vārdu.",
     "h1": "ir instalēts",
     "sub": "Trīs soļi līdz tavam pirmajam saglabātajam vārdam — pietiks ar vienu video.",
-    "step1T": "Izvēlies savas valodas", "step1D": "Uzklikšķini Lingogram ikonai rīkjoslā un izvēlies valodu, ko mācies, un savu dzimto valodu.",
-    "step2T": "Atver video ar subtitriem", "step2D": "Nospied atskaņot — abas valodas parādās kopā gan video, gan transkriptā.",
-    "step3T": "Saglabā savu pirmo vārdu", "step3D": "Iezīmē vārdu subtitros un pieskaries, lai to saglabātu — tas nonāk {link}.",
+    "step1T": "Izvēlies savas valodas",
+    "step1D": "Uzklikšķini Lingogram ikonai rīkjoslā un izvēlies valodu, ko mācies, un savu dzimto valodu.",
+    "step2T": "Atver video ar subtitriem",
+    "step2D": "Nospied atskaņot — abas valodas parādās kopā gan video, gan transkriptā.",
+    "step3T": "Saglabā savu pirmo vārdu",
+    "step3D": "Iezīmē vārdu subtitros un pieskaries, lai to saglabātu — tas nonāk {link}.",
     "step3Link": "tavā vārdnīcā",
-    "keyDual": "dubultie subtitri", "keySwap": "mainīt valodas vietām", "keyGuess": "uzminēšanas režīms", "keyOverlay": "pārklājuma režīms"
+    "keyDual": "dubultie subtitri",
+    "keySwap": "mainīt valodas vietām",
+    "keyGuess": "uzminēšanas režīms",
+    "keyOverlay": "subtitri uz video (pārklājums)"
   },
-
   "uninstall": {
     "title": "Žēl, ka aizej — Lingogram",
     "description": "Pastāsti, kāpēc noņēmi Lingogram, lai mēs varētu to uzlabot.",
@@ -158,7 +226,6 @@
     "footMid": "— tie gaidīs tevi, ja atgriezīsies.",
     "reinstall": "Instalē no jauna jebkurā laikā."
   },
-
   "auth": {
     "or": "vai",
     "showPassword": "Rādīt paroli",
@@ -166,34 +233,46 @@
     "optional": "pēc izvēles",
     "register": {
       "title": "Izveido savu kontu — Lingogram",
-      "description": "Reģistrējies, lai sinhronizētu saglabātos vārdus visās ierīcēs un izdevumos.",
+      "description": "Reģistrējies, lai sinhronizētu saglabātos vārdus visās ierīcēs un versijās.",
       "eyebrow": "Bezmaksas konts",
-      "h1Lead": "Sāc savu", "h1Pop": "vārdu sarakstu",
-      "sub": "Saglabā vārdus no visa, ko skaties — sinhronizēti visās ierīcēs un izdevumos.",
+      "h1Lead": "Sāc savu",
+      "h1Pop": "vārdu sarakstu",
+      "sub": "Saglabā vārdus no visa, ko skaties — sinhronizēti visās ierīcēs un versijās.",
       "googleCta": "Reģistrēties ar Google",
-      "nameLabel": "Tavs vārds", "namePlaceholder": "Anna",
-      "emailLabel": "E-pasts", "emailPlaceholder": "anna@example.com",
-      "passwordLabel": "Parole", "passwordPlaceholder": "Vismaz 8 rakstzīmes",
-      "submit": "Izveidot kontu", "submitBusy": "Konts tiek izveidots…",
-      "altPrefix": "Jau ir konts?", "altLink": "Pieslēgties",
-      "finePrefix": "Turpinot tu piekrīti mūsu", "fineLink": "Privātuma politikai"
+      "nameLabel": "Tavs vārds",
+      "namePlaceholder": "Anna",
+      "emailLabel": "E-pasts",
+      "emailPlaceholder": "anna@example.com",
+      "passwordLabel": "Parole",
+      "passwordPlaceholder": "Vismaz 8 rakstzīmes",
+      "submit": "Izveidot kontu",
+      "submitBusy": "Konts tiek izveidots…",
+      "altPrefix": "Jau ir konts?",
+      "altLink": "Pieslēgties",
+      "finePrefix": "Turpinot tu piekrīti mūsu",
+      "fineLink": "Privātuma politikai"
     },
     "login": {
       "title": "Pieslēgties — Lingogram",
       "description": "Pieslēdzies savai Lingogram vārdnīcai.",
       "eyebrow": "Laipni lūdzam atpakaļ",
-      "h1Lead": "Tava", "h1Pop": "vārdnīca", "h1Tail": "tevis gaida",
+      "h1Lead": "Tava",
+      "h1Pop": "vārdnīca",
+      "h1Tail": "tevis gaida",
       "sub": "Pieslēdzies, lai turpinātu tieši no tās vietas, kur pārtrauci.",
       "googleCta": "Pieslēgties ar Google",
-      "emailLabel": "E-pasts", "emailPlaceholder": "anna@example.com",
-      "passwordLabel": "Parole", "passwordPlaceholder": "Tava parole",
+      "emailLabel": "E-pasts",
+      "emailPlaceholder": "anna@example.com",
+      "passwordLabel": "Parole",
+      "passwordPlaceholder": "Tava parole",
       "forgot": "Aizmirsi paroli?",
       "resetNote": "Pārbaudi savu iesūtni — paroles atiestatīšanas saite jau ir ceļā.",
-      "submit": "Pieslēgties", "submitBusy": "Notiek pieslēgšanās…",
-      "altPrefix": "Vai Lingogram tev ir jauns?", "altLink": "Izveidot kontu"
+      "submit": "Pieslēgties",
+      "submitBusy": "Notiek pieslēgšanās…",
+      "altPrefix": "Vai Lingogram tev ir jauns?",
+      "altLink": "Izveidot kontu"
     }
   },
-
   "notFound": {
     "title": "Lapa nav atrasta — Lingogram",
     "description": "Šāda lapa neeksistē.",

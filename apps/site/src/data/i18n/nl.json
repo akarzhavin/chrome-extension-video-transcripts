@@ -5,10 +5,34 @@
     "editions": "Edities",
     "how": "Hoe het werkt",
     "dictionary": "Jouw woordenboek",
-    "faq": "Veelgestelde vragen",
+    "faq": "FAQ",
     "logIn": "Inloggen",
     "signUp": "Registreren",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Taal",
+    "searchLanguage": "Taal zoeken…",
+    "suggested": "Voorgesteld",
+    "allLanguages": "Alle talen",
+    "noLanguageMatch": "Geen taal komt overeen"
+  },
+
+  "languages": {
+    "title": "Talen — Lingogram",
+    "description": "De site van Lingogram in 42 talen — kies de taal waarin je leest.",
+    "h1": "Lees Lingogram in je eigen taal",
+    "lede": "De hele site is vertaald in {n} talen. Kies de jouwe — elke pagina die je nu leest, bestaat ook daarin.",
+    "reading": "Je leest in het {lang}.",
+    "searchPlaceholder": "Talen zoeken…",
+    "clearSearch": "Zoekopdracht wissen",
+    "noMatch": "Geen taal komt overeen",
+    "noMatchHint": "Probeer de Engelse naam of de code van twee letters.",
+    "count": { "one": "1 taal", "other": "{n} talen" },
+    "region": {
+      "westEurope": "West- en Noord-Europa",
+      "eastEurope": "Midden- en Oost-Europa",
+      "asia": "Azië",
+      "middleEast": "Midden-Oosten"
+    }
   },
 
   "footer": {
@@ -49,6 +73,12 @@
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Vult de ontbrekende tweede track aan met de automatische vertaling van YouTube.",
+    "nf": "Originele ondertiteltracks, geen machinevertaling.",
+    "hd": "Dubbele tracks wanneer een titel ze heeft."
+  },
 
   "home": {
     "eyebrow": "Gratis · YouTube · Netflix · HDrezka",

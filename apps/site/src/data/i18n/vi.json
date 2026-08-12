@@ -1,6 +1,8 @@
 {
-  "meta": { "name": "Tiếng Việt", "htmlLang": "vi" },
-
+  "meta": {
+    "name": "Tiếng Việt",
+    "htmlLang": "vi"
+  },
   "nav": {
     "editions": "Phiên bản",
     "how": "Cách hoạt động",
@@ -8,9 +10,31 @@
     "faq": "Hỏi đáp",
     "logIn": "Đăng nhập",
     "signUp": "Đăng ký",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Ngôn ngữ",
+    "searchLanguage": "Tìm ngôn ngữ…",
+    "suggested": "Gợi ý",
+    "allLanguages": "Tất cả ngôn ngữ",
+    "noLanguageMatch": "Không có ngôn ngữ nào khớp"
   },
-
+  "languages": {
+    "title": "Ngôn ngữ — Lingogram",
+    "description": "Trang web Lingogram có 42 ngôn ngữ — chọn ngôn ngữ bạn đọc.",
+    "h1": "Đọc Lingogram bằng ngôn ngữ của bạn",
+    "lede": "Toàn bộ trang web đã được dịch sang {n} ngôn ngữ. Hãy chọn ngôn ngữ của bạn — mọi trang bạn đang đọc đều có phiên bản trong đó.",
+    "reading": "Bạn đang đọc bằng {lang}.",
+    "searchPlaceholder": "Tìm ngôn ngữ…",
+    "clearSearch": "Xóa tìm kiếm",
+    "noMatch": "Không có ngôn ngữ nào khớp",
+    "noMatchHint": "Thử tên tiếng Anh, hoặc mã hai chữ cái của nó.",
+    "count": { "one": "{n} ngôn ngữ", "other": "{n} ngôn ngữ" },
+    "region": {
+      "westEurope": "Tây Âu và Bắc Âu",
+      "eastEurope": "Trung Âu và Đông Âu",
+      "asia": "Châu Á",
+      "middleEast": "Trung Đông"
+    }
+  },
   "footer": {
     "tagline": "Học ngôn ngữ từ những gì bạn xem.",
     "product": "Sản phẩm",
@@ -25,13 +49,11 @@
     "legal": "Pháp lý",
     "privacyPolicy": "Chính sách bảo mật"
   },
-
   "proof": {
     "rating": "trên Chrome Web Store",
     "learners": "người học",
     "free": "Miễn phí, không quảng cáo"
   },
-
   "demo": {
     "hintPrefix": "Đây chính là tiện ích mở rộng, đang chạy ngay tại đây —",
     "hintBold": "chọn một từ",
@@ -40,23 +62,45 @@
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(thuộc phạm vi công cộng)"
   },
-
   "modes": {
-    "dual": { "tab": "Phụ đề song ngữ", "h": "Hai ngôn ngữ cùng lúc", "p": "Dòng bạn nghe được nằm ngay cạnh dòng bạn hiểu được — không cần tạm dừng, không cần đổi track." },
-    "guess": { "tab": "Đoán nghĩa", "h": "Nhấp để hiện — và luyện tai nghe", "p": "Dòng phụ đề luôn ẩn cho đến khi bạn nhấp vào. Hãy đoán bằng tai trước, rồi tự kiểm tra: khoảng cách giữa hai bước đó chính là nơi kỹ năng nghe của bạn tiến bộ." },
-    "single": { "tab": "Trên màn hình", "h": "Trên video, hoặc ở thanh bên — tùy bạn chọn", "p": "Giữ cả hai dòng ngay trên phim, nơi mắt bạn đã quen nhìn. Hoặc tắt chúng chỉ bằng một nút và đọc từ bảng bên, theo nhịp độ riêng của bạn. Phụ đề không bao giờ biến mất — chúng chỉ đổi chỗ." },
-    "save": { "tab": "Từ điển", "h": "Giữ lại mọi từ bạn gặp", "p": "Chọn một từ — chỉ một cú nhấp là lưu nó cùng câu chứa nó, thẳng vào từ điển của bạn trên lingogram.ai." }
+    "dual": {
+      "tab": "Phụ đề song ngữ",
+      "h": "Hai ngôn ngữ cùng lúc",
+      "p": "Dòng bạn nghe được nằm ngay cạnh dòng bạn hiểu được — không cần tạm dừng, không cần đổi track."
+    },
+    "guess": {
+      "tab": "Đoán nghĩa",
+      "h": "Nhấp để hiện — và luyện tai nghe",
+      "p": "Dòng phụ đề luôn ẩn cho đến khi bạn nhấp vào. Hãy đoán bằng tai trước, rồi tự kiểm tra: khoảng cách giữa hai bước đó chính là nơi kỹ năng nghe của bạn tiến bộ."
+    },
+    "single": {
+      "tab": "Trên màn hình",
+      "h": "Trên video, hoặc ở thanh bên — tùy bạn chọn",
+      "p": "Giữ cả hai dòng ngay trên phim, nơi mắt bạn đã quen nhìn. Hoặc tắt chúng chỉ bằng một nút và đọc từ bảng bên, theo nhịp độ riêng của bạn. Phụ đề không bao giờ biến mất — chúng chỉ đổi chỗ."
+    },
+    "save": {
+      "tab": "Từ điển",
+      "h": "Giữ lại mọi từ bạn gặp",
+      "p": "Chọn một từ — chỉ một cú nhấp là lưu nó cùng câu chứa nó, thẳng vào từ điển của bạn trên lingogram.ai."
+    }
+  },
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
   },
 
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsCard": {
+    "yt": "Bổ sung track thứ hai còn thiếu bằng bản dịch tự động của YouTube.",
+    "nf": "Track phụ đề gốc, không dùng dịch máy.",
+    "hd": "Track song ngữ khi một tựa phim có sẵn chúng."
+  },
   "home": {
     "eyebrow": "Miễn phí · YouTube · Netflix · HDrezka",
     "h1Lead": "Bạn đã từng xem phim với phụ đề.",
     "h1Pop": "Lần này bạn sẽ thu được nhiều hơn thế.",
     "ctaPrimary": "Thêm vào Chrome — miễn phí",
     "ctaSecondary": "Chọn phiên bản cho trang web của bạn ↓",
-
     "platformsKicker": "Phiên bản",
     "platformsH2": "Một Lingogram, tinh chỉnh riêng cho trang bạn xem",
     "platformsLede": "Mỗi phiên bản được xây dựng riêng cho trình phát của trang đó — track phụ đề gốc, lớp phủ toàn màn hình, những bản sửa lỗi mà trang đó cần. Chúng dùng chung công cụ học tập và chung tài khoản, nên từ đã lưu luôn nằm ở một nơi dù bạn dùng phiên bản nào. Hai tiện ích mở rộng bao phủ cả ba trang: bản dành cho YouTube cũng xử lý luôn Netflix.",
@@ -64,7 +108,6 @@
     "editionSoonTitle": "Trang web của bạn sẽ là tiếp theo",
     "editionSoonBody": "Các phiên bản chuyên biệt mới ra mắt đều đặn — hãy cho chúng tôi biết bạn xem ở đâu.",
     "editionSoonCta": "Đề xuất trang web →",
-
     "howKicker": "Cách hoạt động",
     "howH2": "Từ lúc cài đặt đến từ đầu tiên được lưu — chỉ trong một video",
     "step1T": "Cài đặt và chọn ngôn ngữ",
@@ -73,49 +116,72 @@
     "step2D": "Nhấn play — cả hai ngôn ngữ xuất hiện cùng lúc, trên video và trong bản chép lời cuộn theo từng cảnh.",
     "step3T": "Lưu từ, ôn tập ngay tại đây",
     "step3D": "Lưu một từ chỉ với một cú chạm trong khi xem — sau đó mở từ điển của bạn trên lingogram.ai và ôn lại cùng cảnh phim mà từ đó xuất hiện.",
-
     "dictKicker": "Từ điển của bạn",
     "dictH2": "Mỗi từ bạn lưu lại xây nên một từ điển thực sự của riêng bạn",
     "dictLede": "Không phải danh sách từ tần suất cao trong sách giáo khoa — mà là những từ bạn gặp trong các cảnh phim bạn tự chọn, được lưu cùng câu thoại chứa chúng. Dù bạn xem bằng phiên bản nào, mọi thứ đều dồn về một tài khoản, chờ sẵn ở đây khi bạn đăng nhập.",
     "dictMyWords": "Từ của tôi",
     "dictCount": "Đã lưu 247 · 12 từ tuần này",
-    "dictWord1": "reluctantly", "dictTr1": "miễn cưỡng", "dictCtx1": "\"Anh ta {w} đồng ý lái xe tẩu thoát.\"",
-    "dictWord2": "getaway", "dictTr2": "cuộc tẩu thoát", "dictCtx2": "\"Đây không phải một vụ cướp, đây là một {w}.\"",
-    "dictWord3": "spinning its wheels", "dictTr3": "quay tít mà không tiến", "dictCtx3": "\"Nó {w} ở số sáu rồi!\"",
+    "dictWord1": "reluctantly",
+    "dictTr1": "miễn cưỡng",
+    "dictCtx1": "\"He {w} agreed to drive the getaway car.\"",
+    "dictWord2": "getaway",
+    "dictTr2": "cuộc tẩu thoát",
+    "dictCtx2": "\"This isn't a heist, it's a {w}.\"",
+    "dictWord3": "spinning its wheels",
+    "dictTr3": "quay tít mà không tiến",
+    "dictCtx3": "\"It's {w} in sixth gear!\"",
     "dictFoot": "Từ của bạn đồng bộ trên mọi thiết bị và mọi phiên bản Lingogram — {b}.",
     "dictFootBold": "một tài khoản, một từ điển",
-
     "featKicker": "Vì sao từ vựng ghi nhớ lâu",
     "featH2": "Hầu hết công cụ chỉ dừng ở việc dịch. Lingogram giúp từ vựng thực sự đọng lại.",
     "featLede": "Lingogram được xây dựng xoay quanh khả năng gợi nhớ chủ động: bạn không chỉ đọc theo — bạn đoán nghĩa, xem lại và thu thập từ vựng, để những giờ bạn vẫn dành ra để xem phim biến thành tiến bộ thực sự.",
-    "feat1Tag": "Phụ đề song ngữ", "feat1H": "Hai ngôn ngữ, một màn hình", "feat1P": "Bắt trọn từng câu ở ngôn ngữ gốc và đối chiếu ngay với ngôn ngữ của bạn mà không cần dừng lại. Khi đã sẵn sàng, hãy ẩn bản dịch đi: phụ đề song ngữ giống như bánh xe tập đi, và Lingogram giúp bạn dần bỏ chúng.",
-    "feat2Tag": "Bản chép lời tương tác", "feat2H": "Xem lại một câu, không phải cả bộ phim", "feat2P": "Bản chép lời tự cuộn theo video. Nhấp vào bất kỳ dòng nào để tua lại và lặp đúng cảnh đó, cho đến khi những âm thanh bạn từng không nghe rõ trở thành những từ bạn nhận ra ngay lập tức.",
-    "feat3Tag": "Chế độ đoán nghĩa", "feat3H": "Nghe trước, kiểm tra sau", "feat3P": "Các từ ban đầu bị ẩn: nghe để bắt được câu, rồi mới hiện ra. Vòng lặp \"nghe trước\" này rèn cho bạn kỹ năng nghe thực sự đáng tin cậy — chứ không phải thói quen chỉ đọc theo phụ đề. Bật/tắt bằng {kbd}.",
-    "feat4Tag": "Từ đã lưu", "feat4H": "Vốn từ vựng của bạn, đến từ chính những bộ phim bạn xem", "feat4P": "Một cú chạm lưu lại một từ cùng với các dòng phụ đề xung quanh nó. Từ đó đi thẳng vào {link} trên lingogram.ai, nơi bạn ôn lại từng từ trong đúng cảnh phim gốc của nó.",
+    "feat1Tag": "Phụ đề song ngữ",
+    "feat1H": "Hai ngôn ngữ, một màn hình",
+    "feat1P": "Bắt trọn từng câu ở ngôn ngữ gốc và đối chiếu ngay với ngôn ngữ của bạn mà không cần dừng lại. Khi đã sẵn sàng, hãy ẩn bản dịch đi: phụ đề song ngữ giống như bánh xe tập đi, và Lingogram giúp bạn dần bỏ chúng.",
+    "feat2Tag": "Bản chép lời tương tác",
+    "feat2H": "Xem lại một câu, không phải cả bộ phim",
+    "feat2P": "Bản chép lời tự cuộn theo video. Nhấp vào bất kỳ dòng nào để tua lại và lặp đúng cảnh đó, cho đến khi những âm thanh bạn từng không nghe rõ trở thành những từ bạn nhận ra ngay lập tức.",
+    "feat3Tag": "Chế độ đoán nghĩa",
+    "feat3H": "Nghe trước, kiểm tra sau",
+    "feat3P": "Các từ ban đầu bị ẩn: nghe để bắt được câu, rồi mới hiện ra. Vòng lặp \"nghe trước\" này rèn cho bạn kỹ năng nghe thực sự đáng tin cậy — chứ không phải thói quen chỉ đọc theo phụ đề. Bật/tắt bằng {kbd}.",
+    "feat4Tag": "Từ đã lưu",
+    "feat4H": "Vốn từ vựng của bạn, đến từ chính những bộ phim bạn xem",
+    "feat4P": "Một cú chạm lưu lại một từ cùng với các dòng phụ đề xung quanh nó. Từ đó đi thẳng vào {link} trên lingogram.ai, nơi bạn ôn lại từng từ trong đúng cảnh phim gốc của nó.",
     "feat4Link": "từ điển cá nhân của bạn",
-
     "privKicker": "Riêng tư theo mặc định",
     "privH2": "Những gì bạn xem vẫn là chuyện riêng của bạn",
-    "priv1": "{b} Cài đặt ngôn ngữ và bố cục được lưu cục bộ ngay trên trình duyệt của bạn.", "priv1Bold": "Không đo từ xa, không theo dõi.",
-    "priv2": "{b} Phụ đề được xử lý ngay trên thiết bị của bạn.", "priv2Bold": "Chúng tôi không bao giờ thấy lịch sử xem của bạn.",
-    "priv3": "{b} Nếu bạn đăng nhập, chúng tôi chỉ lưu email và các từ bạn đã lưu — không gì khác, và chúng tôi không bao giờ bán chúng.", "priv3Bold": "Từ điển hoàn toàn tùy chọn.",
-    "priv4": "{b} Nếu một bản cập nhật của trang web làm hỏng thứ gì đó, chỉ một cú nhấp để báo cho chúng tôi biết và sửa nhanh.", "priv4Bold": "Được xây dựng để luôn hoạt động.",
-
+    "priv1": "{b} Cài đặt ngôn ngữ và bố cục được lưu cục bộ ngay trên trình duyệt của bạn.",
+    "priv1Bold": "Không đo từ xa, không theo dõi.",
+    "priv2": "{b} Phụ đề được xử lý ngay trên thiết bị của bạn.",
+    "priv2Bold": "Chúng tôi không bao giờ thấy lịch sử xem của bạn.",
+    "priv3": "{b} Nếu bạn đăng nhập, chúng tôi chỉ lưu email và các từ bạn đã lưu — không gì khác, và chúng tôi không bao giờ bán chúng.",
+    "priv3Bold": "Từ điển hoàn toàn tùy chọn.",
+    "priv4": "{b} Nếu một bản cập nhật của trang web làm hỏng thứ gì đó, chỉ một cú nhấp để báo cho chúng tôi biết và sửa nhanh.",
+    "priv4Bold": "Được xây dựng để luôn hoạt động.",
     "faqKicker": "Hỏi đáp",
     "faqH2": "Những câu hỏi mọi người đặt ra trước khi cài đặt",
-
     "finalH2": "Biến tập phim tối nay thành bài học ngôn ngữ của bạn",
     "finalCta": "Thêm Lingogram vào Chrome",
     "finalProof": "Miễn phí · Thiết lập trong chưa đầy một phút"
   },
-
   "faq": {
-    "free": { "q": "Có miễn phí không?", "a": "Có. Phụ đề song ngữ, bản chép lời và chế độ Đoán nghĩa đều miễn phí. Tài khoản miễn phí chỉ cần thiết nếu bạn muốn đồng bộ các từ đã lưu trên nhiều thiết bị." },
-    "languages": { "q": "Hỗ trợ những ngôn ngữ nào?", "a": "Bất kỳ cặp ngôn ngữ nào mà video có phụ đề. Trên YouTube, nếu thiếu một trong hai ngôn ngữ của bạn, Lingogram sẽ bổ sung bằng bản dịch tự động của YouTube để bạn vẫn có chế độ xem song ngữ. Trên Netflix và HDrezka, ứng dụng chỉ hiển thị đúng các track phụ đề mà tựa phim thực sự có — không có dịch máy." },
-    "edition": { "q": "Tôi nên cài phiên bản nào?", "a": "Phiên bản dành cho trang web bạn xem. Có hai tiện ích mở rộng: một bao phủ chung YouTube và Netflix, cái còn lại dành cho HDrezka. Hãy cài cả hai nếu bạn xem trên cả hai trang — chúng dùng chung công cụ học tập và chung tài khoản, nên từ đã lưu luôn ở một nơi." },
-    "words": { "q": "Các từ tôi đã lưu nằm ở đâu?", "a": "Ngay trong từ điển cá nhân của bạn, tại đây trên lingogram.ai. Đăng nhập và mọi từ bạn đã lưu sẽ ở đó cùng cảnh phim mà nó xuất hiện — bất kể bạn lưu bằng phiên bản hay thiết bị nào." }
+    "free": {
+      "q": "Có miễn phí không?",
+      "a": "Có. Phụ đề song ngữ, bản chép lời và chế độ Đoán nghĩa đều miễn phí. Tài khoản miễn phí chỉ cần thiết nếu bạn muốn đồng bộ các từ đã lưu trên nhiều thiết bị."
+    },
+    "languages": {
+      "q": "Hỗ trợ những ngôn ngữ nào?",
+      "a": "Bất kỳ cặp ngôn ngữ nào mà video có phụ đề. Trên YouTube, nếu thiếu một trong hai ngôn ngữ của bạn, Lingogram sẽ bổ sung bằng bản dịch tự động của YouTube để bạn vẫn có chế độ xem song ngữ. Trên Netflix và HDrezka, ứng dụng chỉ hiển thị đúng các track phụ đề mà tựa phim thực sự có — không có dịch máy."
+    },
+    "edition": {
+      "q": "Tôi nên cài phiên bản nào?",
+      "a": "Phiên bản dành cho trang web bạn xem. Có hai tiện ích mở rộng: một bao phủ chung YouTube và Netflix, cái còn lại dành cho HDrezka. Hãy cài cả hai nếu bạn xem trên cả hai trang — chúng dùng chung công cụ học tập và chung tài khoản, nên từ đã lưu luôn ở một nơi."
+    },
+    "words": {
+      "q": "Các từ tôi đã lưu nằm ở đâu?",
+      "a": "Ngay trong từ điển cá nhân của bạn, tại đây trên lingogram.ai. Đăng nhập và mọi từ bạn đã lưu sẽ ở đó cùng cảnh phim mà nó xuất hiện — bất kể bạn lưu bằng phiên bản hay thiết bị nào."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram cho {site}",
     "ctaPrimary": "Thêm vào Chrome — miễn phí",
@@ -127,24 +193,27 @@
     "finalCta": "Thêm {name}",
     "finalProof": "Miễn phí · Thiết lập trong chưa đầy một phút"
   },
-
   "privacy": {
     "title": "Chính sách bảo mật — Lingogram",
     "description": "Lingogram thu thập gì, dùng như thế nào, và bạn có những lựa chọn gì."
   },
-
   "welcome": {
     "title": "Chào mừng đến với Lingogram",
     "description": "Bạn đã thiết lập xong — đây là ba bước để lưu từ đầu tiên của bạn.",
     "h1": "đã được cài đặt",
     "sub": "Ba bước để có từ đầu tiên được lưu — chỉ cần một video.",
-    "step1T": "Chọn ngôn ngữ của bạn", "step1D": "Nhấp vào biểu tượng Lingogram trên thanh công cụ và chọn ngôn ngữ bạn đang học cùng ngôn ngữ của bạn.",
-    "step2T": "Mở một video có phụ đề", "step2D": "Nhấn play — cả hai ngôn ngữ xuất hiện cùng lúc, trên video và trong bản chép lời.",
-    "step3T": "Lưu từ đầu tiên của bạn", "step3D": "Bôi đen một từ trong phụ đề và chạm để lưu lại — nó sẽ vào {link}.",
+    "step1T": "Chọn ngôn ngữ của bạn",
+    "step1D": "Nhấp vào biểu tượng Lingogram trên thanh công cụ và chọn ngôn ngữ bạn đang học cùng ngôn ngữ của bạn.",
+    "step2T": "Mở một video có phụ đề",
+    "step2D": "Nhấn play — cả hai ngôn ngữ xuất hiện cùng lúc, trên video và trong bản chép lời.",
+    "step3T": "Lưu từ đầu tiên của bạn",
+    "step3D": "Bôi đen một từ trong phụ đề và chạm để lưu lại — nó sẽ vào {link}.",
     "step3Link": "từ điển của bạn",
-    "keyDual": "phụ đề song ngữ", "keySwap": "đổi ngôn ngữ", "keyGuess": "chế độ đoán nghĩa", "keyOverlay": "chế độ hiển thị trên video"
+    "keyDual": "phụ đề song ngữ",
+    "keySwap": "đổi ngôn ngữ",
+    "keyGuess": "chế độ đoán nghĩa",
+    "keyOverlay": "chế độ hiển thị trên video"
   },
-
   "uninstall": {
     "title": "Rất tiếc khi bạn rời đi — Lingogram",
     "description": "Hãy cho chúng tôi biết vì sao bạn gỡ Lingogram để chúng tôi có thể khắc phục.",
@@ -158,7 +227,6 @@
     "footMid": "— chúng sẽ chờ bạn nếu bạn quay lại.",
     "reinstall": "Cài lại bất cứ lúc nào."
   },
-
   "auth": {
     "or": "hoặc",
     "showPassword": "Hiện mật khẩu",
@@ -168,32 +236,44 @@
       "title": "Tạo tài khoản của bạn — Lingogram",
       "description": "Đăng ký để đồng bộ các từ đã lưu trên mọi thiết bị và phiên bản.",
       "eyebrow": "Tài khoản miễn phí",
-      "h1Lead": "Bắt đầu", "h1Pop": "danh sách từ của bạn",
+      "h1Lead": "Bắt đầu",
+      "h1Pop": "danh sách từ của bạn",
       "sub": "Lưu từ từ bất cứ thứ gì bạn xem — đồng bộ trên mọi thiết bị và phiên bản.",
       "googleCta": "Đăng ký bằng Google",
-      "nameLabel": "Tên của bạn", "namePlaceholder": "Lan",
-      "emailLabel": "Email", "emailPlaceholder": "lan@example.com",
-      "passwordLabel": "Mật khẩu", "passwordPlaceholder": "Ít nhất 8 ký tự",
-      "submit": "Tạo tài khoản", "submitBusy": "Đang tạo tài khoản…",
-      "altPrefix": "Đã có tài khoản?", "altLink": "Đăng nhập",
-      "finePrefix": "Khi tiếp tục, bạn đồng ý với", "fineLink": "Chính sách bảo mật của chúng tôi"
+      "nameLabel": "Tên của bạn",
+      "namePlaceholder": "Lan",
+      "emailLabel": "Email",
+      "emailPlaceholder": "lan@example.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Ít nhất 8 ký tự",
+      "submit": "Tạo tài khoản",
+      "submitBusy": "Đang tạo tài khoản…",
+      "altPrefix": "Đã có tài khoản?",
+      "altLink": "Đăng nhập",
+      "finePrefix": "Khi tiếp tục, bạn đồng ý với",
+      "fineLink": "Chính sách bảo mật của chúng tôi"
     },
     "login": {
       "title": "Đăng nhập — Lingogram",
       "description": "Đăng nhập vào từ điển Lingogram của bạn.",
       "eyebrow": "Chào mừng trở lại",
-      "h1Lead": "Từ điển", "h1Pop": "của bạn", "h1Tail": "đang chờ",
+      "h1Lead": "Từ điển",
+      "h1Pop": "của bạn",
+      "h1Tail": "đang chờ",
       "sub": "Đăng nhập để tiếp tục đúng chỗ bạn đã dừng lại.",
       "googleCta": "Đăng nhập bằng Google",
-      "emailLabel": "Email", "emailPlaceholder": "lan@example.com",
-      "passwordLabel": "Mật khẩu", "passwordPlaceholder": "Mật khẩu của bạn",
+      "emailLabel": "Email",
+      "emailPlaceholder": "lan@example.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Mật khẩu của bạn",
       "forgot": "Quên mật khẩu?",
       "resetNote": "Kiểm tra hộp thư của bạn — liên kết đặt lại mật khẩu đang được gửi tới.",
-      "submit": "Đăng nhập", "submitBusy": "Đang đăng nhập…",
-      "altPrefix": "Mới biết đến Lingogram?", "altLink": "Tạo tài khoản"
+      "submit": "Đăng nhập",
+      "submitBusy": "Đang đăng nhập…",
+      "altPrefix": "Mới biết đến Lingogram?",
+      "altLink": "Tạo tài khoản"
     }
   },
-
   "notFound": {
     "title": "Không tìm thấy trang — Lingogram",
     "description": "Trang này không tồn tại.",

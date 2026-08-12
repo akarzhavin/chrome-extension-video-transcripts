@@ -30,6 +30,21 @@ const esc = (s) => String(s)
 
 const href = (url) => url || '#';
 
+// Joins pre-rendered HTML fragments with a single space, skipping empty ones
+// so a locale can leave a fragment blank (e.g. Hebrew's auth headline, which
+// has no natural word to put in the lead slot) without leaving a stray space
+// or an orphaned prefix letter in the output.
+const joinFrags = (...frags) => frags.filter((f) => f !== '').join(' ');
+
+// Emits one data-count-<category> attribute per CLDR plural category a
+// locale's `languages.count` object declares (one/few/many/other, etc. —
+// see Intl.PluralRules; a language only defines the categories it actually
+// grammaticalizes). `other` is mandatory: main.js falls back to it client-side
+// when Intl.PluralRules.select() returns a category this locale didn't need
+// to declare (e.g. English has no "few", so English only ships "other").
+const countAttrs = (count) => Object.entries(count)
+  .map(([cat, str]) => ` data-count-${cat}="${esc(str)}"`).join('');
+
 // ---------------------------------------------------------------- i18n
 //
 // UI copy lives in src/data/i18n/<lang>.json (checked-in, not editions.json —
@@ -118,20 +133,35 @@ const header = (t, root, here) => `
     <span class="logo-name">Lingogram</span>
   </a>
   <nav class="top">${navLinks(t, root)}</nav>
-  <!-- Switches the LOCALE: a full navigation to the equivalent /<lang>/ page
-       (see src/demo/index.ts wireLangSwitch), which also repaints the demo's
-       language pair — the live demo's second track, the phone films, the
-       miniatures' sample line all key off the same page locale. Filled and
-       unhidden by demo.js so pages without the demo (auth) never show an
-       empty control. The visible pill is .lang-face (full autonym on
-       desktop, bare code on phones, where the header has no room for
-       "Português"); the real <select> lies transparent on top so a tap still
-       opens the platform's own picker — the right UI for a 42-item list on a
-       touch screen. -->
+  <!-- Switches the LOCALE: a full navigation to the equivalent /<lang>/ page,
+       which also repaints the demo's language pair — the live demo's second
+       track, the phone films, the miniatures' sample line all key off the
+       same page locale.
+
+       TWO controls, one shown at a time by CSS (see the 760px block in
+       site.css). Desktop gets a searchable popover, filled by demo.js
+       (wireLangSwitch in src/demo/index.ts) and hidden until it is — a
+       42-item list wants a filter, and a mouse makes typing natural. Narrow
+       viewports get a plain LINK to /languages/ instead: the popover's names
+       ran off the edge of a phone header, and a page has the room the panel
+       never had. The link is server-rendered, so it also covers the auth
+       pages, which never load demo.js. -->
   <span class="lang-wrap" hidden>
-    <span class="lang-face" aria-hidden="true"><span class="lf-name"></span><span class="lf-code"></span></span>
-    <select id="lang-switch" aria-label="Site language"></select>
+    <button type="button" class="lang-face" id="lang-switch-btn" aria-haspopup="listbox" aria-expanded="false">
+      <span class="lf-name"></span>
+      <svg class="lf-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="lang-panel" id="lang-panel">
+      <div class="lang-search-row">
+        <input type="text" class="lang-search" id="lang-search" placeholder="${esc(t('nav.searchLanguage'))}" autocomplete="off" aria-label="${esc(t('nav.searchLanguage'))}">
+      </div>
+      <div class="lang-list" id="lang-list" role="listbox" data-suggested="${esc(t('nav.suggested'))}" data-all="${esc(t('nav.allLanguages'))}" data-empty="${esc(t('nav.noLanguageMatch'))}"></div>
+    </div>
   </span>
+  <a class="lang-link" href="${root}/languages/" aria-label="${esc(t('nav.language'))}">
+    <svg class="lang-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg>
+    <span>${esc(t('meta.htmlLang')).toUpperCase()}</span>
+  </a>
   ${here === 'login' ? '' : `<a class="btn btn-ghost btn-login" href="${root}/login/">${esc(t('nav.logIn'))}</a>`}
   ${here === 'register' ? '' : `<a class="btn btn-primary btn-login" href="${root}/register/">${esc(t('nav.signUp'))}</a>`}
   <details class="mnav">
@@ -370,6 +400,13 @@ const globalFaq = (t) => ['free', 'languages', 'edition', 'words'].map((k) => ({
   q: t(`faq.${k}.q`), a: t(`faq.${k}.a`),
 }));
 
+// Right-to-left locales. Without dir="rtl" the browser still SHAPES the text
+// correctly (Unicode bidi handles each run) but lays the BLOCK out
+// left-to-right: headings and nav sit against the wrong margin and a
+// sentence's final period lands at the far left. Keyed by htmlLang, the
+// value that actually reaches the <html> tag.
+const RTL_LANGS = new Set(['ar', 'he', 'fa']);
+
 // `scripts` overrides the default page scripts (main.js + demo.js). The auth
 // pages pass their own set so they don't pull the demo bundle. `extraHead`
 // injects extra <head> markup (auth pages set window.LINGOGRAM_APP_URL).
@@ -378,7 +415,7 @@ const globalFaq = (t) => ['free', 'languages', 'edition', 'words'].map((k) => ({
 // engines these paths are translations of one another rather than duplicate
 // content, and to default unmatched visitors to English.
 const layout = ({ lang, htmlLang, title, description, pathName, body, scripts, extraHead, hrefLang }) => `<!doctype html>
-<html lang="${htmlLang}">
+<html lang="${htmlLang}"${RTL_LANGS.has(htmlLang) ? ' dir="rtl"' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -406,12 +443,14 @@ ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
 // to the /<slug>/ landing pages. Netflix and YouTube share one listing (the
 // YouTube extension matches netflix.com too), so both cards resolve to the
 // same URL — which is correct, not a bug: either card installs what its site
-// needs. Edition name/card copy (editions.json) is English-only for now —
-// see the i18n rollout note at the top of this file.
+// needs. Edition name (editions.json) is English-only for now — see the i18n
+// rollout note at the top of this file. The one-line card blurb is
+// localized (i18n editionsCard.<mark>): it renders on every locale's home
+// page, unlike the full /<slug>/ landing pages which stay English.
 const editionCards = (t) => EDITIONS.editions.map((ed) => `
   <a class="ed" href="${href(ed.storeUrl)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
     ${mark(ed.mark)}
-    <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(ed.card)}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
+    <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(t(`editionsCard.${ed.mark}`))}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
   </a>`).join('') + `
   <a class="ed ed-soon" href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent('Site suggestion for Lingogram')}">
     <span class="mark" aria-hidden="true">＋</span>
@@ -645,6 +684,99 @@ const privacyPage = (locale, hrefLang) => {
   });
 };
 
+// ------------------------------------------------------------- /languages/
+//
+// The full picker as a PAGE, for phones and tablets: the header's popover
+// (see wireLangSwitch in src/demo/index.ts) is a desktop control — 42 names
+// never fit a panel hung off a pill in a 375px header. Narrow viewports get
+// a link here instead, where the list has the whole screen.
+//
+// Region groups, not one alphabetical run of 42: someone hunting for Polish
+// scans a block of fifteen, not the whole list. Sorted by autonym at render
+// time so it collates in the READING locale.
+const LANGUAGE_REGIONS = [
+  { key: 'westEurope', codes: ['en', 'de', 'fr', 'es', 'pt', 'it', 'nl', 'sv', 'no', 'da', 'fi'] },
+  { key: 'eastEurope', codes: ['pl', 'cs', 'sk', 'hu', 'ro', 'bg', 'hr', 'sl', 'sr', 'uk', 'ru', 'lt', 'lv', 'et', 'el'] },
+  { key: 'asia', codes: ['zh', 'ja', 'ko', 'hi', 'bn', 'ta', 'te', 'th', 'vi', 'id', 'ms', 'fil'] },
+  { key: 'middleEast', codes: ['ar', 'he', 'fa', 'tr'] },
+];
+
+// English names for the gloss beside each autonym ("Deutsch — German"), so a
+// visitor who cannot read a script can still find their language, and so
+// search matches "german" as readily as "deutsch". Deliberately NOT in i18n/:
+// one fixed English table, not per-locale copy, and the key-parity check
+// would otherwise demand all 42 locales carry a copy of it.
+const ENGLISH_NAMES = JSON.parse(
+  fs.readFileSync(path.join(SRC, 'data', 'language-names.json'), 'utf8'),
+);
+
+const languagesPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+
+  // Every locale must sit in exactly one region — an unplaced one would be
+  // silently unreachable from this page.
+  const placed = LANGUAGE_REGIONS.flatMap((r) => r.codes);
+  const missing = LOCALES.map((l) => l.code).filter((c) => !placed.includes(c));
+  const unknown = placed.filter((c) => !LOCALES.some((l) => l.code === c));
+  if (missing.length || unknown.length) {
+    throw new Error(
+      'LANGUAGE_REGIONS is out of sync with i18n/' +
+      (missing.length ? `\n  unplaced locales: ${missing.join(', ')}` : '') +
+      (unknown.length ? `\n  regions name locales that do not exist: ${unknown.join(', ')}` : ''),
+    );
+  }
+
+  const collator = new Intl.Collator(strings.meta.htmlLang);
+  const entryFor = (code) => {
+    const target = LOCALES.find((l) => l.code === code);
+    const name = target.strings.meta.name;
+    const gloss = ENGLISH_NAMES[code];
+    const showGloss = gloss && gloss.toLowerCase() !== name.toLowerCase();
+    const to = code === 'en' ? '/' : `/${code}/`;
+    // data-search carries everything the filter matches on — autonym,
+    // English name, code — so main.js needs no locale table of its own.
+    const haystack = `${name} ${gloss || ''} ${code}`.toLowerCase();
+    return `<a class="lang-entry${code === lang ? ' is-current' : ''}" href="${to}" lang="${target.strings.meta.htmlLang}"${code === lang ? ' aria-current="true"' : ''} data-search="${esc(haystack)}">
+      <span class="le-name">${esc(name)}</span>${showGloss ? `<span class="le-en" lang="en">${esc(gloss)}</span>` : ''}
+    </a>`;
+  };
+
+  const regions = LANGUAGE_REGIONS.map((region) => {
+    const sorted = [...region.codes].sort((a, b) => collator.compare(
+      LOCALES.find((l) => l.code === a).strings.meta.name,
+      LOCALES.find((l) => l.code === b).strings.meta.name,
+    ));
+    return `<section class="lang-region" data-region>
+      <h2>${esc(t(`languages.region.${region.key}`))}</h2>
+      <div class="lang-grid">${sorted.map(entryFor).join('')}</div>
+    </section>`;
+  }).join('');
+
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('languages.title'),
+    description: t('languages.description'),
+    pathName: `${root}/languages/`,
+    body: `
+${header(t, root)}
+<main class="wrap lang-page">
+  <div class="lang-head">
+    <h1>${esc(t('languages.h1'))}</h1>
+    <p class="sub">${t('languages.lede', { n: LOCALES.length.toLocaleString(strings.meta.htmlLang) })}</p>
+  </div>
+  <p class="lang-current-row">${t('languages.reading', { lang: `<b>${esc(strings.meta.name)}</b>` })}</p>
+  <!-- main.js injects the search field here: with JS off the grouped list
+       below is fully usable, and no dead input is left promising a filter
+       that cannot run. -->
+  <div id="lang-search-host" data-search-label="${esc(t('languages.searchPlaceholder'))}" data-clear-label="${esc(t('languages.clearSearch'))}" data-empty="${esc(t('languages.noMatch'))}" data-empty-hint="${esc(t('languages.noMatchHint'))}"${countAttrs(strings.languages.count)}></div>
+  <div id="lang-regions">${regions}</div>
+</main>
+${footer(t, root)}`,
+  });
+};
+
 const editionsMap = JSON.stringify(
   Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e.name])),
 );
@@ -793,7 +925,7 @@ const registerPage = (locale, hrefLang) => {
     pathName: `${root}/register/`,
     scripts: authScripts,
     body: authShell(t, root, t('auth.register.eyebrow'), `
-    <h1 class="auth-title">${esc(t('auth.register.h1Lead'))} <span class="pop">${esc(t('auth.register.h1Pop'))}</span></h1>
+    <h1 class="auth-title">${joinFrags(esc(t('auth.register.h1Lead')), `<span class="pop">${esc(t('auth.register.h1Pop'))}</span>`)}</h1>
     <p class="auth-sub">${esc(t('auth.register.sub'))}</p>
     <form id="register-form" class="auth-form" novalidate>
       ${googleAuth(t('auth.register.googleCta'))}
@@ -819,7 +951,7 @@ const loginPage = (locale, hrefLang) => {
     pathName: `${root}/login/`,
     scripts: authScripts,
     body: authShell(t, root, t('auth.login.eyebrow'), `
-    <h1 class="auth-title">${esc(t('auth.login.h1Lead'))} <span class="pop">${esc(t('auth.login.h1Pop'))}</span> ${esc(t('auth.login.h1Tail'))}</h1>
+    <h1 class="auth-title">${joinFrags(esc(t('auth.login.h1Lead')), `<span class="pop">${esc(t('auth.login.h1Pop'))}</span>`, esc(t('auth.login.h1Tail')))}</h1>
     <p class="auth-sub">${esc(t('auth.login.sub'))}</p>
     <form id="login-form" class="auth-form" novalidate>
       ${googleAuth(t('auth.login.googleCta'))}
@@ -887,6 +1019,7 @@ function build() {
   const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
   const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
   const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
+  const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
   const loginHrefLang = hrefLangFor((c) => (c === 'en' ? '/login/' : `/${c}/login/`));
   const registerHrefLang = hrefLangFor((c) => (c === 'en' ? '/register/' : `/${c}/register/`));
 
@@ -896,6 +1029,7 @@ function build() {
     write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
     write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
     write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
+    write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));
     write(path.join(root, 'login', 'index.html'), loginPage(locale, loginHrefLang));
     write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
     write(path.join(root, '404.html'), notFoundPage(locale));

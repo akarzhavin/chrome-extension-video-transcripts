@@ -4,18 +4,42 @@
   "nav": {
     "editions": "Edições",
     "how": "Como funciona",
-    "dictionary": "O seu dicionário",
-    "faq": "Perguntas frequentes",
+    "dictionary": "As minhas palavras",
+    "faq": "FAQ",
     "logIn": "Iniciar sessão",
     "signUp": "Criar conta",
-    "menu": "Menu"
+    "menu": "Menu",
+    "language": "Idioma",
+    "searchLanguage": "Pesquisar idioma…",
+    "suggested": "Sugeridos",
+    "allLanguages": "Todos os idiomas",
+    "noLanguageMatch": "Nenhum idioma corresponde"
+  },
+
+  "languages": {
+    "title": "Idiomas — Lingogram",
+    "description": "O site do Lingogram em 42 idiomas — escolha aquele em que lê.",
+    "h1": "Leia o Lingogram no seu idioma",
+    "lede": "Todo o site está traduzido para {n} idiomas. Escolha o seu — cada página que está a ler agora tem uma versão nele.",
+    "reading": "Está a ler em {lang}.",
+    "searchPlaceholder": "Pesquisar idiomas…",
+    "clearSearch": "Limpar pesquisa",
+    "noMatch": "Nenhum idioma corresponde",
+    "noMatchHint": "Tente o nome em inglês ou o código de duas letras.",
+    "count": { "one": "1 idioma", "other": "{n} idiomas" },
+    "region": {
+      "westEurope": "Europa Ocidental e do Norte",
+      "eastEurope": "Europa Central e de Leste",
+      "asia": "Ásia",
+      "middleEast": "Médio Oriente"
+    }
   },
 
   "footer": {
     "tagline": "Aprenda idiomas com aquilo que vê.",
     "product": "Produto",
     "allEditions": "Todas as edições",
-    "yourDictionary": "O seu dicionário",
+    "yourDictionary": "As minhas palavras",
     "howItWorks": "Como funciona",
     "help": "Ajuda",
     "faq": "Perguntas frequentes",
@@ -33,7 +57,7 @@
   },
 
   "demo": {
-    "hintPrefix": "Esta é a própria extensão, a funcionar aqui —",
+    "hintPrefix": "Esta demonstração é a própria extensão, real, a funcionar aqui nesta página —",
     "hintBold": "selecione uma palavra",
     "hintSuffix": "para a guardar, ou experimente um modo abaixo.",
     "credit": "Vídeo: NASA —",
@@ -43,25 +67,31 @@
 
   "modes": {
     "dual": { "tab": "Legendas duplas", "h": "Os dois idiomas, ao mesmo tempo", "p": "A linha que ouve ao lado da linha que entende — sem pausar, sem trocar de faixa." },
-    "guess": { "tab": "Adivinhar", "h": "Clique para revelar — e treine o ouvido", "p": "A linha fica oculta até você clicar nela. Adivinhe primeiro pelo som, depois confirme: é exatamente nessa diferença que a sua compreensão auditiva melhora." },
+    "guess": { "tab": "Modo Adivinhar", "h": "Clique para revelar — e treine o ouvido", "p": "A linha fica oculta até você clicar nela. Adivinhe primeiro pelo som, depois confirme: é exatamente nessa diferença que a sua compreensão auditiva melhora." },
     "single": { "tab": "Sobre o vídeo", "h": "Sobre o vídeo, ou no painel lateral — à sua escolha", "p": "Mantenha as duas linhas sobre o filme, onde os seus olhos já estão. Ou retire-as com um botão e leia antes no painel, ao seu próprio ritmo. As legendas nunca desaparecem — apenas mudam de lugar." },
-    "save": { "tab": "Dicionário", "h": "Guarde cada palavra nova", "p": "Selecione uma palavra — um toque guarda-a com a frase de onde veio, diretamente no seu dicionário em lingogram.ai." }
+    "save": { "tab": "As minhas palavras", "h": "Guarde cada palavra nova", "p": "Selecione uma palavra — um toque guarda-a com a frase de onde veio, diretamente aqui, no seu dicionário em lingogram.ai." }
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Preenche a faixa em falta com a tradução automática do YouTube.",
+    "nf": "Faixas de legendas originais, sem tradução automática.",
+    "hd": "Faixas duplas quando o título as tem."
+  },
 
   "home": {
     "eyebrow": "Grátis · YouTube · Netflix · HDrezka",
     "h1Lead": "Já viu conteúdo com legendas antes.",
     "h1Pop": "Desta vez vai aproveitar muito mais.",
     "ctaPrimary": "Adicionar ao Chrome — é grátis",
-    "ctaSecondary": "Escolha a edição para o seu site ↓",
+    "ctaSecondary": "Escolha a edição para o site onde assiste ↓",
 
     "platformsKicker": "Edições",
     "platformsH2": "Um só Lingogram, ajustado ao site onde você assiste",
-    "platformsLede": "Cada edição é construída para o leitor do respetivo site — faixas de legendas nativas, sobreposição em ecrã inteiro, os ajustes que esse site precisa. Todas partilham as mesmas ferramentas de aprendizagem e a mesma conta, por isso as suas palavras guardadas ficam sempre num único lugar, seja qual for a edição que use. Duas extensões cobrem os três sites: a do YouTube trata também do Netflix.",
+    "platformsLede": "Cada edição é uma extensão do Chrome separada, construída para o leitor de um único site — faixas de legendas nativas, uma sobreposição de legendas sobre o vídeo em ecrã inteiro, os ajustes que esse site precisa. Todas partilham as mesmas ferramentas de aprendizagem e a mesma conta, por isso as suas palavras guardadas ficam sempre num único lugar, seja qual for a edição que use. Duas extensões cobrem os três sites: a do YouTube trata também do Netflix.",
     "editionGo": "Adicionar ao Chrome →",
-    "editionSoonTitle": "O seu site pode ser o próximo",
+    "editionSoonTitle": "Assiste noutro sítio?",
     "editionSoonBody": "Novas edições dedicadas surgem regularmente — diga-nos onde assiste.",
     "editionSoonCta": "Sugerir um site →",
 
@@ -71,24 +101,24 @@
     "step1D": "Escolha o idioma que está a aprender e o seu próprio idioma. Uma configuração rápida e única — sem necessidade de conta.",
     "step2T": "Abra qualquer vídeo com legendas",
     "step2D": "Carregue em play — os dois idiomas aparecem juntos, sobre o vídeo e numa transcrição que acompanha a cena.",
-    "step3T": "Guarde palavras, reveja-as aqui",
-    "step3D": "Guarde uma palavra com um toque enquanto assiste — depois abra o seu dicionário em lingogram.ai e reveja-a com a cena de onde veio.",
+    "step3T": "Guarde palavras, reveja-as neste site",
+    "step3D": "Guarde uma palavra com um toque enquanto assiste — depois abra o seu dicionário neste site e reveja-a com a cena de onde veio.",
 
     "dictKicker": "O seu dicionário",
     "dictH2": "Cada palavra guardada constrói um dicionário que é verdadeiramente seu",
-    "dictLede": "Não é uma lista de frequência de um manual — são palavras que encontrou em cenas que escolheu, guardadas com as frases de onde vieram. Seja qual for a edição que usa, tudo fica numa única conta, à sua espera aqui depois de iniciar sessão.",
+    "dictLede": "Não é uma lista de frequência de um manual — são palavras que encontrou em cenas que escolheu, guardadas com as frases de onde vieram. Seja qual for a edição que usa, tudo fica numa única conta, à sua espera neste site depois de iniciar sessão.",
     "dictMyWords": "As minhas palavras",
     "dictCount": "247 guardadas · 12 esta semana",
     "dictWord1": "reluctantly", "dictTr1": "relutantemente", "dictCtx1": "“He {w} agreed to drive the getaway car.”",
     "dictWord2": "getaway", "dictTr2": "fuga", "dictCtx2": "“This isn't a heist, it's a {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "a patinar", "dictCtx3": "“It's {w} in sixth gear!”",
+    "dictWord3": "a ficar sem gasolina", "dictTr3": "quase sem combustível", "dictCtx3": "“Estamos {w} desde a última bomba de gasolina.”",
     "dictFoot": "As suas palavras sincronizam entre dispositivos e todas as edições do Lingogram — {b}.",
     "dictFootBold": "uma conta, um dicionário",
 
     "featKicker": "Porque fica na memória",
     "featH2": "A maioria das ferramentas para na tradução. O Lingogram faz as palavras ficarem.",
-    "featLede": "O Lingogram é construído em torno da recordação ativa: você não se limita a ler junto — adivinha, repete e coleciona, para que as horas que já passa a assistir se tornem progresso real.",
-    "feat1Tag": "Legendas duplas", "feat1H": "Dois idiomas, um ecrã", "feat1P": "Apanhe cada linha no original e associe-a de imediato ao seu idioma, sem pausar. Quando estiver pronto, oculte a tradução: as legendas duplas são as rodinhas de apoio, e o Lingogram ajuda a tirá-las.",
+    "featLede": "O Lingogram assenta na recordação ativa: você não se limita a ler junto — adivinha, repete e coleciona, para que as horas que já passa a assistir se tornem progresso real.",
+    "feat1Tag": "Legendas duplas", "feat1H": "Dois idiomas, um ecrã", "feat1P": "Apanhe cada linha no original e associe-a de imediato ao seu idioma, sem pausar. Quando estiver pronto, oculte a tradução: as legendas duplas são um ponto de partida, e o Lingogram ajuda-o a passar a dispensá-las.",
     "feat2Tag": "Transcrição interativa", "feat2H": "Repita a linha, não o filme inteiro", "feat2P": "A transcrição acompanha o vídeo sozinha. Clique em qualquer linha para voltar atrás e repetir em loop exatamente essa cena, até os sons que não conseguia distinguir se tornarem palavras que reconhece de imediato.",
     "feat3Tag": "Modo Adivinhar", "feat3H": "Ouça primeiro, depois confirme", "feat3P": "As palavras começam ocultas: apanhe a linha pelo ouvido e só depois a revele. Este ciclo de ouvir primeiro constrói uma compreensão auditiva em que pode confiar — não legendas que apenas acompanha com os olhos. Ative com {kbd}.",
     "feat4Tag": "Palavras guardadas", "feat4H": "O seu vocabulário, vindo dos seus filmes", "feat4P": "Um toque guarda uma palavra com as linhas de legenda à sua volta. Vai diretamente para {link} em lingogram.ai, onde revê cada palavra na sua cena original.",
@@ -99,7 +129,7 @@
     "priv1": "{b} As definições de idioma e de esquema ficam guardadas localmente no seu navegador.", "priv1Bold": "Sem telemetria, sem rastreamento.",
     "priv2": "{b} As legendas são processadas diretamente no seu dispositivo.", "priv2Bold": "Nunca vemos o seu histórico de visualização.",
     "priv3": "{b} Se iniciar sessão, guardamos o seu email e as suas palavras guardadas — nada mais, e nunca os vendemos.", "priv3Bold": "O dicionário é opcional.",
-    "priv4": "{b} Se uma atualização de um site quebrar algo, um clique reporta-o para podermos corrigi-lo depressa.", "priv4Bold": "Construído para continuar a funcionar.",
+    "priv4": "{b} Se uma atualização de um site quebrar algo, um clique reporta-o para podermos corrigi-lo depressa.", "priv4Bold": "Corrigimos rapidamente.",
 
     "faqKicker": "Perguntas frequentes",
     "faqH2": "Perguntas que as pessoas fazem antes de instalar",
@@ -113,7 +143,7 @@
     "free": { "q": "É gratuito?", "a": "Sim. As legendas duplas, a transcrição e o modo Adivinhar são gratuitos. Só precisa de uma conta gratuita se quiser sincronizar as palavras guardadas entre dispositivos." },
     "languages": { "q": "Que idiomas são suportados?", "a": "Qualquer par de idiomas para o qual o vídeo tenha legendas. No YouTube, se um dos seus dois idiomas estiver em falta, o Lingogram completa-o com a tradução automática do YouTube, para continuar a ter a vista dupla. No Netflix e no HDrezka mostra apenas as faixas de legendas que o título realmente tem — sem tradução automática." },
     "edition": { "q": "Qual edição devo instalar?", "a": "A do site onde assiste. Há duas extensões: uma cobre o YouTube e o Netflix juntos, a outra cobre o HDrezka. Instale as duas se assistir em ambos — partilham as mesmas ferramentas de aprendizagem e a mesma conta, por isso as suas palavras guardadas ficam num único lugar." },
-    "words": { "q": "Onde ficam as minhas palavras guardadas?", "a": "No seu dicionário pessoal, aqui mesmo em lingogram.ai. Inicie sessão e cada palavra que guardou está lá, com a cena de onde veio — seja qual for a edição ou o dispositivo em que a guardou." }
+    "words": { "q": "Onde são guardadas as minhas palavras guardadas?", "a": "No seu dicionário pessoal, aqui mesmo em lingogram.ai. Inicie sessão e cada palavra que guardou está lá, com a cena de onde veio — seja qual for a edição ou o dispositivo em que a guardou." }
   },
 
   "edition": {
@@ -142,7 +172,7 @@
     "step2T": "Abra um vídeo com legendas", "step2D": "Carregue em play — os dois idiomas aparecem juntos, sobre o vídeo e na transcrição.",
     "step3T": "Guarde a sua primeira palavra", "step3D": "Realce uma palavra nas legendas e toque para a guardar — ela vai para {link}.",
     "step3Link": "o seu dicionário",
-    "keyDual": "legendas duplas", "keySwap": "trocar idiomas", "keyGuess": "modo Adivinhar", "keyOverlay": "modo sobreposição"
+    "keyDual": "legendas duplas", "keySwap": "trocar idiomas", "keyGuess": "modo Adivinhar", "keyOverlay": "legendas sobre o vídeo (sobreposição)"
   },
 
   "uninstall": {
@@ -153,8 +183,8 @@
     "placeholder": "Deixou de funcionar em… / Esperava… / Encontrei uma alternativa melhor…",
     "ariaLabel": "Porque desinstalou?",
     "send": "Enviar feedback",
-    "footPrefix": "As suas palavras guardadas continuam em",
-    "footLink": "o seu dicionário",
+    "footPrefix": "As suas palavras guardadas continuam no",
+    "footLink": "seu dicionário",
     "footMid": "— vão estar à sua espera se voltar.",
     "reinstall": "Reinstale a qualquer momento."
   },

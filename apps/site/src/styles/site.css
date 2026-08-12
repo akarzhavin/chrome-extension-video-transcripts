@@ -68,7 +68,13 @@ header.site { display: flex; align-items: center; gap: 18px; padding-block: 20px
 /* The logo art supplies its own backdrop — fill the box, keep its corners. */
 .logo-mark .logo-img { width: 100%; height: 100%; border-radius: inherit; display: block; }
 nav.top { display: flex; gap: 24px; font-size: 14.5px; }
-nav.top a { color: var(--muted); text-decoration: none; font-weight: 500; }
+/* nowrap: a label that breaks mid-phrase ("Cómo / funciona") makes the whole
+   row two lines tall and reads as ragged next to the ones that still fit.
+   Failing visibly-tight beats failing silently-ragged — if a future locale
+   is too long, it shows up as a cramped header rather than a broken one.
+   The nav labels are audited for length across all 42 locales; see the
+   header note in i18n/en.json's nav block. */
+nav.top a { color: var(--muted); text-decoration: none; font-weight: 500; white-space: nowrap; }
 nav.top a:hover { color: var(--ink); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 12px; padding: 14px 24px; font-size: 16px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
 .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 10px 30px -12px var(--accent); }
@@ -76,7 +82,10 @@ nav.top a:hover { color: var(--ink); }
 .btn-primary svg { flex: none; }
 .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
 .btn-ghost:hover { border-color: var(--accent); }
-.btn-login { padding: 9px 18px; font-size: 14px; }
+/* nowrap at every width, not just the narrow breakpoints below: "Iniciar
+   sesión" was breaking in two on a 1280px desktop, which made the whole
+   header row taller than the nav beside it. */
+.btn-login { padding: 9px 18px; font-size: 14px; white-space: nowrap; }
 /* The language switcher. TWO controls, one shown at a time (see the 760px
    block near the bottom): .lang-wrap is the DESKTOP popover, filled by
    demo.js and [hidden] until it is; .lang-link is the phone/tablet link to
@@ -139,12 +148,23 @@ nav.top a:hover { color: var(--ink); }
 .lang-option.current .code { display: none; }
 .lang-empty { padding: 24px 14px; text-align: center; color: var(--muted); font-size: 13px; }
 
-/* The phone/tablet control: a link, not a panel. Hidden on desktop. */
+/* The link to /languages/. This is the control that ALWAYS works:
+   server-rendered, no script, present on the auth pages too. It is visible
+   by default at every width, and only steps aside on desktop once demo.js
+   has actually built the popover (.lang-ready on <html>, set at the end of
+   wireLangSwitch). Written this way round deliberately — hiding it with
+   plain CSS and revealing the popover with script means any failure of
+   demo.js leaves a desktop visitor with no way at all to change language,
+   which is exactly the bug this replaced. No flash in practice: demo.js is
+   `defer`, so .lang-ready lands before first paint. */
 .lang-link {
-  display: none; align-items: center; gap: 6px; flex: none;
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
   border: 1px solid var(--line); background-color: var(--panel); color: var(--ink);
   border-radius: 999px; padding: 8px 12px; text-decoration: none;
   font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap;
+}
+@media (min-width: 761px) {
+  .lang-ready .lang-link { display: none; }
 }
 .lang-link:hover { border-color: var(--accent); color: var(--accent); }
 .lang-globe { width: 14px; height: 14px; flex: none; opacity: .7; }
@@ -970,6 +990,22 @@ footer.site {
   animation: authSpin 0.7s linear infinite;
 }
 @keyframes authSpin { to { transform: rotate(360deg); } }
+/* Same indicator on the email/password submit. That button is filled, so the
+   track is drawn from the label colour rather than the page's border colour. */
+.auth-submit-spinner {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  animation: authSpin 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-submit-spinner { animation: none; }
+}
 /* Honour a reduced-motion preference: keep the state visible, drop the spin. */
 @media (prefers-reduced-motion: reduce) {
   .auth-google-spinner { animation: none; border-top-color: var(--accent); }
@@ -1091,14 +1127,14 @@ footer.site {
   .mnav-panel a:hover { background: var(--accent-soft); }
   header.site { gap: 10px; }
   .btn-login { padding: 8px 13px; font-size: 13.5px; white-space: nowrap; }
-  /* THE SWAP. The desktop popover goes; the link to /languages/ takes its
-     place. A 280px panel hung off a pill that sits ~106px from the left
-     edge put most of its width — and every language NAME, leaving only the
-     codes — off the left of a 375px screen, where nothing could scroll it
-     back. The page has the room the panel never had. `!important` beats the
-     inline `hidden` attribute demo.js clears when it fills the panel. */
+  /* THE SWAP. The desktop popover goes and the link to /languages/ (visible
+     by default — see .lang-link above) is left holding the header. A 280px
+     panel hung off a pill that sits ~106px from the left edge put most of
+     its width — and every language NAME, leaving only the codes — off the
+     left of a 375px screen, where nothing could scroll it back. The page has
+     the room the panel never had. `!important` beats the inline `hidden`
+     attribute demo.js clears when it fills the panel. */
   .lang-wrap { display: none !important; }
-  .lang-link { display: inline-flex; }
   /* Two even columns — 196px auto-fill tracks leave an orphan at this width. */
   .lang-grid { grid-template-columns: 1fr 1fr; }
   /* 44px touch target for the burger (see the coarse-pointer block above). */

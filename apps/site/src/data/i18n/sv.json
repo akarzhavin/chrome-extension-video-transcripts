@@ -4,11 +4,35 @@
   "nav": {
     "editions": "Utgåvor",
     "how": "Så fungerar det",
-    "dictionary": "Din ordbok",
+    "dictionary": "Mina ord",
     "faq": "Vanliga frågor",
     "logIn": "Logga in",
     "signUp": "Skapa konto",
-    "menu": "Meny"
+    "menu": "Meny",
+    "language": "Språk",
+    "searchLanguage": "Sök språk…",
+    "suggested": "Förslag",
+    "allLanguages": "Alla språk",
+    "noLanguageMatch": "Inget språk matchar"
+  },
+
+  "languages": {
+    "title": "Språk — Lingogram",
+    "description": "Lingogram-webbplatsen på 42 språk — välj det du läser på.",
+    "h1": "Läs Lingogram på ditt eget språk",
+    "lede": "Hela webbplatsen är översatt till {n} språk. Välj ditt — varenda sida du läser nu finns också på det.",
+    "reading": "Du läser på {lang}.",
+    "searchPlaceholder": "Sök språk …",
+    "clearSearch": "Rensa sökningen",
+    "noMatch": "Inget språk matchar",
+    "noMatchHint": "Prova det engelska namnet, eller tvåbokstavskoden.",
+    "count": { "one": "1 språk", "other": "{n} språk" },
+    "region": {
+      "westEurope": "Väst- och Nordeuropa",
+      "eastEurope": "Central- och Östeuropa",
+      "asia": "Asien",
+      "middleEast": "Mellanöstern"
+    }
   },
 
   "footer": {
@@ -49,6 +73,12 @@
   },
 
   "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
+
+  "editionsCard": {
+    "yt": "Fyller det saknade andra spåret med YouTubes automatiska översättning.",
+    "nf": "Originalspår för undertexter, ingen maskinöversättning.",
+    "hd": "Dubbla spår när en titel har dem."
+  },
 
   "home": {
     "eyebrow": "Gratis · YouTube · Netflix · HDrezka",

@@ -1,21 +1,45 @@
 {
-  "meta": { "name": "Hrvatski", "htmlLang": "hr" },
-
+  "meta": {
+    "name": "Hrvatski",
+    "htmlLang": "hr"
+  },
   "nav": {
     "editions": "Izdanja",
     "how": "Kako radi",
-    "dictionary": "Vaš rječnik",
+    "dictionary": "Moje riječi",
     "faq": "Česta pitanja",
     "logIn": "Prijava",
     "signUp": "Registracija",
-    "menu": "Izbornik"
+    "menu": "Izbornik",
+    "language": "Jezik",
+    "searchLanguage": "Traži jezik…",
+    "suggested": "Predloženo",
+    "allLanguages": "Svi jezici",
+    "noLanguageMatch": "Nijedan jezik ne odgovara"
   },
-
+  "languages": {
+    "title": "Jezici — Lingogram",
+    "description": "Lingogramova stranica na 42 jezika — odaberite onaj na kojem čitate.",
+    "h1": "Čitajte Lingogram na svom jeziku",
+    "lede": "Cijela je stranica prevedena na {n} jezika. Odaberite svoj — svaka stranica koju sada čitate ima svoju verziju i na njemu.",
+    "reading": "Trenutno čitate na jeziku {lang}.",
+    "searchPlaceholder": "Traži jezike…",
+    "clearSearch": "Obriši pretragu",
+    "noMatch": "Nijedan jezik ne odgovara",
+    "noMatchHint": "Pokušajte s engleskim nazivom ili dvoslovnom oznakom.",
+    "count": { "one": "1 jezik", "other": "Broj jezika: {n}" },
+    "region": {
+      "westEurope": "Zapadna i sjeverna Europa",
+      "eastEurope": "Srednja i istočna Europa",
+      "asia": "Azija",
+      "middleEast": "Bliski istok"
+    }
+  },
   "footer": {
     "tagline": "Učite jezik uz ono što gledate.",
     "product": "Proizvod",
     "allEditions": "Sva izdanja",
-    "yourDictionary": "Vaš rječnik",
+    "yourDictionary": "Moje riječi",
     "howItWorks": "Kako radi",
     "help": "Pomoć",
     "faq": "Česta pitanja",
@@ -25,97 +49,138 @@
     "legal": "Pravne informacije",
     "privacyPolicy": "Pravila privatnosti"
   },
-
   "proof": {
     "rating": "na Chrome Web Storeu",
     "learners": "korisnika uči",
     "free": "Besplatno, bez oglasa"
   },
-
   "demo": {
-    "hintPrefix": "Ovo je sama ekstenzija, u radu upravo ovdje —",
+    "hintPrefix": "Ovo je demo, ali prava ekstenzija — stvarno radi, upravo ovdje na ovoj stranici —",
     "hintBold": "odaberite riječ",
     "hintSuffix": "da je spremite, ili isprobajte jedan od načina rada ispod.",
     "credit": "Isječak: NASA —",
     "creditLink": "Cosmic Dawn",
     "creditSuffix": "(javno vlasništvo)"
   },
-
   "modes": {
-    "dual": { "tab": "Dvojezični titlovi", "h": "Oba jezika, odjednom", "p": "Redak koji čujete uz redak koji razumijete — bez pauziranja, bez prebacivanja zapisa." },
-    "guess": { "tab": "Pogodi", "h": "Kliknite za prikaz — i uvježbajte sluh", "p": "Redak ostaje skriven dok ga ne kliknete. Prvo pogodite na sluh, pa se provjerite: baš u toj razlici raste vaše razumijevanje govora." },
-    "single": { "tab": "Na videu", "h": "Na videu ili u bočnoj traci — vi birate", "p": "Zadržite oba retka preko filma, tamo gdje vaše oči već gledaju. Ili ih maknite jednim klikom i čitajte iz bočne trake, svojim tempom. Titlovi nikad ne nestaju — samo mijenjaju mjesto." },
-    "save": { "tab": "Rječnik", "h": "Zadržite svaku riječ na koju naiđete", "p": "Odaberite riječ — jedan dodir sprema je zajedno s rečenicom iz koje dolazi, izravno u vaš rječnik na lingogram.ai." }
+    "dual": {
+      "tab": "Dvojezični titlovi",
+      "h": "Oba jezika, odjednom",
+      "p": "Redak koji čujete uz redak koji razumijete — bez pauziranja, bez prebacivanja zapisa."
+    },
+    "guess": {
+      "tab": "Način Pogodi",
+      "h": "Kliknite za prikaz — i uvježbajte sluh",
+      "p": "Redak ostaje skriven dok ga ne kliknete. Prvo pogodite na sluh, pa se provjerite: baš u toj razlici raste vaše razumijevanje govora."
+    },
+    "single": {
+      "tab": "Na videu",
+      "h": "Na videu ili u bočnoj traci — vi birate",
+      "p": "Zadržite oba retka preko filma, tamo gdje vaše oči već gledaju. Ili ih maknite jednim klikom i čitajte iz bočne trake, svojim tempom. Titlovi nikad ne nestaju — samo mijenjaju mjesto."
+    },
+    "save": {
+      "tab": "Moje riječi",
+      "h": "Zadržite svaku riječ na koju naiđete",
+      "p": "Odaberite riječ — jedan dodir sprema je zajedno s rečenicom iz koje dolazi, izravno u vaš rječnik ovdje na lingogram.ai."
+    }
   },
-
-  "editionsMap": { "yt": "YouTube", "nf": "Netflix", "hd": "HDrezka" },
-
+  "editionsMap": {
+    "yt": "YouTube",
+    "nf": "Netflix",
+    "hd": "HDrezka"
+  },
+  "editionsCard": {
+    "yt": "Nedostajući drugi zapis popunjava YouTubeovim automatskim prijevodom.",
+    "nf": "Izvorni zapisi titlova, bez strojnog prijevoda.",
+    "hd": "Dvojezični zapisi kad ih naslov ima."
+  },
   "home": {
     "eyebrow": "Besplatno · YouTube · Netflix · HDrezka",
     "h1Lead": "Već ste gledali s titlovima.",
     "h1Pop": "Ovaj put ćete iz toga izvući više.",
     "ctaPrimary": "Dodaj u Chrome — besplatno je",
-    "ctaSecondary": "Odaberite izdanje za svoju stranicu ↓",
-
+    "ctaSecondary": "Odaberite izdanje za stranicu na kojoj gledate ↓",
     "platformsKicker": "Izdanja",
     "platformsH2": "Jedan Lingogram, prilagođen stranici koju gledate",
-    "platformsLede": "Svako je izdanje izrađeno za player svoje stranice — izvorni zapisi titlova, cjeloekranski prikaz, ispravci koje ta stranica treba. Sva dijele iste alate za učenje i isti račun, pa su vaše spremljene riječi uvijek na jednom mjestu, bez obzira koje izdanje koristite. Dva proširenja pokrivaju sve tri stranice: ono za YouTube podržava i Netflix.",
+    "platformsLede": "Svako je izdanje zaseban Chrome dodatak, izrađen za player jedne stranice — izvorni zapisi titlova, prikaz preko cijelog videa, ispravci koje baš ta stranica treba. Sva dijele iste alate za učenje i isti račun, pa su vaše spremljene riječi uvijek na jednom mjestu, bez obzira koje izdanje koristite. Dva proširenja pokrivaju sve tri stranice: ono za YouTube podržava i Netflix.",
     "editionGo": "Dodaj u Chrome →",
-    "editionSoonTitle": "Vaša stranica sljedeća",
+    "editionSoonTitle": "Gledate negdje drugdje?",
     "editionSoonBody": "Nova posebna izdanja izlaze redovito — recite nam gdje gledate.",
     "editionSoonCta": "Predložite stranicu →",
-
     "howKicker": "Kako radi",
     "howH2": "Od instalacije do prve spremljene riječi u jednom videu",
     "step1T": "Instalirajte i odaberite jezike",
     "step1D": "Odaberite jezik koji učite i svoj materinji jezik. Brzo jednokratno podešavanje — račun nije potreban.",
     "step2T": "Otvorite bilo koji video s titlovima",
     "step2D": "Pritisnite play — oba jezika pojave se zajedno, na videu i u prijepisu koji se pomiče sa scenom.",
-    "step3T": "Spremajte riječi, ponavljajte ih ovdje",
-    "step3D": "Spremite riječ jednim dodirom dok gledate — zatim otvorite svoj rječnik na lingogram.ai i ponovite je uz scenu iz koje dolazi.",
-
+    "step3T": "Spremajte riječi, ponavljajte ih na ovoj stranici",
+    "step3D": "Spremite riječ jednim dodirom dok gledate — zatim otvorite svoj rječnik na ovoj stranici i ponovite je uz scenu iz koje dolazi.",
     "dictKicker": "Vaš rječnik",
     "dictH2": "Svaka spremljena riječ gradi rječnik koji je stvarno vaš",
-    "dictLede": "Ne popis učestalosti iz udžbenika — riječi koje ste sreli u scenama koje ste sami odabrali, sačuvane zajedno s rečenicama iz kojih dolaze. Koje god izdanje koristili, sve završava na jednom računu i čeka vas ovdje čim se prijavite.",
+    "dictLede": "Ne popis učestalosti iz udžbenika — riječi koje ste sreli u scenama koje ste sami odabrali, sačuvane zajedno s rečenicama iz kojih dolaze. Koje god izdanje koristili, sve završava na jednom računu i čeka vas na ovoj stranici čim se prijavite.",
     "dictMyWords": "Moje riječi",
     "dictCount": "247 spremljeno · 12 ovaj tjedan",
-    "dictWord1": "reluctantly", "dictTr1": "nevoljko", "dictCtx1": "„{w} je pristao voziti bijeg.”",
-    "dictWord2": "getaway", "dictTr2": "bijeg", "dictCtx2": "„Ovo nije pljačka, ovo je {w}.”",
-    "dictWord3": "spinning its wheels", "dictTr3": "buksira", "dictCtx3": "„{w} u šestoj brzini!”",
+    "dictWord1": "reluctantly",
+    "dictTr1": "nevoljko",
+    "dictCtx1": "„He {w} agreed to drive the getaway car.”",
+    "dictWord2": "getaway",
+    "dictTr2": "bijeg",
+    "dictCtx2": "„This isn't a heist, it's a {w}.”",
+    "dictWord3": "na rezervi",
+    "dictTr3": "gotovo bez goriva",
+    "dictCtx3": "„Vozimo {w} otkad smo prošli zadnju crpku.”",
     "dictFoot": "Vaše se riječi sinkroniziraju na svim uređajima i svim izdanjima Lingograma — {b}.",
     "dictFootBold": "jedan račun, jedan rječnik",
-
     "featKicker": "Zašto ostaje u pamćenju",
     "featH2": "Većina alata staje kod prijevoda. Lingogram čini da riječi ostanu.",
-    "featLede": "Lingogram je izgrađen oko aktivnog prisjećanja: ne samo da pratite tekst — nego pogađate, ponavljate i sakupljate, pa sati koje ionako provedete gledajući postaju stvaran napredak.",
-    "feat1Tag": "Dvojezični titlovi", "feat1H": "Dva jezika, jedan ekran", "feat1P": "Uhvatite svaki redak u izvorniku i uskladite ga sa svojim jezikom bez pauziranja. Kad budete spremni, sakrijte prijevod: dvojezični titlovi su pomoćni kotačići, a Lingogram vam pomaže da ih skinete.",
-    "feat2Tag": "Interaktivni prijepis", "feat2H": "Ponovite redak, ne cijeli film", "feat2P": "Prijepis se sam pomiče s videom. Kliknite bilo koji redak da se vratite i ponavljate baš tu scenu dok zvukovi koje niste razaznavali ne postanu riječi koje prepoznajete trenutno.",
-    "feat3Tag": "Način Pogodi", "feat3H": "Prvo slušajte, pa provjerite", "feat3P": "Riječi su isprva skrivene: uhvatite redak na sluh, pa ga otkrijte. Ovaj krug „prvo slušanje” gradi razumijevanje govora na koje se možete osloniti — ne titlove koje samo pratite očima. Uključite ga s {kbd}.",
-    "feat4Tag": "Spremljene riječi", "feat4H": "Vaš rječnik, iz vaših filmova", "feat4P": "Jedan dodir sprema riječ zajedno s redcima titlova oko nje. Ide izravno u {link} na lingogram.ai, gdje svaku riječ ponavljate u njezinoj izvornoj sceni.",
+    "featLede": "Lingogram se oslanja na aktivno prisjećanje: umjesto da samo pratite tekst očima, aktivno se prisjećate značenja — pogađate, ponavljate i sakupljate, pa sati koje ionako provedete gledajući postaju stvaran napredak.",
+    "feat1Tag": "Dvojezični titlovi",
+    "feat1H": "Dva jezika, jedan ekran",
+    "feat1P": "Uhvatite svaki redak u izvorniku i uskladite ga sa svojim jezikom bez pauziranja. Kad budete spremni, sakrijte prijevod: dvojezični titlovi su samo početna točka, a Lingogram vam pomaže da je prerastete.",
+    "feat2Tag": "Interaktivni prijepis",
+    "feat2H": "Ponovite redak, ne cijeli film",
+    "feat2P": "Prijepis se sam pomiče s videom. Kliknite bilo koji redak da se vratite i ponavljate baš tu scenu dok zvukovi koje niste razaznavali ne postanu riječi koje prepoznajete trenutno.",
+    "feat3Tag": "Način Pogodi",
+    "feat3H": "Prvo slušajte, pa provjerite",
+    "feat3P": "Riječi su isprva skrivene: uhvatite redak na sluh, pa ga otkrijte. Ovaj krug „prvo slušanje” gradi razumijevanje govora na koje se možete osloniti — ne titlove koje samo pratite očima. Uključite ga s {kbd}.",
+    "feat4Tag": "Spremljene riječi",
+    "feat4H": "Vaš rječnik, iz vaših filmova",
+    "feat4P": "Jedan dodir sprema riječ zajedno s redcima titlova oko nje. Ide izravno u {link} na lingogram.ai, gdje svaku riječ ponavljate u njezinoj izvornoj sceni.",
     "feat4Link": "vaš osobni rječnik",
-
     "privKicker": "Privatno prema zadanim postavkama",
     "privH2": "Ono što gledate ostaje vaša stvar",
-    "priv1": "{b} Postavke jezika i izgleda spremaju se lokalno u vašem pregledniku.", "priv1Bold": "Bez telemetrije, bez praćenja.",
-    "priv2": "{b} Titlovi se obrađuju izravno na vašem uređaju.", "priv2Bold": "Nikad ne vidimo povijest vašeg gledanja.",
-    "priv3": "{b} Ako se prijavite, čuvamo vaš email i spremljene riječi — ništa drugo, i nikad ih ne prodajemo.", "priv3Bold": "Rječnik je izborni.",
-    "priv4": "{b} Ako ažuriranje stranice nešto pokvari, jedan klik nam to prijavi da to brzo popravimo.", "priv4Bold": "Izrađen da nastavi raditi.",
-
+    "priv1": "{b} Postavke jezika i izgleda spremaju se lokalno u vašem pregledniku.",
+    "priv1Bold": "Bez telemetrije, bez praćenja.",
+    "priv2": "{b} Titlovi se obrađuju izravno na vašem uređaju.",
+    "priv2Bold": "Nikad ne vidimo povijest vašeg gledanja.",
+    "priv3": "{b} Ako se prijavite, čuvamo vaš email i spremljene riječi — ništa drugo, i nikad ih ne prodajemo.",
+    "priv3Bold": "Rječnik je izborni.",
+    "priv4": "{b} Ako ažuriranje stranice nešto pokvari, jedan klik nam to prijavi da to brzo popravimo.",
+    "priv4Bold": "Mi to brzo popravimo.",
     "faqKicker": "Česta pitanja",
     "faqH2": "Pitanja koja ljudi postavljaju prije instalacije",
-
     "finalH2": "Pretvorite večerašnju epizodu u lekciju jezika",
     "finalCta": "Dodaj Lingogram u Chrome",
     "finalProof": "Besplatno · Podešavanje traje manje od minute"
   },
-
   "faq": {
-    "free": { "q": "Je li besplatno?", "a": "Da. Dvojezični titlovi, prijepis i način Pogodi besplatni su. Besplatan račun potreban je samo ako želite da se spremljene riječi sinkroniziraju na svim uređajima." },
-    "languages": { "q": "Koje jezike podržava?", "a": "Svaki par za koji video ima titlove. Na YouTubeu, ako jedan od vaša dva jezika nedostaje, Lingogram ga popunjava YouTubeovim automatskim prijevodom, pa ipak dobivate dvojezični prikaz. Na Netflixu i HDrezki prikazuju se samo zapisi titlova koje naslov stvarno ima — bez strojnog prijevoda." },
-    "edition": { "q": "Koje izdanje trebam instalirati?", "a": "Ono za stranicu na kojoj gledate. Postoje dva proširenja: jedno pokriva YouTube i Netflix zajedno, drugo pokriva HDrezku. Instalirajte oba ako gledate na obje stranice — dijele iste alate za učenje i isti račun, pa vaše spremljene riječi ostaju na jednom mjestu." },
-    "words": { "q": "Gdje se čuvaju moje spremljene riječi?", "a": "U vašem osobnom rječniku, ovdje na lingogram.ai. Prijavite se i svaka spremljena riječ je tu, sa scenom iz koje dolazi — bez obzira na kojem ste izdanju ili uređaju je spremili." }
+    "free": {
+      "q": "Je li besplatno?",
+      "a": "Da. Dvojezični titlovi, prijepis i način Pogodi besplatni su. Besplatan račun potreban je samo ako želite da se spremljene riječi sinkroniziraju na svim uređajima."
+    },
+    "languages": {
+      "q": "Koje jezike podržava?",
+      "a": "Svaki par za koji video ima titlove. Na YouTubeu, ako jedan od vaša dva jezika nedostaje, Lingogram ga popunjava YouTubeovim automatskim prijevodom, pa ipak dobivate dvojezični prikaz. Na Netflixu i HDrezki prikazuju se samo zapisi titlova koje naslov stvarno ima — bez strojnog prijevoda."
+    },
+    "edition": {
+      "q": "Koje izdanje trebam instalirati?",
+      "a": "Ono za stranicu na kojoj gledate. Postoje dva proširenja: jedno pokriva YouTube i Netflix zajedno, drugo pokriva HDrezku. Instalirajte oba ako gledate na obje stranice — dijele iste alate za učenje i isti račun, pa vaše spremljene riječi ostaju na jednom mjestu."
+    },
+    "words": {
+      "q": "Gdje se pohranjuju moje spremljene riječi?",
+      "a": "U vašem osobnom rječniku, ovdje na lingogram.ai. Prijavite se i svaka spremljena riječ je tu, sa scenom iz koje dolazi — bez obzira na kojem ste izdanju ili uređaju je spremili."
+    }
   },
-
   "edition": {
     "eyebrow": "Lingogram za {site}",
     "ctaPrimary": "Dodaj u Chrome — besplatno je",
@@ -127,24 +192,27 @@
     "finalCta": "Dodaj {name}",
     "finalProof": "Besplatno · Podešavanje traje manje od minute"
   },
-
   "privacy": {
     "title": "Pravila privatnosti — Lingogram",
     "description": "Što Lingogram prikuplja, kako se to koristi i kakav izbor imate."
   },
-
   "welcome": {
     "title": "Dobro došli u Lingogram",
     "description": "Sve je podešeno — evo kako spremiti prvu riječ u tri koraka.",
     "h1": "je instaliran",
     "sub": "Tri koraka do vaše prve spremljene riječi — treba samo jedan video.",
-    "step1T": "Odaberite jezike", "step1D": "Kliknite ikonu Lingograma na alatnoj traci i odaberite jezik koji učite i svoj materinji jezik.",
-    "step2T": "Otvorite video s titlovima", "step2D": "Pritisnite play — oba jezika pojave se zajedno, na videu i u prijepisu.",
-    "step3T": "Spremite svoju prvu riječ", "step3D": "Označite riječ u titlovima i dodirnite da je spremite — završava u {link}.",
+    "step1T": "Odaberite jezike",
+    "step1D": "Kliknite ikonu Lingograma na alatnoj traci i odaberite jezik koji učite i svoj materinji jezik.",
+    "step2T": "Otvorite video s titlovima",
+    "step2D": "Pritisnite play — oba jezika pojave se zajedno, na videu i u prijepisu.",
+    "step3T": "Spremite svoju prvu riječ",
+    "step3D": "Označite riječ u titlovima i dodirnite da je spremite — završava u {link}.",
     "step3Link": "vašem rječniku",
-    "keyDual": "dvojezični titlovi", "keySwap": "zamijeni jezike", "keyGuess": "način Pogodi", "keyOverlay": "prikaz preko videa"
+    "keyDual": "dvojezični titlovi",
+    "keySwap": "zamijeni jezike",
+    "keyGuess": "način Pogodi",
+    "keyOverlay": "titlovi na videu (prikaz preko slike)"
   },
-
   "uninstall": {
     "title": "Žao nam je što odlazite — Lingogram",
     "description": "Recite nam zašto ste uklonili Lingogram kako bismo to popravili.",
@@ -158,7 +226,6 @@
     "footMid": "— čekat će vas ako se vratite.",
     "reinstall": "Ponovno instalirajte kad god želite."
   },
-
   "auth": {
     "or": "ili",
     "showPassword": "Prikaži lozinku",
@@ -168,32 +235,44 @@
       "title": "Izradite račun — Lingogram",
       "description": "Registrirajte se kako biste sinkronizirali spremljene riječi na svim uređajima i izdanjima.",
       "eyebrow": "Besplatan račun",
-      "h1Lead": "Pokrenite svoj", "h1Pop": "popis riječi",
+      "h1Lead": "Pokrenite svoj",
+      "h1Pop": "popis riječi",
       "sub": "Spremajte riječi iz svega što gledate — sinkronizirano na svim uređajima i izdanjima.",
       "googleCta": "Registracija putem Googlea",
-      "nameLabel": "Vaše ime", "namePlaceholder": "Ana",
-      "emailLabel": "Email", "emailPlaceholder": "ana@primjer.com",
-      "passwordLabel": "Lozinka", "passwordPlaceholder": "Najmanje 8 znakova",
-      "submit": "Izradi račun", "submitBusy": "Izrada računa…",
-      "altPrefix": "Već imate račun?", "altLink": "Prijava",
-      "finePrefix": "Nastavkom prihvaćate naša", "fineLink": "Pravila privatnosti"
+      "nameLabel": "Vaše ime",
+      "namePlaceholder": "Ana",
+      "emailLabel": "Email",
+      "emailPlaceholder": "ana@primjer.com",
+      "passwordLabel": "Lozinka",
+      "passwordPlaceholder": "Najmanje 8 znakova",
+      "submit": "Izradi račun",
+      "submitBusy": "Izrada računa…",
+      "altPrefix": "Već imate račun?",
+      "altLink": "Prijava",
+      "finePrefix": "Nastavkom prihvaćate naša",
+      "fineLink": "Pravila privatnosti"
     },
     "login": {
       "title": "Prijava — Lingogram",
       "description": "Prijavite se u svoj Lingogram rječnik.",
       "eyebrow": "Dobrodošli natrag",
-      "h1Lead": "Vaš", "h1Pop": "rječnik", "h1Tail": "vas čeka",
+      "h1Lead": "Vaš",
+      "h1Pop": "rječnik",
+      "h1Tail": "vas čeka",
       "sub": "Prijavite se i nastavite točno ondje gdje ste stali.",
       "googleCta": "Prijava putem Googlea",
-      "emailLabel": "Email", "emailPlaceholder": "ana@primjer.com",
-      "passwordLabel": "Lozinka", "passwordPlaceholder": "Vaša lozinka",
+      "emailLabel": "Email",
+      "emailPlaceholder": "ana@primjer.com",
+      "passwordLabel": "Lozinka",
+      "passwordPlaceholder": "Vaša lozinka",
       "forgot": "Zaboravili ste lozinku?",
       "resetNote": "Provjerite svoj inbox — poveznica za resetiranje lozinke stiže.",
-      "submit": "Prijava", "submitBusy": "Prijava u tijeku…",
-      "altPrefix": "Novi ste u Lingogramu?", "altLink": "Izradi račun"
+      "submit": "Prijava",
+      "submitBusy": "Prijava u tijeku…",
+      "altPrefix": "Novi ste u Lingogramu?",
+      "altLink": "Izradi račun"
     }
   },
-
   "notFound": {
     "title": "Stranica nije pronađena — Lingogram",
     "description": "Ova stranica ne postoji.",
