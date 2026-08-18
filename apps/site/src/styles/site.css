@@ -1364,7 +1364,10 @@ footer.site {
 
 .wl-facade-meta {
   position: absolute;
-  left: 16px; bottom: 14px;
+  /* Logical, not `left`: the card mirrors in Arabic and Hebrew, and a physical
+     offset left this caption alone in the bottom-left while the rest of the
+     card flipped. */
+  inset-inline-start: 16px; bottom: 14px;
   z-index: 2;
   color: #fff;
   font-size: 13.5px;
