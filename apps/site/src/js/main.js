@@ -97,6 +97,13 @@
       frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
       frame.setAttribute('allowfullscreen', '');
       document.getElementById('wl-video').replaceChildren(frame);
+      // The click destroyed the focused button. Without this, focus falls back
+      // to <body> and the next Tab restarts from the top of the document
+      // instead of carrying on past the video — so a keyboard visitor who
+      // pressed Enter to play loses their place. tabIndex lets the iframe take
+      // focus programmatically without adding a second tab stop of its own.
+      frame.tabIndex = -1;
+      frame.focus();
     });
   }
 

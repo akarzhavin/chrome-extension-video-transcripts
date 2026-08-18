@@ -855,7 +855,17 @@ ${footer(t, root)}`,
   });
 };
 
-const editionsMap = JSON.stringify(
+// JSON destined for an inline <script>. JSON.stringify does not escape "</",
+// and an HTML parser closes the block at the first `</script` inside it no
+// matter how deeply quoted the JSON is — so a string carrying that sequence
+// would end the script early and have its remainder parsed as markup. The
+// welcome payload already ships literal markup (the <b> in welcome.ledeFor),
+// which is exactly the kind of value that grows a closing tag later, so the
+// escape belongs here rather than at each call site. < is inert inside a
+// JSON string literal and parses back to "<".
+const scriptJSON = (value) => JSON.stringify(value).replaceAll('<', '\\u003c');
+
+const editionsMap = scriptJSON(
   Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e.name])),
 );
 
@@ -1025,7 +1035,7 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
 </main>
 ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};
-window.__WELCOME = ${JSON.stringify({
+window.__WELCOME = ${scriptJSON({
   video: WELCOME_VIDEO,
   // Per-slug: the covered-site list already joined in this locale's own words,
   // plus the button order. Joining here rather than in main.js keeps that file
@@ -1111,7 +1121,7 @@ ${footer(t, root)}
 // auth.js and auth-google.js are ES-module bundles (built by vite.auth.config.ts
 // from src/auth/*). auth-config.js runs first (classic script) so
 // window.LINGOGRAM_AUTH is set before the modules read it.
-const authScripts = `<script>window.LINGOGRAM_APP_URL=${JSON.stringify(SITE.appUrl)};</script>
+const authScripts = `<script>window.LINGOGRAM_APP_URL=${scriptJSON(SITE.appUrl)};</script>
 <script src="/auth-config.js?v=${BUST}" defer></script>
 <script src="/main.js?v=${BUST}" defer></script>
 <script type="module" src="/auth.js?v=${BUST}"></script>
