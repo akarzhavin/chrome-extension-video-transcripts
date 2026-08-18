@@ -13,19 +13,46 @@
 
 import { platformOf, type Platform } from './analytics';
 
-export type OverlaySizeToken = 'small' | 'medium' | 'large';
+// Font size is a percentage (50-400, step 5) rather than a 3-way token: a
+// fixed small/medium/large left the whole 100-150% range — where most people
+// land — unreachable. Position/backdrop/edge stay 3-4 way presets; there is
+// no equivalent "everyone wants a value in between" complaint about those.
+export type OverlaySizePercent = number;
 export type OverlayLevelToken = 'low' | 'medium' | 'high';
 export type OverlayEdgeToken = 'none' | 'shadow' | 'outline';
+// The seven CEA-708 font classes — the same set YouTube, Netflix, and the
+// FCC (47 CFR 79.103) all expose. Each resolves to a system font stack in
+// CSS; nothing is bundled, matching the BBC's own guidance that a platform
+// font beats a shipped one for on-screen legibility. 'smallCaps' is not a
+// distinct typeface (none exists reliably cross-platform) — it is
+// font-variant-caps applied to the proportional-sans stack.
+export type OverlayFontFamily =
+    | 'monoSerif'
+    | 'propSerif'
+    | 'monoSans'
+    | 'propSans'
+    | 'casual'
+    | 'cursive'
+    | 'smallCaps';
 
 export interface Prefs {
     displayMode: 'single' | 'dual' | 'guess';
     overlayEnabled: boolean;
     sidebarCollapsed: boolean;
-    // On-video overlay appearance. Stored as preset tokens (not raw px) so the
-    // sidebar can drive them with a fixed set of preset buttons and the values
-    // stay validated. SidebarUI maps these to concrete CSS custom properties.
-    overlayFontSize: OverlaySizeToken;
-    overlayColor: string; // hex, applies to the main line only
+    // On-video overlay appearance. Most fields are preset tokens (not raw px)
+    // so the sidebar can drive them with a fixed set of preset buttons and the
+    // values stay validated. SidebarUI maps these to concrete CSS custom
+    // properties. Sizes are the exception — see OverlaySizePercent above.
+    overlayFontFamily: OverlayFontFamily;
+    overlayFontSize: OverlaySizePercent; // % of the 24px base, main line
+    overlayColor: string; // hex, main line
+    // The translation line used to be a fixed 0.75x the main size and a fixed
+    // gold hardcoded in CSS. Both are now independent: a language learner may
+    // want the translation tiny (a hint) or just as large (reading both).
+    overlaySubFontSize: OverlaySizePercent;
+    overlaySubColor: string; // hex
+    overlayTextOpacity: number; // 0-1, glyph fill only — see overlayBgOpacity for the box
+    overlayBgColor: string; // hex, the caption box behind both lines
     overlayBottomOffset: OverlayLevelToken;
     overlayBgOpacity: OverlayLevelToken;
     overlayEdgeStyle: OverlayEdgeToken;
@@ -47,8 +74,13 @@ export const PREFS_KEY = 'prefs.v1';
 // could not be resolved there, and must never exist.
 export type ScopedPrefKey =
     | 'overlayEnabled'
+    | 'overlayFontFamily'
     | 'overlayFontSize'
     | 'overlayColor'
+    | 'overlaySubFontSize'
+    | 'overlaySubColor'
+    | 'overlayTextOpacity'
+    | 'overlayBgColor'
     | 'overlayBottomOffset'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle';
@@ -57,8 +89,13 @@ export type ScopedPrefs = Pick<Prefs, ScopedPrefKey>;
 
 export const SCOPED_PREF_KEYS: readonly ScopedPrefKey[] = [
     'overlayEnabled',
+    'overlayFontFamily',
     'overlayFontSize',
     'overlayColor',
+    'overlaySubFontSize',
+    'overlaySubColor',
+    'overlayTextOpacity',
+    'overlayBgColor',
     'overlayBottomOffset',
     'overlayBgOpacity',
     'overlayEdgeStyle',
@@ -100,6 +137,19 @@ function currentScope(): PrefScope {
     }
 }
 
+// Font size used to be a 3-way token (small/medium/large), not a percentage.
+// Installs upgrading from that build have exactly those three strings sitting
+// under overlayFontSize/overlaySubFontSize — at the top level, and possibly
+// inside byPlatform too, since scoped writes existed before this change.
+// Coercing at read time (rather than migrating storage) keeps the same
+// no-migration-write contract the byPlatform split itself relies on.
+const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
+function coerceSize(v: unknown, fallback: number): number {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string' && v in LEGACY_SIZE_TOKEN_PCT) return LEGACY_SIZE_TOKEN_PCT[v];
+    return fallback;
+}
+
 /**
  * Storage bytes → the flat resolved view for one scope:
  * DEFAULT_PREFS → stored top-level → byPlatform[scope].
@@ -107,6 +157,8 @@ function currentScope(): PrefScope {
 function resolve(raw: unknown, scope: PrefScope): Prefs {
     const stored: Partial<StoredPrefs> = isPrefs(raw) ? raw : {};
     const resolved: Prefs = { ...DEFAULT_PREFS, ...stored };
+    resolved.overlayFontSize = coerceSize(stored.overlayFontSize, DEFAULT_PREFS.overlayFontSize);
+    resolved.overlaySubFontSize = coerceSize(stored.overlaySubFontSize, DEFAULT_PREFS.overlaySubFontSize);
     const over = stored.byPlatform?.[scope];
     // Copy key-by-key rather than spreading `...over` wholesale: a scope object
     // must never be able to set a GLOBAL. A stray analyticsEnabled inside
@@ -116,6 +168,8 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         for (const k of SCOPED_PREF_KEYS) {
             if (over[k] !== undefined) (resolved as unknown as Record<string, unknown>)[k] = over[k];
         }
+        if (over.overlayFontSize !== undefined) resolved.overlayFontSize = coerceSize(over.overlayFontSize, resolved.overlayFontSize);
+        if (over.overlaySubFontSize !== undefined) resolved.overlaySubFontSize = coerceSize(over.overlaySubFontSize, resolved.overlaySubFontSize);
     }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
@@ -126,8 +180,14 @@ const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
     overlayEnabled: true,
     sidebarCollapsed: false,
-    overlayFontSize: 'medium',
+    overlayFontFamily: 'propSans',
+    overlayFontSize: 100,
     overlayColor: '#ffffff',
+    overlaySubFontSize: 75,
+    // Matches the pre-existing hardcoded translation-line gold.
+    overlaySubColor: '#ffd700',
+    overlayTextOpacity: 1,
+    overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.

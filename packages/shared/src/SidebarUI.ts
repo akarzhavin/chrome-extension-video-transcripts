@@ -7,12 +7,13 @@ import {
     onPrefsChanged,
     savePrefs,
     Prefs,
-    OverlaySizeToken,
+    OverlaySizePercent,
     OverlayLevelToken,
     OverlayEdgeToken,
+    OverlayFontFamily,
     PrefScope,
 } from './prefs';
-import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
+import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
 import {
@@ -31,11 +32,13 @@ const NEARBY_SUBTITLE_THRESHOLD = 20;
 // Overlay-style preset tokens → concrete CSS values. These drive the
 // --vtt-overlay-* custom properties set inline on #vtt-video-overlay; the
 // stylesheet reads them with matching fallbacks (apps/rezka/src/assets/styles.css).
-const OVERLAY_FONT_SIZE_PX: Record<OverlaySizeToken, string> = {
-    small: '18px',
-    medium: '24px',
-    large: '32px',
-};
+// Font size is a percentage of a 24px base, not a token — the sidebar drives
+// it with a slider (50-400, step 5) rather than a fixed set of presets, since
+// a 3-way token left the 100-150% range most people want unreachable.
+const OVERLAY_SIZE_BASE_PX = 24;
+function overlaySizePx(pct: OverlaySizePercent): string {
+    return `${(OVERLAY_SIZE_BASE_PX * pct) / 100}px`;
+}
 const OVERLAY_BOTTOM_PX: Record<OverlayLevelToken, string> = {
     low: '40px',
     medium: '80px',
@@ -47,26 +50,106 @@ const OVERLAY_BG_OPACITY: Record<OverlayLevelToken, string> = {
     high: '0.9',
 };
 
+// Em-based, not px: a 1px shadow reads fine at the 24px base but disappears
+// at 400% (96px). Scaling with the glyph keeps the edge visible at every size.
+// The edge draws in --vtt-overlay-edge-color rather than a hardcoded #000.
+// Black-on-black was invisible: the caption box defaults to black, so a black
+// shadow behind the glyphs landed on a black backdrop and the Edge control
+// looked broken. applyOverlayStyle derives the color from the CURRENT
+// background color, so the edge stays visible whatever box the user picks.
 const OVERLAY_EDGE: Record<OverlayEdgeToken, string> = {
     none: 'none',
-    shadow: '1px 1px 3px #000',
+    shadow: '0.04em 0.04em 0.13em var(--vtt-overlay-edge-color, #000)',
     // Faux outline via 4-direction shadows (text-stroke isn't reliable cross-site).
-    outline: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+    outline: [
+        '-0.045em -0.045em 0 var(--vtt-overlay-edge-color, #000)',
+        '0.045em -0.045em 0 var(--vtt-overlay-edge-color, #000)',
+        '-0.045em 0.045em 0 var(--vtt-overlay-edge-color, #000)',
+        '0.045em 0.045em 0 var(--vtt-overlay-edge-color, #000)',
+    ].join(', '),
 };
 
-// Fixed color palette offered as swatches in the settings panel.
-const OVERLAY_COLORS: string[] = ['#ffffff', '#ffd700', '#00e5ff', '#7CFC00', '#ff9800'];
+// Relative luminance of a #rrggbb hex, sRGB coefficients. Used to decide
+// whether the edge should be drawn dark or light against the caption box.
+function hexLuminance(hex: string): number {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return 0;
+    const n = parseInt(m[1], 16);
+    return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+}
 
-const OVERLAY_STYLE_DEFAULTS: Pick<
+// The seven CEA-708 font classes, each resolved to a system stack — nothing
+// is bundled (the BBC's own guidance: a platform font beats a shipped one for
+// on-screen legibility). 'smallCaps' has no reliable cross-platform typeface,
+// so it is font-variant-caps on the proportional-sans stack instead.
+const OVERLAY_FONT_STACK: Record<OverlayFontFamily, string> = {
+    monoSerif: "'Courier New', Courier, 'Nimbus Mono PS', 'Liberation Mono', monospace",
+    propSerif: "Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, 'Times New Roman', serif",
+    monoSans: "ui-monospace, Menlo, Consolas, 'Cascadia Code', 'DejaVu Sans Mono', 'Liberation Mono', monospace",
+    propSans: "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
+    casual: "ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, 'Arial Rounded MT Bold', 'Segoe Print', sans-serif",
+    cursive: "'Segoe Script', 'Brush Script MT', 'Snell Roundhand', 'Apple Chancery', cursive",
+    smallCaps: "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
+};
+const OVERLAY_FONT_VARIANT: Record<OverlayFontFamily, string> = {
+    monoSerif: 'normal',
+    propSerif: 'normal',
+    monoSans: 'normal',
+    propSans: 'normal',
+    casual: 'normal',
+    cursive: 'normal',
+    smallCaps: 'small-caps',
+};
+
+// Fixed color palette offered as swatches in the settings panel. Shared by
+// both text swatch rows (main line, translation line) — a custom color well
+// alongside each covers anything the five presets don't.
+const OVERLAY_COLORS: string[] = ['#ffffff', '#ffd700', '#00e5ff', '#7CFC00', '#ff9800'];
+// The caption box sits behind text, so its useful range is neutral, not the
+// accent hues offered for the text itself.
+const OVERLAY_BG_COLORS: string[] = ['#000000', '#3a3a3a', '#7a7a7a', '#ffffff', '#0a1a3c'];
+
+// The two Reset buttons' payloads — one per panel group, each resetting only
+// the fields in its own group. Neither includes overlayEnabled: Reset
+// restores DEFAULT appearance, not the on/off state; a user who turned the
+// overlay off and then reset styling would not expect it to switch back on.
+const OVERLAY_TEXT_DEFAULTS: Pick<
     Prefs,
-    'overlayFontSize' | 'overlayColor' | 'overlayBottomOffset' | 'overlayBgOpacity' | 'overlayEdgeStyle'
+    'overlayFontFamily' | 'overlayFontSize' | 'overlayColor' | 'overlaySubFontSize' | 'overlaySubColor' | 'overlayTextOpacity'
 > = {
-    overlayFontSize: 'medium',
+    overlayFontFamily: 'propSans',
+    overlayFontSize: 100,
     overlayColor: '#ffffff',
+    overlaySubFontSize: 75,
+    overlaySubColor: '#ffd700',
+    overlayTextOpacity: 1,
+};
+
+const OVERLAY_BOX_DEFAULTS: Pick<
+    Prefs,
+    'overlayBgColor' | 'overlayBottomOffset' | 'overlayBgOpacity' | 'overlayEdgeStyle'
+> = {
+    overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
     overlayBgOpacity: 'medium',
     overlayEdgeStyle: 'shadow',
 };
+
+// Union of both — the initial value of the local overlayStyle mirror, before
+// prefs are hydrated.
+const OVERLAY_STYLE_DEFAULTS: Pick<
+    Prefs,
+    | 'overlayFontFamily'
+    | 'overlayFontSize'
+    | 'overlayColor'
+    | 'overlaySubFontSize'
+    | 'overlaySubColor'
+    | 'overlayTextOpacity'
+    | 'overlayBgColor'
+    | 'overlayBottomOffset'
+    | 'overlayBgOpacity'
+    | 'overlayEdgeStyle'
+> = { ...OVERLAY_TEXT_DEFAULTS, ...OVERLAY_BOX_DEFAULTS };
 
 // All panel iconography is inline stroke SVG so it inherits currentColor and
 // needs no bundled assets.
@@ -337,17 +420,31 @@ export class SidebarUI {
         modeGroup.appendChild(modes);
         settingsPanel.appendChild(modeGroup);
 
-        // -- Group 3: Overlay appearance -----------------------------------------
-        const styleGroup = this.buildGroup(ICONS.appearance, msg('ytGroupOverlay', 'Overlay appearance'));
-        const resetBtn = document.createElement('button');
-        resetBtn.className = 'vtt-reset';
-        resetBtn.textContent = msg('ytStyleReset', 'Reset');
-        resetBtn.addEventListener('click', () => this.resetOverlayStyle());
-        (styleGroup.firstChild as HTMLElement).appendChild(resetBtn);
+        // -- Group 3: Overlay appearance, split by the question the user is
+        // actually asking. "The text is hard to read" and "it's in the way /
+        // sitting on the wrong spot" are different problems that are rarely
+        // fixed together — so they get their own group and their own Reset,
+        // each touching only the fields the user was just looking at.
+        const textGroup = this.buildGroup(ICONS.appearance, msg('ytGroupText', 'Text'));
+        const textResetBtn = document.createElement('button');
+        textResetBtn.className = 'vtt-reset';
+        textResetBtn.textContent = msg('ytStyleReset', 'Reset');
+        textResetBtn.addEventListener('click', () => this.resetTextStyle());
+        (textGroup.firstChild as HTMLElement).appendChild(textResetBtn);
 
-        styleGroup.appendChild(this.buildOverlayPreview());
-        styleGroup.appendChild(this.buildStyleControls());
-        settingsPanel.appendChild(styleGroup);
+        textGroup.appendChild(this.buildOverlayPreview());
+        textGroup.appendChild(this.buildTextStyleControls());
+        settingsPanel.appendChild(textGroup);
+
+        const boxGroup = this.buildGroup(ICONS.onScreen, msg('ytGroupBox', 'Background & position'));
+        const boxResetBtn = document.createElement('button');
+        boxResetBtn.className = 'vtt-reset';
+        boxResetBtn.textContent = msg('ytStyleReset', 'Reset');
+        boxResetBtn.addEventListener('click', () => this.resetBoxStyle());
+        (boxGroup.firstChild as HTMLElement).appendChild(boxResetBtn);
+
+        boxGroup.appendChild(this.buildBoxStyleControls());
+        settingsPanel.appendChild(boxGroup);
 
         // -- Tail rows -----------------------------------------------------------
         // Two rows of one anatomy close the panel: the analytics opt-out (a
@@ -388,7 +485,7 @@ export class SidebarUI {
 
         document.body.appendChild(sidebar);
 
-        // Store DOM references (style preset buttons registered in buildStyleControls).
+        // Store DOM references (style preset controls registered in buildTextStyleControls/buildBoxStyleControls).
         this.elements = {
             ...this.elements,
             sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list,
@@ -680,35 +777,76 @@ export class SidebarUI {
 
     // The overlay-style preset rows: segmented controls (with a sliding thumb)
     // for size / position / backdrop / edge, and a swatch row for color.
-    private buildStyleControls(): HTMLDivElement {
+    // Text appearance: font, both line sizes, both line colors, glyph opacity.
+    // Everything a user reaches for when the TEXT itself is the problem.
+    private buildTextStyleControls(): HTMLDivElement {
         const wrap = document.createElement('div');
-        wrap.id = 'vtt-style-controls';
+        wrap.id = 'vtt-style-controls-text';
 
-        this.elements.styleSizeBtns = this.buildSegRow(
+        const FONT_OPTIONS: { value: OverlayFontFamily; name: string }[] = [
+            { value: 'monoSerif', name: msg('ytFontMonoSerif', 'Monospaced Serif') },
+            { value: 'propSerif', name: msg('ytFontPropSerif', 'Proportional Serif') },
+            { value: 'monoSans', name: msg('ytFontMonoSans', 'Monospaced Sans-Serif') },
+            { value: 'propSans', name: msg('ytFontPropSans', 'Proportional Sans-Serif') },
+            { value: 'casual', name: msg('ytFontCasual', 'Casual') },
+            { value: 'cursive', name: msg('ytFontCursive', 'Cursive') },
+            { value: 'smallCaps', name: msg('ytFontSmallCaps', 'Small Capitals') },
+        ];
+        this.elements.styleFontSelect = this.buildFontSelectRow(
+            wrap,
+            msg('ytStyleFontLabel', 'Font family'),
+            FONT_OPTIONS,
+            (v) => this.setOverlayFontFamily(v as OverlayFontFamily),
+        );
+
+        this.elements.styleSizeSlider = this.buildSliderRow(
             wrap,
             msg('ytStyleSizeLabel', 'Size'),
-            (['small', 'medium', 'large'] as OverlaySizeToken[]).map((v) => ({
-                value: v,
-                html: `<span class="vtt-a vtt-a-${v === 'small' ? 's' : v === 'medium' ? 'm' : 'l'}">A</span>`,
-            })),
-            (v) => this.setOverlayFontSize(v as OverlaySizeToken),
+            (v) => this.setOverlayFontSize(v),
         );
 
         this.elements.styleColorBtns = this.buildSwatchRow(
             wrap,
             msg('ytStyleColorLabel', 'Color'),
+            OVERLAY_COLORS,
             (v) => this.setOverlayColor(v),
         );
 
-        this.elements.styleOffsetBtns = this.buildSegRow(
+        this.elements.styleSubSizeSlider = this.buildSliderRow(
             wrap,
-            msg('ytStyleOffsetLabel', 'Position'),
-            [
-                { value: 'low', html: ICONS.posLow },
-                { value: 'medium', html: ICONS.posMid },
-                { value: 'high', html: ICONS.posHigh },
-            ],
-            (v) => this.setOverlayBottomOffset(v as OverlayLevelToken),
+            msg('ytStyleSubSizeLabel', 'Translation size'),
+            (v) => this.setOverlaySubFontSize(v),
+        );
+
+        this.elements.styleSubColorBtns = this.buildSwatchRow(
+            wrap,
+            msg('ytStyleSubColorLabel', 'Translation color'),
+            OVERLAY_COLORS,
+            (v) => this.setOverlaySubColor(v),
+        );
+
+        this.elements.styleTextOpacityBtns = this.buildSegRow(
+            wrap,
+            msg('ytStyleTextOpacityLabel', 'Font opacity'),
+            [25, 50, 75, 100].map((pct) => ({ value: String(pct), html: `${pct}%` })),
+            (v) => this.setOverlayTextOpacity(Number(v) / 100),
+        );
+
+        return wrap;
+    }
+
+    // Box + placement: the caption's background and where it sits on the
+    // video. Everything a user reaches for when the OVERLAY, not the text,
+    // is the problem — obscuring the picture, sitting on the control bar.
+    private buildBoxStyleControls(): HTMLDivElement {
+        const wrap = document.createElement('div');
+        wrap.id = 'vtt-style-controls-box';
+
+        this.elements.styleBgColorBtns = this.buildSwatchRow(
+            wrap,
+            msg('ytStyleBgColorLabel', 'Background color'),
+            OVERLAY_BG_COLORS,
+            (v) => this.setOverlayBgColor(v),
         );
 
         this.elements.styleBgBtns = this.buildSegRow(
@@ -722,6 +860,17 @@ export class SidebarUI {
             (v) => this.setOverlayBgOpacity(v as OverlayLevelToken),
         );
 
+        this.elements.styleOffsetBtns = this.buildSegRow(
+            wrap,
+            msg('ytStyleOffsetLabel', 'Position'),
+            [
+                { value: 'low', html: ICONS.posLow },
+                { value: 'medium', html: ICONS.posMid },
+                { value: 'high', html: ICONS.posHigh },
+            ],
+            (v) => this.setOverlayBottomOffset(v as OverlayLevelToken),
+        );
+
         this.elements.styleEdgeBtns = this.buildSegRow(
             wrap,
             msg('ytStyleEdgeLabel', 'Edge'),
@@ -733,12 +882,96 @@ export class SidebarUI {
             (v) => this.setOverlayEdgeStyle(v as OverlayEdgeToken),
         );
 
-        this.markActiveStyleButtons();
         return wrap;
     }
 
     // One labeled segmented control: equal-width buttons over a sliding thumb.
-    // The thumb is moved by markActiveStyleButtons (translateX(index*100%)).
+    // A full-width dropdown row: label above, select spanning the panel. Used
+    // only for the font list — CEA-708 class names run to ~28 characters
+    // ("Пропорциональный с засечками" in Russian) and are unreadable squeezed
+    // into the standard label-column / 1fr control track every other row
+    // uses. Reuses .vtt-select/.vtt-select-wrap styling (same visual language
+    // as the Languages group's dropdowns) but not buildFieldRow's grid, which
+    // assumes a fixed label column this row deliberately doesn't have.
+    private buildFontSelectRow(
+        parent: HTMLElement,
+        label: string,
+        options: { value: string; name: string }[],
+        onPick: (value: string) => void,
+    ): HTMLSelectElement {
+        const row = document.createElement('div');
+        row.className = 'vtt-style-row-wide';
+
+        const select = document.createElement('select');
+        select.className = 'vtt-select';
+        select.id = 'vtt-style-font-select';
+        // A real <label for>, not a bare span, so a screen reader announces
+        // "Font family, combo box" rather than just "combo box".
+        const labelEl = document.createElement('label');
+        labelEl.className = 'vtt-style-label';
+        labelEl.htmlFor = select.id;
+        labelEl.textContent = label;
+        for (const opt of options) {
+            const el = document.createElement('option');
+            el.value = opt.value;
+            el.textContent = opt.name;
+            select.appendChild(el);
+        }
+        select.addEventListener('change', () => onPick(select.value));
+
+        const wrap = document.createElement('div');
+        wrap.className = 'vtt-select-wrap';
+        wrap.appendChild(select);
+        const chevron = document.createElement('span');
+        chevron.className = 'vtt-select-chevron';
+        chevron.innerHTML = ICONS.chevron;
+        wrap.appendChild(chevron);
+
+        row.appendChild(labelEl);
+        row.appendChild(wrap);
+        parent.appendChild(row);
+        return select;
+    }
+
+    // A fine-grained size control: a 50-400% range slider (step 5) with a
+    // live percent readout. Replaces an earlier 3-way small/medium/large
+    // preset, which left the 100-150% range most people land in unreachable.
+    // Returns both the input and its readout — markActiveStyleButtons needs
+    // to keep the readout's text and the track's fill in sync with state.
+    private buildSliderRow(
+        parent: HTMLElement,
+        label: string,
+        onInput: (percent: number) => void,
+    ): SliderRowElements {
+        const row = document.createElement('div');
+        row.className = 'vtt-style-row';
+
+        const labelEl = document.createElement('label');
+        labelEl.className = 'vtt-style-label';
+        labelEl.textContent = label;
+        row.appendChild(labelEl);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'vtt-slider-wrap';
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.className = 'vtt-slider';
+        input.id = `vtt-slider-${Math.random().toString(36).slice(2, 8)}`;
+        input.min = '50';
+        input.max = '400';
+        input.step = '5';
+        labelEl.htmlFor = input.id;
+        const val = document.createElement('span');
+        val.className = 'vtt-slider-val';
+        input.addEventListener('input', () => onInput(Number(input.value)));
+        wrap.appendChild(input);
+        wrap.appendChild(val);
+        row.appendChild(wrap);
+        parent.appendChild(row);
+
+        return { input, val };
+    }
+
     private buildSegRow(
         parent: HTMLElement,
         label: string,
@@ -777,10 +1010,14 @@ export class SidebarUI {
     }
 
     // The color palette row: round swatches; the selected one gets an accent
-    // ring plus a dark check mark (readable even on low-contrast colors).
+    // ring plus a dark check mark (readable even on low-contrast colors). A
+    // custom-color well closes the row so any color is reachable, not just
+    // the five presets — without it, picking anything outside the palette
+    // meant editing storage by hand.
     private buildSwatchRow(
         parent: HTMLElement,
         label: string,
+        colors: readonly string[],
         onPick: (value: string) => void,
     ): HTMLButtonElement[] {
         const row = document.createElement('div');
@@ -794,7 +1031,7 @@ export class SidebarUI {
         const group = document.createElement('div');
         group.className = 'vtt-swatches';
         const buttons: HTMLButtonElement[] = [];
-        for (const color of OVERLAY_COLORS) {
+        for (const color of colors) {
             const btn = document.createElement('button');
             btn.className = 'vtt-swatch';
             btn.dataset.value = color;
@@ -805,14 +1042,30 @@ export class SidebarUI {
             group.appendChild(btn);
             buttons.push(btn);
         }
+
+        const wellLabel = msg('ytStyleCustomColor', 'Custom color');
+        const well = document.createElement('label');
+        well.className = 'vtt-swatch vtt-swatch-custom';
+        well.title = wellLabel;
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.setAttribute('aria-label', wellLabel);
+        input.addEventListener('input', (e) => onPick((e.target as HTMLInputElement).value));
+        well.appendChild(input);
+        // insertAdjacentHTML, not += on innerHTML: the latter reparses the
+        // whole subtree and would tear down the <input> that was just added.
+        well.insertAdjacentHTML('beforeend', ICONS.check);
+        group.appendChild(well);
+
         row.appendChild(group);
         parent.appendChild(row);
         return buttons;
     }
 
     // Reflects the current overlayStyle in the controls: .active class on the
-    // matching button plus the segmented thumb slid under it. Safe to call
-    // before the buttons exist.
+    // matching button plus the segmented thumb slid under it (for buttons),
+    // the input value plus track fill (for sliders), or selectedness (for the
+    // font dropdown). Safe to call before the controls exist.
     private markActiveStyleButtons(): void {
         const mark = (btns: HTMLButtonElement[] | undefined, active: string) => {
             if (!btns?.length) return;
@@ -825,9 +1078,37 @@ export class SidebarUI {
             // Swatch rows have no thumb; querySelector just returns null there.
             const thumb = btns[0].parentElement?.querySelector('.vtt-seg-thumb') as HTMLElement | null;
             if (thumb && activeIndex >= 0) thumb.style.transform = `translateX(${activeIndex * 100}%)`;
+            // A custom color (not one of the presets) still needs the well to
+            // show it: swap the "pick anything" gradient for the actual color,
+            // and keep the hidden <input type=color> in sync so reopening the
+            // native picker starts from where the user left off.
+            const custom = btns[0].parentElement?.querySelector('.vtt-swatch-custom') as HTMLElement | null;
+            if (custom) {
+                const isCustom = activeIndex < 0;
+                custom.classList.toggle('active', isCustom);
+                custom.style.background = isCustom
+                    ? active
+                    : 'conic-gradient(from 210deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #b57bff, #ff6b6b)';
+                const input = custom.querySelector('input') as HTMLInputElement | null;
+                if (input && isCustom && input.value.toLowerCase() !== active.toLowerCase()) {
+                    input.value = active;
+                }
+            }
         };
-        mark(this.elements.styleSizeBtns, this.overlayStyle.overlayFontSize);
+        const markSlider = (sl: SliderRowElements | undefined, pct: number) => {
+            if (!sl) return;
+            if (Number(sl.input.value) !== pct) sl.input.value = String(pct);
+            sl.val.textContent = `${pct}%`;
+            const fill = ((pct - 50) / (400 - 50)) * 100;
+            sl.input.style.setProperty('--vtt-slider-fill', `${fill}%`);
+        };
+        if (this.elements.styleFontSelect) this.elements.styleFontSelect.value = this.overlayStyle.overlayFontFamily;
+        markSlider(this.elements.styleSizeSlider, this.overlayStyle.overlayFontSize);
+        markSlider(this.elements.styleSubSizeSlider, this.overlayStyle.overlaySubFontSize);
         mark(this.elements.styleColorBtns, this.overlayStyle.overlayColor);
+        mark(this.elements.styleSubColorBtns, this.overlayStyle.overlaySubColor);
+        mark(this.elements.styleTextOpacityBtns, String(Math.round(this.overlayStyle.overlayTextOpacity * 100)));
+        mark(this.elements.styleBgColorBtns, this.overlayStyle.overlayBgColor);
         mark(this.elements.styleOffsetBtns, this.overlayStyle.overlayBottomOffset);
         mark(this.elements.styleBgBtns, this.overlayStyle.overlayBgOpacity);
         mark(this.elements.styleEdgeBtns, this.overlayStyle.overlayEdgeStyle);
@@ -891,14 +1172,31 @@ export class SidebarUI {
         });
     }
 
-    private resetOverlayStyle(): void {
-        this.overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
+    // Two independent resets, one per panel group — each is a single storage
+    // write (so other tabs converge in one onPrefsChanged tick) that touches
+    // only the fields the user was just looking at.
+    private resetTextStyle(): void {
+        Object.assign(this.overlayStyle, OVERLAY_TEXT_DEFAULTS);
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ ...OVERLAY_STYLE_DEFAULTS }, this.scope);
+        savePrefs({ ...OVERLAY_TEXT_DEFAULTS }, this.scope);
     }
 
-    private setOverlayFontSize(v: OverlaySizeToken): void {
+    private resetBoxStyle(): void {
+        Object.assign(this.overlayStyle, OVERLAY_BOX_DEFAULTS);
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ ...OVERLAY_BOX_DEFAULTS }, this.scope);
+    }
+
+    private setOverlayFontFamily(v: OverlayFontFamily): void {
+        this.overlayStyle.overlayFontFamily = v;
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ overlayFontFamily: v }, this.scope);
+    }
+
+    private setOverlayFontSize(v: number): void {
         this.overlayStyle.overlayFontSize = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
@@ -910,6 +1208,34 @@ export class SidebarUI {
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
         savePrefs({ overlayColor: v }, this.scope);
+    }
+
+    private setOverlaySubFontSize(v: number): void {
+        this.overlayStyle.overlaySubFontSize = v;
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ overlaySubFontSize: v }, this.scope);
+    }
+
+    private setOverlaySubColor(v: string): void {
+        this.overlayStyle.overlaySubColor = v;
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ overlaySubColor: v }, this.scope);
+    }
+
+    private setOverlayTextOpacity(v: number): void {
+        this.overlayStyle.overlayTextOpacity = v;
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ overlayTextOpacity: v }, this.scope);
+    }
+
+    private setOverlayBgColor(v: string): void {
+        this.overlayStyle.overlayBgColor = v;
+        this.applyOverlayStyle();
+        this.markActiveStyleButtons();
+        savePrefs({ overlayBgColor: v }, this.scope);
     }
 
     private setOverlayBottomOffset(v: OverlayLevelToken): void {
@@ -969,8 +1295,13 @@ export class SidebarUI {
     // by the initial hydrate and cross-tab onPrefsChanged.
     private adoptOverlayStyle(prefs: Prefs): void {
         this.overlayStyle = {
+            overlayFontFamily: prefs.overlayFontFamily,
             overlayFontSize: prefs.overlayFontSize,
             overlayColor: prefs.overlayColor,
+            overlaySubFontSize: prefs.overlaySubFontSize,
+            overlaySubColor: prefs.overlaySubColor,
+            overlayTextOpacity: prefs.overlayTextOpacity,
+            overlayBgColor: prefs.overlayBgColor,
             overlayBottomOffset: prefs.overlayBottomOffset,
             overlayBgOpacity: prefs.overlayBgOpacity,
             overlayEdgeStyle: prefs.overlayEdgeStyle,
@@ -2013,8 +2344,29 @@ export class SidebarUI {
         const targets = [document.getElementById('vtt-video-overlay'), this.elements.previewEl];
         for (const el of targets) {
             if (!el) continue;
-            el.style.setProperty('--vtt-overlay-font-size', OVERLAY_FONT_SIZE_PX[s.overlayFontSize]);
+            el.style.setProperty('--vtt-overlay-font-family', OVERLAY_FONT_STACK[s.overlayFontFamily]);
+            el.style.setProperty('--vtt-overlay-font-variant', OVERLAY_FONT_VARIANT[s.overlayFontFamily]);
+            el.style.setProperty('--vtt-overlay-font-size', overlaySizePx(s.overlayFontSize));
             el.style.setProperty('--vtt-overlay-color', s.overlayColor);
+            el.style.setProperty('--vtt-overlay-sub-font-size', overlaySizePx(s.overlaySubFontSize));
+            el.style.setProperty('--vtt-overlay-sub-color', s.overlaySubColor);
+            el.style.setProperty('--vtt-overlay-text-opacity', String(s.overlayTextOpacity));
+            el.style.setProperty('--vtt-overlay-bg-color', s.overlayBgColor);
+            // The edge exists to keep glyphs legible where the box is see-through
+            // and raw video shows behind them, so it contrasts with the TEXT,
+            // not with the box: dark text gets a light edge and vice versa. A
+            // hardcoded black edge (what this used to be) vanished against the
+            // default black box and made the Edge control look like it did
+            // nothing at all.
+            el.style.setProperty(
+                '--vtt-overlay-edge-color',
+                hexLuminance(s.overlayColor) > 0.5 ? '#000' : '#fff',
+            );
+            // The translation line has its own color, so it gets its own edge.
+            el.style.setProperty(
+                '--vtt-overlay-sub-edge-color',
+                hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff',
+            );
             el.style.setProperty('--vtt-overlay-bottom', OVERLAY_BOTTOM_PX[s.overlayBottomOffset]);
             el.style.setProperty('--vtt-overlay-bg-opacity', OVERLAY_BG_OPACITY[s.overlayBgOpacity]);
             el.style.setProperty('--vtt-overlay-edge', OVERLAY_EDGE[s.overlayEdgeStyle]);

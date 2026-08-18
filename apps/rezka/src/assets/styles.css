@@ -452,16 +452,30 @@
     display: flex;
 }
 
-/* Baseline keyboard-focus ring for every control in the panel. Individual
+/* Baseline keyboard-focus ring for every control in the sidebar. Individual
    controls (quick-mode segments, the language chip) override it with an inset
    or offset ring where a plain outline would be clipped by their own overflow,
-   but nothing is left with the browser default the dark glass swallows. */
+   but nothing is left with the browser default the dark glass swallows.
+   The settings panel is excluded — see the reset below it. */
 #vtt-sidebar button:focus-visible,
 #vtt-sidebar select:focus-visible,
 #vtt-sidebar [role='button']:focus-visible,
 #vtt-toggle-btn:focus-visible {
     outline: 2px solid var(--vtt-accent-ring);
     outline-offset: 2px;
+}
+
+/* Settings panel: no focus rings. Every control here already shows its own
+   state — the active segment, the checked swatch, the slider thumb's position
+   — so a ring on top of that read as a second, competing selection marker
+   rather than as "you are here". Deliberate: it costs the keyboard-only
+   affordance in this one panel, which the visible state already covers. */
+#vtt-settings-panel button:focus-visible,
+#vtt-settings-panel select:focus-visible,
+#vtt-settings-panel input:focus-visible,
+#vtt-settings-panel label:focus-visible,
+#vtt-settings-panel [role='button']:focus-visible {
+    outline: none;
 }
 
 /* Account strip and its popup panel (built in packages/shared/src/content/
@@ -633,8 +647,10 @@
     background: rgba(255, 255, 255, 0.11);
 }
 
+/* No focus border: the selects live in the settings panel, which deliberately
+   shows no focus affordance (see the #vtt-settings-panel reset above). */
 .vtt-select:focus {
-    border-color: var(--vtt-accent-border-strong);
+    border-color: var(--vtt-hairline-strong);
 }
 
 /* Grouped language picker (Netflix): the native popup lists an "available in
@@ -1128,8 +1144,12 @@
     cursor: default;
 }
 
+/* Scales --vtt-overlay-sub-font-size directly, not a ratio of the main line's
+   size: the translation line has its OWN size control now, so the preview
+   must reflect that value independently or it would silently lie about what
+   the slider does. */
 #vtt-style-preview .vtt-overlay-sub {
-    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.62 * 0.75);
+    font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * 0.62);
     padding: 2px 9px;
     max-width: 88%;
     pointer-events: none;
@@ -1158,24 +1178,33 @@
     opacity: 1;
 }
 
-/* -- Overlay appearance group: preset rows -- */
-#vtt-style-controls {
+/* -- Overlay appearance groups: preset rows -- */
+#vtt-style-controls-text,
+#vtt-style-controls-box {
     display: flex;
     flex-direction: column;
     gap: 11px;
 }
 
-.vtt-style-row {
-    display: grid;
-    grid-template-columns: 66px 1fr;
-    align-items: center;
-    gap: 10px;
+/* Label ABOVE its control, not beside it. A fixed label column cannot work
+   here: the panel is 320px wide and these labels are localized into 54
+   languages — "Прозрачность шрифта" needs ~118px on its own, which would
+   leave too little for a six-swatch row (189px) to fit beside it. Stacking
+   gives every control the full panel width and makes label length simply
+   stop mattering, in any language. */
+.vtt-style-row,
+.vtt-style-row-wide {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .vtt-style-label {
     font-size: 12px;
     color: var(--vtt-text-soft);
-    white-space: nowrap;
+    /* Deliberately NOT nowrap: the label now owns a full-width line of its
+       own, and a very long localized string should wrap rather than overflow
+       into the control below it. */
 }
 
 /* Segmented control: equal-flex transparent buttons over a sliding thumb. */
@@ -1233,17 +1262,76 @@
     height: 15px;
 }
 
-/* Size presets: the "A" glyphs at real relative scale. */
-.vtt-a { font-weight: 600; }
-.vtt-a-s { font-size: 10px; }
-.vtt-a-m { font-size: 13px; }
-.vtt-a-l { font-size: 16px; }
+/* Fine-grained size control: a 50-400% range slider with a live percent
+   readout. Replaces an earlier 3-way small/medium/large preset (the "A"
+   glyphs this comment used to sit above), which left the 100-150% range most
+   people land in unreachable. */
+.vtt-slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.vtt-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to right,
+        var(--vtt-accent) var(--vtt-slider-fill, 14%),
+        rgba(255, 255, 255, 0.14) var(--vtt-slider-fill, 14%)
+    );
+    outline: none;
+    cursor: pointer;
+}
+
+.vtt-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    transition: transform 0.12s;
+}
+
+.vtt-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.vtt-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vtt-slider:focus-visible {
+    outline: none;
+}
+
+.vtt-slider-val {
+    font-size: 11px;
+    color: var(--vtt-text-soft);
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+    text-align: right;
+}
 
 /* Color swatches: accent ring + dark check on the selected one. */
 .vtt-swatches {
     display: flex;
     gap: 9px;
     align-items: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
 }
 
 /* 24px, the WCAG 2.2 minimum target size (2.5.8) — at this scale the swatch
@@ -1278,6 +1366,27 @@
 
 .vtt-swatch.active svg {
     opacity: 1;
+}
+
+/* The custom-color well: same 24px footprint as a preset swatch, so the row
+   still reads as one rank of dots rather than a control bolted onto the end.
+   A conic gradient stands in for "pick anything" until a custom color is
+   actually chosen, at which point it shows that color like any other swatch. */
+.vtt-swatch-custom {
+    position: relative;
+    overflow: hidden;
+    background: conic-gradient(from 210deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #b57bff, #ff6b6b);
+}
+
+.vtt-swatch-custom input {
+    position: absolute;
+    inset: -8px;
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    padding: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1618,15 +1727,23 @@
 }
 
 .vtt-overlay-main {
-    background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));
-    color: var(--vtt-overlay-color, #fff);
+    /* Background color and its opacity are separate controls (color picker +
+       backdrop level), so the box color-mixes them rather than hardcoding
+       black — a user who sets a white box gets a white box, not black. */
+    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-overlay-bg-opacity, 0.7) * 100%), transparent);
+    /* Font opacity fades the GLYPH FILL only, never the box behind it — the
+       box has its own opacity control above. An element-level `opacity`
+       would fade both and make the two settings indistinguishable. */
+    color: color-mix(in srgb, var(--vtt-overlay-color, #fff) calc(var(--vtt-overlay-text-opacity, 1) * 100%), transparent);
+    font-family: var(--vtt-overlay-font-family, inherit);
+    font-variant-caps: var(--vtt-overlay-font-variant, normal);
     font-size: var(--vtt-overlay-font-size, 24px);
     font-weight: 600;
     padding: 6px 16px;
     border-radius: 8px;
     margin-bottom: 6px;
     display: inline-block;
-    text-shadow: var(--vtt-overlay-edge, 1px 1px 3px #000);
+    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
     max-width: 80%;
     word-wrap: break-word;
     /* Container has pointer-events: none so the video stays clickable —
@@ -1649,15 +1766,23 @@
 
 
 .vtt-overlay-sub {
-    background: rgba(0, 0, 0, var(--vtt-overlay-bg-opacity, 0.7));
-    /* Translation accent stays fixed — user color applies to the main line only. */
-    color: #ffd700;
-    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.75);
+    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-overlay-bg-opacity, 0.7) * 100%), transparent);
+    /* Its own color and size now, not a fixed gold at a fixed 0.75x the main
+       line — the translation is a different language doing a different job,
+       and the user may want it as a tiny hint or just as large. */
+    color: color-mix(in srgb, var(--vtt-overlay-sub-color, #ffd700) calc(var(--vtt-overlay-text-opacity, 1) * 100%), transparent);
+    font-family: var(--vtt-overlay-font-family, inherit);
+    font-variant-caps: var(--vtt-overlay-font-variant, normal);
+    font-size: var(--vtt-overlay-sub-font-size, 18px);
+    /* Rebind the edge color locally: --vtt-overlay-edge references
+       --vtt-overlay-edge-color, so overriding it here makes the same shared
+       edge value resolve against the translation line's own text color. */
+    --vtt-overlay-edge-color: var(--vtt-overlay-sub-edge-color, #000);
     font-weight: 400;
     padding: 4px 12px;
     border-radius: 6px;
     display: inline-block;
-    text-shadow: var(--vtt-overlay-edge, 1px 1px 3px #000);
+    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
     max-width: 80%;
     word-wrap: break-word;
 }
@@ -2466,8 +2591,7 @@
 }
 
 .vtt-switch-input:focus-visible + .vtt-switch {
-    outline: 2px solid var(--vtt-accent-ring);
-    outline-offset: 2px;
+    outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

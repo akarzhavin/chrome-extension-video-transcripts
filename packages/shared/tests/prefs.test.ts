@@ -52,8 +52,13 @@ describe('prefs', () => {
             displayMode: 'dual',
             overlayEnabled: true,
             sidebarCollapsed: false,
-            overlayFontSize: 'medium',
+            overlayFontFamily: 'propSans',
+            overlayFontSize: 100,
             overlayColor: '#ffffff',
+            overlaySubFontSize: 75,
+            overlaySubColor: '#ffd700',
+            overlayTextOpacity: 1,
+            overlayBgColor: '#000000',
             overlayBottomOffset: 'medium',
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
@@ -62,9 +67,9 @@ describe('prefs', () => {
     });
 
     test('overlay style prefs round-trip and merge independently', async () => {
-        await savePrefs({ overlayFontSize: 'large', overlayColor: '#ffd700' });
+        await savePrefs({ overlayFontSize: 150, overlayColor: '#ffd700' });
         let p = await loadPrefs();
-        expect(p.overlayFontSize).toBe('large');
+        expect(p.overlayFontSize).toBe(150);
         expect(p.overlayColor).toBe('#ffd700');
         // Untouched style fields keep their defaults.
         expect(p.overlayBottomOffset).toBe('medium');
@@ -73,7 +78,7 @@ describe('prefs', () => {
         await savePrefs({ overlayBottomOffset: 'high' });
         p = await loadPrefs();
         expect(p.overlayBottomOffset).toBe('high');
-        expect(p.overlayFontSize).toBe('large'); // earlier change preserved
+        expect(p.overlayFontSize).toBe(150); // earlier change preserved
     });
 
     test('a blob written before analyticsEnabled existed resolves to true', async () => {
@@ -123,8 +128,13 @@ describe('prefs', () => {
             displayMode: 'dual',
             overlayEnabled: true,
             sidebarCollapsed: false,
-            overlayFontSize: 'medium',
+            overlayFontFamily: 'propSans',
+            overlayFontSize: 100,
             overlayColor: '#ffffff',
+            overlaySubFontSize: 75,
+            overlaySubColor: '#ffd700',
+            overlayTextOpacity: 1,
+            overlayBgColor: '#000000',
             overlayBottomOffset: 'medium',
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
@@ -145,43 +155,48 @@ describe('prefs', () => {
         // A blob written by a build that predates scoping: one shared
         // appearance, tuned on YouTube, sitting at the top level.
         (chromeStorage.local as any)._store['prefs.v1'] = {
-            overlayFontSize: 'large',
+            overlayFontSize: 150,
             overlayColor: '#ffd700',
         };
         // Both sites resolve to it, so upgrading changes nothing visually.
-        expect((await loadPrefs('youtube')).overlayFontSize).toBe('large');
-        expect((await loadPrefs('netflix')).overlayFontSize).toBe('large');
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(150);
+        expect((await loadPrefs('netflix')).overlayFontSize).toBe(150);
         expect((await loadPrefs('netflix')).overlayColor).toBe('#ffd700');
         // Fields never configured still fall through to the factory defaults.
         expect((await loadPrefs('netflix')).overlayBgOpacity).toBe('medium');
     });
 
     test('a YouTube appearance change does not follow to Netflix', async () => {
-        (chromeStorage.local as any)._store['prefs.v1'] = { overlayFontSize: 'large' };
-        await savePrefs({ overlayFontSize: 'small' }, 'youtube');
+        (chromeStorage.local as any)._store['prefs.v1'] = { overlayFontSize: 150 };
+        await savePrefs({ overlayFontSize: 75 }, 'youtube');
 
-        expect((await loadPrefs('youtube')).overlayFontSize).toBe('small');
-        expect((await loadPrefs('netflix')).overlayFontSize).toBe('large');
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(75);
+        expect((await loadPrefs('netflix')).overlayFontSize).toBe(150);
         // The baseline itself must survive untouched. If a scoped write ever
         // leaked to the top level, every other site would re-converge on it and
         // the whole feature would quietly become a no-op — so assert it here.
-        expect((chromeStorage.local as any)._store['prefs.v1'].overlayFontSize).toBe('large');
+        expect((chromeStorage.local as any)._store['prefs.v1'].overlayFontSize).toBe(150);
     });
 
-    test('the first write to a fresh scope snapshots all six scoped fields', async () => {
+    test('the first write to a fresh scope snapshots all scoped fields', async () => {
         (chromeStorage.local as any)._store['prefs.v1'] = {
             overlayColor: '#ffd700',
             overlayEnabled: false,
         };
-        await savePrefs({ overlayFontSize: 'large' }, 'youtube');
+        await savePrefs({ overlayFontSize: 150 }, 'youtube');
 
-        // Editing one field pins all six, so the scope stops tracking the
-        // top-level baseline rather than half-following it forever.
+        // Editing one field pins every scoped field, so the scope stops
+        // tracking the top-level baseline rather than half-following it forever.
         expect((chromeStorage.local as any)._store['prefs.v1'].byPlatform.youtube).toEqual({
-            overlayEnabled: false,         // inherited from the baseline
-            overlayFontSize: 'large',      // the actual edit
-            overlayColor: '#ffd700',       // inherited from the baseline
-            overlayBottomOffset: 'medium', // from DEFAULT_PREFS
+            overlayEnabled: false,           // inherited from the baseline
+            overlayFontFamily: 'propSans',   // from DEFAULT_PREFS
+            overlayFontSize: 150,            // the actual edit
+            overlayColor: '#ffd700',         // inherited from the baseline
+            overlaySubFontSize: 75,
+            overlaySubColor: '#ffd700',
+            overlayTextOpacity: 1,
+            overlayBgColor: '#000000',
+            overlayBottomOffset: 'medium',
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
         });
@@ -212,29 +227,57 @@ describe('prefs', () => {
         const yt = jest.fn();
         const off = onPrefsChanged(yt, 'youtube');
 
-        await savePrefs({ overlayFontSize: 'small' }, 'netflix');
+        await savePrefs({ overlayFontSize: 75 }, 'netflix');
 
         // One shared storage key, so the listener does fire — but resolved
         // through YouTube's scope the values are unchanged, which is what makes
         // the sidebar's update a no-op instead of a repaint.
         expect(yt).toHaveBeenCalledTimes(1);
-        expect(yt.mock.calls[0][0].overlayFontSize).toBe('medium');
+        expect(yt.mock.calls[0][0].overlayFontSize).toBe(100);
         off();
     });
 
     test('a malformed byPlatform is ignored and cannot override a global', async () => {
         (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual', byPlatform: 'nope' };
-        expect((await loadPrefs('youtube')).overlayFontSize).toBe('medium');
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(100);
 
         (chromeStorage.local as any)._store['prefs.v1'] = {
-            byPlatform: { youtube: { displayMode: 'single', overlayFontSize: 'large' } },
+            byPlatform: { youtube: { displayMode: 'single', overlayFontSize: 150 } },
         };
         const p = await loadPrefs('youtube');
-        expect(p.overlayFontSize).toBe('large');
+        expect(p.overlayFontSize).toBe(150);
         // Scoped resolution copies known appearance keys only. A global riding
         // along inside a scope object is dropped — the case that matters is
         // analyticsEnabled, where honouring it would re-consent an opted-out user.
         expect(p.displayMode).toBe('dual');
+    });
+
+    // ---------------------------------------------------------------------
+    // Legacy size tokens
+    //
+    // Font size used to be a 3-way token (small/medium/large). Installs
+    // upgrading from that build have those exact strings sitting under
+    // overlayFontSize/overlaySubFontSize, at the top level and possibly
+    // inside byPlatform too, since scoped writes existed before this change.
+    // ---------------------------------------------------------------------
+
+    test('a legacy size token at the top level resolves to its percent equivalent', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { overlayFontSize: 'large' };
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(150);
+    });
+
+    test('a legacy size token inside byPlatform resolves to its percent equivalent', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: { youtube: { overlayFontSize: 'small', overlaySubFontSize: 'large' } },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayFontSize).toBe(75);
+        expect(p.overlaySubFontSize).toBe(150);
+    });
+
+    test('an unrecognized size value falls back to the default rather than propagating garbage', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { overlayFontSize: 'huge' };
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(100);
     });
 
     test('savePrefs skips silently when extension context is invalidated', async () => {
