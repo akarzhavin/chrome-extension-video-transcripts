@@ -71,21 +71,73 @@
     "message": "已儲存 {count} 個單字",
     "description": "Saved-words counter; {count} is the number."
   },
+  "ytStyleFontLabel": {
+    "message": "字型",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSerif": {
+    "message": "等寬襯線字體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSerif": {
+    "message": "比例襯線字體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSans": {
+    "message": "等寬無襯線字體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSans": {
+    "message": "比例無襯線字體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCasual": {
+    "message": "休閒體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCursive": {
+    "message": "手寫體",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontSmallCaps": {
+    "message": "小型大寫字母",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
   "ytStyleSizeLabel": {
     "message": "大小",
-    "description": "Label for the subtitle overlay font-size preset buttons."
+    "description": "Label for the subtitle overlay font-size slider (50-400%)."
   },
   "ytStyleColorLabel": {
     "message": "顏色",
-    "description": "Label for the subtitle overlay text-color swatches."
+    "description": "Label for the subtitle overlay text-color swatches (main line)."
+  },
+  "ytStyleSubSizeLabel": {
+    "message": "翻譯大小",
+    "description": "Label for the translation-line font-size slider (50-400%), independent of the main line."
+  },
+  "ytStyleSubColorLabel": {
+    "message": "翻譯顏色",
+    "description": "Label for the translation-line text-color swatches, independent of the main line."
+  },
+  "ytStyleTextOpacityLabel": {
+    "message": "字型不透明度",
+    "description": "Label for the subtitle text glyph-opacity presets (fades the letters, not the box behind them)."
+  },
+  "ytStyleCustomColor": {
+    "message": "自訂顏色",
+    "description": "Accessible label and tooltip for the custom-color well at the end of every color swatch row."
+  },
+  "ytStyleBgColorLabel": {
+    "message": "背景顏色",
+    "description": "Label for the subtitle caption-box background-color swatches."
   },
   "ytStyleOffsetLabel": {
     "message": "位置",
     "description": "Label for the subtitle overlay vertical-position presets."
   },
   "ytStyleBgLabel": {
-    "message": "背景",
-    "description": "Label for the subtitle overlay background-opacity presets."
+    "message": "背景濃度",
+    "description": "Label for the subtitle overlay backdrop-opacity presets (how solid the caption box is, distinct from its color)."
   },
   "ytGroupLanguages": {
     "message": "語言",
@@ -99,9 +151,13 @@
     "message": "模式",
     "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
   },
-  "ytGroupOverlay": {
-    "message": "字幕外觀",
-    "description": "Settings panel group header for on-video subtitle styling."
+  "ytGroupText": {
+    "message": "文字",
+    "description": "Settings panel group header for subtitle text appearance: font, size, color."
+  },
+  "ytGroupBox": {
+    "message": "背景與位置",
+    "description": "Settings panel group header for the caption box and where it sits on the video."
   },
   "ytModeSwap": {
     "message": "交換",

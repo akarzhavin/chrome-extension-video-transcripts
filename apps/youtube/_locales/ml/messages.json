@@ -71,21 +71,73 @@
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
     "description": "Saved-words counter; {count} is the number."
   },
+  "ytStyleFontLabel": {
+    "message": "ഫോണ്ട് ഫാമിലി",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSerif": {
+    "message": "മോണോസ്പേസ്ഡ് സെരിഫ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSerif": {
+    "message": "പ്രൊപ്പോർഷണൽ സെരിഫ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSans": {
+    "message": "മോണോസ്പേസ്ഡ് സാൻസ്-സെരിഫ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSans": {
+    "message": "പ്രൊപ്പോർഷണൽ സാൻസ്-സെരിഫ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCasual": {
+    "message": "കാഷ്വൽ",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCursive": {
+    "message": "കഴ്‌സിവ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontSmallCaps": {
+    "message": "സ്മോൾ ക്യാപിറ്റൽസ്",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
   "ytStyleSizeLabel": {
     "message": "വലുപ്പം",
-    "description": "Label for the subtitle overlay font-size preset buttons."
+    "description": "Label for the subtitle overlay font-size slider (50-400%)."
   },
   "ytStyleColorLabel": {
     "message": "നിറം",
-    "description": "Label for the subtitle overlay text-color swatches."
+    "description": "Label for the subtitle overlay text-color swatches (main line)."
+  },
+  "ytStyleSubSizeLabel": {
+    "message": "പരിഭാഷയുടെ വലുപ്പം",
+    "description": "Label for the translation-line font-size slider (50-400%), independent of the main line."
+  },
+  "ytStyleSubColorLabel": {
+    "message": "പരിഭാഷയുടെ നിറം",
+    "description": "Label for the translation-line text-color swatches, independent of the main line."
+  },
+  "ytStyleTextOpacityLabel": {
+    "message": "ഫോണ്ടിന്റെ അതാര്യത",
+    "description": "Label for the subtitle text glyph-opacity presets (fades the letters, not the box behind them)."
+  },
+  "ytStyleCustomColor": {
+    "message": "ഇഷ്ടാനുസൃത നിറം",
+    "description": "Accessible label and tooltip for the custom-color well at the end of every color swatch row."
+  },
+  "ytStyleBgColorLabel": {
+    "message": "പശ്ചാത്തല നിറം",
+    "description": "Label for the subtitle caption-box background-color swatches."
   },
   "ytStyleOffsetLabel": {
     "message": "സ്ഥാനം",
     "description": "Label for the subtitle overlay vertical-position presets."
   },
   "ytStyleBgLabel": {
-    "message": "പശ്ചാത്തലം",
-    "description": "Label for the subtitle overlay background-opacity presets."
+    "message": "പശ്ചാത്തല സാന്ദ്രത",
+    "description": "Label for the subtitle overlay backdrop-opacity presets (how solid the caption box is, distinct from its color)."
   },
   "ytGroupLanguages": {
     "message": "ഭാഷകൾ",
@@ -99,9 +151,13 @@
     "message": "മോഡുകൾ",
     "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
   },
-  "ytGroupOverlay": {
-    "message": "സബ്ടൈറ്റിൽ രൂപം",
-    "description": "Settings panel group header for on-video subtitle styling."
+  "ytGroupText": {
+    "message": "ടെക്സ്റ്റ്",
+    "description": "Settings panel group header for subtitle text appearance: font, size, color."
+  },
+  "ytGroupBox": {
+    "message": "പശ്ചാത്തലവും സ്ഥാനവും",
+    "description": "Settings panel group header for the caption box and where it sits on the video."
   },
   "ytModeSwap": {
     "message": "പരസ്പരം മാറ്റുക",

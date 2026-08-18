@@ -71,21 +71,73 @@
     "message": "{count} పదాలు సేవ్ చేయబడ్డాయి",
     "description": "Saved-words counter; {count} is the number."
   },
+  "ytStyleFontLabel": {
+    "message": "ఫాంట్ కుటుంబం",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSerif": {
+    "message": "మోనోస్పేస్డ్ సెరిఫ్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSerif": {
+    "message": "ప్రొపోర్షనల్ సెరిఫ్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSans": {
+    "message": "మోనోస్పేస్డ్ సాన్స్-సెరిఫ్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSans": {
+    "message": "ప్రొపోర్షనల్ సాన్స్-సెరిఫ్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCasual": {
+    "message": "క్యాజువల్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCursive": {
+    "message": "కర్సివ్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontSmallCaps": {
+    "message": "స్మాల్ క్యాపిటల్స్",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
   "ytStyleSizeLabel": {
     "message": "పరిమాణం",
-    "description": "Label for the subtitle overlay font-size preset buttons."
+    "description": "Label for the subtitle overlay font-size slider (50-400%)."
   },
   "ytStyleColorLabel": {
     "message": "రంగు",
-    "description": "Label for the subtitle overlay text-color swatches."
+    "description": "Label for the subtitle overlay text-color swatches (main line)."
+  },
+  "ytStyleSubSizeLabel": {
+    "message": "అనువాద పరిమాణం",
+    "description": "Label for the translation-line font-size slider (50-400%), independent of the main line."
+  },
+  "ytStyleSubColorLabel": {
+    "message": "అనువాద రంగు",
+    "description": "Label for the translation-line text-color swatches, independent of the main line."
+  },
+  "ytStyleTextOpacityLabel": {
+    "message": "ఫాంట్ అపారదర్శకత",
+    "description": "Label for the subtitle text glyph-opacity presets (fades the letters, not the box behind them)."
+  },
+  "ytStyleCustomColor": {
+    "message": "అనుకూల రంగు",
+    "description": "Accessible label and tooltip for the custom-color well at the end of every color swatch row."
+  },
+  "ytStyleBgColorLabel": {
+    "message": "నేపథ్య రంగు",
+    "description": "Label for the subtitle caption-box background-color swatches."
   },
   "ytStyleOffsetLabel": {
     "message": "స్థానం",
     "description": "Label for the subtitle overlay vertical-position presets."
   },
   "ytStyleBgLabel": {
-    "message": "నేపథ్యం",
-    "description": "Label for the subtitle overlay background-opacity presets."
+    "message": "నేపథ్య సాంద్రత",
+    "description": "Label for the subtitle overlay backdrop-opacity presets (how solid the caption box is, distinct from its color)."
   },
   "ytGroupLanguages": {
     "message": "భాషలు",
@@ -99,9 +151,13 @@
     "message": "మోడ్‌లు",
     "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
   },
-  "ytGroupOverlay": {
-    "message": "సబ్‌టైటిల్ రూపం",
-    "description": "Settings panel group header for on-video subtitle styling."
+  "ytGroupText": {
+    "message": "టెక్స్ట్",
+    "description": "Settings panel group header for subtitle text appearance: font, size, color."
+  },
+  "ytGroupBox": {
+    "message": "నేపథ్యం మరియు స్థానం",
+    "description": "Settings panel group header for the caption box and where it sits on the video."
   },
   "ytModeSwap": {
     "message": "మార్చు",

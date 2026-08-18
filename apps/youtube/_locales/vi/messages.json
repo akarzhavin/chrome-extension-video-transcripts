@@ -71,21 +71,73 @@
     "message": "Đã lưu {count} từ",
     "description": "Saved-words counter; {count} is the number."
   },
+  "ytStyleFontLabel": {
+    "message": "Kiểu chữ",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSerif": {
+    "message": "Serif Đơn Cách",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSerif": {
+    "message": "Serif Tỷ Lệ",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSans": {
+    "message": "Sans-Serif Đơn Cách",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSans": {
+    "message": "Sans-Serif Tỷ Lệ",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCasual": {
+    "message": "Thông Thường",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCursive": {
+    "message": "Chữ Thảo",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontSmallCaps": {
+    "message": "Chữ Hoa Nhỏ",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
   "ytStyleSizeLabel": {
     "message": "Kích thước",
-    "description": "Label for the subtitle overlay font-size preset buttons."
+    "description": "Label for the subtitle overlay font-size slider (50-400%)."
   },
   "ytStyleColorLabel": {
     "message": "Màu",
-    "description": "Label for the subtitle overlay text-color swatches."
+    "description": "Label for the subtitle overlay text-color swatches (main line)."
+  },
+  "ytStyleSubSizeLabel": {
+    "message": "Cỡ chữ bản dịch",
+    "description": "Label for the translation-line font-size slider (50-400%), independent of the main line."
+  },
+  "ytStyleSubColorLabel": {
+    "message": "Màu bản dịch",
+    "description": "Label for the translation-line text-color swatches, independent of the main line."
+  },
+  "ytStyleTextOpacityLabel": {
+    "message": "Độ mờ đục của phông chữ",
+    "description": "Label for the subtitle text glyph-opacity presets (fades the letters, not the box behind them)."
+  },
+  "ytStyleCustomColor": {
+    "message": "Màu tùy chỉnh",
+    "description": "Accessible label and tooltip for the custom-color well at the end of every color swatch row."
+  },
+  "ytStyleBgColorLabel": {
+    "message": "Màu nền",
+    "description": "Label for the subtitle caption-box background-color swatches."
   },
   "ytStyleOffsetLabel": {
     "message": "Vị trí",
     "description": "Label for the subtitle overlay vertical-position presets."
   },
   "ytStyleBgLabel": {
-    "message": "Nền",
-    "description": "Label for the subtitle overlay background-opacity presets."
+    "message": "Độ đậm của nền",
+    "description": "Label for the subtitle overlay backdrop-opacity presets (how solid the caption box is, distinct from its color)."
   },
   "ytGroupLanguages": {
     "message": "Ngôn ngữ",
@@ -99,9 +151,13 @@
     "message": "Chế độ",
     "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
   },
-  "ytGroupOverlay": {
-    "message": "Giao diện phụ đề",
-    "description": "Settings panel group header for on-video subtitle styling."
+  "ytGroupText": {
+    "message": "Văn bản",
+    "description": "Settings panel group header for subtitle text appearance: font, size, color."
+  },
+  "ytGroupBox": {
+    "message": "Nền và vị trí",
+    "description": "Settings panel group header for the caption box and where it sits on the video."
   },
   "ytModeSwap": {
     "message": "Hoán đổi",

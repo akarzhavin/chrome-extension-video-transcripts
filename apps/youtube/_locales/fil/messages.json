@@ -71,21 +71,73 @@
     "message": "{count} salita ang naka-save",
     "description": "Saved-words counter; {count} is the number."
   },
+  "ytStyleFontLabel": {
+    "message": "Pamilya ng font",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSerif": {
+    "message": "Monospaced Serif",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSerif": {
+    "message": "Proportional Serif",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontMonoSans": {
+    "message": "Monospaced Sans-Serif",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontPropSans": {
+    "message": "Proportional Sans-Serif",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCasual": {
+    "message": "Kaswal",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontCursive": {
+    "message": "Kursibo",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
+  "ytFontSmallCaps": {
+    "message": "Maliliit na Malaking Titik",
+    "description": "CEA-708 font class name, matches YouTube's own caption settings."
+  },
   "ytStyleSizeLabel": {
     "message": "Sukat",
-    "description": "Label for the subtitle overlay font-size preset buttons."
+    "description": "Label for the subtitle overlay font-size slider (50-400%)."
   },
   "ytStyleColorLabel": {
     "message": "Kulay",
-    "description": "Label for the subtitle overlay text-color swatches."
+    "description": "Label for the subtitle overlay text-color swatches (main line)."
+  },
+  "ytStyleSubSizeLabel": {
+    "message": "Sukat ng salin",
+    "description": "Label for the translation-line font-size slider (50-400%), independent of the main line."
+  },
+  "ytStyleSubColorLabel": {
+    "message": "Kulay ng salin",
+    "description": "Label for the translation-line text-color swatches, independent of the main line."
+  },
+  "ytStyleTextOpacityLabel": {
+    "message": "Opacity ng font",
+    "description": "Label for the subtitle text glyph-opacity presets (fades the letters, not the box behind them)."
+  },
+  "ytStyleCustomColor": {
+    "message": "Custom na kulay",
+    "description": "Accessible label and tooltip for the custom-color well at the end of every color swatch row."
+  },
+  "ytStyleBgColorLabel": {
+    "message": "Kulay ng background",
+    "description": "Label for the subtitle caption-box background-color swatches."
   },
   "ytStyleOffsetLabel": {
     "message": "Posisyon",
     "description": "Label for the subtitle overlay vertical-position presets."
   },
   "ytStyleBgLabel": {
-    "message": "Background",
-    "description": "Label for the subtitle overlay background-opacity presets."
+    "message": "Kapal ng background",
+    "description": "Label for the subtitle overlay backdrop-opacity presets (how solid the caption box is, distinct from its color)."
   },
   "ytGroupLanguages": {
     "message": "Mga wika",
@@ -99,9 +151,13 @@
     "message": "Mga mode",
     "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
   },
-  "ytGroupOverlay": {
-    "message": "Hitsura ng subtitle",
-    "description": "Settings panel group header for on-video subtitle styling."
+  "ytGroupText": {
+    "message": "Teksto",
+    "description": "Settings panel group header for subtitle text appearance: font, size, color."
+  },
+  "ytGroupBox": {
+    "message": "Background at posisyon",
+    "description": "Settings panel group header for the caption box and where it sits on the video."
   },
   "ytModeSwap": {
     "message": "Magpalit",

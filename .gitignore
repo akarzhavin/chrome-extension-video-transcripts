@@ -71,3 +71,13 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Extension release archives. Everything up to v1.0.14 is committed here and
+# stays that way — rewriting history to evict 4.3MB of zips would cost every
+# clone a re-fetch for no gain. From v1.0.15 on, release artifacts live in
+# GitHub Releases instead, attached to a per-app tag (youtube-v1.0.15,
+# rezka-v1.0.15), so the repo stops growing by ~400KB per release.
+#
+# The already-tracked zips are unaffected: git keeps following files that are
+# already in the index, ignore rules only govern untracked ones.
+releases/*.zip

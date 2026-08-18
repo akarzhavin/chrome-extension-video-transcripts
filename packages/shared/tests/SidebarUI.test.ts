@@ -5,6 +5,7 @@
 import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
+import { loadPrefs } from '../src/prefs';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -407,20 +408,70 @@ describe('SidebarUI', () => {
 
         test('applyOverlayStyle sets --vtt-overlay-* custom props from defaults', () => {
             const overlay = buildOverlay();
-            // Defaults: medium size/offset/bg, white color.
+            // Defaults: 100%/75% size, medium offset/bg, white/gold color, full opacity.
             expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('18px');
             expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('80px');
             expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0.7');
             expect(overlay.style.getPropertyValue('--vtt-overlay-color')).toBe('#ffffff');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-color')).toBe('#ffd700');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-text-opacity')).toBe('1');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bg-color')).toBe('#000000');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-family')).toContain('Inter');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-variant')).toBe('normal');
         });
 
-        test('a size preset setter restyles the live overlay and persists the pref', async () => {
+        test('a size setter restyles the live overlay and persists the pref', async () => {
             const overlay = buildOverlay();
-            (ui as any).setOverlayFontSize('large');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('32px');
+            (ui as any).setOverlayFontSize(150);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('36px');
             // Persisted via savePrefs (load→merge→set chain) → storage.local backing store.
+            // Asserted through the resolved view rather than the raw blob: appearance
+            // is stored per site (jsdom's host → the 'other' scope), and this test is
+            // about the setter persisting, not about where the bytes sit.
             await new Promise((r) => setTimeout(r, 0));
-            expect((prefsStore['prefs.v1'] as any).overlayFontSize).toBe('large');
+            expect((await loadPrefs('other')).overlayFontSize).toBe(150);
+        });
+
+        test('the translation-line size setter is independent of the main size', async () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayFontSize(200);
+            (ui as any).setOverlaySubFontSize(50);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('48px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('12px');
+        });
+
+        test('the translation-line color setter is independent of the main color', () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayColor('#00e5ff');
+            (ui as any).setOverlaySubColor('#7CFC00');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-color')).toBe('#00e5ff');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-color')).toBe('#7CFC00');
+        });
+
+        test('text opacity fades the glyph fill via a CSS var, not element opacity', () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayTextOpacity(0.5);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-text-opacity')).toBe('0.5');
+            // Never element-level: that would fade the box behind the text too,
+            // making it indistinguishable from the backdrop-opacity control.
+            expect(overlay.style.opacity).toBe('');
+        });
+
+        test('the font family setter updates both the stack and the small-caps variant', () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayFontFamily('smallCaps');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-variant')).toBe('small-caps');
+            (ui as any).setOverlayFontFamily('monoSans');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-variant')).toBe('normal');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-family')).toContain('monospace');
+        });
+
+        test('the background color setter is independent of backdrop opacity', () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayBgColor('#ffffff');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bg-color')).toBe('#ffffff');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0.7'); // untouched
         });
 
         test('an offset preset setter maps low/high tokens to px', () => {
@@ -431,44 +482,111 @@ describe('SidebarUI', () => {
             expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('140px');
         });
 
-        test('edge style maps tokens to text-shadow values', () => {
+        test('edge style maps tokens to em-based text-shadow values', () => {
             const overlay = buildOverlay();
-            // Default is 'shadow' (the pre-redesign hard-coded look).
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('1px 1px 3px #000');
+            // Default is 'shadow' (the pre-redesign hard-coded look, now in em so
+            // it scales with the size slider instead of vanishing at 400%).
+            // Already resolved against the default white text -> black edge.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
             (ui as any).setOverlayEdgeStyle('none');
             expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('none');
             (ui as any).setOverlayEdgeStyle('outline');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('-1px -1px 0 #000');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('-0.045em -0.045em 0 #000');
+        });
+
+        test('the edge color contrasts with the TEXT, so it never vanishes into the box', () => {
+            const overlay = buildOverlay();
+            // Light text gets a dark edge so it stays legible where the box is
+            // see-through and raw video shows behind it. The edge used to be a
+            // hardcoded black, which disappeared against the default black box
+            // and made the Edge control look like it did nothing.
+            // Assert the SHIPPED edge value, not a colour variable: the rendered
+            // text-shadow is what the user sees, and the first version of this
+            // feature set the colour correctly while still painting the wrong
+            // shadow, which these assertions could not see.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#000');
+            (ui as any).setOverlayColor('#000000'); // dark text -> light edge
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#fff');
+            (ui as any).setOverlayColor('#ffffff'); // back to light text -> dark edge
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#000');
+        });
+
+        test("the translation line gets its own resolved edge, not the main line's", () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayColor('#ffffff');    // light main line -> dark edge
+            (ui as any).setOverlaySubColor('#000000'); // dark sub line   -> light edge
+            const main = overlay.style.getPropertyValue('--vtt-overlay-edge');
+            const sub = overlay.style.getPropertyValue('--vtt-overlay-sub-edge');
+            expect(main).toContain('#000');
+            expect(sub).toContain('#fff');
+            // Each must arrive ALREADY resolved. A var() left in here is
+            // substituted on the parent against the main line's colour, so the
+            // translation line would silently inherit the main line's edge.
+            expect(main).not.toContain('var(');
+            expect(sub).not.toContain('var(');
+            expect(sub).not.toBe(main);
         });
 
         test('applyOverlayStyle also styles the sidebar preview element', () => {
             const preview = document.createElement('div');
             ui.elements.previewEl = preview;
-            (ui as any).setOverlayFontSize('large');
-            expect(preview.style.getPropertyValue('--vtt-overlay-font-size')).toBe('32px');
-            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('1px 1px 3px #000');
+            (ui as any).setOverlayFontSize(150);
+            expect(preview.style.getPropertyValue('--vtt-overlay-font-size')).toBe('36px');
+            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
         });
 
-        test('reset restores all five defaults with a single storage write', async () => {
+        test('resetTextStyle restores text defaults with a single write, leaving box fields alone', async () => {
             const overlay = buildOverlay();
-            (ui as any).setOverlayFontSize('large');
-            (ui as any).setOverlayEdgeStyle('outline');
+            (ui as any).setOverlayFontSize(150);
+            (ui as any).setOverlayBottomOffset('high'); // a box field — must survive the text reset
             await new Promise((r) => setTimeout(r, 0));
 
             ((global as any).chrome.storage.local.set as jest.Mock).mockClear();
-            (ui as any).resetOverlayStyle();
+            (ui as any).resetTextStyle();
             await new Promise((r) => setTimeout(r, 0));
 
             expect((global as any).chrome.storage.local.set).toHaveBeenCalledTimes(1);
-            const stored = prefsStore['prefs.v1'] as any;
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
             expect(stored).toMatchObject({
-                overlayFontSize: 'medium',
+                overlayFontFamily: 'propSans',
+                overlayFontSize: 100,
                 overlayColor: '#ffffff',
+                overlaySubFontSize: 75,
+                overlaySubColor: '#ffd700',
+                overlayTextOpacity: 1,
+                overlayBottomOffset: 'high', // untouched by the text-only reset
+            });
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
+        });
+
+        test('resetBoxStyle restores box defaults with a single write, leaving text fields alone', async () => {
+            const overlay = buildOverlay();
+            (ui as any).setOverlayEdgeStyle('outline');
+            (ui as any).setOverlayFontSize(150); // a text field — must survive the box reset
+            await new Promise((r) => setTimeout(r, 0));
+
+            ((global as any).chrome.storage.local.set as jest.Mock).mockClear();
+            (ui as any).resetBoxStyle();
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect((global as any).chrome.storage.local.set).toHaveBeenCalledTimes(1);
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
+            expect(stored).toMatchObject({
+                overlayBgColor: '#000000',
                 overlayBottomOffset: 'medium',
                 overlayBgOpacity: 'medium',
                 overlayEdgeStyle: 'shadow',
+                overlayFontSize: 150, // untouched by the box-only reset
             });
-            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
+        });
+
+        test('neither reset touches overlayEnabled', async () => {
+            state.overlayEnabled = false;
+            (ui as any).resetTextStyle();
+            (ui as any).resetBoxStyle();
+            await new Promise((r) => setTimeout(r, 0));
+            expect((await loadPrefs('other')).overlayEnabled).toBe(true); // default — never written by reset
         });
 
         test('updateOverlayPreview falls back to sample text and honors dual mode', () => {

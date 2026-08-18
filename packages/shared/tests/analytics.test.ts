@@ -507,6 +507,19 @@ describe('consent gate', () => {
         storage.local.get.mockRejectedValueOnce(new Error('boom'));
         expect(await isAnalyticsEnabled()).toBe(false);
     });
+
+    test('a per-site scope cannot re-consent an opted-out user', async () => {
+        // Overlay appearance is stored per streaming site under byPlatform, but
+        // consent is global and lives at the top level, which is the only thing
+        // this gate reads — the service worker has no tab and so could not pick
+        // a scope even if it wanted to. A stray analyticsEnabled inside a scope
+        // object must therefore be inert, never an override.
+        storage.local._store[PREFS_KEY] = {
+            analyticsEnabled: false,
+            byPlatform: { youtube: { overlayEnabled: true, analyticsEnabled: true } },
+        };
+        expect(await isAnalyticsEnabled()).toBe(false);
+    });
 });
 
 // ---------------------------------------------------------------------------
