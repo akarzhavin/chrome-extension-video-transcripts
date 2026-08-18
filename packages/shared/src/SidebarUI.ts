@@ -1,7 +1,7 @@
 import { AppState } from './AppState';
 // Content-safe half only: analytics.ts never reads the GA4 api_secret, so it is
 // safe in a bundle the page can read. analytics-bg must never be imported here.
-import { trackVia } from './analytics';
+import { trackVia, platformOf } from './analytics';
 import {
     loadPrefs,
     onPrefsChanged,
@@ -10,6 +10,7 @@ import {
     OverlaySizeToken,
     OverlayLevelToken,
     OverlayEdgeToken,
+    PrefScope,
 } from './prefs';
 import { SidebarElements, AppInterface, Subtitle, TrackRole } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
@@ -127,6 +128,12 @@ export class SidebarUI {
     // Presentation-only overlay style prefs. Held locally (AppState owns
     // playback/track state); mirrored to chrome.storage.local via savePrefs.
     private overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
+    // Which site's appearance this sidebar reads and writes. Overlay style is
+    // per streaming site (youtube.com and netflix.com ship in ONE extension, so
+    // one storage area serves both), and derived from the host rather than
+    // passed in: the class has 9 construction sites across 3 apps and the
+    // tests, none of which would otherwise care.
+    private readonly scope: PrefScope = platformOf(location.hostname);
     // Where the sidebar lives outside fullscreen; captured on the way in so it
     // can be put back exactly there (see setupFullscreenHandling).
     private homeParent: HTMLElement | null = null;
@@ -888,49 +895,49 @@ export class SidebarUI {
         this.overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ ...OVERLAY_STYLE_DEFAULTS });
+        savePrefs({ ...OVERLAY_STYLE_DEFAULTS }, this.scope);
     }
 
     private setOverlayFontSize(v: OverlaySizeToken): void {
         this.overlayStyle.overlayFontSize = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayFontSize: v });
+        savePrefs({ overlayFontSize: v }, this.scope);
     }
 
     private setOverlayColor(v: string): void {
         this.overlayStyle.overlayColor = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayColor: v });
+        savePrefs({ overlayColor: v }, this.scope);
     }
 
     private setOverlayBottomOffset(v: OverlayLevelToken): void {
         this.overlayStyle.overlayBottomOffset = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayBottomOffset: v });
+        savePrefs({ overlayBottomOffset: v }, this.scope);
     }
 
     private setOverlayBgOpacity(v: OverlayLevelToken): void {
         this.overlayStyle.overlayBgOpacity = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayBgOpacity: v });
+        savePrefs({ overlayBgOpacity: v }, this.scope);
     }
 
     private setOverlayEdgeStyle(v: OverlayEdgeToken): void {
         this.overlayStyle.overlayEdgeStyle = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayEdgeStyle: v });
+        savePrefs({ overlayEdgeStyle: v }, this.scope);
     }
 
     // Loads persisted prefs into AppState + DOM, then subscribes so cross-tab
     // changes (or popup-driven changes later) propagate in. Fire-and-forget —
     // the initial render uses defaults; the prefs swap re-renders if needed.
     private hydrateFromPrefs(): void {
-        loadPrefs().then((prefs) => {
+        loadPrefs(this.scope).then((prefs) => {
             this.state.displayMode = prefs.displayMode;
             this.state.overlayEnabled = prefs.overlayEnabled;
             this.adoptOverlayStyle(prefs);
@@ -954,7 +961,7 @@ export class SidebarUI {
                 if (prefs.sidebarCollapsed) this.closeSettingsPanel();
             }
             if (changed) this.refresh();
-        }));
+        }, this.scope));
     }
 
     // Copies overlay-style fields from a Prefs snapshot into local state, then
@@ -1285,7 +1292,7 @@ export class SidebarUI {
     toggleOverlay(): void {
         this.state.overlayEnabled = !this.state.overlayEnabled;
         this.refresh();
-        savePrefs({ overlayEnabled: this.state.overlayEnabled });
+        savePrefs({ overlayEnabled: this.state.overlayEnabled }, this.scope);
     }
 
     // Lets site-specific code (e.g. YouTube's native-control-bar button, which
@@ -1344,7 +1351,7 @@ export class SidebarUI {
                     // last manual toggle. Restore it instead of force-opening —
                     // otherwise leaving fullscreen always re-expands a sidebar
                     // the user had deliberately collapsed.
-                    loadPrefs().then((prefs) => {
+                    loadPrefs(this.scope).then((prefs) => {
                         this.applyCollapsed(prefs.sidebarCollapsed);
                     }).catch(() => {});
                 }

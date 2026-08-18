@@ -132,6 +132,111 @@ describe('prefs', () => {
         });
     });
 
+    // ---------------------------------------------------------------------
+    // Per-platform overlay appearance
+    //
+    // The youtube app serves youtube.com and netflix.com from one build and
+    // one storage area, so appearance is scoped per site while behaviour and
+    // consent stay shared. jsdom's host is localhost, which platformOf maps to
+    // 'other' — every test below passes its scope explicitly instead.
+    // ---------------------------------------------------------------------
+
+    test('a site with no saved scope inherits the pre-scoping top-level values', async () => {
+        // A blob written by a build that predates scoping: one shared
+        // appearance, tuned on YouTube, sitting at the top level.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayFontSize: 'large',
+            overlayColor: '#ffd700',
+        };
+        // Both sites resolve to it, so upgrading changes nothing visually.
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe('large');
+        expect((await loadPrefs('netflix')).overlayFontSize).toBe('large');
+        expect((await loadPrefs('netflix')).overlayColor).toBe('#ffd700');
+        // Fields never configured still fall through to the factory defaults.
+        expect((await loadPrefs('netflix')).overlayBgOpacity).toBe('medium');
+    });
+
+    test('a YouTube appearance change does not follow to Netflix', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { overlayFontSize: 'large' };
+        await savePrefs({ overlayFontSize: 'small' }, 'youtube');
+
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe('small');
+        expect((await loadPrefs('netflix')).overlayFontSize).toBe('large');
+        // The baseline itself must survive untouched. If a scoped write ever
+        // leaked to the top level, every other site would re-converge on it and
+        // the whole feature would quietly become a no-op — so assert it here.
+        expect((chromeStorage.local as any)._store['prefs.v1'].overlayFontSize).toBe('large');
+    });
+
+    test('the first write to a fresh scope snapshots all six scoped fields', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayColor: '#ffd700',
+            overlayEnabled: false,
+        };
+        await savePrefs({ overlayFontSize: 'large' }, 'youtube');
+
+        // Editing one field pins all six, so the scope stops tracking the
+        // top-level baseline rather than half-following it forever.
+        expect((chromeStorage.local as any)._store['prefs.v1'].byPlatform.youtube).toEqual({
+            overlayEnabled: false,         // inherited from the baseline
+            overlayFontSize: 'large',      // the actual edit
+            overlayColor: '#ffd700',       // inherited from the baseline
+            overlayBottomOffset: 'medium', // from DEFAULT_PREFS
+            overlayBgOpacity: 'medium',
+            overlayEdgeStyle: 'shadow',
+        });
+    });
+
+    test('global prefs stay shared across scopes and stay at the top level', async () => {
+        await savePrefs({ displayMode: 'single', analyticsEnabled: false }, 'youtube');
+
+        expect((await loadPrefs('netflix')).displayMode).toBe('single');
+        expect((await loadPrefs('rezka')).analyticsEnabled).toBe(false);
+
+        const raw = (chromeStorage.local as any)._store['prefs.v1'];
+        // analytics-bg's consent gate reads this exact path from the service
+        // worker, which has no tab and so cannot resolve a scope.
+        expect(raw.analyticsEnabled).toBe(false);
+        expect(raw.displayMode).toBe('single');
+        expect(raw.byPlatform?.youtube?.displayMode).toBeUndefined();
+        expect(raw.byPlatform?.youtube?.analyticsEnabled).toBeUndefined();
+    });
+
+    test('overlayEnabled is per-platform', async () => {
+        await savePrefs({ overlayEnabled: false }, 'youtube');
+        expect((await loadPrefs('youtube')).overlayEnabled).toBe(false);
+        expect((await loadPrefs('netflix')).overlayEnabled).toBe(true);
+    });
+
+    test('onPrefsChanged resolves per scope: a Netflix write leaves YouTube values intact', async () => {
+        const yt = jest.fn();
+        const off = onPrefsChanged(yt, 'youtube');
+
+        await savePrefs({ overlayFontSize: 'small' }, 'netflix');
+
+        // One shared storage key, so the listener does fire — but resolved
+        // through YouTube's scope the values are unchanged, which is what makes
+        // the sidebar's update a no-op instead of a repaint.
+        expect(yt).toHaveBeenCalledTimes(1);
+        expect(yt.mock.calls[0][0].overlayFontSize).toBe('medium');
+        off();
+    });
+
+    test('a malformed byPlatform is ignored and cannot override a global', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual', byPlatform: 'nope' };
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe('medium');
+
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: { youtube: { displayMode: 'single', overlayFontSize: 'large' } },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayFontSize).toBe('large');
+        // Scoped resolution copies known appearance keys only. A global riding
+        // along inside a scope object is dropped — the case that matters is
+        // analyticsEnabled, where honouring it would re-consent an opted-out user.
+        expect(p.displayMode).toBe('dual');
+    });
+
     test('savePrefs skips silently when extension context is invalidated', async () => {
         // After an extension reload, stale content scripts lose chrome.runtime.id.
         // savePrefs should no-op rather than logging warnings for every toggle.

@@ -5,6 +5,7 @@
 import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
+import { loadPrefs } from '../src/prefs';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -419,8 +420,11 @@ describe('SidebarUI', () => {
             (ui as any).setOverlayFontSize('large');
             expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('32px');
             // Persisted via savePrefs (load→merge→set chain) → storage.local backing store.
+            // Asserted through the resolved view rather than the raw blob: appearance
+            // is stored per site (jsdom's host → the 'other' scope), and this test is
+            // about the setter persisting, not about where the bytes sit.
             await new Promise((r) => setTimeout(r, 0));
-            expect((prefsStore['prefs.v1'] as any).overlayFontSize).toBe('large');
+            expect((await loadPrefs('other')).overlayFontSize).toBe('large');
         });
 
         test('an offset preset setter maps low/high tokens to px', () => {
@@ -460,7 +464,7 @@ describe('SidebarUI', () => {
             await new Promise((r) => setTimeout(r, 0));
 
             expect((global as any).chrome.storage.local.set).toHaveBeenCalledTimes(1);
-            const stored = prefsStore['prefs.v1'] as any;
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
             expect(stored).toMatchObject({
                 overlayFontSize: 'medium',
                 overlayColor: '#ffffff',
