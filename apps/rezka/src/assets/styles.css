@@ -465,17 +465,23 @@
     outline-offset: 2px;
 }
 
-/* Settings panel: no focus rings. Every control here already shows its own
-   state — the active segment, the checked swatch, the slider thumb's position
-   — so a ring on top of that read as a second, competing selection marker
-   rather than as "you are here". Deliberate: it costs the keyboard-only
-   affordance in this one panel, which the visible state already covers. */
-#vtt-settings-panel button:focus-visible,
+/* Settings panel focus: :focus-visible only, so the ring appears on Tab but
+   never on a click — clicking already shows its result through the control's
+   own state (active segment, checked swatch, thumb position), and a ring on
+   top of that read as a second, competing selection marker. Keyboard users
+   have no such feedback, so they keep the ring.
+
+   Drawn as a box-shadow rather than an outline, matching .vtt-qm-toggle and
+   .vtt-modeseg .vtt-qm above: these controls are round-cornered and sit tight
+   against their neighbours, and a shadow follows border-radius where an
+   outline squares it off. */
+#vtt-settings-panel button:not(.vtt-swatch):focus-visible,
 #vtt-settings-panel select:focus-visible,
 #vtt-settings-panel input:focus-visible,
 #vtt-settings-panel label:focus-visible,
 #vtt-settings-panel [role='button']:focus-visible {
     outline: none;
+    box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
 /* Account strip and its popup panel (built in packages/shared/src/content/
@@ -1313,8 +1319,19 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
+/* The thumb is the moving part, so ring the thumb rather than the 4px track —
+   a shadow on the track would read as a stripe, not as focus. Rules are split
+   because a browser drops the whole selector list on an unknown pseudo. */
 .vtt-slider:focus-visible {
     outline: none;
+}
+
+.vtt-slider:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 0 3px var(--vtt-accent-ring);
+}
+
+.vtt-slider:focus-visible::-moz-range-thumb {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 0 3px var(--vtt-accent-ring);
 }
 
 .vtt-slider-val {
@@ -1355,6 +1372,24 @@
 
 .vtt-swatch.active {
     box-shadow: 0 0 0 2px var(--vtt-panel-solid), 0 0 0 4px var(--vtt-accent);
+}
+
+/* Swatches carry their selected state in box-shadow, so a focus ring would
+   REPLACE it rather than add to it — tabbing onto the selected swatch would
+   erase the very mark saying it is selected. They are excluded from the
+   panel-wide rule above (which carries an id, so it outweighs anything here)
+   and restate both layers together instead. Keep after .vtt-swatch.active:
+   equal specificity, so source order decides. */
+.vtt-swatch:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--vtt-panel-solid), 0 0 0 4px var(--vtt-accent-ring);
+}
+
+.vtt-swatch.active:focus-visible {
+    box-shadow:
+        0 0 0 2px var(--vtt-panel-solid),
+        0 0 0 4px var(--vtt-accent),
+        0 0 0 6px var(--vtt-accent-ring);
 }
 
 .vtt-swatch svg {
@@ -2591,6 +2626,7 @@
 
 .vtt-switch-input:focus-visible + .vtt-switch {
     outline: none;
+    box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
