@@ -156,9 +156,36 @@ function coerceColor(v: unknown, fallback: string): string {
 
 const COLOR_PREF_KEYS = ['overlayColor', 'overlaySubColor', 'overlayBgColor'] as const;
 
+// The token fields claim above to "stay validated", but nothing enforced it:
+// an unrecognized token survives resolution and reaches
+// `setProperty(name, MAP[token])` as a lookup miss. That does NOT clear the
+// property or fall back to the stylesheet default -- setProperty stringifies,
+// so the custom property becomes the literal "undefined" and the rule using it
+// resolves to a nonexistent value (verified in Chrome: font-family: undefined).
+// Worse, savePrefs re-seeds a scope from its previous values, so a bad token is
+// re-persisted on every later edit and never self-heals. Validate on the way in.
+const TOKEN_PREF_VALUES = {
+    overlayFontFamily: ['monoSerif', 'propSerif', 'monoSans', 'propSans', 'casual', 'cursive', 'smallCaps'],
+    overlayBottomOffset: ['low', 'medium', 'high'],
+    overlayBgOpacity: ['low', 'medium', 'high'],
+    overlayEdgeStyle: ['none', 'shadow', 'outline'],
+} as const;
+
+// 0-1, and the only non-token numeric that is not a size percentage.
+function coerceUnitInterval(v: unknown, fallback: number): number {
+    return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : fallback;
+}
+
 const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
+// Clamped to the slider's own range: `typeof v === 'number'` alone admits NaN,
+// Infinity and negatives, and overlaySizePx does unguarded arithmetic on the
+// result -- NaN there renders as the literal `NaNpx`.
+const MIN_SIZE_PCT = 50;
+const MAX_SIZE_PCT = 400;
 function coerceSize(v: unknown, fallback: number): number {
-    if (typeof v === 'number') return v;
+    if (typeof v === 'number' && Number.isFinite(v)) {
+        return Math.min(MAX_SIZE_PCT, Math.max(MIN_SIZE_PCT, v));
+    }
     if (typeof v === 'string' && v in LEGACY_SIZE_TOKEN_PCT) return LEGACY_SIZE_TOKEN_PCT[v];
     return fallback;
 }
@@ -190,9 +217,22 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         if (over.overlayFontSize !== undefined) resolved.overlayFontSize = coerceSize(over.overlayFontSize, topLevelSize);
         if (over.overlaySubFontSize !== undefined) resolved.overlaySubFontSize = coerceSize(over.overlaySubFontSize, topLevelSubSize);
     }
-    // Last, so it covers both the top-level and the scoped value.
+    // Last, so these cover both the top-level and the scoped value.
     for (const k of COLOR_PREF_KEYS) {
         resolved[k] = coerceColor(resolved[k], DEFAULT_PREFS[k]);
+    }
+    for (const [k, allowed] of Object.entries(TOKEN_PREF_VALUES)) {
+        const key = k as keyof typeof TOKEN_PREF_VALUES;
+        if (!(allowed as readonly string[]).includes(resolved[key])) {
+            (resolved as unknown as Record<string, unknown>)[key] = DEFAULT_PREFS[key];
+        }
+    }
+    resolved.overlayTextOpacity = coerceUnitInterval(
+        resolved.overlayTextOpacity,
+        DEFAULT_PREFS.overlayTextOpacity,
+    );
+    if (typeof resolved.overlayEnabled !== 'boolean') {
+        resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
@@ -246,7 +286,8 @@ export async function savePrefs(
     try {
         // Read the raw blob rather than loadPrefs(): this needs both the stored
         // shape (to leave OTHER scopes untouched) and the resolved view (as the
-        // inheritance baseline). Still one get + one set, as before.
+        // inheritance baseline). Two gets and one set — the second get, just
+        // before the write, is the cross-scope race guard explained below.
         const v = (await chrome.storage.local.get(PREFS_KEY)) as Record<string, unknown>;
         const raw = v[PREFS_KEY];
         const stored: Partial<StoredPrefs> = isPrefs(raw) ? { ...raw } : {};
@@ -272,6 +313,34 @@ export async function savePrefs(
                 seed[k] = prev?.[k] !== undefined ? prev[k] : resolved[k];
             }
             next.byPlatform = { ...stored.byPlatform, [scope]: { ...seed, ...scoped } };
+        }
+
+        // Re-read immediately before the set and re-graft every scope this write
+        // is not itself editing. savePrefs is read-modify-write with no
+        // compare-and-swap, and byPlatform turned what used to be a one-field
+        // race into a whole-bucket one: if another tab creates or edits a scope
+        // between the read above and this set, writing `next` verbatim would
+        // drop that scope entirely -- six fields the user just saved, gone. The
+        // popup's writes are all bare (displayMode, analytics), which is exactly
+        // the case that never rebuilds byPlatform and would carry a stale copy.
+        //
+        // This does not make savePrefs atomic; concurrent writes to the SAME
+        // scope still last-write-wins, as they did before. It bounds the damage
+        // to the scope being written instead of all of them.
+        const fresh = (await chrome.storage.local.get(PREFS_KEY)) as Record<string, unknown>;
+        const freshRaw = fresh[PREFS_KEY];
+        const freshBy = isPrefs(freshRaw)
+            ? (freshRaw as Partial<StoredPrefs>).byPlatform
+            : undefined;
+        if (freshBy && typeof freshBy === 'object') {
+            // Start from the fresh copy, then re-apply only the scope this call
+            // actually edited. A globals-only write edits none, so every scope
+            // survives exactly as the concurrent writer left it.
+            const merged: Record<string, unknown> = { ...freshBy };
+            if (Object.keys(scoped).length > 0 && next.byPlatform?.[scope] !== undefined) {
+                merged[scope] = next.byPlatform[scope];
+            }
+            next.byPlatform = merged as StoredPrefs['byPlatform'];
         }
         await chrome.storage.local.set({ [PREFS_KEY]: next });
     } catch {

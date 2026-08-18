@@ -308,6 +308,75 @@ describe('prefs', () => {
         }
     });
 
+    test('a globals-only write does not delete a scope another tab created meanwhile', async () => {
+        // savePrefs is read-modify-write with no compare-and-swap. byPlatform
+        // turned a one-field race into a whole-bucket one: the popup's writes
+        // are all bare (displayMode/analytics) and never rebuild byPlatform, so
+        // a stale copy would wipe a scope saved between the read and the set.
+        (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual' };
+
+        // Interleave precisely: let the popup's FIRST get return the empty blob,
+        // then land the netflix write before the popup reaches its set. The
+        // guard re-reads just before writing, so it must pick the netflix
+        // scope up from that second read.
+        const impl = (chromeStorage.local.get as jest.Mock).getMockImplementation() as any;
+        let armed = true; // one-shot, and disarmed BEFORE the nested write re-enters
+        const spy = jest.spyOn(chromeStorage.local, 'get').mockImplementation((async (key: string) => {
+            if (armed) {
+                armed = false;
+                const stale = await impl(key);                          // popup's baseline read
+                await savePrefs({ overlayColor: '#00ff00' }, 'netflix'); // other tab writes
+                return stale;                                           // popup carries stale data
+            }
+            return impl(key);                                           // the guard's fresh read
+        }) as any);
+        try {
+            await savePrefs({ displayMode: 'single' });
+        } finally {
+            // spyOn().mockRestore() would strip the suite's own jest.fn()
+            // implementation off `get`, so put it back explicitly.
+            (chromeStorage.local.get as jest.Mock).mockImplementation(impl);
+        }
+
+        // Assert on the stored blob: the popup's global landed AND the scope
+        // the other tab created in the gap is still there.
+        const blob = (chromeStorage.local as any)._store['prefs.v1'];
+        expect(blob.displayMode).toBe('single');
+        expect(blob.byPlatform?.netflix?.overlayColor).toBe('#00ff00');
+        expect((await loadPrefs('netflix')).overlayColor).toBe('#00ff00');
+    });
+
+    test('an out-of-range or non-finite size is clamped rather than rendered', async () => {
+        // overlaySizePx does unguarded arithmetic, so NaN would render `NaNpx`.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayFontSize: Number.NaN,
+            byPlatform: { youtube: { overlaySubFontSize: 100000 } },
+        };
+        const p = await loadPrefs('youtube');
+        expect(Number.isFinite(p.overlayFontSize)).toBe(true);
+        expect(p.overlaySubFontSize).toBeLessThanOrEqual(400);
+        expect(p.overlayFontSize).toBeGreaterThanOrEqual(50);
+    });
+
+    test('an unrecognized preset token falls back to its default', async () => {
+        // A bad token is a lookup miss in SidebarUI's maps, and
+        // setProperty(name, undefined) writes the literal string "undefined"
+        // rather than clearing the property — so it must not survive resolution.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayEdgeStyle: 'bogus',
+            overlayEnabled: 'yes-please',
+            byPlatform: {
+                youtube: { overlayFontFamily: 'comic', overlayBottomOffset: 42, overlayBgOpacity: null },
+            },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayEdgeStyle).toBe('shadow');
+        expect(p.overlayFontFamily).toBe('propSans');
+        expect(p.overlayBottomOffset).toBe('medium');
+        expect(p.overlayBgOpacity).toBe('medium');
+        expect(typeof p.overlayEnabled).toBe('boolean');
+    });
+
     test('savePrefs skips silently when extension context is invalidated', async () => {
         // After an extension reload, stale content scripts lose chrome.runtime.id.
         // savePrefs should no-op rather than logging warnings for every toggle.
