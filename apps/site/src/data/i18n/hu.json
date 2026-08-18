@@ -243,9 +243,7 @@
     "keyDual": "kétnyelvű felirat",
     "keySwap": "nyelvcsere",
     "keyGuess": "Találd ki mód",
-    "keyOverlay": "felirat a videón (rávetítve)",
-    "privacy": "A névtelen használati statisztika be van kapcsolva, így látjuk, hol akadnak el a felhasználók. Nincs fiók, nincsenek videók, nincsenek mentett szavak — bármikor kikapcsolhatod a bővítmény ablakában. {link}",
-    "privacyLink": "Adatvédelmi irányelvek"
+    "keyOverlay": "felirat a videón (rávetítve)"
   },
   "uninstall": {
     "title": "Sajnáljuk, hogy távozol — Lingogram",

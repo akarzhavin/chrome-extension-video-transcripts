@@ -244,9 +244,7 @@
     "keyDual": "subtítulos duales",
     "keySwap": "intercambiar idiomas",
     "keyGuess": "modo Adivina",
-    "keyOverlay": "subtítulos sobre el video (superposición)",
-    "privacy": "Las estadísticas de uso anónimas están activadas para ver dónde se atasca la gente. Ni tu cuenta, ni los vídeos, ni las palabras guardadas: puedes desactivarlas cuando quieras en la ventana de la extensión. {link}",
-    "privacyLink": "Política de privacidad"
+    "keyOverlay": "subtítulos sobre el video (superposición)"
   },
   "uninstall": {
     "title": "Lamentamos verte partir — Lingogram",

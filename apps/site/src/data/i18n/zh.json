@@ -243,9 +243,7 @@
     "keyDual": "双语字幕",
     "keySwap": "交换语言",
     "keyGuess": "猜词模式",
-    "keyOverlay": "字幕叠加在视频画面上",
-    "privacy": "匿名使用统计默认开启，用于了解用户在哪里卡住。不包含账号、观看的视频或保存的单词——随时可在扩展弹窗中关闭。{link}",
-    "privacyLink": "隐私政策"
+    "keyOverlay": "字幕叠加在视频画面上"
   },
   "uninstall": {
     "title": "很遗憾你要离开 — Lingogram",

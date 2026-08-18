@@ -245,9 +245,7 @@
     "keyDual": "dvojezični titlovi",
     "keySwap": "zamijeni jezike",
     "keyGuess": "način Pogodi",
-    "keyOverlay": "titlovi na videu (prikaz preko slike)",
-    "privacy": "Anonimna statistika korištenja je uključena kako bismo vidjeli gdje se korisnici zaglave. Bez računa, bez videozapisa, bez spremljenih riječi — možete je isključiti bilo kada u skočnom prozoru proširenja. {link}",
-    "privacyLink": "Pravila privatnosti"
+    "keyOverlay": "titlovi na videu (prikaz preko slike)"
   },
   "uninstall": {
     "title": "Žao nam je što odlazite — Lingogram",

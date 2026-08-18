@@ -244,9 +244,7 @@
     "keyDual": "sous-titres bilingues",
     "keySwap": "inverser les langues",
     "keyGuess": "mode Deviner",
-    "keyOverlay": "sous-titres sur la vidéo (overlay)",
-    "privacy": "Les statistiques d’usage anonymes sont activées : elles nous montrent où les gens bloquent. Ni compte, ni vidéos, ni mots enregistrés — désactivable à tout moment dans la fenêtre de l’extension. {link}",
-    "privacyLink": "Politique de confidentialité"
+    "keyOverlay": "sous-titres sur la vidéo (overlay)"
   },
   "uninstall": {
     "title": "Triste de vous voir partir — Lingogram",

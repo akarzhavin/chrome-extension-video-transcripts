@@ -244,9 +244,7 @@
     "keyDual": "sottotitoli doppi",
     "keySwap": "scambia le lingue",
     "keyGuess": "modalità Indovina",
-    "keyOverlay": "sottotitoli sul video (overlay)",
-    "privacy": "Le statistiche d’uso anonime sono attive, così vediamo dove ci si blocca. Nessun account, nessun video, nessuna parola salvata: puoi disattivarle quando vuoi dalla finestra dell’estensione. {link}",
-    "privacyLink": "Informativa sulla privacy"
+    "keyOverlay": "sottotitoli sul video (overlay)"
   },
   "uninstall": {
     "title": "Ci dispiace vederti andare via — Lingogram",

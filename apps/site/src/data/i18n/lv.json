@@ -245,9 +245,7 @@
     "keyDual": "dubultie subtitri",
     "keySwap": "mainīt valodas vietām",
     "keyGuess": "uzminēšanas režīms",
-    "keyOverlay": "subtitri uz video (pārklājums)",
-    "privacy": "Anonīmā lietojuma statistika ir ieslēgta, lai redzētu, kur lietotāji iestrēgst. Nekāda konta, nekādu videoklipu, nekādu saglabātu vārdu — jebkurā brīdī izslēdziet paplašinājuma logā. {link}",
-    "privacyLink": "Konfidencialitātes politika"
+    "keyOverlay": "subtitri uz video (pārklājums)"
   },
   "uninstall": {
     "title": "Žēl, ka aizej — Lingogram",

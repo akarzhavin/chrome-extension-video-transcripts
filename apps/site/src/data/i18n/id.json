@@ -243,9 +243,7 @@
     "keyDual": "subtitle ganda",
     "keySwap": "tukar bahasa",
     "keyGuess": "mode Tebak",
-    "keyOverlay": "subtitle di atas video (overlay)",
-    "privacy": "Statistik penggunaan anonim aktif, agar kami tahu di mana pengguna tersendat. Tanpa akun, tanpa video, tanpa kata tersimpan — bisa dimatikan kapan saja di popup ekstensi. {link}",
-    "privacyLink": "Kebijakan privasi"
+    "keyOverlay": "subtitle di atas video (overlay)"
   },
   "uninstall": {
     "title": "Sedih melihat Anda pergi — Lingogram",

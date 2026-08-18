@@ -244,9 +244,7 @@
     "keyDual": "kahekeelsed subtiitrid",
     "keySwap": "vaheta keeled",
     "keyGuess": "Arva ära režiim",
-    "keyOverlay": "subtiitrid otse video peal (ülekate)",
-    "privacy": "Anonüümne kasutusstatistika on sees, et näeksime, kus kasutajad kinni jäävad. Ei mingit kontot, videoid ega salvestatud sõnu — saad selle igal ajal laienduse aknas välja lülitada. {link}",
-    "privacyLink": "Privaatsuspoliitika"
+    "keyOverlay": "subtiitrid otse video peal (ülekate)"
   },
   "uninstall": {
     "title": "Kahju, et lahkud — Lingogram",

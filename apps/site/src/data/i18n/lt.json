@@ -245,9 +245,7 @@
     "keyDual": "dvigubi subtitrai",
     "keySwap": "sukeisti kalbas",
     "keyGuess": "atspėjimo režimas",
-    "keyOverlay": "subtitrai ant vaizdo (perdanga)",
-    "privacy": "Anoniminė naudojimo statistika įjungta, kad matytume, kur naudotojai užstringa. Jokios paskyros, jokių vaizdo įrašų, jokių išsaugotų žodžių — bet kada išjungsite plėtinio lange. {link}",
-    "privacyLink": "Privatumo politika"
+    "keyOverlay": "subtitrai ant vaizdo (perdanga)"
   },
   "uninstall": {
     "title": "Gaila, kad išeinate — Lingogram",
