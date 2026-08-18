@@ -13,19 +13,46 @@
 
 import { platformOf, type Platform } from './analytics';
 
-export type OverlaySizeToken = 'small' | 'medium' | 'large';
+// Font size is a percentage (50-400, step 5) rather than a 3-way token: a
+// fixed small/medium/large left the whole 100-150% range — where most people
+// land — unreachable. Position/backdrop/edge stay 3-4 way presets; there is
+// no equivalent "everyone wants a value in between" complaint about those.
+export type OverlaySizePercent = number;
 export type OverlayLevelToken = 'low' | 'medium' | 'high';
 export type OverlayEdgeToken = 'none' | 'shadow' | 'outline';
+// The seven CEA-708 font classes — the same set YouTube, Netflix, and the
+// FCC (47 CFR 79.103) all expose. Each resolves to a system font stack in
+// CSS; nothing is bundled, matching the BBC's own guidance that a platform
+// font beats a shipped one for on-screen legibility. 'smallCaps' is not a
+// distinct typeface (none exists reliably cross-platform) — it is
+// font-variant-caps applied to the proportional-sans stack.
+export type OverlayFontFamily =
+    | 'monoSerif'
+    | 'propSerif'
+    | 'monoSans'
+    | 'propSans'
+    | 'casual'
+    | 'cursive'
+    | 'smallCaps';
 
 export interface Prefs {
     displayMode: 'single' | 'dual' | 'guess';
     overlayEnabled: boolean;
     sidebarCollapsed: boolean;
-    // On-video overlay appearance. Stored as preset tokens (not raw px) so the
-    // sidebar can drive them with a fixed set of preset buttons and the values
-    // stay validated. SidebarUI maps these to concrete CSS custom properties.
-    overlayFontSize: OverlaySizeToken;
-    overlayColor: string; // hex, applies to the main line only
+    // On-video overlay appearance. Most fields are preset tokens (not raw px)
+    // so the sidebar can drive them with a fixed set of preset buttons and the
+    // values stay validated. SidebarUI maps these to concrete CSS custom
+    // properties. Sizes are the exception — see OverlaySizePercent above.
+    overlayFontFamily: OverlayFontFamily;
+    overlayFontSize: OverlaySizePercent; // % of the 24px base, main line
+    overlayColor: string; // hex, main line
+    // The translation line used to be a fixed 0.75x the main size and a fixed
+    // gold hardcoded in CSS. Both are now independent: a language learner may
+    // want the translation tiny (a hint) or just as large (reading both).
+    overlaySubFontSize: OverlaySizePercent;
+    overlaySubColor: string; // hex
+    overlayTextOpacity: number; // 0-1, glyph fill only — see overlayBgOpacity for the box
+    overlayBgColor: string; // hex, the caption box behind both lines
     overlayBottomOffset: OverlayLevelToken;
     overlayBgOpacity: OverlayLevelToken;
     overlayEdgeStyle: OverlayEdgeToken;
@@ -47,8 +74,13 @@ export const PREFS_KEY = 'prefs.v1';
 // could not be resolved there, and must never exist.
 export type ScopedPrefKey =
     | 'overlayEnabled'
+    | 'overlayFontFamily'
     | 'overlayFontSize'
     | 'overlayColor'
+    | 'overlaySubFontSize'
+    | 'overlaySubColor'
+    | 'overlayTextOpacity'
+    | 'overlayBgColor'
     | 'overlayBottomOffset'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle';
@@ -57,8 +89,13 @@ export type ScopedPrefs = Pick<Prefs, ScopedPrefKey>;
 
 export const SCOPED_PREF_KEYS: readonly ScopedPrefKey[] = [
     'overlayEnabled',
+    'overlayFontFamily',
     'overlayFontSize',
     'overlayColor',
+    'overlaySubFontSize',
+    'overlaySubColor',
+    'overlayTextOpacity',
+    'overlayBgColor',
     'overlayBottomOffset',
     'overlayBgOpacity',
     'overlayEdgeStyle',
@@ -100,6 +137,59 @@ function currentScope(): PrefScope {
     }
 }
 
+// Font size used to be a 3-way token (small/medium/large), not a percentage.
+// Installs upgrading from that build have exactly those three strings sitting
+// under overlayFontSize/overlaySubFontSize — at the top level, and possibly
+// inside byPlatform too, since scoped writes existed before this change.
+// Coercing at read time (rather than migrating storage) keeps the same
+// no-migration-write contract the byPlatform split itself relies on.
+// Colors reach style.setProperty and, for the custom-swatch well, the
+// `background` SHORTHAND -- which accepts url(). A stored color is therefore a
+// CSS sink, validated here once rather than at each sink. Nothing hostile can
+// write prefs.v1 today (the sole external entry point is origin-gated and
+// touches auth state only), so this is defence in depth -- and it also stops a
+// non-string from throwing in hexLuminance and aborting style application.
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+function coerceColor(v: unknown, fallback: string): string {
+    return typeof v === 'string' && HEX_COLOR.test(v.trim()) ? v.trim().toLowerCase() : fallback;
+}
+
+const COLOR_PREF_KEYS = ['overlayColor', 'overlaySubColor', 'overlayBgColor'] as const;
+
+// The token fields claim above to "stay validated", but nothing enforced it:
+// an unrecognized token survives resolution and reaches
+// `setProperty(name, MAP[token])` as a lookup miss. That does NOT clear the
+// property or fall back to the stylesheet default -- setProperty stringifies,
+// so the custom property becomes the literal "undefined" and the rule using it
+// resolves to a nonexistent value (verified in Chrome: font-family: undefined).
+// Worse, savePrefs re-seeds a scope from its previous values, so a bad token is
+// re-persisted on every later edit and never self-heals. Validate on the way in.
+const TOKEN_PREF_VALUES = {
+    overlayFontFamily: ['monoSerif', 'propSerif', 'monoSans', 'propSans', 'casual', 'cursive', 'smallCaps'],
+    overlayBottomOffset: ['low', 'medium', 'high'],
+    overlayBgOpacity: ['low', 'medium', 'high'],
+    overlayEdgeStyle: ['none', 'shadow', 'outline'],
+} as const;
+
+// 0-1, and the only non-token numeric that is not a size percentage.
+function coerceUnitInterval(v: unknown, fallback: number): number {
+    return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : fallback;
+}
+
+const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
+// Clamped to the slider's own range: `typeof v === 'number'` alone admits NaN,
+// Infinity and negatives, and overlaySizePx does unguarded arithmetic on the
+// result -- NaN there renders as the literal `NaNpx`.
+const MIN_SIZE_PCT = 50;
+const MAX_SIZE_PCT = 400;
+function coerceSize(v: unknown, fallback: number): number {
+    if (typeof v === 'number' && Number.isFinite(v)) {
+        return Math.min(MAX_SIZE_PCT, Math.max(MIN_SIZE_PCT, v));
+    }
+    if (typeof v === 'string' && v in LEGACY_SIZE_TOKEN_PCT) return LEGACY_SIZE_TOKEN_PCT[v];
+    return fallback;
+}
+
 /**
  * Storage bytes → the flat resolved view for one scope:
  * DEFAULT_PREFS → stored top-level → byPlatform[scope].
@@ -107,6 +197,10 @@ function currentScope(): PrefScope {
 function resolve(raw: unknown, scope: PrefScope): Prefs {
     const stored: Partial<StoredPrefs> = isPrefs(raw) ? raw : {};
     const resolved: Prefs = { ...DEFAULT_PREFS, ...stored };
+    resolved.overlayFontSize = coerceSize(stored.overlayFontSize, DEFAULT_PREFS.overlayFontSize);
+    resolved.overlaySubFontSize = coerceSize(stored.overlaySubFontSize, DEFAULT_PREFS.overlaySubFontSize);
+    const topLevelSize = resolved.overlayFontSize;
+    const topLevelSubSize = resolved.overlaySubFontSize;
     const over = stored.byPlatform?.[scope];
     // Copy key-by-key rather than spreading `...over` wholesale: a scope object
     // must never be able to set a GLOBAL. A stray analyticsEnabled inside
@@ -116,6 +210,29 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         for (const k of SCOPED_PREF_KEYS) {
             if (over[k] !== undefined) (resolved as unknown as Record<string, unknown>)[k] = over[k];
         }
+        // Re-coerce AFTER the loop above, falling back to the value resolved from
+        // the top level -- NOT to resolved[k], which the loop has already
+        // overwritten with the raw scoped value. Passing the garbage as its own
+        // fallback let it through and rendered as `NaNpx`.
+        if (over.overlayFontSize !== undefined) resolved.overlayFontSize = coerceSize(over.overlayFontSize, topLevelSize);
+        if (over.overlaySubFontSize !== undefined) resolved.overlaySubFontSize = coerceSize(over.overlaySubFontSize, topLevelSubSize);
+    }
+    // Last, so these cover both the top-level and the scoped value.
+    for (const k of COLOR_PREF_KEYS) {
+        resolved[k] = coerceColor(resolved[k], DEFAULT_PREFS[k]);
+    }
+    for (const [k, allowed] of Object.entries(TOKEN_PREF_VALUES)) {
+        const key = k as keyof typeof TOKEN_PREF_VALUES;
+        if (!(allowed as readonly string[]).includes(resolved[key])) {
+            (resolved as unknown as Record<string, unknown>)[key] = DEFAULT_PREFS[key];
+        }
+    }
+    resolved.overlayTextOpacity = coerceUnitInterval(
+        resolved.overlayTextOpacity,
+        DEFAULT_PREFS.overlayTextOpacity,
+    );
+    if (typeof resolved.overlayEnabled !== 'boolean') {
+        resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
@@ -126,8 +243,14 @@ const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
     overlayEnabled: true,
     sidebarCollapsed: false,
-    overlayFontSize: 'medium',
+    overlayFontFamily: 'propSans',
+    overlayFontSize: 100,
     overlayColor: '#ffffff',
+    overlaySubFontSize: 75,
+    // Matches the pre-existing hardcoded translation-line gold.
+    overlaySubColor: '#ffd700',
+    overlayTextOpacity: 1,
+    overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.
@@ -163,7 +286,8 @@ export async function savePrefs(
     try {
         // Read the raw blob rather than loadPrefs(): this needs both the stored
         // shape (to leave OTHER scopes untouched) and the resolved view (as the
-        // inheritance baseline). Still one get + one set, as before.
+        // inheritance baseline). Two gets and one set — the second get, just
+        // before the write, is the cross-scope race guard explained below.
         const v = (await chrome.storage.local.get(PREFS_KEY)) as Record<string, unknown>;
         const raw = v[PREFS_KEY];
         const stored: Partial<StoredPrefs> = isPrefs(raw) ? { ...raw } : {};
@@ -189,6 +313,34 @@ export async function savePrefs(
                 seed[k] = prev?.[k] !== undefined ? prev[k] : resolved[k];
             }
             next.byPlatform = { ...stored.byPlatform, [scope]: { ...seed, ...scoped } };
+        }
+
+        // Re-read immediately before the set and re-graft every scope this write
+        // is not itself editing. savePrefs is read-modify-write with no
+        // compare-and-swap, and byPlatform turned what used to be a one-field
+        // race into a whole-bucket one: if another tab creates or edits a scope
+        // between the read above and this set, writing `next` verbatim would
+        // drop that scope entirely -- six fields the user just saved, gone. The
+        // popup's writes are all bare (displayMode, analytics), which is exactly
+        // the case that never rebuilds byPlatform and would carry a stale copy.
+        //
+        // This does not make savePrefs atomic; concurrent writes to the SAME
+        // scope still last-write-wins, as they did before. It bounds the damage
+        // to the scope being written instead of all of them.
+        const fresh = (await chrome.storage.local.get(PREFS_KEY)) as Record<string, unknown>;
+        const freshRaw = fresh[PREFS_KEY];
+        const freshBy = isPrefs(freshRaw)
+            ? (freshRaw as Partial<StoredPrefs>).byPlatform
+            : undefined;
+        if (freshBy && typeof freshBy === 'object') {
+            // Start from the fresh copy, then re-apply only the scope this call
+            // actually edited. A globals-only write edits none, so every scope
+            // survives exactly as the concurrent writer left it.
+            const merged: Record<string, unknown> = { ...freshBy };
+            if (Object.keys(scoped).length > 0 && next.byPlatform?.[scope] !== undefined) {
+                merged[scope] = next.byPlatform[scope];
+            }
+            next.byPlatform = merged as StoredPrefs['byPlatform'];
         }
         await chrome.storage.local.set({ [PREFS_KEY]: next });
     } catch {

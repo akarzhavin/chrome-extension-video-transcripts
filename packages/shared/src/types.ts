@@ -27,6 +27,13 @@ export interface LanguageChoice {
 /** Which dropdown a language pick targets. */
 export type TrackRole = 'learning' | 'native';
 
+// A size slider row: the range input plus its live "123%" readout, kept
+// together since markActiveStyleButtons updates both from the same value.
+export interface SliderRowElements {
+  input: HTMLInputElement;
+  val: HTMLSpanElement;
+}
+
 export interface SidebarElements {
   sidebar?: HTMLDivElement;
   settingsBtn?: HTMLButtonElement;
@@ -39,11 +46,20 @@ export interface SidebarElements {
   // Overlay-style preset buttons, each carrying a data-value; markActiveStyleButtons
   // toggles the .active class (and slides the segmented thumb) by matching
   // against the current prefs.
-  styleSizeBtns?: HTMLButtonElement[];
   styleColorBtns?: HTMLButtonElement[];
+  styleSubColorBtns?: HTMLButtonElement[];
+  styleBgColorBtns?: HTMLButtonElement[];
+  styleTextOpacityBtns?: HTMLButtonElement[];
   styleOffsetBtns?: HTMLButtonElement[];
   styleBgBtns?: HTMLButtonElement[];
   styleEdgeBtns?: HTMLButtonElement[];
+  // Font family dropdown (a full-width row — the CEA-708 class names run too
+  // long for the standard label-column layout the segmented rows use).
+  styleFontSelect?: HTMLSelectElement;
+  // The two size sliders (main line, translation line) plus their live
+  // percent readouts.
+  styleSizeSlider?: SliderRowElements;
+  styleSubSizeSlider?: SliderRowElements;
   // Live overlay preview inside the settings panel.
   previewEl?: HTMLDivElement;
   previewMain?: HTMLDivElement;
