@@ -486,11 +486,12 @@ describe('SidebarUI', () => {
             const overlay = buildOverlay();
             // Default is 'shadow' (the pre-redesign hard-coded look, now in em so
             // it scales with the size slider instead of vanishing at 400%).
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em var(--vtt-overlay-edge-color, #000)');
+            // Already resolved against the default white text -> black edge.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
             (ui as any).setOverlayEdgeStyle('none');
             expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('none');
             (ui as any).setOverlayEdgeStyle('outline');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('-0.045em -0.045em 0 var(--vtt-overlay-edge-color, #000)');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('-0.045em -0.045em 0 #000');
         });
 
         test('the edge color contrasts with the TEXT, so it never vanishes into the box', () => {
@@ -499,19 +500,31 @@ describe('SidebarUI', () => {
             // see-through and raw video shows behind it. The edge used to be a
             // hardcoded black, which disappeared against the default black box
             // and made the Edge control look like it did nothing.
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge-color')).toBe('#000');
+            // Assert the SHIPPED edge value, not a colour variable: the rendered
+            // text-shadow is what the user sees, and the first version of this
+            // feature set the colour correctly while still painting the wrong
+            // shadow, which these assertions could not see.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#000');
             (ui as any).setOverlayColor('#000000'); // dark text -> light edge
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge-color')).toBe('#fff');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#fff');
             (ui as any).setOverlayColor('#ffffff'); // back to light text -> dark edge
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge-color')).toBe('#000');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toContain('#000');
         });
 
-        test('the translation line gets an edge color from its own text color', () => {
+        test("the translation line gets its own resolved edge, not the main line's", () => {
             const overlay = buildOverlay();
             (ui as any).setOverlayColor('#ffffff');    // light main line -> dark edge
             (ui as any).setOverlaySubColor('#000000'); // dark sub line   -> light edge
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge-color')).toBe('#000');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-edge-color')).toBe('#fff');
+            const main = overlay.style.getPropertyValue('--vtt-overlay-edge');
+            const sub = overlay.style.getPropertyValue('--vtt-overlay-sub-edge');
+            expect(main).toContain('#000');
+            expect(sub).toContain('#fff');
+            // Each must arrive ALREADY resolved. A var() left in here is
+            // substituted on the parent against the main line's colour, so the
+            // translation line would silently inherit the main line's edge.
+            expect(main).not.toContain('var(');
+            expect(sub).not.toContain('var(');
+            expect(sub).not.toBe(main);
         });
 
         test('applyOverlayStyle also styles the sidebar preview element', () => {
@@ -519,7 +532,7 @@ describe('SidebarUI', () => {
             ui.elements.previewEl = preview;
             (ui as any).setOverlayFontSize(150);
             expect(preview.style.getPropertyValue('--vtt-overlay-font-size')).toBe('36px');
-            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em var(--vtt-overlay-edge-color, #000)');
+            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
         });
 
         test('resetTextStyle restores text defaults with a single write, leaving box fields alone', async () => {
@@ -565,7 +578,7 @@ describe('SidebarUI', () => {
                 overlayEdgeStyle: 'shadow',
                 overlayFontSize: 150, // untouched by the box-only reset
             });
-            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em var(--vtt-overlay-edge-color, #000)');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
         });
 
         test('neither reset touches overlayEnabled', async () => {

@@ -280,6 +280,34 @@ describe('prefs', () => {
         expect((await loadPrefs('youtube')).overlayFontSize).toBe(100);
     });
 
+    test('an unrecognized size token inside byPlatform falls back to the top-level value, not to itself', async () => {
+        // Regression: the scoped re-coercion passed the already-overwritten value
+        // as its own fallback, so garbage survived and rendered as `NaNpx`.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayFontSize: 150,
+            byPlatform: { youtube: { overlayFontSize: 'huge' } },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayFontSize).toBe(150);
+        expect(Number.isFinite(p.overlayFontSize)).toBe(true);
+    });
+
+    test('a non-hex color is replaced by the default rather than reaching a CSS sink', async () => {
+        // Colors land in style.setProperty and in the `background` shorthand,
+        // which accepts url(). They must never pass through unvalidated.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            overlayColor: 'url(https://evil.example/x.png)',
+            overlaySubColor: null,
+            byPlatform: { youtube: { overlayBgColor: '#000; background: url(https://evil)' } },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayColor).toBe('#ffffff');
+        expect(p.overlayBgColor).toBe('#000000');
+        for (const c of [p.overlayColor, p.overlaySubColor, p.overlayBgColor]) {
+            expect(c).toMatch(/^#[0-9a-f]{6}$/);
+        }
+    });
+
     test('savePrefs skips silently when extension context is invalidated', async () => {
         // After an extension reload, stale content scripts lose chrome.runtime.id.
         // savePrefs should no-op rather than logging warnings for every toggle.

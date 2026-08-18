@@ -143,6 +143,19 @@ function currentScope(): PrefScope {
 // inside byPlatform too, since scoped writes existed before this change.
 // Coercing at read time (rather than migrating storage) keeps the same
 // no-migration-write contract the byPlatform split itself relies on.
+// Colors reach style.setProperty and, for the custom-swatch well, the
+// `background` SHORTHAND -- which accepts url(). A stored color is therefore a
+// CSS sink, validated here once rather than at each sink. Nothing hostile can
+// write prefs.v1 today (the sole external entry point is origin-gated and
+// touches auth state only), so this is defence in depth -- and it also stops a
+// non-string from throwing in hexLuminance and aborting style application.
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+function coerceColor(v: unknown, fallback: string): string {
+    return typeof v === 'string' && HEX_COLOR.test(v.trim()) ? v.trim().toLowerCase() : fallback;
+}
+
+const COLOR_PREF_KEYS = ['overlayColor', 'overlaySubColor', 'overlayBgColor'] as const;
+
 const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
 function coerceSize(v: unknown, fallback: number): number {
     if (typeof v === 'number') return v;
@@ -159,6 +172,8 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     const resolved: Prefs = { ...DEFAULT_PREFS, ...stored };
     resolved.overlayFontSize = coerceSize(stored.overlayFontSize, DEFAULT_PREFS.overlayFontSize);
     resolved.overlaySubFontSize = coerceSize(stored.overlaySubFontSize, DEFAULT_PREFS.overlaySubFontSize);
+    const topLevelSize = resolved.overlayFontSize;
+    const topLevelSubSize = resolved.overlaySubFontSize;
     const over = stored.byPlatform?.[scope];
     // Copy key-by-key rather than spreading `...over` wholesale: a scope object
     // must never be able to set a GLOBAL. A stray analyticsEnabled inside
@@ -168,8 +183,16 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         for (const k of SCOPED_PREF_KEYS) {
             if (over[k] !== undefined) (resolved as unknown as Record<string, unknown>)[k] = over[k];
         }
-        if (over.overlayFontSize !== undefined) resolved.overlayFontSize = coerceSize(over.overlayFontSize, resolved.overlayFontSize);
-        if (over.overlaySubFontSize !== undefined) resolved.overlaySubFontSize = coerceSize(over.overlaySubFontSize, resolved.overlaySubFontSize);
+        // Re-coerce AFTER the loop above, falling back to the value resolved from
+        // the top level -- NOT to resolved[k], which the loop has already
+        // overwritten with the raw scoped value. Passing the garbage as its own
+        // fallback let it through and rendered as `NaNpx`.
+        if (over.overlayFontSize !== undefined) resolved.overlayFontSize = coerceSize(over.overlayFontSize, topLevelSize);
+        if (over.overlaySubFontSize !== undefined) resolved.overlaySubFontSize = coerceSize(over.overlaySubFontSize, topLevelSubSize);
+    }
+    // Last, so it covers both the top-level and the scoped value.
+    for (const k of COLOR_PREF_KEYS) {
+        resolved[k] = coerceColor(resolved[k], DEFAULT_PREFS[k]);
     }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;

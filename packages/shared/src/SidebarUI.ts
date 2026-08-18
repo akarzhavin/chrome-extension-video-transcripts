@@ -52,22 +52,30 @@ const OVERLAY_BG_OPACITY: Record<OverlayLevelToken, string> = {
 
 // Em-based, not px: a 1px shadow reads fine at the 24px base but disappears
 // at 400% (96px). Scaling with the glyph keeps the edge visible at every size.
-// The edge draws in --vtt-overlay-edge-color rather than a hardcoded #000.
+// The edge color is resolved per line in applyOverlayStyle, not hardcoded.
 // Black-on-black was invisible: the caption box defaults to black, so a black
 // shadow behind the glyphs landed on a black backdrop and the Edge control
 // looked broken. applyOverlayStyle derives the color from the CURRENT
 // background color, so the edge stays visible whatever box the user picks.
-const OVERLAY_EDGE: Record<OverlayEdgeToken, string> = {
-    none: 'none',
-    shadow: '0.04em 0.04em 0.13em var(--vtt-overlay-edge-color, #000)',
-    // Faux outline via 4-direction shadows (text-stroke isn't reliable cross-site).
-    outline: [
-        '-0.045em -0.045em 0 var(--vtt-overlay-edge-color, #000)',
-        '0.045em -0.045em 0 var(--vtt-overlay-edge-color, #000)',
-        '-0.045em 0.045em 0 var(--vtt-overlay-edge-color, #000)',
-        '0.045em 0.045em 0 var(--vtt-overlay-edge-color, #000)',
-    ].join(', '),
-};
+// Built per line against an ALREADY-RESOLVED color rather than left as a var()
+// for the stylesheet to substitute -- see the note in applyOverlayStyle.
+// Offsets are em so the edge tracks the 50-400% size range.
+function edgeValue(style: OverlayEdgeToken, color: string): string {
+    switch (style) {
+        case 'none':
+            return 'none';
+        case 'shadow':
+            return `0.04em 0.04em 0.13em ${color}`;
+        // Faux outline via 4-direction shadows (text-stroke isn't reliable cross-site).
+        case 'outline':
+            return [
+                `-0.045em -0.045em 0 ${color}`,
+                `0.045em -0.045em 0 ${color}`,
+                `-0.045em 0.045em 0 ${color}`,
+                `0.045em 0.045em 0 ${color}`,
+            ].join(', ');
+    }
+}
 
 // Relative luminance of a #rrggbb hex, sRGB coefficients. Used to decide
 // whether the edge should be drawn dark or light against the caption box.
@@ -801,6 +809,7 @@ export class SidebarUI {
 
         this.elements.styleSizeSlider = this.buildSliderRow(
             wrap,
+            'vtt-slider-size',
             msg('ytStyleSizeLabel', 'Size'),
             (v) => this.setOverlayFontSize(v),
         );
@@ -814,6 +823,7 @@ export class SidebarUI {
 
         this.elements.styleSubSizeSlider = this.buildSliderRow(
             wrap,
+            'vtt-slider-sub-size',
             msg('ytStyleSubSizeLabel', 'Translation size'),
             (v) => this.setOverlaySubFontSize(v),
         );
@@ -882,6 +892,13 @@ export class SidebarUI {
             (v) => this.setOverlayEdgeStyle(v as OverlayEdgeToken),
         );
 
+        // Mark once at construction, as the pre-split buildStyleControls did.
+        // hydrateFromPrefs marks again from storage, but it is async and its
+        // loadPrefs is `.catch`-swallowed — without this the controls would sit
+        // unmarked (no active segment, sliders at the browser default with no
+        // readout) whenever that read fails.
+        this.markActiveStyleButtons();
+
         return wrap;
     }
 
@@ -940,6 +957,7 @@ export class SidebarUI {
     // to keep the readout's text and the track's fill in sync with state.
     private buildSliderRow(
         parent: HTMLElement,
+        id: string,
         label: string,
         onInput: (percent: number) => void,
     ): SliderRowElements {
@@ -956,7 +974,7 @@ export class SidebarUI {
         const input = document.createElement('input');
         input.type = 'range';
         input.className = 'vtt-slider';
-        input.id = `vtt-slider-${Math.random().toString(36).slice(2, 8)}`;
+        input.id = id;
         input.min = '50';
         input.max = '400';
         input.step = '5';
@@ -1086,9 +1104,10 @@ export class SidebarUI {
             if (custom) {
                 const isCustom = activeIndex < 0;
                 custom.classList.toggle('active', isCustom);
-                custom.style.background = isCustom
-                    ? active
-                    : 'conic-gradient(from 210deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #b57bff, #ff6b6b)';
+                // Clearing the inline value falls back to the rainbow conic
+                // gradient in .vtt-swatch-custom rather than restating it here,
+                // so the gradient has one definition.
+                custom.style.background = isCustom ? active : '';
                 const input = custom.querySelector('input') as HTMLInputElement | null;
                 if (input && isCustom && input.value.toLowerCase() !== active.toLowerCase()) {
                     input.value = active;
@@ -1114,8 +1133,6 @@ export class SidebarUI {
         mark(this.elements.styleEdgeBtns, this.overlayStyle.overlayEdgeStyle);
     }
 
-    // Restores the default overlay appearance with a single storage write so
-    // other tabs converge in one onPrefsChanged tick.
     /**
      * Dev-only: show which backend this build talks to, and switch it.
      *
@@ -2352,24 +2369,28 @@ export class SidebarUI {
             el.style.setProperty('--vtt-overlay-sub-color', s.overlaySubColor);
             el.style.setProperty('--vtt-overlay-text-opacity', String(s.overlayTextOpacity));
             el.style.setProperty('--vtt-overlay-bg-color', s.overlayBgColor);
-            // The edge exists to keep glyphs legible where the box is see-through
-            // and raw video shows behind them, so it contrasts with the TEXT,
-            // not with the box: dark text gets a light edge and vice versa. A
-            // hardcoded black edge (what this used to be) vanished against the
-            // default black box and made the Edge control look like it did
-            // nothing at all.
-            el.style.setProperty(
-                '--vtt-overlay-edge-color',
-                hexLuminance(s.overlayColor) > 0.5 ? '#000' : '#fff',
-            );
-            // The translation line has its own color, so it gets its own edge.
-            el.style.setProperty(
-                '--vtt-overlay-sub-edge-color',
-                hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff',
-            );
             el.style.setProperty('--vtt-overlay-bottom', OVERLAY_BOTTOM_PX[s.overlayBottomOffset]);
             el.style.setProperty('--vtt-overlay-bg-opacity', OVERLAY_BG_OPACITY[s.overlayBgOpacity]);
-            el.style.setProperty('--vtt-overlay-edge', OVERLAY_EDGE[s.overlayEdgeStyle]);
+            // The edge keeps glyphs legible where the box is see-through and raw
+            // video shows behind them, so it contrasts with the TEXT, not the
+            // box: dark text gets a light edge and vice versa. A hardcoded black
+            // edge (what this used to be) vanished against the default black box
+            // and made the Edge control look like it did nothing.
+            //
+            // Emit it ONCE PER LINE, each already resolved against that line's
+            // own color. A single shared --vtt-overlay-edge cannot work:
+            // var() substitution happens where the referencing property is
+            // declared, so by the time .vtt-overlay-sub rebinds the color the
+            // inherited value is already a literal with no var() left to
+            // re-resolve -- the translation line silently drew the main edge.
+            el.style.setProperty(
+                '--vtt-overlay-edge',
+                edgeValue(s.overlayEdgeStyle, hexLuminance(s.overlayColor) > 0.5 ? '#000' : '#fff'),
+            );
+            el.style.setProperty(
+                '--vtt-overlay-sub-edge',
+                edgeValue(s.overlayEdgeStyle, hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff'),
+            );
         }
     }
 

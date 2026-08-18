@@ -1774,15 +1774,14 @@
     font-family: var(--vtt-overlay-font-family, inherit);
     font-variant-caps: var(--vtt-overlay-font-variant, normal);
     font-size: var(--vtt-overlay-sub-font-size, 18px);
-    /* Rebind the edge color locally: --vtt-overlay-edge references
-       --vtt-overlay-edge-color, so overriding it here makes the same shared
-       edge value resolve against the translation line's own text color. */
-    --vtt-overlay-edge-color: var(--vtt-overlay-sub-edge-color, #000);
     font-weight: 400;
     padding: 4px 12px;
     border-radius: 6px;
     display: inline-block;
-    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
+    /* Its OWN edge, not --vtt-overlay-edge: that value is substituted on the
+       parent against the MAIN line's color, so re-pointing a color variable
+       here would arrive too late to change it. */
+    text-shadow: var(--vtt-overlay-sub-edge, 0.04em 0.04em 0.13em #000);
     max-width: 80%;
     word-wrap: break-word;
 }
