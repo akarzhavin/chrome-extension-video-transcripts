@@ -45,6 +45,8 @@
     "howItWorks": "Cara ia berfungsi",
     "help": "Bantuan",
     "faq": "Soalan Lazim",
+    "helpAnalytics": "Matikan statistik",
+    "helpAddresses": "Alamat HDrezka",
     "support": "Sokongan",
     "suggestSite": "Cadangkan laman",
     "suggestSubject": "Cadangan laman untuk Lingogram",
@@ -207,12 +209,20 @@
       "lede": "Sambungan ini mengira peristiwa tanpa nama seperti “sari kata dimuatkan” dan “perkataan disimpan” — begitulah kami tahu di mana sesuatu rosak dan apa yang perlu dibaiki seterusnya. Statistik ini tidak membawa identiti akaun dan tidak sekali-kali menyatakan apa yang anda tonton. Dua klik mematikannya:",
       "step1": "Klik ikon Lingogram pada bar alat pelayar untuk membuka popup sambungan.",
       "step2": "Di bawah {group}, nyahtanda {label}.",
-      "groupName": "Privasi",
-      "labelName": "Kongsi statistik penggunaan tanpa nama",
       "stateOn": "Statistik dihidupkan",
       "stateOff": "Statistik dimatikan",
       "after": "Pengumpulan berhenti serta-merta — tiada apa perlu dimuat semula. Apa sebenarnya yang dikira, dan apa yang tidak sekali-kali meninggalkan peranti anda, disenaraikan dalam {link}.",
       "afterLink": "dasar privasi"
+    },
+    "addresses": {
+      "title": "Alamat HDrezka yang disokong sambungan — Lingogram",
+      "description": "Senarai penuh alamat HDrezka yang disokong sambungan. Dijana terus daripada sambungan dan dikemas kini pada setiap keluaran.",
+      "back": "Kembali",
+      "h1": "Alamat HDrezka yang disokong sambungan",
+      "lede": "Di bawah ialah senarai penuh {n} alamat yang disokong sambungan. Ia dijana terus daripada sambungan, jadi sentiasa sepadan dengan versi yang anda pasang.",
+      "missing": "Alamat anda tiada dalam senarai? {link} — kami akan tambahkannya.",
+      "missingLink": "Tulis kepada kami",
+      "missingSubject": "Alamat HDrezka saya"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, sila muat semula halaman itu. Chrome hanya menyambungkan sambungan baharu kepada halaman yang dibuka selepas ia dipasang. Selepas itu, anda boleh lupakan hal ini terus.",
     "reloadBold": "Jika sebuah video sudah terbuka di tab lain",
+    "coverage": "{b}, tetapi sambungan hanya menyokong yang bahagian sebelum akhirannya adalah {names}. Contohnya, {yes} berfungsi, manakala {no} tidak. Anda boleh lihat senarai penuh {link}.",
+    "coverageBold": "HDrezka boleh diakses melalui banyak alamat",
+    "coverageOr": "atau",
+    "coverageLink": "di sini",
     "signIn": "{b}, sila log masuk: klik ikon Lingogram pada bar alat dan pilih Log masuk. Sekali sahaja sudah memadai — selepas itu semuanya tersimpan dengan sendirinya.",
     "signInBold": "Supaya perkataan anda tidak hilang",
     "langs": "{b}, pada ikon yang sama itulah anda tetapkan bahasa yang sedang dipelajari dan bahasa anda sendiri.",

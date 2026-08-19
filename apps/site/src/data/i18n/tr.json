@@ -45,6 +45,8 @@
     "howItWorks": "Nasıl çalışır",
     "help": "Yardım",
     "faq": "SSS",
+    "helpAnalytics": "İstatistikleri kapat",
+    "helpAddresses": "HDrezka adresleri",
     "support": "Destek",
     "suggestSite": "Site öner",
     "suggestSubject": "Lingogram için site önerisi",
@@ -207,12 +209,20 @@
       "lede": "Uzantı, “altyazı yüklendi” ve “kelime kaydedildi” gibi anonim olayları sayar — bir şeyin nerede bozulduğunu ve sırada neyi düzeltmemiz gerektiğini böyle görürüz. İstatistikler hesap kimliği taşımaz ve ne izlediğinizi asla belirtmez. İki tıklama onları kapatır:",
       "step1": "Uzantının açılır penceresini açmak için tarayıcı araç çubuğundaki Lingogram simgesine tıklayın.",
       "step2": "{group} altında {label} işaretini kaldırın.",
-      "groupName": "Gizlilik",
-      "labelName": "Anonim kullanım istatistiklerini paylaş",
       "stateOn": "İstatistikler açık",
       "stateOff": "İstatistikler kapalı",
       "after": "Toplama hemen durur — hiçbir şeyi yeniden yüklemenize gerek yok. Tam olarak nelerin sayıldığı ve cihazınızdan asla çıkmayan verilerin listesi {link} içinde yer alır.",
       "afterLink": "gizlilik politikasında"
+    },
+    "addresses": {
+      "title": "Uzantının çalıştığı HDrezka adresleri — Lingogram",
+      "description": "Uzantının desteklediği HDrezka adreslerinin tam listesi. Doğrudan uzantıdan oluşturulur ve her sürümle güncellenir.",
+      "back": "Geri",
+      "h1": "Uzantının çalıştığı HDrezka adresleri",
+      "lede": "Aşağıda uzantının çalıştığı {n} adresin tam listesi bulunuyor. Doğrudan uzantıdan oluşturulduğu için her zaman yüklü olan sürümünüzle eşleşir.",
+      "missing": "Adresiniz listede yok mu? {link} — ekleyelim.",
+      "missingLink": "Bize yazın",
+      "missingSubject": "HDrezka adresim"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, lütfen onu yenileyin. Chrome yeni bir uzantıyı yalnızca kurulumdan sonra açılan sayfalara bağlar. Ondan sonra bunu tamamen unutabilirsiniz.",
     "reloadBold": "Başka bir sekmede zaten açık bir video varsa",
+    "coverage": "{b}, ancak uzantı yalnızca uzantı öncesindeki kısmın tam olarak {names} olduğu adresleri destekler. Örneğin {yes} çalışır, {no} ise çalışmaz. Tam listeyi {link} görebilirsiniz.",
+    "coverageBold": "HDrezka birçok adresten erişilebilir",
+    "coverageOr": "veya",
+    "coverageLink": "burada",
     "signIn": "{b}, giriş yapın: araç çubuğundaki Lingogram simgesine tıklayıp «Giriş yap»ı seçin. Bir kez yeterli — sonrası kendiliğinden kaydedilir.",
     "signInBold": "Kelimeleriniz kaybolmasın diye",
     "langs": "{b}, öğrendiğiniz dili ve kendi dilinizi aynı simgeden ayarlayabilirsiniz.",

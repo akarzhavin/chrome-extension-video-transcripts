@@ -45,6 +45,8 @@
     "howItWorks": "Cara kerja",
     "help": "Bantuan",
     "faq": "FAQ",
+    "helpAnalytics": "Matikan statistik",
+    "helpAddresses": "Alamat HDrezka",
     "support": "Dukungan",
     "suggestSite": "Sarankan situs",
     "suggestSubject": "Saran situs untuk Lingogram",
@@ -207,12 +209,20 @@
       "lede": "Ekstensi menghitung peristiwa anonim seperti “subtitle dimuat” dan “kata disimpan” — begitulah kami melihat di mana ada yang rusak dan apa yang perlu diperbaiki selanjutnya. Statistik ini tidak membawa identitas akun dan tidak pernah menyebutkan apa yang Anda tonton. Dua klik mematikannya:",
       "step1": "Klik ikon Lingogram di bilah alat browser untuk membuka popup ekstensi.",
       "step2": "Di bagian {group}, hapus centang pada {label}.",
-      "groupName": "Privasi",
-      "labelName": "Bagikan statistik penggunaan anonim",
       "stateOn": "Statistik aktif",
       "stateOff": "Statistik nonaktif",
       "after": "Pengumpulan berhenti seketika — tidak perlu memuat ulang apa pun. Apa saja yang dihitung, dan apa yang tidak pernah meninggalkan perangkat Anda, tercantum di {link}.",
       "afterLink": "kebijakan privasi"
+    },
+    "addresses": {
+      "title": "Alamat HDrezka yang didukung ekstensi — Lingogram",
+      "description": "Daftar lengkap alamat HDrezka yang didukung ekstensi. Dibuat langsung dari ekstensi dan diperbarui setiap rilis.",
+      "back": "Kembali",
+      "h1": "Alamat HDrezka yang didukung ekstensi",
+      "lede": "Berikut daftar lengkap {n} alamat yang didukung ekstensi. Daftar ini dibuat langsung dari ekstensi, jadi selalu sesuai dengan yang terpasang di perangkatmu.",
+      "missing": "Alamatmu tidak ada di daftar? {link} — akan kami tambahkan.",
+      "missingLink": "Hubungi kami",
+      "missingSubject": "Alamat HDrezka saya"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, tolong muat ulang halaman itu. Chrome hanya menghubungkan ekstensi baru ke halaman yang dibuka setelah pemasangan. Setelah itu Anda bisa melupakan hal ini sama sekali.",
     "reloadBold": "Kalau sebuah video sudah terbuka di tab lain",
+    "coverage": "{b}, tapi ekstensi hanya mendukung yang bagian sebelum akhirannya persis {names}. Misalnya, {yes} berfungsi, sedangkan {no} tidak. Kamu bisa melihat daftar lengkapnya {link}.",
+    "coverageBold": "HDrezka dapat diakses lewat banyak alamat",
+    "coverageOr": "atau",
+    "coverageLink": "di sini",
     "signIn": "{b}, masuklah: klik ikon Lingogram di bilah alat dan pilih Masuk. Sekali saja cukup — setelah itu semuanya tersimpan dengan sendirinya.",
     "signInBold": "Supaya kata-kata Anda tidak hilang",
     "langs": "{b}, di ikon yang sama itulah Anda mengatur bahasa yang sedang dipelajari dan bahasa Anda sendiri.",

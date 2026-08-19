@@ -46,6 +46,8 @@
     "howItWorks": "Cómo funciona",
     "help": "Ayuda",
     "faq": "Preguntas frecuentes",
+    "helpAnalytics": "Desactivar estadísticas",
+    "helpAddresses": "Direcciones de HDrezka",
     "support": "Soporte",
     "suggestSite": "Sugerir un sitio",
     "suggestSubject": "Sugerencia de sitio para Lingogram",
@@ -208,12 +210,20 @@
       "lede": "La extensión cuenta eventos anónimos como «subtítulos cargados» y «palabra guardada» — así vemos dónde falla algo y qué arreglar a continuación. Las estadísticas no llevan identidad de cuenta y nunca dicen qué estás viendo. Dos clics las desactivan:",
       "step1": "Haz clic en el icono de Lingogram en la barra de herramientas del navegador para abrir el popup de la extensión.",
       "step2": "En {group}, desmarca {label}.",
-      "groupName": "Privacidad",
-      "labelName": "Compartir estadísticas de uso anónimas",
       "stateOn": "Estadísticas activas",
       "stateOff": "Estadísticas desactivadas",
       "after": "La recopilación se detiene de inmediato — no hay que recargar nada. Qué se cuenta exactamente y qué nunca sale de tu dispositivo está en la {link}.",
       "afterLink": "política de privacidad"
+    },
+    "addresses": {
+      "title": "Direcciones de HDrezka con las que funciona la extensión — Lingogram",
+      "description": "La lista completa de direcciones de HDrezka que cubre la extensión. Se genera desde la propia extensión y se actualiza con cada versión.",
+      "back": "Volver",
+      "h1": "Direcciones de HDrezka con las que funciona la extensión",
+      "lede": "A continuación, la lista completa de las {n} direcciones con las que funciona la extensión. Se genera desde la propia extensión, así que siempre coincide con lo que tienes instalado.",
+      "missing": "¿Tu dirección no está en la lista? {link} y la añadimos.",
+      "missingLink": "Escríbenos",
+      "missingSubject": "Mi dirección de HDrezka"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, recárgala, por favor. Chrome solo conecta una extensión nueva con las páginas que se abrieron después de instalarla. Después de eso, puedes olvidarte de que esto pasó.",
     "reloadBold": "Si ya tienes un video abierto en otra pestaña",
+    "coverage": "{b}, pero la extensión solo cubre aquellas donde la parte antes de la terminación es exactamente {names}. Por ejemplo, {yes} funciona, mientras que {no} no. Puedes ver la lista completa {link}.",
+    "coverageBold": "HDrezka está disponible en muchas direcciones",
+    "coverageOr": "o",
+    "coverageLink": "aquí",
     "signIn": "{b}, inicia sesión: haz clic en el icono de Lingogram en la barra de herramientas y elige «Iniciar sesión». Con una vez basta — a partir de ahí todo se guarda solo.",
     "signInBold": "Para que tus palabras no se pierdan",
     "langs": "{b}, en ese mismo icono eliges el que estás aprendiendo y el tuyo.",

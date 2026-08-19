@@ -79,7 +79,52 @@
       if (s && wlT.rezkaCtaS) s.textContent = wlT.rezkaCtaS;
       var refresh = document.getElementById('wl-refresh');
       if (refresh) refresh.hidden = true;
+      // Only this edition gets the coverage notice. It ships inside an
+      // inert <template>, so the other editions' variants of this page never
+      // have it in the DOM at all — stamping it out here is what creates it.
+      var coverTpl = document.getElementById('wl-cover-tpl');
+      if (coverTpl && coverTpl.content && coverTpl.content.firstElementChild) {
+        coverTpl.parentNode.replaceChild(coverTpl.content.firstElementChild, coverTpl);
+      }
     }
+  }
+
+  // The one button whose address this site does not store joined. The pair is
+  // chosen at build time (REZKA_MATCH in build.mjs — the single source, also
+  // printed by the coverage notice) and shipped as two fields; they are joined
+  // only here, at click time. Nothing in the served HTML or JSON is a usable
+  // address on its own.
+  //
+  // Assembled on click rather than on load so the page never carries a live
+  // outbound link it did not need: a visitor who does not press it never has
+  // one in their DOM. It is a real <button>, so focus and Enter/Space come
+  // from the browser, not from shims here.
+  var openRezka = document.querySelector('[data-open-rezka]');
+  if (openRezka && window.__WELCOME && window.__WELCOME.rezka) {
+    openRezka.addEventListener('click', function () {
+      var pair = window.__WELCOME.rezka;
+      if (!pair.name || !pair.zone) return;
+      window.open('https://' + pair.name + '.' + pair.zone + '/', '_blank', 'noopener');
+    });
+  }
+
+
+  // "Back" on doc pages: prefer real history when the visitor came from
+  // this site, so it returns to the exact page (query string included);
+  // anyone who landed here directly follows the link's own href instead.
+  var docBack = document.querySelector('[data-back]');
+  if (docBack) {
+    docBack.addEventListener('click', function (e) {
+      // Modified clicks keep their browser meaning (new tab, new window);
+      // this handler only claims a plain left click. The referrer check is
+      // against the origin BOUNDARY — a bare prefix test would also match
+      // origins that merely start with ours.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      if (history.length > 1 && document.referrer.indexOf(location.origin + '/') === 0) {
+        e.preventDefault();
+        history.back();
+      }
+    });
   }
 
   // Click-to-play: the poster is a plain image until someone asks for the

@@ -250,12 +250,27 @@ const SHOTS: Record<string, { ms: number; alt: string }> = {
 let setShot: ((tab: string) => void) | null = null;
 
 const start = () => {
-  const container = document.getElementById('demo-embed');
-  if (!container) return;
-
   // The sidebar treats the first track as the language being learned and the
   // second as the viewer's own; the rest stay selectable in its pickers.
   const native = nativeTrack();
+
+  // The mode-card miniatures show a sample line pair; put the translation in
+  // the visitor's own language (build.mjs bakes in the Russian fallback).
+  // This runs BEFORE the demo-embed check: /help/analytics/ carries a
+  // miniature with [data-viz-native] but no demo embed at all.
+  // 58.25s = "Science is a process." — short in every track.
+  // Machine translation sometimes merges neighbouring sentences into one cue,
+  // so keep only the first sentence and hard-cap the length — it's a caption
+  // miniature, not a transcript.
+  const cue = native?.lines.find((l) => Math.abs(l.startTime - 58.25) < 0.3)?.text;
+  const sample = cue?.split(/(?<=[.!?…。])\s+/)[0];
+  if (sample && sample.length <= 44) {
+    document.querySelectorAll('[data-viz-native]').forEach((el) => (el.textContent = sample));
+  }
+
+  const container = document.getElementById('demo-embed');
+  if (!container) return;
+
   const ordered = [
     demoSubs.tracks[0],
     ...(native ? [native] : []),
@@ -269,18 +284,6 @@ const start = () => {
   // below 760px CSS hides the popover and the header links to /languages/
   // instead, so filling it there would be work nobody can see.
   if (!mobile) wireLangSwitch(pageLang());
-
-  // The mode-card miniatures show a sample line pair; put the translation in
-  // the visitor's own language (build.mjs bakes in the Russian fallback).
-  // 58.25s = "Science is a process." — short in every track.
-  // Machine translation sometimes merges neighbouring sentences into one cue,
-  // so keep only the first sentence and hard-cap the length — it's a caption
-  // miniature, not a transcript.
-  const cue = native?.lines.find((l) => Math.abs(l.startTime - 58.25) < 0.3)?.text;
-  const sample = cue?.split(/(?<=[.!?…。])\s+/)[0];
-  if (sample && sample.length <= 44) {
-    document.querySelectorAll('[data-viz-native]').forEach((el) => (el.textContent = sample));
-  }
 
   // Phones: a real product still inside the same demo frame, and no embed at
   // all — the check sits BEFORE mount() so the YouTube iframe, the chrome

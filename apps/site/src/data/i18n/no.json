@@ -46,6 +46,8 @@
     "howItWorks": "Slik fungerer det",
     "help": "Hjelp",
     "faq": "Ofte stilte spørsmål",
+    "helpAnalytics": "Slå av statistikk",
+    "helpAddresses": "HDrezka-adresser",
     "support": "Support",
     "suggestSite": "Foreslå et nettsted",
     "suggestSubject": "Forslag til nettsted for Lingogram",
@@ -208,12 +210,20 @@
       "lede": "Utvidelsen teller anonyme hendelser som «undertekster lastet» og «ord lagret» — slik ser vi hvor noe går galt, og hva vi bør fikse neste gang. Statistikken har ingen kontoidentitet og forteller aldri hva du ser på. To klikk slår den av:",
       "step1": "Klikk på Lingogram-ikonet i nettleserens verktøylinje for å åpne utvidelsens popup.",
       "step2": "Under {group} fjerner du haken ved {label}.",
-      "groupName": "Personvern",
-      "labelName": "Del anonym bruksstatistikk",
       "stateOn": "Statistikk på",
       "stateOff": "Statistikk av",
       "after": "Innsamlingen stopper umiddelbart — ingenting må lastes inn på nytt. Nøyaktig hva som telles, og hva som aldri forlater enheten din, er oppført i {link}.",
       "afterLink": "personvernerklæringen"
+    },
+    "addresses": {
+      "title": "HDrezka-adresser utvidelsen fungerer på — Lingogram",
+      "description": "Den fullstendige listen over HDrezka-adresser utvidelsen støtter. Genereres fra selve utvidelsen og oppdateres med hver utgivelse.",
+      "back": "Tilbake",
+      "h1": "HDrezka-adresser utvidelsen fungerer på",
+      "lede": "Under er den fullstendige listen over de {n} adressene utvidelsen fungerer på. Den genereres fra selve utvidelsen, så den stemmer alltid med det du har installert.",
+      "missing": "Er ikke adressen din på listen? {link} — så legger vi den til.",
+      "missingLink": "Skriv til oss",
+      "missingSubject": "Min HDrezka-adresse"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, last den inn på nytt. Chrome kobler en ny utvidelse bare til sider som ble åpnet etter at den ble installert. Etter det kan du glemme at dette i det hele tatt kom opp.",
     "reloadBold": "Hvis en video allerede er åpen i en annen fane",
+    "coverage": "{b}, men utvidelsen støtter bare dem der delen før endelsen er nøyaktig {names}. For eksempel virker {yes}, mens {no} ikke gjør det. Du kan se hele listen {link}.",
+    "coverageBold": "HDrezka er tilgjengelig på mange adresser",
+    "coverageOr": "eller",
+    "coverageLink": "her",
     "signIn": "{b}, logg inn: klikk på Lingogram-ikonet i verktøylinjen og velg «Logg inn». Én gang holder — derfra lagres alt av seg selv.",
     "signInBold": "For at ordene dine skal bli tatt vare på",
     "langs": "{b}, er det det samme ikonet du bruker til å velge språket du lærer, og ditt eget.",

@@ -46,6 +46,8 @@
     "howItWorks": "So funktioniert's",
     "help": "Hilfe",
     "faq": "FAQ",
+    "helpAnalytics": "Statistik ausschalten",
+    "helpAddresses": "HDrezka-Adressen",
     "support": "Support",
     "suggestSite": "Website vorschlagen",
     "suggestSubject": "Website-Vorschlag für Lingogram",
@@ -208,12 +210,20 @@
       "lede": "Die Erweiterung zählt anonyme Ereignisse wie „Untertitel geladen“ und „Wort gespeichert“ — so sehen wir, wo etwas nicht funktioniert und was als Nächstes zu reparieren ist. Die Statistiken enthalten keine Kontoidentität und nennen nie, was Sie sich ansehen. Zwei Klicks schalten sie ab:",
       "step1": "Klicken Sie auf das Lingogram-Symbol in der Symbolleiste Ihres Browsers, um das Popup der Erweiterung zu öffnen.",
       "step2": "Deaktivieren Sie unter {group} die Option {label}.",
-      "groupName": "Datenschutz",
-      "labelName": "Anonyme Nutzungsstatistiken teilen",
       "stateOn": "Statistik an",
       "stateOff": "Statistik aus",
       "after": "Die Erfassung stoppt sofort — nichts muss neu geladen werden. Was genau gezählt wird und was Ihr Gerät nie verlässt, steht in der {link}.",
       "afterLink": "Datenschutzerklärung"
+    },
+    "addresses": {
+      "title": "HDrezka-Adressen, mit denen die Erweiterung funktioniert — Lingogram",
+      "description": "Die vollständige Liste der HDrezka-Adressen, die die Erweiterung abdeckt. Wird direkt aus der Erweiterung erzeugt und mit jedem Release aktualisiert.",
+      "back": "Zurück",
+      "h1": "HDrezka-Adressen, mit denen die Erweiterung funktioniert",
+      "lede": "Unten finden Sie die vollständige Liste der {n} Adressen, mit denen die Erweiterung funktioniert. Sie wird aus der Erweiterung selbst erzeugt und stimmt daher immer mit Ihrer installierten Version überein.",
+      "missing": "Ihre Adresse steht nicht auf der Liste? {link} — wir fügen sie hinzu.",
+      "missingLink": "Schreiben Sie uns",
+      "missingSubject": "Meine HDrezka-Adresse"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, laden Sie ihn bitte neu. Chrome verbindet eine neue Erweiterung nur mit Seiten, die nach der Installation geöffnet wurden. Danach können Sie das getrost vergessen.",
     "reloadBold": "Wenn ein Video bereits in einem anderen Tab offen ist",
+    "coverage": "{b}, aber die Erweiterung deckt nur die ab, bei denen der Teil vor der Endung genau {names} lautet. Zum Beispiel funktioniert {yes}, {no} dagegen nicht. Die vollständige Liste finden Sie {link}.",
+    "coverageBold": "HDrezka ist unter vielen Adressen erreichbar",
+    "coverageOr": "oder",
+    "coverageLink": "hier",
     "signIn": "{b}, melden Sie sich an: Klicken Sie auf das Lingogram-Symbol in der Symbolleiste und wählen Sie „Anmelden“. Einmal genügt — ab dann speichert sich alles von selbst.",
     "signInBold": "Damit Ihre Wörter erhalten bleiben",
     "langs": "{b}, über dasselbe Symbol stellen Sie die Sprache, die Sie lernen, und Ihre eigene ein.",

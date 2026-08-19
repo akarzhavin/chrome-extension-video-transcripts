@@ -47,6 +47,8 @@
     "howItWorks": "Kā tas darbojas",
     "help": "Palīdzība",
     "faq": "Biežāk uzdotie jautājumi",
+    "helpAnalytics": "Izslēgt statistiku",
+    "helpAddresses": "HDrezka adreses",
     "support": "Atbalsts",
     "suggestSite": "Ieteikt vietni",
     "suggestSubject": "Vietnes ieteikums Lingogram",
@@ -209,12 +211,20 @@
       "lede": "Paplašinājums skaita anonīmus notikumus, piemēram, „subtitri ielādēti” un „vārds saglabāts” — tā mēs redzam, kur kaut kas salūst un kas jālabo nākamreiz. Statistikā nav konta identitātes, un tā nekad nenosauc, ko tu skaties. Divi klikšķi to izslēdz:",
       "step1": "Uzklikšķini Lingogram ikonai pārlūka rīkjoslā, lai atvērtu paplašinājuma uznirstošo logu.",
       "step2": "Sadaļā {group} noņem ķeksīti pie {label}.",
-      "groupName": "Konfidencialitāte",
-      "labelName": "Kopīgot anonīmu lietojuma statistiku",
       "stateOn": "Statistika ieslēgta",
       "stateOff": "Statistika izslēgta",
       "after": "Vākšana apstājas nekavējoties — nekas nav jāpārlādē. Kas tieši tiek skaitīts un kas nekad neatstāj tavu ierīci, ir uzskaitīts {link}.",
       "afterLink": "konfidencialitātes politikā"
+    },
+    "addresses": {
+      "title": "HDrezka adreses, ar kurām darbojas paplašinājums — Lingogram",
+      "description": "Pilns HDrezka adrešu saraksts, ko atbalsta paplašinājums. Tiek ģenerēts tieši no paplašinājuma un atjaunināts ar katru versiju.",
+      "back": "Atpakaļ",
+      "h1": "HDrezka adreses, ar kurām darbojas paplašinājums",
+      "lede": "Zemāk ir pilns {n} adrešu saraksts, ar kurām darbojas paplašinājums. Tas tiek ģenerēts tieši no paplašinājuma, tāpēc vienmēr atbilst tavai instalētajai versijai.",
+      "missing": "Tavas adreses nav sarakstā? {link} — mēs to pievienosim.",
+      "missingLink": "Raksti mums",
+      "missingSubject": "Mana HDrezka adrese"
     }
   },
   "welcome": {
@@ -244,6 +254,10 @@
     },
     "reload": "{b}, lūdzu, pārlādē to. Chrome jaunu paplašinājumu savieno tikai ar lapām, kas atvērtas pēc tā instalēšanas. Pēc tam par to vari aizmirst.",
     "reloadBold": "Ja video jau ir atvērts citā cilnē",
+    "coverage": "{b}, taču paplašinājums atbalsta tikai tās, kurām daļa pirms galotnes ir tieši {names}. Piemēram, {yes} darbojas, bet {no} nedarbojas. Visu sarakstu vari apskatīt {link}.",
+    "coverageBold": "HDrezka ir sasniedzama daudzās adresēs",
+    "coverageOr": "vai",
+    "coverageLink": "šeit",
     "signIn": "{b}, piesakies: uzklikšķini Lingogram ikonai rīkjoslā un izvēlies Pieteikties. Pietiek ar vienu reizi — tālāk viss saglabājas pats.",
     "signInBold": "Lai tavi vārdi saglabātos",
     "langs": "{b}, pie tās pašas ikonas iestati to, kuru mācies, un savu.",

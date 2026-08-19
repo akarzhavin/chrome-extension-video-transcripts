@@ -45,6 +45,8 @@
     "howItWorks": "Cách hoạt động",
     "help": "Trợ giúp",
     "faq": "Hỏi đáp",
+    "helpAnalytics": "Tắt thống kê",
+    "helpAddresses": "Địa chỉ HDrezka",
     "support": "Hỗ trợ",
     "suggestSite": "Đề xuất trang web",
     "suggestSubject": "Đề xuất trang web cho Lingogram",
@@ -207,12 +209,20 @@
       "lede": "Tiện ích mở rộng đếm các sự kiện ẩn danh như “đã tải phụ đề” và “đã lưu từ” — nhờ đó chúng tôi biết chỗ nào bị lỗi và cần sửa gì tiếp theo. Số liệu này không chứa danh tính tài khoản và không bao giờ nêu bạn đang xem gì. Hai cú nhấp là tắt được:",
       "step1": "Nhấp vào biểu tượng Lingogram trên thanh công cụ trình duyệt để mở popup của tiện ích mở rộng.",
       "step2": "Trong mục {group}, bỏ chọn {label}.",
-      "groupName": "Quyền riêng tư",
-      "labelName": "Chia sẻ số liệu sử dụng ẩn danh",
       "stateOn": "Số liệu đang bật",
       "stateOff": "Số liệu đang tắt",
       "after": "Việc thu thập dừng ngay lập tức — không cần tải lại gì cả. Chính xác những gì được đếm, và những gì không bao giờ rời khỏi thiết bị của bạn, được liệt kê trong {link}.",
       "afterLink": "chính sách quyền riêng tư"
+    },
+    "addresses": {
+      "title": "Các địa chỉ HDrezka mà tiện ích hoạt động — Lingogram",
+      "description": "Danh sách đầy đủ các địa chỉ HDrezka mà tiện ích hỗ trợ. Được tạo trực tiếp từ tiện ích và cập nhật theo mỗi phiên bản.",
+      "back": "Quay lại",
+      "h1": "Các địa chỉ HDrezka mà tiện ích hoạt động",
+      "lede": "Dưới đây là danh sách đầy đủ {n} địa chỉ mà tiện ích hoạt động. Danh sách được tạo trực tiếp từ tiện ích, nên luôn khớp với phiên bản bạn đã cài đặt.",
+      "missing": "Không thấy địa chỉ của bạn trong danh sách? {link} — chúng tôi sẽ thêm vào.",
+      "missingLink": "Viết thư cho chúng tôi",
+      "missingSubject": "Địa chỉ HDrezka của tôi"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, hãy tải lại trang đó giúp nhé. Chrome chỉ kết nối một tiện ích mới với những trang được mở sau khi cài đặt. Xong việc này rồi thì bạn có thể quên nó đi.",
     "reloadBold": "Nếu một video đang mở sẵn ở tab khác",
+    "coverage": "{b}, nhưng tiện ích chỉ hỗ trợ những địa chỉ có phần trước đuôi chính xác là {names}. Ví dụ, {yes} hoạt động, còn {no} thì không. Bạn có thể xem danh sách đầy đủ {link}.",
+    "coverageBold": "HDrezka có thể truy cập qua nhiều địa chỉ",
+    "coverageOr": "hoặc",
+    "coverageLink": "tại đây",
     "signIn": "{b}, hãy đăng nhập: nhấp vào biểu tượng Lingogram trên thanh công cụ và chọn Đăng nhập. Một lần là đủ — từ đó mọi thứ tự lưu lại.",
     "signInBold": "Để những từ của bạn không bị mất",
     "langs": "{b}, cũng chính biểu tượng đó là nơi bạn chọn ngôn ngữ đang học và ngôn ngữ của mình.",

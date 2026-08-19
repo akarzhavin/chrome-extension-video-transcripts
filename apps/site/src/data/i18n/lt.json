@@ -47,6 +47,8 @@
     "howItWorks": "Kaip tai veikia",
     "help": "Pagalba",
     "faq": "DUK",
+    "helpAnalytics": "Išjungti statistiką",
+    "helpAddresses": "HDrezka adresai",
     "support": "Pagalba vartotojams",
     "suggestSite": "Pasiūlyti svetainę",
     "suggestSubject": "Svetainės pasiūlymas Lingogram",
@@ -209,12 +211,20 @@
       "lede": "Plėtinys skaičiuoja anoniminius įvykius, tokius kaip „subtitrai įkelti“ ir „žodis išsaugotas“ — taip matome, kur kas nors genda ir ką toliau taisyti. Statistikoje nėra paskyros tapatybės ir ji niekada nenurodo, ką žiūrite. Du paspaudimai ją išjungia:",
       "step1": "Spustelėkite Lingogram piktogramą naršyklės įrankių juostoje, kad atidarytumėte plėtinio iššokantį langą.",
       "step2": "Skiltyje {group} nuimkite varnelę nuo {label}.",
-      "groupName": "Privatumas",
-      "labelName": "Bendrinti anoniminę naudojimo statistiką",
       "stateOn": "Statistika įjungta",
       "stateOff": "Statistika išjungta",
       "after": "Rinkimas sustoja iškart — nieko nereikia iš naujo įkelti. Kas tiksliai skaičiuojama ir kas niekada nepalieka jūsų įrenginio, nurodyta {link}.",
       "afterLink": "privatumo politikoje"
+    },
+    "addresses": {
+      "title": "HDrezka adresai, su kuriais veikia plėtinys — Lingogram",
+      "description": "Visas HDrezka adresų, kuriuos palaiko plėtinys, sąrašas. Generuojamas tiesiai iš plėtinio ir atnaujinamas su kiekviena versija.",
+      "back": "Atgal",
+      "h1": "HDrezka adresai, su kuriais veikia plėtinys",
+      "lede": "Žemiau pateiktas visas {n} adresų, su kuriais veikia plėtinys, sąrašas. Jis generuojamas tiesiai iš plėtinio, todėl visada atitinka jūsų įsidiegtą versiją.",
+      "missing": "Jūsų adreso nėra sąraše? {link} — jį pridėsime.",
+      "missingLink": "Parašykite mums",
+      "missingSubject": "Mano HDrezka adresas"
     }
   },
   "welcome": {
@@ -244,6 +254,10 @@
     },
     "reload": "{b}, įkelkite ją iš naujo. Chrome naują plėtinį prijungia tik prie puslapių, atidarytų po jo įdiegimo. Po to apie tai galite pamiršti.",
     "reloadBold": "Jei vaizdo įrašas jau atidarytas kitoje kortelėje",
+    "coverage": "{b}, tačiau plėtinys palaiko tik tuos, kur dalis prieš galūnę yra būtent {names}. Pavyzdžiui, {yes} veikia, o {no} — ne. Visą sąrašą galite pamatyti {link}.",
+    "coverageBold": "HDrezka pasiekiama daugeliu adresų",
+    "coverageOr": "arba",
+    "coverageLink": "čia",
     "signIn": "{b}, prisijunkite: spustelėkite Lingogram piktogramą įrankių juostoje ir pasirinkite Prisijungti. Užtenka vieno karto — toliau viskas išsaugoma savaime.",
     "signInBold": "Kad jūsų žodžiai išliktų",
     "langs": "{b}, ties ta pačia piktograma nustatysite tą, kurios mokotės, ir savąją.",

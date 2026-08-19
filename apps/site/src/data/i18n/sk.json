@@ -48,6 +48,8 @@
     "howItWorks": "Ako to funguje",
     "help": "Pomoc",
     "faq": "Časté otázky",
+    "helpAnalytics": "Vypnúť štatistiky",
+    "helpAddresses": "Adresy HDrezka",
     "support": "Podpora",
     "suggestSite": "Navrhnúť stránku",
     "suggestSubject": "Návrh stránky pre Lingogram",
@@ -210,12 +212,20 @@
       "lede": "Rozšírenie počíta anonymné udalosti ako „titulky načítané“ a „slovo uložené“ — takto vidíme, kde sa niečo pokazí a čo treba opraviť ďalej. Štatistiky nenesú žiadnu identitu účtu a nikdy neuvádzajú, čo sledujete. Vypnú sa dvoma kliknutiami:",
       "step1": "Kliknite na ikonu Lingogram na paneli nástrojov prehliadača, čím otvoríte kontextové okno rozšírenia.",
       "step2": "V časti {group} zrušte začiarknutie pri {label}.",
-      "groupName": "Súkromie",
-      "labelName": "Zdieľať anonymné štatistiky používania",
       "stateOn": "Štatistiky zapnuté",
       "stateOff": "Štatistiky vypnuté",
       "after": "Zber sa okamžite zastaví — nič netreba znovu načítať. Presne to, čo sa počíta, a čo nikdy neopustí vaše zariadenie, nájdete v {link}.",
       "afterLink": "zásadách ochrany súkromia"
+    },
+    "addresses": {
+      "title": "Adresy HDrezka, s ktorými rozšírenie funguje — Lingogram",
+      "description": "Úplný zoznam adries HDrezka, ktoré rozšírenie podporuje. Generuje sa priamo z rozšírenia a aktualizuje sa s každou verziou.",
+      "back": "Späť",
+      "h1": "Adresy HDrezka, s ktorými rozšírenie funguje",
+      "lede": "Nižšie je úplný zoznam {n} adries, s ktorými rozšírenie funguje. Generuje sa priamo z rozšírenia, takže vždy zodpovedá tomu, čo máte nainštalované.",
+      "missing": "Vaša adresa nie je v zozname? {link} — pridáme ju.",
+      "missingLink": "Napíšte nám",
+      "missingSubject": "Moja adresa HDrezka"
     }
   },
   "welcome": {
@@ -245,6 +255,10 @@
     },
     "reload": "{b}, načítajte ju prosím znova. Chrome pripojí nové rozšírenie len k stránkam, ktoré sa otvorili až po inštalácii. Potom už na to môžete zabudnúť.",
     "reloadBold": "Ak máte video otvorené v inej karte",
+    "coverage": "{b}, ale rozšírenie podporuje iba tie, kde je časť pred koncovkou presne {names}. Napríklad {yes} funguje, kým {no} nie. Celý zoznam si môžete pozrieť {link}.",
+    "coverageBold": "HDrezka je dostupná na mnohých adresách",
+    "coverageOr": "alebo",
+    "coverageLink": "tu",
     "signIn": "{b} sa prihláste: kliknite na ikonu Lingogram na paneli nástrojov a vyberte Prihlásiť sa. Stačí raz — odvtedy sa všetko ukladá samo.",
     "signInBold": "Aby vám slová zostali",
     "langs": "{b}, na tej istej ikone si nastavíte ten, ktorý sa učíte, aj svoj vlastný.",

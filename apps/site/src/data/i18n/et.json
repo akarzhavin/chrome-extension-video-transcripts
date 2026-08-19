@@ -46,6 +46,8 @@
     "howItWorks": "Kuidas see töötab",
     "help": "Abi",
     "faq": "KKK",
+    "helpAnalytics": "Lülita statistika välja",
+    "helpAddresses": "HDrezka aadressid",
     "support": "Tugi",
     "suggestSite": "Soovita saiti",
     "suggestSubject": "Saidi soovitus Lingogrammile",
@@ -208,12 +210,20 @@
       "lede": "Laiendus loeb anonüümseid sündmusi nagu „subtiitrid laaditi“ ja „sõna salvestati“ — nii näeme, kus miski katki läheb ja mida järgmisena parandada. Statistika ei kanna konto identiteeti ega nimeta kunagi, mida sa vaatad. Kaks klõpsu lülitavad selle välja:",
       "step1": "Klõpsa brauseri tööriistaribal Lingogrami ikoonil, et avada laienduse hüpikaken.",
       "step2": "Jaotises {group} eemalda linnuke {label} juurest.",
-      "groupName": "Privaatsus",
-      "labelName": "Jaga anonüümset kasutusstatistikat",
       "stateOn": "Statistika sees",
       "stateOff": "Statistika väljas",
       "after": "Kogumine peatub kohe — midagi ei pea uuesti laadima. Täpselt see, mida loetakse ja mis kunagi su seadmest ei lahku, on kirjas {link}.",
       "afterLink": "privaatsuspoliitikas"
+    },
+    "addresses": {
+      "title": "HDrezka aadressid, millega laiendus töötab — Lingogram",
+      "description": "Täielik loend HDrezka aadressidest, mida laiendus toetab. Genereeritud laiendusest endast ja uuendatud iga versiooniga.",
+      "back": "Tagasi",
+      "h1": "HDrezka aadressid, millega laiendus töötab",
+      "lede": "Allpool on täielik loend {n} aadressist, millega laiendus töötab. See genereeritakse laiendusest endast, seega vastab see alati sinu installitud versioonile.",
+      "missing": "Sinu aadressi pole loendis? {link} — lisame selle.",
+      "missingLink": "Kirjuta meile",
+      "missingSubject": "Minu HDrezka aadress"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, laadi see palun uuesti. Chrome ühendab uue laienduse ainult nende lehtedega, mis avati pärast selle paigaldamist. Pärast seda võid selle täiesti unustada.",
     "reloadBold": "Kui video on juba teisel vahekaardil lahti",
+    "coverage": "{b}, kuid laiendus toetab ainult neid, kus osa enne lõppu on täpselt {names}. Näiteks {yes} töötab, aga {no} mitte. Kogu loendit näed {link}.",
+    "coverageBold": "HDrezka on kättesaadav paljudel aadressidel",
+    "coverageOr": "või",
+    "coverageLink": "siit",
     "signIn": "{b}, logi sisse: klõpsa tööriistaribal Lingogrami ikoonil ja vali Logi sisse. Ühest korrast piisab — edasi salvestub kõik iseenesest.",
     "signInBold": "Et su sõnad alles jääksid",
     "langs": "{b}, sama ikooni alt seadistad selle, mida õpid, ja oma enda oma.",

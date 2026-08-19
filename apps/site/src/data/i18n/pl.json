@@ -48,6 +48,8 @@
     "howItWorks": "Jak to działa",
     "help": "Pomoc",
     "faq": "FAQ",
+    "helpAnalytics": "Wyłącz statystyki",
+    "helpAddresses": "Adresy HDrezka",
     "support": "Wsparcie",
     "suggestSite": "Zaproponuj stronę",
     "suggestSubject": "Propozycja strony dla Lingogram",
@@ -210,12 +212,20 @@
       "lede": "Rozszerzenie liczy anonimowe zdarzenia, takie jak „napisy załadowane” i „słowo zapisane” — tak widzimy, gdzie coś się psuje i co naprawić dalej. Statystyki nie zawierają tożsamości konta i nigdy nie podają, co oglądasz. Dwa kliknięcia je wyłączają:",
       "step1": "Kliknij ikonę Lingogram na pasku narzędzi przeglądarki, aby otworzyć wyskakujące okno rozszerzenia.",
       "step2": "W sekcji {group} odznacz {label}.",
-      "groupName": "Prywatność",
-      "labelName": "Udostępniaj anonimowe statystyki użycia",
       "stateOn": "Statystyki włączone",
       "stateOff": "Statystyki wyłączone",
       "after": "Zbieranie zatrzymuje się natychmiast — nic nie trzeba przeładowywać. Dokładnie to, co jest liczone, i to, co nigdy nie opuszcza Twojego urządzenia, jest wymienione w {link}.",
       "afterLink": "polityce prywatności"
+    },
+    "addresses": {
+      "title": "Adresy HDrezka, z którymi działa rozszerzenie — Lingogram",
+      "description": "Pełna lista adresów HDrezka obsługiwanych przez rozszerzenie. Generowana bezpośrednio z rozszerzenia i aktualizowana z każdym wydaniem.",
+      "back": "Wstecz",
+      "h1": "Adresy HDrezka, z którymi działa rozszerzenie",
+      "lede": "Poniżej pełna lista {n} adresów, z którymi działa rozszerzenie. Jest generowana bezpośrednio z rozszerzenia, więc zawsze odpowiada temu, co masz zainstalowane.",
+      "missing": "Twojego adresu nie ma na liście? {link} — dodamy go.",
+      "missingLink": "Napisz do nas",
+      "missingSubject": "Mój adres HDrezka"
     }
   },
   "welcome": {
@@ -245,6 +255,10 @@
     },
     "reload": "{b}, odśwież ją, proszę. Chrome podłącza nowe rozszerzenie tylko do stron otwartych po jego instalacji. Potem możesz o tym zapomnieć.",
     "reloadBold": "Jeśli film jest już otwarty w innej karcie",
+    "coverage": "{b}, ale rozszerzenie obsługuje tylko te, w których część przed końcówką to dokładnie {names}. Na przykład {yes} działa, a {no} już nie. Pełną listę możesz zobaczyć {link}.",
+    "coverageBold": "HDrezka jest dostępna pod wieloma adresami",
+    "coverageOr": "lub",
+    "coverageLink": "tutaj",
     "signIn": "{b}, zaloguj się: kliknij ikonę Lingogram na pasku narzędzi i wybierz „Zaloguj się”. Wystarczy raz — dalej wszystko zapisuje się samo.",
     "signInBold": "Żeby Twoje słowa nie przepadły",
     "langs": "{b}, pod tą samą ikoną ustawisz ten, którego się uczysz, i swój własny.",

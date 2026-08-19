@@ -46,6 +46,8 @@
     "howItWorks": "Miten se toimii",
     "help": "Ohje",
     "faq": "Kysymykset",
+    "helpAnalytics": "Poista tilastot käytöstä",
+    "helpAddresses": "HDrezka-osoitteet",
     "support": "Tuki",
     "suggestSite": "Ehdota sivustoa",
     "suggestSubject": "Sivustoehdotus Lingogramille",
@@ -208,12 +210,20 @@
       "lede": "Laajennus laskee anonyymejä tapahtumia kuten ”tekstitys ladattu” ja ”sana tallennettu” — näin näemme, missä jokin menee rikki ja mitä korjata seuraavaksi. Tilastot eivät sisällä tilin identiteettiä eivätkä koskaan kerro, mitä katsot. Kaksi klikkausta poistaa ne käytöstä:",
       "step1": "Avaa laajennuksen ponnahdusikkuna klikkaamalla Lingogram-kuvaketta selaimen työkalupalkissa.",
       "step2": "Poista valinta kohdasta {label} osiossa {group}.",
-      "groupName": "Tietosuoja",
-      "labelName": "Jaa anonyymit käyttötilastot",
       "stateOn": "Tilastot päällä",
       "stateOff": "Tilastot pois",
       "after": "Kerääminen pysähtyy heti — mitään ei tarvitse ladata uudelleen. Tarkka luettelo siitä, mitä lasketaan ja mikä ei koskaan poistu laitteeltasi, on {link}.",
       "afterLink": "tietosuojakäytännössä"
+    },
+    "addresses": {
+      "title": "HDrezka-osoitteet, joilla laajennus toimii — Lingogram",
+      "description": "Täydellinen lista HDrezka-osoitteista, joita laajennus tukee. Luodaan suoraan laajennuksesta ja päivittyy jokaisen julkaisun yhteydessä.",
+      "back": "Takaisin",
+      "h1": "HDrezka-osoitteet, joilla laajennus toimii",
+      "lede": "Alla on täydellinen lista {n} osoitteesta, joilla laajennus toimii. Se luodaan suoraan laajennuksesta, joten se vastaa aina asentamaasi versiota.",
+      "missing": "Osoitettasi ei löydy listalta? {link}, niin lisäämme sen.",
+      "missingLink": "Kirjoita meille",
+      "missingSubject": "Oma HDrezka-osoitteeni"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, lataa se uudelleen. Chrome yhdistää uuden laajennuksen vain sivuihin, jotka on avattu asennuksen jälkeen. Sen jälkeen voit unohtaa koko asian.",
     "reloadBold": "Jos video on jo auki toisessa välilehdessä",
+    "coverage": "{b}, mutta laajennus tukee vain niitä, joissa osa ennen päätettä on täsmälleen {names}. Esimerkiksi {yes} toimii, kun taas {no} ei. Voit katsoa täyden listan {link}.",
+    "coverageBold": "HDrezka on tavoitettavissa monista osoitteista",
+    "coverageOr": "tai",
+    "coverageLink": "täältä",
     "signIn": "{b}, kirjaudu sisään: klikkaa Lingogram-kuvaketta työkalupalkissa ja valitse ”Kirjaudu sisään”. Yksi kerta riittää — siitä eteenpäin kaikki tallentuu itsestään.",
     "signInBold": "Jotta sanasi säilyvät",
     "langs": "{b}, samasta kuvakkeesta asetat opiskelemasi kielen ja oman kielesi.",

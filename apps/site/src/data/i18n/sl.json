@@ -48,6 +48,8 @@
     "howItWorks": "Kako deluje",
     "help": "Pomoč",
     "faq": "Vprašanja",
+    "helpAnalytics": "Izklopi statistiko",
+    "helpAddresses": "Naslovi HDrezka",
     "support": "Podpora",
     "suggestSite": "Predlagajte stran",
     "suggestSubject": "Predlog strani za Lingogram",
@@ -210,12 +212,20 @@
       "lede": "Razširitev šteje anonimne dogodke, kot sta „podnapisi naloženi“ in „beseda shranjena“ — tako vidimo, kje se kaj pokvari in kaj popraviti naslednjič. Statistika ne nosi identitete računa in nikoli ne navede, kaj gledate. Izklopita jo dva klika:",
       "step1": "Kliknite ikono Lingograma v orodni vrstici brskalnika, da odprete pojavno okno razširitve.",
       "step2": "Pod {group} odkljukajte {label}.",
-      "groupName": "Zasebnost",
-      "labelName": "Deli anonimno statistiko uporabe",
       "stateOn": "Statistika vklopljena",
       "stateOff": "Statistika izklopljena",
       "after": "Zbiranje se ustavi takoj — ničesar ni treba znova naložiti. Kaj natančno se šteje in kaj nikoli ne zapusti vaše naprave, je navedeno v {link}.",
       "afterLink": "politiki zasebnosti"
+    },
+    "addresses": {
+      "title": "Naslovi HDrezka, na katerih razširitev deluje — Lingogram",
+      "description": "Celoten seznam naslovov HDrezka, ki jih podpira razširitev. Ustvarjen neposredno iz razširitve in posodobljen ob vsaki izdaji.",
+      "back": "Nazaj",
+      "h1": "Naslovi HDrezka, na katerih razširitev deluje",
+      "lede": "Spodaj je celoten seznam {n} naslovov, na katerih razširitev deluje. Ustvarjen je neposredno iz razširitve, zato se vedno ujema s tem, kar imate nameščeno.",
+      "missing": "Vašega naslova ni na seznamu? {link} — dodali ga bomo.",
+      "missingLink": "Pišite nam",
+      "missingSubject": "Moj naslov HDrezka"
     }
   },
   "welcome": {
@@ -245,6 +255,10 @@
     },
     "reload": "{b}, ga prosimo znova naložite. Chrome novo razširitev poveže samo s stranmi, ki so se odprle po namestitvi. Potem lahko na to čisto pozabite.",
     "reloadBold": "Če je video že odprt v drugem zavihku",
+    "coverage": "{b}, vendar razširitev podpira samo tiste, kjer je del pred končnico natanko {names}. Na primer, {yes} deluje, {no} pa ne. Celoten seznam si lahko ogledate {link}.",
+    "coverageBold": "HDrezka je dosegljiva na številnih naslovih",
+    "coverageOr": "ali",
+    "coverageLink": "tukaj",
     "signIn": "{b}, se prijavite: kliknite ikono Lingograma v orodni vrstici in izberite Prijava. Dovolj je enkrat — od tam se vse shranjuje samo.",
     "signInBold": "Da se vaše besede ohranijo",
     "langs": "{b}, pri isti ikoni nastavite tistega, ki se ga učite, in svojega.",

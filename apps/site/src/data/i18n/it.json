@@ -46,6 +46,8 @@
     "howItWorks": "Come funziona",
     "help": "Aiuto",
     "faq": "FAQ",
+    "helpAnalytics": "Disattiva le statistiche",
+    "helpAddresses": "Indirizzi HDrezka",
     "support": "Supporto",
     "suggestSite": "Suggerisci un sito",
     "suggestSubject": "Suggerimento di sito per Lingogram",
@@ -208,12 +210,20 @@
       "lede": "L'estensione conta eventi anonimi come «sottotitoli caricati» e «parola salvata» — così vediamo dove qualcosa si rompe e cosa correggere. Le statistiche non contengono alcuna identità dell'account e non specificano mai cosa guardi. Due clic le disattivano:",
       "step1": "Clicca sull'icona di Lingogram nella barra degli strumenti del browser per aprire il popup dell'estensione.",
       "step2": "In {group}, deseleziona {label}.",
-      "groupName": "Privacy",
-      "labelName": "Condividi statistiche d'uso anonime",
       "stateOn": "Statistiche attive",
       "stateOff": "Statistiche disattivate",
       "after": "La raccolta si interrompe immediatamente — niente da ricaricare. Cosa viene esattamente conteggiato, e cosa non lascia mai il tuo dispositivo, è elencato nella {link}.",
       "afterLink": "informativa sulla privacy"
+    },
+    "addresses": {
+      "title": "Indirizzi HDrezka su cui funziona l'estensione — Lingogram",
+      "description": "L'elenco completo degli indirizzi HDrezka coperti dall'estensione. Generato dall'estensione stessa e aggiornato a ogni versione.",
+      "back": "Indietro",
+      "h1": "Indirizzi HDrezka su cui funziona l'estensione",
+      "lede": "Di seguito l'elenco completo dei {n} indirizzi su cui funziona l'estensione. Viene generato dall'estensione stessa, quindi corrisponde sempre a quella installata.",
+      "missing": "Il tuo indirizzo non è nell'elenco? {link} e lo aggiungiamo.",
+      "missingLink": "Scrivici",
+      "missingSubject": "Il mio indirizzo HDrezka"
     }
   },
   "welcome": {
@@ -243,6 +253,10 @@
     },
     "reload": "{b}, ricaricala, per favore. Chrome collega una nuova estensione solo alle pagine aperte dopo l'installazione. Dopodiché puoi dimenticarti che sia mai successo.",
     "reloadBold": "Se un video è già aperto in un'altra scheda",
+    "coverage": "{b}, ma l'estensione copre solo quelle in cui la parte prima del suffisso è esattamente {names}. Ad esempio, {yes} funziona, mentre {no} no. Puoi vedere l'elenco completo {link}.",
+    "coverageBold": "HDrezka è raggiungibile a molti indirizzi",
+    "coverageOr": "o",
+    "coverageLink": "qui",
     "signIn": "{b}, accedi: clicca sull'icona di Lingogram nella barra degli strumenti e scegli «Accedi». Basta una volta — da lì in poi si salva tutto da solo.",
     "signInBold": "Perché le tue parole restino",
     "langs": "{b}, dalla stessa icona imposti quella che stai imparando e la tua.",

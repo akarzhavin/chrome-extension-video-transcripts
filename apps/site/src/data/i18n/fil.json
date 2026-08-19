@@ -45,6 +45,8 @@
     "howItWorks": "Paano ito gumagana",
     "help": "Tulong",
     "faq": "Mga tanong",
+    "helpAnalytics": "I-off ang istatistika",
+    "helpAddresses": "Mga HDrezka address",
     "support": "Suporta",
     "suggestSite": "Magmungkahi ng site",
     "suggestSubject": "Mungkahing site para sa Lingogram",
@@ -207,12 +209,20 @@
       "lede": "Binibilang ng extension ang mga anonymous na event tulad ng “na-load ang subtitle” at “na-save ang salita” — sa ganitong paraan nakikita namin kung saan may nasisira at kung ano ang aayusin susunod. Walang identity ng account ang mga istatistikang ito at hinding-hindi nito sinasabi kung ano ang pinapanood mo. Dalawang click lang ang kailangan para i-off ito:",
       "step1": "I-click ang icon ng Lingogram sa toolbar ng browser para buksan ang popup ng extension.",
       "step2": "Sa ilalim ng {group}, alisan ng check ang {label}.",
-      "groupName": "Privacy",
-      "labelName": "Ibahagi ang anonymous na istatistika ng paggamit",
       "stateOn": "Naka-on ang istatistika",
       "stateOff": "Naka-off ang istatistika",
       "after": "Agad na huminto ang pangongolekta — walang kailangang i-reload. Ang eksaktong binibilang, at ang hindi kailanman lumalabas sa device mo, ay nakalista sa {link}.",
       "afterLink": "patakaran sa privacy"
+    },
+    "addresses": {
+      "title": "Mga HDrezka address na gumagana ang extension — Lingogram",
+      "description": "Ang buong listahan ng mga HDrezka address na sinusuportahan ng extension. Ginagawa mula sa mismong extension at ina-update sa bawat release.",
+      "back": "Bumalik",
+      "h1": "Mga HDrezka address na gumagana ang extension",
+      "lede": "Nasa ibaba ang buong listahan ng {n} address kung saan gumagana ang extension. Ito ay ginagawa mula sa mismong extension, kaya laging tugma sa naka-install mo.",
+      "missing": "Wala sa listahan ang address mo? {link} — idadagdag namin ito.",
+      "missingLink": "Sulatan kami",
+      "missingSubject": "Ang aking HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, paki-reload iyon. Ikinokonekta lang ng Chrome ang bagong extension sa mga page na binuksan pagkatapos itong ma-install. Pagkatapos noon, puwede mo nang kalimutan na may ganito palang bagay.",
     "reloadBold": "Kung may nakabukas nang video sa ibang tab",
+    "coverage": "{b}, pero ang extension ay sumusuporta lang sa mga address kung saan eksaktong {names} ang bahagi bago ang ending. Halimbawa, gumagana ang {yes}, pero hindi ang {no}. Makikita mo ang buong listahan {link}.",
+    "coverageBold": "Maraming address kung saan available ang HDrezka",
+    "coverageOr": "o",
+    "coverageLink": "dito",
     "signIn": "{b}, mag-sign in ka: i-click ang icon ng Lingogram sa toolbar at piliin ang Mag-sign in. Isang beses lang, sapat na — kusa nang nase-save ang lahat mula roon.",
     "signInBold": "Para hindi mawala ang mga salita mo",
     "langs": "{b}, sa parehong icon din nakalagay kung saan mo pipiliin ang wikang pinag-aaralan mo at ang sarili mong wika.",

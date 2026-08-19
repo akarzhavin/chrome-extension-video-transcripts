@@ -45,6 +45,8 @@
     "howItWorks": "Hogyan működik",
     "help": "Súgó",
     "faq": "GYIK",
+    "helpAnalytics": "Statisztika kikapcsolása",
+    "helpAddresses": "HDrezka-címek",
     "support": "Támogatás",
     "suggestSite": "Javasolj egy oldalt",
     "suggestSubject": "Oldaljavaslat a Lingogramhoz",
@@ -207,12 +209,20 @@
       "lede": "A bővítmény olyan névtelen eseményeket számol, mint a „felirat betöltve” és a „szó elmentve” — így látjuk, hol romlik el valami, és mit kell legközelebb javítani. A statisztika nem tartalmaz fiókazonosítót, és sosem árulja el, mit nézel. Két kattintással kikapcsolható:",
       "step1": "Kattints a Lingogram ikonjára a böngésző eszköztárán, hogy megnyíljon a bővítmény felugró ablaka.",
       "step2": "A {group} alatt vedd ki a pipát a {label} mellől.",
-      "groupName": "Adatvédelem",
-      "labelName": "Névtelen használati statisztikák megosztása",
       "stateOn": "Statisztika be",
       "stateOff": "Statisztika ki",
       "after": "A gyűjtés azonnal leáll — semmit sem kell újratölteni. Hogy pontosan mit számolunk, és mi az, ami sosem hagyja el az eszközödet, azt az {link} sorolja fel.",
       "afterLink": "adatvédelmi szabályzat"
+    },
+    "addresses": {
+      "title": "HDrezka-címek, amelyeken a bővítmény működik — Lingogram",
+      "description": "A bővítmény által támogatott HDrezka-címek teljes listája. Magából a bővítményből generálódik, és minden kiadással frissül.",
+      "back": "Vissza",
+      "h1": "HDrezka-címek, amelyeken a bővítmény működik",
+      "lede": "Alább található a bővítmény által támogatott {n} cím teljes listája. Magából a bővítményből generálódik, ezért mindig megegyezik azzal, amit telepítettél.",
+      "missing": "Nincs a listán a címed? {link} — hozzáadjuk.",
+      "missingLink": "Írj nekünk",
+      "missingSubject": "Az én HDrezka-címem"
     }
   },
   "welcome": {
@@ -242,6 +252,10 @@
     },
     "reload": "{b}, töltsd újra. A Chrome csak azokhoz az oldalakhoz csatlakoztat új bővítményt, amelyek a telepítés után nyíltak meg. Utána el is felejtheted az egészet.",
     "reloadBold": "Ha egy videó már nyitva van egy másik fülön",
+    "coverage": "{b}, de a bővítmény csak azokat támogatja, ahol a végződés előtti rész pontosan {names}. Például a {yes} működik, a {no} viszont nem. A teljes listát {link} tekintheted meg.",
+    "coverageBold": "A HDrezka sok címen elérhető",
+    "coverageOr": "vagy",
+    "coverageLink": "itt",
     "signIn": "{b}, jelentkezz be: kattints a Lingogram ikonjára az eszköztáron, és válaszd a Bejelentkezést. Elég egyszer — onnantól minden magától mentődik.",
     "signInBold": "Hogy a szavaid megmaradjanak",
     "langs": "{b}, ugyanannál az ikonnál állíthatod be azt, amit tanulsz, és a sajátodat.",
