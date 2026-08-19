@@ -45,6 +45,8 @@
     "howItWorks": "Hogyan működik",
     "help": "Súgó",
     "faq": "GYIK",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Támogatás",
     "suggestSite": "Javasolj egy oldalt",
     "suggestSubject": "Oldaljavaslat a Lingogramhoz",
@@ -213,6 +215,16 @@
       "stateOff": "Statisztika ki",
       "after": "A gyűjtés azonnal leáll — semmit sem kell újratölteni. Hogy pontosan mit számolunk, és mi az, ami sosem hagyja el az eszközödet, azt az {link} sorolja fel.",
       "afterLink": "adatvédelmi szabályzat"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b}, töltsd újra. A Chrome csak azokhoz az oldalakhoz csatlakoztat új bővítményt, amelyek a telepítés után nyíltak meg. Utána el is felejtheted az egészet.",
     "reloadBold": "Ha egy videó már nyitva van egy másik fülön",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, jelentkezz be: kattints a Lingogram ikonjára az eszköztáron, és válaszd a Bejelentkezést. Elég egyszer — onnantól minden magától mentődik.",
     "signInBold": "Hogy a szavaid megmaradjanak",
     "langs": "{b}, ugyanannál az ikonnál állíthatod be azt, amit tanulsz, és a sajátodat.",

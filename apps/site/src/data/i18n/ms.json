@@ -45,6 +45,8 @@
     "howItWorks": "Cara ia berfungsi",
     "help": "Bantuan",
     "faq": "Soalan Lazim",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Sokongan",
     "suggestSite": "Cadangkan laman",
     "suggestSubject": "Cadangan laman untuk Lingogram",
@@ -213,6 +215,16 @@
       "stateOff": "Statistik dimatikan",
       "after": "Pengumpulan berhenti serta-merta — tiada apa perlu dimuat semula. Apa sebenarnya yang dikira, dan apa yang tidak sekali-kali meninggalkan peranti anda, disenaraikan dalam {link}.",
       "afterLink": "dasar privasi"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b}, sila muat semula halaman itu. Chrome hanya menyambungkan sambungan baharu kepada halaman yang dibuka selepas ia dipasang. Selepas itu, anda boleh lupakan hal ini terus.",
     "reloadBold": "Jika sebuah video sudah terbuka di tab lain",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, sila log masuk: klik ikon Lingogram pada bar alat dan pilih Log masuk. Sekali sahaja sudah memadai — selepas itu semuanya tersimpan dengan sendirinya.",
     "signInBold": "Supaya perkataan anda tidak hilang",
     "langs": "{b}, pada ikon yang sama itulah anda tetapkan bahasa yang sedang dipelajari dan bahasa anda sendiri.",

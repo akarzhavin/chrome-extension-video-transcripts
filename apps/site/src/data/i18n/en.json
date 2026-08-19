@@ -46,6 +46,8 @@
     "howItWorks": "How it works",
     "help": "Help",
     "faq": "FAQ",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Support",
     "suggestSite": "Suggest a site",
     "suggestSubject": "Site suggestion for Lingogram",
@@ -214,6 +216,16 @@
       "stateOff": "Stats off",
       "after": "Collection stops immediately — nothing to reload. Exactly what is counted, and what never leaves your device, is listed in the {link}.",
       "afterLink": "privacy policy"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, please reload it. Chrome only connects a new extension to pages opened after it was installed. After that you can forget this ever came up.",
     "reloadBold": "If a video is already open in another tab",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, sign in: click the Lingogram icon in the toolbar and choose Sign in. Once is enough — everything saves by itself from there.",
     "signInBold": "So your words are kept",
     "langs": "{b}, the same icon is where you set the one you're learning and your own.",

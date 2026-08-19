@@ -45,6 +45,8 @@
     "howItWorks": "Nasıl çalışır",
     "help": "Yardım",
     "faq": "SSS",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Destek",
     "suggestSite": "Site öner",
     "suggestSubject": "Lingogram için site önerisi",
@@ -213,6 +215,16 @@
       "stateOff": "İstatistikler kapalı",
       "after": "Toplama hemen durur — hiçbir şeyi yeniden yüklemenize gerek yok. Tam olarak nelerin sayıldığı ve cihazınızdan asla çıkmayan verilerin listesi {link} içinde yer alır.",
       "afterLink": "gizlilik politikasında"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b}, lütfen onu yenileyin. Chrome yeni bir uzantıyı yalnızca kurulumdan sonra açılan sayfalara bağlar. Ondan sonra bunu tamamen unutabilirsiniz.",
     "reloadBold": "Başka bir sekmede zaten açık bir video varsa",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, giriş yapın: araç çubuğundaki Lingogram simgesine tıklayıp «Giriş yap»ı seçin. Bir kez yeterli — sonrası kendiliğinden kaydedilir.",
     "signInBold": "Kelimeleriniz kaybolmasın diye",
     "langs": "{b}, öğrendiğiniz dili ve kendi dilinizi aynı simgeden ayarlayabilirsiniz.",

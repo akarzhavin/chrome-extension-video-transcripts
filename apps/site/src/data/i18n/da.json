@@ -46,6 +46,8 @@
     "howItWorks": "Sådan virker det",
     "help": "Hjælp",
     "faq": "Ofte stillede spørgsmål",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Support",
     "suggestSite": "Foreslå en side",
     "suggestSubject": "Forslag til side til Lingogram",
@@ -214,6 +216,16 @@
       "stateOff": "Statistik fra",
       "after": "Indsamlingen stopper med det samme — intet skal genindlæses. Præcis hvad der tælles, og hvad der aldrig forlader din enhed, står i {link}.",
       "afterLink": "privatlivspolitikken"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, så genindlæs den. Chrome forbinder kun en ny udvidelse med sider, der er åbnet efter installationen. Derefter kan du helt glemme, at det overhovedet var på tale.",
     "reloadBold": "Hvis en video allerede er åben i en anden fane",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, så log ind: klik på Lingogram-ikonet i værktøjslinjen, og vælg ”Log ind”. Én gang er nok — derfra gemmes alt af sig selv.",
     "signInBold": "For at dine ord bliver gemt",
     "langs": "{b}, er det samme ikon, du bruger til at vælge det, du lærer, og dit eget.",

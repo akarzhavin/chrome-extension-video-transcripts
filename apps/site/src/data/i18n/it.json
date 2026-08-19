@@ -46,6 +46,8 @@
     "howItWorks": "Come funziona",
     "help": "Aiuto",
     "faq": "FAQ",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Supporto",
     "suggestSite": "Suggerisci un sito",
     "suggestSubject": "Suggerimento di sito per Lingogram",
@@ -214,6 +216,16 @@
       "stateOff": "Statistiche disattivate",
       "after": "La raccolta si interrompe immediatamente — niente da ricaricare. Cosa viene esattamente conteggiato, e cosa non lascia mai il tuo dispositivo, è elencato nella {link}.",
       "afterLink": "informativa sulla privacy"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, ricaricala, per favore. Chrome collega una nuova estensione solo alle pagine aperte dopo l'installazione. Dopodiché puoi dimenticarti che sia mai successo.",
     "reloadBold": "Se un video è già aperto in un'altra scheda",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, accedi: clicca sull'icona di Lingogram nella barra degli strumenti e scegli «Accedi». Basta una volta — da lì in poi si salva tutto da solo.",
     "signInBold": "Perché le tue parole restino",
     "langs": "{b}, dalla stessa icona imposti quella che stai imparando e la tua.",

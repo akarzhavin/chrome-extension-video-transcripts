@@ -1190,6 +1190,26 @@ footer.site {
 .doc ol.help-steps { display: flex; flex-direction: column; gap: 10px; margin: 0 0 1.2em; padding-inline-start: 22px; }
 .doc ol.help-steps li { color: var(--muted); font-size: 15.5px; line-height: 1.6; }
 .doc ol.help-steps b { color: var(--ink); }
+
+/* "Back" on doc pages — quiet, above the title. */
+.doc .doc-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 14px;
+  font-size: 14.5px; font-weight: 600;
+  color: var(--muted); text-decoration: none;
+}
+.doc .doc-back:hover { color: var(--ink); }
+.doc .doc-back svg { width: 15px; height: 15px; }
+[dir="rtl"] .doc-back svg { transform: scaleX(-1); }
+
+/* /help/addresses/ — the full list, in columns. Plain text on purpose: the
+   page is for recognizing your own address, not for navigating out. */
+.doc .host-list {
+  list-style: none; padding: 0; margin: 0 0 1.4em;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px 18px;
+  font-size: 14px; line-height: 1.45; color: var(--muted);
+}
 .doc table { border-collapse: collapse; width: 100%; }
 .doc th, .doc td { border: 1px solid var(--line); padding: 8px 12px; font-size: 14px; text-align: left; color: var(--muted); }
 
@@ -1682,6 +1702,23 @@ footer.site {
   display: flex; flex-direction: column; gap: 18px;
 }
 .wl-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+/* Coverage notice on /welcome/, one edition only, above the video: it is a
+   caveat about whether the thing will work at all, so it has to land before
+   someone spends a minute watching. Amber-tinted rather than red — nothing is
+   broken, and most visitors are already covered. */
+.wl-notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin: 0 0 26px; padding: 14px 16px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--star) 12%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--star) 38%, var(--line));
+}
+.wl-notice-icon { width: 19px; height: 19px; flex: none; margin-top: 1px; color: var(--star); }
+.wl-notice-body { flex: 1; min-width: 0; }
+.wl-notice-body > p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+.wl-notice-body > p b { font-weight: 650; }
+
 .wl-asides b { color: var(--ink); font-weight: 600; }
 
 .wl-keys { border-top: 1px solid var(--line); padding-top: 24px; }

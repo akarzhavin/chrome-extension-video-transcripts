@@ -48,6 +48,8 @@
     "howItWorks": "Jak to działa",
     "help": "Pomoc",
     "faq": "FAQ",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Wsparcie",
     "suggestSite": "Zaproponuj stronę",
     "suggestSubject": "Propozycja strony dla Lingogram",
@@ -216,6 +218,16 @@
       "stateOff": "Statystyki wyłączone",
       "after": "Zbieranie zatrzymuje się natychmiast — nic nie trzeba przeładowywać. Dokładnie to, co jest liczone, i to, co nigdy nie opuszcza Twojego urządzenia, jest wymienione w {link}.",
       "afterLink": "polityce prywatności"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -245,6 +257,10 @@
     },
     "reload": "{b}, odśwież ją, proszę. Chrome podłącza nowe rozszerzenie tylko do stron otwartych po jego instalacji. Potem możesz o tym zapomnieć.",
     "reloadBold": "Jeśli film jest już otwarty w innej karcie",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, zaloguj się: kliknij ikonę Lingogram na pasku narzędzi i wybierz „Zaloguj się”. Wystarczy raz — dalej wszystko zapisuje się samo.",
     "signInBold": "Żeby Twoje słowa nie przepadły",
     "langs": "{b}, pod tą samą ikoną ustawisz ten, którego się uczysz, i swój własny.",

@@ -48,6 +48,8 @@
     "howItWorks": "Kako deluje",
     "help": "Pomoč",
     "faq": "Vprašanja",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Podpora",
     "suggestSite": "Predlagajte stran",
     "suggestSubject": "Predlog strani za Lingogram",
@@ -216,6 +218,16 @@
       "stateOff": "Statistika izklopljena",
       "after": "Zbiranje se ustavi takoj — ničesar ni treba znova naložiti. Kaj natančno se šteje in kaj nikoli ne zapusti vaše naprave, je navedeno v {link}.",
       "afterLink": "politiki zasebnosti"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -245,6 +257,10 @@
     },
     "reload": "{b}, ga prosimo znova naložite. Chrome novo razširitev poveže samo s stranmi, ki so se odprle po namestitvi. Potem lahko na to čisto pozabite.",
     "reloadBold": "Če je video že odprt v drugem zavihku",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, se prijavite: kliknite ikono Lingograma v orodni vrstici in izberite Prijava. Dovolj je enkrat — od tam se vse shranjuje samo.",
     "signInBold": "Da se vaše besede ohranijo",
     "langs": "{b}, pri isti ikoni nastavite tistega, ki se ga učite, in svojega.",

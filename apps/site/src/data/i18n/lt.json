@@ -47,6 +47,8 @@
     "howItWorks": "Kaip tai veikia",
     "help": "Pagalba",
     "faq": "DUK",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Pagalba vartotojams",
     "suggestSite": "Pasiūlyti svetainę",
     "suggestSubject": "Svetainės pasiūlymas Lingogram",
@@ -215,6 +217,16 @@
       "stateOff": "Statistika išjungta",
       "after": "Rinkimas sustoja iškart — nieko nereikia iš naujo įkelti. Kas tiksliai skaičiuojama ir kas niekada nepalieka jūsų įrenginio, nurodyta {link}.",
       "afterLink": "privatumo politikoje"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -244,6 +256,10 @@
     },
     "reload": "{b}, įkelkite ją iš naujo. Chrome naują plėtinį prijungia tik prie puslapių, atidarytų po jo įdiegimo. Po to apie tai galite pamiršti.",
     "reloadBold": "Jei vaizdo įrašas jau atidarytas kitoje kortelėje",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, prisijunkite: spustelėkite Lingogram piktogramą įrankių juostoje ir pasirinkite Prisijungti. Užtenka vieno karto — toliau viskas išsaugoma savaime.",
     "signInBold": "Kad jūsų žodžiai išliktų",
     "langs": "{b}, ties ta pačia piktograma nustatysite tą, kurios mokotės, ir savąją.",

@@ -45,6 +45,8 @@
     "howItWorks": "วิธีการทำงาน",
     "help": "ช่วยเหลือ",
     "faq": "คำถามที่พบบ่อย",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "ฝ่ายสนับสนุน",
     "suggestSite": "แนะนำเว็บไซต์",
     "suggestSubject": "ข้อเสนอแนะเว็บไซต์สำหรับ Lingogram",
@@ -213,6 +215,16 @@
       "stateOff": "สถิติปิดอยู่",
       "after": "การเก็บข้อมูลหยุดทันที — ไม่ต้องโหลดหน้าใหม่ รายการที่ระบุว่าอะไรถูกนับและอะไรไม่เคยออกจากอุปกรณ์ของคุณอยู่ใน{link}",
       "afterLink": "นโยบายความเป็นส่วนตัว"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b} ช่วยโหลดหน้านั้นใหม่นะ Chrome จะเชื่อมส่วนขยายใหม่เข้ากับหน้าที่เปิดหลังติดตั้งเท่านั้น หลังจากนั้นก็ลืมเรื่องนี้ไปได้เลย",
     "reloadBold": "ถ้าคุณเปิดวิดีโอค้างไว้ในอีกแท็บอยู่แล้ว",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b} ให้เข้าสู่ระบบ: คลิกไอคอน Lingogram บนแถบเครื่องมือแล้วเลือก “เข้าสู่ระบบ” ครั้งเดียวก็พอ — จากนั้นทุกอย่างจะบันทึกเองทั้งหมด",
     "signInBold": "เพื่อให้คำศัพท์ของคุณไม่หายไปไหน",
     "langs": "{b} ที่ไอคอนเดิมนั่นแหละ คุณตั้งภาษาที่กำลังเรียนและภาษาของคุณเองได้",

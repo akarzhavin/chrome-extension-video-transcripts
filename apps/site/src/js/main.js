@@ -79,7 +79,56 @@
       if (s && wlT.rezkaCtaS) s.textContent = wlT.rezkaCtaS;
       var refresh = document.getElementById('wl-refresh');
       if (refresh) refresh.hidden = true;
+      // Only this edition gets the coverage notice. It ships inside an
+      // inert <template>, so the other editions' variants of this page never
+      // have it in the DOM at all — stamping it out here is what creates it.
+      var coverTpl = document.getElementById('wl-cover-tpl');
+      if (coverTpl && coverTpl.content && coverTpl.content.firstElementChild) {
+        coverTpl.parentNode.replaceChild(coverTpl.content.firstElementChild, coverTpl);
+      }
     }
+  }
+
+  // The one button whose address this site does not store. It ships with no
+  // href; the address is assembled here, at click time, from the two
+  // lists the payload keeps apart — one name joined to one ending. Nothing in the
+  // served HTML or JSON is a usable address on its own.
+  //
+  // Assembled on click rather than on load so the page never carries a live
+  // outbound link it did not need: a visitor who does not press it never has
+  // one in their DOM.
+  var openRezka = document.querySelector('[data-open-rezka]');
+  if (openRezka && window.__WELCOME && window.__WELCOME.rezka) {
+    // role="link" with no href gets no keyboard activation of its own, so
+    // Enter is wired by hand to match what a real link would do.
+    openRezka.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); openRezka.click(); }
+    });
+    openRezka.addEventListener('click', function (e) {
+      e.preventDefault();
+      var lists = window.__WELCOME.rezka;
+      if (!lists.names.length || !lists.zones.length) return;
+      // The pairing people actually use. Both are exact lookups: the name
+      // list also holds hyphenated one-offs, and a substring match would
+      // happily pick one of those instead.
+      var name = lists.names.indexOf('hdrezka') === -1 ? lists.names[0] : 'hdrezka';
+      var zone = lists.zones.indexOf('ag') === -1 ? lists.zones[0] : 'ag';
+      window.open('https://' + name + '.' + zone + '/', '_blank', 'noopener');
+    });
+  }
+
+
+  // "Back" on doc pages: prefer real history when the visitor came from
+  // this site, so it returns to the exact page (query string included);
+  // anyone who landed here directly follows the link's own href instead.
+  var docBack = document.querySelector('[data-back]');
+  if (docBack) {
+    docBack.addEventListener('click', function (e) {
+      if (history.length > 1 && document.referrer.indexOf(location.origin) === 0) {
+        e.preventDefault();
+        history.back();
+      }
+    });
   }
 
   // Click-to-play: the poster is a plain image until someone asks for the

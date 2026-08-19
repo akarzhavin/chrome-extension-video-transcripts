@@ -50,6 +50,8 @@
     "howItWorks": "كيف يعمل",
     "help": "المساعدة",
     "faq": "الأسئلة الشائعة",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "الدعم",
     "suggestSite": "اقترح موقعًا",
     "suggestSubject": "اقتراح موقع لـ Lingogram",
@@ -218,6 +220,16 @@
       "stateOff": "الإحصاءات معطّلة",
       "after": "يتوقف الجمع فورًا — لا حاجة لإعادة تحميل أي شيء. التفاصيل الكاملة لما يُحسب وما لا يغادر جهازك أبدًا موجودة في {link}.",
       "afterLink": "سياسة الخصوصية"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -247,6 +259,10 @@
     },
     "reload": "{b}، فأعد تحميلها من فضلك. لا يربط Chrome الامتداد الجديد إلا بالصفحات التي فُتحت بعد تثبيته. بعد ذلك يمكنك أن تنسى أن هذا حدث أصلًا.",
     "reloadBold": "إذا كان هناك فيديو مفتوح بالفعل في تبويبة أخرى",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}، سجّل الدخول: انقر على أيقونة Lingogram في شريط الأدوات واختر «تسجيل الدخول». مرة واحدة تكفي — بعدها يُحفظ كل شيء من تلقاء نفسه.",
     "signInBold": "لكي تبقى كلماتك محفوظة",
     "langs": "{b}، فمن الأيقونة نفسها تختار اللغة التي تتعلمها ولغتك الأم.",

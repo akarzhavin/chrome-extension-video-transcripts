@@ -46,6 +46,8 @@
     "howItWorks": "So funktioniert's",
     "help": "Hilfe",
     "faq": "FAQ",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Support",
     "suggestSite": "Website vorschlagen",
     "suggestSubject": "Website-Vorschlag für Lingogram",
@@ -214,6 +216,16 @@
       "stateOff": "Statistik aus",
       "after": "Die Erfassung stoppt sofort — nichts muss neu geladen werden. Was genau gezählt wird und was Ihr Gerät nie verlässt, steht in der {link}.",
       "afterLink": "Datenschutzerklärung"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, laden Sie ihn bitte neu. Chrome verbindet eine neue Erweiterung nur mit Seiten, die nach der Installation geöffnet wurden. Danach können Sie das getrost vergessen.",
     "reloadBold": "Wenn ein Video bereits in einem anderen Tab offen ist",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, melden Sie sich an: Klicken Sie auf das Lingogram-Symbol in der Symbolleiste und wählen Sie „Anmelden“. Einmal genügt — ab dann speichert sich alles von selbst.",
     "signInBold": "Damit Ihre Wörter erhalten bleiben",
     "langs": "{b}, über dasselbe Symbol stellen Sie die Sprache, die Sie lernen, und Ihre eigene ein.",

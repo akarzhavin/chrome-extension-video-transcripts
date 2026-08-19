@@ -47,6 +47,8 @@
     "howItWorks": "Cum funcționează",
     "help": "Ajutor",
     "faq": "Întrebări frecvente",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Suport",
     "suggestSite": "Sugerează un site",
     "suggestSubject": "Sugestie de site pentru Lingogram",
@@ -215,6 +217,16 @@
       "stateOff": "Statistici dezactivate",
       "after": "Colectarea se oprește imediat — nu trebuie reîncărcat nimic. Ce anume se numără și ce nu părăsește niciodată dispozitivul tău găsești în {link}.",
       "afterLink": "politica de confidențialitate"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -244,6 +256,10 @@
     },
     "reload": "{b}, te rugăm să o reîncarci. Chrome conectează o extensie nouă doar la paginile deschise după instalarea ei. După asta poți uita că a fost vreodată vorba despre asta.",
     "reloadBold": "Dacă ai deja un videoclip deschis în altă filă",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, conectează-te: dă clic pe iconița Lingogram din bara de instrumente și alege Conectare. E de ajuns o dată — de acolo încolo totul se salvează singur.",
     "signInBold": "Ca să-ți rămână cuvintele salvate",
     "langs": "{b}, tot de la aceeași iconiță o alegi pe cea pe care o înveți și pe a ta.",

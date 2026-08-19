@@ -47,6 +47,8 @@
     "howItWorks": "Kako radi",
     "help": "Pomoć",
     "faq": "Česta pitanja",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Podrška",
     "suggestSite": "Predložite stranicu",
     "suggestSubject": "Prijedlog stranice za Lingogram",
@@ -215,6 +217,16 @@
       "stateOff": "Statistika isključena",
       "after": "Prikupljanje se odmah zaustavlja — ništa nije potrebno ponovno učitati. Točno što se broji i što nikad ne napušta vaš uređaj navedeno je u {link}.",
       "afterLink": "pravilima privatnosti"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -244,6 +256,10 @@
     },
     "reload": "{b}, osvježite je, molimo. Chrome novo proširenje povezuje samo sa stranicama otvorenima nakon instalacije. Nakon toga možete zaboraviti da se ovo ikad spominjalo.",
     "reloadBold": "Ako je video već otvoren u drugoj kartici",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, prijavite se: kliknite ikonu Lingograma na alatnoj traci i odaberite Prijava. Dovoljno je jednom — dalje se sve sprema samo.",
     "signInBold": "Da vam riječi ostanu sačuvane",
     "langs": "{b}, na istoj ikoni postavite onaj koji učite i svoj.",

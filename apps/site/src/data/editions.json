@@ -54,18 +54,20 @@
       "mark": "hd",
       "card": "Dual tracks when a title carries them.",
       "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-for-hdrezk/hmdkmkimdbomemfcjmgeclchbcdbhabj",
-      "demoUrl": "hdrezka.ag/films/road-movie",
+      "demoUrl": "",
       "heroLead": "Watch HDrezka in the original,",
       "heroPop": "learn as you watch",
       "sub": "The interactive transcript, listening challenge and one-tap word saving work on any HDrezka title with a subtitle track. When a title carries two tracks — the original plus a translation — you get dual subtitles.",
       "points": [
         { "t": "Works with one track", "d": "Most HDrezka titles carry a single subtitle track — usually English — and that alone powers the transcript, listening challenge and word saving." },
         { "t": "Dual when available", "d": "When a title also offers a second language (English plus Russian, for example), Lingogram shows both as dual subtitles. No machine translation — only the tracks a title actually has." },
+        { "t": "Works on the address you use", "d": "HDrezka is reachable at many addresses, and the extension works on more than 250 of them. The check is the panel itself: open your film and reload the tab — if the Lingogram panel appears at the side, you're covered. If it doesn't, write to us and we'll add your address." },
         { "t": "Fullscreen overlay", "d": "The floating overlay keeps your subtitles on screen, fullscreen included." }
       ],
       "faq": [
         { "q": "Does it translate subtitles automatically?", "a": "No. Lingogram only ever shows the subtitle tracks a title actually has. Dual subtitles appear on titles that carry two tracks." },
-        { "q": "Which titles does it work on?", "a": "Any HDrezka title that has a subtitle track — switch the audio to the original and turn its subtitles on." }
+        { "q": "Which titles does it work on?", "a": "Any HDrezka title that has a subtitle track — switch the audio to the original and turn its subtitles on." },
+        { "q": "My HDrezka address is a different one — will it work?", "a": "Probably — more than 250 addresses are covered. The surest check is the panel itself: open your film and reload the tab. If the panel appears, you're set; if not, write to us and we'll add your address." }
       ]
     }
   ]

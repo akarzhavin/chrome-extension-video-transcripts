@@ -46,6 +46,8 @@
     "howItWorks": "Comment ça marche",
     "help": "Aide",
     "faq": "FAQ",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Support",
     "suggestSite": "Suggérer un site",
     "suggestSubject": "Suggestion de site pour Lingogram",
@@ -214,6 +216,16 @@
       "stateOff": "Statistiques désactivées",
       "after": "La collecte s'arrête immédiatement — rien à recharger. Ce qui est compté exactement, et ce qui ne quitte jamais votre appareil, est détaillé dans la {link}.",
       "afterLink": "politique de confidentialité"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, rechargez-le, s'il vous plaît. Chrome ne connecte une nouvelle extension qu'aux pages ouvertes après son installation. Ensuite, vous pourrez oublier que ça s'est posé.",
     "reloadBold": "Si une vidéo est déjà ouverte dans un autre onglet",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, connectez-vous : cliquez sur l'icône Lingogram dans la barre d'outils et choisissez « Se connecter ». Une fois suffit — ensuite, tout s'enregistre tout seul.",
     "signInBold": "Pour que vos mots soient conservés",
     "langs": "{b}, c'est sur la même icône que vous réglez celle que vous apprenez et la vôtre.",

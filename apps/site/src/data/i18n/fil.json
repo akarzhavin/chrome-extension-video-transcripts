@@ -45,6 +45,8 @@
     "howItWorks": "Paano ito gumagana",
     "help": "Tulong",
     "faq": "Mga tanong",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "Suporta",
     "suggestSite": "Magmungkahi ng site",
     "suggestSubject": "Mungkahing site para sa Lingogram",
@@ -213,6 +215,16 @@
       "stateOff": "Naka-off ang istatistika",
       "after": "Agad na huminto ang pangongolekta — walang kailangang i-reload. Ang eksaktong binibilang, at ang hindi kailanman lumalabas sa device mo, ay nakalista sa {link}.",
       "afterLink": "patakaran sa privacy"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b}, paki-reload iyon. Ikinokonekta lang ng Chrome ang bagong extension sa mga page na binuksan pagkatapos itong ma-install. Pagkatapos noon, puwede mo nang kalimutan na may ganito palang bagay.",
     "reloadBold": "Kung may nakabukas nang video sa ibang tab",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, mag-sign in ka: i-click ang icon ng Lingogram sa toolbar at piliin ang Mag-sign in. Isang beses lang, sapat na — kusa nang nase-save ang lahat mula roon.",
     "signInBold": "Para hindi mawala ang mga salita mo",
     "langs": "{b}, sa parehong icon din nakalagay kung saan mo pipiliin ang wikang pinag-aaralan mo at ang sarili mong wika.",

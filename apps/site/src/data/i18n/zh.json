@@ -45,6 +45,8 @@
     "howItWorks": "工作原理",
     "help": "帮助",
     "faq": "常见问题",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "支持",
     "suggestSite": "推荐网站",
     "suggestSubject": "为 Lingogram 推荐一个网站",
@@ -213,6 +215,16 @@
       "stateOff": "统计已关闭",
       "after": "收集会立即停止——无需重新加载任何内容。具体统计了什么、什么内容永远不会离开你的设备，都列在{link}中。",
       "afterLink": "隐私政策"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -242,6 +254,10 @@
     },
     "reload": "{b}，请刷新一下。Chrome 只会把新装的扩展连到安装之后打开的页面。刷新之后，这件事就可以彻底忘了。",
     "reloadBold": "如果你在另一个标签页里已经打开了视频",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}，请登录：点击工具栏上的 Lingogram 图标，选择「登录」。一次就够了——之后一切都会自动保存。",
     "signInBold": "为了让你的单词不丢失",
     "langs": "{b}，还是那个图标，在那里设置你正在学的语言和你的母语。",

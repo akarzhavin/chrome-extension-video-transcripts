@@ -47,6 +47,8 @@
     "howItWorks": "איך זה עובד",
     "help": "עזרה",
     "faq": "שאלות נפוצות",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "תמיכה",
     "suggestSite": "הצעת אתר",
     "suggestSubject": "הצעת אתר עבור Lingogram",
@@ -215,6 +217,16 @@
       "stateOff": "נתונים כבויים",
       "after": "האיסוף נעצר מיד — אין צורך לטעון מחדש שום דבר. הרשימה המדויקת של מה נספר ומה לעולם לא יוצא מהמכשיר שלכם נמצאת ב{link}.",
       "afterLink": "מדיניות הפרטיות"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -244,6 +256,10 @@
     },
     "reload": "{b}, רעננו אותו בבקשה. Chrome מחבר תוסף חדש רק לדפים שנפתחו אחרי שהותקן. אחרי זה אפשר לשכוח שזה בכלל עלה.",
     "reloadBold": "אם סרטון כבר פתוח בטאב אחר",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, התחברו: לחצו על סמל Lingogram בסרגל הכלים ובחרו «התחברות». פעם אחת מספיקה — מכאן הכול נשמר מעצמו.",
     "signInBold": "כדי שהמילים שלכם יישמרו",
     "langs": "{b}, באותו סמל עצמו אתם מגדירים את השפה שאתם לומדים ואת שלכם.",

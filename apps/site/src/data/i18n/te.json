@@ -46,6 +46,8 @@
     "howItWorks": "ఇది ఎలా పనిచేస్తుంది",
     "help": "సహాయం",
     "faq": "ప్రశ్నలు",
+    "helpAnalytics": "Turn off analytics",
+    "helpAddresses": "HDrezka addresses",
     "support": "మద్దతు",
     "suggestSite": "ఒక సైట్‌ను సూచించండి",
     "suggestSubject": "Lingogram కోసం సైట్ సూచన",
@@ -214,6 +216,16 @@
       "stateOff": "గణాంకాలు ఆఫ్",
       "after": "సేకరణ వెంటనే ఆగిపోతుంది — దేన్నీ మళ్లీ లోడ్ చేయాల్సిన అవసరం లేదు. సరిగ్గా ఏమి లెక్కించబడుతుందో, ఏది మీ పరికరాన్ని ఎప్పుడూ వదిలిపోదో {link}లో జాబితా చేయబడింది.",
       "afterLink": "గోప్యతా విధానంలో"
+    },
+    "addresses": {
+      "title": "HDrezka addresses the extension works on — Lingogram",
+      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
+      "back": "Back",
+      "h1": "HDrezka addresses the extension works on",
+      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
+      "missing": "Your address is not on the list? {link} — we'll add it.",
+      "missingLink": "Write to us",
+      "missingSubject": "My HDrezka address"
     }
   },
   "welcome": {
@@ -243,6 +255,10 @@
     },
     "reload": "{b}, దయచేసి దాన్ని రీలోడ్ చేయండి. కొత్త ఎక్స్‌టెన్షన్‌ను, అది ఇన్‌స్టాల్ అయిన తర్వాత తెరిచిన పేజీలకు మాత్రమే Chrome కలుపుతుంది. ఆ తర్వాత ఈ విషయాన్ని పూర్తిగా మర్చిపోవచ్చు.",
     "reloadBold": "ఇంకో ట్యాబ్‌లో ఇప్పటికే ఒక వీడియో తెరిచి ఉంటే",
+    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
+    "coverageBold": "HDrezka is reachable at many addresses",
+    "coverageOr": "or",
+    "coverageLink": "here",
     "signIn": "{b}, సైన్ ఇన్ చేయండి: టూల్‌బార్‌లోని Lingogram ఐకాన్‌ను క్లిక్ చేసి సైన్ ఇన్ ఎంచుకోండి. ఒక్కసారి చాలు — ఆ తర్వాత అంతా దానంతట అదే సేవ్ అవుతుంది.",
     "signInBold": "మీ పదాలు పోకుండా ఉండాలంటే",
     "langs": "{b}, అదే ఐకాన్‌లోనే మీరు నేర్చుకుంటున్న భాషను, మీ సొంత భాషను ఎంచుకోవచ్చు.",

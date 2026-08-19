@@ -81,6 +81,47 @@ const storeHref = (url, lang) => {
 // tree — this is NOT a runtime i18n switch, it is 42 independent builds.
 const I18N_DIR = path.join(SRC, 'data', 'i18n');
 const EN_STRINGS = JSON.parse(fs.readFileSync(path.join(I18N_DIR, 'en.json'), 'utf8'));
+
+// What the third edition matches, read straight from its manifest so what
+// this site claims cannot drift from the shipped build: the same source
+// Chrome enforces, not a copy maintained here.
+//
+// `names` and `zones` are kept as two separate lists and shipped that way in
+// the /welcome/ payload; main.js joins one name to one ending at click time,
+// so the payload itself holds no working address. `hosts` is the joined,
+// enumerated list — it exists for the /help/addresses/ page, where the whole
+// point is to show every covered address, as plain text and never as links.
+//
+// Both halves are load-bearing. The name has to be one of a handful, and the
+// ending has to be one the manifest lists — endings are enumerated, not a
+// wildcard, so a known name with an unlisted ending genuinely does not work.
+// "Any ending is fine" would be a comfortable lie.
+const REZKA_MATCH = (() => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(HERE, '..', 'rezka', 'manifest.json'), 'utf8'),
+  );
+  const names = new Set();
+  const zones = new Set();
+  const pairs = new Map();
+  for (const host of manifest.host_permissions || []) {
+    const m = /^\*:\/\/\*\.([a-z-]+)\.(.+)\/\*$/.exec(host);
+    if (!m || !/rezka/.test(m[1])) continue;
+    names.add(m[1]);
+    zones.add(m[2]);
+    pairs.set(`${m[1]}.${m[2]}`, [m[1], m[2]]);
+  }
+  // The shortest names stand for the hyphenated variants they prefix, so the
+  // notice on /welcome/ can name two words instead of four.
+  const sorted = [...names].sort();
+  const prefixes = sorted.filter((n) => !sorted.some((o) => o !== n && n.startsWith(o)));
+  // Ordered by name first, then ending, so the list page reads in blocks —
+  // a plain sort would rank the hyphenated names above their own parent
+  // ('-' sorts before '.').
+  const hosts = [...pairs.entries()]
+    .sort(([, a], [, b]) => (a[0] === b[0] ? (a[1] < b[1] ? -1 : 1) : (a[0] < b[0] ? -1 : 1)))
+    .map(([host]) => host);
+  return { names: sorted, zones: [...zones].sort(), prefixes, hosts };
+})();
 const LOCALE_FILES = fs.readdirSync(I18N_DIR).filter((f) => f.endsWith('.json'));
 
 // Plural-form objects are compared as a single key, not key-by-key: the whole
@@ -235,6 +276,8 @@ const footer = (t, root) => `
   <div class="f-col">
     <b>${esc(t('footer.help'))}</b>
     <a href="${root}/#faq">${esc(t('footer.faq'))}</a>
+    <a href="${root}/help/analytics/">${esc(t('footer.helpAnalytics'))}</a>
+    <a href="${root}/help/addresses/">${esc(t('footer.helpAddresses'))}</a>
     <a href="mailto:${SITE.supportEmail}">${esc(t('footer.support'))}</a>
     <a href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent(t('footer.suggestSubject'))}">${esc(t('footer.suggestSite'))}</a>
   </div>
@@ -931,11 +974,18 @@ const welcomePage = (locale, hrefLang) => {
   // The whole point of this page is that nobody leaves it wondering where to
   // try the thing, so a link that 404s would be worse than no link at all.
   // Two of the three demoUrls in editions.json are still the `road-movie`
-  // placeholder (youtube, rezka) — those go to the site's own home page
-  // instead, and only youtube falls back to primary.demoUrl, which is a real
-  // video. Point an edition's demoUrl at something real and it is used as-is.
+  // placeholder (youtube, rezka) — youtube falls back to primary.demoUrl,
+  // which is a real video, and netflix has its own. Point an edition's
+  // demoUrl at something real and it is used as-is.
+  //
+  // The third edition's button carries NO href in the markup, and no address
+  // for it is stored anywhere on this site. It is marked data-open-rezka
+  // instead, and main.js builds the address at click time by joining one name
+  // to one ending — the two lists REZKA_MATCH keeps apart. The button behaves
+  // like the other two for the visitor; what the site ships is still only the
+  // halves.
   const PLACEHOLDER = /road-movie/;
-  const homeOf = { youtube: 'youtube.com', netflix: 'netflix.com', rezka: 'hdrezka.ag' };
+  const homeOf = { youtube: 'youtube.com', netflix: 'netflix.com' };
   const openUrl = (e) => {
     if (e.demoUrl && !PLACEHOLDER.test(e.demoUrl)) return e.demoUrl;
     if (e.slug === 'youtube' && EDITIONS.primary?.demoUrl &&
@@ -947,11 +997,18 @@ const welcomePage = (locale, hrefLang) => {
     const e = bySlug[slug];
     if (!e) return '';
     const url = openUrl(e);
-    if (!url) return '';
+    const deferred = !url && slug === 'rezka';
+    if (!url && !deferred) return '';
     // e.site is a brand name (YouTube / Netflix / HDrezka), so it is injected
     // into the localized "Open {site}" frame rather than translated.
     const note = t(`welcome.note.${slug}`);
-    return `      <a class="wl-open${primary ? ' wl-open-primary' : ''}" href="https://${esc(url)}" target="_blank" rel="noopener">
+    // No target="_blank" on the deferred one: with no href the browser would
+    // still open a blank tab before the handler runs, and the handler's own
+    // window.open is what carries the assembled address.
+    const target = deferred
+      ? 'data-open-rezka role="link" tabindex="0"'
+      : `href="https://${esc(url)}" target="_blank" rel="noopener"`;
+    return `      <a class="wl-open${primary ? ' wl-open-primary' : ''}" ${target}>
         ${mark(e.mark, true)}
         <span class="wl-open-body"><b>${esc(t('welcome.open', { site: e.site }))}</b><span>${esc(note)}</span></span>
         <svg class="wl-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -959,6 +1016,13 @@ const welcomePage = (locale, hrefLang) => {
   };
 
   const defaultOrder = ['youtube', 'netflix', 'rezka'];
+
+  // The pairing people actually use — the same one the button opens. Both
+  // lookups are exact; the fallbacks only matter if the manifest ever drops
+  // this pair.
+  const rezkaExample =
+    (REZKA_MATCH.names.includes('hdrezka') ? 'hdrezka' : REZKA_MATCH.names[0]) + '.' +
+    (REZKA_MATCH.zones.includes('ag') ? 'ag' : REZKA_MATCH.zones[0]);
 
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
@@ -976,6 +1040,34 @@ ${header(t, root)}
   <h1 class="wl-h1">${t('welcome.h1', { ext: '<span data-ext-name>Lingogram</span>' })}</h1>
 
   <p class="wl-lede">${t('welcome.lede', { b: `<b>${esc(t('welcome.ledeBold'))}</b>` })}</p>
+
+  ${''/* Inside an inert <template>, not merely [hidden]: only the third
+  edition's variant of this page should carry the notice at all, so main.js
+  stamps it out for ?ext=rezka and every other variant keeps it out of the
+  DOM — out of find-in-page, reader mode, and the no-JS render alike. */}
+  <template id="wl-cover-tpl">
+  <div class="wl-notice" id="wl-cover">
+    <svg class="wl-notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+    <div class="wl-notice-body">
+      <p>${t('welcome.coverage', {
+        b: `<b>${esc(t('welcome.coverageBold'))}</b>`,
+        // Neither the names nor the word joining them live in this template:
+        // the names come from the extension's manifest at build time, the
+        // conjunction from each locale's own strings.
+        names: REZKA_MATCH.prefixes.map((p) => `<b>${esc(p)}</b>`)
+          .join(` ${esc(t('welcome.coverageOr'))} `),
+        // One address that works and one that does not — both plain text,
+        // neither a link, both assembled from the two lists with the same
+        // pairing main.js uses for the button. The counter-example is the
+        // same pair with a suffix bolted onto the name: a near-miss, and its
+        // job is to show the name has to match exactly, not approximately.
+        yes: `<b>${esc(rezkaExample)}</b>`,
+        no: `<b>${esc(rezkaExample.replace('.', '-1234.'))}</b>`,
+        link: `<a href="${root}/help/addresses/">${esc(t('welcome.coverageLink'))}</a>`,
+      })}</p>
+    </div>
+  </div>
+  </template>
 
   <div class="wl-tut">
     <div id="wl-video">
@@ -1077,6 +1169,8 @@ window.__WELCOME = ${scriptJSON({
     rezkaCtaH: t('welcome.rezkaCtaH'),
     rezkaCtaS: t('welcome.rezkaCtaS'),
   },
+  // Site names and domain endings, kept apart — see REZKA_MATCH.
+  rezka: { names: REZKA_MATCH.names, zones: REZKA_MATCH.zones },
 })};</script>`,
   });
 };
@@ -1177,6 +1271,45 @@ ${header(t, root)}
     </ol>
     <p>${t('help.analytics.after', {
       link: `<a href="${root}/privacy/">${esc(t('help.analytics.afterLink'))}</a>`,
+    })}</p>
+  </article>
+</main>
+${footer(t, root)}`,
+  });
+};
+
+// ------------------------------------------------------- /help/addresses/
+//
+// The full list the /welcome/ notice links to. Every covered address, shown
+// as plain text and never as links: the page is for recognizing your own
+// address, not for navigating out. Generated from the extension's manifest
+// at build time, so it moves with every release instead of rotting in copy.
+const helpAddressesPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('help.addresses.title'),
+    description: t('help.addresses.description'),
+    pathName: `${root}/help/addresses/`,
+    body: `
+${header(t, root)}
+<main>
+  <article class="doc">
+    ${''/* A real href, not a javascript: one — main.js upgrades it to
+    history.back() only when the visitor arrived from this site, so a direct
+    visit still has somewhere sensible to go. */}
+    <a class="doc-back" href="${root}/welcome/?ext=rezka" data-back>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>${esc(t('help.addresses.back'))}
+    </a>
+    <h1>${esc(t('help.addresses.h1'))}</h1>
+    <p>${t('help.addresses.lede', { n: REZKA_MATCH.hosts.length })}</p>
+    <ul class="host-list">
+${REZKA_MATCH.hosts.map((h) => `      <li>${esc(h)}</li>`).join('\n')}
+    </ul>
+    <p>${t('help.addresses.missing', {
+      link: `<a href="mailto:${SITE.supportEmail}?subject=${encodeURIComponent(t('help.addresses.missingSubject'))}">${esc(t('help.addresses.missingLink'))}</a>`,
     })}</p>
   </article>
 </main>
@@ -1390,6 +1523,7 @@ function build() {
   const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
   const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
   const helpAnalyticsHrefLang = hrefLangFor((c) => (c === 'en' ? '/help/analytics/' : `/${c}/help/analytics/`));
+  const helpAddressesHrefLang = hrefLangFor((c) => (c === 'en' ? '/help/addresses/' : `/${c}/help/addresses/`));
   const loginHrefLang = hrefLangFor((c) => (c === 'en' ? '/login/' : `/${c}/login/`));
   const registerHrefLang = hrefLangFor((c) => (c === 'en' ? '/register/' : `/${c}/register/`));
 
@@ -1401,6 +1535,7 @@ function build() {
     write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
     write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));
     write(path.join(root, 'help', 'analytics', 'index.html'), helpAnalyticsPage(locale, helpAnalyticsHrefLang));
+    write(path.join(root, 'help', 'addresses', 'index.html'), helpAddressesPage(locale, helpAddressesHrefLang));
     write(path.join(root, 'login', 'index.html'), loginPage(locale, loginHrefLang));
     write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
     write(path.join(root, '404.html'), notFoundPage(locale));
@@ -1421,6 +1556,7 @@ function build() {
   const INDEXABLE = [
     homeHrefLang, welcomeHrefLang, uninstallHrefLang,
     privacyHrefLang, languagesHrefLang, helpAnalyticsHrefLang,
+    helpAddressesHrefLang,
   ];
   const urlEntry = (loc, alternates) => `  <url>
     <loc>${SITE.domain}${loc}</loc>
