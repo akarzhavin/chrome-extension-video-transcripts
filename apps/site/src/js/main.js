@@ -13,10 +13,98 @@
 
   // Welcome / uninstall pages: tailor copy to the edition from ?ext=<slug>.
   var extName = document.querySelector('[data-ext-name]');
+  var extSlug = new URLSearchParams(location.search).get('ext');
   if (extName && window.__EDITIONS) {
-    var slug = new URLSearchParams(location.search).get('ext');
-    var ed = window.__EDITIONS[slug];
+    var ed = window.__EDITIONS[extSlug];
     if (ed) extName.textContent = ed;
+  }
+
+  // /welcome/: name the sites this install actually covers, and lead with the
+  // one the visitor came from. extSlug is a URL parameter, so it is only ever
+  // used to look up a key in the build-time __WELCOME.copy map — an unknown
+  // value fails the guard and leaves the generic page standing, and never
+  // reaches the DOM.
+  // hasOwnProperty, not a plain lookup: `?ext=constructor` would otherwise
+  // find a prototype member, pass the guard, and print garbage into the
+  // headline instead of falling through to the generic page.
+  var wlOpens = document.getElementById('wl-opens');
+  var wlCopy = window.__WELCOME && window.__WELCOME.copy;
+  if (wlOpens && wlCopy && Object.prototype.hasOwnProperty.call(wlCopy, extSlug)) {
+    var wl = wlCopy[extSlug];
+
+    // Every string comes from window.__WELCOME.i18n, already translated by
+    // build.mjs — this file ships one copy for all 42 locales and so must
+    // never hold English of its own (same rule as the /languages/ filter).
+    // `sites` is a list of brand names, so it is the one part not translated.
+    var wlT = window.__WELCOME.i18n || {};
+    // Two forms of the same list: raw for the textContent sink below, and
+    // &-escaped for the innerHTML one. Escaping the textContent copy would
+    // print a literal "&amp;".
+    var sites = wl.sites.replace(/&/g, '&amp;');
+
+    // "Thanks for installing Lingogram" -> "... for YouTube and Netflix".
+    if (extName && wlT.h1) extName.textContent = wlT.h1.replace('{sites}', wl.sites);
+
+    var lede = document.querySelector('.wl-lede');
+    if (lede && wlT.lede) lede.innerHTML = wlT.lede.replace('{sites}', sites);
+
+    // Reorder the buttons so the visitor's own site comes first, and drop the
+    // ones this install doesn't cover.
+    // Keyed off the badge class. Matching must be exact: the element carries
+    // `mark mark-sm mark-yt`, so a greedy /.*mark-(\w+)/ would capture "sm".
+    var order = { yt: 'youtube', nf: 'netflix', hd: 'rezka' };
+    var cards = {};
+    [].slice.call(wlOpens.children).forEach(function (a) {
+      var m = a.querySelector('.mark');
+      if (!m) return;
+      for (var k in order) {
+        if (m.classList.contains('mark-' + k)) cards[order[k]] = a;
+      }
+    });
+    var wanted = wl.order.map(function (s) { return cards[s]; }).filter(Boolean);
+
+    if (wanted.length) {
+      wlOpens.replaceChildren.apply(wlOpens, wanted);
+      wanted.forEach(function (a, i) {
+        a.classList.toggle('wl-open-primary', i === 0);
+      });
+    }
+
+    // Rezka installs almost always happen from an open film tab, so the page
+    // leads with "go back and reload" — repeating it below would nag.
+    if (extSlug === 'rezka') {
+      var h = document.getElementById('wl-cta-h');
+      var s = document.getElementById('wl-cta-s');
+      if (h && wlT.rezkaCtaH) h.textContent = wlT.rezkaCtaH;
+      if (s && wlT.rezkaCtaS) s.textContent = wlT.rezkaCtaS;
+      var refresh = document.getElementById('wl-refresh');
+      if (refresh) refresh.hidden = true;
+    }
+  }
+
+  // Click-to-play: the poster is a plain image until someone asks for the
+  // video, so YouTube's player (and its cookies) never load on a page most
+  // people only glance at.
+  var wlFacade = document.getElementById('wl-facade');
+  if (wlFacade && window.__WELCOME) {
+    wlFacade.addEventListener('click', function () {
+      var frame = document.createElement('iframe');
+      frame.className = 'wl-frame';
+      frame.src = 'https://www.youtube-nocookie.com/embed/' + window.__WELCOME.video +
+        '?autoplay=1&rel=0&modestbranding=1';
+      // Falls back to the facade's own localized aria-label.
+      frame.title = wlFacade.getAttribute('aria-label') || 'Lingogram';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.setAttribute('allowfullscreen', '');
+      document.getElementById('wl-video').replaceChildren(frame);
+      // The click destroyed the focused button. Without this, focus falls back
+      // to <body> and the next Tab restarts from the top of the document
+      // instead of carrying on past the video — so a keyboard visitor who
+      // pressed Enter to play loses their place. tabIndex lets the iframe take
+      // focus programmatically without adding a second tab stop of its own.
+      frame.tabIndex = -1;
+      frame.focus();
+    });
   }
 
   // /languages/: filter the region lists down as you type.

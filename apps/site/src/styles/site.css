@@ -1283,3 +1283,272 @@ footer.site {
   .dtab { padding: 7px 8px; gap: 5px; font-size: 11.5px; }
   .dfav { width: 13px; height: 13px; }
 }
+
+/* ------------------------------------------------------------------- welcome
+   The post-install page (see welcomePage in build.mjs). Scoped under .wl, and
+   reuses the existing tokens plus the .mark-* badges from the editions section
+   rather than introducing a parallel design system. */
+
+.wl { max-width: 660px; margin: 34px auto 90px; padding: 0 24px; }
+
+.wl-hello { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.wl-hello-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+
+.wl-h1 {
+  font-size: clamp(29px, 4.6vw, 40px);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+
+.wl-lede {
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0 0 30px;
+  max-width: 40ch;
+}
+.wl-lede b { color: var(--ink); font-weight: 600; }
+
+/* --- the tour --- */
+
+.wl-tut {
+  margin: 0 0 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--player);
+  box-shadow: var(--shadow);
+}
+
+/* Click-to-play facade. The <img> is the whole page weight until the visitor
+   presses play; main.js swaps in the iframe on click. */
+.wl-facade {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  padding: 0;
+  background: var(--player);
+  cursor: pointer;
+  overflow: hidden;
+}
+.wl-facade img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wl-facade::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,8,16,.05) 0%, rgba(10,8,16,.45) 100%);
+}
+
+.wl-play {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  color: #17131f;
+  display: grid; place-items: center;
+  z-index: 2;
+  box-shadow: 0 8px 28px -8px rgba(0,0,0,.55);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), background 200ms ease;
+}
+.wl-play svg { width: 24px; height: 24px; margin-left: 3px; }
+
+.wl-facade-meta {
+  position: absolute;
+  /* Logical, not `left`: the card mirrors in Arabic and Hebrew, and a physical
+     offset left this caption alone in the bottom-left while the rest of the
+     card flipped. */
+  inset-inline-start: 16px; bottom: 14px;
+  z-index: 2;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgba(0,0,0,.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wl-facade:hover img { transform: scale(1.03); }
+  .wl-facade:hover .wl-play { transform: translate(-50%,-50%) scale(1.06); background: #fff; }
+}
+.wl-facade:active .wl-play { transform: translate(-50%,-50%) scale(0.97); }
+.wl-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+.wl-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; }
+
+.wl-tut-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: var(--player-panel);
+  border-top: 1px solid rgba(255,255,255,.07);
+  font-size: 12.5px;
+  /* The band tokens, not the page ones: this strip sits on the dark player
+     chrome and stays dark in both themes. */
+  color: var(--band-muted);
+}
+.wl-tut-foot a {
+  color: var(--band-ink);
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(255,255,255,.1);
+  border-radius: 7px;
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+.wl-tut-foot a:hover { background: rgba(255,255,255,.18); }
+
+.wl-note { font-size: 12.5px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+
+/* --- open a video --- */
+
+.wl-cta-h { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+.wl-cta-s { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+
+.wl-opens { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+
+.wl-open {
+  display: flex; align-items: center; gap: 13px;
+  padding: 15px 17px;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
+}
+.wl-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.wl-open-body { flex: 1; min-width: 0; }
+.wl-open-body span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.wl-open-go { width: 16px; height: 16px; flex: none; opacity: .55; }
+
+.wl-open-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.wl-open-primary .wl-open-body span { color: rgba(255,255,255,.75); }
+.wl-open-primary .wl-open-go { opacity: .85; }
+
+@media (hover: hover) and (pointer: fine) {
+  .wl-open:hover { border-color: var(--accent); }
+}
+.wl-open:active { transform: scale(0.985); }
+
+/* --- the asides --- */
+
+.wl-asides {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  margin-bottom: 26px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.wl-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.wl-asides b { color: var(--ink); font-weight: 600; }
+
+.wl-keys { border-top: 1px solid var(--line); padding-top: 24px; }
+.wl-keys > p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; }
+.wl-keys .keys { justify-content: flex-start; margin-top: 0; }
+
+.wl-signoff {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.wl-signoff a { color: var(--accent); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-facade img, .wl-play, .wl-open { transition: none; }
+}
+
+@media (max-width: 560px) {
+  .wl-h1 { font-size: 27px; }
+  .wl-play { width: 54px; height: 54px; }
+  .wl-play svg { width: 20px; height: 20px; }
+}
+
+/* Privacy disclosure on /welcome/. Closed by default: it belongs next to the
+   sign-in ask, but it must not stand between someone and their first saved
+   word. The shield and the chevron carry the "this is about your data" and
+   "there is more here" signals without a paragraph of preamble. */
+.wl-priv {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+  margin-bottom: 26px;
+  overflow: hidden;
+}
+
+.wl-priv summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+/* Safari still paints its own triangle without this. */
+.wl-priv summary::-webkit-details-marker { display: none; }
+
+.wl-priv summary > svg:first-child {
+  width: 17px; height: 17px;
+  flex: none;
+  color: var(--accent);
+}
+
+.wl-priv summary > span { flex: 1; }
+
+.wl-priv-chev {
+  width: 16px; height: 16px;
+  flex: none;
+  color: var(--muted);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wl-priv[open] .wl-priv-chev { transform: rotate(180deg); }
+
+@media (hover: hover) and (pointer: fine) {
+  .wl-priv summary:hover { background: var(--ground); }
+}
+.wl-priv summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.wl-priv-body {
+  padding: 2px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wl-priv-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.wl-priv-body b { color: var(--ink); font-weight: 600; }
+
+.wl-priv-more a {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-priv-chev { transition: none; }
+}
