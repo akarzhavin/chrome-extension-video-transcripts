@@ -1104,28 +1104,52 @@ window.__WELCOME = ${scriptJSON({
 // aria-hidden with a text alternative below it: the steps in the <ol> already
 // say the same thing in words, so a screen reader gets the instruction and
 // not a description of a drawing.
+// The sidebar route to the same setting, shown rather than only described:
+// the collapse tab opens the panel, the gear opens settings, the switch in
+// the footer goes dark. One 9s loop, three taps, in the grammar of the home
+// page's mode miniatures (see `viz` above) — a mock of a real surface, a
+// ripple on the control being taught, a caption naming the resulting state.
+//
+// Markup rather than a recorded GIF/webp on purpose: the two names in here
+// are the same i18n keys the steps below quote, so the drawing translates
+// with the page instead of freezing English into 42 copies of a bitmap.
+//
+// Every measurement is the real one, from the extension's own stylesheet:
+// the switch is 26×15 with an 11px knob travel, the accent is --vtt-accent,
+// and the privacy row carries the lock icon and no group heading — the
+// sidebar has none, unlike the popup.
+const SIDEBAR_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+const GEAR_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const LOCK_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+
 const analyticsViz = (t) => `
 <figure class="hviz" aria-hidden="true">
-  <span class="hviz-popup">
+ <span class="hviz-scene">
+  <span class="hviz-film">
+    <span class="hviz-orb"></span>
+    <span class="hviz-cap">${esc(VIZ_LINE)}<i data-viz-native>${esc(VIZ_NATIVE_FALLBACK)}</i></span>
+  </span>
+  <span class="hviz-side">
+    <span class="hviz-tab">${SIDEBAR_CHEVRON}<span class="hviz-rip hviz-rip-tab"></span></span>
     <span class="hviz-head">
-      <i class="hviz-logo"></i>
-      <i class="hviz-ghost"></i>
+      <i class="hviz-logo"></i><i class="hviz-ghost"></i>
+      <span class="hviz-gear">${GEAR_GLYPH}<span class="hviz-rip hviz-rip-gear"></span></span>
     </span>
-    <span class="hviz-body">
-      <i class="hviz-ghost hviz-ghost-wide"></i>
-      <i class="hviz-ghost"></i>
-      <span class="hviz-group">${esc(t('help.analytics.groupName'))}</span>
-      <span class="hviz-row">
-        <span class="hviz-box">
-          <svg class="hviz-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
-          <span class="hviz-tap"></span>
-        </span>
+    <span class="hviz-rows"><i></i><i></i><i></i></span>
+    <span class="hviz-set">
+      <span class="hviz-grp">${esc(t('help.analytics.groupName'))}</span>
+      <span class="hviz-fake"><i></i></span>
+      <span class="hviz-fake"><i class="hviz-short"></i></span>
+      <span class="hviz-prow">
+        ${LOCK_GLYPH}
         <span class="hviz-label">${esc(t('help.analytics.labelName'))}</span>
+        <span class="hviz-sw"><span class="hviz-rip hviz-rip-sw"></span></span>
       </span>
     </span>
   </span>
   <span class="hviz-state hviz-state-on">${esc(t('help.analytics.stateOn'))}</span>
   <span class="hviz-state hviz-state-off">${esc(t('help.analytics.stateOff'))}</span>
+ </span>
 </figure>`;
 
 const helpAnalyticsPage = (locale, hrefLang) => {
