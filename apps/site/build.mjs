@@ -1093,6 +1093,41 @@ window.__WELCOME = ${scriptJSON({
 // what this page tells someone to look for matches the popup they open
 // character for character. That is also why help.step2 takes the two names
 // as placeholders instead of baking them into 42 translated sentences.
+// The two clicks, shown rather than only described — same grammar as the
+// home page's mode miniatures (see `viz` above): a small mock of the REAL
+// surface, one tap ripple landing on the control being taught, and a caption
+// naming the state it leaves behind. Nothing here is invented UI — the popup
+// mock mirrors packages/shared/src/popup (section heading, toggle row, hint),
+// and the two names come from the extension's own locale files, passed in as
+// {group}/{label} so this file holds no translated UI text of its own.
+//
+// aria-hidden with a text alternative below it: the steps in the <ol> already
+// say the same thing in words, so a screen reader gets the instruction and
+// not a description of a drawing.
+const analyticsViz = (t) => `
+<figure class="hviz" aria-hidden="true">
+  <span class="hviz-popup">
+    <span class="hviz-head">
+      <i class="hviz-logo"></i>
+      <i class="hviz-ghost"></i>
+    </span>
+    <span class="hviz-body">
+      <i class="hviz-ghost hviz-ghost-wide"></i>
+      <i class="hviz-ghost"></i>
+      <span class="hviz-group">${esc(t('help.analytics.groupName'))}</span>
+      <span class="hviz-row">
+        <span class="hviz-box">
+          <svg class="hviz-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
+          <span class="hviz-tap"></span>
+        </span>
+        <span class="hviz-label">${esc(t('help.analytics.labelName'))}</span>
+      </span>
+    </span>
+  </span>
+  <span class="hviz-state hviz-state-on">${esc(t('help.analytics.stateOn'))}</span>
+  <span class="hviz-state hviz-state-off">${esc(t('help.analytics.stateOff'))}</span>
+</figure>`;
+
 const helpAnalyticsPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
@@ -1108,6 +1143,7 @@ ${header(t, root)}
   <article class="doc">
     <h1>${esc(t('help.analytics.h1'))}</h1>
     <p>${esc(t('help.analytics.lede'))}</p>
+    ${analyticsViz(t)}
     <ol class="help-steps">
       <li>${esc(t('help.analytics.step1'))}</li>
       <li>${t('help.analytics.step2', {

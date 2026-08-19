@@ -210,6 +210,8 @@
       "step2": "Dans {group}, décochez {label}.",
       "groupName": "Confidentialité",
       "labelName": "Partager des statistiques d'usage anonymes",
+      "stateOn": "Statistiques activées",
+      "stateOff": "Statistiques désactivées",
       "after": "La collecte s'arrête immédiatement — rien à recharger. Ce qui est compté exactement, et ce qui ne quitte jamais votre appareil, est détaillé dans la {link}.",
       "afterLink": "politique de confidentialité"
     }

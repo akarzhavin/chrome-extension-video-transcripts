@@ -210,6 +210,8 @@
       "step2": "Under {group}, uncheck {label}.",
       "groupName": "Privacy",
       "labelName": "Share anonymous usage stats",
+      "stateOn": "Stats on",
+      "stateOff": "Stats off",
       "after": "Collection stops immediately — nothing to reload. Exactly what is counted, and what never leaves your device, is listed in the {link}.",
       "afterLink": "privacy policy"
     }

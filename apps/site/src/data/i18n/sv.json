@@ -210,6 +210,8 @@
       "step2": "Under {group}, avmarkera {label}.",
       "groupName": "Integritet",
       "labelName": "Dela anonym användningsstatistik",
+      "stateOn": "Statistik på",
+      "stateOff": "Statistik av",
       "after": "Insamlingen stoppar direkt — inget behöver laddas om. Exakt vad som räknas, och vad som aldrig lämnar din enhet, listas i {link}.",
       "afterLink": "integritetspolicyn"
     }

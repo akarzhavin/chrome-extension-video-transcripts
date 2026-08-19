@@ -209,6 +209,8 @@
       "step2": "Di bagian {group}, hapus centang pada {label}.",
       "groupName": "Privasi",
       "labelName": "Bagikan statistik penggunaan anonim",
+      "stateOn": "Statistik aktif",
+      "stateOff": "Statistik nonaktif",
       "after": "Pengumpulan berhenti seketika — tidak perlu memuat ulang apa pun. Apa saja yang dihitung, dan apa yang tidak pernah meninggalkan perangkat Anda, tercantum di {link}.",
       "afterLink": "kebijakan privasi"
     }

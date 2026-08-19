@@ -963,6 +963,115 @@ footer.site {
 /* The two steps on /help/analytics/. Wider gap than a prose list: these are
    things to DO one after the other, and the reader is looking away at a
    browser toolbar between them. */
+/* The "turn it off" miniature on /help/analytics/. Same grammar as the home
+   page's mode slides: a small mock of the real surface, one tap ripple on the
+   control being taught, and a caption naming the resulting state. The popup is
+   dark in both themes because the extension's popup IS dark — a light mock
+   would teach a window that doesn't exist. */
+.hviz {
+  position: relative;
+  margin: 0 0 1.6em;
+  padding: 26px 0 30px;
+  display: flex; justify-content: center;
+  background: var(--player); border: 1px solid var(--line); border-radius: 16px;
+  overflow: hidden;
+}
+.hviz-popup {
+  width: 260px; border-radius: 12px;
+  background: var(--player-panel); border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+}
+.hviz-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 11px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.hviz-logo { display: block; width: 15px; height: 15px; border-radius: 5px; background: linear-gradient(135deg, #7c5cff, #14a97c); flex: none; }
+.hviz-ghost { display: block; height: 7px; border-radius: 3px; background: rgba(255, 255, 255, 0.13); width: 64px; }
+.hviz-ghost-wide { width: 100%; }
+.hviz-body { display: flex; flex-direction: column; gap: 9px; padding: 12px 11px 14px; }
+.hviz-group {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42); margin-top: 3px;
+}
+.hviz-row { display: flex; align-items: center; gap: 9px; }
+/* The checkbox: starts checked (analytics is on by default), and the tick
+   leaves on the tap. */
+.hviz-box {
+  position: relative; flex: none;
+  width: 16px; height: 16px; border-radius: 4px;
+  background: #7c5cff; border: 1px solid #7c5cff;
+  display: grid; place-items: center;
+}
+.hviz-check { width: 11px; height: 11px; color: #fff; }
+.hviz-label { font-size: 11.5px; line-height: 1.35; color: rgba(255, 255, 255, 0.82); }
+/* The ripple, centred on the box — same device as .viz-tapdot-chip. */
+.hviz-tap {
+  position: absolute; left: 50%; top: 50%;
+  width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.25);
+  opacity: 0; pointer-events: none;
+}
+/* Names the two states, so a vanishing tick reads as a CHOICE rather than
+   something breaking. Each label lights only in its own half of the loop. */
+.hviz-state {
+  position: absolute; bottom: 9px;
+  font-size: 11.5px; font-weight: 650; letter-spacing: -0.01em;
+  color: var(--band-muted); opacity: 0;
+}
+.hviz-state-on { inset-inline-start: 14px; }
+.hviz-state-off { inset-inline-end: 14px; color: #3adfa5; }
+
+/* One 6s loop: settled (on) → tap → tick gone (off) → settled → tap → back on.
+   Kept in step with the home miniatures' 6s beat so the two never feel like
+   different products. */
+@keyframes hvizTap {
+  0%, 22% { opacity: 0; transform: scale(0.5); }
+  25% { opacity: 0.95; transform: scale(1); }
+  36%, 71.99% { opacity: 0; transform: scale(1.7); }
+  72% { transform: scale(0.5); }
+  75% { opacity: 0.95; transform: scale(1); }
+  86%, 100% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes hvizBox {
+  0%, 27% { background: #7c5cff; border-color: #7c5cff; }
+  30%, 74% { background: transparent; border-color: rgba(255, 255, 255, 0.3); }
+  77%, 100% { background: #7c5cff; border-color: #7c5cff; }
+}
+@keyframes hvizCheck {
+  0%, 27% { opacity: 1; transform: scale(1); }
+  30%, 74% { opacity: 0; transform: scale(0.6); }
+  77%, 100% { opacity: 1; transform: scale(1); }
+}
+@keyframes hvizStateOn {
+  0%, 27% { opacity: 1; } 30%, 74% { opacity: 0; } 77%, 100% { opacity: 1; }
+}
+@keyframes hvizStateOff {
+  0%, 29% { opacity: 0; } 32%, 72% { opacity: 1; } 75%, 100% { opacity: 0; }
+}
+.hviz-tap { animation: hvizTap 6s linear infinite; }
+.hviz-box { animation: hvizBox 6s linear infinite; }
+.hviz-check { animation: hvizCheck 6s linear infinite; }
+.hviz-state-on { animation: hvizStateOn 6s linear infinite; }
+.hviz-state-off { animation: hvizStateOff 6s linear infinite; }
+
+/* Reduced motion: no loop. Freeze on the OFF state — the page is about
+   turning it off, so the still frame should show the outcome. */
+@media (prefers-reduced-motion: reduce) {
+  .hviz-tap, .hviz-box, .hviz-check, .hviz-state-on, .hviz-state-off { animation: none; }
+  .hviz-tap { opacity: 0; }
+  .hviz-box { background: transparent; border-color: rgba(255, 255, 255, 0.3); }
+  .hviz-check { opacity: 0; }
+  .hviz-state-on { opacity: 0; }
+  .hviz-state-off { opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  .hviz { padding: 20px 0 28px; }
+  .hviz-popup { width: 232px; }
+}
+
 .doc ol.help-steps { display: flex; flex-direction: column; gap: 10px; margin: 0 0 1.2em; padding-inline-start: 22px; }
 .doc ol.help-steps li { color: var(--muted); font-size: 15.5px; line-height: 1.6; }
 .doc ol.help-steps b { color: var(--ink); }

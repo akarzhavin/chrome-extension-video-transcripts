@@ -209,6 +209,8 @@
       "step2": "Sa ilalim ng {group}, alisan ng check ang {label}.",
       "groupName": "Privacy",
       "labelName": "Ibahagi ang anonymous na istatistika ng paggamit",
+      "stateOn": "Naka-on ang istatistika",
+      "stateOff": "Naka-off ang istatistika",
       "after": "Agad na huminto ang pangongolekta — walang kailangang i-reload. Ang eksaktong binibilang, at ang hindi kailanman lumalabas sa device mo, ay nakalista sa {link}.",
       "afterLink": "patakaran sa privacy"
     }

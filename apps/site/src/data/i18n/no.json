@@ -210,6 +210,8 @@
       "step2": "Under {group} fjerner du haken ved {label}.",
       "groupName": "Personvern",
       "labelName": "Del anonym bruksstatistikk",
+      "stateOn": "Statistikk på",
+      "stateOff": "Statistikk av",
       "after": "Innsamlingen stopper umiddelbart — ingenting må lastes inn på nytt. Nøyaktig hva som telles, og hva som aldri forlater enheten din, er oppført i {link}.",
       "afterLink": "personvernerklæringen"
     }

@@ -212,6 +212,8 @@
       "step2": "W sekcji {group} odznacz {label}.",
       "groupName": "Prywatność",
       "labelName": "Udostępniaj anonimowe statystyki użycia",
+      "stateOn": "Statystyki włączone",
+      "stateOff": "Statystyki wyłączone",
       "after": "Zbieranie zatrzymuje się natychmiast — nic nie trzeba przeładowywać. Dokładnie to, co jest liczone, i to, co nigdy nie opuszcza Twojego urządzenia, jest wymienione w {link}.",
       "afterLink": "polityce prywatności"
     }

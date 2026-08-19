@@ -210,6 +210,8 @@
       "step2": "Poista valinta kohdasta {label} osiossa {group}.",
       "groupName": "Tietosuoja",
       "labelName": "Jaa anonyymit käyttötilastot",
+      "stateOn": "Tilastot päällä",
+      "stateOff": "Tilastot pois",
       "after": "Kerääminen pysähtyy heti — mitään ei tarvitse ladata uudelleen. Tarkka luettelo siitä, mitä lasketaan ja mikä ei koskaan poistu laitteeltasi, on {link}.",
       "afterLink": "tietosuojakäytännössä"
     }

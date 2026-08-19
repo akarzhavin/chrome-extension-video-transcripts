@@ -212,6 +212,8 @@
       "step2": "V časti {group} zrušte začiarknutie pri {label}.",
       "groupName": "Súkromie",
       "labelName": "Zdieľať anonymné štatistiky používania",
+      "stateOn": "Štatistiky zapnuté",
+      "stateOff": "Štatistiky vypnuté",
       "after": "Zber sa okamžite zastaví — nič netreba znovu načítať. Presne to, čo sa počíta, a čo nikdy neopustí vaše zariadenie, nájdete v {link}.",
       "afterLink": "zásadách ochrany súkromia"
     }

@@ -210,6 +210,8 @@
       "step2": "Deaktivieren Sie unter {group} die Option {label}.",
       "groupName": "Datenschutz",
       "labelName": "Anonyme Nutzungsstatistiken teilen",
+      "stateOn": "Statistik an",
+      "stateOff": "Statistik aus",
       "after": "Die Erfassung stoppt sofort — nichts muss neu geladen werden. Was genau gezählt wird und was Ihr Gerät nie verlässt, steht in der {link}.",
       "afterLink": "Datenschutzerklärung"
     }

@@ -211,6 +211,8 @@
       "step2": "Sadaļā {group} noņem ķeksīti pie {label}.",
       "groupName": "Konfidencialitāte",
       "labelName": "Kopīgot anonīmu lietojuma statistiku",
+      "stateOn": "Statistika ieslēgta",
+      "stateOff": "Statistika izslēgta",
       "after": "Vākšana apstājas nekavējoties — nekas nav jāpārlādē. Kas tieši tiek skaitīts un kas nekad neatstāj tavu ierīci, ir uzskaitīts {link}.",
       "afterLink": "konfidencialitātes politikā"
     }

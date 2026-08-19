@@ -210,6 +210,8 @@
       "step2": "Em {group}, desmarque {label}.",
       "groupName": "Privacidade",
       "labelName": "Partilhar estatísticas de utilização anónimas",
+      "stateOn": "Estatísticas ativas",
+      "stateOff": "Estatísticas desativadas",
       "after": "A recolha para de imediato — não é preciso recarregar nada. O que é exatamente contado, e o que nunca sai do seu dispositivo, está listado na {link}.",
       "afterLink": "política de privacidade"
     }

@@ -212,6 +212,8 @@
       "step2": "Pod {group} odkljukajte {label}.",
       "groupName": "Zasebnost",
       "labelName": "Deli anonimno statistiko uporabe",
+      "stateOn": "Statistika vklopljena",
+      "stateOff": "Statistika izklopljena",
       "after": "Zbiranje se ustavi takoj — ničesar ni treba znova naložiti. Kaj natančno se šteje in kaj nikoli ne zapusti vaše naprave, je navedeno v {link}.",
       "afterLink": "politiki zasebnosti"
     }

@@ -209,6 +209,8 @@
       "step2": "Trong mục {group}, bỏ chọn {label}.",
       "groupName": "Quyền riêng tư",
       "labelName": "Chia sẻ số liệu sử dụng ẩn danh",
+      "stateOn": "Số liệu đang bật",
+      "stateOff": "Số liệu đang tắt",
       "after": "Việc thu thập dừng ngay lập tức — không cần tải lại gì cả. Chính xác những gì được đếm, và những gì không bao giờ rời khỏi thiết bị của bạn, được liệt kê trong {link}.",
       "afterLink": "chính sách quyền riêng tư"
     }

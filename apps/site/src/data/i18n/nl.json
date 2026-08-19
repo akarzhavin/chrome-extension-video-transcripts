@@ -210,6 +210,8 @@
       "step2": "Vink onder {group} de optie {label} uit.",
       "groupName": "Privacy",
       "labelName": "Anonieme gebruiksstatistieken delen",
+      "stateOn": "Statistieken aan",
+      "stateOff": "Statistieken uit",
       "after": "Het verzamelen stopt meteen — niets hoeft opnieuw geladen te worden. Precies wat er wordt geteld, en wat je apparaat nooit verlaat, staat in het {link}.",
       "afterLink": "privacybeleid"
     }

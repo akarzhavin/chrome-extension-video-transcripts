@@ -210,6 +210,8 @@
       "step2": "Jaotises {group} eemalda linnuke {label} juurest.",
       "groupName": "Privaatsus",
       "labelName": "Jaga anonüümset kasutusstatistikat",
+      "stateOn": "Statistika sees",
+      "stateOff": "Statistika väljas",
       "after": "Kogumine peatub kohe — midagi ei pea uuesti laadima. Täpselt see, mida loetakse ja mis kunagi su seadmest ei lahku, on kirjas {link}.",
       "afterLink": "privaatsuspoliitikas"
     }

@@ -211,6 +211,8 @@
       "step2": "La secțiunea {group}, debifează {label}.",
       "groupName": "Confidențialitate",
       "labelName": "Partajează statistici de utilizare anonime",
+      "stateOn": "Statistici activate",
+      "stateOff": "Statistici dezactivate",
       "after": "Colectarea se oprește imediat — nu trebuie reîncărcat nimic. Ce anume se numără și ce nu părăsește niciodată dispozitivul tău găsești în {link}.",
       "afterLink": "politica de confidențialitate"
     }

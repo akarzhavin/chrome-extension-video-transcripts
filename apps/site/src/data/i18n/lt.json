@@ -211,6 +211,8 @@
       "step2": "Skiltyje {group} nuimkite varnelę nuo {label}.",
       "groupName": "Privatumas",
       "labelName": "Bendrinti anoniminę naudojimo statistiką",
+      "stateOn": "Statistika įjungta",
+      "stateOff": "Statistika išjungta",
       "after": "Rinkimas sustoja iškart — nieko nereikia iš naujo įkelti. Kas tiksliai skaičiuojama ir kas niekada nepalieka jūsų įrenginio, nurodyta {link}.",
       "afterLink": "privatumo politikoje"
     }

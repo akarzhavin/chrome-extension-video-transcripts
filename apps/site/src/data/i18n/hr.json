@@ -211,6 +211,8 @@
       "step2": "Pod {group} isključite kvačicu kod {label}.",
       "groupName": "Privatnost",
       "labelName": "Dijeli anonimnu statistiku korištenja",
+      "stateOn": "Statistika uključena",
+      "stateOff": "Statistika isključena",
       "after": "Prikupljanje se odmah zaustavlja — ništa nije potrebno ponovno učitati. Točno što se broji i što nikad ne napušta vaš uređaj navedeno je u {link}.",
       "afterLink": "pravilima privatnosti"
     }

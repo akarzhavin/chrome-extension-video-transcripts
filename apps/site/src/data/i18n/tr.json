@@ -209,6 +209,8 @@
       "step2": "{group} altında {label} işaretini kaldırın.",
       "groupName": "Gizlilik",
       "labelName": "Anonim kullanım istatistiklerini paylaş",
+      "stateOn": "İstatistikler açık",
+      "stateOff": "İstatistikler kapalı",
       "after": "Toplama hemen durur — hiçbir şeyi yeniden yüklemenize gerek yok. Tam olarak nelerin sayıldığı ve cihazınızdan asla çıkmayan verilerin listesi {link} içinde yer alır.",
       "afterLink": "gizlilik politikasında"
     }

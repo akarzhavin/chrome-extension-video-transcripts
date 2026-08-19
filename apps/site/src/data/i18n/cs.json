@@ -212,6 +212,8 @@
       "step2": "V části {group} zrušte zaškrtnutí {label}.",
       "groupName": "Soukromí",
       "labelName": "Sdílet anonymní statistiky používání",
+      "stateOn": "Statistiky zapnuty",
+      "stateOff": "Statistiky vypnuty",
       "after": "Sběr se zastaví okamžitě — nic není třeba znovu načítat. Co přesně se počítá a co nikdy neopustí vaše zařízení, najdete v {link}.",
       "afterLink": "zásadách ochrany osobních údajů"
     }

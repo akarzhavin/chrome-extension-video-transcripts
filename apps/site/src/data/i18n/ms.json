@@ -209,6 +209,8 @@
       "step2": "Di bawah {group}, nyahtanda {label}.",
       "groupName": "Privasi",
       "labelName": "Kongsi statistik penggunaan tanpa nama",
+      "stateOn": "Statistik dihidupkan",
+      "stateOff": "Statistik dimatikan",
       "after": "Pengumpulan berhenti serta-merta — tiada apa perlu dimuat semula. Apa sebenarnya yang dikira, dan apa yang tidak sekali-kali meninggalkan peranti anda, disenaraikan dalam {link}.",
       "afterLink": "dasar privasi"
     }

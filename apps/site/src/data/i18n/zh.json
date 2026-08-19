@@ -209,6 +209,8 @@
       "step2": "在{group}下，取消勾选{label}。",
       "groupName": "隐私",
       "labelName": "分享匿名使用统计",
+      "stateOn": "统计已开启",
+      "stateOff": "统计已关闭",
       "after": "收集会立即停止——无需重新加载任何内容。具体统计了什么、什么内容永远不会离开你的设备，都列在{link}中。",
       "afterLink": "隐私政策"
     }
