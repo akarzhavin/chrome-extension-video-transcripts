@@ -152,8 +152,9 @@
     "feat4Link": "sinu isiklikku sõnastikku",
     "privKicker": "Vaikimisi privaatne",
     "privH2": "See, mida vaatad, jääb sinu enda asjaks",
-    "priv1": "{b} Seaded jäävad sinu brauserisse; anonüümne kasutusstatistika ei sisalda konto identiteeti ja lülitub välja ühe klõpsuga.",
-    "priv1Bold": "Mitte midagi, mis sind tuvastaks.",
+    "priv1": "{b} See aitab meil toodet paremaks muuta, ei ole seotud sinu kontoga ja lülitub välja ühe klõpsuga — {link}. Sinu seaded jäävad su brauserisse.",
+    "priv1Bold": "Jah, kogume anonüümset kasutusstatistikat.",
+    "priv1Link": "siin on, kuidas",
     "priv2": "{b} Subtiitreid töödeldakse otse sinu seadmes.",
     "priv2Bold": "Me ei näe kunagi sinu vaatamisajalugu.",
     "priv3": "{b} Kui logid sisse, salvestame su e-posti aadressi ja salvestatud sõnad — mitte midagi muud, ega me neid kunagi müü.",
@@ -199,6 +200,20 @@
     "title": "Privaatsuspoliitika — Lingogram",
     "description": "Mida Lingogram kogub, kuidas seda kasutatakse ja millised valikud sul on."
   },
+  "help": {
+    "analytics": {
+      "title": "Kuidas anonüümne kasutusstatistika välja lülitada — Lingogram",
+      "description": "Mida anonüümne statistika loeb ja kaks klõpsu, mis selle välja lülitavad.",
+      "h1": "Kuidas anonüümne kasutusstatistika välja lülitada",
+      "lede": "Laiendus loeb anonüümseid sündmusi nagu „subtiitrid laaditi“ ja „sõna salvestati“ — nii näeme, kus miski katki läheb ja mida järgmisena parandada. Statistika ei kanna konto identiteeti ega nimeta kunagi, mida sa vaatad. Kaks klõpsu lülitavad selle välja:",
+      "step1": "Klõpsa brauseri tööriistaribal Lingogrami ikoonil, et avada laienduse hüpikaken.",
+      "step2": "Jaotises {group} eemalda linnuke {label} juurest.",
+      "groupName": "Privaatsus",
+      "labelName": "Jaga anonüümset kasutusstatistikat",
+      "after": "Kogumine peatub kohe — midagi ei pea uuesti laadima. Täpselt see, mida loetakse ja mis kunagi su seadmest ei lahku, on kirjas {link}.",
+      "afterLink": "privaatsuspoliitikas"
+    }
+  },
   "welcome": {
     "title": "Aitäh, et paigaldasid Lingogrami",
     "description": "Vaata minutipikkust tutvustust, seejärel ava video ja salvesta oma esimene sõna.",
@@ -231,11 +246,12 @@
     "langs": "{b}, sama ikooni alt seadistad selle, mida õpid, ja oma enda oma.",
     "langsBold": "Kui arvasime su keeled valesti",
     "privSummary": "Mida me kogume — ja mida mitte",
-    "priv1": "{b} Subtiitreid töödeldakse sinu seadmes ja seaded jäävad sinu brauserisse. Me ei näe kunagi, mida sa vaatad.",
-    "priv1Bold": "Ilma kontota ei jõua meieni midagi, mis sind tuvastaks.",
+    "priv1": "{b} Saad selle laienduse seadetes välja lülitada — {link}. Subtiitreid töödeldakse sinu seadmes ja sinu seaded jäävad su brauserisse. Me ei näe kunagi, mida sa vaatad.",
+    "priv1Bold": "Ilma kontota jõuab meieni ainult anonüümne kasutusstatistika.",
+    "priv1Link": "siin on, kuidas",
     "priv2": "{b} ja on mõeldud ainult selleks, et su sõnastik seadmete vahel sünkroonuks. Siis salvestame sinu e-posti aadressi ja sõnad, mille ise salvestada otsustasid, koos subtiitririaga, kust iga sõna pärineb.",
     "priv2Bold": "Sisselogimine on vabatahtlik",
-    "priv3": "{b} ega näita reklaame. Anonüümne kasutusstatistika on vaikimisi sees — see ei sisalda konto identiteeti ega nimeta kunagi, mida sa vaatad, ning selle saab hüpikaknas ühe klõpsuga välja lülitada. Diagnostika saadetakse ainult siis, kui vajutad ise teatamisnuppu.",
+    "priv3": "{b} ega näita reklaame. Jah, kogume anonüümset kasutusstatistikat — see aitab meil toodet paremaks muuta. See ei kanna konto identiteeti ega nimeta kunagi, mida sa vaatad. Diagnostika saadetakse ainult siis, kui sa ise vajutad teavitusnuppu.",
     "priv3Bold": "Me ei müü sinu andmeid",
     "privLink": "Loe kogu privaatsuspoliitikat",
     "keysIntro": "Kui oled sisse elanud, tulevad need klahvid kasuks:",

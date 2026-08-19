@@ -153,8 +153,9 @@
     "feat4Link": "dicționarul tău personal",
     "privKicker": "Privat în mod implicit",
     "privH2": "Ce urmărești rămâne treaba ta",
-    "priv1": "{b} Setările rămân în browserul tău; statisticile anonime de utilizare nu conțin identitatea contului și se dezactivează dintr-un clic.",
-    "priv1Bold": "Nimic care să te identifice.",
+    "priv1": "{b} Ne ajută să facem produsul mai bun, nu sunt legate de contul tău, iar un clic le dezactivează — {link}. Setările tale rămân în browser.",
+    "priv1Bold": "Da, colectăm statistici anonime de utilizare.",
+    "priv1Link": "iată cum",
     "priv2": "{b} Subtitrările sunt procesate chiar pe dispozitivul tău.",
     "priv2Bold": "Nu vedem niciodată istoricul tău de vizionare.",
     "priv3": "{b} Dacă te conectezi, stocăm emailul tău și cuvintele salvate — nimic altceva, și nu le vindem niciodată.",
@@ -200,6 +201,20 @@
     "title": "Politica de confidențialitate — Lingogram",
     "description": "Ce colectează Lingogram, cum este folosit și ce opțiuni ai."
   },
+  "help": {
+    "analytics": {
+      "title": "Cum dezactivezi statisticile anonime de utilizare — Lingogram",
+      "description": "Ce numără statisticile anonime și cele două clicuri care le dezactivează.",
+      "h1": "Cum dezactivezi statisticile anonime de utilizare",
+      "lede": "Extensia numără evenimente anonime precum „subtitrări încărcate” și „cuvânt salvat” — așa vedem unde se strică ceva și ce trebuie reparat în continuare. Statisticile nu poartă nicio identitate de cont și nu precizează niciodată ce urmărești. Două clicuri le dezactivează:",
+      "step1": "Dă clic pe iconița Lingogram din bara de instrumente a browserului pentru a deschide fereastra pop-up a extensiei.",
+      "step2": "La secțiunea {group}, debifează {label}.",
+      "groupName": "Confidențialitate",
+      "labelName": "Partajează statistici de utilizare anonime",
+      "after": "Colectarea se oprește imediat — nu trebuie reîncărcat nimic. Ce anume se numără și ce nu părăsește niciodată dispozitivul tău găsești în {link}.",
+      "afterLink": "politica de confidențialitate"
+    }
+  },
   "welcome": {
     "title": "Îți mulțumim că ai instalat Lingogram",
     "description": "Vezi un tur de un minut, apoi deschide un videoclip și salvează-ți primul cuvânt.",
@@ -232,11 +247,12 @@
     "langs": "{b}, tot de la aceeași iconiță o alegi pe cea pe care o înveți și pe a ta.",
     "langsBold": "Dacă ți-am ghicit greșit limbile",
     "privSummary": "Ce colectăm — și ce nu",
-    "priv1": "{b} Subtitrările sunt procesate pe dispozitivul tău, iar setările rămân în browserul tău. Nu vedem niciodată ce urmărești.",
-    "priv1Bold": "Fără cont, nimic care să te identifice nu ajunge la noi.",
+    "priv1": "{b} Poți dezactiva asta din setările extensiei — {link}. Subtitrările sunt procesate chiar pe dispozitivul tău, iar setările tale rămân în browser. Nu vedem niciodată ce urmărești.",
+    "priv1Bold": "Fără cont, singurul lucru care ajunge la noi sunt statisticile anonime de utilizare.",
+    "priv1Link": "iată cum",
     "priv2": "{b} și servește doar la sincronizarea dicționarului tău între dispozitive. Atunci stocăm adresa ta de email și cuvintele pe care ai ales să le salvezi, împreună cu replica din subtitrare din care provine fiecare.",
     "priv2Bold": "Conectarea este opțională",
-    "priv3": "{b} și nu afișăm reclame. Statisticile anonime de utilizare sunt activate implicit — nu conțin identitatea contului și nu specifică niciodată ce urmărești, iar un singur clic în popup le dezactivează. Datele de diagnosticare se trimit doar când apeși tu însuți butonul de raportare.",
+    "priv3": "{b} și nici nu afișăm reclame. Da, colectăm statistici anonime de utilizare — ne ajută să facem produsul mai bun. Nu poartă nicio identitate de cont și nu precizează niciodată ce urmărești. Datele de diagnosticare sunt trimise doar când apeși chiar tu butonul de raportare.",
     "priv3Bold": "Nu vindem datele tale",
     "privLink": "Citește politica de confidențialitate completă",
     "keysIntro": "După ce te obișnuiești, tastele astea îți prind bine:",

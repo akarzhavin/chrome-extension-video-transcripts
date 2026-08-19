@@ -154,8 +154,9 @@
     "feat4Link": "vášho osobného slovníka",
     "privKicker": "Súkromné v predvolenom nastavení",
     "privH2": "To, čo sledujete, zostáva vašou vecou",
-    "priv1": "{b} Nastavenia zostávajú vo vašom prehliadači; anonymné štatistiky používania neobsahujú identitu účtu a vypnete ich jedným kliknutím.",
-    "priv1Bold": "Nič, čo by vás identifikovalo.",
+    "priv1": "{b} Pomáhajú nám produkt zlepšovať, nie sú spojené s vaším účtom a jedným kliknutím ich vypnete — {link}. Vaše nastavenia zostávajú vo vašom prehliadači.",
+    "priv1Bold": "Áno, zbierame anonymné štatistiky používania.",
+    "priv1Link": "tu je návod",
     "priv2": "{b} Titulky sa spracúvajú priamo vo vašom zariadení.",
     "priv2Bold": "Vašu históriu sledovania nikdy nevidíme.",
     "priv3": "{b} Ak sa prihlásite, uchovávame váš email a uložené slová — nič iné, a nikdy ich nepredávame.",
@@ -201,6 +202,20 @@
     "title": "Zásady ochrany osobných údajov — Lingogram",
     "description": "Čo Lingogram zhromažďuje, ako sa to používa a aké možnosti máte."
   },
+  "help": {
+    "analytics": {
+      "title": "Ako vypnúť anonymné štatistiky používania — Lingogram",
+      "description": "Čo anonymné štatistiky počítajú a dva kliknutia, ktoré ich vypnú.",
+      "h1": "Ako vypnúť anonymné štatistiky používania",
+      "lede": "Rozšírenie počíta anonymné udalosti ako „titulky načítané“ a „slovo uložené“ — takto vidíme, kde sa niečo pokazí a čo treba opraviť ďalej. Štatistiky nenesú žiadnu identitu účtu a nikdy neuvádzajú, čo sledujete. Vypnú sa dvoma kliknutiami:",
+      "step1": "Kliknite na ikonu Lingogram na paneli nástrojov prehliadača, čím otvoríte kontextové okno rozšírenia.",
+      "step2": "V časti {group} zrušte začiarknutie pri {label}.",
+      "groupName": "Súkromie",
+      "labelName": "Zdieľať anonymné štatistiky používania",
+      "after": "Zber sa okamžite zastaví — nič netreba znovu načítať. Presne to, čo sa počíta, a čo nikdy neopustí vaše zariadenie, nájdete v {link}.",
+      "afterLink": "zásadách ochrany súkromia"
+    }
+  },
   "welcome": {
     "title": "Ďakujeme, že ste si nainštalovali Lingogram",
     "description": "Pozrite si minútové video, potom otvorte video a uložte si prvé slovo.",
@@ -233,11 +248,12 @@
     "langs": "{b}, na tej istej ikone si nastavíte ten, ktorý sa učíte, aj svoj vlastný.",
     "langsBold": "Ak sme vaše jazyky uhádli zle",
     "privSummary": "Čo zbierame — a čo nie",
-    "priv1": "{b} Titulky sa spracúvajú vo vašom zariadení a nastavenia zostávajú vo vašom prehliadači. Nikdy nevidíme, čo pozeráte.",
-    "priv1Bold": "Bez účtu sa k nám nedostane vôbec nič, čo by vás identifikovalo.",
+    "priv1": "{b} Môžete to vypnúť v nastaveniach rozšírenia — {link}. Titulky sa spracúvajú vo vašom zariadení a vaše nastavenia zostávajú vo vašom prehliadači. Nikdy nevidíme, čo sledujete.",
+    "priv1Bold": "Bez účtu sa k nám dostanú len anonymné štatistiky používania.",
+    "priv1Link": "tu je návod",
     "priv2": "{b} a slúži len na to, aby sa váš slovník synchronizoval medzi zariadeniami. Vtedy uchovávame vašu e-mailovú adresu a slová, ktoré ste si sami uložili, spolu s riadkom titulkov, z ktorého každé pochádza.",
     "priv2Bold": "Prihlásenie je dobrovoľné",
-    "priv3": "{b} a nezobrazujeme reklamy. Anonymné štatistiky používania sú v predvolenom nastavení zapnuté — neobsahujú identitu účtu a nikdy neuvádzajú, čo sledujete, a jedným kliknutím vo vyskakovacom okne ich vypnete. Diagnostika sa odošle len vtedy, keď sami stlačíte tlačidlo na nahlásenie.",
+    "priv3": "{b} ani nezobrazujeme reklamy. Áno, zbierame anonymné štatistiky používania — pomáhajú nám produkt zlepšovať. Nenesú žiadnu identitu účtu a nikdy neuvádzajú, čo sledujete. Diagnostika sa odosiela len vtedy, keď sami stlačíte tlačidlo nahlásiť.",
     "priv3Bold": "Vaše údaje nepredávame",
     "privLink": "Prečítať celé zásady ochrany osobných údajov",
     "keysIntro": "Keď sa rozkukáte, tieto klávesy sa zídu:",

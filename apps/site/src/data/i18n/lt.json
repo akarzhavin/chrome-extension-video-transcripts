@@ -153,8 +153,9 @@
     "feat4Link": "jūsų asmeninį žodyną",
     "privKicker": "Privatu pagal nutylėjimą",
     "privH2": "Tai, ką žiūrite, lieka tik jūsų reikalas",
-    "priv1": "{b} Nustatymai lieka jūsų naršyklėje; anoniminėje naudojimo statistikoje nėra paskyros tapatybės, ir ją išjungiate vienu paspaudimu.",
-    "priv1Bold": "Nieko, kas jus identifikuoja.",
+    "priv1": "{b} Ji padeda mums tobulinti produktą, nesusijusi su jūsų paskyra, o vienu paspaudimu ją galima išjungti — {link}. Nustatymai lieka jūsų naršyklėje.",
+    "priv1Bold": "Taip, renkame anoniminę naudojimo statistiką.",
+    "priv1Link": "štai kaip",
     "priv2": "{b} Subtitrai apdorojami tiesiai jūsų įrenginyje.",
     "priv2Bold": "Mes niekada nematome jūsų žiūrėjimo istorijos.",
     "priv3": "{b} Jei prisijungiate, saugome jūsų el. paštą ir išsaugotus žodžius — nieko daugiau, ir niekada jų neparduodame.",
@@ -200,6 +201,20 @@
     "title": "Privatumo politika — Lingogram",
     "description": "Ką renka Lingogram, kaip tai naudojama ir kokį pasirinkimą turite."
   },
+  "help": {
+    "analytics": {
+      "title": "Kaip išjungti anoniminę naudojimo statistiką — Lingogram",
+      "description": "Ką skaičiuoja anoniminė statistika ir du paspaudimai, kurie ją išjungia.",
+      "h1": "Kaip išjungti anoniminę naudojimo statistiką",
+      "lede": "Plėtinys skaičiuoja anoniminius įvykius, tokius kaip „subtitrai įkelti“ ir „žodis išsaugotas“ — taip matome, kur kas nors genda ir ką toliau taisyti. Statistikoje nėra paskyros tapatybės ir ji niekada nenurodo, ką žiūrite. Du paspaudimai ją išjungia:",
+      "step1": "Spustelėkite Lingogram piktogramą naršyklės įrankių juostoje, kad atidarytumėte plėtinio iššokantį langą.",
+      "step2": "Skiltyje {group} nuimkite varnelę nuo {label}.",
+      "groupName": "Privatumas",
+      "labelName": "Bendrinti anoniminę naudojimo statistiką",
+      "after": "Rinkimas sustoja iškart — nieko nereikia iš naujo įkelti. Kas tiksliai skaičiuojama ir kas niekada nepalieka jūsų įrenginio, nurodyta {link}.",
+      "afterLink": "privatumo politikoje"
+    }
+  },
   "welcome": {
     "title": "Ačiū, kad įsidiegėte Lingogram",
     "description": "Peržiūrėkite minutės trukmės apžvalgą, tada atidarykite vaizdo įrašą ir išsaugokite pirmą žodį.",
@@ -232,11 +247,12 @@
     "langs": "{b}, ties ta pačia piktograma nustatysite tą, kurios mokotės, ir savąją.",
     "langsBold": "Jei jūsų kalbas atspėjome neteisingai",
     "privSummary": "Ką renkame — ir ko ne",
-    "priv1": "{b} Subtitrai apdorojami jūsų įrenginyje, o nustatymai lieka jūsų naršyklėje. Mes niekada nematome, ką žiūrite.",
-    "priv1Bold": "Be paskyros mūsų nepasiekia niekas, kas jus identifikuoja.",
+    "priv1": "{b} Tai galite išjungti plėtinio nustatymuose — {link}. Subtitrai apdorojami jūsų įrenginyje, o nustatymai lieka jūsų naršyklėje. Mes niekada nematome, ką žiūrite.",
+    "priv1Bold": "Be paskyros mus pasiekia tik anoniminė naudojimo statistika.",
+    "priv1Link": "štai kaip",
     "priv2": "{b} ir reikalingas tik tam, kad jūsų žodynas sinchronizuotųsi tarp įrenginių. Tada saugome jūsų el. pašto adresą ir žodžius, kuriuos patys nusprendėte išsaugoti, kartu su subtitrų eilute, iš kurios kiekvienas paimtas.",
     "priv2Bold": "Prisijungimas yra savanoriškas",
-    "priv3": "{b} ir nerodome reklamų. Anoniminė naudojimo statistika pagal numatytuosius nustatymus yra įjungta — joje nėra paskyros tapatybės ir niekada nenurodoma, ką žiūrite, o iškylančiajame lange ją išjungiate vienu paspaudimu. Diagnostika išsiunčiama tik tada, kai patys paspaudžiate pranešimo mygtuką.",
+    "priv3": "{b} ir nerodome reklamos. Taip, renkame anoniminę naudojimo statistiką — ji padeda mums tobulinti produktą. Joje nėra paskyros tapatybės ir ji niekada nenurodo, ką žiūrite. Diagnostiniai duomenys siunčiami tik tada, kai patys paspaudžiate pranešimo mygtuką.",
     "priv3Bold": "Mes neparduodame jūsų duomenų",
     "privLink": "Skaityti visą privatumo politiką",
     "keysIntro": "Kai apsiprasite, praverčia šie klavišai:",

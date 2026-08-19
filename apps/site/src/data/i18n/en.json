@@ -152,8 +152,9 @@
     "feat4Link": "your personal dictionary",
     "privKicker": "Private by default",
     "privH2": "What you watch stays your business",
-    "priv1": "{b} Settings stay in your browser; anonymous usage stats carry no account identity and switch off in one click.",
-    "priv1Bold": "Nothing that identifies you.",
+    "priv1": "{b} They help us make the product better, are not tied to your account, and one click turns them off — {link}. Your settings stay in your browser.",
+    "priv1Bold": "Yes, we collect anonymous usage stats.",
+    "priv1Link": "here's how",
     "priv2": "{b} Subtitles are processed right on your device.",
     "priv2Bold": "We never see your watch history.",
     "priv3": "{b} If you sign in, we store your email and your saved words — nothing else, and we never sell them.",
@@ -199,6 +200,20 @@
     "title": "Privacy policy — Lingogram",
     "description": "What Lingogram collects, how it is used, and the choices you have."
   },
+  "help": {
+    "analytics": {
+      "title": "How to turn off anonymous usage stats — Lingogram",
+      "description": "What the anonymous stats count, and the two clicks that switch them off.",
+      "h1": "How to turn off anonymous usage stats",
+      "lede": "The extension counts anonymous events like “subtitles loaded” and “word saved” — that is how we see where things break and what to fix next. The stats carry no account identity and never name what you watch. Two clicks turn them off:",
+      "step1": "Click the Lingogram icon in your browser toolbar to open the extension popup.",
+      "step2": "Under {group}, uncheck {label}.",
+      "groupName": "Privacy",
+      "labelName": "Share anonymous usage stats",
+      "after": "Collection stops immediately — nothing to reload. Exactly what is counted, and what never leaves your device, is listed in the {link}.",
+      "afterLink": "privacy policy"
+    }
+  },
   "welcome": {
     "title": "Thanks for installing Lingogram",
     "description": "Watch a one-minute tour, then open a video and save your first word.",
@@ -231,11 +246,12 @@
     "langs": "{b}, the same icon is where you set the one you're learning and your own.",
     "langsBold": "If we guessed your languages wrong",
     "privSummary": "What we do — and don't — collect",
-    "priv1": "{b} Subtitles are processed on your device, and your settings stay in your browser. We never see what you watch.",
-    "priv1Bold": "Without an account, nothing that identifies you reaches us.",
+    "priv1": "{b} You can turn that off in the extension's settings — {link}. Subtitles are processed on your device, and your settings stay in your browser. We never see what you watch.",
+    "priv1Bold": "Without an account, the only thing that reaches us is anonymous usage stats.",
+    "priv1Link": "here's how",
     "priv2": "{b}, and only syncs your dictionary across devices. Then we store your email address and the words you chose to save, with the subtitle line each came from.",
     "priv2Bold": "Signing in is optional",
-    "priv3": "{b} or show ads. Anonymous usage stats are on by default — they carry no account identity and never name what you watch, and one click in the popup turns them off. Diagnostics are sent only when you press the report button yourself.",
+    "priv3": "{b} or show ads. Yes, we collect anonymous usage stats — they help us make the product better. They carry no account identity and never name what you watch. Diagnostics are sent only when you press the report button yourself.",
     "priv3Bold": "We don't sell your data",
     "privLink": "Read the full privacy policy",
     "keysIntro": "Once you've settled in, these come in handy:",

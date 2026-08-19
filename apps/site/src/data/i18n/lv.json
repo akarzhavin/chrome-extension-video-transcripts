@@ -153,8 +153,9 @@
     "feat4Link": "tavā personīgajā vārdnīcā",
     "privKicker": "Privāts pēc noklusējuma",
     "privH2": "Tas, ko skaties, paliek tikai tavā ziņā",
-    "priv1": "{b} Iestatījumi paliek tavā pārlūkā; anonīmajā lietojuma statistikā nav konta identitātes, un to izslēdz ar vienu klikšķi.",
-    "priv1Bold": "Nekas, kas tevi identificētu.",
+    "priv1": "{b} Tā palīdz mums uzlabot produktu, nav saistīta ar tavu kontu, un ar vienu klikšķi to var izslēgt — {link}. Tavi iestatījumi paliek tavā pārlūkā.",
+    "priv1Bold": "Jā, mēs vācam anonīmu lietojuma statistiku.",
+    "priv1Link": "lūk, kā",
     "priv2": "{b} Subtitri tiek apstrādāti tieši tavā ierīcē.",
     "priv2Bold": "Mēs nekad neredzam tavu skatīšanās vēsturi.",
     "priv3": "{b} Ja piesakies, mēs uzglabājam tavu e-pastu un saglabātos vārdus — neko citu, un mēs tos nekad nepārdodam.",
@@ -200,6 +201,20 @@
     "title": "Privātuma politika — Lingogram",
     "description": "Ko Lingogram vāc, kā tas tiek izmantots un kāda izvēle tev ir."
   },
+  "help": {
+    "analytics": {
+      "title": "Kā izslēgt anonīmu lietojuma statistiku — Lingogram",
+      "description": "Ko skaita anonīmā statistika un divi klikšķi, kas to izslēdz.",
+      "h1": "Kā izslēgt anonīmu lietojuma statistiku",
+      "lede": "Paplašinājums skaita anonīmus notikumus, piemēram, „subtitri ielādēti” un „vārds saglabāts” — tā mēs redzam, kur kaut kas salūst un kas jālabo nākamreiz. Statistikā nav konta identitātes, un tā nekad nenosauc, ko tu skaties. Divi klikšķi to izslēdz:",
+      "step1": "Uzklikšķini Lingogram ikonai pārlūka rīkjoslā, lai atvērtu paplašinājuma uznirstošo logu.",
+      "step2": "Sadaļā {group} noņem ķeksīti pie {label}.",
+      "groupName": "Konfidencialitāte",
+      "labelName": "Kopīgot anonīmu lietojuma statistiku",
+      "after": "Vākšana apstājas nekavējoties — nekas nav jāpārlādē. Kas tieši tiek skaitīts un kas nekad neatstāj tavu ierīci, ir uzskaitīts {link}.",
+      "afterLink": "konfidencialitātes politikā"
+    }
+  },
   "welcome": {
     "title": "Paldies, ka instalēji Lingogram",
     "description": "Noskaties minūti garu ieskatu, tad atver video un saglabā savu pirmo vārdu.",
@@ -232,11 +247,12 @@
     "langs": "{b}, pie tās pašas ikonas iestati to, kuru mācies, un savu.",
     "langsBold": "Ja mēs tavas valodas uzminējām nepareizi",
     "privSummary": "Ko mēs vācam — un ko ne",
-    "priv1": "{b} Subtitri tiek apstrādāti tavā ierīcē, un iestatījumi paliek tavā pārlūkā. Mēs nekad neredzam, ko tu skaties.",
-    "priv1Bold": "Bez konta pie mums nenonāk nekas, kas tevi identificētu.",
+    "priv1": "{b} To vari izslēgt paplašinājuma iestatījumos — {link}. Subtitri tiek apstrādāti tavā ierīcē, un tavi iestatījumi paliek tavā pārlūkā. Mēs nekad neredzam, ko tu skaties.",
+    "priv1Bold": "Bez konta pie mums nonāk tikai anonīma lietojuma statistika.",
+    "priv1Link": "lūk, kā",
     "priv2": "{b} un kalpo tikai tam, lai tava vārdnīca sinhronizētos starp ierīcēm. Tad mēs glabājam tavu e-pasta adresi un vārdus, kurus pats izvēlējies saglabāt, kopā ar subtitru rindu, no kuras katrs nāk.",
     "priv2Bold": "Pieteikšanās ir brīvprātīga",
-    "priv3": "{b} un nerādām reklāmas. Anonīma lietojuma statistika pēc noklusējuma ir ieslēgta — tajā nav konta identitātes un nekad nav norādīts, ko tu skaties, un to var izslēgt ar vienu klikšķi uznirstošajā logā. Diagnostikas dati tiek nosūtīti tikai tad, kad tu pats nospied ziņošanas pogu.",
+    "priv3": "{b} un nerādām reklāmas. Jā, mēs vācam anonīmu lietojuma statistiku — tā palīdz mums uzlabot produktu. Tajā nav konta identitātes, un tā nekad nenosauc, ko tu skaties. Diagnostika tiek nosūtīta tikai tad, kad tu pats nospied ziņošanas pogu.",
     "priv3Bold": "Mēs nepārdodam tavus datus",
     "privLink": "Izlasi visu privātuma politiku",
     "keysIntro": "Kad būsi iejuties, noderēs šie taustiņi:",

@@ -623,7 +623,10 @@ ${header(t, root)}
       <span class="kicker">${esc(t('home.privKicker'))}</span>
       <h2>${esc(t('home.privH2'))}</h2>
       <div class="privacy">
-        <div class="cell"><span>${t('home.priv1', { b: `<b>${esc(t('home.priv1Bold'))}</b>` })}</span></div>
+        <div class="cell"><span>${t('home.priv1', {
+          b: `<b>${esc(t('home.priv1Bold'))}</b>`,
+          link: `<a href="${root}/help/analytics/">${esc(t('home.priv1Link'))}</a>`,
+        })}</span></div>
         <div class="cell"><span>${t('home.priv2', { b: `<b>${esc(t('home.priv2Bold'))}</b>` })}</span></div>
         <div class="cell"><span>${t('home.priv3', { b: `<b>${esc(t('home.priv3Bold'))}</b>` })}</span></div>
         <div class="cell"><span>${t('home.priv4', { b: `<b>${esc(t('home.priv4Bold'))}</b>` })}</span></div>
@@ -1014,7 +1017,10 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
       <svg class="wl-priv-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
     </summary>
     <div class="wl-priv-body">
-      <p>${t('welcome.priv1', { b: `<b>${esc(t('welcome.priv1Bold'))}</b>` })}</p>
+      <p>${t('welcome.priv1', {
+        b: `<b>${esc(t('welcome.priv1Bold'))}</b>`,
+        link: `<a href="${root}/help/analytics/">${esc(t('welcome.priv1Link'))}</a>`,
+      })}</p>
       <p>${t('welcome.priv2', { b: `<b>${esc(t('welcome.priv2Bold'))}</b>` })}</p>
       <p>${t('welcome.priv3', { b: `<b>${esc(t('welcome.priv3Bold'))}</b>` })}</p>
       <p class="wl-priv-more"><a href="${root}/privacy/">${esc(t('welcome.privLink'))}</a></p>
@@ -1072,6 +1078,49 @@ window.__WELCOME = ${scriptJSON({
     rezkaCtaS: t('welcome.rezkaCtaS'),
   },
 })};</script>`,
+  });
+};
+
+// ------------------------------------------------------- /help/analytics/
+//
+// The "how do I turn this off" page. Both places that admit we collect
+// anonymous stats — welcome.priv1 and home.priv1 — link here rather than
+// spelling out the steps inline: a privacy claim that says "you can turn it
+// off" without saying HOW is the kind of promise that reads as evasion.
+//
+// The setting's own names are quoted from the EXTENSION's locale files
+// (ytGroupPrivacy / ytPrivacyAnalyticsLabel), not translated afresh here, so
+// what this page tells someone to look for matches the popup they open
+// character for character. That is also why help.step2 takes the two names
+// as placeholders instead of baking them into 42 translated sentences.
+const helpAnalyticsPage = (locale, hrefLang) => {
+  const { code: lang, strings } = locale;
+  const t = makeT(strings);
+  const root = lang === 'en' ? '' : `/${lang}`;
+  return layout({
+    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    title: t('help.analytics.title'),
+    description: t('help.analytics.description'),
+    pathName: `${root}/help/analytics/`,
+    body: `
+${header(t, root)}
+<main>
+  <article class="doc">
+    <h1>${esc(t('help.analytics.h1'))}</h1>
+    <p>${esc(t('help.analytics.lede'))}</p>
+    <ol class="help-steps">
+      <li>${esc(t('help.analytics.step1'))}</li>
+      <li>${t('help.analytics.step2', {
+        group: `<b>${esc(t('help.analytics.groupName'))}</b>`,
+        label: `<b>${esc(t('help.analytics.labelName'))}</b>`,
+      })}</li>
+    </ol>
+    <p>${t('help.analytics.after', {
+      link: `<a href="${root}/privacy/">${esc(t('help.analytics.afterLink'))}</a>`,
+    })}</p>
+  </article>
+</main>
+${footer(t, root)}`,
   });
 };
 
@@ -1280,6 +1329,7 @@ function build() {
   const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
   const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
   const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
+  const helpAnalyticsHrefLang = hrefLangFor((c) => (c === 'en' ? '/help/analytics/' : `/${c}/help/analytics/`));
   const loginHrefLang = hrefLangFor((c) => (c === 'en' ? '/login/' : `/${c}/login/`));
   const registerHrefLang = hrefLangFor((c) => (c === 'en' ? '/register/' : `/${c}/register/`));
 
@@ -1290,6 +1340,7 @@ function build() {
     write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
     write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
     write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));
+    write(path.join(root, 'help', 'analytics', 'index.html'), helpAnalyticsPage(locale, helpAnalyticsHrefLang));
     write(path.join(root, 'login', 'index.html'), loginPage(locale, loginHrefLang));
     write(path.join(root, 'register', 'index.html'), registerPage(locale, registerHrefLang));
     write(path.join(root, '404.html'), notFoundPage(locale));
@@ -1309,7 +1360,7 @@ function build() {
   // alternates — an empty map, not a fabricated per-locale one.
   const INDEXABLE = [
     homeHrefLang, welcomeHrefLang, uninstallHrefLang,
-    privacyHrefLang, languagesHrefLang,
+    privacyHrefLang, languagesHrefLang, helpAnalyticsHrefLang,
   ];
   const urlEntry = (loc, alternates) => `  <url>
     <loc>${SITE.domain}${loc}</loc>

@@ -151,8 +151,9 @@
     "feat4Link": "kamus pribadi Anda",
     "privKicker": "Privat secara default",
     "privH2": "Apa yang Anda tonton tetap urusan Anda sendiri",
-    "priv1": "{b} Pengaturan tetap ada di peramban Anda; statistik penggunaan anonim tidak memuat identitas akun dan bisa dimatikan dengan satu klik.",
-    "priv1Bold": "Tidak ada apa pun yang mengidentifikasi Anda.",
+    "priv1": "{b} Ini membantu kami membuat produk lebih baik, tidak terkait dengan akun Anda, dan bisa dimatikan dengan satu klik — {link}. Pengaturan Anda tetap berada di browser Anda.",
+    "priv1Bold": "Ya, kami mengumpulkan statistik penggunaan anonim.",
+    "priv1Link": "begini caranya",
     "priv2": "{b} Subtitle diproses langsung di perangkat Anda.",
     "priv2Bold": "Kami tidak pernah melihat riwayat tontonan Anda.",
     "priv3": "{b} Jika Anda masuk, kami menyimpan email dan kata-kata tersimpan Anda — tidak ada yang lain, dan kami tidak pernah menjualnya.",
@@ -198,6 +199,20 @@
     "title": "Kebijakan privasi — Lingogram",
     "description": "Apa yang dikumpulkan Lingogram, bagaimana penggunaannya, dan pilihan yang Anda miliki."
   },
+  "help": {
+    "analytics": {
+      "title": "Cara mematikan statistik penggunaan anonim — Lingogram",
+      "description": "Apa yang dihitung statistik anonim, dan dua klik yang mematikannya.",
+      "h1": "Cara mematikan statistik penggunaan anonim",
+      "lede": "Ekstensi menghitung peristiwa anonim seperti “subtitle dimuat” dan “kata disimpan” — begitulah kami melihat di mana ada yang rusak dan apa yang perlu diperbaiki selanjutnya. Statistik ini tidak membawa identitas akun dan tidak pernah menyebutkan apa yang Anda tonton. Dua klik mematikannya:",
+      "step1": "Klik ikon Lingogram di bilah alat browser untuk membuka popup ekstensi.",
+      "step2": "Di bagian {group}, hapus centang pada {label}.",
+      "groupName": "Privasi",
+      "labelName": "Bagikan statistik penggunaan anonim",
+      "after": "Pengumpulan berhenti seketika — tidak perlu memuat ulang apa pun. Apa saja yang dihitung, dan apa yang tidak pernah meninggalkan perangkat Anda, tercantum di {link}.",
+      "afterLink": "kebijakan privasi"
+    }
+  },
   "welcome": {
     "title": "Terima kasih sudah memasang Lingogram",
     "description": "Tonton tur satu menit, lalu buka sebuah video dan simpan kata pertama Anda.",
@@ -230,11 +245,12 @@
     "langs": "{b}, di ikon yang sama itulah Anda mengatur bahasa yang sedang dipelajari dan bahasa Anda sendiri.",
     "langsBold": "Kalau kami salah menebak bahasa Anda",
     "privSummary": "Apa yang kami kumpulkan — dan tidak kami kumpulkan",
-    "priv1": "{b} Subtitle diproses di perangkat Anda, dan pengaturan tetap di peramban Anda. Kami tidak pernah melihat apa yang Anda tonton.",
-    "priv1Bold": "Tanpa akun, tidak ada apa pun yang mengidentifikasi Anda yang sampai ke kami.",
+    "priv1": "{b} Anda bisa mematikannya di pengaturan ekstensi — {link}. Subtitle diproses di perangkat Anda sendiri, dan pengaturan Anda tetap berada di browser Anda. Kami tidak pernah melihat apa yang Anda tonton.",
+    "priv1Bold": "Tanpa akun, satu-satunya yang sampai ke kami adalah statistik penggunaan anonim.",
+    "priv1Link": "begini caranya",
     "priv2": "{b}, dan hanya berfungsi menyinkronkan kamus Anda antarperangkat. Kalau Anda masuk, kami menyimpan alamat email Anda dan kata-kata yang Anda pilih untuk disimpan, beserta baris subtitle asal masing-masing kata.",
     "priv2Bold": "Masuk itu opsional",
-    "priv3": "{b} dan tidak menampilkan iklan. Statistik penggunaan anonim aktif secara default — tidak memuat identitas akun dan tidak pernah menyebutkan apa yang Anda tonton, dan bisa dimatikan dengan satu klik di popup. Data diagnostik hanya terkirim kalau Anda sendiri menekan tombol laporan.",
+    "priv3": "{b} atau menampilkan iklan. Ya, kami mengumpulkan statistik penggunaan anonim — ini membantu kami membuat produk lebih baik. Statistik ini tidak membawa identitas akun dan tidak pernah menyebutkan apa yang Anda tonton. Diagnostik hanya dikirim saat Anda sendiri menekan tombol laporkan.",
     "priv3Bold": "Kami tidak menjual data Anda",
     "privLink": "Baca kebijakan privasi selengkapnya",
     "keysIntro": "Setelah Anda terbiasa, pintasan ini akan berguna:",

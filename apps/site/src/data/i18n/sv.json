@@ -152,8 +152,9 @@
     "feat4Link": "din personliga ordbok",
     "privKicker": "Privat som standard",
     "privH2": "Det du tittar på förblir din ensak",
-    "priv1": "{b} Inställningarna stannar i din webbläsare; den anonyma användningsstatistiken innehåller ingen kontoidentitet och stängs av med ett klick.",
-    "priv1Bold": "Inget som identifierar dig.",
+    "priv1": "{b} Den hjälper oss att göra produkten bättre, är inte kopplad till ditt konto, och ett klick stänger av den — {link}. Dina inställningar stannar kvar i din webbläsare.",
+    "priv1Bold": "Ja, vi samlar in anonym användningsstatistik.",
+    "priv1Link": "så här gör du",
     "priv2": "{b} Undertexter bearbetas direkt på din enhet.",
     "priv2Bold": "Vi ser aldrig din tittarhistorik.",
     "priv3": "{b} Om du loggar in sparar vi din e-post och dina sparade ord — inget annat, och vi säljer dem aldrig.",
@@ -199,6 +200,20 @@
     "title": "Integritetspolicy — Lingogram",
     "description": "Vad Lingogram samlar in, hur det används och vilka val du har."
   },
+  "help": {
+    "analytics": {
+      "title": "Så stänger du av anonym användningsstatistik — Lingogram",
+      "description": "Vad den anonyma statistiken räknar, och de två klicken som stänger av den.",
+      "h1": "Så stänger du av anonym användningsstatistik",
+      "lede": "Tillägget räknar anonyma händelser som ”undertexter laddades” och ”ord sparades” — så ser vi var något går sönder och vad som behöver fixas härnäst. Statistiken har ingen kontoidentitet och avslöjar aldrig vad du tittar på. Två klick stänger av den:",
+      "step1": "Klicka på Lingogram-ikonen i webbläsarens verktygsfält för att öppna tilläggets popup.",
+      "step2": "Under {group}, avmarkera {label}.",
+      "groupName": "Integritet",
+      "labelName": "Dela anonym användningsstatistik",
+      "after": "Insamlingen stoppar direkt — inget behöver laddas om. Exakt vad som räknas, och vad som aldrig lämnar din enhet, listas i {link}.",
+      "afterLink": "integritetspolicyn"
+    }
+  },
   "welcome": {
     "title": "Tack för att du installerade Lingogram",
     "description": "Se en rundtur på en minut, öppna sedan en video och spara ditt första ord.",
@@ -231,11 +246,12 @@
     "langs": "{b}, är det samma ikon du använder för att ställa in det du lär dig och ditt eget.",
     "langsBold": "Om vi gissade fel på dina språk",
     "privSummary": "Vad vi samlar in — och inte",
-    "priv1": "{b} Undertexter bearbetas på din enhet och dina inställningar stannar i din webbläsare. Vi ser aldrig vad du tittar på.",
-    "priv1Bold": "Utan konto når ingenting som identifierar dig fram till oss.",
+    "priv1": "{b} Du kan stänga av det i tilläggets inställningar — {link}. Undertexter bearbetas på din enhet, och dina inställningar stannar kvar i din webbläsare. Vi ser aldrig vad du tittar på.",
+    "priv1Bold": "Utan konto är det enda som når oss anonym användningsstatistik.",
+    "priv1Link": "så här gör du",
     "priv2": "{b} och synkar bara din ordbok mellan enheter. Då lagrar vi din e-postadress och de ord du valt att spara, tillsammans med undertextraden var och ett kom från.",
     "priv2Bold": "Att logga in är frivilligt",
-    "priv3": "{b} och visar inga annonser. Anonym användningsstatistik är påslagen som standard — den innehåller ingen kontoidentitet och anger aldrig vad du tittar på, och du stänger av den med ett klick i popupen. Diagnostik skickas bara när du själv trycker på rapportknappen.",
+    "priv3": "{b} eller visar annonser. Ja, vi samlar in anonym användningsstatistik — den hjälper oss att göra produkten bättre. Den har ingen kontoidentitet och avslöjar aldrig vad du tittar på. Diagnostik skickas bara när du själv trycker på rapportera-knappen.",
     "priv3Bold": "Vi säljer inte dina data",
     "privLink": "Läs hela integritetspolicyn",
     "keysIntro": "När du har kommit in i det är de här bra att ha:",

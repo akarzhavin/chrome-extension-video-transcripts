@@ -151,8 +151,9 @@
     "feat4Link": "từ điển cá nhân của bạn",
     "privKicker": "Riêng tư theo mặc định",
     "privH2": "Những gì bạn xem vẫn là chuyện riêng của bạn",
-    "priv1": "{b} Cài đặt vẫn ở trên trình duyệt của bạn; số liệu sử dụng ẩn danh không chứa danh tính tài khoản và chỉ cần một cú nhấp để tắt.",
-    "priv1Bold": "Không gì có thể nhận diện bạn.",
+    "priv1": "{b} Chúng giúp chúng tôi làm sản phẩm tốt hơn, không gắn với tài khoản của bạn, và một cú nhấp là tắt được — {link}. Cài đặt vẫn ở trên trình duyệt của bạn.",
+    "priv1Bold": "Có, chúng tôi thu thập số liệu sử dụng ẩn danh.",
+    "priv1Link": "cách làm đây",
     "priv2": "{b} Phụ đề được xử lý ngay trên thiết bị của bạn.",
     "priv2Bold": "Chúng tôi không bao giờ thấy lịch sử xem của bạn.",
     "priv3": "{b} Nếu bạn đăng nhập, chúng tôi chỉ lưu email và các từ bạn đã lưu — không gì khác, và chúng tôi không bao giờ bán chúng.",
@@ -198,6 +199,20 @@
     "title": "Chính sách bảo mật — Lingogram",
     "description": "Lingogram thu thập gì, dùng như thế nào, và bạn có những lựa chọn gì."
   },
+  "help": {
+    "analytics": {
+      "title": "Cách tắt số liệu sử dụng ẩn danh — Lingogram",
+      "description": "Số liệu ẩn danh đếm những gì, và hai cú nhấp để tắt nó.",
+      "h1": "Cách tắt số liệu sử dụng ẩn danh",
+      "lede": "Tiện ích mở rộng đếm các sự kiện ẩn danh như “đã tải phụ đề” và “đã lưu từ” — nhờ đó chúng tôi biết chỗ nào bị lỗi và cần sửa gì tiếp theo. Số liệu này không chứa danh tính tài khoản và không bao giờ nêu bạn đang xem gì. Hai cú nhấp là tắt được:",
+      "step1": "Nhấp vào biểu tượng Lingogram trên thanh công cụ trình duyệt để mở popup của tiện ích mở rộng.",
+      "step2": "Trong mục {group}, bỏ chọn {label}.",
+      "groupName": "Quyền riêng tư",
+      "labelName": "Chia sẻ số liệu sử dụng ẩn danh",
+      "after": "Việc thu thập dừng ngay lập tức — không cần tải lại gì cả. Chính xác những gì được đếm, và những gì không bao giờ rời khỏi thiết bị của bạn, được liệt kê trong {link}.",
+      "afterLink": "chính sách quyền riêng tư"
+    }
+  },
   "welcome": {
     "title": "Cảm ơn bạn đã cài đặt Lingogram",
     "description": "Xem video giới thiệu một phút, rồi mở một video và lưu từ đầu tiên của bạn.",
@@ -230,11 +245,12 @@
     "langs": "{b}, cũng chính biểu tượng đó là nơi bạn chọn ngôn ngữ đang học và ngôn ngữ của mình.",
     "langsBold": "Nếu chúng tôi đoán sai ngôn ngữ của bạn",
     "privSummary": "Những gì chúng tôi thu thập — và không thu thập",
-    "priv1": "{b} Phụ đề được xử lý ngay trên thiết bị của bạn, còn cài đặt thì ở lại trong trình duyệt. Chúng tôi không bao giờ thấy bạn xem gì.",
-    "priv1Bold": "Không có tài khoản thì không gì có thể nhận diện bạn đến được với chúng tôi.",
+    "priv1": "{b} Bạn có thể tắt điều này trong cài đặt của tiện ích mở rộng — {link}. Phụ đề được xử lý ngay trên thiết bị của bạn, còn cài đặt thì ở lại trong trình duyệt. Chúng tôi không bao giờ thấy bạn xem gì.",
+    "priv1Bold": "Không có tài khoản, thứ duy nhất đến được với chúng tôi là số liệu sử dụng ẩn danh.",
+    "priv1Link": "cách làm đây",
     "priv2": "{b}, và chỉ dùng để đồng bộ từ điển của bạn giữa các thiết bị. Khi đó chúng tôi lưu địa chỉ email của bạn và những từ bạn tự chọn lưu, kèm câu phụ đề mà mỗi từ xuất hiện.",
     "priv2Bold": "Đăng nhập là tùy bạn",
-    "priv3": "{b} và không hiển thị quảng cáo. Số liệu sử dụng ẩn danh được bật theo mặc định — không chứa danh tính tài khoản và không bao giờ nêu bạn đang xem gì, và chỉ cần một cú nhấp trong popup để tắt. Dữ liệu chẩn đoán chỉ được gửi khi chính bạn nhấn nút báo lỗi.",
+    "priv3": "{b} hay hiển thị quảng cáo. Có, chúng tôi thu thập số liệu sử dụng ẩn danh — chúng giúp chúng tôi làm sản phẩm tốt hơn. Chúng không chứa danh tính tài khoản và không bao giờ nêu bạn đang xem gì. Dữ liệu chẩn đoán chỉ được gửi khi chính bạn nhấn nút báo lỗi.",
     "priv3Bold": "Chúng tôi không bán dữ liệu của bạn",
     "privLink": "Đọc toàn bộ chính sách bảo mật",
     "keysIntro": "Khi đã quen tay, những phím tắt này sẽ rất tiện:",

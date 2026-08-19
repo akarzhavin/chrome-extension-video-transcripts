@@ -152,8 +152,9 @@
     "feat4Link": "henkilökohtaiseen sanastoosi",
     "privKicker": "Yksityinen oletuksena",
     "privH2": "Se, mitä katsot, pysyy omana asianasi",
-    "priv1": "{b} Asetukset pysyvät selaimessasi; anonyymissä käyttötilastossa ei ole tilin tunnistetietoja, ja sen sammuttaa yhdellä klikkauksella.",
-    "priv1Bold": "Ei mitään, mikä tunnistaisi sinut.",
+    "priv1": "{b} Ne auttavat meitä parantamaan tuotetta, eivät liity tiliisi, ja yksi klikkaus poistaa ne käytöstä — {link}. Asetuksesi pysyvät selaimessasi.",
+    "priv1Bold": "Kyllä, keräämme anonyymejä käyttötilastoja.",
+    "priv1Link": "näin se onnistuu",
     "priv2": "{b} Tekstitykset käsitellään suoraan laitteellasi.",
     "priv2Bold": "Emme näe koskaan katseluhistoriaasi.",
     "priv3": "{b} Jos kirjaudut sisään, tallennamme sähköpostisi ja tallennetut sanasi — ei muuta, emmekä koskaan myy niitä.",
@@ -199,6 +200,20 @@
     "title": "Tietosuojakäytäntö — Lingogram",
     "description": "Mitä Lingogram kerää, miten sitä käytetään ja mitä valintoja sinulla on."
   },
+  "help": {
+    "analytics": {
+      "title": "Näin poistat anonyymit käyttötilastot käytöstä — Lingogram",
+      "description": "Mitä anonyymit tilastot laskevat, ja kaksi klikkausta, jotka poistavat ne käytöstä.",
+      "h1": "Näin poistat anonyymit käyttötilastot käytöstä",
+      "lede": "Laajennus laskee anonyymejä tapahtumia kuten ”tekstitys ladattu” ja ”sana tallennettu” — näin näemme, missä jokin menee rikki ja mitä korjata seuraavaksi. Tilastot eivät sisällä tilin identiteettiä eivätkä koskaan kerro, mitä katsot. Kaksi klikkausta poistaa ne käytöstä:",
+      "step1": "Avaa laajennuksen ponnahdusikkuna klikkaamalla Lingogram-kuvaketta selaimen työkalupalkissa.",
+      "step2": "Poista valinta kohdasta {label} osiossa {group}.",
+      "groupName": "Tietosuoja",
+      "labelName": "Jaa anonyymit käyttötilastot",
+      "after": "Kerääminen pysähtyy heti — mitään ei tarvitse ladata uudelleen. Tarkka luettelo siitä, mitä lasketaan ja mikä ei koskaan poistu laitteeltasi, on {link}.",
+      "afterLink": "tietosuojakäytännössä"
+    }
+  },
   "welcome": {
     "title": "Kiitos, että asensit Lingogramin",
     "description": "Katso minuutin esittely, avaa sitten video ja tallenna ensimmäinen sanasi.",
@@ -231,11 +246,12 @@
     "langs": "{b}, samasta kuvakkeesta asetat opiskelemasi kielen ja oman kielesi.",
     "langsBold": "Jos arvasimme kielesi väärin",
     "privSummary": "Mitä keräämme — ja mitä emme",
-    "priv1": "{b} Tekstitykset käsitellään laitteellasi, ja asetuksesi pysyvät selaimessasi. Emme koskaan näe, mitä katsot.",
-    "priv1Bold": "Ilman tiliä meille ei päädy mitään, mikä tunnistaisi sinut.",
+    "priv1": "{b} Voit poistaa sen käytöstä laajennuksen asetuksista — {link}. Tekstitykset käsitellään laitteellasi, ja asetuksesi pysyvät selaimessasi. Emme koskaan näe, mitä katsot.",
+    "priv1Bold": "Ilman tiliä meille päätyy vain anonyymejä käyttötilastoja.",
+    "priv1Link": "näin se onnistuu",
     "priv2": "{b} ja se vain synkronoi sanastosi laitteiden välillä. Silloin tallennamme sähköpostiosoitteesi ja sanat, jotka itse valitsit tallennettaviksi, sekä tekstitysrivin, josta kukin niistä tuli.",
     "priv2Bold": "Sisäänkirjautuminen on vapaaehtoista",
-    "priv3": "{b} emmekä näytä mainoksia. Anonyymi käyttötilasto on oletuksena päällä — siinä ei ole tilin tunnistetietoja eikä siinä koskaan mainita, mitä katsot, ja sen voi sammuttaa yhdellä klikkauksella ponnahdusikkunasta. Diagnostiikkatiedot lähetetään vain, kun painat itse raportointipainiketta.",
+    "priv3": "{b} emmekä näytä mainoksia. Kyllä, keräämme anonyymejä käyttötilastoja — ne auttavat meitä parantamaan tuotetta. Ne eivät sisällä tilin identiteettiä eivätkä koskaan kerro, mitä katsot. Diagnostiikkaa lähetetään vain, kun itse painat ilmoituspainiketta.",
     "priv3Bold": "Emme myy tietojasi",
     "privLink": "Lue koko tietosuojakäytäntö",
     "keysIntro": "Kun olet päässyt vauhtiin, näistä on hyötyä:",

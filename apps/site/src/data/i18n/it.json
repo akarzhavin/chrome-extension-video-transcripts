@@ -152,8 +152,9 @@
     "feat4Link": "il tuo dizionario personale",
     "privKicker": "Privato per impostazione predefinita",
     "privH2": "Ciò che guardi resta affar tuo",
-    "priv1": "{b} Le impostazioni restano nel tuo browser; le statistiche di utilizzo anonime non contengono l’identità dell’account e si disattivano con un clic.",
-    "priv1Bold": "Niente che ti identifichi.",
+    "priv1": "{b} Ci aiutano a migliorare il prodotto, non sono legate al tuo account, e un clic le disattiva — {link}. Le tue impostazioni restano nel tuo browser.",
+    "priv1Bold": "Sì, raccogliamo statistiche d'uso anonime.",
+    "priv1Link": "ecco come",
     "priv2": "{b} I sottotitoli vengono elaborati direttamente sul tuo dispositivo.",
     "priv2Bold": "Non vediamo mai la tua cronologia di visione.",
     "priv3": "{b} Se accedi, salviamo la tua email e le parole salvate — nient'altro, e non le vendiamo mai.",
@@ -199,6 +200,20 @@
     "title": "Informativa sulla privacy — Lingogram",
     "description": "Cosa raccoglie Lingogram, come viene usato e quali scelte hai."
   },
+  "help": {
+    "analytics": {
+      "title": "Come disattivare le statistiche d'uso anonime — Lingogram",
+      "description": "Cosa contano le statistiche anonime e i due clic che le disattivano.",
+      "h1": "Come disattivare le statistiche d'uso anonime",
+      "lede": "L'estensione conta eventi anonimi come «sottotitoli caricati» e «parola salvata» — così vediamo dove qualcosa si rompe e cosa correggere. Le statistiche non contengono alcuna identità dell'account e non specificano mai cosa guardi. Due clic le disattivano:",
+      "step1": "Clicca sull'icona di Lingogram nella barra degli strumenti del browser per aprire il popup dell'estensione.",
+      "step2": "In {group}, deseleziona {label}.",
+      "groupName": "Privacy",
+      "labelName": "Condividi statistiche d'uso anonime",
+      "after": "La raccolta si interrompe immediatamente — niente da ricaricare. Cosa viene esattamente conteggiato, e cosa non lascia mai il tuo dispositivo, è elencato nella {link}.",
+      "afterLink": "informativa sulla privacy"
+    }
+  },
   "welcome": {
     "title": "Grazie per aver installato Lingogram",
     "description": "Guarda il tour di un minuto, poi apri un video e salva la tua prima parola.",
@@ -231,11 +246,12 @@
     "langs": "{b}, dalla stessa icona imposti quella che stai imparando e la tua.",
     "langsBold": "Se abbiamo indovinato male le tue lingue",
     "privSummary": "Cosa raccogliamo — e cosa no",
-    "priv1": "{b} I sottotitoli vengono elaborati sul tuo dispositivo, e le tue impostazioni restano nel tuo browser. Non vediamo mai cosa guardi.",
-    "priv1Bold": "Senza account non ci arriva nulla che ti identifichi.",
+    "priv1": "{b} Puoi disattivarlo nelle impostazioni dell'estensione — {link}. I sottotitoli vengono elaborati sul tuo dispositivo, e le tue impostazioni restano nel tuo browser. Non vediamo mai cosa guardi.",
+    "priv1Bold": "Senza account, l'unica cosa che ci arriva sono statistiche d'uso anonime.",
+    "priv1Link": "ecco come",
     "priv2": "{b}, e serve solo a sincronizzare il dizionario tra i dispositivi. In quel caso conserviamo il tuo indirizzo email e le parole che hai scelto di salvare, insieme alla riga di sottotitolo da cui viene ciascuna.",
     "priv2Bold": "Accedere è facoltativo",
-    "priv3": "{b} e non mostriamo pubblicità. Le statistiche di utilizzo anonime sono attive di default — non contengono l’identità dell’account e non indicano mai cosa guardi, e si disattivano con un clic nel popup. I dati diagnostici partono solo se premi tu stesso il pulsante di segnalazione.",
+    "priv3": "{b} né mostriamo pubblicità. Sì, raccogliamo statistiche d'uso anonime — ci aiutano a migliorare il prodotto. Non contengono alcuna identità dell'account e non specificano mai cosa guardi. La diagnostica viene inviata solo se premi tu stesso il pulsante di segnalazione.",
     "priv3Bold": "Non vendiamo i tuoi dati",
     "privLink": "Leggi l'informativa sulla privacy completa",
     "keysIntro": "Una volta che ci hai preso la mano, questi tornano utili:",

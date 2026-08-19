@@ -152,8 +152,9 @@
     "feat4Link": "je persoonlijke woordenboek",
     "privKicker": "Standaard privé",
     "privH2": "Wat jij kijkt, blijft jouw zaak",
-    "priv1": "{b} Instellingen blijven in je browser; anonieme gebruiksstatistieken bevatten geen accountidentiteit en zet je met één klik uit.",
-    "priv1Bold": "Niets dat jou identificeert.",
+    "priv1": "{b} Ze helpen ons het product te verbeteren, zijn niet aan je account gekoppeld, en met één klik schakel je ze uit — {link}. Je instellingen blijven in je browser.",
+    "priv1Bold": "Ja, we verzamelen anonieme gebruiksstatistieken.",
+    "priv1Link": "zo doe je dat",
     "priv2": "{b} Ondertitels worden rechtstreeks op je eigen apparaat verwerkt.",
     "priv2Bold": "Wij zien je kijkgeschiedenis nooit.",
     "priv3": "{b} Als je inlogt, bewaren we je e-mailadres en je opgeslagen woorden — verder niets, en we verkopen ze nooit.",
@@ -199,6 +200,20 @@
     "title": "Privacybeleid — Lingogram",
     "description": "Wat Lingogram verzamelt, hoe het wordt gebruikt, en welke keuzes je hebt."
   },
+  "help": {
+    "analytics": {
+      "title": "Zo schakel je anonieme gebruiksstatistieken uit — Lingogram",
+      "description": "Wat de anonieme statistieken tellen, en de twee klikken die ze uitschakelen.",
+      "h1": "Zo schakel je anonieme gebruiksstatistieken uit",
+      "lede": "De extensie telt anonieme gebeurtenissen zoals “ondertitels geladen” en “woord opgeslagen” — zo zien we waar iets misgaat en wat we vervolgens moeten oplossen. De statistieken bevatten geen accountidentiteit en vermelden nooit wat je bekijkt. Twee klikken schakelen ze uit:",
+      "step1": "Klik op het Lingogram-icoon in de werkbalk van je browser om de popup van de extensie te openen.",
+      "step2": "Vink onder {group} de optie {label} uit.",
+      "groupName": "Privacy",
+      "labelName": "Anonieme gebruiksstatistieken delen",
+      "after": "Het verzamelen stopt meteen — niets hoeft opnieuw geladen te worden. Precies wat er wordt geteld, en wat je apparaat nooit verlaat, staat in het {link}.",
+      "afterLink": "privacybeleid"
+    }
+  },
   "welcome": {
     "title": "Bedankt voor het installeren van Lingogram",
     "description": "Bekijk de rondleiding van een minuut, open dan een video en sla je eerste woord op.",
@@ -231,11 +246,12 @@
     "langs": "{b}, op datzelfde icoon stel je de taal die je leert en je eigen taal in.",
     "langsBold": "Als we je talen verkeerd hebben geraden",
     "privSummary": "Wat we wel — en niet — verzamelen",
-    "priv1": "{b} Ondertitels worden op je eigen apparaat verwerkt, en je instellingen blijven in je browser. We zien nooit wat je kijkt.",
-    "priv1Bold": "Zonder account bereikt niets dat jou identificeert ons.",
+    "priv1": "{b} Je kunt dit uitschakelen in de instellingen van de extensie — {link}. Ondertitels worden op je eigen apparaat verwerkt, en je instellingen blijven in je browser. We zien nooit wat je bekijkt.",
+    "priv1Bold": "Zonder account bereikt ons alleen anonieme gebruiksstatistiek.",
+    "priv1Link": "zo doe je dat",
     "priv2": "{b}, en dient alleen om je woordenboek tussen apparaten te synchroniseren. Dan bewaren we je e-mailadres en de woorden die je zelf hebt opgeslagen, met de ondertitelregel waar elk woord uit komt.",
     "priv2Bold": "Inloggen is optioneel",
-    "priv3": "{b} en tonen geen advertenties. Anonieme gebruiksstatistieken staan standaard aan — ze bevatten geen accountidentiteit en vermelden nooit wat je bekijkt, en met één klik in de popup zet je ze uit. Diagnostiek wordt alleen verstuurd als je zelf op de meldknop drukt.",
+    "priv3": "{b} en tonen geen advertenties. Ja, we verzamelen anonieme gebruiksstatistieken — ze helpen ons het product te verbeteren. Ze bevatten geen accountidentiteit en vermelden nooit wat je bekijkt. Diagnostische gegevens worden alleen verstuurd als je zelf op de meldknop drukt.",
     "priv3Bold": "We verkopen je gegevens niet",
     "privLink": "Lees het volledige privacybeleid",
     "keysIntro": "Als je eenmaal gewend bent, komen deze goed van pas:",

@@ -151,8 +151,9 @@
     "feat4Link": "iyong personal na diksyunaryo",
     "privKicker": "Private bilang default",
     "privH2": "Ang pinapanood mo ay nananatiling sarili mong usapin",
-    "priv1": "{b} Nananatili sa iyong browser ang mga setting; ang anonymous na usage stats ay walang identidad ng account at isang click lang para i-off.",
-    "priv1Bold": "Walang anumang nakakakilala sa iyo.",
+    "priv1": "{b} Tumutulong ito sa amin na pahusayin pa ang produkto, hindi ito naka-tali sa account mo, at isang click lang para i-off — {link}. Nananatili sa browser mo ang mga setting mo.",
+    "priv1Bold": "Oo, kinokolekta namin ang anonymous na istatistika ng paggamit.",
+    "priv1Link": "narito kung paano",
     "priv2": "{b} Pinoproseso ang mga subtitle mismo sa iyong device.",
     "priv2Bold": "Hindi namin kailanman nakikita ang history ng panonood mo.",
     "priv3": "{b} Kung mag-si-sign in ka, itinatabi namin ang iyong email at ang mga na-save mong salita — wala nang iba, at hindi namin kailanman ito ibinebenta.",
@@ -198,6 +199,20 @@
     "title": "Patakaran sa privacy — Lingogram",
     "description": "Kung ano ang kinokolekta ng Lingogram, paano ito ginagamit, at ang mga pagpipiliang mayroon ka."
   },
+  "help": {
+    "analytics": {
+      "title": "Paano i-off ang anonymous na istatistika ng paggamit — Lingogram",
+      "description": "Ano ang binibilang ng anonymous na istatistika, at ang dalawang click na nag-o-off nito.",
+      "h1": "Paano i-off ang anonymous na istatistika ng paggamit",
+      "lede": "Binibilang ng extension ang mga anonymous na event tulad ng “na-load ang subtitle” at “na-save ang salita” — sa ganitong paraan nakikita namin kung saan may nasisira at kung ano ang aayusin susunod. Walang identity ng account ang mga istatistikang ito at hinding-hindi nito sinasabi kung ano ang pinapanood mo. Dalawang click lang ang kailangan para i-off ito:",
+      "step1": "I-click ang icon ng Lingogram sa toolbar ng browser para buksan ang popup ng extension.",
+      "step2": "Sa ilalim ng {group}, alisan ng check ang {label}.",
+      "groupName": "Privacy",
+      "labelName": "Ibahagi ang anonymous na istatistika ng paggamit",
+      "after": "Agad na huminto ang pangongolekta — walang kailangang i-reload. Ang eksaktong binibilang, at ang hindi kailanman lumalabas sa device mo, ay nakalista sa {link}.",
+      "afterLink": "patakaran sa privacy"
+    }
+  },
   "welcome": {
     "title": "Salamat sa pag-install ng Lingogram",
     "description": "Manood ng isang minutong tour, tapos magbukas ng video at i-save ang una mong salita.",
@@ -230,11 +245,12 @@
     "langs": "{b}, sa parehong icon din nakalagay kung saan mo pipiliin ang wikang pinag-aaralan mo at ang sarili mong wika.",
     "langsBold": "Kung mali ang hula namin sa mga wika mo",
     "privSummary": "Ano ang kinokolekta namin — at ano ang hindi",
-    "priv1": "{b} Sa device mo mismo pinoproseso ang mga subtitle, at nananatili sa browser mo ang mga setting mo. Hindi namin kailanman nakikita ang pinapanood mo.",
-    "priv1Bold": "Kapag walang account, walang anumang nakakakilala sa iyo ang nakakarating sa amin.",
+    "priv1": "{b} Puwede mo itong i-off sa settings ng extension — {link}. Pinoproseso ang mga subtitle sa mismong device mo, at nananatili sa browser mo ang mga setting mo. Hindi namin kailanman nakikita kung ano ang pinapanood mo.",
+    "priv1Bold": "Kung wala kang account, ang tanging dumarating sa amin ay anonymous na istatistika ng paggamit.",
+    "priv1Link": "narito kung paano",
     "priv2": "{b}, at ang tanging ginagawa nito ay i-sync ang diksyunaryo mo sa iba't ibang device. Kapag ganoon, itinatabi namin ang email address mo at ang mga salitang ikaw mismo ang pumiling i-save, kasama ang linya ng subtitle na pinagmulan ng bawat isa.",
     "priv2Bold": "Opsyonal ang pag-sign in",
-    "priv3": "{b} at hindi kami nagpapakita ng ads. Naka-on bilang default ang anonymous na usage stats — walang identidad ng account ang mga ito at hindi kailanman binabanggit kung ano ang pinapanood mo, at isang click lang sa popup para i-off. Naipapadala lang ang diagnostics kapag ikaw mismo ang pumindot sa report button.",
+    "priv3": "{b} o nagpapakita ng ads. Oo, kinokolekta namin ang anonymous na istatistika ng paggamit — tumutulong ito sa amin na pahusayin pa ang produkto. Walang identity ng account ang mga ito at hinding-hindi sinasabi kung ano ang pinapanood mo. Ipinapadala lang ang diagnostics kapag ikaw mismo ang pumindot sa report button.",
     "priv3Bold": "Hindi namin ibinebenta ang data mo",
     "privLink": "Basahin ang buong patakaran sa privacy",
     "keysIntro": "Kapag sanay ka na, magagamit mo ang mga ito:",

@@ -152,8 +152,9 @@
     "feat4Link": "tu diccionario personal",
     "privKicker": "Privado por defecto",
     "privH2": "Lo que ves sigue siendo asunto tuyo",
-    "priv1": "{b} La configuración se queda en tu navegador; las estadísticas de uso anónimas no llevan identidad de cuenta y se desactivan con un clic.",
-    "priv1Bold": "Nada que te identifique.",
+    "priv1": "{b} Nos ayudan a mejorar el producto, no están vinculadas a tu cuenta, y un clic las desactiva — {link}. Tu configuración se queda en tu navegador.",
+    "priv1Bold": "Sí, recopilamos estadísticas de uso anónimas.",
+    "priv1Link": "así se hace",
     "priv2": "{b} Los subtítulos se procesan directamente en tu dispositivo.",
     "priv2Bold": "Nunca vemos tu historial de reproducción.",
     "priv3": "{b} Si inicias sesión, guardamos tu correo y tus palabras guardadas — nada más, y jamás los vendemos.",
@@ -199,6 +200,20 @@
     "title": "Política de privacidad — Lingogram",
     "description": "Qué recopila Lingogram, cómo se usa, y qué opciones tienes."
   },
+  "help": {
+    "analytics": {
+      "title": "Cómo desactivar las estadísticas de uso anónimas — Lingogram",
+      "description": "Qué cuentan las estadísticas anónimas y los dos clics que las desactivan.",
+      "h1": "Cómo desactivar las estadísticas de uso anónimas",
+      "lede": "La extensión cuenta eventos anónimos como «subtítulos cargados» y «palabra guardada» — así vemos dónde falla algo y qué arreglar a continuación. Las estadísticas no llevan identidad de cuenta y nunca dicen qué estás viendo. Dos clics las desactivan:",
+      "step1": "Haz clic en el icono de Lingogram en la barra de herramientas del navegador para abrir el popup de la extensión.",
+      "step2": "En {group}, desmarca {label}.",
+      "groupName": "Privacidad",
+      "labelName": "Compartir estadísticas de uso anónimas",
+      "after": "La recopilación se detiene de inmediato — no hay que recargar nada. Qué se cuenta exactamente y qué nunca sale de tu dispositivo está en la {link}.",
+      "afterLink": "política de privacidad"
+    }
+  },
   "welcome": {
     "title": "Gracias por instalar Lingogram",
     "description": "Mira el recorrido de un minuto, luego abre un video y guarda tu primera palabra.",
@@ -231,11 +246,12 @@
     "langs": "{b}, en ese mismo icono eliges el que estás aprendiendo y el tuyo.",
     "langsBold": "Si adivinamos mal tus idiomas",
     "privSummary": "Qué recogemos — y qué no",
-    "priv1": "{b} Los subtítulos se procesan en tu dispositivo, y tus ajustes se quedan en tu navegador. Nunca vemos lo que ves.",
-    "priv1Bold": "Sin cuenta, no nos llega nada que te identifique.",
+    "priv1": "{b} Puedes desactivarlo en la configuración de la extensión — {link}. Los subtítulos se procesan en tu dispositivo, y tu configuración se queda en tu navegador. Nunca vemos qué ves.",
+    "priv1Bold": "Sin cuenta, lo único que nos llega son estadísticas de uso anónimas.",
+    "priv1Link": "así se hace",
     "priv2": "{b}, y solo sirve para sincronizar tu diccionario entre dispositivos. Entonces guardamos tu correo electrónico y las palabras que elegiste guardar, junto con la línea de subtítulo de la que salió cada una.",
     "priv2Bold": "Iniciar sesión es opcional",
-    "priv3": "{b} ni mostramos anuncios. Las estadísticas de uso anónimas están activadas por defecto — no llevan identidad de cuenta y nunca indican qué estás viendo, y se desactivan con un clic en el popup. Los diagnósticos se envían solo cuando pulsas tú mismo el botón de reportar.",
+    "priv3": "{b} ni mostramos anuncios. Sí, recopilamos estadísticas de uso anónimas — nos ayudan a mejorar el producto. No llevan identidad de cuenta y nunca dicen qué ves. Los diagnósticos solo se envían cuando tú mismo pulsas el botón de reportar.",
     "priv3Bold": "No vendemos tus datos",
     "privLink": "Leer la política de privacidad completa",
     "keysIntro": "Cuando le hayas cogido el punto, estos vienen bien:",

@@ -154,8 +154,9 @@
     "feat4Link": "vaš osebni slovar",
     "privKicker": "Zasebno privzeto",
     "privH2": "Kar gledate, ostane vaša zadeva",
-    "priv1": "{b} Nastavitve ostanejo v vašem brskalniku; anonimna statistika uporabe ne vsebuje identitete računa in jo izklopite z enim klikom.",
-    "priv1Bold": "Nič, kar bi vas identificiralo.",
+    "priv1": "{b} Pomaga nam izboljšati izdelek, ni povezana z vašim računom, en klik pa jo izklopi — {link}. Vaše nastavitve ostanejo v vašem brskalniku.",
+    "priv1Bold": "Da, zbiramo anonimno statistiko uporabe.",
+    "priv1Link": "tako se izklopi",
     "priv2": "{b} Podnapisi se obdelujejo neposredno na vaši napravi.",
     "priv2Bold": "Vaše zgodovine gledanja nikoli ne vidimo.",
     "priv3": "{b} Če se prijavite, shranimo vaš e-poštni naslov in shranjene besede — nič drugega, in jih nikoli ne prodamo.",
@@ -201,6 +202,20 @@
     "title": "Politika zasebnosti — Lingogram",
     "description": "Kaj Lingogram zbira, kako se to uporablja in kakšne izbire imate."
   },
+  "help": {
+    "analytics": {
+      "title": "Kako izklopiti anonimno statistiko uporabe — Lingogram",
+      "description": "Kaj anonimna statistika šteje in dva klika, ki jo izklopita.",
+      "h1": "Kako izklopiti anonimno statistiko uporabe",
+      "lede": "Razširitev šteje anonimne dogodke, kot sta „podnapisi naloženi“ in „beseda shranjena“ — tako vidimo, kje se kaj pokvari in kaj popraviti naslednjič. Statistika ne nosi identitete računa in nikoli ne navede, kaj gledate. Izklopita jo dva klika:",
+      "step1": "Kliknite ikono Lingograma v orodni vrstici brskalnika, da odprete pojavno okno razširitve.",
+      "step2": "Pod {group} odkljukajte {label}.",
+      "groupName": "Zasebnost",
+      "labelName": "Deli anonimno statistiko uporabe",
+      "after": "Zbiranje se ustavi takoj — ničesar ni treba znova naložiti. Kaj natančno se šteje in kaj nikoli ne zapusti vaše naprave, je navedeno v {link}.",
+      "afterLink": "politiki zasebnosti"
+    }
+  },
   "welcome": {
     "title": "Hvala, da ste namestili Lingogram",
     "description": "Oglejte si minutni video, nato odprite video in shranite svojo prvo besedo.",
@@ -233,11 +248,12 @@
     "langs": "{b}, pri isti ikoni nastavite tistega, ki se ga učite, in svojega.",
     "langsBold": "Če smo vaša jezika uganili narobe",
     "privSummary": "Kaj zbiramo — in česa ne",
-    "priv1": "{b} Podnapisi se obdelujejo na vaši napravi, vaše nastavitve pa ostanejo v vašem brskalniku. Nikoli ne vidimo, kaj gledate.",
-    "priv1Bold": "Brez računa do nas ne pride nič, kar bi vas identificiralo.",
+    "priv1": "{b} To lahko izklopite v nastavitvah razširitve — {link}. Podnapisi se obdelujejo na vaši napravi, vaše nastavitve pa ostanejo v vašem brskalniku. Nikoli ne vidimo, kaj gledate.",
+    "priv1Bold": "Brez računa do nas pride le anonimna statistika uporabe.",
+    "priv1Link": "tako se izklopi",
     "priv2": "{b} in služi samo temu, da se vaš slovar sinhronizira med napravami. Takrat shranimo vaš e-poštni naslov in besede, ki ste jih sami shranili, skupaj z vrstico podnapisov, iz katere izvira vsaka.",
     "priv2Bold": "Prijava je izbirna",
-    "priv3": "{b} in ne prikazujemo oglasov. Anonimna statistika uporabe je privzeto vklopljena — ne vsebuje identitete računa in nikoli ne razkrije, kaj gledate, izklopite pa jo z enim klikom v pojavnem oknu. Diagnostika se pošlje samo takrat, ko sami pritisnete gumb za prijavo napake.",
+    "priv3": "{b} niti ne prikazujemo oglasov. Da, zbiramo anonimno statistiko uporabe — pomaga nam izboljšati izdelek. Ne nosi identitete računa in nikoli ne navede, kaj gledate. Diagnostika se pošlje le, ko sami pritisnete gumb za prijavo.",
     "priv3Bold": "Vaših podatkov ne prodajamo",
     "privLink": "Preberite celotno politiko zasebnosti",
     "keysIntro": "Ko se boste ustalili, vam bodo prišle prav tele tipke:",

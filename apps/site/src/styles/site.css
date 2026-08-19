@@ -960,6 +960,12 @@ footer.site {
 .doc p, .doc li { color: var(--muted); font-size: 15.5px; }
 .doc strong { color: var(--ink); }
 .doc hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+/* The two steps on /help/analytics/. Wider gap than a prose list: these are
+   things to DO one after the other, and the reader is looking away at a
+   browser toolbar between them. */
+.doc ol.help-steps { display: flex; flex-direction: column; gap: 10px; margin: 0 0 1.2em; padding-inline-start: 22px; }
+.doc ol.help-steps li { color: var(--muted); font-size: 15.5px; line-height: 1.6; }
+.doc ol.help-steps b { color: var(--ink); }
 .doc table { border-collapse: collapse; width: 100%; }
 .doc th, .doc td { border: 1px solid var(--line); padding: 8px 12px; font-size: 14px; text-align: left; color: var(--muted); }
 

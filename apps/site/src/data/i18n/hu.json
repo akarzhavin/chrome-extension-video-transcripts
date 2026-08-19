@@ -151,8 +151,9 @@
     "feat4Link": "a személyes szótáradba",
     "privKicker": "Alapból privát",
     "privH2": "Amit nézel, az a te dolgod marad",
-    "priv1": "{b} A beállítások a böngésződben maradnak; az anonim használati statisztikában nincs fiókazonosító, és egy kattintással kikapcsolható.",
-    "priv1Bold": "Semmi, ami azonosítana téged.",
+    "priv1": "{b} Ez segít jobbá tenni a terméket, nincs a fiókodhoz kötve, és egy kattintással kikapcsolható — {link}. A beállításaid a böngésződben maradnak.",
+    "priv1Bold": "Igen, gyűjtünk névtelen használati statisztikát.",
+    "priv1Link": "így kell",
     "priv2": "{b} A feliratok feldolgozása közvetlenül az eszközödön történik.",
     "priv2Bold": "Sosem látjuk a nézési előzményeidet.",
     "priv3": "{b} Ha bejelentkezel, tároljuk az e-mail címedet és a mentett szavaidat — semmi mást, és sosem adjuk el őket.",
@@ -198,6 +199,20 @@
     "title": "Adatvédelmi irányelvek — Lingogram",
     "description": "Mit gyűjt a Lingogram, hogyan használja, és milyen választásaid vannak."
   },
+  "help": {
+    "analytics": {
+      "title": "Hogyan kapcsold ki a névtelen használati statisztikát — Lingogram",
+      "description": "Mit számol a névtelen statisztika, és a két kattintás, amivel kikapcsolható.",
+      "h1": "Hogyan kapcsold ki a névtelen használati statisztikát",
+      "lede": "A bővítmény olyan névtelen eseményeket számol, mint a „felirat betöltve” és a „szó elmentve” — így látjuk, hol romlik el valami, és mit kell legközelebb javítani. A statisztika nem tartalmaz fiókazonosítót, és sosem árulja el, mit nézel. Két kattintással kikapcsolható:",
+      "step1": "Kattints a Lingogram ikonjára a böngésző eszköztárán, hogy megnyíljon a bővítmény felugró ablaka.",
+      "step2": "A {group} alatt vedd ki a pipát a {label} mellől.",
+      "groupName": "Adatvédelem",
+      "labelName": "Névtelen használati statisztikák megosztása",
+      "after": "A gyűjtés azonnal leáll — semmit sem kell újratölteni. Hogy pontosan mit számolunk, és mi az, ami sosem hagyja el az eszközödet, azt az {link} sorolja fel.",
+      "afterLink": "adatvédelmi szabályzat"
+    }
+  },
   "welcome": {
     "title": "Köszönjük, hogy telepítetted a Lingogramot",
     "description": "Nézd meg az egyperces bemutatót, aztán nyiss meg egy videót, és mentsd el az első szavadat.",
@@ -230,11 +245,12 @@
     "langs": "{b}, ugyanannál az ikonnál állíthatod be azt, amit tanulsz, és a sajátodat.",
     "langsBold": "Ha rosszul tippeltük meg a nyelveidet",
     "privSummary": "Mit gyűjtünk — és mit nem",
-    "priv1": "{b} A feliratok feldolgozása a saját eszközödön történik, a beállításaid pedig a böngésződben maradnak. Sosem látjuk, mit nézel.",
-    "priv1Bold": "Fiók nélkül semmi, ami azonosítana téged, nem jut el hozzánk.",
+    "priv1": "{b} Ezt a bővítmény beállításaiban kapcsolhatod ki — {link}. A feliratok feldolgozása az eszközödön történik, a beállításaid pedig a böngésződben maradnak. Sosem látjuk, mit nézel.",
+    "priv1Bold": "Fiók nélkül csak névtelen használati statisztika jut el hozzánk.",
+    "priv1Link": "így kell",
     "priv2": "{b}, és csak arra szolgál, hogy a szótárad szinkronizálódjon az eszközeid között. Ilyenkor tároljuk az e-mail címedet és az általad elmentett szavakat, azzal a feliratsorral együtt, amelyikből származnak.",
     "priv2Bold": "A bejelentkezés opcionális",
-    "priv3": "{b}, és nem jelenítünk meg hirdetéseket. Az anonim használati statisztika alapértelmezetten be van kapcsolva — nincs benne fiókazonosító, és sosem árulja el, mit nézel, a felugró ablakban pedig egy kattintással kikapcsolható. Diagnosztikai adat csak akkor megy el, ha te magad nyomod meg a hibabejelentő gombot.",
+    "priv3": "{b}, és nem jelenítünk meg hirdetéseket sem. Igen, gyűjtünk névtelen használati statisztikát — ez segít jobbá tenni a terméket. Nem tartalmaz fiókazonosítót, és sosem árulja el, mit nézel. Diagnosztikai adat csak akkor megy, ha te magad megnyomod a jelentés gombot.",
     "priv3Bold": "Nem adjuk el az adataidat",
     "privLink": "Olvasd el a teljes adatvédelmi irányelveket",
     "keysIntro": "Ha már belerázódtál, ezek jól jönnek:",
