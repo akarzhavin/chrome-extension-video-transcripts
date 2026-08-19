@@ -46,8 +46,8 @@
     "howItWorks": "இது எப்படி செயல்படுகிறது",
     "help": "உதவி",
     "faq": "கேள்விகள்",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "புள்ளிவிவரங்களை நிறுத்து",
+    "helpAddresses": "HDrezka முகவரிகள்",
     "support": "ஆதரவு",
     "suggestSite": "ஒரு தளத்தை பரிந்துரைக்கவும்",
     "suggestSubject": "Lingogram-க்கான தள பரிந்துரை",
@@ -218,14 +218,14 @@
       "afterLink": "தனியுரிமைக் கொள்கையில்"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "நீட்சி வேலை செய்யும் HDrezka முகவரிகள் — Lingogram",
+      "description": "நீட்சி ஆதரிக்கும் HDrezka முகவரிகளின் முழு பட்டியல். நீட்சியிலிருந்தே உருவாக்கப்பட்டு ஒவ்வொரு வெளியீட்டிலும் புதுப்பிக்கப்படுகிறது.",
+      "back": "பின்செல்",
+      "h1": "நீட்சி வேலை செய்யும் HDrezka முகவரிகள்",
+      "lede": "நீட்சி வேலை செய்யும் {n} முகவரிகளின் முழு பட்டியல் கீழே உள்ளது. இது நீட்சியிலிருந்தே உருவாக்கப்படுவதால், நீங்கள் நிறுவியதுடன் எப்போதும் பொருந்தும்.",
+      "missing": "உங்கள் முகவரி பட்டியலில் இல்லையா? {link} — நாங்கள் அதைச் சேர்ப்போம்.",
+      "missingLink": "எங்களுக்கு எழுதுங்கள்",
+      "missingSubject": "எனது HDrezka முகவரி"
     }
   },
   "welcome": {
@@ -255,10 +255,10 @@
     },
     "reload": "{b}, அதை மீண்டும் ஏற்றிவிடுங்கள். புதிய நீட்டிப்பை, அது நிறுவப்பட்ட பிறகு திறக்கப்பட்ட பக்கங்களுடன் மட்டுமே Chrome இணைக்கும். அதன் பிறகு இதைப் பற்றி முற்றிலும் மறந்துவிடலாம்.",
     "reloadBold": "வேறொரு தாவலில் ஏற்கெனவே ஒரு வீடியோ திறந்திருந்தால்",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, ஆனால் நீட்சி, முடிவுக்கு முந்தைய பகுதி சரியாக {names} ஆக இருக்கும் முகவரிகளை மட்டுமே ஆதரிக்கிறது. உதாரணமாக, {yes} வேலை செய்யும், ஆனால் {no} வேலை செய்யாது. முழு பட்டியலை {link} பார்க்கலாம்.",
+    "coverageBold": "HDrezka பல முகவரிகளில் அணுகக்கூடியது",
+    "coverageOr": "அல்லது",
+    "coverageLink": "இங்கே",
     "signIn": "{b}, உள்நுழைந்துவிடுங்கள்: கருவிப்பட்டியில் உள்ள Lingogram ஐகானைக் கிளிக் செய்து, உள்நுழைவைத் தேர்ந்தெடுங்கள். ஒரு முறை போதும் — அதன் பிறகு எல்லாம் தானாகவே சேமிக்கப்படும்.",
     "signInBold": "உங்கள் சொற்கள் தொலைந்துபோகாமல் இருக்க",
     "langs": "{b}, அதே ஐகானில்தான் நீங்கள் கற்கும் மொழியையும் உங்கள் சொந்த மொழியையும் அமைக்கலாம்.",

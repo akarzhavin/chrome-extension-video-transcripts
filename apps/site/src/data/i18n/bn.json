@@ -46,8 +46,8 @@
     "howItWorks": "কীভাবে কাজ করে",
     "help": "সহায়তা",
     "faq": "সচরাচর জিজ্ঞাসা",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "পরিসংখ্যান বন্ধ করুন",
+    "helpAddresses": "HDrezka ঠিকানা",
     "support": "সাপোর্ট",
     "suggestSite": "একটি সাইট সুপারিশ করুন",
     "suggestSubject": "Lingogram-এর জন্য সাইট সুপারিশ",
@@ -218,14 +218,14 @@
       "afterLink": "গোপনীয়তা নীতিতে"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "যে HDrezka ঠিকানাগুলোতে এক্সটেনশন কাজ করে — Lingogram",
+      "description": "এক্সটেনশন যেসব HDrezka ঠিকানা সমর্থন করে তার সম্পূর্ণ তালিকা। এক্সটেনশন থেকেই তৈরি হয় এবং প্রতিটি রিলিজের সাথে আপডেট হয়।",
+      "back": "ফিরে যান",
+      "h1": "যে HDrezka ঠিকানাগুলোতে এক্সটেনশন কাজ করে",
+      "lede": "নিচে এক্সটেনশন যে {n}টি ঠিকানায় কাজ করে তার সম্পূর্ণ তালিকা দেওয়া হলো। এটি এক্সটেনশন থেকেই তৈরি হয়, তাই এটি সবসময় আপনার ইনস্টল করা সংস্করণের সাথে মিলে যায়।",
+      "missing": "আপনার ঠিকানাটি তালিকায় নেই? {link} — আমরা এটি যোগ করে দেব।",
+      "missingLink": "আমাদের লিখুন",
+      "missingSubject": "আমার HDrezka ঠিকানা"
     }
   },
   "welcome": {
@@ -255,10 +255,10 @@
     },
     "reload": "{b}, সেটি একটু রিলোড করে নিন। Chrome নতুন এক্সটেনশনকে শুধু সেই পাতাগুলোর সঙ্গেই যুক্ত করে যেগুলো ইনস্টলের পরে খোলা হয়েছে। এরপর এই ব্যাপারটা একেবারেই ভুলে যেতে পারেন।",
     "reloadBold": "যদি অন্য ট্যাবে আগে থেকেই কোনো ভিডিও খোলা থাকে",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, তবে এক্সটেনশনটি শুধু সেগুলোই সমর্থন করে যেখানে শেষাংশের আগের অংশটি ঠিক {names}। উদাহরণস্বরূপ, {yes} কাজ করে, কিন্তু {no} করে না। সম্পূর্ণ তালিকা আপনি {link} দেখতে পারেন।",
+    "coverageBold": "HDrezka অনেক ঠিকানায় পাওয়া যায়",
+    "coverageOr": "অথবা",
+    "coverageLink": "এখানে",
     "signIn": "{b}, সাইন ইন করে নিন: টুলবারে Lingogram আইকনে ক্লিক করুন আর সাইন ইন বেছে নিন। একবারই যথেষ্ট — এরপর সবকিছু নিজে থেকেই সেভ হয়ে যায়।",
     "signInBold": "যাতে আপনার শব্দগুলো হারিয়ে না যায়",
     "langs": "{b}, ওই একই আইকনেই আপনি ঠিক করে নিতে পারেন কোন ভাষা শিখছেন আর কোনটা আপনার নিজের।",

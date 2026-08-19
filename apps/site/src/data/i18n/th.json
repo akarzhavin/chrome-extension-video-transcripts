@@ -45,8 +45,8 @@
     "howItWorks": "วิธีการทำงาน",
     "help": "ช่วยเหลือ",
     "faq": "คำถามที่พบบ่อย",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "ปิดสถิติ",
+    "helpAddresses": "ที่อยู่ HDrezka",
     "support": "ฝ่ายสนับสนุน",
     "suggestSite": "แนะนำเว็บไซต์",
     "suggestSubject": "ข้อเสนอแนะเว็บไซต์สำหรับ Lingogram",
@@ -217,14 +217,14 @@
       "afterLink": "นโยบายความเป็นส่วนตัว"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "ที่อยู่ HDrezka ที่ส่วนขยายใช้งานได้ — Lingogram",
+      "description": "รายการที่อยู่ HDrezka ทั้งหมดที่ส่วนขยายรองรับ สร้างจากตัวส่วนขยายเองและอัปเดตทุกครั้งที่มีการออกเวอร์ชันใหม่",
+      "back": "กลับ",
+      "h1": "ที่อยู่ HDrezka ที่ส่วนขยายใช้งานได้",
+      "lede": "ด้านล่างคือรายการที่อยู่ทั้งหมด {n} รายการที่ส่วนขยายใช้งานได้ สร้างจากตัวส่วนขยายเอง จึงตรงกับเวอร์ชันที่คุณติดตั้งไว้เสมอ",
+      "missing": "ไม่พบที่อยู่ของคุณในรายการใช่ไหม {link} แล้วเราจะเพิ่มให้",
+      "missingLink": "เขียนถึงเรา",
+      "missingSubject": "ที่อยู่ HDrezka ของฉัน"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b} ช่วยโหลดหน้านั้นใหม่นะ Chrome จะเชื่อมส่วนขยายใหม่เข้ากับหน้าที่เปิดหลังติดตั้งเท่านั้น หลังจากนั้นก็ลืมเรื่องนี้ไปได้เลย",
     "reloadBold": "ถ้าคุณเปิดวิดีโอค้างไว้ในอีกแท็บอยู่แล้ว",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b} แต่ส่วนขยายรองรับเฉพาะที่ส่วนก่อนคำลงท้ายตรงกับ {names} เท่านั้น เช่น {yes} ใช้งานได้ แต่ {no} ใช้งานไม่ได้ คุณสามารถดูรายการทั้งหมดได้ {link}",
+    "coverageBold": "HDrezka เข้าถึงได้จากหลายที่อยู่",
+    "coverageOr": "หรือ",
+    "coverageLink": "ที่นี่",
     "signIn": "{b} ให้เข้าสู่ระบบ: คลิกไอคอน Lingogram บนแถบเครื่องมือแล้วเลือก “เข้าสู่ระบบ” ครั้งเดียวก็พอ — จากนั้นทุกอย่างจะบันทึกเองทั้งหมด",
     "signInBold": "เพื่อให้คำศัพท์ของคุณไม่หายไปไหน",
     "langs": "{b} ที่ไอคอนเดิมนั่นแหละ คุณตั้งภาษาที่กำลังเรียนและภาษาของคุณเองได้",

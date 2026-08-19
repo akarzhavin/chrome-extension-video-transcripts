@@ -45,8 +45,8 @@
     "howItWorks": "工作原理",
     "help": "帮助",
     "faq": "常见问题",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "关闭统计",
+    "helpAddresses": "HDrezka 网址",
     "support": "支持",
     "suggestSite": "推荐网站",
     "suggestSubject": "为 Lingogram 推荐一个网站",
@@ -217,14 +217,14 @@
       "afterLink": "隐私政策"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "扩展程序支持的 HDrezka 网址 — Lingogram",
+      "description": "扩展程序支持的 HDrezka 网址完整列表，由扩展程序本身生成，并随每个版本更新。",
+      "back": "返回",
+      "h1": "扩展程序支持的 HDrezka 网址",
+      "lede": "以下是扩展程序支持的全部 {n} 个网址。该列表由扩展程序本身生成，因此始终与你安装的版本保持一致。",
+      "missing": "没有找到你的网址？{link}，我们会添加上去。",
+      "missingLink": "联系我们",
+      "missingSubject": "我的 HDrezka 网址"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b}，请刷新一下。Chrome 只会把新装的扩展连到安装之后打开的页面。刷新之后，这件事就可以彻底忘了。",
     "reloadBold": "如果你在另一个标签页里已经打开了视频",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}，但扩展程序只支持后缀前面部分正好是{names}的网址。例如，{yes}可以使用，而{no}则不行。你可以在{link}查看完整列表。",
+    "coverageBold": "HDrezka 有很多可用网址",
+    "coverageOr": "或",
+    "coverageLink": "这里",
     "signIn": "{b}，请登录：点击工具栏上的 Lingogram 图标，选择「登录」。一次就够了——之后一切都会自动保存。",
     "signInBold": "为了让你的单词不丢失",
     "langs": "{b}，还是那个图标，在那里设置你正在学的语言和你的母语。",

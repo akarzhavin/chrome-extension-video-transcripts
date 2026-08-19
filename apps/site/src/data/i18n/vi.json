@@ -45,8 +45,8 @@
     "howItWorks": "Cách hoạt động",
     "help": "Trợ giúp",
     "faq": "Hỏi đáp",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Tắt thống kê",
+    "helpAddresses": "Địa chỉ HDrezka",
     "support": "Hỗ trợ",
     "suggestSite": "Đề xuất trang web",
     "suggestSubject": "Đề xuất trang web cho Lingogram",
@@ -217,14 +217,14 @@
       "afterLink": "chính sách quyền riêng tư"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Các địa chỉ HDrezka mà tiện ích hoạt động — Lingogram",
+      "description": "Danh sách đầy đủ các địa chỉ HDrezka mà tiện ích hỗ trợ. Được tạo trực tiếp từ tiện ích và cập nhật theo mỗi phiên bản.",
+      "back": "Quay lại",
+      "h1": "Các địa chỉ HDrezka mà tiện ích hoạt động",
+      "lede": "Dưới đây là danh sách đầy đủ {n} địa chỉ mà tiện ích hoạt động. Danh sách được tạo trực tiếp từ tiện ích, nên luôn khớp với phiên bản bạn đã cài đặt.",
+      "missing": "Không thấy địa chỉ của bạn trong danh sách? {link} — chúng tôi sẽ thêm vào.",
+      "missingLink": "Viết thư cho chúng tôi",
+      "missingSubject": "Địa chỉ HDrezka của tôi"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b}, hãy tải lại trang đó giúp nhé. Chrome chỉ kết nối một tiện ích mới với những trang được mở sau khi cài đặt. Xong việc này rồi thì bạn có thể quên nó đi.",
     "reloadBold": "Nếu một video đang mở sẵn ở tab khác",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, nhưng tiện ích chỉ hỗ trợ những địa chỉ có phần trước đuôi chính xác là {names}. Ví dụ, {yes} hoạt động, còn {no} thì không. Bạn có thể xem danh sách đầy đủ {link}.",
+    "coverageBold": "HDrezka có thể truy cập qua nhiều địa chỉ",
+    "coverageOr": "hoặc",
+    "coverageLink": "tại đây",
     "signIn": "{b}, hãy đăng nhập: nhấp vào biểu tượng Lingogram trên thanh công cụ và chọn Đăng nhập. Một lần là đủ — từ đó mọi thứ tự lưu lại.",
     "signInBold": "Để những từ của bạn không bị mất",
     "langs": "{b}, cũng chính biểu tượng đó là nơi bạn chọn ngôn ngữ đang học và ngôn ngữ của mình.",

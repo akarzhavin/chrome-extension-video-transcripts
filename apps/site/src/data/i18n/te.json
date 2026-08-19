@@ -46,8 +46,8 @@
     "howItWorks": "ఇది ఎలా పనిచేస్తుంది",
     "help": "సహాయం",
     "faq": "ప్రశ్నలు",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "గణాంకాలను ఆఫ్ చేయి",
+    "helpAddresses": "HDrezka చిరునామాలు",
     "support": "మద్దతు",
     "suggestSite": "ఒక సైట్‌ను సూచించండి",
     "suggestSubject": "Lingogram కోసం సైట్ సూచన",
@@ -218,14 +218,14 @@
       "afterLink": "గోప్యతా విధానంలో"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "ఎక్స్‌టెన్షన్ పనిచేసే HDrezka చిరునామాలు — Lingogram",
+      "description": "ఎక్స్‌టెన్షన్ సపోర్ట్ చేసే HDrezka చిరునామాల పూర్తి జాబితా. ఎక్స్‌టెన్షన్ నుండే రూపొందించబడి ప్రతి విడుదలతో అప్‌డేట్ అవుతుంది.",
+      "back": "వెనుకకు",
+      "h1": "ఎక్స్‌టెన్షన్ పనిచేసే HDrezka చిరునామాలు",
+      "lede": "ఎక్స్‌టెన్షన్ పనిచేసే మొత్తం {n} చిరునామాల పూర్తి జాబితా క్రింద ఉంది. ఇది ఎక్స్‌టెన్షన్ నుండే రూపొందించబడుతుంది కాబట్టి మీరు ఇన్‌స్టాల్ చేసినదానితో ఎల్లప్పుడూ సరిపోలుతుంది.",
+      "missing": "మీ చిరునామా జాబితాలో లేదా? {link} — మేము దాన్ని జోడిస్తాము.",
+      "missingLink": "మాకు రాయండి",
+      "missingSubject": "నా HDrezka చిరునామా"
     }
   },
   "welcome": {
@@ -255,10 +255,10 @@
     },
     "reload": "{b}, దయచేసి దాన్ని రీలోడ్ చేయండి. కొత్త ఎక్స్‌టెన్షన్‌ను, అది ఇన్‌స్టాల్ అయిన తర్వాత తెరిచిన పేజీలకు మాత్రమే Chrome కలుపుతుంది. ఆ తర్వాత ఈ విషయాన్ని పూర్తిగా మర్చిపోవచ్చు.",
     "reloadBold": "ఇంకో ట్యాబ్‌లో ఇప్పటికే ఒక వీడియో తెరిచి ఉంటే",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, కానీ ఎక్స్‌టెన్షన్ ముగింపుకు ముందు భాగం సరిగ్గా {names} ఉన్న చిరునామాలను మాత్రమే సపోర్ట్ చేస్తుంది. ఉదాహరణకు, {yes} పనిచేస్తుంది, కానీ {no} పనిచేయదు. పూర్తి జాబితాను {link} చూడవచ్చు.",
+    "coverageBold": "HDrezka అనేక చిరునామాల్లో అందుబాటులో ఉంది",
+    "coverageOr": "లేదా",
+    "coverageLink": "ఇక్కడ",
     "signIn": "{b}, సైన్ ఇన్ చేయండి: టూల్‌బార్‌లోని Lingogram ఐకాన్‌ను క్లిక్ చేసి సైన్ ఇన్ ఎంచుకోండి. ఒక్కసారి చాలు — ఆ తర్వాత అంతా దానంతట అదే సేవ్ అవుతుంది.",
     "signInBold": "మీ పదాలు పోకుండా ఉండాలంటే",
     "langs": "{b}, అదే ఐకాన్‌లోనే మీరు నేర్చుకుంటున్న భాషను, మీ సొంత భాషను ఎంచుకోవచ్చు.",

@@ -46,8 +46,8 @@
     "howItWorks": "Como funciona",
     "help": "Ajuda",
     "faq": "Perguntas frequentes",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Desativar estatísticas",
+    "helpAddresses": "Endereços do HDrezka",
     "support": "Suporte",
     "suggestSite": "Sugerir um site",
     "suggestSubject": "Sugestão de site para o Lingogram",
@@ -218,14 +218,14 @@
       "afterLink": "política de privacidade"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Endereços do HDrezka com que a extensão funciona — Lingogram",
+      "description": "A lista completa dos endereços do HDrezka que a extensão cobre. Gerada a partir da própria extensão e atualizada em cada versão.",
+      "back": "Voltar",
+      "h1": "Endereços do HDrezka com que a extensão funciona",
+      "lede": "Abaixo está a lista completa dos {n} endereços com que a extensão funciona. É gerada a partir da própria extensão, por isso corresponde sempre ao que tem instalado.",
+      "missing": "O seu endereço não está na lista? {link} — nós adicionamo-lo.",
+      "missingLink": "Escreva-nos",
+      "missingSubject": "O meu endereço do HDrezka"
     }
   },
   "welcome": {
@@ -255,10 +255,10 @@
     },
     "reload": "{b}, recarregue-o, por favor. O Chrome só liga uma extensão nova às páginas abertas depois de a instalar. A partir daí pode esquecer que isto surgiu.",
     "reloadBold": "Se já tiver um vídeo aberto noutro separador",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, mas a extensão só cobre aquelas em que a parte antes da terminação é exatamente {names}. Por exemplo, {yes} funciona, mas {no} não. Pode ver a lista completa {link}.",
+    "coverageBold": "O HDrezka está disponível em vários endereços",
+    "coverageOr": "ou",
+    "coverageLink": "aqui",
     "signIn": "{b}, inicie sessão: clique no ícone do Lingogram na barra de ferramentas e escolha «Iniciar sessão». Uma vez basta — daí em diante guarda-se tudo sozinho.",
     "signInBold": "Para que as suas palavras fiquem guardadas",
     "langs": "{b}, é no mesmo ícone que define o que está a aprender e o seu.",

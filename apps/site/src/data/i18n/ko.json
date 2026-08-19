@@ -45,8 +45,8 @@
     "howItWorks": "이용 방법",
     "help": "도움말",
     "faq": "자주 묻는 질문",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "통계 끄기",
+    "helpAddresses": "HDrezka 주소",
     "support": "지원",
     "suggestSite": "사이트 제안하기",
     "suggestSubject": "Lingogram 사이트 제안",
@@ -217,14 +217,14 @@
       "afterLink": "개인정보 처리방침"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "확장 프로그램이 지원하는 HDrezka 주소 — Lingogram",
+      "description": "확장 프로그램이 지원하는 HDrezka 주소의 전체 목록이에요. 확장 프로그램에서 직접 생성되며 릴리스마다 업데이트돼요.",
+      "back": "뒤로",
+      "h1": "확장 프로그램이 지원하는 HDrezka 주소",
+      "lede": "아래는 확장 프로그램이 지원하는 {n}개 주소의 전체 목록이에요. 확장 프로그램에서 직접 생성되므로 항상 설치된 버전과 일치해요.",
+      "missing": "목록에 주소가 없나요? {link} — 추가해 드릴게요.",
+      "missingLink": "문의하기",
+      "missingSubject": "내 HDrezka 주소"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b} 새로고침해 주세요. Chrome은 새 확장 프로그램을 설치 이후에 연 페이지에만 연결해 주거든요. 그다음부터는 이런 일 신경 쓰지 않으셔도 돼요.",
     "reloadBold": "다른 탭에 영상이 이미 열려 있다면",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}. 다만 확장 프로그램은 끝부분 앞의 부분이 정확히 {names}인 주소만 지원해요. 예를 들어 {yes}는 작동하지만 {no}는 작동하지 않아요. 전체 목록은 {link}에서 볼 수 있어요.",
+    "coverageBold": "HDrezka는 여러 주소로 접속할 수 있어요",
+    "coverageOr": "또는",
+    "coverageLink": "여기",
     "signIn": "{b} 로그인해 주세요. 툴바의 Lingogram 아이콘을 클릭하고 '로그인'을 선택하시면 돼요. 한 번이면 충분해요 — 그다음부터는 알아서 저장돼요.",
     "signInBold": "저장한 단어가 사라지지 않도록",
     "langs": "{b}, 같은 아이콘에서 배우는 언어와 모국어를 바꿀 수 있어요.",

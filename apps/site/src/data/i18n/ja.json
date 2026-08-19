@@ -45,8 +45,8 @@
     "howItWorks": "使い方",
     "help": "ヘルプ",
     "faq": "よくある質問",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "統計をオフにする",
+    "helpAddresses": "HDrezkaのアドレス",
     "support": "サポート",
     "suggestSite": "サイトをリクエスト",
     "suggestSubject": "Lingogramへのサイトリクエスト",
@@ -217,14 +217,14 @@
       "afterLink": "プライバシーポリシー"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "拡張機能が対応しているHDrezkaのアドレス — Lingogram",
+      "description": "拡張機能が対応しているHDrezkaのアドレスの一覧です。拡張機能自体から生成され、リリースのたびに更新されます。",
+      "back": "戻る",
+      "h1": "拡張機能が対応しているHDrezkaのアドレス",
+      "lede": "以下は、拡張機能が対応している{n}件のアドレスの一覧です。拡張機能自体から生成されているため、インストールされているものと常に一致します。",
+      "missing": "お使いのアドレスが一覧にありませんか？{link} — 追加いたします。",
+      "missingLink": "お問い合わせ",
+      "missingSubject": "私のHDrezkaアドレス"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b}、そのページを再読み込みしてください。Chromeは、新しい拡張機能をインストール後に開いたページにしかつなげません。それさえ済めば、あとはもう気にしなくて大丈夫です。",
     "reloadBold": "別のタブで動画をすでに開いているなら",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}が、拡張機能が対応しているのは、末尾の前の部分がちょうど{names}のものだけです。たとえば{yes}は使えますが、{no}は使えません。完全なリストは{link}でご確認いただけます。",
+    "coverageBold": "HDrezkaは多くのアドレスでアクセスできます",
+    "coverageOr": "または",
+    "coverageLink": "こちら",
     "signIn": "{b}、ログインしてください。ツールバーのLingogramアイコンをクリックして「ログイン」を選ぶだけです。一度きりで十分 — あとはひとりでに保存されます。",
     "signInBold": "保存した単語が残るように",
     "langs": "{b}、同じアイコンから、学習中の言語と母語を設定できます。",

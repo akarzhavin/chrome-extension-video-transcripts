@@ -45,8 +45,8 @@
     "howItWorks": "Nasıl çalışır",
     "help": "Yardım",
     "faq": "SSS",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "İstatistikleri kapat",
+    "helpAddresses": "HDrezka adresleri",
     "support": "Destek",
     "suggestSite": "Site öner",
     "suggestSubject": "Lingogram için site önerisi",
@@ -217,14 +217,14 @@
       "afterLink": "gizlilik politikasında"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Uzantının çalıştığı HDrezka adresleri — Lingogram",
+      "description": "Uzantının desteklediği HDrezka adreslerinin tam listesi. Doğrudan uzantıdan oluşturulur ve her sürümle güncellenir.",
+      "back": "Geri",
+      "h1": "Uzantının çalıştığı HDrezka adresleri",
+      "lede": "Aşağıda uzantının çalıştığı {n} adresin tam listesi bulunuyor. Doğrudan uzantıdan oluşturulduğu için her zaman yüklü olan sürümünüzle eşleşir.",
+      "missing": "Adresiniz listede yok mu? {link} — ekleyelim.",
+      "missingLink": "Bize yazın",
+      "missingSubject": "HDrezka adresim"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b}, lütfen onu yenileyin. Chrome yeni bir uzantıyı yalnızca kurulumdan sonra açılan sayfalara bağlar. Ondan sonra bunu tamamen unutabilirsiniz.",
     "reloadBold": "Başka bir sekmede zaten açık bir video varsa",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, ancak uzantı yalnızca uzantı öncesindeki kısmın tam olarak {names} olduğu adresleri destekler. Örneğin {yes} çalışır, {no} ise çalışmaz. Tam listeyi {link} görebilirsiniz.",
+    "coverageBold": "HDrezka birçok adresten erişilebilir",
+    "coverageOr": "veya",
+    "coverageLink": "burada",
     "signIn": "{b}, giriş yapın: araç çubuğundaki Lingogram simgesine tıklayıp «Giriş yap»ı seçin. Bir kez yeterli — sonrası kendiliğinden kaydedilir.",
     "signInBold": "Kelimeleriniz kaybolmasın diye",
     "langs": "{b}, öğrendiğiniz dili ve kendi dilinizi aynı simgeden ayarlayabilirsiniz.",

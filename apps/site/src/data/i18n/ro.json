@@ -47,8 +47,8 @@
     "howItWorks": "Cum funcționează",
     "help": "Ajutor",
     "faq": "Întrebări frecvente",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Dezactivează statisticile",
+    "helpAddresses": "Adrese HDrezka",
     "support": "Suport",
     "suggestSite": "Sugerează un site",
     "suggestSubject": "Sugestie de site pentru Lingogram",
@@ -219,14 +219,14 @@
       "afterLink": "politica de confidențialitate"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Adrese HDrezka pe care funcționează extensia — Lingogram",
+      "description": "Lista completă a adreselor HDrezka acoperite de extensie. Generată direct din extensie și actualizată la fiecare versiune.",
+      "back": "Înapoi",
+      "h1": "Adrese HDrezka pe care funcționează extensia",
+      "lede": "Mai jos este lista completă a celor {n} adrese pe care funcționează extensia. Este generată direct din extensie, așa că se potrivește mereu cu ce ai instalat.",
+      "missing": "Adresa ta nu e pe listă? {link} — o adăugăm.",
+      "missingLink": "Scrie-ne",
+      "missingSubject": "Adresa mea HDrezka"
     }
   },
   "welcome": {
@@ -256,10 +256,10 @@
     },
     "reload": "{b}, te rugăm să o reîncarci. Chrome conectează o extensie nouă doar la paginile deschise după instalarea ei. După asta poți uita că a fost vreodată vorba despre asta.",
     "reloadBold": "Dacă ai deja un videoclip deschis în altă filă",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, dar extensia acoperă doar acelea unde partea dinaintea terminației este exact {names}. De exemplu, {yes} funcționează, în timp ce {no} nu. Poți vedea lista completă {link}.",
+    "coverageBold": "HDrezka este accesibilă la multe adrese",
+    "coverageOr": "sau",
+    "coverageLink": "aici",
     "signIn": "{b}, conectează-te: dă clic pe iconița Lingogram din bara de instrumente și alege Conectare. E de ajuns o dată — de acolo încolo totul se salvează singur.",
     "signInBold": "Ca să-ți rămână cuvintele salvate",
     "langs": "{b}, tot de la aceeași iconiță o alegi pe cea pe care o înveți și pe a ta.",

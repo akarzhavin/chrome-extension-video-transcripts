@@ -48,8 +48,8 @@
     "howItWorks": "Ako to funguje",
     "help": "Pomoc",
     "faq": "Časté otázky",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Vypnúť štatistiky",
+    "helpAddresses": "Adresy HDrezka",
     "support": "Podpora",
     "suggestSite": "Navrhnúť stránku",
     "suggestSubject": "Návrh stránky pre Lingogram",
@@ -220,14 +220,14 @@
       "afterLink": "zásadách ochrany súkromia"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Adresy HDrezka, s ktorými rozšírenie funguje — Lingogram",
+      "description": "Úplný zoznam adries HDrezka, ktoré rozšírenie podporuje. Generuje sa priamo z rozšírenia a aktualizuje sa s každou verziou.",
+      "back": "Späť",
+      "h1": "Adresy HDrezka, s ktorými rozšírenie funguje",
+      "lede": "Nižšie je úplný zoznam {n} adries, s ktorými rozšírenie funguje. Generuje sa priamo z rozšírenia, takže vždy zodpovedá tomu, čo máte nainštalované.",
+      "missing": "Vaša adresa nie je v zozname? {link} — pridáme ju.",
+      "missingLink": "Napíšte nám",
+      "missingSubject": "Moja adresa HDrezka"
     }
   },
   "welcome": {
@@ -257,10 +257,10 @@
     },
     "reload": "{b}, načítajte ju prosím znova. Chrome pripojí nové rozšírenie len k stránkam, ktoré sa otvorili až po inštalácii. Potom už na to môžete zabudnúť.",
     "reloadBold": "Ak máte video otvorené v inej karte",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, ale rozšírenie podporuje iba tie, kde je časť pred koncovkou presne {names}. Napríklad {yes} funguje, kým {no} nie. Celý zoznam si môžete pozrieť {link}.",
+    "coverageBold": "HDrezka je dostupná na mnohých adresách",
+    "coverageOr": "alebo",
+    "coverageLink": "tu",
     "signIn": "{b} sa prihláste: kliknite na ikonu Lingogram na paneli nástrojov a vyberte Prihlásiť sa. Stačí raz — odvtedy sa všetko ukladá samo.",
     "signInBold": "Aby vám slová zostali",
     "langs": "{b}, na tej istej ikone si nastavíte ten, ktorý sa učíte, aj svoj vlastný.",

@@ -45,8 +45,8 @@
     "howItWorks": "Cara ia berfungsi",
     "help": "Bantuan",
     "faq": "Soalan Lazim",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Matikan statistik",
+    "helpAddresses": "Alamat HDrezka",
     "support": "Sokongan",
     "suggestSite": "Cadangkan laman",
     "suggestSubject": "Cadangan laman untuk Lingogram",
@@ -217,14 +217,14 @@
       "afterLink": "dasar privasi"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "Alamat HDrezka yang disokong sambungan — Lingogram",
+      "description": "Senarai penuh alamat HDrezka yang disokong sambungan. Dijana terus daripada sambungan dan dikemas kini pada setiap keluaran.",
+      "back": "Kembali",
+      "h1": "Alamat HDrezka yang disokong sambungan",
+      "lede": "Di bawah ialah senarai penuh {n} alamat yang disokong sambungan. Ia dijana terus daripada sambungan, jadi sentiasa sepadan dengan versi yang anda pasang.",
+      "missing": "Alamat anda tiada dalam senarai? {link} — kami akan tambahkannya.",
+      "missingLink": "Tulis kepada kami",
+      "missingSubject": "Alamat HDrezka saya"
     }
   },
   "welcome": {
@@ -254,10 +254,10 @@
     },
     "reload": "{b}, sila muat semula halaman itu. Chrome hanya menyambungkan sambungan baharu kepada halaman yang dibuka selepas ia dipasang. Selepas itu, anda boleh lupakan hal ini terus.",
     "reloadBold": "Jika sebuah video sudah terbuka di tab lain",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, tetapi sambungan hanya menyokong yang bahagian sebelum akhirannya adalah {names}. Contohnya, {yes} berfungsi, manakala {no} tidak. Anda boleh lihat senarai penuh {link}.",
+    "coverageBold": "HDrezka boleh diakses melalui banyak alamat",
+    "coverageOr": "atau",
+    "coverageLink": "di sini",
     "signIn": "{b}, sila log masuk: klik ikon Lingogram pada bar alat dan pilih Log masuk. Sekali sahaja sudah memadai — selepas itu semuanya tersimpan dengan sendirinya.",
     "signInBold": "Supaya perkataan anda tidak hilang",
     "langs": "{b}, pada ikon yang sama itulah anda tetapkan bahasa yang sedang dipelajari dan bahasa anda sendiri.",

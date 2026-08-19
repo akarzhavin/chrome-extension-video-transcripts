@@ -46,8 +46,8 @@
     "howItWorks": "Kuidas see töötab",
     "help": "Abi",
     "faq": "KKK",
-    "helpAnalytics": "Turn off analytics",
-    "helpAddresses": "HDrezka addresses",
+    "helpAnalytics": "Lülita statistika välja",
+    "helpAddresses": "HDrezka aadressid",
     "support": "Tugi",
     "suggestSite": "Soovita saiti",
     "suggestSubject": "Saidi soovitus Lingogrammile",
@@ -218,14 +218,14 @@
       "afterLink": "privaatsuspoliitikas"
     },
     "addresses": {
-      "title": "HDrezka addresses the extension works on — Lingogram",
-      "description": "The full list of HDrezka addresses the extension covers. Generated from the extension itself and updated with every release.",
-      "back": "Back",
-      "h1": "HDrezka addresses the extension works on",
-      "lede": "Below is the full list of {n} addresses the extension works on. It is generated from the extension itself, so it always matches what you have installed.",
-      "missing": "Your address is not on the list? {link} — we'll add it.",
-      "missingLink": "Write to us",
-      "missingSubject": "My HDrezka address"
+      "title": "HDrezka aadressid, millega laiendus töötab — Lingogram",
+      "description": "Täielik loend HDrezka aadressidest, mida laiendus toetab. Genereeritud laiendusest endast ja uuendatud iga versiooniga.",
+      "back": "Tagasi",
+      "h1": "HDrezka aadressid, millega laiendus töötab",
+      "lede": "Allpool on täielik loend {n} aadressist, millega laiendus töötab. See genereeritakse laiendusest endast, seega vastab see alati sinu installitud versioonile.",
+      "missing": "Sinu aadressi pole loendis? {link} — lisame selle.",
+      "missingLink": "Kirjuta meile",
+      "missingSubject": "Minu HDrezka aadress"
     }
   },
   "welcome": {
@@ -255,10 +255,10 @@
     },
     "reload": "{b}, laadi see palun uuesti. Chrome ühendab uue laienduse ainult nende lehtedega, mis avati pärast selle paigaldamist. Pärast seda võid selle täiesti unustada.",
     "reloadBold": "Kui video on juba teisel vahekaardil lahti",
-    "coverage": "{b}, but the extension only covers the ones where the part before the ending is exactly {names}. For example, {yes} works, while {no} does not. You can see the full list {link}.",
-    "coverageBold": "HDrezka is reachable at many addresses",
-    "coverageOr": "or",
-    "coverageLink": "here",
+    "coverage": "{b}, kuid laiendus toetab ainult neid, kus osa enne lõppu on täpselt {names}. Näiteks {yes} töötab, aga {no} mitte. Kogu loendit näed {link}.",
+    "coverageBold": "HDrezka on kättesaadav paljudel aadressidel",
+    "coverageOr": "või",
+    "coverageLink": "siit",
     "signIn": "{b}, logi sisse: klõpsa tööriistaribal Lingogrami ikoonil ja vali Logi sisse. Ühest korrast piisab — edasi salvestub kõik iseenesest.",
     "signInBold": "Et su sõnad alles jääksid",
     "langs": "{b}, sama ikooni alt seadistad selle, mida õpid, ja oma enda oma.",
