@@ -367,6 +367,94 @@ describe('SidebarUI', () => {
             expect(space.defaultPrevented).toBe(true); // Space must not scroll
         });
 
+        describe('a far-off sidebar click is navigation, not a reveal', () => {
+            // Clicking a line several seconds away is someone moving through
+            // the transcript. Spending a reveal there uncovers a word nobody
+            // asked about, and there is no way to put it back.
+            const LINES = [
+                { startTime: 0, endTime: 2, text: 'alpha beta gamma' },
+                { startTime: 30, endTime: 32, text: 'delta epsilon zeta' },
+            ] as Subtitle[];
+
+            const buildList = (playhead: number) => {
+                state.displayMode = 'guess';
+                state.addTrack('English', LINES);
+                ui.renderSubtitles();
+                // How the sidebar learns where playback is.
+                ui.highlightSubtitle(playhead);
+                return ui.elements.list!;
+            };
+            const itemAt = (list: Element, i: number) =>
+                list.querySelector(`.vtt-item[data-index="${i}"]`) as HTMLElement;
+
+            test('it seeks without revealing', () => {
+                const list = buildList(0);
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(30);
+                expect(state.getRevealedCount(1)).toBe(1); // untouched
+            });
+
+            test('a click on the line you are already on still reveals', () => {
+                const list = buildList(0);
+                itemAt(list, 0).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(0);
+                expect(state.getRevealedCount(0)).toBe(2);
+            });
+
+            test('the reach is time, not line count — a neighbour far in time only seeks', () => {
+                // The two lines are adjacent in the transcript but 30s apart.
+                // Counting lines would have called this "the next one over".
+                const list = buildList(0);
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(state.getRevealedCount(1)).toBe(1);
+            });
+
+            test('once playback is there, the same line reveals', () => {
+                const list = buildList(30);
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(state.getRevealedCount(1)).toBe(2);
+            });
+
+            test('a jump then a second click on the same line reveals it', () => {
+                // The video's currentTime lags a seek, so the sidebar records
+                // where it sent playback. Without that, this second click would
+                // still measure from the old position and refuse again.
+                const list = buildList(0);
+
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(state.getRevealedCount(1)).toBe(1); // navigation
+
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(state.getRevealedCount(1)).toBe(2); // now it is the line you are on
+            });
+
+            // Each route in gets its own list: the first far-off interaction
+            // moves the playhead, so a second one on the same line is no longer
+            // far off — that is the intended behaviour, not a case to retest.
+            test('a press on a masked word far away only seeks', () => {
+                const list = buildList(0);
+                const masked = itemAt(list, 1)
+                    .querySelector('.vtt-masked-word') as HTMLElement;
+
+                masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(30);
+                expect(state.getRevealedCount(1)).toBe(1);
+            });
+
+            test('Enter on a line far away only seeks', () => {
+                const list = buildList(0);
+
+                itemAt(list, 1).dispatchEvent(new KeyboardEvent('keydown',
+                    { key: 'Enter', bubbles: true, cancelable: true }));
+
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(30);
+                expect(state.getRevealedCount(1)).toBe(1);
+            });
+        });
+
         test('guess items carry no action row — the line itself is the only control', () => {
             state.displayMode = 'guess';
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
@@ -391,6 +479,175 @@ describe('SidebarUI', () => {
             // dictionary, so it must survive.
             state.displayMode = 'dual';
             expect(dbl()).toBe(false);
+        });
+
+        describe('peek: hovering a masked word holds it open', () => {
+            const over = (el: Element, from: Element | null = null) =>
+                el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, relatedTarget: from }));
+            const out = (el: Element, to: Node | null = null) =>
+                el.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: to }));
+            // The capsule turns over to open: the text is swapped at the
+            // halfway point of the flip, not on the hover itself, so these
+            // tests have to let the timer run.
+            const settleFlip = () => jest.advanceTimersByTime(200);
+
+            beforeEach(() => jest.useFakeTimers());
+            afterEach(() => jest.useRealTimers());
+
+            test('the word shows under the cursor and hides again when it leaves', () => {
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                const filler = masked.textContent;
+                expect(filler).not.toBe('beta');
+
+                over(masked);
+                settleFlip();
+                expect(masked.textContent).toBe('beta');
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
+
+                out(masked);
+                settleFlip();
+                expect(masked.textContent).toBe(filler);
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
+            });
+
+            test('the capsule itself never rotates — only its inner face does', () => {
+                // A rotating span leaves the cursor's hit area at 90deg, so
+                // Chrome fires mouseout, the capsule flops back under the
+                // cursor, mouseover fires again — an endless flip against a
+                // mouse that never moved, with the word never showing. The span
+                // must stay flat and keep the hit area; only its contents turn.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+
+                over(masked);
+                const face = masked.querySelector('.vtt-peek-face');
+                expect(face).not.toBeNull();
+                // The word lives inside the rotating layer, not on the span.
+                expect(masked.firstElementChild).toBe(face);
+                settleFlip();
+                expect(face!.textContent).toBe('beta');
+                // textContent still reads through the layer, so quick-add and
+                // the reveal path see the same string they always did.
+                expect(masked.textContent).toBe('beta');
+            });
+
+            test('the capsule is edge-on while the text is being swapped', () => {
+                // The swap must land in the frame nobody can see: the filler and
+                // the word are different widths, so a mid-flight resize would be
+                // the one thing that gives the trick away.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                const filler = masked.textContent;
+
+                over(masked);
+                // First half of the turn: still showing the frosted face.
+                expect(masked.classList.contains('vtt-flipping')).toBe(true);
+                expect(masked.textContent).toBe(filler);
+
+                settleFlip();
+                expect(masked.classList.contains('vtt-flipping')).toBe(false);
+                expect(masked.textContent).toBe('beta');
+            });
+
+            test('a peek is looking, not answering: reveal state does not move', () => {
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                over(masked);
+                out(masked);
+                expect(state.getRevealedCount(0)).toBe(1);
+                expect(masked.classList.contains('vtt-masked-word')).toBe(true);
+            });
+
+            test('a peeked word is still not saveable — data-word stays off', () => {
+                // quick-add reads span[data-word]; only a word the user actually
+                // revealed may be offered to the dictionary.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                over(masked);
+                settleFlip();
+                expect(masked.dataset.word).toBeUndefined();
+                expect(masked.dataset.hidden).toBe('beta');
+            });
+
+            test('moving between words peeks only the one under the cursor', () => {
+                const overlay = buildGuessOverlay();
+                const [beta, gamma] = Array.from(
+                    overlay.querySelectorAll<HTMLElement>('.vtt-masked-word'));
+
+                over(beta);
+                settleFlip();
+                out(beta, gamma);
+                over(gamma, beta);
+                settleFlip();
+                expect(beta.textContent).not.toBe('beta');
+                expect(gamma.textContent).toBe('gamma');
+                expect(overlay.querySelectorAll('.vtt-peeked-word')).toHaveLength(1);
+            });
+
+            test('sliding straight from one capsule to the next closes the first', () => {
+                // Both flips are in flight at once here. With a single shared
+                // timer the opening one cancelled the closing one, and the word
+                // left behind stayed face-up and mid-turn for good.
+                const overlay = buildGuessOverlay();
+                const [beta, gamma] = Array.from(
+                    overlay.querySelectorAll<HTMLElement>('.vtt-masked-word'));
+                const betaFiller = beta.textContent;
+
+                over(beta);
+                settleFlip();
+                // No settle in between: the cursor leaves beta and lands on
+                // gamma within the same frame.
+                out(beta, gamma);
+                over(gamma, beta);
+                settleFlip();
+
+                expect(beta.textContent).toBe(betaFiller);
+                expect(beta.classList.contains('vtt-flipping')).toBe(false);
+                expect(beta.classList.contains('vtt-peeked-word')).toBe(false);
+                expect(gamma.textContent).toBe('gamma');
+            });
+
+            test('revealing while peeking leaves the word out, not re-masked', () => {
+                // peekOff must never paint the filler back over a word the
+                // reveal has just legitimately uncovered.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                over(masked);
+                settleFlip();
+                masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+                out(masked);
+                settleFlip();
+
+                const spans = overlay.querySelectorAll<HTMLElement>('.vtt-revealed-word');
+                expect(Array.from(spans, (s) => s.textContent)).toEqual(['alpha', 'beta']);
+            });
+
+            test('the sidebar does not peek — it is the overlay affordance', () => {
+                // Peeking belongs to the line you are watching. The sidebar is a
+                // transcript you scroll, and sweeping the cursor down it would
+                // flip capsules the whole way.
+                state.displayMode = 'guess';
+                state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+                ui.renderSubtitles();
+                const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+                const masked = item.querySelector('.vtt-masked-word') as HTMLElement;
+                const filler = masked.textContent;
+
+                over(masked);
+                settleFlip();
+                expect(masked.textContent).toBe(filler);
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
+            });
+
+            test('hover does nothing outside guess mode', () => {
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                state.displayMode = 'dual';
+                over(masked);
+                settleFlip();
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
+            });
         });
     });
 

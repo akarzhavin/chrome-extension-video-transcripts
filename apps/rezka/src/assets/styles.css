@@ -1586,6 +1586,13 @@
     text-shadow: none;
     -webkit-user-select: none;
     user-select: none;
+    /* Depth for the peek's turn, which happens on the inner .vtt-peek-face —
+       this element must never transform itself. A rotating span leaves the
+       cursor's hit area at 90deg, and Chrome then fires mouseout / mouseover
+       forever against a mouse that never moved. Modest depth on purpose: a
+       capsule is small, and a short focal length throws its far edge into a
+       distorted wedge. */
+    perspective: 320px;
     transition: background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -1643,6 +1650,87 @@
 
 .vtt-overlay-main:hover .vtt-next-word {
     background-color: rgba(124, 141, 255, 0.62);
+}
+
+/* A peek: the pane held open under the cursor. Guess mode is a puzzle, not a
+   wall — you can look at a word without answering for it, and the moment the
+   cursor leaves the pane closes and the line is unsolved again.
+   Deliberately NOT the revealed look: the pane stays — its body and ring are
+   still there under the legible glyphs — so a peeked word never reads as one
+   you have earned. The word is real text here, which is why this is also the
+   one masked state that is selectable: you can only copy what you already see.
+   No cursor of its own: the capsule is still the click target it was before the
+   peek existed, and a lookup cursor over something you can also click reads as
+   a contradiction. */
+.vtt-masked-word.vtt-peeked-word {
+    color: var(--vtt-text);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* The frosted gradient is the pane's "nothing to see"; under a peek there is,
+   so the glass thins out of the way of the glyphs. */
+.vtt-masked-word.vtt-peeked-word::before {
+    opacity: 0;
+}
+
+/* The capsule turns over on its horizontal axis to open and to close: the
+   frosted side goes away edge-on and the word comes round on the back, which
+   is the physical version of what a peek already means — the card is not
+   replaced, it is the same card seen from the other side.
+   The turn is halved in the markup, not the stylesheet: JS rotates the face to
+   90deg, swaps the text while it is edge-on and invisible, then lets it settle
+   back to flat. Two reasons it must be done that way rather than as one 180deg
+   keyframe — the far side would arrive mirrored, and the two faces are
+   different widths (the filler is half the word's length), so the size change
+   has to land in the frame where nothing is visible. */
+.vtt-peek-face {
+    display: inline-block;
+    transform: rotateX(0deg);
+    /* ease-OUT is the second half of the turn, settling back to flat; the
+       .vtt-flipping rule below overrides it with ease-in for the first half, so
+       the two halves read as one continuous move. */
+    transition: transform 0.18s ease-out;
+}
+
+/* Edge-on: the halfway pose, and the only frame in which the width change
+   between filler and word is invisible. */
+.vtt-flipping > .vtt-peek-face {
+    transform: rotateX(90deg);
+    transition: transform 0.18s ease-in;
+}
+
+/* A flip is decorative motion over a moving picture; anyone who has asked the
+   OS for less of it gets the swap with no turn at all. The text still changes
+   on hover — only the rotation goes. */
+@media (prefers-reduced-motion: reduce) {
+    .vtt-peek-face,
+    .vtt-flipping > .vtt-peek-face {
+        transform: none;
+        transition: none;
+    }
+}
+
+/* Over the video the peeked pane keeps its own dark body — same reason the
+   masked pane has one: the caption backing may be fully transparent, and white
+   glyphs on a white frame vanish without it. */
+.vtt-overlay-main .vtt-masked-word.vtt-peeked-word {
+    color: var(--vtt-overlay-color, #fff);
+    background-color: rgba(18, 20, 27, 0.55);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+    /* .vtt-masked-word kills the text-shadow so its transparent filler cannot
+       paint; a peeked word is real text on video and needs the edge back. */
+    text-shadow: var(--vtt-overlay-edge, none);
+}
+
+/* The next-word tint outranks the peek fill in source order, but a peeked
+   target must still read as peeked. */
+.vtt-overlay-main .vtt-next-word.vtt-peeked-word {
+    background-color: rgba(124, 141, 255, 0.45);
 }
 
 /* The panes carry vertical padding, so a wrapped guess line needs a little more
