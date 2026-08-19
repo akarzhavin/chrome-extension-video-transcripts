@@ -960,6 +960,246 @@ footer.site {
 .doc p, .doc li { color: var(--muted); font-size: 15.5px; }
 .doc strong { color: var(--ink); }
 .doc hr { border: none; border-top: 1px solid var(--line); margin: 2.2em 0; }
+/* The "turn it off" miniature on /help/analytics/ — the sidebar route to the
+   setting, since that is where someone watching a video already is. Same
+   grammar as the home page's mode slides: a mock of a real surface, a ripple
+   on each control being taught, and a caption naming the resulting state.
+
+   Markup, not a recorded GIF: the label inside is the same extension locale
+   string the steps quote, so the drawing translates with the page.
+
+   Every measurement is the extension's own (see the extension stylesheets
+   under apps, src/assets/styles.css):
+   the switch is 26×15 with 11px of knob travel, the accent is --vtt-accent,
+   and the privacy row carries a lock and NO group heading — the sidebar has
+   none. It stays dark in both themes because the real panel is dark. */
+/* container-type: inline-size makes the box ignore its own contents when
+   sizing — and every layer inside is absolutely positioned, so the height
+   has to come from the aspect ratio applied to a definite width. Setting
+   both on the same element collapses it to zero; the ratio therefore lives
+   on the figure and the query container on the frame inside it. */
+.hviz {
+  margin: 0 0 1.6em;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line); border-radius: 16px;
+  overflow: hidden;
+}
+.hviz-scene {
+  position: relative; display: block; width: 100%; height: 100%;
+  background: linear-gradient(160deg, #241c3d, #141024 60%, #0e0b18);
+  container-type: inline-size;
+  /* Everything inside is sized in cqw so the whole scene scales as one piece
+     — a mock built from px would fall apart between 640px and a phone. */
+  font-size: 2.1cqw;
+  /* One sign for every horizontal offset in the scene: transforms and slide
+     keyframes multiply by --flip, so RTL is a single variable away instead of
+     a mirrored copy of each keyframe block. */
+  --flip: 1;
+  /* The mock panel's surface, written once — the real sidebar's
+     rgba(25,25,25,0.86) with the alpha raised for the miniature. */
+  --hviz-panel: rgba(25, 25, 25, 0.94);
+  --hviz-line: rgba(255, 255, 255, 0.08);
+}
+.hviz-scene:dir(rtl) { --flip: -1; }
+.hviz-film { position: absolute; inset: 0; }
+.hviz-orb {
+  /* Centred on the film — the part of the frame the panel does not cover,
+     which swaps sides with the panel in RTL. inset-inline-start measures from
+     the opposite edge there, so the self-centering translate flips with it. */
+  position: absolute; inset-inline-start: 33%; top: 44%; transform: translate(calc(-50% * var(--flip)), -50%);
+  width: 12cqw; height: 12cqw; border-radius: 50%; background: rgba(255, 255, 255, 0.1);
+}
+.hviz-cap {
+  position: absolute; inset-inline-start: 33%; bottom: 9%; transform: translateX(calc(-50% * var(--flip)));
+  white-space: nowrap; text-align: center;
+  font-size: 2cqw; color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+.hviz-cap i { display: block; font-style: normal; font-size: 1.8cqw; color: #b9b2d6; margin-top: 0.4cqw; }
+
+/* The panel, and the collapse tab riding its edge — the control that opens it. */
+.hviz-side {
+  position: absolute; top: 0; inset-inline-end: 0; bottom: 0; width: 33%;
+  background: var(--hviz-panel); border-inline-start: 1px solid var(--hviz-line);
+  display: flex; flex-direction: column;
+  transform: translateX(calc(100% * var(--flip)));
+}
+.hviz-tab {
+  position: absolute; inset-inline-start: -3.8cqw; top: 50%; margin-top: -4.7cqw;
+  width: 3.8cqw; height: 9.4cqw;
+  background: var(--hviz-panel);
+  border: 1px solid var(--hviz-line); border-inline-end: 0;
+  border-start-start-radius: 1.3cqw; border-end-start-radius: 1.3cqw;
+  display: grid; place-items: center;
+}
+.hviz-tab svg { width: 2.2cqw; height: 2.2cqw; color: #cfc9e6; }
+.hviz-head {
+  display: flex; align-items: center; gap: 1.3cqw;
+  padding: 1.6cqw 1.9cqw; border-bottom: 1px solid var(--hviz-line);
+}
+.hviz-logo { display: block; width: 2.5cqw; height: 2.5cqw; border-radius: 0.8cqw; background: linear-gradient(135deg, #7c8dff, #14a97c); flex: none; }
+.hviz-ghost { display: block; height: 1.1cqw; width: 11cqw; border-radius: 0.5cqw; background: rgba(255, 255, 255, 0.16); }
+.hviz-gear {
+  position: relative; margin-inline-start: auto;
+  width: 3.4cqw; height: 3.4cqw; border-radius: 0.9cqw;
+  display: grid; place-items: center; color: #cfc9e6;
+}
+.hviz-gear svg { width: 2.2cqw; height: 2.2cqw; }
+.hviz-rows { display: flex; flex-direction: column; gap: 1.1cqw; padding: 1.7cqw 1.9cqw; }
+.hviz-rows i { display: block; height: 1.4cqw; border-radius: 0.6cqw; background: rgba(255, 255, 255, 0.09); }
+.hviz-rows i:first-child { background: rgba(124, 141, 255, 0.42); }
+
+/* The settings panel: hidden until the gear is tapped, then it fills the
+   bottom of the sidebar the way the real one does. */
+.hviz-set { margin-top: auto; display: flex; flex-direction: column; opacity: 0; }
+.hviz-fake { display: flex; align-items: center; padding: 1.2cqw 1.9cqw; }
+.hviz-fake i { display: block; height: 1.2cqw; border-radius: 0.6cqw; background: rgba(255, 255, 255, 0.1); flex: 1; }
+.hviz-fake i.hviz-short { flex: 0 0 60%; }
+.hviz-prow {
+  display: flex; align-items: center; gap: 1.1cqw;
+  padding: 1.6cqw 1.9cqw 1.9cqw; border-top: 1px solid var(--hviz-line);
+  color: #cfc9e6;
+}
+.hviz-prow > svg { width: 2cqw; height: 2cqw; flex: none; }
+.hviz-label { font-size: 1.65cqw; line-height: 1.3; color: rgba(255, 255, 255, 0.82); }
+/* .vtt-switch, to the pixel ratio: 26×15 track, 11px knob, 11px of travel. */
+.hviz-sw {
+  position: relative; flex: none; margin-inline-start: auto;
+  width: 4.1cqw; height: 2.35cqw; border-radius: 999px; background: #7c8dff;
+}
+.hviz-sw::after {
+  content: ""; position: absolute; top: 0.31cqw; inset-inline-start: 0.31cqw;
+  width: 1.72cqw; height: 1.72cqw; border-radius: 50%; background: #fff;
+  transform: translateX(calc(1.72cqw * var(--flip)));
+}
+
+/* One ripple per control, each centred on its own target. Same fire-fade
+   shape and colors as the home page's .viz-tapdot — the tap cue is shared
+   visual vocabulary across every miniature. */
+.hviz-rip {
+  position: absolute; left: 50%; top: 50%;
+  width: 3.4cqw; height: 3.4cqw; margin: -1.7cqw 0 0 -1.7cqw;
+  border-radius: 50%; border: 0.31cqw solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.25);
+  opacity: 0; pointer-events: none;
+}
+
+/* Names the state the panel is in, so a switch going dark reads as a choice
+   rather than as something breaking. */
+.hviz-state {
+  position: absolute; bottom: 3.5%; inset-inline-start: 2.5%;
+  max-width: 60%;
+  font-size: 1.9cqw; font-weight: 650; letter-spacing: -0.01em;
+  color: #b9b2d6; opacity: 0;
+}
+.hviz-state-off { color: #3adfa5; }
+
+/* 9s loop. Beats: settled → tap the tab (10%) → panel slides in → tap the
+   gear (30%) → settings open → tap the switch (52%) → it goes dark, and the
+   scene holds there long enough to read before resetting. */
+@keyframes hvizSide {
+  0%, 11% { transform: translateX(calc(100% * var(--flip))); }
+  22%, 96% { transform: translateX(0); }
+  100% { transform: translateX(calc(100% * var(--flip))); }
+}
+@keyframes hvizChev {
+  0%, 11% { transform: scaleX(1); }
+  22%, 96% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+@keyframes hvizSet {
+  0%, 31% { opacity: 0; }
+  36%, 96% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes hvizGear {
+  0%, 31% { background: transparent; }
+  36%, 96% { background: rgba(124, 141, 255, 0.22); }
+  100% { background: transparent; }
+}
+@keyframes hvizSwitch {
+  0%, 53% { background: #7c8dff; }
+  57%, 100% { background: rgba(255, 255, 255, 0.18); }
+}
+@keyframes hvizKnob {
+  0%, 53% { transform: translateX(calc(1.72cqw * var(--flip))); }
+  57%, 100% { transform: translateX(0); }
+}
+/* One ripple keyframe for all three controls: fire at the start of the cycle,
+   then stay out of the way. Each control's animation-delay (below) places its
+   tap in its own beat of the 9s loop — the delay offsets every iteration of
+   an infinite animation, not just the first. */
+@keyframes hvizRip {
+  0% { opacity: 0; transform: scale(0.5); }
+  3% { opacity: 0.95; transform: scale(1); }
+  11%, 100% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes hvizStateOn {
+  0%, 36% { opacity: 0; }
+  40%, 53% { opacity: 1; }
+  57%, 100% { opacity: 0; }
+}
+@keyframes hvizStateOff {
+  0%, 57% { opacity: 0; }
+  61%, 96% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.hviz-side { animation: hvizSide 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.hviz-tab svg { animation: hvizChev 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.hviz-set { animation: hvizSet 9s linear infinite; }
+.hviz-gear { animation: hvizGear 9s linear infinite; }
+.hviz-sw { animation: hvizSwitch 9s linear infinite; }
+.hviz-sw::after { animation: hvizKnob 9s linear infinite; }
+/* Delays are the old per-control fire windows: tab 8%, gear 28%, switch 50%
+   of the 9s loop. */
+.hviz-rip { animation: hvizRip 9s linear infinite; }
+.hviz-rip-tab { animation-delay: 0.72s; }
+.hviz-rip-gear { animation-delay: 2.52s; }
+.hviz-rip-sw { animation-delay: 4.5s; }
+.hviz-state-on { animation: hvizStateOn 9s linear infinite; }
+.hviz-state-off { animation: hvizStateOff 9s linear infinite; }
+
+/* Reduced motion: no loop. Hold the end state — panel open, settings shown,
+   switch off — which is the outcome the page is about. */
+@media (prefers-reduced-motion: reduce) {
+  .hviz-side, .hviz-tab svg, .hviz-set, .hviz-gear, .hviz-sw, .hviz-sw::after,
+  .hviz-rip, .hviz-state-on, .hviz-state-off { animation: none; }
+  .hviz-side { transform: translateX(0); }
+  .hviz-tab svg { transform: scaleX(-1); }
+  .hviz-set { opacity: 1; }
+  .hviz-gear { background: rgba(124, 141, 255, 0.22); }
+  .hviz-sw { background: rgba(255, 255, 255, 0.18); }
+  .hviz-sw::after { transform: translateX(0); }
+  .hviz-rip { opacity: 0; }
+  .hviz-state-on { opacity: 0; }
+  .hviz-state-off { opacity: 1; }
+}
+
+/* The two steps on /help/analytics/. Wider gap than a prose list: these are
+   things to DO one after the other, and the reader is looking away at a
+   browser toolbar between them. */
+.doc ol.help-steps { display: flex; flex-direction: column; gap: 10px; margin: 0 0 1.2em; padding-inline-start: 22px; }
+.doc ol.help-steps li { color: var(--muted); font-size: 15.5px; line-height: 1.6; }
+.doc ol.help-steps b { color: var(--ink); }
+
+/* "Back" on doc pages — quiet, above the title. */
+.doc .doc-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 14px;
+  font-size: 14.5px; font-weight: 600;
+  color: var(--muted); text-decoration: none;
+}
+.doc .doc-back:hover { color: var(--ink); }
+.doc .doc-back svg { width: 15px; height: 15px; }
+[dir="rtl"] .doc-back svg { transform: scaleX(-1); }
+
+/* /help/addresses/ — the full list, in columns. Plain text on purpose: the
+   page is for recognizing your own address, not for navigating out. */
+.doc .host-list {
+  list-style: none; padding: 0; margin: 0 0 1.4em;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px 18px;
+  font-size: 14px; line-height: 1.45; color: var(--muted);
+}
 .doc table { border-collapse: collapse; width: 100%; }
 .doc th, .doc td { border: 1px solid var(--line); padding: 8px 12px; font-size: 14px; text-align: left; color: var(--muted); }
 
@@ -1423,6 +1663,11 @@ footer.site {
   background: var(--panel);
   color: var(--ink);
   text-decoration: none;
+  /* The rezka card is a <button> (see linkFor in build.mjs), so the row's
+     look cannot lean on anchor defaults: the font and start-alignment undo
+     the UA button styles, and the cursor is set for all three — an href-ed
+     anchor gets it from the UA, a button never does. */
+  font: inherit; text-align: start; cursor: pointer;
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
 }
 .wl-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
@@ -1452,6 +1697,23 @@ footer.site {
   display: flex; flex-direction: column; gap: 18px;
 }
 .wl-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+/* Coverage notice on /welcome/, one edition only, above the video: it is a
+   caveat about whether the thing will work at all, so it has to land before
+   someone spends a minute watching. Amber-tinted rather than red — nothing is
+   broken, and most visitors are already covered. */
+.wl-notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin: 0 0 26px; padding: 14px 16px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--star) 12%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--star) 38%, var(--line));
+}
+.wl-notice-icon { width: 19px; height: 19px; flex: none; margin-top: 1px; color: var(--star); }
+.wl-notice-body { flex: 1; min-width: 0; }
+.wl-notice-body > p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+.wl-notice-body > p b { font-weight: 650; }
+
 .wl-asides b { color: var(--ink); font-weight: 600; }
 
 .wl-keys { border-top: 1px solid var(--line); padding-top: 24px; }
