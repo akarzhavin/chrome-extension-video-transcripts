@@ -965,8 +965,8 @@ footer.site {
    grammar as the home page's mode slides: a mock of a real surface, a ripple
    on each control being taught, and a caption naming the resulting state.
 
-   Markup, not a recorded GIF: the two names inside come from the same i18n
-   keys the steps quote, so the drawing translates with the page.
+   Markup, not a recorded GIF: the label inside is the same extension locale
+   string the steps quote, so the drawing translates with the page.
 
    Every measurement is the extension's own (see the extension stylesheets
    under apps, src/assets/styles.css):
@@ -991,16 +991,26 @@ footer.site {
   /* Everything inside is sized in cqw so the whole scene scales as one piece
      — a mock built from px would fall apart between 640px and a phone. */
   font-size: 2.1cqw;
+  /* One sign for every horizontal offset in the scene: transforms and slide
+     keyframes multiply by --flip, so RTL is a single variable away instead of
+     a mirrored copy of each keyframe block. */
+  --flip: 1;
+  /* The mock panel's surface, written once — the real sidebar's
+     rgba(25,25,25,0.86) with the alpha raised for the miniature. */
+  --hviz-panel: rgba(25, 25, 25, 0.94);
+  --hviz-line: rgba(255, 255, 255, 0.08);
 }
+.hviz-scene:dir(rtl) { --flip: -1; }
 .hviz-film { position: absolute; inset: 0; }
 .hviz-orb {
   /* Centred on the film — the part of the frame the panel does not cover,
-     which swaps sides with the panel in RTL. */
-  position: absolute; inset-inline-start: 33%; top: 44%; transform: translate(-50%, -50%);
+     which swaps sides with the panel in RTL. inset-inline-start measures from
+     the opposite edge there, so the self-centering translate flips with it. */
+  position: absolute; inset-inline-start: 33%; top: 44%; transform: translate(calc(-50% * var(--flip)), -50%);
   width: 12cqw; height: 12cqw; border-radius: 50%; background: rgba(255, 255, 255, 0.1);
 }
 .hviz-cap {
-  position: absolute; inset-inline-start: 33%; bottom: 9%; transform: translateX(-50%);
+  position: absolute; inset-inline-start: 33%; bottom: 9%; transform: translateX(calc(-50% * var(--flip)));
   white-space: nowrap; text-align: center;
   font-size: 2cqw; color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
@@ -1009,22 +1019,22 @@ footer.site {
 /* The panel, and the collapse tab riding its edge — the control that opens it. */
 .hviz-side {
   position: absolute; top: 0; inset-inline-end: 0; bottom: 0; width: 33%;
-  background: rgba(25, 25, 25, 0.94); border-inline-start: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--hviz-panel); border-inline-start: 1px solid var(--hviz-line);
   display: flex; flex-direction: column;
-  transform: translateX(100%);
+  transform: translateX(calc(100% * var(--flip)));
 }
 .hviz-tab {
   position: absolute; inset-inline-start: -3.8cqw; top: 50%; margin-top: -4.7cqw;
   width: 3.8cqw; height: 9.4cqw;
-  background: rgba(25, 25, 25, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.08); border-inline-end: 0;
+  background: var(--hviz-panel);
+  border: 1px solid var(--hviz-line); border-inline-end: 0;
   border-start-start-radius: 1.3cqw; border-end-start-radius: 1.3cqw;
   display: grid; place-items: center;
 }
 .hviz-tab svg { width: 2.2cqw; height: 2.2cqw; color: #cfc9e6; }
 .hviz-head {
   display: flex; align-items: center; gap: 1.3cqw;
-  padding: 1.6cqw 1.9cqw; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.6cqw 1.9cqw; border-bottom: 1px solid var(--hviz-line);
 }
 .hviz-logo { display: block; width: 2.5cqw; height: 2.5cqw; border-radius: 0.8cqw; background: linear-gradient(135deg, #7c8dff, #14a97c); flex: none; }
 .hviz-ghost { display: block; height: 1.1cqw; width: 11cqw; border-radius: 0.5cqw; background: rgba(255, 255, 255, 0.16); }
@@ -1041,17 +1051,12 @@ footer.site {
 /* The settings panel: hidden until the gear is tapped, then it fills the
    bottom of the sidebar the way the real one does. */
 .hviz-set { margin-top: auto; display: flex; flex-direction: column; opacity: 0; }
-.hviz-grp {
-  padding: 1.4cqw 1.9cqw 0.6cqw;
-  font-size: 1.4cqw; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-}
 .hviz-fake { display: flex; align-items: center; padding: 1.2cqw 1.9cqw; }
 .hviz-fake i { display: block; height: 1.2cqw; border-radius: 0.6cqw; background: rgba(255, 255, 255, 0.1); flex: 1; }
 .hviz-fake i.hviz-short { flex: 0 0 60%; }
 .hviz-prow {
   display: flex; align-items: center; gap: 1.1cqw;
-  padding: 1.6cqw 1.9cqw 1.9cqw; border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.6cqw 1.9cqw 1.9cqw; border-top: 1px solid var(--hviz-line);
   color: #cfc9e6;
 }
 .hviz-prow > svg { width: 2cqw; height: 2cqw; flex: none; }
@@ -1064,16 +1069,17 @@ footer.site {
 .hviz-sw::after {
   content: ""; position: absolute; top: 0.31cqw; inset-inline-start: 0.31cqw;
   width: 1.72cqw; height: 1.72cqw; border-radius: 50%; background: #fff;
-  transform: translateX(1.72cqw);
+  transform: translateX(calc(1.72cqw * var(--flip)));
 }
-.hviz-scene:dir(rtl) .hviz-sw::after { transform: translateX(-1.72cqw); }
 
-/* One ripple per control, each centred on its own target. */
+/* One ripple per control, each centred on its own target. Same fire-fade
+   shape and colors as the home page's .viz-tapdot — the tap cue is shared
+   visual vocabulary across every miniature. */
 .hviz-rip {
   position: absolute; left: 50%; top: 50%;
   width: 3.4cqw; height: 3.4cqw; margin: -1.7cqw 0 0 -1.7cqw;
-  border-radius: 50%; border: 0.31cqw solid rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.22);
+  border-radius: 50%; border: 0.31cqw solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.25);
   opacity: 0; pointer-events: none;
 }
 
@@ -1091,15 +1097,9 @@ footer.site {
    gear (30%) → settings open → tap the switch (52%) → it goes dark, and the
    scene holds there long enough to read before resetting. */
 @keyframes hvizSide {
-  0%, 11% { transform: translateX(100%); }
+  0%, 11% { transform: translateX(calc(100% * var(--flip))); }
   22%, 96% { transform: translateX(0); }
-  100% { transform: translateX(100%); }
-}
-/* RTL: the panel sits on the left, so it slides out to the left instead. */
-@keyframes hvizSideRtl {
-  0%, 11% { transform: translateX(-100%); }
-  22%, 96% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
+  100% { transform: translateX(calc(100% * var(--flip))); }
 }
 @keyframes hvizChev {
   0%, 11% { transform: scaleX(1); }
@@ -1121,28 +1121,17 @@ footer.site {
   57%, 100% { background: rgba(255, 255, 255, 0.18); }
 }
 @keyframes hvizKnob {
-  0%, 53% { transform: translateX(1.72cqw); }
+  0%, 53% { transform: translateX(calc(1.72cqw * var(--flip))); }
   57%, 100% { transform: translateX(0); }
 }
-@keyframes hvizKnobRtl {
-  0%, 53% { transform: translateX(-1.72cqw); }
-  57%, 100% { transform: translateX(0); }
-}
-/* Each ripple fires once, in its own window, then stays out of the way. */
-@keyframes hvizRipTab {
-  0%, 8% { opacity: 0; transform: scale(0.5); }
-  11% { opacity: 0.95; transform: scale(1); }
-  19%, 100% { opacity: 0; transform: scale(1.7); }
-}
-@keyframes hvizRipGear {
-  0%, 28% { opacity: 0; transform: scale(0.5); }
-  31% { opacity: 0.95; transform: scale(1); }
-  39%, 100% { opacity: 0; transform: scale(1.7); }
-}
-@keyframes hvizRipSw {
-  0%, 50% { opacity: 0; transform: scale(0.5); }
-  53% { opacity: 0.95; transform: scale(1); }
-  61%, 100% { opacity: 0; transform: scale(1.7); }
+/* One ripple keyframe for all three controls: fire at the start of the cycle,
+   then stay out of the way. Each control's animation-delay (below) places its
+   tap in its own beat of the 9s loop — the delay offsets every iteration of
+   an infinite animation, not just the first. */
+@keyframes hvizRip {
+  0% { opacity: 0; transform: scale(0.5); }
+  3% { opacity: 0.95; transform: scale(1); }
+  11%, 100% { opacity: 0; transform: scale(1.7); }
 }
 @keyframes hvizStateOn {
   0%, 36% { opacity: 0; }
@@ -1155,16 +1144,17 @@ footer.site {
   100% { opacity: 0; }
 }
 .hviz-side { animation: hvizSide 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
-.hviz-scene:dir(rtl) .hviz-side { animation-name: hvizSideRtl; }
 .hviz-tab svg { animation: hvizChev 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
 .hviz-set { animation: hvizSet 9s linear infinite; }
 .hviz-gear { animation: hvizGear 9s linear infinite; }
 .hviz-sw { animation: hvizSwitch 9s linear infinite; }
 .hviz-sw::after { animation: hvizKnob 9s linear infinite; }
-.hviz-scene:dir(rtl) .hviz-sw::after { animation-name: hvizKnobRtl; }
-.hviz-rip-tab { animation: hvizRipTab 9s linear infinite; }
-.hviz-rip-gear { animation: hvizRipGear 9s linear infinite; }
-.hviz-rip-sw { animation: hvizRipSw 9s linear infinite; }
+/* Delays are the old per-control fire windows: tab 8%, gear 28%, switch 50%
+   of the 9s loop. */
+.hviz-rip { animation: hvizRip 9s linear infinite; }
+.hviz-rip-tab { animation-delay: 0.72s; }
+.hviz-rip-gear { animation-delay: 2.52s; }
+.hviz-rip-sw { animation-delay: 4.5s; }
 .hviz-state-on { animation: hvizStateOn 9s linear infinite; }
 .hviz-state-off { animation: hvizStateOff 9s linear infinite; }
 
@@ -1673,6 +1663,11 @@ footer.site {
   background: var(--panel);
   color: var(--ink);
   text-decoration: none;
+  /* The rezka card is a <button> (see linkFor in build.mjs), so the row's
+     look cannot lean on anchor defaults: the font and start-alignment undo
+     the UA button styles, and the cursor is set for all three — an href-ed
+     anchor gets it from the UA, a button never does. */
+  font: inherit; text-align: start; cursor: pointer;
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
 }
 .wl-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }

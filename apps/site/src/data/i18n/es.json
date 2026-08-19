@@ -210,8 +210,6 @@
       "lede": "La extensión cuenta eventos anónimos como «subtítulos cargados» y «palabra guardada» — así vemos dónde falla algo y qué arreglar a continuación. Las estadísticas no llevan identidad de cuenta y nunca dicen qué estás viendo. Dos clics las desactivan:",
       "step1": "Haz clic en el icono de Lingogram en la barra de herramientas del navegador para abrir el popup de la extensión.",
       "step2": "En {group}, desmarca {label}.",
-      "groupName": "Privacidad",
-      "labelName": "Compartir estadísticas de uso anónimas",
       "stateOn": "Estadísticas activas",
       "stateOff": "Estadísticas desactivadas",
       "after": "La recopilación se detiene de inmediato — no hay que recargar nada. Qué se cuenta exactamente y qué nunca sale de tu dispositivo está en la {link}.",

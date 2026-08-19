@@ -210,8 +210,6 @@
       "lede": "De extensie telt anonieme gebeurtenissen zoals “ondertitels geladen” en “woord opgeslagen” — zo zien we waar iets misgaat en wat we vervolgens moeten oplossen. De statistieken bevatten geen accountidentiteit en vermelden nooit wat je bekijkt. Twee klikken schakelen ze uit:",
       "step1": "Klik op het Lingogram-icoon in de werkbalk van je browser om de popup van de extensie te openen.",
       "step2": "Vink onder {group} de optie {label} uit.",
-      "groupName": "Privacy",
-      "labelName": "Anonieme gebruiksstatistieken delen",
       "stateOn": "Statistieken aan",
       "stateOff": "Statistieken uit",
       "after": "Het verzamelen stopt meteen — niets hoeft opnieuw geladen te worden. Precies wat er wordt geteld, en wat je apparaat nooit verlaat, staat in het {link}.",

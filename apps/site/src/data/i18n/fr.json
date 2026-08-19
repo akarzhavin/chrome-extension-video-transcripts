@@ -210,8 +210,6 @@
       "lede": "L'extension compte des événements anonymes comme « sous-titres chargés » et « mot enregistré » — c'est ainsi que nous voyons où quelque chose casse et quoi corriger ensuite. Ces statistiques ne comportent aucune identité de compte et ne précisent jamais ce que vous regardez. Deux clics les désactivent :",
       "step1": "Cliquez sur l'icône Lingogram dans la barre d'outils du navigateur pour ouvrir le popup de l'extension.",
       "step2": "Dans {group}, décochez {label}.",
-      "groupName": "Confidentialité",
-      "labelName": "Partager des statistiques d'usage anonymes",
       "stateOn": "Statistiques activées",
       "stateOff": "Statistiques désactivées",
       "after": "La collecte s'arrête immédiatement — rien à recharger. Ce qui est compté exactement, et ce qui ne quitte jamais votre appareil, est détaillé dans la {link}.",

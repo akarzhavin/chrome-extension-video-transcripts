@@ -212,8 +212,6 @@
       "lede": "Rozšíření počítá anonymní události jako „titulky načteny“ a „slovo uloženo“ — díky tomu vidíme, kde se něco rozbíjí a co opravit dál. Statistiky nenesou žádnou identitu účtu a nikdy neuvádějí, co sledujete. Vypnete je dvěma kliky:",
       "step1": "Klikněte na ikonu Lingogram na liště nástrojů prohlížeče, čímž otevřete vyskakovací okno rozšíření.",
       "step2": "V části {group} zrušte zaškrtnutí {label}.",
-      "groupName": "Soukromí",
-      "labelName": "Sdílet anonymní statistiky používání",
       "stateOn": "Statistiky zapnuty",
       "stateOff": "Statistiky vypnuty",
       "after": "Sběr se zastaví okamžitě — nic není třeba znovu načítat. Co přesně se počítá a co nikdy neopustí vaše zařízení, najdete v {link}.",

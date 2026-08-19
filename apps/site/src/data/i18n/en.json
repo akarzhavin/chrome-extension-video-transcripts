@@ -210,8 +210,6 @@
       "lede": "The extension counts anonymous events like “subtitles loaded” and “word saved” — that is how we see where things break and what to fix next. The stats carry no account identity and never name what you watch. Two clicks turn them off:",
       "step1": "Click the Lingogram icon in your browser toolbar to open the extension popup.",
       "step2": "Under {group}, uncheck {label}.",
-      "groupName": "Privacy",
-      "labelName": "Share anonymous usage stats",
       "stateOn": "Stats on",
       "stateOff": "Stats off",
       "after": "Collection stops immediately — nothing to reload. Exactly what is counted, and what never leaves your device, is listed in the {link}.",

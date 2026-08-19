@@ -210,8 +210,6 @@
       "lede": "Tillägget räknar anonyma händelser som ”undertexter laddades” och ”ord sparades” — så ser vi var något går sönder och vad som behöver fixas härnäst. Statistiken har ingen kontoidentitet och avslöjar aldrig vad du tittar på. Två klick stänger av den:",
       "step1": "Klicka på Lingogram-ikonen i webbläsarens verktygsfält för att öppna tilläggets popup.",
       "step2": "Under {group}, avmarkera {label}.",
-      "groupName": "Integritet",
-      "labelName": "Dela anonym användningsstatistik",
       "stateOn": "Statistik på",
       "stateOff": "Statistik av",
       "after": "Insamlingen stoppar direkt — inget behöver laddas om. Exakt vad som räknas, och vad som aldrig lämnar din enhet, listas i {link}.",

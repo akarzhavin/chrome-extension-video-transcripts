@@ -210,8 +210,6 @@
       "lede": "Die Erweiterung zählt anonyme Ereignisse wie „Untertitel geladen“ und „Wort gespeichert“ — so sehen wir, wo etwas nicht funktioniert und was als Nächstes zu reparieren ist. Die Statistiken enthalten keine Kontoidentität und nennen nie, was Sie sich ansehen. Zwei Klicks schalten sie ab:",
       "step1": "Klicken Sie auf das Lingogram-Symbol in der Symbolleiste Ihres Browsers, um das Popup der Erweiterung zu öffnen.",
       "step2": "Deaktivieren Sie unter {group} die Option {label}.",
-      "groupName": "Datenschutz",
-      "labelName": "Anonyme Nutzungsstatistiken teilen",
       "stateOn": "Statistik an",
       "stateOff": "Statistik aus",
       "after": "Die Erfassung stoppt sofort — nichts muss neu geladen werden. Was genau gezählt wird und was Ihr Gerät nie verlässt, steht in der {link}.",

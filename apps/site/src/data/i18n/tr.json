@@ -209,8 +209,6 @@
       "lede": "Uzantı, “altyazı yüklendi” ve “kelime kaydedildi” gibi anonim olayları sayar — bir şeyin nerede bozulduğunu ve sırada neyi düzeltmemiz gerektiğini böyle görürüz. İstatistikler hesap kimliği taşımaz ve ne izlediğinizi asla belirtmez. İki tıklama onları kapatır:",
       "step1": "Uzantının açılır penceresini açmak için tarayıcı araç çubuğundaki Lingogram simgesine tıklayın.",
       "step2": "{group} altında {label} işaretini kaldırın.",
-      "groupName": "Gizlilik",
-      "labelName": "Anonim kullanım istatistiklerini paylaş",
       "stateOn": "İstatistikler açık",
       "stateOff": "İstatistikler kapalı",
       "after": "Toplama hemen durur — hiçbir şeyi yeniden yüklemenize gerek yok. Tam olarak nelerin sayıldığı ve cihazınızdan asla çıkmayan verilerin listesi {link} içinde yer alır.",

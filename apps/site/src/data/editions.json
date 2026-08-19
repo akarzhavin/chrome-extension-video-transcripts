@@ -1,5 +1,5 @@
 {
-  "_comment": "One record per edition PAGE. Two extensions ship today, so two distinct storeUrls: the YouTube listing also covers Netflix (one install, both sites — see its manifest matches), which is why the netflix record points at the same URL and says so. Adding a record here creates the card on the home page and the /<slug>/ landing page. storeUrl empty renders a disabled '#' link.",
+  "_comment": "One record per edition PAGE. Two extensions ship today, so two distinct storeUrls: the YouTube listing also covers Netflix (one install, both sites — see its manifest matches), which is why the netflix record points at the same URL and says so. Adding a record here creates the card on the home page and the /<slug>/ landing page. storeUrl empty renders a disabled '#' link. rezka's demoUrl is deliberately the empty string, and it is load-bearing: it routes that edition's /welcome/ button to the deferred click-time open (linkFor/openUrl in build.mjs), so no joined HDrezka address is stored on the site — pointing it at a real URL disables that path.",
   "primary": {
     "demoUrl": "youtube.com/watch?v=Kk1vR7BdTno",
     "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan"

@@ -210,8 +210,6 @@
       "lede": "Udvidelsen tæller anonyme hændelser som “undertekster indlæst” og “ord gemt” — sådan ser vi, hvor noget går i stykker, og hvad vi skal rette næste gang. Statistikken har ingen kontoidentitet og nævner aldrig, hvad du ser. To klik slår den fra:",
       "step1": "Klik på Lingogram-ikonet i browserens værktøjslinje for at åbne udvidelsens popup.",
       "step2": "Under {group} skal du fjerne fluebenet ved {label}.",
-      "groupName": "Privatliv",
-      "labelName": "Del anonym brugsstatistik",
       "stateOn": "Statistik til",
       "stateOff": "Statistik fra",
       "after": "Indsamlingen stopper med det samme — intet skal genindlæses. Præcis hvad der tælles, og hvad der aldrig forlader din enhed, står i {link}.",

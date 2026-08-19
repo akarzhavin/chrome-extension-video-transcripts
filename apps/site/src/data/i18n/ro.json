@@ -211,8 +211,6 @@
       "lede": "Extensia numără evenimente anonime precum „subtitrări încărcate” și „cuvânt salvat” — așa vedem unde se strică ceva și ce trebuie reparat în continuare. Statisticile nu poartă nicio identitate de cont și nu precizează niciodată ce urmărești. Două clicuri le dezactivează:",
       "step1": "Dă clic pe iconița Lingogram din bara de instrumente a browserului pentru a deschide fereastra pop-up a extensiei.",
       "step2": "La secțiunea {group}, debifează {label}.",
-      "groupName": "Confidențialitate",
-      "labelName": "Partajează statistici de utilizare anonime",
       "stateOn": "Statistici activate",
       "stateOff": "Statistici dezactivate",
       "after": "Colectarea se oprește imediat — nu trebuie reîncărcat nimic. Ce anume se numără și ce nu părăsește niciodată dispozitivul tău găsești în {link}.",

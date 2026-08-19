@@ -210,8 +210,6 @@
       "lede": "L'estensione conta eventi anonimi come «sottotitoli caricati» e «parola salvata» — così vediamo dove qualcosa si rompe e cosa correggere. Le statistiche non contengono alcuna identità dell'account e non specificano mai cosa guardi. Due clic le disattivano:",
       "step1": "Clicca sull'icona di Lingogram nella barra degli strumenti del browser per aprire il popup dell'estensione.",
       "step2": "In {group}, deseleziona {label}.",
-      "groupName": "Privacy",
-      "labelName": "Condividi statistiche d'uso anonime",
       "stateOn": "Statistiche attive",
       "stateOff": "Statistiche disattivate",
       "after": "La raccolta si interrompe immediatamente — niente da ricaricare. Cosa viene esattamente conteggiato, e cosa non lascia mai il tuo dispositivo, è elencato nella {link}.",

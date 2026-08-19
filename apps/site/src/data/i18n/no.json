@@ -210,8 +210,6 @@
       "lede": "Utvidelsen teller anonyme hendelser som «undertekster lastet» og «ord lagret» — slik ser vi hvor noe går galt, og hva vi bør fikse neste gang. Statistikken har ingen kontoidentitet og forteller aldri hva du ser på. To klikk slår den av:",
       "step1": "Klikk på Lingogram-ikonet i nettleserens verktøylinje for å åpne utvidelsens popup.",
       "step2": "Under {group} fjerner du haken ved {label}.",
-      "groupName": "Personvern",
-      "labelName": "Del anonym bruksstatistikk",
       "stateOn": "Statistikk på",
       "stateOff": "Statistikk av",
       "after": "Innsamlingen stopper umiddelbart — ingenting må lastes inn på nytt. Nøyaktig hva som telles, og hva som aldri forlater enheten din, er oppført i {link}.",

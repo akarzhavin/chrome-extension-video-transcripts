@@ -211,8 +211,6 @@
       "lede": "Ekstenzija broji anonimne događaje poput „titlovi učitani” i „riječ spremljena” — tako vidimo gdje se nešto pokvari i što popraviti dalje. Statistika ne nosi identitet računa i nikad ne otkriva što gledate. Isključuje se u dva klika:",
       "step1": "Kliknite ikonu Lingograma na alatnoj traci preglednika da otvorite skočni prozor ekstenzije.",
       "step2": "Pod {group} isključite kvačicu kod {label}.",
-      "groupName": "Privatnost",
-      "labelName": "Dijeli anonimnu statistiku korištenja",
       "stateOn": "Statistika uključena",
       "stateOff": "Statistika isključena",
       "after": "Prikupljanje se odmah zaustavlja — ništa nije potrebno ponovno učitati. Točno što se broji i što nikad ne napušta vaš uređaj navedeno je u {link}.",

@@ -209,8 +209,6 @@
       "lede": "Tiện ích mở rộng đếm các sự kiện ẩn danh như “đã tải phụ đề” và “đã lưu từ” — nhờ đó chúng tôi biết chỗ nào bị lỗi và cần sửa gì tiếp theo. Số liệu này không chứa danh tính tài khoản và không bao giờ nêu bạn đang xem gì. Hai cú nhấp là tắt được:",
       "step1": "Nhấp vào biểu tượng Lingogram trên thanh công cụ trình duyệt để mở popup của tiện ích mở rộng.",
       "step2": "Trong mục {group}, bỏ chọn {label}.",
-      "groupName": "Quyền riêng tư",
-      "labelName": "Chia sẻ số liệu sử dụng ẩn danh",
       "stateOn": "Số liệu đang bật",
       "stateOff": "Số liệu đang tắt",
       "after": "Việc thu thập dừng ngay lập tức — không cần tải lại gì cả. Chính xác những gì được đếm, và những gì không bao giờ rời khỏi thiết bị của bạn, được liệt kê trong {link}.",

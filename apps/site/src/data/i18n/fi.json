@@ -210,8 +210,6 @@
       "lede": "Laajennus laskee anonyymejä tapahtumia kuten ”tekstitys ladattu” ja ”sana tallennettu” — näin näemme, missä jokin menee rikki ja mitä korjata seuraavaksi. Tilastot eivät sisällä tilin identiteettiä eivätkä koskaan kerro, mitä katsot. Kaksi klikkausta poistaa ne käytöstä:",
       "step1": "Avaa laajennuksen ponnahdusikkuna klikkaamalla Lingogram-kuvaketta selaimen työkalupalkissa.",
       "step2": "Poista valinta kohdasta {label} osiossa {group}.",
-      "groupName": "Tietosuoja",
-      "labelName": "Jaa anonyymit käyttötilastot",
       "stateOn": "Tilastot päällä",
       "stateOff": "Tilastot pois",
       "after": "Kerääminen pysähtyy heti — mitään ei tarvitse ladata uudelleen. Tarkka luettelo siitä, mitä lasketaan ja mikä ei koskaan poistu laitteeltasi, on {link}.",

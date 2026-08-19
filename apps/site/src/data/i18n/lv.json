@@ -211,8 +211,6 @@
       "lede": "Paplašinājums skaita anonīmus notikumus, piemēram, „subtitri ielādēti” un „vārds saglabāts” — tā mēs redzam, kur kaut kas salūst un kas jālabo nākamreiz. Statistikā nav konta identitātes, un tā nekad nenosauc, ko tu skaties. Divi klikšķi to izslēdz:",
       "step1": "Uzklikšķini Lingogram ikonai pārlūka rīkjoslā, lai atvērtu paplašinājuma uznirstošo logu.",
       "step2": "Sadaļā {group} noņem ķeksīti pie {label}.",
-      "groupName": "Konfidencialitāte",
-      "labelName": "Kopīgot anonīmu lietojuma statistiku",
       "stateOn": "Statistika ieslēgta",
       "stateOff": "Statistika izslēgta",
       "after": "Vākšana apstājas nekavējoties — nekas nav jāpārlādē. Kas tieši tiek skaitīts un kas nekad neatstāj tavu ierīci, ir uzskaitīts {link}.",

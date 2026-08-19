@@ -86,8 +86,9 @@ const EN_STRINGS = JSON.parse(fs.readFileSync(path.join(I18N_DIR, 'en.json'), 'u
 // this site claims cannot drift from the shipped build: the same source
 // Chrome enforces, not a copy maintained here.
 //
-// `names` and `zones` are kept as two separate lists and shipped that way in
-// the /welcome/ payload; main.js joins one name to one ending at click time,
+// `example` is the one preferred name+ending pair, chosen here (never in
+// main.js) and validated against the enumerated pairs, shipped in the
+// /welcome/ payload as two separate fields; main.js joins them at click time,
 // so the payload itself holds no working address. `hosts` is the joined,
 // enumerated list — it exists for the /help/addresses/ page, where the whole
 // point is to show every covered address, as plain text and never as links.
@@ -110,6 +111,12 @@ const REZKA_MATCH = (() => {
     zones.add(m[2]);
     pairs.set(`${m[1]}.${m[2]}`, [m[1], m[2]]);
   }
+  // Loud failure over a green build full of holes: if the manifest's
+  // host_permissions ever change shape and the regex above stops matching,
+  // every page built from this data would quietly claim zero coverage.
+  if (pairs.size === 0) {
+    throw new Error('apps/rezka/manifest.json yielded no rezka host pairs — did host_permissions change shape?');
+  }
   // The shortest names stand for the hyphenated variants they prefix, so the
   // notice on /welcome/ can name two words instead of four.
   const sorted = [...names].sort();
@@ -120,8 +127,37 @@ const REZKA_MATCH = (() => {
   const hosts = [...pairs.entries()]
     .sort(([, a], [, b]) => (a[0] === b[0] ? (a[1] < b[1] ? -1 : 1) : (a[0] < b[0] ? -1 : 1)))
     .map(([host]) => host);
-  return { names: sorted, zones: [...zones].sort(), prefixes, hosts };
+  // The pairing people actually use — the same one the /welcome/ notice prints
+  // and its button opens. The fallback picks the first enumerated pair, never a
+  // free cross-join of names[0] and zones[0], which the manifest may not cover.
+  const [exName, exZone] = pairs.get('hdrezka.ag') || pairs.get(hosts[0]);
+  return { names: sorted, zones: [...zones].sort(), prefixes, hosts, example: { name: exName, zone: exZone } };
 })();
+// The extension-UI strings /help/analytics/ quotes (the popup's group heading
+// and the checkbox label), read from the EXTENSION's own locale files at build
+// time — the same principle as REZKA_MATCH above: quote the shipped source,
+// never a copy maintained here that can silently drift when the popup is
+// reworded. pt/zh map to the variant Chrome resolves for the larger share of
+// those site locales' visitors; a missing locale or key fails the build.
+const EXT_LOCALE_OF = { pt: 'pt_BR', zh: 'zh_CN' };
+const EXT_UI = (() => {
+  const dir = path.join(HERE, '..', 'youtube', '_locales');
+  const cache = new Map();
+  return (lang) => {
+    const code = EXT_LOCALE_OF[lang] || lang;
+    if (!cache.has(code)) {
+      const m = JSON.parse(fs.readFileSync(path.join(dir, code, 'messages.json'), 'utf8'));
+      const group = m.ytGroupPrivacy?.message;
+      const label = m.ytPrivacyAnalyticsLabel?.message;
+      if (!group || !label) {
+        throw new Error(`_locales/${code}/messages.json: ytGroupPrivacy or ytPrivacyAnalyticsLabel is missing`);
+      }
+      cache.set(code, { group, label });
+    }
+    return cache.get(code);
+  };
+})();
+
 const LOCALE_FILES = fs.readdirSync(I18N_DIR).filter((f) => f.endsWith('.json'));
 
 // Plural-form objects are compared as a single key, not key-by-key: the whole
@@ -973,17 +1009,18 @@ const welcomePage = (locale, hrefLang) => {
   //
   // The whole point of this page is that nobody leaves it wondering where to
   // try the thing, so a link that 404s would be worse than no link at all.
-  // Two of the three demoUrls in editions.json are still the `road-movie`
-  // placeholder (youtube, rezka) — youtube falls back to primary.demoUrl,
-  // which is a real video, and netflix has its own. Point an edition's
-  // demoUrl at something real and it is used as-is.
+  // Only youtube's demoUrl in editions.json is still the `road-movie`
+  // placeholder — it falls back to primary.demoUrl, which is a real video;
+  // netflix has its own. Rezka's demoUrl is deliberately "" (documented in
+  // editions.json): the empty string routes it to the deferred path below.
+  // Point an edition's demoUrl at something real and it is used as-is.
   //
-  // The third edition's button carries NO href in the markup, and no address
-  // for it is stored anywhere on this site. It is marked data-open-rezka
-  // instead, and main.js builds the address at click time by joining one name
-  // to one ending — the two lists REZKA_MATCH keeps apart. The button behaves
-  // like the other two for the visitor; what the site ships is still only the
-  // halves.
+  // The third edition's control carries NO address in the markup, and no
+  // joined address is stored anywhere on this site. It is a <button> marked
+  // data-open-rezka, and main.js builds the address at click time by joining
+  // the name and ending REZKA_MATCH ships as two separate fields. The button
+  // behaves like the other two for the visitor; what the site ships is still
+  // only the halves.
   const PLACEHOLDER = /road-movie/;
   const homeOf = { youtube: 'youtube.com', netflix: 'netflix.com' };
   const openUrl = (e) => {
@@ -1002,27 +1039,25 @@ const welcomePage = (locale, hrefLang) => {
     // e.site is a brand name (YouTube / Netflix / HDrezka), so it is injected
     // into the localized "Open {site}" frame rather than translated.
     const note = t(`welcome.note.${slug}`);
-    // No target="_blank" on the deferred one: with no href the browser would
-    // still open a blank tab before the handler runs, and the handler's own
-    // window.open is what carries the assembled address.
-    const target = deferred
-      ? 'data-open-rezka role="link" tabindex="0"'
-      : `href="https://${esc(url)}" target="_blank" rel="noopener"`;
-    return `      <a class="wl-open${primary ? ' wl-open-primary' : ''}" ${target}>
+    const cls = `wl-open${primary ? ' wl-open-primary' : ''}`;
+    const inner = `
         ${mark(e.mark, true)}
         <span class="wl-open-body"><b>${esc(t('welcome.open', { site: e.site }))}</b><span>${esc(note)}</span></span>
         <svg class="wl-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </a>`;
+      `;
+    // The deferred one is a real <button>, not an href-less <a>: native focus
+    // and Enter/Space activation with no role/tabindex/keydown shims. The
+    // handler's own window.open is what carries the assembled address.
+    return deferred
+      ? `      <button type="button" class="${cls}" data-open-rezka>${inner}</button>`
+      : `      <a class="${cls}" href="https://${esc(url)}" target="_blank" rel="noopener">${inner}</a>`;
   };
 
   const defaultOrder = ['youtube', 'netflix', 'rezka'];
 
-  // The pairing people actually use — the same one the button opens. Both
-  // lookups are exact; the fallbacks only matter if the manifest ever drops
-  // this pair.
-  const rezkaExample =
-    (REZKA_MATCH.names.includes('hdrezka') ? 'hdrezka' : REZKA_MATCH.names[0]) + '.' +
-    (REZKA_MATCH.zones.includes('ag') ? 'ag' : REZKA_MATCH.zones[0]);
+  // The one pair REZKA_MATCH chose — the same one the button opens, joined
+  // here only for display in the notice.
+  const rezkaExample = `${REZKA_MATCH.example.name}.${REZKA_MATCH.example.zone}`;
 
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
@@ -1169,8 +1204,9 @@ window.__WELCOME = ${scriptJSON({
     rezkaCtaH: t('welcome.rezkaCtaH'),
     rezkaCtaS: t('welcome.rezkaCtaS'),
   },
-  // Site names and domain endings, kept apart — see REZKA_MATCH.
-  rezka: { names: REZKA_MATCH.names, zones: REZKA_MATCH.zones },
+  // The one chosen pair, kept as two fields main.js joins at click time —
+  // see REZKA_MATCH.
+  rezka: REZKA_MATCH.example,
 })};</script>`,
   });
 };
@@ -1182,41 +1218,36 @@ window.__WELCOME = ${scriptJSON({
 // spelling out the steps inline: a privacy claim that says "you can turn it
 // off" without saying HOW is the kind of promise that reads as evasion.
 //
-// The setting's own names are quoted from the EXTENSION's locale files
-// (ytGroupPrivacy / ytPrivacyAnalyticsLabel), not translated afresh here, so
-// what this page tells someone to look for matches the popup they open
-// character for character. That is also why help.step2 takes the two names
-// as placeholders instead of baking them into 42 translated sentences.
-// The two clicks, shown rather than only described — same grammar as the
-// home page's mode miniatures (see `viz` above): a small mock of the REAL
-// surface, one tap ripple landing on the control being taught, and a caption
-// naming the state it leaves behind. Nothing here is invented UI — the popup
-// mock mirrors packages/shared/src/popup (section heading, toggle row, hint),
-// and the two names come from the extension's own locale files, passed in as
-// {group}/{label} so this file holds no translated UI text of its own.
+// The setting's own names are read from the EXTENSION's locale files at
+// build time (EXT_UI above), not translated afresh here, so what this page
+// tells someone to look for matches the popup they open character for
+// character — and cannot drift when the popup is reworded. That is also why
+// help.step2 takes the two names as placeholders instead of baking them into
+// 42 translated sentences.
 //
-// aria-hidden with a text alternative below it: the steps in the <ol> already
-// say the same thing in words, so a screen reader gets the instruction and
-// not a description of a drawing.
 // The sidebar route to the same setting, shown rather than only described:
 // the collapse tab opens the panel, the gear opens settings, the switch in
 // the footer goes dark. One 9s loop, three taps, in the grammar of the home
 // page's mode miniatures (see `viz` above) — a mock of a real surface, a
 // ripple on the control being taught, a caption naming the resulting state.
+// The written steps teach the toolbar-popup route; the drawing shows the
+// in-page one — two doors to the same switch. aria-hidden with the <ol>
+// below as the text alternative, so a screen reader gets an instruction and
+// not a description of a drawing.
 //
-// Markup rather than a recorded GIF/webp on purpose: the two names in here
-// are the same i18n keys the steps below quote, so the drawing translates
+// Markup rather than a recorded GIF/webp on purpose: the label in here is
+// the same extension string the steps below quote, so the drawing translates
 // with the page instead of freezing English into 42 copies of a bitmap.
 //
 // Every measurement is the real one, from the extension's own stylesheet:
 // the switch is 26×15 with an 11px knob travel, the accent is --vtt-accent,
 // and the privacy row carries the lock icon and no group heading — the
-// sidebar has none, unlike the popup.
-const SIDEBAR_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+// sidebar has none, unlike the popup. The collapse tab reuses TAB_CHEVRON:
+// both miniatures draw the same real control (#vtt-toggle-btn).
 const GEAR_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 const LOCK_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
 
-const analyticsViz = (t) => `
+const analyticsViz = (t, ui) => `
 <figure class="hviz" aria-hidden="true">
  <span class="hviz-scene">
   <span class="hviz-film">
@@ -1224,19 +1255,18 @@ const analyticsViz = (t) => `
     <span class="hviz-cap">${esc(VIZ_LINE)}<i data-viz-native>${esc(VIZ_NATIVE_FALLBACK)}</i></span>
   </span>
   <span class="hviz-side">
-    <span class="hviz-tab">${SIDEBAR_CHEVRON}<span class="hviz-rip hviz-rip-tab"></span></span>
+    <span class="hviz-tab">${TAB_CHEVRON}<span class="hviz-rip hviz-rip-tab"></span></span>
     <span class="hviz-head">
       <i class="hviz-logo"></i><i class="hviz-ghost"></i>
       <span class="hviz-gear">${GEAR_GLYPH}<span class="hviz-rip hviz-rip-gear"></span></span>
     </span>
     <span class="hviz-rows"><i></i><i></i><i></i></span>
     <span class="hviz-set">
-      <span class="hviz-grp">${esc(t('help.analytics.groupName'))}</span>
       <span class="hviz-fake"><i></i></span>
       <span class="hviz-fake"><i class="hviz-short"></i></span>
       <span class="hviz-prow">
         ${LOCK_GLYPH}
-        <span class="hviz-label">${esc(t('help.analytics.labelName'))}</span>
+        <span class="hviz-label">${esc(ui.label)}</span>
         <span class="hviz-sw"><span class="hviz-rip hviz-rip-sw"></span></span>
       </span>
     </span>
@@ -1249,6 +1279,7 @@ const analyticsViz = (t) => `
 const helpAnalyticsPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
+  const ui = EXT_UI(lang);
   const root = lang === 'en' ? '' : `/${lang}`;
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
@@ -1261,12 +1292,12 @@ ${header(t, root)}
   <article class="doc">
     <h1>${esc(t('help.analytics.h1'))}</h1>
     <p>${esc(t('help.analytics.lede'))}</p>
-    ${analyticsViz(t)}
+    ${analyticsViz(t, ui)}
     <ol class="help-steps">
       <li>${esc(t('help.analytics.step1'))}</li>
       <li>${t('help.analytics.step2', {
-        group: `<b>${esc(t('help.analytics.groupName'))}</b>`,
-        label: `<b>${esc(t('help.analytics.labelName'))}</b>`,
+        group: `<b>${esc(ui.group)}</b>`,
+        label: `<b>${esc(ui.label)}</b>`,
       })}</li>
     </ol>
     <p>${t('help.analytics.after', {

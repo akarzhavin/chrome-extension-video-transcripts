@@ -209,8 +209,6 @@
       "lede": "A bővítmény olyan névtelen eseményeket számol, mint a „felirat betöltve” és a „szó elmentve” — így látjuk, hol romlik el valami, és mit kell legközelebb javítani. A statisztika nem tartalmaz fiókazonosítót, és sosem árulja el, mit nézel. Két kattintással kikapcsolható:",
       "step1": "Kattints a Lingogram ikonjára a böngésző eszköztárán, hogy megnyíljon a bővítmény felugró ablaka.",
       "step2": "A {group} alatt vedd ki a pipát a {label} mellől.",
-      "groupName": "Adatvédelem",
-      "labelName": "Névtelen használati statisztikák megosztása",
       "stateOn": "Statisztika be",
       "stateOff": "Statisztika ki",
       "after": "A gyűjtés azonnal leáll — semmit sem kell újratölteni. Hogy pontosan mit számolunk, és mi az, ami sosem hagyja el az eszközödet, azt az {link} sorolja fel.",

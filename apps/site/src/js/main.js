@@ -89,31 +89,22 @@
     }
   }
 
-  // The one button whose address this site does not store. It ships with no
-  // href; the address is assembled here, at click time, from the two
-  // lists the payload keeps apart — one name joined to one ending. Nothing in the
-  // served HTML or JSON is a usable address on its own.
+  // The one button whose address this site does not store joined. The pair is
+  // chosen at build time (REZKA_MATCH in build.mjs — the single source, also
+  // printed by the coverage notice) and shipped as two fields; they are joined
+  // only here, at click time. Nothing in the served HTML or JSON is a usable
+  // address on its own.
   //
   // Assembled on click rather than on load so the page never carries a live
   // outbound link it did not need: a visitor who does not press it never has
-  // one in their DOM.
+  // one in their DOM. It is a real <button>, so focus and Enter/Space come
+  // from the browser, not from shims here.
   var openRezka = document.querySelector('[data-open-rezka]');
   if (openRezka && window.__WELCOME && window.__WELCOME.rezka) {
-    // role="link" with no href gets no keyboard activation of its own, so
-    // Enter is wired by hand to match what a real link would do.
-    openRezka.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); openRezka.click(); }
-    });
-    openRezka.addEventListener('click', function (e) {
-      e.preventDefault();
-      var lists = window.__WELCOME.rezka;
-      if (!lists.names.length || !lists.zones.length) return;
-      // The pairing people actually use. Both are exact lookups: the name
-      // list also holds hyphenated one-offs, and a substring match would
-      // happily pick one of those instead.
-      var name = lists.names.indexOf('hdrezka') === -1 ? lists.names[0] : 'hdrezka';
-      var zone = lists.zones.indexOf('ag') === -1 ? lists.zones[0] : 'ag';
-      window.open('https://' + name + '.' + zone + '/', '_blank', 'noopener');
+    openRezka.addEventListener('click', function () {
+      var pair = window.__WELCOME.rezka;
+      if (!pair.name || !pair.zone) return;
+      window.open('https://' + pair.name + '.' + pair.zone + '/', '_blank', 'noopener');
     });
   }
 
@@ -124,7 +115,12 @@
   var docBack = document.querySelector('[data-back]');
   if (docBack) {
     docBack.addEventListener('click', function (e) {
-      if (history.length > 1 && document.referrer.indexOf(location.origin) === 0) {
+      // Modified clicks keep their browser meaning (new tab, new window);
+      // this handler only claims a plain left click. The referrer check is
+      // against the origin BOUNDARY — a bare prefix test would also match
+      // origins that merely start with ours.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      if (history.length > 1 && document.referrer.indexOf(location.origin + '/') === 0) {
         e.preventDefault();
         history.back();
       }
