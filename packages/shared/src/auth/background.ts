@@ -8,6 +8,7 @@ import { config } from './config';
 import { handleDevAction, restoreEnv } from './devEnvSwitch';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
+import { loadLanguagePrefs } from '../languages';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -116,7 +117,10 @@ function isAuthFailure(err: unknown): boolean {
 // Compiled out of prod builds: __EXT_ENV__ is a literal, so the guard folds.
 let envRestored: Promise<void> | null = null;
 
-export async function handleAuthMessage(request: AuthMessage): Promise<unknown> {
+export async function handleAuthMessage(
+    request: AuthMessage,
+    sender?: chrome.runtime.MessageSender,
+): Promise<unknown> {
     if (__EXT_ENV__ === 'dev') {
         envRestored ??= restoreEnv();
         await envRestored;
@@ -175,7 +179,14 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             // saved word itself is never a parameter (deny-list in analytics.ts).
             const site = String(request.site ?? '');
             const signedIn = !!(await getAuthState());
-            void track('word_save_attempt', { site, signed_in: signedIn });
+            // The language pair rides on both events so attempt/saved rows are
+            // sliceable by the same dimensions. Read from storage rather than
+            // taken from the caller: the web edition's context menu has no
+            // langPrefs of its own, and storage is the single source of truth.
+            const prefs = await loadLanguagePrefs();
+            const learning = prefs?.learning ?? '';
+            const native = prefs?.native ?? '';
+            void track('word_save_attempt', { site, signed_in: signedIn, learning, native });
             try {
                 const r = await addInboxWord(config, input);
                 const inboxCount = await bumpInboxCount();
@@ -192,7 +203,13 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 // The funnel's terminal step. saved_count is this install's
                 // running total, which is what makes "how many people reach
                 // their 5th / 30th word" answerable.
-                void track('word_saved', { site, saved_count: savedWordCount });
+                void track('word_saved', {
+                    site,
+                    saved_count: savedWordCount,
+                    signed_in: signedIn,
+                    learning,
+                    native,
+                });
                 return { ok: true, wordId: r.wordId, inboxCount, promptRate };
             } catch (err) {
                 // Refresh-token revoked / Firestore rejected the token —
@@ -211,8 +228,9 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
             // Fire-and-forget by construction: handleTrackMessage never
             // rejects, and the opt-out gate lives inside track() so this
             // handler cannot bypass it. Same posture as REPORT_NO_SUBS —
-            // nobody is watching the result.
-            return handleTrackMessage(request);
+            // nobody is watching the result. The sender lets the handler
+            // derive a fallback `site` from the tab for site-bearing events.
+            return handleTrackMessage(request, sender);
         }
         case 'REPORT_NO_SUBS': {
             // Best-effort diagnostics from the emergency "Reload page" button —
@@ -411,11 +429,11 @@ export function installExternalAuthHandoff(): void {
 }
 
 export function installAuthMessageHandler(): void {
-    chrome.runtime.onMessage.addListener((request: AuthMessage, _sender, sendResponse) => {
+    chrome.runtime.onMessage.addListener((request: AuthMessage, sender, sendResponse) => {
         if (!isAuthAction(request?.action)) return false;
         (async () => {
             try {
-                const result = await handleAuthMessage(request);
+                const result = await handleAuthMessage(request, sender);
                 sendResponse(result);
             } catch (err) {
                 console.error('Background auth handler error:', err);

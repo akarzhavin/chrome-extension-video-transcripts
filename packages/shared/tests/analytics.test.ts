@@ -744,6 +744,63 @@ describe('handleTrackMessage', () => {
     });
 });
 
+describe('handleTrackMessage site fallback', () => {
+    const ytSender = { tab: { url: 'https://www.youtube.com/watch?v=x' } } as any;
+
+    function sentParams(call = 0): Record<string, unknown> {
+        const body = (global as any).fetch.mock.calls[call][1].body;
+        return JSON.parse(body).events[0].params;
+    }
+
+    test('derives site from the sender tab when the param is missing', async () => {
+        await handleTrackMessage({ event: 'no_subtitles', params: { retried: false } }, ytSender);
+        expect(sentParams().site).toBe('youtube');
+    });
+
+    test('never overwrites an explicit non-empty site', async () => {
+        await handleTrackMessage({ event: 'no_subtitles', params: { site: 'netflix' } }, ytSender);
+        expect(sentParams().site).toBe('netflix');
+    });
+
+    test('replaces an empty-string site', async () => {
+        // '' is exactly the observed bad bucket — treat it as absent.
+        await handleTrackMessage({ event: 'subtitles_loaded', params: { site: '' } }, ytSender);
+        expect(sentParams().site).toBe('youtube');
+    });
+
+    test('leaves params alone without a sender tab', async () => {
+        await handleTrackMessage({ event: 'no_subtitles', params: { retried: false } });
+        expect(sentParams().site).toBeUndefined();
+        await handleTrackMessage({ event: 'no_subtitles', params: {} }, { id: 'x' } as any);
+        expect(sentParams(1).site).toBeUndefined();
+    });
+
+    test('covers the non-object-params path', async () => {
+        // A malformed message degrades to {} — the one repo path where site
+        // used to vanish entirely.
+        await handleTrackMessage({ event: 'no_subtitles', params: 'nope' }, ytSender);
+        expect(sentParams().site).toBe('youtube');
+    });
+
+    test('does not add site to events that omit it by design', async () => {
+        // languages_configured / analytics_opt_out are sent from both content
+        // scripts and the popup; enriching only the tab-borne half would make
+        // the event's shape depend on which surface sent it.
+        await handleTrackMessage({ event: 'languages_configured', params: {} }, ytSender);
+        expect(sentParams().site).toBeUndefined();
+        await handleTrackMessage({ event: 'analytics_opt_out', params: {} }, ytSender);
+        expect(sentParams(1).site).toBeUndefined();
+    });
+
+    test('tolerates an unparseable sender url', async () => {
+        await handleTrackMessage(
+            { event: 'no_subtitles', params: {} },
+            { tab: { url: 'not a url' } } as any,
+        );
+        expect(sentParams().site).toBeUndefined();
+    });
+});
+
 // ---------------------------------------------------------------------------
 // trackVia (content side)
 // ---------------------------------------------------------------------------

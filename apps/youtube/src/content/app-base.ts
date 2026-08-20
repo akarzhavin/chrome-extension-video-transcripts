@@ -36,6 +36,22 @@ export interface TrackFailureInfo {
     at: number;
 }
 
+/**
+ * Why declareNoSubtitles() was called when NO fetch failure was recorded —
+ * the caller knows structurally what the empty trackFailures map cannot say:
+ *
+ *  - 'no-tracks'          the site confirmed the video has no caption tracks
+ *  - 'no-language-match'  tracks exist, but none in the learning/native pair
+ *  - 'not-attempted'      the grace period expired before anything was tried
+ *  - 'timeout'            requests were in flight but never answered
+ *
+ * A recorded real failure always outranks the cause (see declareNoSubtitles):
+ * "nothing loaded because we were rate-limited" beats "nothing loaded".
+ * The first two are expected absence, not defects — the GA4 `failure`
+ * dimension exists precisely to keep them out of the breakage numbers.
+ */
+export type NoSubsCause = 'no-tracks' | 'no-language-match' | 'not-attempted' | 'timeout';
+
 /** A button in the status banner. `disabled` renders it inert but readable. */
 export interface StatusAction {
     label: string;
@@ -265,6 +281,11 @@ export abstract class BaseVttApp implements AppInterface {
     // event is due, and there would be nothing to measure "waited_s" from.
     hadFailures: boolean = false;
     firstFailureAt: number = 0;
+    // The failure value the no_subtitles event reported for this video, kept so
+    // the emergency-reload diagnostic can reuse it after resetForNewVideo() has
+    // cleared trackFailures. Survives "Search again" for the same reason
+    // hadFailures does; cleared in resetNoSubsRetries() on a real video change.
+    lastNoSubsFailure: string | null = null;
     // Set by the retry paths so a recovery can say whether it was the user or
     // the auto-probe that fixed it.
     lastRecoveryTrigger: 'auto_probe' | 'manual_retry' | 'late_arrival' = 'late_arrival';
@@ -505,7 +526,13 @@ export abstract class BaseVttApp implements AppInterface {
             this.noSubsTimer = null;
             if (!this.langPrefs) return;
             if (this.getVideoId() === null) return;
-            if (this.state.tracks.length === 0) this.declareNoSubtitles();
+            if (this.state.tracks.length === 0) {
+                // Requests still in flight mean attempts WERE made — that is a
+                // reply that never came, not a video nobody asked about.
+                this.declareNoSubtitles(
+                    this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted',
+                );
+            }
         }, graceMs);
     }
 
@@ -576,7 +603,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     // Show the "no subtitles" notice now (used both by the grace-period timeout
     // and when the site reports a video has no caption tracks at all).
-    declareNoSubtitles(): void {
+    declareNoSubtitles(cause?: NoSubsCause): void {
         this.clearNoSubtitlesTimer();
         if (!this.langPrefs) return;
         if (this.getVideoId() === null) return;
@@ -585,16 +612,22 @@ export abstract class BaseVttApp implements AppInterface {
         // The failure fields come from trackFailures rather than being
         // recomputed: by now the original fetch result is long gone, and
         // "nothing loaded" is far less actionable than "nothing loaded because
-        // we were rate-limited after 4 attempts".
+        // we were rate-limited after 4 attempts". When nothing was recorded,
+        // the caller's cause fills the gap — never an empty string, which GA4
+        // keeps as an undiagnosable bucket.
         this.analyticsOnce.fire('no_subtitles', () => {
             const worst = this.dominantFailure();
             const detail = [...this.trackFailures.values()].find((i) => i.failure === worst);
+            const failure = worst ?? cause ?? 'unknown';
+            this.lastNoSubsFailure = failure;
             trackVia('no_subtitles', {
                 site: platformOf(location.hostname),
                 retried: this.noSubsRetries > 0,
-                failure: worst ?? '',
+                failure,
                 status: detail?.status ?? 0,
                 attempts: detail?.attempts ?? 0,
+                learning: this.langPrefs?.learning ?? '',
+                native: this.langPrefs?.native ?? '',
             });
         });
 
@@ -737,7 +770,10 @@ export abstract class BaseVttApp implements AppInterface {
                             native: this.langPrefs?.native ?? '',
                             // The app already knows why; sending it turns
                             // "subtitles missing" into an actionable report.
-                            failure: this.dominantFailure() ?? '',
+                            // Same vocabulary as the no_subtitles event; the
+                            // stored value covers the case where a "Search
+                            // again" already cleared trackFailures.
+                            failure: this.dominantFailure() ?? this.lastNoSubsFailure ?? 'unknown',
                             status: this.failureDetail()?.status ?? 0,
                             attempts: this.failureDetail()?.attempts ?? 0,
                             tracksLoaded: this.state.tracks.length,
@@ -1281,6 +1317,7 @@ export abstract class BaseVttApp implements AppInterface {
         this.clearSubsLoadedTimer();
         this.hadFailures = false;
         this.firstFailureAt = 0;
+        this.lastNoSubsFailure = null;
         this.lastRecoveryTrigger = 'late_arrival';
     }
 

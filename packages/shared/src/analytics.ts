@@ -75,6 +75,26 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'retained_d14',
 ] as const;
 
+/**
+ * Events whose payload is expected to carry a `site` param. The background's
+ * TRACK_EVENT handler derives a fallback `site` from the sender tab for these
+ * and ONLY these: `languages_configured` and `analytics_opt_out` are sent from
+ * both content scripts and the popup, so an unconditional fallback would give
+ * them a `site` that appears and disappears depending on which surface sent
+ * the event.
+ */
+export const SITE_BEARING_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<AnalyticsEvent>([
+    'onboarding_shown',
+    'subtitles_loaded',
+    'dual_subs_shown',
+    'no_subtitles',
+    'subs_partial',
+    'subs_rate_limited',
+    'subs_recovered',
+    'word_save_attempt',
+    'word_saved',
+]);
+
 export type AnalyticsParamValue = string | number | boolean;
 export interface AnalyticsParams {
     [k: string]: AnalyticsParamValue | undefined;

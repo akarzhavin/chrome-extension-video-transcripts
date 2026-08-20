@@ -510,16 +510,19 @@ class VttApp implements AppInterface {
         if (!this.langPrefs) return;
         if (this.state.tracks.length > 0) return;
 
-        // `failure` is empty when nothing reported one — on rezka the player
-        // only fetches a track once it's picked in the CC menu, so "nothing
-        // arrived" is usually the user not having picked one yet, not an error.
+        // On rezka the player only fetches a track once it's picked in the CC
+        // menu, so "nothing reported a failure" means the user hasn't picked
+        // one yet — 'not-selected', an expected absence, not an error. Never
+        // the empty string: GA4 keeps '' as an undiagnosable bucket.
         this.analyticsOnce.fire('no_subtitles', () => {
             trackVia('no_subtitles', {
                 site: platformOf(location.hostname),
                 retried: this.noSubsRetries > 0,
-                failure: this.lastFailure,
+                failure: this.lastFailure || 'not-selected',
                 status: this.lastFailureStatus ?? 0,
                 attempts: 0,
+                learning: this.langPrefs?.learning ?? '',
+                native: this.langPrefs?.native ?? '',
             });
         });
         // Auto-search came up empty. The player only fetches a track when it's

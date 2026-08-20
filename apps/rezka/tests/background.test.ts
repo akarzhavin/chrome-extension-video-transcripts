@@ -406,3 +406,116 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBeUndefined();
     });
 });
+
+// ---------------------------------------------------------------------------
+// ADD_WORD analytics params
+// ---------------------------------------------------------------------------
+
+describe('ADD_WORD analytics params', () => {
+    // word_save_attempt / word_saved ride the language pair and sign-in state
+    // so attempt/saved rows are sliceable by the same GA4 dimensions. The pair
+    // is read from storage in the handler — the web edition's context menu has
+    // no langPrefs of its own to pass along.
+
+    if (!(global as any).crypto?.randomUUID) {
+        let n = 0;
+        (global as any).crypto = {
+            ...((global as any).crypto ?? {}),
+            randomUUID: () => `uuid-${++n}`,
+        };
+    }
+
+    const localStore = (global as any).chrome.storage.local._store as Record<string, unknown>;
+
+    /** GA4 hits posted by track(), parsed down to {name, params}. */
+    function ga4Events(): Array<{ name: string; params: Record<string, unknown> }> {
+        return ((global as any).fetch as jest.Mock).mock.calls
+            .filter((c) => String(c[0]).startsWith('https://ga4.test'))
+            .map((c) => JSON.parse(c[1].body).events[0]);
+    }
+
+    const flush = () => new Promise((r) => setTimeout(r, 0));
+
+    beforeEach(() => {
+        for (const k of Object.keys(localStore)) delete localStore[k];
+        const sessionStore = (global as any).chrome.storage.session._store as Record<string, unknown>;
+        for (const k of Object.keys(sessionStore)) delete sessionStore[k];
+        // The file-wide stub omits getManifest, which makes isEmbed() treat
+        // the environment as the marketing-site shim and silence track().
+        (global as any).chrome.runtime.getManifest = () => ({ version: '1.0.0' });
+        // Routed mock: GA4 posts succeed; the Firestore sentinel read 404s
+        // (first word ever) and the commit accepts.
+        (global as any).fetch = jest.fn((url: string, init?: RequestInit) => {
+            if (String(url).startsWith('https://ga4.test')) {
+                return Promise.resolve({ json: () => Promise.resolve({}) });
+            }
+            if (init?.method === 'POST') {
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.resolve({}),
+                    text: () => Promise.resolve(''),
+                });
+            }
+            return Promise.resolve({
+                ok: false,
+                status: 404,
+                json: () => Promise.resolve({}),
+                text: () => Promise.resolve(''),
+            });
+        });
+    });
+
+    test('a signed-out attempt carries signed_in:false and the stored pair', async () => {
+        localStore['lang.v1'] = { learning: 'en', native: 'ru' };
+        await expect(
+            handleAuthMessage({ action: 'ADD_WORD', term: 'hola', site: 'rezka' } as any),
+        ).rejects.toThrow();
+        await flush();
+        const attempts = ga4Events().filter((e) => e.name === 'word_save_attempt');
+        expect(attempts).toHaveLength(1);
+        expect(attempts[0].params).toMatchObject({
+            site: 'rezka',
+            signed_in: false,
+            learning: 'en',
+            native: 'ru',
+        });
+        expect(ga4Events().filter((e) => e.name === 'word_saved')).toHaveLength(0);
+    });
+
+    test('an unconfigured pair reports empty strings, not absence', async () => {
+        // sanitizeParams keeps '' — an explicit "unconfigured" bucket beats a
+        // (not set) row that is indistinguishable from old-version traffic.
+        await expect(
+            handleAuthMessage({ action: 'ADD_WORD', term: 'hola', site: 'rezka' } as any),
+        ).rejects.toThrow();
+        await flush();
+        const attempts = ga4Events().filter((e) => e.name === 'word_save_attempt');
+        expect(attempts[0].params).toMatchObject({ learning: '', native: '' });
+    });
+
+    test('a signed-in save sends word_saved with signed_in, pair and count', async () => {
+        localStore['lang.v1'] = { learning: 'en', native: 'ru' };
+        localStore['auth.idToken'] = 'tok';
+        localStore['auth.refreshToken'] = 'refresh';
+        localStore['auth.expiresAt'] = Date.now() + 3_600_000;
+        localStore['auth.email'] = 'a@b.com';
+        localStore['auth.uid'] = 'uid-1';
+        const res = (await handleAuthMessage({
+            action: 'ADD_WORD',
+            term: 'hola',
+            site: 'rezka',
+        } as any)) as { ok: boolean };
+        expect(res.ok).toBe(true);
+        await flush();
+        const saved = ga4Events().filter((e) => e.name === 'word_saved');
+        expect(saved).toHaveLength(1);
+        expect(saved[0].params).toMatchObject({
+            site: 'rezka',
+            signed_in: true,
+            learning: 'en',
+            native: 'ru',
+            saved_count: 1,
+        });
+    });
+});

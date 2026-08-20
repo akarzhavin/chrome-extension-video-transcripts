@@ -14,8 +14,10 @@ import { PREFS_KEY } from './prefs';
 import { ANALYTICS_KEYS, ANALYTICS_SESSION_KEYS } from './auth/storage';
 import {
     ALL_ANALYTICS_EVENTS,
+    SITE_BEARING_EVENTS,
     buildPayload,
     isEmbed,
+    platformOf,
     type AnalyticsEvent,
     type AnalyticsParams,
 } from './analytics';
@@ -364,13 +366,27 @@ const KNOWN_EVENTS: ReadonlySet<string> = new Set<string>(ALL_ANALYTICS_EVENTS);
  */
 export async function handleTrackMessage(
     request: Record<string, unknown>,
+    sender?: chrome.runtime.MessageSender,
 ): Promise<{ ok: boolean }> {
     const event = typeof request.event === 'string' ? request.event : '';
     if (!KNOWN_EVENTS.has(event)) return { ok: false };
-    const params =
+    let params =
         typeof request.params === 'object' && request.params !== null
             ? (request.params as AnalyticsParams)
             : {};
+    // Site fallback, but only for events whose shape includes `site` — see
+    // SITE_BEARING_EVENTS. An explicit non-empty site always wins; a popup
+    // sender has no tab and is left alone.
+    if (SITE_BEARING_EVENTS.has(event as AnalyticsEvent)) {
+        const site = params.site;
+        if ((typeof site !== 'string' || site === '') && sender?.tab?.url) {
+            try {
+                params = { ...params, site: platformOf(new URL(sender.tab.url).hostname) };
+            } catch {
+                // Unparseable sender URL — send the params as they came.
+            }
+        }
+    }
     await track(event as AnalyticsEvent, params);
     return { ok: true };
 }

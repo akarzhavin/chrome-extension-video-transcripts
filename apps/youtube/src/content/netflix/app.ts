@@ -158,7 +158,10 @@ class NetflixVttApp extends BaseVttApp {
             // the user can switch to an available language.
             console.log('[NFLX-VTT] no track for chosen pair; available base codes:', [...new Set(tracks.map((t) => t.base))]);
             this.ui.refresh();
-            this.declareNoSubtitles();
+            // planNetflixTracks() returns null both when the pair misses AND
+            // when normalizeTracks() dropped everything (no WebVTT downloads) —
+            // the track count is what tells those two stories apart.
+            this.declareNoSubtitles(tracks.length === 0 ? 'no-tracks' : 'no-language-match');
             return;
         }
         this.loadedForMovie = movieId;
