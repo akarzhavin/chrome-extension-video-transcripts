@@ -110,14 +110,24 @@ export function currentLabel(): string {
 }
 
 /**
+ * Every frontend this build can legitimately be handed an auth token by: the
+ * side it is on, plus the side it can switch to.
+ *
+ * The sign-in handoff arrives from whichever frontend the user opened, which is
+ * not necessarily the side the worker is currently pointed at — they open the
+ * preprod site, and the token arrives before anyone touches the badge. Both
+ * sides are build-supplied and equally trusted, so both are accepted; a prod
+ * build has no AWAY and this collapses to the single origin it always was.
+ */
+export function switchableFrontendBaseUrls(): string[] {
+    if (__EXT_ENV__ !== 'dev' || !AWAY) return [HOME.frontendBaseUrl];
+    return [HOME.frontendBaseUrl, AWAY.frontendBaseUrl];
+}
+
+/**
  * Point `config` at one side. Mutates in place: every consumer reads `config.x`
  * at call time rather than caching it at import, so the change takes effect on
  * the next request with no reload.
- *
- * The one exception is ALLOWED_EXTERNAL_ORIGINS in auth/background.ts, which is
- * built once at service-worker start. It is derived from the MANIFEST's
- * origins, not from this switch, so a dual-origin dev build already accepts
- * both — see the module comment.
  */
 export function applySide(side: ExtEnvName): void {
     if (__EXT_ENV__ !== 'dev') return;

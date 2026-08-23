@@ -5,7 +5,7 @@ import { config } from './config';
 // Static, not dynamic: a dynamic import() makes Vite emit sibling .mjs chunks
 // that an MV3 service worker cannot load. Static keeps one file, and the
 // __EXT_ENV__ literal guards below still drop this module from prod bundles.
-import { handleDevAction, restoreEnv } from './devEnvSwitch';
+import { handleDevAction, restoreEnv, switchableFrontendBaseUrls } from './devEnvSwitch';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
 import { loadLanguagePrefs } from '../languages';
@@ -361,11 +361,16 @@ export function buildAllowedExternalOrigins(baseUrl: string): ReadonlySet<string
     return origins;
 }
 
-const ALLOWED_EXTERNAL_ORIGINS: ReadonlySet<string> = buildAllowedExternalOrigins(config.frontendBaseUrl);
-
 function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean {
     const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : undefined);
-    return !!origin && ALLOWED_EXTERNAL_ORIGINS.has(origin);
+    if (!origin) return false;
+    // Every frontend this build can be handed a token by, not just the side the
+    // worker is pointed at: the user opens whichever site they are testing and
+    // the handoff arrives before the badge is ever touched. A prod build has
+    // one entry here, exactly as before.
+    return switchableFrontendBaseUrls().some((baseUrl) =>
+        buildAllowedExternalOrigins(baseUrl).has(origin),
+    );
 }
 
 export function installExternalAuthHandoff(): void {
