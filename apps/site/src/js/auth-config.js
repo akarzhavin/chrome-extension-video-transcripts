@@ -29,8 +29,10 @@
       env: 'preprod',
       apiKey: 'AIzaSyBmSrf73K03PYNv1F197fNpvVZE-_E6eMI',
       identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
-      // Preprod edge gateway (ESPv2 Cloud Run). From .env.preprod VITE_API_URL.
-      apiBase: 'https://nginx-gateway-jkpp7mbm4q-ew.a.run.app',
+      // Preprod edge gateway: the Go edge-gateway (feature 014 replaced ESPv2,
+      // which has been deleted). Mirrors english/frontend/.env.preprod
+      // VITE_API_URL — keep the two in step.
+      apiBase: 'https://edge-gateway-1079463543331.europe-west1.run.app',
     };
   } else {
     config = {
