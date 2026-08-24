@@ -203,6 +203,43 @@ describe('fetchTimedText', () => {
         expect(out).toMatchObject({ ok: true, text: GOOD_BODY, attempts: 2 });
     });
 
+    // A ZERO-BYTE 200 is not "no translation exists" (that answer is a JSON
+    // envelope without events) — it is how the server declines a stale signed
+    // URL, e.g. one lifted from SSR ytInitialPlayerResponse. Reported as
+    // stale-url so the UI offers the recovery that actually works (re-reading
+    // the player response), not the dead-end "no translation" notice.
+    test('200 with a zero-byte body is reported as stale-url, not not-offered', async () => {
+        const deps = makeDeps([response(200, '')]);
+        const out = await fetchTimedText('u', deps);
+        expect(out).toMatchObject({ ok: false, failure: 'stale-url' });
+        expect(deps.fetchImpl).toHaveBeenCalledTimes(EMPTY_RETRIES + 1);
+    });
+
+    test('refreshUrl re-signs the URL between empty re-asks', async () => {
+        const urls: string[] = [];
+        const queue = [response(200, ''), response(200, GOOD_BODY)];
+        const fetchImpl = jest.fn(async (url: string) => {
+            urls.push(url);
+            return (queue.shift() ?? queue[0]) as unknown as Response;
+        });
+        const deps = makeDeps([], { fetchImpl, refreshUrl: () => 'u-fresh' });
+        const out = await fetchTimedText('u-stale', deps);
+        expect(out).toMatchObject({ ok: true, text: GOOD_BODY, attempts: 2 });
+        expect(urls).toEqual(['u-stale', 'u-fresh']);
+    });
+
+    test('a null refreshUrl keeps the current URL for the re-ask', async () => {
+        const urls: string[] = [];
+        const queue = [response(200, ''), response(200, GOOD_BODY)];
+        const fetchImpl = jest.fn(async (url: string) => {
+            urls.push(url);
+            return (queue.shift() ?? queue[0]) as unknown as Response;
+        });
+        const deps = makeDeps([], { fetchImpl, refreshUrl: () => null });
+        await fetchTimedText('u', deps);
+        expect(urls).toEqual(['u', 'u']);
+    });
+
     test('an empty answer never trips the rate-limit breaker', async () => {
         const deps = makeDeps([response(200, '{"wireMagic":"pb3"}')]);
         await fetchTimedText('u', deps);
