@@ -624,8 +624,8 @@ export abstract class BaseVttApp implements AppInterface {
             return;
         }
 
-        // A stale signed URL / missing pot is recoverable by re-reading the
-        // player response, which is exactly what "Search again" triggers.
+        // A stale signed URL is recoverable by re-reading the player
+        // response, which is exactly what "Search again" triggers.
         const failure = this.dominantFailure();
         if (this.isRecoverableFailure()) {
             this.showStatusBanner(

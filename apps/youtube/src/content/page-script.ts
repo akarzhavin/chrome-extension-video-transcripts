@@ -36,8 +36,6 @@ if (isNetflix()) {
 function installYouTubeHook() {
     const TAG = '[YT-VTT page-script]';
     const originalFetch = window.fetch.bind(window);
-    const potByVideoId = new Map<string, string>();
-    const potWaitersByVideoId = new Map<string, Set<(pot: string) => void>>();
 
     // ---------- dev: force a timedtext status ----------
     // `#lingogram_http=429:5@2` → status 429, Retry-After 5s, for the first 2
@@ -69,83 +67,6 @@ function installYouTubeHook() {
     const timedTextFetch = (url: string, init: RequestInit): Promise<Response> =>
         (forcedFetch ?? originalFetch)(url, init);
 
-    // ---------- pot sniffing ----------
-
-    function tryCapturePot(url: string): void {
-        try {
-            const u = new URL(url, location.href);
-            if (!u.pathname.includes('/api/timedtext')) return;
-            const v = u.searchParams.get('v');
-            const pot = u.searchParams.get('pot');
-            if (!v || !pot) return;
-            if (!potByVideoId.has(v)) {
-                potByVideoId.set(v, pot);
-                console.log(TAG, 'captured pot for', v);
-            }
-            const waiters = potWaitersByVideoId.get(v);
-            if (waiters && waiters.size > 0) {
-                const fns = [...waiters];
-                potWaitersByVideoId.delete(v);
-                fns.forEach((fn) => fn(pot));
-            }
-        } catch {
-            // ignore
-        }
-    }
-
-    function waitForPot(videoId: string, timeoutMs: number): Promise<string | null> {
-        return new Promise((resolve) => {
-            let done = false;
-            const waiter = (pot: string) => {
-                if (done) return;
-                done = true;
-                clearTimeout(timer);
-                resolve(pot);
-            };
-            const timer = setTimeout(() => {
-                if (done) return;
-                done = true;
-                const set = potWaitersByVideoId.get(videoId);
-                if (set) {
-                    set.delete(waiter);
-                    if (set.size === 0) potWaitersByVideoId.delete(videoId);
-                }
-                resolve(null);
-            }, timeoutMs);
-            const set = potWaitersByVideoId.get(videoId) ?? new Set();
-            set.add(waiter);
-            potWaitersByVideoId.set(videoId, set);
-        });
-    }
-
-    const xhrOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: unknown[]) {
-        try {
-            const urlStr = typeof url === 'string' ? url : url.href;
-            if (urlStr.includes('/api/timedtext')) tryCapturePot(urlStr);
-        } catch {
-            // ignore
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return xhrOpen.apply(this, [method, url, ...rest] as any);
-    };
-
-    window.fetch = async function (...args: Parameters<typeof fetch>) {
-        try {
-            const input = args[0];
-            const url =
-                typeof input === 'string'
-                    ? input
-                    : input instanceof URL
-                      ? input.href
-                      : input.url;
-            if (url && url.includes('/api/timedtext')) tryCapturePot(url);
-        } catch {
-            // ignore
-        }
-        return originalFetch.apply(window, args);
-    };
-
     // ---------- player response reading ----------
 
     function postTracks(player: PlayerResponse): boolean {
@@ -163,6 +84,26 @@ function installYouTubeHook() {
         return true;
     }
 
+    // The live player API, not ytd-app.data.playerResponse: the latter is the
+    // SSR ytInitialPlayerResponse, whose signed timedtext URLs the server
+    // answers with HTTP 200 and an EMPTY body (since YouTube dropped the pot
+    // parameter, ~2026-08). Only getPlayerResponse() carries URLs that serve.
+    function readPlayerResponseFromPlayerApi(): PlayerResponse | null {
+        // Watch pages use #movie_player; Shorts has its own #shorts-player.
+        for (const id of ['movie_player', 'shorts-player']) {
+            try {
+                const el = document.getElementById(id) as
+                    | (HTMLElement & { getPlayerResponse?: () => PlayerResponse | null })
+                    | null;
+                const pr = el?.getPlayerResponse?.();
+                if (pr?.videoDetails?.videoId) return pr;
+            } catch {
+                // Player API shape is not a contract.
+            }
+        }
+        return null;
+    }
+
     function readPlayerResponseFromYtdApp(): PlayerResponse | null {
         try {
             const app = document.getElementsByTagName('ytd-app')[0] as HTMLElement & {
@@ -171,6 +112,40 @@ function installYouTubeHook() {
             return app?.data?.playerResponse ?? null;
         } catch {
             return null;
+        }
+    }
+
+    // ytd-app stays as a last resort only — its track LIST is correct even
+    // when its URLs are dead, and resolveLiveBaseUrl() swaps in a live URL at
+    // fetch time anyway.
+    function readPlayerResponse(): PlayerResponse | null {
+        return readPlayerResponseFromPlayerApi() ?? readPlayerResponseFromYtdApp();
+    }
+
+    /**
+     * The freshest signed URL for the track `baseUrl` describes, read from the
+     * live player response. Falls back to the given URL when the player hasn't
+     * caught up to this video or no longer lists a matching track. Called both
+     * before the first request and between empty-answer re-asks, so a baseUrl
+     * that went stale in flight heals without user action.
+     */
+    function resolveLiveBaseUrl(videoId: string, baseUrl: string): string {
+        try {
+            const pr = readPlayerResponseFromPlayerApi();
+            if (pr?.videoDetails?.videoId !== videoId) return baseUrl;
+            const tracks = pr.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+            if (!tracks || tracks.length === 0) return baseUrl;
+            const want = new URL(baseUrl, location.href).searchParams;
+            const match = tracks.find((t) => {
+                const have = new URL(t.baseUrl, location.href).searchParams;
+                return (
+                    have.get('lang') === want.get('lang') &&
+                    (have.get('kind') ?? '') === (want.get('kind') ?? '')
+                );
+            });
+            return match?.baseUrl ?? baseUrl;
+        } catch {
+            return baseUrl;
         }
     }
 
@@ -197,7 +172,7 @@ function installYouTubeHook() {
             // Bail if the user moved to a different video meanwhile.
             if (target && currentUrlVideoId() !== target) return;
 
-            const pr = readPlayerResponseFromYtdApp();
+            const pr = readPlayerResponse();
             const vid = pr?.videoDetails?.videoId;
             const matches = !!vid && (!target || vid === target);
 
@@ -218,16 +193,24 @@ function installYouTubeHook() {
     }
 
     document.addEventListener('yt-navigate-finish', () => {
-        // Whatever is still in flight belongs to the video the user just left.
-        navAbort.abort();
-        navAbort = new AbortController();
-        inFlightFetch.clear();
+        // Abort in-flight fetches ONLY when the URL moved to a different video.
+        // The initial boot of a watch page fires this event too — for the SAME
+        // video, typically right after the first fetches start — and aborting
+        // then kills a round nobody retries: the isolated world has already
+        // claimed the video as loaded, and it deliberately treats 'aborted' as
+        // non-news. (The pot dance used to delay fetches past this event, which
+        // hid the race.)
+        if (!fetchVideoId || currentUrlVideoId() !== fetchVideoId) {
+            navAbort.abort();
+            navAbort = new AbortController();
+            inFlightFetch.clear();
+        }
         setTimeout(broadcastCurrent, 200);
     });
 
-    // ---------- CC toggle to force pot generation ----------
+    // ---------- native captions control ----------
 
-    // Finds the captions toggle to click for pot minting. Surfaces differ:
+    // Finds the captions toggle. Surfaces differ:
     //  - Shorts uses `.ytmClosedCaptioningButtonButton`; its standard
     //    `.ytp-subtitles-button` reports "unavailable" and does nothing.
     //  - The watch player uses `.ytp-subtitles-button`.
@@ -254,15 +237,6 @@ function installYouTubeHook() {
             }
         }
         return null;
-    }
-
-    function clickCcButton(): boolean {
-        const btn = findCcButton();
-        if (btn) {
-            btn.click();
-            return true;
-        }
-        return false;
     }
 
     // Turn YouTube's own captions OFF once, only if they're currently on. Used
@@ -298,62 +272,18 @@ function installYouTubeHook() {
         }
     }
 
-    function fireCcKey(): void {
-        const video = document.querySelector('video');
-        if (!video) return;
-        const init: KeyboardEventInit = {
-            key: 'c',
-            code: 'KeyC',
-            keyCode: 67,
-            which: 67,
-            bubbles: true,
-            cancelable: true,
-        } as KeyboardEventInit;
-        video.dispatchEvent(new KeyboardEvent('keydown', init));
-        video.dispatchEvent(new KeyboardEvent('keyup', init));
-    }
+    // ---------- timedtext fetching ----------
+    // No `pot` handling anywhere here. YouTube used to require a PO token on
+    // timedtext, and this script minted one by toggling CC and sniffing the
+    // player's own request. As of ~2026-08 the player itself sends timedtext
+    // WITHOUT pot and the endpoint serves it fine — what matters now is only
+    // that the signed baseUrl comes from the LIVE player response (see
+    // readPlayerResponseFromPlayerApi).
 
-    function toggleCc(): void {
-        // Click button if available, otherwise fall back to keyboard event
-        if (!clickCcButton()) fireCcKey();
-    }
-
-    const inFlightEnsurePot = new Map<string, Promise<string | null>>();
-
-    async function generatePotForVideo(videoId: string): Promise<string | null> {
-        // Wait briefly for a captions toggle to exist (watch player or Shorts).
-        for (let i = 0; i < 20; i++) {
-            if (findCcButton()) break;
-            await new Promise((r) => setTimeout(r, 200));
-        }
-
-        console.log(TAG, 'pot not yet seen, toggling CC for', videoId);
-        const wait = waitForPot(videoId, 15000);
-        toggleCc();
-        const pot = await wait;
-        toggleCc(); // restore previous CC state
-        return pot;
-    }
-
-    async function ensurePot(videoId: string): Promise<string | null> {
-        const own = potByVideoId.get(videoId);
-        if (own) return own;
-        const existing = inFlightEnsurePot.get(videoId);
-        if (existing) return existing;
-        const p = generatePotForVideo(videoId).finally(() => {
-            inFlightEnsurePot.delete(videoId);
-        });
-        inFlightEnsurePot.set(videoId, p);
-        return p;
-    }
-
-    // ---------- fetch with pot ----------
-
-    function buildUrl(baseUrl: string, pot: string, tlang?: string): string {
+    function buildUrl(baseUrl: string, tlang?: string): string {
         const u = new URL(baseUrl, location.href);
         u.searchParams.set('fmt', 'json3');
         u.searchParams.set('c', 'WEB');
-        u.searchParams.set('pot', pot);
         if (tlang) u.searchParams.set('tlang', tlang);
         return u.toString();
     }
@@ -375,6 +305,11 @@ function installYouTubeHook() {
     // backoff keep running for a video nobody is watching any more.
     let navAbort = new AbortController();
 
+    // The video the most recent YT_FETCH_VTT was for — what yt-navigate-finish
+    // compares the URL against to tell "moved to another video" (abort) from
+    // "same-video navigate event during boot" (leave the fetches alone).
+    let fetchVideoId: string | null = null;
+
     function sleep(ms: number, signal?: AbortSignal): Promise<void> {
         return new Promise((resolve) => {
             if (signal?.aborted) return resolve();
@@ -395,7 +330,7 @@ function installYouTubeHook() {
     function fetchDeduped(
         url: string,
         signal: AbortSignal,
-        opts: { translation: boolean; probe: boolean },
+        opts: { translation: boolean; probe: boolean; refreshUrl?: () => string },
     ): Promise<VttOutcome> {
         const existing = inFlightFetch.get(url);
         if (existing) {
@@ -409,6 +344,7 @@ function installYouTubeHook() {
                 sleep,
                 breaker: opts.translation ? breaker : undefined,
                 maxAttempts: opts.probe ? 1 : undefined,
+                refreshUrl: opts.refreshUrl,
             },
             signal,
         ).finally(() => {
@@ -429,17 +365,19 @@ function installYouTubeHook() {
         tlang?: string,
         probe?: boolean,
     ): Promise<void> {
+        fetchVideoId = videoId;
         const signal = navAbort.signal;
-        const pot = await ensurePot(videoId);
-        if (!pot) {
-            postResult({ url: reqKey, videoId, text: '', ok: false, failure: 'no-pot' });
-            return;
-        }
         // Keyed on the built URL rather than reqKey: duplicate requests for the
         // same track produce an identical URL, which is exactly what we want to
-        // collapse. The key isn't known until ensurePot resolves, hence here.
-        const url = buildUrl(baseUrl, pot, tlang);
-        const outcome = await fetchDeduped(url, signal, { translation: !!tlang, probe: !!probe });
+        // collapse. The isolated world may hand us a baseUrl it read a while
+        // ago (or one that came from SSR data) — swap in the live player's
+        // freshly signed URL for the same track before fetching.
+        const url = buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang);
+        const outcome = await fetchDeduped(url, signal, {
+            translation: !!tlang,
+            probe: !!probe,
+            refreshUrl: () => buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang),
+        });
 
         if (outcome.ok) {
             console.log(TAG, 'fetched', outcome.text.length, 'bytes for', reqKey,
@@ -447,10 +385,9 @@ function installYouTubeHook() {
         } else {
             console.warn(TAG, 'failed', reqKey, outcome.failure, 'status:', outcome.status,
                 'attempts:', outcome.attempts, tlang ? `tlang=${tlang}` : '(no tlang)');
-            // A 403 means the signed baseUrl or the pot went stale. Drop the pot
-            // so the next attempt mints a fresh one; the caller re-reads the
-            // player response via YT_QUERY_CAPTIONS, which yields a new baseUrl.
-            if (outcome.failure === 'stale-url') potByVideoId.delete(videoId);
+            // 'stale-url' needs no cleanup here: the caller's "Search again"
+            // re-reads the player response via YT_QUERY_CAPTIONS, which yields
+            // a fresh baseUrl, and resolveLiveBaseUrl re-signs on every fetch.
         }
 
         postResult({

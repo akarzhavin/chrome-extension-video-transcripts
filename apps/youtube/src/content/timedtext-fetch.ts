@@ -14,9 +14,15 @@
 /** Why a timedtext request did not produce usable subtitles. */
 export type VttFailure =
     | 'rate-limited' // 429/503. Retryable with backoff, then the breaker opens.
-    | 'stale-url' // 403. The signed baseUrl or the pot expired.
-    | 'not-offered' // HTTP 200 with no events — no translation for this lang.
-    | 'no-pot' // never minted a pot for this video (CC toggle never worked).
+    // 403 — or HTTP 200 with a zero-byte body, which is how YouTube answers a
+    // signed URL it no longer honours (SSR ytInitialPlayerResponse links do
+    // this permanently). Re-reading the live player response mints a fresh one.
+    | 'stale-url'
+    | 'not-offered' // HTTP 200 with a body but no events — no translation for this lang.
+    // Legacy (pre-2026-08): the pot token was never minted. YouTube has since
+    // dropped `pot` from timedtext entirely, so this is no longer emitted; the
+    // value stays so analytics from older builds keep decoding.
+    | 'no-pot'
     | 'unavailable' // 404/410. The track is gone.
     // No reply ever came back (a wedged page-script, a dropped
     // postMessage). Distinct from 'network', which means a request was
@@ -56,12 +62,14 @@ export const MAX_ATTEMPTS = 4;
 /**
  * How many times to re-ask when the answer is a well-formed but empty track.
  *
- * An empty json3 body means one of two things and the response cannot tell
- * them apart: YouTube has no translation for this language (permanent), or the
- * track exists but isn't ready yet (transient — the caption endpoint commonly
- * serves an empty payload for the first second or two after a video loads).
- * Treating it as permanent on the first answer means the subtitles that WOULD
- * have arrived a moment later never load at all.
+ * An empty json3 body is ambiguous and the response cannot disambiguate:
+ * YouTube has no translation for this language (permanent, comes as a JSON
+ * envelope without events), the track isn't ready yet (transient — the caption
+ * endpoint commonly serves an empty payload for the first second or two after
+ * a video loads), or the signed URL went stale (zero bytes at HTTP 200; fixed
+ * by re-signing via FetchDeps.refreshUrl between re-asks). Treating it as
+ * permanent on the first answer means the subtitles that WOULD have arrived a
+ * moment later never load at all.
  *
  * So: retry, but cheaply. A short fixed delay, not the rate-limit backoff —
  * this isn't a throttle and the user is staring at an empty panel.
@@ -208,6 +216,14 @@ export interface FetchDeps {
      * it is checking on.
      */
     maxAttempts?: number;
+    /**
+     * Called before each empty-body re-ask to obtain a freshly signed URL for
+     * the same track (re-reading the live player response). An empty 200 often
+     * means the signed URL went stale, so re-asking the SAME url would just
+     * collect the same empty answer. Return null/undefined to keep the current
+     * URL.
+     */
+    refreshUrl?: () => string | null | undefined;
     rand?: () => number;
     now?: () => number;
 }
@@ -232,9 +248,11 @@ export async function fetchTimedText(
         sleep,
         breaker,
         maxAttempts = MAX_ATTEMPTS,
+        refreshUrl,
         rand = Math.random,
         now = Date.now,
     } = deps;
+    let currentUrl = url;
 
     const cooling = breaker?.remainingMs() ?? 0;
     if (cooling > 0) {
@@ -252,7 +270,7 @@ export async function fetchTimedText(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         retryAfterMs = undefined;
         try {
-            const res = await fetchImpl(url, { credentials: 'include', signal });
+            const res = await fetchImpl(currentUrl, { credentials: 'include', signal });
             attempts = attempt;
             status = res.status;
 
@@ -266,11 +284,24 @@ export async function fetchTimedText(
                 // An empty track may just not be ready yet — give it a couple of
                 // cheap re-asks before calling it "not offered". See EMPTY_RETRIES.
                 if (++emptyAnswers > EMPTY_RETRIES || attempt >= maxAttempts) {
-                    return { ok: false, text: '', failure: cls, status: res.status, attempts };
+                    // A literally empty body is not "no translation exists":
+                    // that answer is a JSON envelope without events. Zero bytes
+                    // at 200 is how the server declines a stale signed URL, and
+                    // a fresh player-response read fixes it — report it as such.
+                    return {
+                        ok: false,
+                        text: '',
+                        failure: text.trim() === '' ? 'stale-url' : cls,
+                        status: res.status,
+                        attempts,
+                    };
                 }
                 breaker?.reset(); // a 200 is not a throttle, whatever it contains
                 await sleep(EMPTY_RETRY_DELAY_MS, signal);
                 if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
+                // If the emptiness was a stale URL, only a re-signed one can
+                // answer differently — swap it in for the re-ask.
+                currentUrl = refreshUrl?.() || currentUrl;
                 continue;
             }
 
