@@ -29,6 +29,7 @@
 
 import { chromium } from '../node_modules/playwright-core/index.mjs';
 import { openInBackground, mute } from './lib/cdp-background-tab.mjs';
+import { watchWorkerNetwork } from './lib/cdp-worker-net.mjs';
 
 const argv = process.argv.slice(2);
 const argOf = (flag, fallback) => {
@@ -64,6 +65,7 @@ const SETTLE_MS = Number(argOf('--settle', '40000'));
 const RETRY_AFTER_S = Number(argOf('--retry-after', '1'));
 const HUMAN_WAIT = Number(argOf('--human-wait', '90000'));
 const WORD_WAIT = Number(argOf('--word-wait', '90000'));
+const NETFLIX_URL = argOf('--netflix', 'https://www.netflix.com/browse');
 const SKIP_HUMAN = hasFlag('--skip-human');
 const NO_RELOAD = hasFlag('--no-reload');
 const KEEP_STORE = hasFlag('--keep-store');
@@ -108,6 +110,7 @@ if (!ctx) {
 // Capture: GA4 hits, and separately the Firestore commits REPORT_NO_SUBS makes.
 // ---------------------------------------------------------------------------
 const hits = [];
+const seenReq = new Set();
 const commits = [];
 let sawProdEndpoint = null;
 
@@ -141,6 +144,15 @@ const record = (req) => {
 ctx.on('request', record);
 for (const w of ctx.serviceWorkers?.() ?? []) w.on?.('request', record);
 ctx.on('serviceworker', (w) => w.on?.('request', record));
+
+// The worker's own requests never reach the listeners above: an MV3 worker
+// wakes, sends, and dies, and playwright reports zero service workers for this
+// extension throughout. Everything the background sends — the GA4 hits and the
+// diagnostics commit alike — is only visible from the browser endpoint.
+let stopWorkerWatch = () => {};
+function recordWorker({ url, postData }) {
+    record({ url: () => url, postData: () => postData });
+}
 
 const results = [];
 const pass = (id, msg, detail) => results.push({ id, ok: true, msg, detail });
@@ -229,6 +241,10 @@ async function prepareExtensions() {
         return false;
     }
     unpackedId = unpacked.id;
+    stopWorkerWatch = await watchWorkerNetwork(PORT, unpacked.id, recordWorker).catch((e) => {
+        log(`  (перехват воркера не поднялся: ${String(e).split('\n')[0]})`);
+        return () => {};
+    });
     const store = list.find((e) => e.location === 'FROM_STORE' && e.enabled && e.name.slice(0, 20) === unpacked.name.slice(0, 20));
     const setEnabled = (id, on) => mgmt.evaluate(({ id, on }) => new Promise((r) =>
         chrome.management.setEnabled(id, on, () => r(chrome.runtime.lastError?.message ?? 'ok'))), { id, on });
@@ -462,8 +478,11 @@ try {
             log('\n[D1] Netflix — ярлык no-language-match');
             log('     В окне браузера: открой тайтл на Netflix и выставь в настройках');
             log('     расширения пару языков, которых у этого тайтла НЕТ.');
-            log(`     Жду ${HUMAN_WAIT / 1000} с…`);
             const n = since();
+            const nf = await openInBackground(ctx, NETFLIX_URL);
+            await mute(nf);
+            log(`     Открыл ${NETFLIX_URL} в фоновой вкладке.`);
+            log(`     Жду ${HUMAN_WAIT / 1000} с…`);
             await wait(HUMAN_WAIT);
             const ns = from(n).find((h) => h.name === 'no_subtitles' && h.params.site === 'netflix');
             if (!ns) {
@@ -479,8 +498,11 @@ try {
         if (wanted('B1') || wanted('B2')) {
             log('\n[B] Сохранение слова');
             log('     Сохрани слово — сначала разлогиненным, потом залогиненным.');
-            log(`     Жду ${WORD_WAIT / 1000} с…`);
             const n = since();
+            const wp = await openInBackground(ctx, VIDEOS.recover);
+            await mute(wp);
+            log(`     Открыл ${VIDEOS.recover} — субтитры там есть, слово брать оттуда.`);
+            log(`     Жду ${WORD_WAIT / 1000} с…`);
             await wait(WORD_WAIT);
             const attempts = from(n).filter((h) => h.name === 'word_save_attempt');
             const saves = from(n).filter((h) => h.name === 'word_saved');
@@ -514,14 +536,19 @@ try {
             log('     На баннере «нет субтитров»: нажми «Search again», ДОЖДИСЬ провала,');
             log('     затем «Reload page». Порядок важен: первый клик чистит trackFailures,');
             log('     и репорт обязан упасть на lastNoSubsFailure.');
-            log(`     Жду ${HUMAN_WAIT / 1000} с…`);
             const before = commits.length;
+            const gp = await openInBackground(ctx, NO_CAPTIONS);
+            await mute(gp);
+            log(`     Открыл ${NO_CAPTIONS} — баннер «нет субтитров» будет там.`);
+            log(`     Жду ${HUMAN_WAIT / 1000} с…`);
             await wait(HUMAN_WAIT);
             const fresh = commits.slice(before);
             const diag = fresh.find((c) => c.fields?.kind?.stringValue === 'no_subs_after_retry');
             if (!diag) {
                 skip('G1', 'Диагностический коммит не наблюдался.',
-                    `Коммитов за окно: ${fresh.length}. Нужен вход в аккаунт; лимит — один репорт на uid в сутки.`);
+                    'Живой клик почти никогда не успевает: reportNoSubsAndReload() даёт запросу ' +
+                    'Promise.race с 400 мс, а спящему MV3-воркеру нужно больше, после чего ' +
+                    'location.reload() рвёт его безусловно. Проверять через прямой REPORT_NO_SUBS.');
             } else {
                 const f = diag.fields.failure?.stringValue;
                 if (!f) fail('G1', 'failure пуст в репорте.', JSON.stringify(Object.keys(diag.fields)));
@@ -582,6 +609,7 @@ try {
     failed += results.filter((r) => r.ok === false).length;
     log(`\n  ${failed === 0 ? 'Провалов нет.' : `Провалов: ${failed}.`}`);
 } finally {
+    stopWorkerWatch();
     await restoreExtensions();
     await browser.close().catch(() => {});
 }
