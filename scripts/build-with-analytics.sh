@@ -67,21 +67,32 @@ export EXT_GA4_API_SECRET="$API_SECRET"
 echo "Building all three extensions against the $ENV_NAME property ($MEASUREMENT_ID)."
 if [[ "$ENV_NAME" == "dev" ]]; then
     export EXT_ENV=dev
-    # assert-shippable refuses to zip a dev build — it carries localhost origins
-    # and the dev backend switch, and a zip is one upload away from the store.
-    # We want the unpacked build/ directory, so allow the zip step through
-    # rather than losing the whole build to a guard aimed at releases.
-    export ALLOW_UNSHIPPABLE_ZIP=1
     echo "EXT_ENV=dev -> hits go to /debug/mp/collect, which reports payload"
     echo "errors in the service-worker console instead of answering 204."
-    echo "ALLOW_UNSHIPPABLE_ZIP=1 -> the release guard would otherwise stop the"
-    echo "build at the zip step. Do NOT upload a zip produced by this run."
+    echo "No zip is written: a dev build is loaded unpacked from build/."
 fi
 echo
 
+# A dev run stops at the unpacked build/ and writes NO archive.
+#
+# It used to run the full `build` (zip included) with ALLOW_UNSHIPPABLE_ZIP=1,
+# which produced releases/<app>-v<version>.zip — a file INDISTINGUISHABLE by
+# name from a real release, sitting in the directory releases are uploaded
+# from. That is how youtube 1.0.15 reached the store carrying the dev backend
+# switch, a localhost origin and preprod.lingogram.ai in externally_connectable
+# (any origin listed there can be handed a signed-in user's SSO token).
+#
+# A dev build is loaded unpacked via chrome://extensions, so the archive was
+# never needed in the first place. Not writing it removes the confusable
+# artifact instead of relying on someone remembering which zip is which.
+BUILD_TARGET=build
+if [[ "$ENV_NAME" == "dev" ]]; then
+    BUILD_TARGET=build:dev
+fi
+
 for app in youtube rezka web; do
     echo "--- apps/$app ---"
-    npm run build -w "apps/$app"
+    npm run "$BUILD_TARGET" -w "apps/$app"
 done
 
 echo

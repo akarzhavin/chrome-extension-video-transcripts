@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build --mode background && vite build --mode popup && npm run zip",
     "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode popup",
-    "zip": "mkdir -p ../../releases && cd build && zip -r ../../../releases/web-v$npm_package_version.zip .",
+    "zip": "node ../../packages/shared/zip-build.mjs --label web --version $npm_package_version",
     "dev": "vite",
     "type-check": "tsc --noEmit"
   },

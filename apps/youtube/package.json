@@ -5,8 +5,7 @@
   "scripts": {
     "build": "vite build --mode background && vite build --mode content && vite build --mode page-script && vite build --mode popup && npm run zip",
     "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode page-script && EXT_ENV=dev vite build --mode popup",
-    "zip": "npm run assert-shippable && mkdir -p ../../releases && cd build && rm -f ../../../releases/youtube-v$npm_package_version.zip && zip -r ../../../releases/youtube-v$npm_package_version.zip .",
-    "assert-shippable": "node ../../packages/shared/assert-shippable.mjs build --label youtube",
+    "zip": "node ../../packages/shared/zip-build.mjs --label youtube --version $npm_package_version",
     "dev": "vite",
     "type-check": "tsc --noEmit"
   },

@@ -12,13 +12,17 @@
  * are what someone gets wrong; the artifact is the thing being shipped, and
  * it's the only evidence that cannot be out of date.
  *
- * Escape hatch: ALLOW_UNSHIPPABLE_ZIP=1 for deliberately packaging a dev build
- * (handing a preprod build to a tester). It prints what it waived.
+ * Escape hatch: WRITE_UNSHIPPABLE_ZIP=1 for deliberately packaging a build that
+ * must never reach the store (handing a preprod build to a tester). It prints
+ * what it waived, and zip-build.mjs names the archive *-UNSHIPPABLE.zip so the
+ * artifact stays distinguishable from a release in the file picker. The old
+ * name (ALLOW_UNSHIPPABLE_ZIP) described permission to package; what actually
+ * matters is that the resulting FILE is marked.
  *
  * Usage: node assert-shippable.mjs <build-dir> [--label youtube]
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { join, extname, relative } from 'node:path';
 
 const buildDir = process.argv[2];
 const labelArg = process.argv.indexOf('--label');
@@ -73,6 +77,80 @@ const RULES = [
         why: 'it references a build constant that was never substituted (the worker will throw on load and register no listeners)',
     },
 ];
+
+/**
+ * The GA4 property a release must report to. Prod only — a dev id here means
+ * the build was made against `Lingogram dev`, and its traffic would land in the
+ * property whose whole purpose is to stay free of real users.
+ */
+const PROD_MEASUREMENT_ID = 'G-09BWM1R5S5';
+const DEV_MEASUREMENT_ID = 'G-V0MLJ7ZFNC';
+
+/**
+ * Analytics must survive into the background bundle.
+ *
+ * This is the one failure the other rules structurally cannot catch. They all
+ * look for something that must NOT be present (a dev switch, a localhost
+ * origin, an unsubstituted define); this one looks for something that MUST be,
+ * because the failure REMOVES code rather than adding it.
+ *
+ * Built without EXT_GA4_API_SECRET, the guard at the top of track() —
+ * `if (!__GA4_MEASUREMENT_ID__ || !__GA4_API_SECRET__) return;` — folds to a
+ * constant and the minifier drops the entire transport path. The result is a
+ * build that installs, runs, loads subtitles and reports NOTHING, with no error
+ * anywhere. Shipped twice before this rule existed: youtube 1.0.15 and 1.0.16
+ * (and rezka 1.0.15) went to the store mute, and the gap only surfaced when a
+ * month of GA4 data turned out to end on the day 1.0.15 was published.
+ *
+ * The transport is checked for PRESENCE in the background bundle and for
+ * ABSENCE everywhere else. analytics-bg is service-worker-only; the string
+ * turning up in a page-readable bundle means the api_secret shipped with it,
+ * readable by anyone viewing source on youtube.com. That direction was stated
+ * here as a rule for a while before anything enforced it.
+ */
+function analyticsProblems() {
+    const bg = files.find((f) => f.endsWith('background.js'));
+    // A missing background bundle is already reported by backendProblems().
+    if (!bg) return [];
+    const src = readFileSync(bg, 'utf8');
+
+    const problems = [];
+    if (!src.includes('/mp/collect')) {
+        problems.push(
+            'the GA4 transport is missing from the background bundle — analytics is a silent no-op\n' +
+            '      Built without EXT_GA4_API_SECRET, so the minifier dropped the whole send path.\n' +
+            '      Build releases with: ./scripts/build-with-analytics.sh prod',
+        );
+        // The id check below would only restate the same cause.
+        return problems;
+    }
+
+    const ids = [...new Set(src.match(/G-[A-Z0-9]{8,}/g) ?? [])];
+    if (ids.includes(DEV_MEASUREMENT_ID)) {
+        problems.push(
+            `it reports to the DEV GA4 property (${DEV_MEASUREMENT_ID}) — test traffic would enter the real funnel\n` +
+            '      and cannot be separated out afterwards. Rebuild with the prod credentials.',
+        );
+    } else if (!ids.includes(PROD_MEASUREMENT_ID)) {
+        problems.push(
+            `the background bundle carries no prod measurement_id (${PROD_MEASUREMENT_ID}); found: ${ids.join(', ') || 'none'}`,
+        );
+    }
+    // The other half of the rule: the transport, and the api_secret baked into
+    // it, must not reach anything a page can read. A leak here is not a silent
+    // no-op like the case above — it is a credential handed to every visitor.
+    const leaked = files.filter((f) => !f.endsWith('background.js'))
+        .filter((f) => readFileSync(f, 'utf8').includes('/mp/collect'));
+    if (leaked.length) {
+        problems.push(
+            'the GA4 transport is present outside the background bundle — the api_secret is readable from a page\n' +
+            `      Affected: ${leaked.map((f) => relative(buildDir, f)).join(', ')}\n` +
+            '      analytics-bg.ts must never be reachable from a content or popup entry point.',
+        );
+    }
+
+    return problems;
+}
 
 /**
  * The Firebase project the build actually resolved to.
@@ -208,11 +286,12 @@ for (const rule of RULES) {
     }
 }
 findings.push(...backendProblems());
+findings.push(...analyticsProblems());
 findings.push(...manifestProblems(buildDir));
 
 if (!findings.length) process.exit(0);
 
-const waived = process.env.ALLOW_UNSHIPPABLE_ZIP === '1';
+const waived = process.env.WRITE_UNSHIPPABLE_ZIP === '1';
 const head = waived ? 'PACKAGING A NON-SHIPPABLE BUILD' : 'REFUSING TO PACKAGE';
 
 console.error('');
@@ -222,12 +301,16 @@ for (const f of findings) console.error(`    • ${f}`);
 console.error('');
 
 if (waived) {
-    console.error('  Waived via ALLOW_UNSHIPPABLE_ZIP=1. Do not upload this zip to the Web Store.');
+    console.error('  Waived via WRITE_UNSHIPPABLE_ZIP=1 — the archive will be named');
+    console.error('  *-UNSHIPPABLE.zip so it cannot be picked for an upload by mistake.');
     console.error('');
     process.exit(0);
 }
 
-console.error('  A production build is what `npm run build` makes with no EXT_* overrides.');
-console.error('  To package a dev build anyway: ALLOW_UNSHIPPABLE_ZIP=1 npm run build');
+console.error('  A shippable build is what `./scripts/build-with-analytics.sh prod` makes:');
+console.error('  production backends AND live GA4 credentials. Plain `npm run build` gives');
+console.error('  the first without the second, which ships mute analytics.');
+console.error('  To package such a build anyway: WRITE_UNSHIPPABLE_ZIP=1 npm run build');
+console.error('  (it will be written as <app>-v<version>-UNSHIPPABLE.zip)');
 console.error('');
 process.exit(1);
