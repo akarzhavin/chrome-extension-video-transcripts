@@ -87,6 +87,16 @@ export interface ReprocessOptions {
  */
 export const AUTO_PROBE_LIMIT = 2;
 
+/**
+ * How long the emergency "Reload page" diagnostic may delay the reload.
+ *
+ * Exported so a test can assert the budget rather than hard-code it: the value
+ * is the whole feature. Too small and the report never leaves (an MV3 worker
+ * has to cold-start, refresh a token and reach Firestore first); too large and
+ * the user waits on a button that promised a reload.
+ */
+export const REPORT_NO_SUBS_TIMEOUT_MS = 2500;
+
 // Localized UI string with an English fallback. Delegates to the shared helper
 // (honors any demo override, then chrome.i18n, then the fallback).
 function t(key: string, fallback: string): string {
@@ -750,8 +760,15 @@ export abstract class BaseVttApp implements AppInterface {
     // Emergency "Reload page" handler. The banner copy qualifies the click
     // ("this video HAS subtitles but we aren't showing them"), so it doubles as
     // a bug report: fire a best-effort diagnostic to the background worker, then
-    // reload no matter what. The 400ms race caps how long a slow/dead worker can
-    // delay the reload the user actually asked for.
+    // reload no matter what. The race caps how long a slow/dead worker can delay
+    // the reload the user actually asked for.
+    //
+    // The cap was 400ms, which almost never sufficed: an MV3 worker is usually
+    // asleep by then, and cold start plus a token refresh plus the Firestore
+    // round-trip does not fit. Measured on a live profile — the report lost the
+    // race essentially every time, so the feature reported nothing at all.
+    // 2500ms clears a cold start with room to spare and is still shorter than
+    // the page reload the user is waiting through anyway.
     async reportNoSubsAndReload(): Promise<void> {
         try {
             if (chrome?.runtime?.id) {
@@ -779,7 +796,7 @@ export abstract class BaseVttApp implements AppInterface {
                             tracksLoaded: this.state.tracks.length,
                         })
                         .catch(() => undefined),
-                    new Promise((resolve) => setTimeout(resolve, 400)),
+                    new Promise((resolve) => setTimeout(resolve, REPORT_NO_SUBS_TIMEOUT_MS)),
                 ]);
             }
         } catch {

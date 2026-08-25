@@ -63,6 +63,44 @@ Chrome 138+ ignores `--load-extension`, so an unpacked build is installed into a
 persistent profile by hand once and driven over CDP after that — see
 `apps/youtube/screenshots/run-all.sh`.
 
+## `EXT_FIREBASE_HOSTS=live` — point a dev build at cloud Firebase
+
+`npm run build:dev` resolves Firestore at `http://localhost:8080` and Identity
+Toolkit at `http://localhost:9099`, against project `demo-lingogram`. That is the
+right default for local work, but it means **anything that writes to Firestore
+does nothing unless the emulators are running** — and it fails quietly, because
+the callers treat these writes as best-effort. The symptom is a feature that
+"works" while the collection stays empty.
+
+Seen in practice: the emergency "Reload page" diagnostic posted to
+`localhost:8080` and the handler returned `{ok:false}`. Nothing in the UI said
+so; the write simply never reached a real backend.
+
+To exercise the real thing, keep dev analytics but move the hosts:
+
+```sh
+EXT_FIREBASE_HOSTS=live ./scripts/build-with-analytics.sh dev
+```
+
+That alone still targets `demo-lingogram`, which does not exist in the cloud —
+`applySide()` retargets projectId/apiKey/frontendBaseUrl but never the host, so
+name the project too:
+
+```sh
+EXT_FIREBASE_HOSTS=live \
+EXT_FIREBASE_PROJECT_ID=<project-id> \
+EXT_FIREBASE_API_KEY=<web-api-key> \
+./scripts/build-with-analytics.sh dev
+```
+
+`EXT_ENV` stays `dev`, so GA4 still posts to the dev property and the
+`lingogram_http` flag survives — only the Firebase host moves. Take the project
+id and key from the environment (`english/frontend/.env.preprod` or the Firebase
+Console); **prefer preprod over production**, and remember a write that lands in
+production lands under your real uid.
+
+Implementation: `useLiveHosts` in `apps/<app>/vite.config.ts`.
+
 ## Backend switch (sidebar)
 
 A dev build shows a full-width bar at the very top of the sidebar, above the

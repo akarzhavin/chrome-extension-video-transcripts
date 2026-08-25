@@ -29,7 +29,11 @@
     },
 };
 
-import { BaseVttApp, type ReprocessOptions } from '../src/content/app-base';
+import {
+    BaseVttApp,
+    REPORT_NO_SUBS_TIMEOUT_MS,
+    type ReprocessOptions,
+} from '../src/content/app-base';
 import type { Subtitle } from '@video-transcripts/shared';
 
 class TestApp extends BaseVttApp {
@@ -572,6 +576,32 @@ describe('REPORT_NO_SUBS carries the cause', () => {
             attempts: 4,
             tracksLoaded: 1,
         });
+    });
+
+    // The budget IS the feature. It was 400ms, and a live run showed the report
+    // losing that race essentially every time: an MV3 worker has to cold-start,
+    // refresh a token and reach Firestore before the unconditional reload fires.
+    // The value is asserted rather than assumed because shrinking it back
+    // silently disables diagnostics — the failure mode is an empty collection,
+    // not an error anyone would notice.
+    test('the send is given long enough for a cold service worker', () => {
+        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeGreaterThanOrEqual(2000);
+        // Still bounded: the user pressed a button that promises a reload.
+        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeLessThanOrEqual(3000);
+    });
+
+    test('a worker that never answers still lets the page reload', async () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'network' });
+        // A send that never settles: only the timeout can end the race.
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(
+            () => new Promise(() => {}),
+        );
+        jest.useFakeTimers();
+        const done = app.reportNoSubsAndReload();
+        jest.advanceTimersByTime(REPORT_NO_SUBS_TIMEOUT_MS + 50);
+        await expect(done).resolves.toBeUndefined();
+        jest.useRealTimers();
     });
 });
 
