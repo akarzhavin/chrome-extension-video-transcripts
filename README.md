@@ -122,6 +122,11 @@ chrome-extension-video-transcripts/
    ```bash
    npm run build:dev --workspace=@video-transcripts/rezka
    ```
+   > **Not for releases.** `npm run build` compiles without GA4 credentials, which
+   > silently strips analytics from the bundle — a working extension that reports
+   > nothing. Release builds go through `make release`, which loads the credentials,
+   > packages every extension and verifies the archives before they can be uploaded.
+   > Run `make` for the full list of targets.
 4. **Load into Chrome:**
    - Open `chrome://extensions/`.
    - Enable **Developer mode**.

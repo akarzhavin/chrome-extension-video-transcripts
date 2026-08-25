@@ -5,8 +5,7 @@
   "scripts": {
     "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor && vite build --mode popup && npm run zip",
     "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode interceptor && EXT_ENV=dev vite build --mode popup",
-    "zip": "npm run assert-shippable && mkdir -p ../../releases && cd build && rm -f ../../../releases/rezka-v$npm_package_version.zip && zip -r ../../../releases/rezka-v$npm_package_version.zip .",
-    "assert-shippable": "node ../../packages/shared/assert-shippable.mjs build --label rezka",
+    "zip": "node ../../packages/shared/zip-build.mjs --label rezka --version $npm_package_version",
     "dev": "vite",
     "type-check": "tsc --noEmit"
   },

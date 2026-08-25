@@ -111,13 +111,14 @@ export EXT_ALT_PROJECT_ID=<project-b>
 export EXT_ALT_API_KEY=<key-b>
 export EXT_ALT_FRONTEND_BASE_URL=https://<host-b>
 
-ALLOW_UNSHIPPABLE_ZIP=1 npm run build
+WRITE_UNSHIPPABLE_ZIP=1 npm run build
 ```
 
 Run it through `npm run build`, not bare `npx vite build`: `npm` is what sets
 `npm_package_version`, and without it the manifest is stamped with the monorepo
-root's version instead of the extension's. `ALLOW_UNSHIPPABLE_ZIP=1` is needed
-because the packaging gate refuses to zip a dev build — see below.
+root's version instead of the extension's. `WRITE_UNSHIPPABLE_ZIP=1` is needed
+because the packaging gate refuses to zip a dev build — see below. The archive
+it writes is named `<app>-v<version>-UNSHIPPABLE.zip`.
 
 With no `EXT_ALT_*` set there is nothing to switch to and the bar is inert.
 That is exactly what a checkout handed no credentials gets.
@@ -196,14 +197,27 @@ backend means editing them — deliberately, in a reviewed diff.
 
 It inspects the build output rather than the env vars that produced it. Env vars
 are what people get wrong; the artifact is what actually ships, and it is the one
-piece of evidence that cannot be stale. This matters because the zip's *name*
-carries no evidence at all — `youtube-v1.0.12.zip` looks like a release whether
-it was built for production or pointed at a staging backend with the switch
-compiled in.
+piece of evidence that cannot be stale.
 
-To package a dev build deliberately (handing one to a tester), set
-`ALLOW_UNSHIPPABLE_ZIP=1`. It prints what it waived and reminds you not to
-upload the result.
+The zip's *name* used to carry no evidence either — `youtube-v1.0.12.zip` looked
+like a release whether it was built for production or pointed at a staging
+backend with the switch compiled in. That is not a hypothetical: youtube 1.0.15
+reached the store carrying the dev backend switch, a localhost origin and
+`preprod.lingogram.ai` in `externally_connectable`, because a dev run wrote an
+archive under the release name.
+
+So the name now carries the verdict. To package a rejected build deliberately
+(handing one to a tester), set `WRITE_UNSHIPPABLE_ZIP=1`: the archive is written
+as `<app>-v<version>-UNSHIPPABLE.zip`, which cannot be mistaken for a release in
+a file picker. A dev run of `build-with-analytics.sh` writes no archive at all —
+a dev build is loaded unpacked from `build/`.
+
+Before uploading anything, run the gate against the ARCHIVE rather than against
+`build/`, which the next build overwrites:
+
+```bash
+npm run verify-zip -- releases/youtube-v1.0.17.zip
+```
 
 ## `lng=<locale>` — locale override (rezka)
 

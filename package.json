@@ -9,7 +9,8 @@
   "scripts": {
     "test": "jest",
     "build": "npm run build --workspaces --if-present",
-    "type-check": "npm run type-check --workspaces --if-present"
+    "type-check": "npm run type-check --workspaces --if-present",
+    "verify-zip": "node packages/shared/verify-zip.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.42",
