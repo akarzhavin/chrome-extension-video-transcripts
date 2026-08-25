@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "শুধু “সাবটাইটেল লোড হয়েছে” আর “শব্দ সংরক্ষিত হয়েছে”-এর মতো গণনা। আপনার অ্যাকাউন্ট, আপনি যে ভিডিও দেখেন বা যে শব্দ সংরক্ষণ করেন, তা কখনওই নয়।",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "বন্ধ করুন",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Counts like “subtitles loaded” and “word saved”. Never your account, the videos you watch, or the words you save.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Dismiss",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "“സബ്ടൈറ്റിൽ ലോഡ് ചെയ്തു”, “വാക്ക് സംരക്ഷിച്ചു” എന്നിവ പോലുള്ള എണ്ണങ്ങൾ മാത്രം. നിങ്ങളുടെ അക്കൗണ്ടോ കാണുന്ന വീഡിയോകളോ സംരക്ഷിക്കുന്ന വാക്കുകളോ ഒരിക്കലും അല്ല.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "അടയ്‌ക്കുക",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

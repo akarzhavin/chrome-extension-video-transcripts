@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Лічильники на кшталт «субтитри завантажено» та «слово збережено». Ніколи — ваш обліковий запис, відео, які ви дивитесь, або збережені слова.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Закрити",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

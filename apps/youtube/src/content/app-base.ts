@@ -12,6 +12,7 @@ import {
     platformOf,
     type Platform,
     trackVia,
+    fetchAndRenderNotification,
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     Subtitle,
@@ -307,6 +308,13 @@ export abstract class BaseVttApp implements AppInterface {
         }
         this.updateSidebarVisibility();
         this.setupKeyboardShortcuts();
+        // Remote notification, if one is published for this version/platform/
+        // locale. Fired here rather than from updateOnboardingState() so it
+        // also reaches users who have not picked languages yet — an outage
+        // announcement is exactly what a stuck new user needs to see. Async and
+        // unawaited: the banner appears when it appears, and a failed lookup
+        // shows nothing.
+        void fetchAndRenderNotification(platformOf(location.hostname));
     }
 
     // ── language prefs ──────────────────────────────────────────────────────

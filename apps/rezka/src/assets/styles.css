@@ -1833,6 +1833,92 @@
     user-select: none;
 }
 
+/* Remote notification: a message published from the backend without a release
+   (an upstream site broke, a fix is on the way). Sits in the same slot as the
+   partial notice below but reads as a block, not an aside — it carries news the
+   user could not have inferred from the panel. Left rule instead of a full
+   border: it marks the row as "from us" without boxing in a message that is
+   often two lines. Colour comes from the severity class. */
+#vtt-notification {
+    position: relative;
+    /* 34px keeps the text clear of the close button's hit area, so a long
+       title wraps above it rather than under it. */
+    padding: 8px 34px 9px 13px;
+    margin: 4px 16px 10px;
+    border-left: 2px solid var(--vtt-accent);
+    border-radius: 4px;
+    background: var(--vtt-accent-quiet);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+#vtt-notification .vtt-notification-title {
+    font-size: 12px;
+    font-weight: 600;
+    /* The heading takes the severity colour; the body stays neutral. Tinting
+       both turns the whole block into one coloured slab and costs the contrast
+       the body text needs to be comfortably readable. */
+    color: var(--vtt-accent-text);
+}
+
+#vtt-notification .vtt-notification-text {
+    margin-top: 2px;
+    /* --vtt-text-soft, not --vtt-text-dim: this is the sentence explaining what
+       broke, i.e. the one thing here the user actually has to read. */
+    color: var(--vtt-text-soft);
+}
+
+/* Warning: something is degraded and known. The default severity for "we broke,
+   we're fixing it" — the state --vtt-warning was defined for. */
+#vtt-notification.is-warning {
+    border-left-color: var(--vtt-warning);
+    background: var(--vtt-warning-quiet);
+}
+
+#vtt-notification.is-warning .vtt-notification-title {
+    color: var(--vtt-warning);
+}
+
+/* Critical: acted-on-now territory. Red, but still the quiet red of an
+   emergency affordance — never a filled alarm bar over someone's video. */
+#vtt-notification.is-critical {
+    border-left-color: var(--vtt-danger);
+    background: rgba(248, 113, 113, 0.1);
+}
+
+#vtt-notification.is-critical .vtt-notification-title {
+    color: var(--vtt-danger);
+}
+
+.vtt-notification-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    /* 22px square: the glyph reads as small, but the target stays big enough to
+       hit without aiming. */
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: var(--vtt-text-dim);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.vtt-notification-close:hover {
+    background: var(--vtt-hairline-strong);
+    color: var(--vtt-text);
+}
+
+.vtt-notification-close:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring);
+    outline-offset: -2px;
+}
+
 /* Its own row under the sub-header: one track is missing while others play.
    Muted on purpose — it explains a gap, it doesn't announce a fault, and it
    must not compete with the subtitles it is apologising for. Matches the

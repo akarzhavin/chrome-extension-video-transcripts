@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Skaitītāji, piemēram, „subtitri ielādēti” un „vārds saglabāts”. Nekad jūsu konts, skatītie video vai saglabātie vārdi.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Aizvērt",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

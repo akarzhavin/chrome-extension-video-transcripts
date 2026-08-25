@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "ફક્ત “સબટાઇટલ લોડ થયા” અને “શબ્દ સાચવ્યો” જેવી ગણતરીઓ. તમારું ખાતું, તમે જુઓ છો તે વીડિયો કે તમે સાચવો છો તે શબ્દો ક્યારેય નહીં.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "બંધ કરો",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

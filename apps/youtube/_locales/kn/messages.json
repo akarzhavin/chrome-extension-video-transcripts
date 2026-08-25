@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "“ಉಪಶೀರ್ಷಿಕೆ ಲೋಡ್ ಆಯಿತು” ಮತ್ತು “ಪದ ಉಳಿಸಲಾಗಿದೆ” ಎಂಬಂತಹ ಎಣಿಕೆಗಳಷ್ಟೇ. ನಿಮ್ಮ ಖಾತೆ, ನೀವು ನೋಡುವ ವೀಡಿಯೊಗಳು ಅಥವಾ ನೀವು ಉಳಿಸುವ ಪದಗಳು ಎಂದಿಗೂ ಅಲ್ಲ.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "ಮುಚ್ಚಿ",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }
