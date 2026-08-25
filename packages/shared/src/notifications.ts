@@ -93,7 +93,10 @@ function decodeStringArray(v: unknown): string[] {
 function decodeStringMap(v: unknown): Record<string, string> {
     const fields = asTyped(v).mapValue?.fields;
     if (!fields || typeof fields !== 'object') return {};
-    const out: Record<string, string> = {};
+    // Null-prototype: these maps are keyed by a language tag that ultimately
+    // comes from outside this module, and a lookup for 'constructor' or
+    // 'toString' on a normal object returns something that is not a string.
+    const out: Record<string, string> = Object.create(null);
     for (const [k, raw] of Object.entries(fields)) {
         const s = decodeString(raw);
         if (s !== '') out[k] = s;
@@ -184,11 +187,13 @@ export function compareVersions(a: string, b: string): number {
  */
 export function pickLocalized(map: Record<string, string>, locale: string): string {
     if (!map || typeof map !== 'object') return '';
+    // Own string properties only. decodeStringMap already builds null-prototype
+    // maps, but this is exported and a caller may pass an object literal, where
+    // 'constructor' would otherwise resolve to a function.
+    const at = (k: string): string =>
+        Object.prototype.hasOwnProperty.call(map, k) && typeof map[k] === 'string' ? map[k] : '';
     const want = String(locale || '').replace('_', '-');
-    if (map[want]) return map[want];
-    const base = want.split('-')[0];
-    if (base && map[base]) return map[base];
-    return map.en ?? '';
+    return at(want) || at(want.split('-')[0]) || at('en');
 }
 
 /** Empty list means "no restriction"; otherwise `value` must be a member. */
@@ -418,18 +423,31 @@ async function writeBackoff(now: number): Promise<void> {
     }
 }
 
+// Serializes dismissal writes. chrome.storage has no atomic update, so two
+// read-modify-write cycles interleaving would lose one of the ids — the second
+// write is built on a list read before the first one landed. Chaining costs
+// nothing (dismissals are rare and the work is a single storage round-trip) and
+// removes the interleaving entirely.
+let dismissalQueue: Promise<void> = Promise.resolve();
+
 /** Records that the user closed this notification, so it never returns. */
 export async function dismissNotification(id: string): Promise<void> {
     if (!id) return;
-    try {
-        const { dismissed } = await readCache();
-        if (dismissed.includes(id)) return;
-        await chrome.storage.local.set({
-            [STORAGE_KEYS.dismissed]: [...dismissed, id],
-        });
-    } catch {
-        /* worst case the banner reappears; never worth throwing over */
-    }
+    const run = dismissalQueue.then(async () => {
+        try {
+            const { dismissed } = await readCache();
+            if (dismissed.includes(id)) return;
+            await chrome.storage.local.set({
+                [STORAGE_KEYS.dismissed]: [...dismissed, id],
+            });
+        } catch {
+            /* worst case the banner reappears; never worth throwing over */
+        }
+    });
+    // The queue must not stay rejected for later callers; the body already
+    // swallows, so this is belt and braces.
+    dismissalQueue = run.catch(() => undefined);
+    return run;
 }
 
 /**
@@ -466,14 +484,19 @@ export async function getNotification(
             return cache.docs ? selectNotification(cache.docs, query, now, cache.dismissed) : null;
         }
 
+        // Re-read before pruning. `cache` was taken before a network call that
+        // can run for seconds, and DISMISS_NOTIFICATION is handled in its own
+        // unserialized async task — so the user may have closed the banner
+        // while this request was in flight. Writing the stale snapshot back
+        // would drop that dismissal and the banner would return.
+        const latest = (await readCache()).dismissed;
+
         // Prune only when the response actually carried documents. An empty
         // collection is a legitimate "nothing to show", but it is also what a
         // half-broken backend returns, and clearing every dismissal on one such
         // reply would resurrect banners people had closed. Keeping a few dead
         // ids costs bytes; that costs trust.
-        const dismissed = fresh.length
-            ? pruneDismissals(cache.dismissed, fresh, now)
-            : cache.dismissed;
+        const dismissed = fresh.length ? pruneDismissals(latest, fresh, now) : latest;
         await writeCache(fresh, now, dismissed);
         return selectNotification(fresh, query, now, dismissed);
     } catch (err) {

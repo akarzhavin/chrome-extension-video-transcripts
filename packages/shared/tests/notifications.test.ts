@@ -158,6 +158,13 @@ describe('pickLocalized', () => {
     it('returns empty when even English is missing', () => {
         expect(pickLocalized({ ru: 'R' }, 'ja')).toBe('');
     });
+
+    it('never resolves a prototype key to something that is not text', () => {
+        // 'constructor' on a plain object is a function; rendering it would put
+        // source code in the banner.
+        expect(pickLocalized({ en: 'Hi' } as never, 'constructor')).toBe('Hi');
+        expect(pickLocalized({} as never, 'toString')).toBe('');
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -540,6 +547,29 @@ describe('getNotification', () => {
         chromeStorage.local._store['notif.cachedAt'] = Date.now() - (16 * 60 * 1000);
         await getNotification(QUERY);
         expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
+    });
+
+    it('keeps a dismissal made while the fetch was in flight', async () => {
+        // The write-back races the user: `dismissed` is read before a network
+        // call that can run for seconds, and DISMISS_NOTIFICATION is handled in
+        // its own unserialized task. Writing the stale snapshot back would drop
+        // the dismissal and the banner would return.
+        (global as any).fetch = jest.fn(
+            () => new Promise((r) => setTimeout(() => r(jsonResponse(oneDoc)), 40)),
+        );
+        const inFlight = getNotification(QUERY);
+        await new Promise((r) => setTimeout(r, 10));
+        await dismissNotification('n1');
+        await inFlight;
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
+    });
+
+    it('does not lose one of two dismissals issued in the same tick', async () => {
+        // chrome.storage has no atomic update; unserialized read-modify-write
+        // would let the second write clobber the first.
+        await Promise.all([dismissNotification('a'), dismissNotification('b')]);
+        expect((chromeStorage.local._store['notif.dismissed'] as string[]).sort())
+            .toEqual(['a', 'b']);
     });
 
     it('records a dismissal only once', async () => {
