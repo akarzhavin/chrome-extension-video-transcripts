@@ -30,6 +30,7 @@
 import { chromium } from '../node_modules/playwright-core/index.mjs';
 import { openInBackground, mute } from './lib/cdp-background-tab.mjs';
 import { watchWorkerNetwork } from './lib/cdp-worker-net.mjs';
+import { readFileSync } from 'node:fs';
 
 const argv = process.argv.slice(2);
 const argOf = (flag, fallback) => {
@@ -289,8 +290,39 @@ async function storedPrefs() {
     }
 }
 
+/**
+ * Refuse to run against a production build BEFORE provoking anything.
+ *
+ * The end-of-run E0 check below is a backstop, not a gate: by the time it fires
+ * the events are already in the prod property and cannot be told apart from
+ * real traffic afterwards. Reading the built bundle answers the same question
+ * without sending anything.
+ */
+function assertDevBuild() {
+    const bundle = new URL('../apps/youtube/build/src/background/background.js', import.meta.url);
+    let src;
+    try {
+        src = readFileSync(bundle, 'utf8');
+    } catch {
+        return null; // no build on disk — prepareExtensions() reports it better
+    }
+    if (src.includes(DEV_MEASUREMENT_ID) && src.includes('debug/mp/collect')) return null;
+    const id = /G-[A-Z0-9]{10}/.exec(src)?.[0] ?? '(не найден)';
+    return `сборка в apps/youtube/build шлёт в ${id} на ` +
+           `${src.includes('debug/mp/collect') ? '/debug/mp/collect' : '/mp/collect'}`;
+}
+
 let failed = 0;
 try {
+    const wrongBuild = assertDevBuild();
+    if (wrongBuild) {
+        log(`\nОтказываюсь запускаться: ${wrongBuild}.`);
+        log(`Ожидалась dev-сборка (${DEV_MEASUREMENT_ID}, /debug/mp/collect).`);
+        log('Собрать: ./scripts/build-with-analytics.sh dev — и перезагрузить расширение.');
+        log('Иначе выдуманные события уйдут в прод-воронку и их уже не отделить.');
+        await browser.close().catch(() => {});
+        process.exit(2);
+    }
     if (!NO_RELOAD && !(await prepareExtensions())) {
         await browser.close().catch(() => {});
         process.exit(1);
