@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Tellingen zoals ‘ondertitels geladen’ en ‘woord opgeslagen’. Nooit je account, de video's die je bekijkt of de woorden die je opslaat.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Sluiten",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

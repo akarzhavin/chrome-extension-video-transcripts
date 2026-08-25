@@ -40,6 +40,10 @@ export type AnalyticsEvent =
     | 'signin_started'
     // Consent
     | 'analytics_opt_out'
+    // Remote notification channel. Only failures are tracked: a success happens
+    // for every user every cache interval and answers no question the failure
+    // rate does not already answer against a known denominator.
+    | 'notification_fetch_failed'
     // Retention milestones — sent by analytics-bg, never by product code.
     | 'retained_d2'
     | 'retained_d7'
@@ -65,6 +69,7 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'word_saved',
     'signin_started',
     'analytics_opt_out',
+    'notification_fetch_failed',
     'retained_d2',
     'retained_d7',
     'retained_d14',

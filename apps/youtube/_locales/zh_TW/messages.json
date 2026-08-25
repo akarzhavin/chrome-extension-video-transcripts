@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "只統計「字幕已載入」「已儲存單字」這類次數。絕不包含你的帳號、你觀看的影片或你儲存的單字。",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "關閉",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

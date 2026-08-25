@@ -8,6 +8,10 @@ import { config } from './config';
 import { handleDevAction, restoreEnv } from './devEnvSwitch';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
+// Relative, like analytics-bg above and for the same reason: notifications.ts
+// imports analytics-bg to report fetch failures, so it carries the api_secret
+// transitively and must stay out of anything a content script can pull in.
+import { dismissNotification, getNotification } from '../notifications';
 import {
     bumpInboxCount,
     bumpSavedWordCount,
@@ -32,6 +36,8 @@ export type AuthAction =
     | 'REPORT_NO_SUBS'
     | 'SEND_FEEDBACK'
     | 'TRACK_EVENT'
+    | 'GET_NOTIFICATION'
+    | 'DISMISS_NOTIFICATION'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
@@ -50,6 +56,8 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'REPORT_NO_SUBS',
     'SEND_FEEDBACK',
     'TRACK_EVENT',
+    'GET_NOTIFICATION',
+    'DISMISS_NOTIFICATION',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -251,6 +259,37 @@ export async function handleAuthMessage(request: AuthMessage): Promise<unknown> 
                 console.warn('[Lingogram] feedback failed:', err);
                 return { ok: false };
             }
+        }
+        case 'GET_NOTIFICATION': {
+            // Anonymous read of the public notifications collection. Lives in
+            // the worker rather than the content script so the network call
+            // sits behind the same boundary as every other one.
+            //
+            // getNotification never rejects — it resolves to stale cache or
+            // null on any failure. The try is a backstop, and it deliberately
+            // does NOT clear auth state or set the re-auth badge the way
+            // ADD_WORD does: this request carries no token, so a 401 from it
+            // says nothing about the user's session.
+            try {
+                const notification = await getNotification({
+                    version: String(request.version ?? ''),
+                    platform: String(request.platform ?? ''),
+                    source: config.source,
+                    locale: String(request.locale ?? ''),
+                });
+                return { ok: true, notification };
+            } catch (err) {
+                console.debug('[Lingogram] notification lookup failed:', err);
+                return { ok: true, notification: null };
+            }
+        }
+        case 'DISMISS_NOTIFICATION': {
+            try {
+                await dismissNotification(String(request.id ?? ''));
+            } catch {
+                /* the banner is already closed; the record is best-effort */
+            }
+            return { ok: true };
         }
         default: {
             // Dev-only actions live in their own module so their very NAMES

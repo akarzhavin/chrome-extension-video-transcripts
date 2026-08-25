@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "‘자막 불러옴’, ‘단어 저장함’ 같은 횟수만 집계합니다. 계정, 시청한 동영상, 저장한 단어는 절대 수집하지 않습니다.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "닫기",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

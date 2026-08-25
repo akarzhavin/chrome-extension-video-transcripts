@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Recuentos como «subtítulos cargados» y «palabra guardada». Nunca tu cuenta, los vídeos que ves ni las palabras que guardas.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Cerrar",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

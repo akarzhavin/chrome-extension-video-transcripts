@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** August 10, 2026
+**Last updated:** August 25, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -91,7 +91,7 @@ key that could join your analytics events to your account — the separation is
 structural, not just a promise. Clearing the Extension's storage or reinstalling
 produces a new, unrelated identifier.
 
-**The events we send** (17 in total):
+**The events we send** (18 in total):
 
 * `extension_installed`, `extension_updated` — the Extension was installed or
   updated;
@@ -105,6 +105,9 @@ produces a new, unrelated identifier.
 * `signin_started` — you began the sign-in flow;
 * `analytics_opt_out` — you turned this analytics off (sent once, so we know how
   many people opt out);
+* `notification_fetch_failed` — the Extension could not reach our service-status
+  messages (see Section 1d). Sent only on failure, never on success, and it carries
+  only the reason (network error, timeout, HTTP error code, or unreadable response);
 * `retained_d2`, `retained_d7`, `retained_d14` — the Extension was still in use 2,
   7, and 14 days after install.
 
@@ -122,6 +125,8 @@ produces a new, unrelated identifier.
   from the Chrome Web Store never send it;
 * **days since install**;
 * a **technical failure code** when subtitles fail;
+* for `notification_fetch_failed` only, **why the request failed** and, if the
+  server answered, its **HTTP status code**;
 * a **session ID** that groups events from one browsing session.
 
 **What is never sent:** the video you are watching (no title, no URL, no ID), the
@@ -138,6 +143,30 @@ country and region for every property regardless of this setting; what we
 switched off is the finer-grained collection on top of it. Every payload is sent with
 `non_personalized_ads: true`. Google Analytics is not used to build a profile of you
 or to target advertising.
+
+### d. Service-status messages (no data about you is sent)
+
+When a video platform changes something and subtitles stop working, the Extension can
+show a short message in its sidebar telling you the problem is known and being fixed,
+without waiting for a Chrome Web Store update. To do this it periodically downloads a
+small list of current messages from our Firebase database.
+
+**This is a download, not an upload.** The request contains no account data, no
+identifier, no video address, and no information about you or what you are watching —
+it is the same anonymous request for the same public list that every installation
+makes, whether or not you are signed in. Which message applies to your installation
+(by Extension version, edition, platform, and interface language) is decided **on your
+device**, from the list already downloaded; none of those details are sent to us.
+
+Because it is an anonymous request to Google's servers, Google receives your IP
+address as it does for any web request; we neither receive nor store it. The
+downloaded list, and the identifier of any message you dismiss with its **×** button,
+are kept on your device only (see Section 3).
+
+The only thing we learn is described in Section 1c: if the download **fails**, an
+anonymous `notification_fetch_failed` event tells us that our messages are
+unreachable, so we can fix it. It is sent only on failure, only if analytics is on,
+and carries only the reason for the failure.
 
 ## 2. How We Use Your Information
 
@@ -168,6 +197,9 @@ your device only:
 * your **analytics on/off setting**, the **random analytics identifier** described
   in Section 1c, and the **date you installed** the Extension, plus an analytics
   **session ID** in session storage;
+* a cached copy of the **service-status messages** described in Section 1d, when it
+  was downloaded, and the identifiers of any messages you dismissed, so a message
+  you closed does not come back;
 * if you are signed in: your authentication tokens, your email address, and your
   user ID (so you stay signed in), and a short-lived sign-in nonce in session
   storage.
@@ -184,6 +216,11 @@ operated by the developer on Google Cloud infrastructure. Google processes this 
 as our service provider; see Google's Privacy Policy at
 https://policies.google.com/privacy. Access is restricted by Firestore security
 rules so that you can only read and write your own data.
+
+The service-status messages described in Section 1d are downloaded from the same
+Firebase project. That collection is public and read-only from the Extension: it
+contains only messages we write, no user data, and the Extension can read it but
+never write to it.
 
 The anonymous usage events described in Section 1c are sent to **Google Analytics 4**
 (via the Measurement Protocol) unless you turn analytics off. Google processes those

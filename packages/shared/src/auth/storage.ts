@@ -27,6 +27,23 @@ const KEYS = {
     ratePromptShown: 'rate.promptShown',
 } as const;
 
+// Remote-notification storage keys. Read/written only by ../notifications.ts;
+// declared here so this file stays the single inventory the privacy policy's
+// "Local Storage" section documents. All four are extension-authored content
+// and local state — a cached copy of the public notifications collection, its
+// fetch timestamp, a backoff stamp, and the ids the user has closed. Nothing
+// here is derived from auth.uid / auth.email, and the fetch that fills the
+// cache sends no identifier at all: only version, platform, edition and locale.
+// The dismissed list is self-limiting: an id drops out once its notification is
+// gone or expired (see pruneDismissals), so it does not grow for the life of
+// the install.
+export const NOTIFICATION_KEYS = {
+    cachedAt: 'notif.cachedAt',
+    cachedDocs: 'notif.cachedDocs',
+    retryAfter: 'notif.retryAfter',
+    dismissed: 'notif.dismissed',
+} as const;
+
 // Anonymous-analytics storage keys. Read/written only by analytics-bg.ts;
 // declared here so this file stays the single inventory of extension storage
 // keys that the privacy policy's "Local Storage" section documents. None of

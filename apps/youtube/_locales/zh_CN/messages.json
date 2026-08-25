@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "仅统计“字幕已加载”“已保存单词”这类次数。绝不包括你的账号、你观看的视频或你保存的单词。",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "关闭",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }

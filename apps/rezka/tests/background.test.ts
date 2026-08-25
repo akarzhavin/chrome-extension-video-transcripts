@@ -111,9 +111,16 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('TRACK_EVENT')).toBe(true);
     });
 
-    test('the registry holds exactly the eight non-dev actions', () => {
+    test('the notification actions are registered', () => {
+        expect(isAuthAction('GET_NOTIFICATION')).toBe(true);
+        expect(AUTH_ACTIONS.has('GET_NOTIFICATION')).toBe(true);
+        expect(isAuthAction('DISMISS_NOTIFICATION')).toBe(true);
+        expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
+    });
+
+    test('the registry holds exactly the ten non-dev actions', () => {
         // Fails loudly when an action is added to the union but not the Set.
-        expect(AUTH_ACTIONS.size).toBe(8);
+        expect(AUTH_ACTIONS.size).toBe(10);
     });
 
     test('an unknown analytics event is rejected at the boundary', async () => {

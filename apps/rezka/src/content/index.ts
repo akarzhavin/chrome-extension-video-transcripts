@@ -19,6 +19,7 @@ import {
     trackVia,
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
+    fetchAndRenderNotification,
 } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 
@@ -81,6 +82,13 @@ class VttApp implements AppInterface {
         // the visible sidebar, which only renders in the top window (iframes get
         // a hidden one). Subtitle detection still runs in every frame.
         if (this.isTopWindow && this.uiOwned) void this.initLanguagePrefs();
+        // Same gate as the onboarding above: one lookup per page, from the
+        // frame that actually has a visible sidebar. Rezka runs this script in
+        // every iframe, so without the guard each player frame would fire its
+        // own request for a banner nobody can see.
+        if (this.isTopWindow && this.uiOwned) {
+            void fetchAndRenderNotification(platformOf(location.hostname));
+        }
     }
 
     startVideoPolling(): void {

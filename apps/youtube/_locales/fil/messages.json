@@ -510,5 +510,9 @@
   "ytPrivacyAnalyticsHint": {
     "message": "Mga bilang tulad ng “na-load ang subtitles” at “na-save ang salita”. Hinding-hindi ang iyong account, ang mga video na pinapanood mo, o ang mga salitang sine-save mo.",
     "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
+  },
+  "ytNotificationClose": {
+    "message": "Isara",
+    "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   }
 }
