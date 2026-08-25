@@ -224,6 +224,30 @@ function isExpired(expiresAt: string, now: number): boolean {
 }
 
 /**
+ * The dismissal ids still worth remembering, given what the collection holds.
+ *
+ * A record only matters while the notification it refers to could still be
+ * shown. Once the document is gone from the collection — deleted, or past its
+ * expiry — remembering that someone closed it protects nothing, so it is
+ * dropped. This is what keeps notif.dismissed from growing for the life of the
+ * install; the required expiresAt is what makes "can no longer be shown"
+ * decidable at all.
+ *
+ * Never forgets a dismissal for a document that is still live, so a banner the
+ * user closed cannot come back.
+ *
+ * Pure, so the policy is testable without storage or a clock.
+ */
+export function pruneDismissals(
+    dismissed: readonly string[],
+    docs: readonly NotificationDoc[],
+    now: number,
+): string[] {
+    const showable = new Set(docs.filter((d) => !isExpired(d.expiresAt, now)).map((d) => d.id));
+    return dismissed.filter((id) => showable.has(id));
+}
+
+/**
  * Picks the one notification to show, or null.
  *
  * Pure: no network, no storage, no clock beyond the injected `now`. All the
@@ -365,13 +389,21 @@ async function readCache(): Promise<CacheState> {
     }
 }
 
-async function writeCache(docs: NotificationDoc[], now: number): Promise<void> {
+async function writeCache(
+    docs: NotificationDoc[],
+    now: number,
+    dismissed: string[],
+): Promise<void> {
     try {
         await chrome.storage.local.set({
             [STORAGE_KEYS.cachedDocs]: docs,
             [STORAGE_KEYS.cachedAt]: now,
             // A success clears any standing backoff.
             [STORAGE_KEYS.retryAfter]: 0,
+            // Garbage collection rides along with the write we were making
+            // anyway: no alarm, no second storage round-trip, and it only ever
+            // runs on a response we know to be complete.
+            [STORAGE_KEYS.dismissed]: dismissed,
         });
     } catch {
         /* a cache we cannot write just means we refetch next time */
@@ -434,8 +466,16 @@ export async function getNotification(
             return cache.docs ? selectNotification(cache.docs, query, now, cache.dismissed) : null;
         }
 
-        await writeCache(fresh, now);
-        return selectNotification(fresh, query, now, cache.dismissed);
+        // Prune only when the response actually carried documents. An empty
+        // collection is a legitimate "nothing to show", but it is also what a
+        // half-broken backend returns, and clearing every dismissal on one such
+        // reply would resurrect banners people had closed. Keeping a few dead
+        // ids costs bytes; that costs trust.
+        const dismissed = fresh.length
+            ? pruneDismissals(cache.dismissed, fresh, now)
+            : cache.dismissed;
+        await writeCache(fresh, now, dismissed);
+        return selectNotification(fresh, query, now, dismissed);
     } catch (err) {
         // Belt and braces: nothing above is expected to throw, but this
         // function sits in the sidebar's startup path and must not be the

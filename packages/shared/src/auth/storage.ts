@@ -34,6 +34,9 @@ const KEYS = {
 // fetch timestamp, a backoff stamp, and the ids the user has closed. Nothing
 // here is derived from auth.uid / auth.email, and the fetch that fills the
 // cache sends no identifier at all: only version, platform, edition and locale.
+// The dismissed list is self-limiting: an id drops out once its notification is
+// gone or expired (see pruneDismissals), so it does not grow for the life of
+// the install.
 export const NOTIFICATION_KEYS = {
     cachedAt: 'notif.cachedAt',
     cachedDocs: 'notif.cachedDocs',

@@ -45,6 +45,7 @@ const chromeStorage = { local: makeStorageArea(), session: makeStorageArea() };
 // api_secret) and is deliberately excluded from the package exports.
 import {
     compareVersions,
+    pruneDismissals,
     decodeNotificationDoc,
     dismissNotification,
     getNotification,
@@ -315,6 +316,47 @@ describe('decodeNotificationDoc', () => {
 });
 
 // ---------------------------------------------------------------------------
+// pruneDismissals
+// ---------------------------------------------------------------------------
+
+describe('pruneDismissals', () => {
+    const live = (id: string) => doc({ id, expiresAt: '2030-01-01T00:00:00Z' });
+    const dead = (id: string) => doc({ id, expiresAt: '2020-01-01T00:00:00Z' });
+
+    it('keeps a dismissal while its notification is still live', () => {
+        // The load-bearing case: a closed banner must never come back.
+        expect(pruneDismissals(['a'], [live('a')], NOW)).toEqual(['a']);
+    });
+
+    it('drops a dismissal whose notification is gone from the collection', () => {
+        expect(pruneDismissals(['a'], [live('b')], NOW)).toEqual([]);
+    });
+
+    it('drops a dismissal whose notification has expired', () => {
+        // Expired means it can never be shown again, so the record protects
+        // nothing.
+        expect(pruneDismissals(['a'], [dead('a')], NOW)).toEqual([]);
+    });
+
+    it('keeps a dismissal for an inactive but unexpired notification', () => {
+        // active:false is a switch someone can flip back; the expiry is not.
+        expect(pruneDismissals(['a'], [doc({ id: 'a', active: false, expiresAt: '2030-01-01T00:00:00Z' })], NOW))
+            .toEqual(['a']);
+    });
+
+    it('prunes a mixed list, preserving order', () => {
+        const docs = [live('keep1'), dead('gone'), live('keep2')];
+        expect(pruneDismissals(['keep1', 'gone', 'vanished', 'keep2'], docs, NOW))
+            .toEqual(['keep1', 'keep2']);
+    });
+
+    it('handles the empty cases', () => {
+        expect(pruneDismissals([], [live('a')], NOW)).toEqual([]);
+        expect(pruneDismissals(['a'], [], NOW)).toEqual([]);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // getNotification: cache + resilience
 // ---------------------------------------------------------------------------
 
@@ -441,6 +483,63 @@ describe('getNotification', () => {
         await expect(getNotification(QUERY)).resolves.toMatchObject({ id: 'n1' });
         await dismissNotification('n1');
         await expect(getNotification(QUERY)).resolves.toBeNull();
+    });
+
+    it('forgets a dismissal once its notification leaves the collection', async () => {
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse(oneDoc));
+        await getNotification(QUERY);
+        await dismissNotification('n1');
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
+
+        // n1 is replaced by a different document; its dismissal is now dead
+        // weight and is collected on the next successful load.
+        const replaced = {
+            documents: [
+                firestoreDoc('n2', {
+                    active: { booleanValue: true },
+                    expiresAt: { stringValue: '2030-01-01T00:00:00Z' },
+                    title: { mapValue: { fields: { en: { stringValue: 'T2' } } } },
+                    body: { mapValue: { fields: { en: { stringValue: 'B2' } } } },
+                }),
+            ],
+        };
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse(replaced));
+        chromeStorage.local._store['notif.cachedAt'] = Date.now() - (16 * 60 * 1000);
+        await getNotification(QUERY);
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual([]);
+    });
+
+    it('keeps the dismissal while the notification is still published', async () => {
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse(oneDoc));
+        await getNotification(QUERY);
+        await dismissNotification('n1');
+        // Cache expires, same document comes back — the record must survive, or
+        // the banner returns.
+        chromeStorage.local._store['notif.cachedAt'] = Date.now() - (16 * 60 * 1000);
+        await expect(getNotification(QUERY)).resolves.toBeNull();
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
+    });
+
+    it('does not prune on an empty response', async () => {
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse(oneDoc));
+        await getNotification(QUERY);
+        await dismissNotification('n1');
+        // An empty collection is indistinguishable from a half-broken backend;
+        // clearing every dismissal on one such reply would resurrect banners.
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse({}));
+        chromeStorage.local._store['notif.cachedAt'] = Date.now() - (16 * 60 * 1000);
+        await getNotification(QUERY);
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
+    });
+
+    it('does not prune when the fetch fails', async () => {
+        (global as any).fetch = jest.fn().mockResolvedValue(jsonResponse(oneDoc));
+        await getNotification(QUERY);
+        await dismissNotification('n1');
+        (global as any).fetch = jest.fn().mockRejectedValue(new Error('offline'));
+        chromeStorage.local._store['notif.cachedAt'] = Date.now() - (16 * 60 * 1000);
+        await getNotification(QUERY);
+        expect(chromeStorage.local._store['notif.dismissed']).toEqual(['n1']);
     });
 
     it('records a dismissal only once', async () => {
