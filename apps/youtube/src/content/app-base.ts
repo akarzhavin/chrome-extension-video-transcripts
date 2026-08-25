@@ -763,12 +763,14 @@ export abstract class BaseVttApp implements AppInterface {
     // reload no matter what. The race caps how long a slow/dead worker can delay
     // the reload the user actually asked for.
     //
-    // The cap was 400ms, which almost never sufficed: an MV3 worker is usually
-    // asleep by then, and cold start plus a token refresh plus the Firestore
-    // round-trip does not fit. Measured on a live profile — the report lost the
-    // race essentially every time, so the feature reported nothing at all.
-    // 2500ms clears a cold start with room to spare and is still shorter than
-    // the page reload the user is waiting through anyway.
+    // The cap was 400ms. What that budget has to cover is not the message hop —
+    // measured at 18-27ms to a cold worker — but everything addNoSubsReport does
+    // before the write: ensureFreshToken() may spend a full securetoken
+    // round-trip refreshing an expired ID token, and only then does the
+    // Firestore commit go out. A single slow network round-trip overruns 400ms,
+    // and when it does the report is lost silently, because the caller swallows
+    // failures by design. 2500ms covers a refresh plus the commit and is still
+    // far shorter than the page reload the user is already waiting through.
     async reportNoSubsAndReload(): Promise<void> {
         try {
             if (chrome?.runtime?.id) {
