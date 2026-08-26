@@ -387,46 +387,52 @@ export class SidebarUI {
         // sitting first does not out-rank the settings people came for.
         // The per-option title tooltips (buildSegRow) carry the words the
         // icons dropped.
-        const themeStrip = document.createElement('div');
-        themeStrip.className = 'vtt-theme-strip';
-        this.elements.themeBtns = this.buildSegRow(
-            themeStrip,
-            msg('ytThemeLabel', 'Theme'),
-            [
-                { value: 'auto', html: ICONS.themeAuto, name: msg('ytThemeAuto', 'Auto') },
-                { value: 'light', html: ICONS.themeLight, name: msg('ytThemeLight', 'Light') },
-                { value: 'dark', html: ICONS.themeDark, name: msg('ytThemeDark', 'Dark') },
-            ],
-            (v) => this.setTheme(v as ThemeToken),
-        );
-        // The icons need to answer "which is active?" and "what does this one
-        // do?" faster than a native title tooltip (~1s hover delay) can.
-        // Two moves:
-        //  - a live readout of the active mode's name sits right before the
-        //    segment, so the answer is on screen with no hover at all;
-        //  - the per-option bubbles reuse the quickmodes data-tip pattern
-        //    (instant CSS, ~0.15s) instead of `title`. The native title is
-        //    removed so the browser doesn't stack its slow bubble on top,
-        //    and aria-label keeps the name the title used to provide.
-        {
-            const row = themeStrip.querySelector('.vtt-style-row');
-            const value = document.createElement('span');
-            value.className = 'vtt-theme-value';
-            this.elements.themeValueEl = value;
-            row?.insertBefore(value, row.querySelector('.vtt-seg'));
-            const tips: Record<string, string> = {
-                auto: msg('ytThemeAutoTip', 'Auto — follows your system theme'),
-                light: msg('ytThemeLight', 'Light'),
-                dark: msg('ytThemeDark', 'Dark'),
-            };
-            for (const b of this.elements.themeBtns) {
-                const v = b.dataset.value ?? '';
-                b.setAttribute('aria-label', b.title);
-                b.removeAttribute('title');
-                b.dataset.tip = tips[v] ?? v;
+        // Netflix is dark-only (see themeAvailable in content/theme.ts), so it
+        // gets no theme strip at all rather than a control that does nothing —
+        // a visible setting that has no effect reads as broken. The global
+        // preference still exists and still applies on the other sites.
+        if (this.scope !== 'netflix') {
+            const themeStrip = document.createElement('div');
+            themeStrip.className = 'vtt-theme-strip';
+            this.elements.themeBtns = this.buildSegRow(
+                themeStrip,
+                msg('ytThemeLabel', 'Theme'),
+                [
+                    { value: 'auto', html: ICONS.themeAuto, name: msg('ytThemeAuto', 'Auto') },
+                    { value: 'light', html: ICONS.themeLight, name: msg('ytThemeLight', 'Light') },
+                    { value: 'dark', html: ICONS.themeDark, name: msg('ytThemeDark', 'Dark') },
+                ],
+                (v) => this.setTheme(v as ThemeToken),
+            );
+            // The icons need to answer "which is active?" and "what does this one
+            // do?" faster than a native title tooltip (~1s hover delay) can.
+            // Two moves:
+            //  - a live readout of the active mode's name sits right before the
+            //    segment, so the answer is on screen with no hover at all;
+            //  - the per-option bubbles reuse the quickmodes data-tip pattern
+            //    (instant CSS, ~0.15s) instead of `title`. The native title is
+            //    removed so the browser doesn't stack its slow bubble on top,
+            //    and aria-label keeps the name the title used to provide.
+            {
+                const row = themeStrip.querySelector('.vtt-style-row');
+                const value = document.createElement('span');
+                value.className = 'vtt-theme-value';
+                this.elements.themeValueEl = value;
+                row?.insertBefore(value, row.querySelector('.vtt-seg'));
+                const tips: Record<string, string> = {
+                    auto: msg('ytThemeAutoTip', 'Auto — follows your system theme'),
+                    light: msg('ytThemeLight', 'Light'),
+                    dark: msg('ytThemeDark', 'Dark'),
+                };
+                for (const b of this.elements.themeBtns) {
+                    const v = b.dataset.value ?? '';
+                    b.setAttribute('aria-label', b.title);
+                    b.removeAttribute('title');
+                    b.dataset.tip = tips[v] ?? v;
+                }
             }
+            settingsPanel.appendChild(themeStrip);
         }
-        settingsPanel.appendChild(themeStrip);
 
         // -- Group 1: Languages ------------------------------------------------
         const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLanguages', 'Languages'));
