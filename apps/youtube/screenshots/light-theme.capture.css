@@ -1,0 +1,292 @@
+/* Light theme — CAPTURE ONLY. Injected by capture-backdrop.mjs; never shipped.
+ *
+ * The in-page UI is dark-only by design (apps/rezka/src/assets/styles.css):
+ * --vtt-panel is translucent glass over arbitrary video, and its 0.86 alpha is
+ * load-bearing for contrast. This sheet repaints that surface in the store
+ * palette for screenshots, and it is deliberately NOT part of the product.
+ *
+ * Palette (2026-08-26):
+ *   Brand Lime  #C8FF00  active elements, toggles, highlight
+ *   Primary     #111111  primary text
+ *   Secondary   #4A4A4A  secondary text
+ *   Background  #F7F7F5  popup / settings ground
+ *   Surface     #FFFFFF  cards, panels
+ *   Border      #E5E5E2  dividers and borders
+ *   Purple      #7B2CFF  secondary accent (language / translation)
+ *
+ * Two palette notes that drive choices below:
+ *  - Lime #C8FF00 has luminance ~0.85. Text ON lime must be #111111, never
+ *    white (white-on-lime is ~1.2:1). Lime as TEXT on white is ~1.3:1, so it
+ *    is used only as a fill, never as a label colour.
+ *  - Purple #7B2CFF is 5.6:1 on #FFFFFF, so it is safe as text and as a fill
+ *    under white text.
+ */
+
+:root {
+  /* Accent → lime. -text is what sits ON the accent fill, hence near-black. */
+  --vtt-accent: #c8ff00;
+  --vtt-accent-strong: #b8ea00;
+  --vtt-accent-quiet: rgba(200, 255, 0, 0.22);
+  --vtt-accent-hover: rgba(200, 255, 0, 0.38);
+  --vtt-accent-border: rgba(140, 178, 0, 0.45);
+  --vtt-accent-border-strong: rgba(140, 178, 0, 0.75);
+  --vtt-accent-ring: rgba(123, 44, 255, 0.55);
+  --vtt-accent-text: #111111;
+
+  --vtt-success: #15803d;
+  --vtt-success-text: #15803d;
+  --vtt-success-quiet: rgba(21, 128, 61, 0.12);
+  --vtt-success-border: rgba(21, 128, 61, 0.35);
+
+  --vtt-danger: #c22828;
+
+  --vtt-warning: #a1560a;
+  --vtt-warning-quiet: rgba(161, 86, 10, 0.12);
+
+  --vtt-text: #111111;
+  --vtt-text-soft: #4a4a4a;
+  --vtt-text-dim: #6a6a68;
+
+  --vtt-hairline: #e5e5e2;
+  --vtt-hairline-strong: #d6d6d2;
+  /* Consumed at styles.css:309 but never declared upstream — defining it here
+     stops that rule falling back to a white-alpha border. */
+  --vtt-border: #e5e5e2;
+
+  --vtt-panel: #f7f7f5;
+  --vtt-panel-solid: #ffffff;
+}
+
+/* ── Sidebar shell ──────────────────────────────────────────────────────── */
+#vtt-sidebar {
+  color: #111111;
+  /* No blur: the panel is opaque now, and blur makes captures nondeterministic. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-left: 1px solid #e5e5e2;
+  box-shadow: -10px 0 30px rgba(17, 17, 17, 0.12);
+}
+#vtt-sidebar h2 { color: #111111; }
+#vtt-header { border-bottom: 1px solid #e5e5e2; }
+#vtt-settings-btn { color: #4a4a4a; }
+#vtt-settings-btn:hover { color: #111111; background: rgba(17, 17, 17, 0.06); }
+
+#vtt-toggle-btn {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #111111;
+  box-shadow: -5px 0 15px rgba(17, 17, 17, 0.12);
+}
+#vtt-toggle-btn:hover { background-color: #ffffff; }
+
+/* ── Feedback ───────────────────────────────────────────────────────────── */
+.vtt-feedback-text, .vtt-feedback-email {
+  color: #111111; background: #ffffff; border: 1px solid #e5e5e2;
+}
+.vtt-feedback-text::placeholder, .vtt-feedback-email::placeholder { color: #8a8a86; }
+.vtt-feedback-send { color: #111111; }
+.vtt-feedback-status { color: #c22828; }
+.vtt-feedback-done { color: #111111; }
+
+/* ── Auth / groups ──────────────────────────────────────────────────────── */
+.lingogram-auth-btn:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-group + .vtt-group { border-top: 1px solid #e5e5e2; }
+
+/* ── Selects ────────────────────────────────────────────────────────────── */
+.vtt-select {
+  background: #ffffff; color: #111111; border: 1px solid #e5e5e2;
+}
+.vtt-select:hover { background: #f0f0ee; }
+.vtt-select optgroup { color: #6a6a68; }
+.vtt-select option:disabled { color: #a0a09c; }
+
+/* ── Reading-mode chips ─────────────────────────────────────────────────── */
+.vtt-mode { background: #ffffff; border-color: #e5e5e2; color: #4a4a4a; }
+.vtt-mode:hover { background: #f0f0ee; }
+.vtt-mode.vtt-mode-blocked:hover { background: #ffffff; }
+.vtt-mode.active { color: #111111; }
+.vtt-mode-blocked[data-tip]::after { background: #111111; color: #ffffff; }
+
+/* ── Quick-mode cluster ─────────────────────────────────────────────────── */
+#vtt-quickmodes { background: #ffffff; border: 1px solid #e5e5e2; }
+.vtt-qm { color: #4a4a4a; }
+.vtt-qm:hover { background: rgba(17, 17, 17, 0.06); color: #111111; }
+.vtt-qm-sep { background: #e5e5e2; }
+
+/* Segmented well: a light inset groove, not a dark one. The active thumb is
+   lime, so its label must be near-black. */
+.vtt-modeseg {
+  background: #eeeeec;
+  box-shadow: inset 0 1px 2px rgba(17, 17, 17, 0.08);
+}
+.vtt-modeseg-thumb {
+  background: #c8ff00;
+  box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18);
+}
+.vtt-modeseg .vtt-qm.active { color: #111111; }
+.vtt-modeseg .vtt-qm:not(.active) { color: #4a4a4a; }
+.vtt-modeseg .vtt-qm:not(.active):hover { color: #111111; }
+.vtt-qm-toggle.active { color: #111111; }
+
+/* ── Tooltips ───────────────────────────────────────────────────────────── */
+#vtt-quickmodes [data-tip]::after {
+  background: #111111; color: #ffffff; border: 1px solid #111111;
+}
+#vtt-quickmodes .vtt-qm-blocked::after,
+#vtt-partial-notice[data-tip]::after {
+  background: #111111; color: #ffffff;
+  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.28);
+}
+#vtt-quickmodes .vtt-qm-blocked::first-line { color: #ffffff; }
+
+/* ── Style preview: stays a dark "film still" on purpose; only its frame
+       needs to become visible against the light panel. ─────────────────── */
+#vtt-style-preview { border: 1px solid #e5e5e2; }
+
+/* ── Segmented control + sliders ────────────────────────────────────────── */
+.vtt-seg { background: #eeeeec; border: 1px solid #e5e5e2; }
+.vtt-seg-thumb {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18), inset 0 0 0 1px #e5e5e2;
+}
+.vtt-seg-btn.active { color: #111111; }
+
+.vtt-slider {
+  background: linear-gradient(to right,
+    #c8ff00 var(--vtt-slider-fill, 14%), #e5e5e2 var(--vtt-slider-fill, 14%));
+}
+.vtt-slider::-webkit-slider-thumb {
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+.vtt-slider::-moz-range-thumb {
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+
+/* ── Swatches ───────────────────────────────────────────────────────────── */
+.vtt-swatch { border: 1px solid #d6d6d2; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+#vtt-list { scrollbar-color: #d6d6d2 transparent; }
+#vtt-list::-webkit-scrollbar-thumb { background: #d6d6d2; }
+
+/* ── Transcript items — the surface most visible in every screenshot ────── */
+.vtt-item {
+  background-color: #ffffff;
+  border: 1px solid #e5e5e2;
+  color: #4a4a4a;
+}
+.vtt-item:hover { background-color: #f0f0ee; color: #111111; }
+/* Active line: lime fill, near-black text (white-on-lime is ~1.2:1). */
+.vtt-item.active-sub {
+  background-color: rgba(200, 255, 0, 0.30);
+  border-color: rgba(140, 178, 0, 0.55);
+  color: #111111;
+  box-shadow: 0 4px 15px rgba(17, 17, 17, 0.08);
+}
+/* The translation line: Purple is the palette's language/translation accent. */
+.vtt-sub-text { border-top: 1px dashed #e5e5e2; color: #7b2cff; }
+.vtt-revealed-word, .vtt-guess-filler { color: #111111; }
+.vtt-item.active-sub .vtt-revealed-word,
+.vtt-item.active-sub .vtt-guess-filler { color: #111111; }
+
+/* ── Guess-mode masked words (in-panel only; the on-video ones stay dark) ── */
+.vtt-masked-word {
+  background: rgba(17, 17, 17, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.14);
+}
+.vtt-masked-word::before { background: none; }
+
+/* ── Notification ───────────────────────────────────────────────────────── */
+#vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }
+
+/* ── Onboarding / status ────────────────────────────────────────────────── */
+#vtt-lang-onboarding, #vtt-status {
+  border: 1px solid #e5e5e2; background: #ffffff; color: #111111;
+}
+#vtt-lang-onboarding .vtt-lang-onboarding-row span { color: #4a4a4a; }
+#vtt-lang-onboarding select {
+  border: 1px solid #e5e5e2; background: #ffffff; color: #111111;
+}
+#vtt-status.vtt-status--rich {
+  background: linear-gradient(180deg, rgba(200, 255, 0, 0.22), #ffffff 60%);
+}
+#vtt-status .vtt-empty-state-figure svg {
+  filter: drop-shadow(0 6px 18px rgba(17, 17, 17, 0.15));
+}
+#vtt-status .vtt-empty-state-steps { color: #4a4a4a; }
+#vtt-status .vtt-empty-state-action {
+  border: 1px solid #e5e5e2; background: #ffffff; color: #111111;
+}
+#vtt-status .vtt-empty-state-action:hover:not(:disabled) { background: #f0f0ee; }
+/* Emergency actions keep their quiet-red destructive treatment. */
+#vtt-status .vtt-empty-state-action--emergency {
+  border: 1px solid rgba(194, 40, 40, 0.45);
+  color: #c22828;
+  background: rgba(194, 40, 40, 0.06);
+}
+#vtt-status .vtt-empty-state-action--emergency:hover {
+  border-color: rgba(194, 40, 40, 0.7);
+  background: rgba(194, 40, 40, 0.12);
+}
+
+/* ── YouTube player-bar buttons: these sit ON the video, not on the panel,
+       so they stay light-on-dark. Untouched by design. ─────────────────── */
+
+/* ── YouTube player menu: a second panel surface → same light treatment ─── */
+#vtt-ytp-menu {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #e5e5e2;
+  color: #111111;
+  box-shadow: 0 8px 28px rgba(17, 17, 17, 0.18);
+}
+.vtt-ytp-row:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-ytp-row-value { color: #4a4a4a; }
+.vtt-ytp-row-key { color: #6a6a68; }
+.vtt-ytp-row--account { color: #4a4a4a; }
+.vtt-ytp-row--status { color: #a1560a; }
+.vtt-ytp-row--status-info { color: #4a4a4a; }
+#vtt-ytp-menu-modes, #vtt-ytp-menu-panel { border-top: 1px solid #e5e5e2; }
+.vtt-ytp-row--back { color: #4a4a4a; border-bottom: 1px solid #e5e5e2; }
+
+/* ── Panel tail rows + switch ───────────────────────────────────────────── */
+.vtt-panel-row { border-top: 1px solid #e5e5e2; }
+.vtt-panel-row:hover { color: #111111; background-color: #f0f0ee; }
+/* Off = grey track, on = lime track. The knob stays white on both, so the
+   off-state needs a track dark enough to show it. */
+.vtt-switch { background: #d6d6d2; }
+.vtt-switch::after { background: #ffffff; box-shadow: 0 1px 3px rgba(17,17,17,0.25); }
+
+/* ── Fixes found in the first light capture ─────────────────────────────── */
+
+/* Language pair chip hardcodes color:#dbeafe (styles.css:2046) — pale blue on
+   the lime-tinted fill made the whole ES⇄EN chip disappear. Purple is the
+   palette's language accent, so the chip becomes the one purple element in the
+   header: a light purple fill under near-black text. */
+#vtt-langpair .vtt-langpair-inner {
+  background: rgba(123, 44, 255, 0.10);
+  border: 1px solid rgba(123, 44, 255, 0.35);
+  color: #111111;
+}
+#vtt-langpair .vtt-langpair-inner:hover {
+  background: rgba(123, 44, 255, 0.18);
+  border-color: rgba(123, 44, 255, 0.55);
+}
+#vtt-langpair:focus-visible .vtt-langpair-inner {
+  border-color: #7b2cff;
+  box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
+}
+
+/* The on-screen toggle is a separate control from the mode segment, but with
+   both filled lime they read as two active modes. The segment keeps the solid
+   lime thumb (it marks an exclusive choice); the toggle states "on" with a
+   lime ring over white instead. */
+.vtt-qm-toggle.active {
+  background: #ffffff;
+  color: #111111;
+  box-shadow: inset 0 0 0 2px #c8ff00;
+}
+.vtt-qm-toggle.active:hover { background: #f7f7f5; }

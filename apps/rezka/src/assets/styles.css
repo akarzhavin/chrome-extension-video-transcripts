@@ -2724,3 +2724,481 @@
         transition: none;
     }
 }
+
+/* ══ Light theme — EXPERIMENTAL, opt-in via `#vtt-light` in the URL ══════════
+ *
+ * Off by default and unreachable without the literal token in location.hash
+ * (see apps/youtube/src/content/index.ts). Nothing here applies to a normal
+ * page load, so the shipped product is unchanged until the flag is typed.
+ *
+ * Palette:
+ *   Brand Lime  #C8FF00  active elements, toggles, highlight
+ *   Primary     #111111  primary text
+ *   Secondary   #4A4A4A  secondary text
+ *   Background  #F7F7F5  panel ground
+ *   Surface     #FFFFFF  cards, rows
+ *   Border      #E5E5E2  dividers
+ *   Purple      #7B2CFF  secondary accent (language / translation)
+ *
+ * Two constraints drive the colour choices, both from the lime's luminance
+ * (~0.85, i.e. brighter than most "light" greys):
+ *   - Lime is a FILL, never a text colour. #C8FF00 as text on white is ~1.3:1.
+ *   - Text ON lime is #111111, never white: white-on-lime is ~1.2:1.
+ *
+ * Unlike the dark theme, the panel here is OPAQUE. The dark theme's 0.86 alpha
+ * works because a bright video frame showing through only ever lightens a dark
+ * ground, which helps its light text. The inverse is not symmetric: a dark
+ * frame under a translucent light panel drags the ground down and sinks
+ * #111111 text with it. Opaque is what keeps this readable over any footage.
+ *
+ * Rules are scoped under .vtt-light (set on <html>) rather than left at :root,
+ * so they also outrank the base rules they replace regardless of source order.
+ */
+.vtt-light {
+    --vtt-accent: #c8ff00;
+    --vtt-accent-strong: #b8ea00;
+    --vtt-accent-quiet: rgba(200, 255, 0, 0.22);
+    --vtt-accent-hover: rgba(200, 255, 0, 0.38);
+    --vtt-accent-border: rgba(140, 178, 0, 0.45);
+    --vtt-accent-border-strong: rgba(140, 178, 0, 0.75);
+    /* Focus rings switch to purple: a lime ring on a lime fill is invisible. */
+    --vtt-accent-ring: rgba(123, 44, 255, 0.55);
+    --vtt-accent-text: #111111;
+
+    /* Success/danger/warning are re-darkened: the dark theme's pastel steps
+       (#34d399, #f87171, #ffa257) all fall under 3:1 on a white card. */
+    --vtt-success: #15803d;
+    --vtt-success-text: #15803d;
+    --vtt-success-quiet: rgba(21, 128, 61, 0.12);
+    --vtt-success-border: rgba(21, 128, 61, 0.35);
+
+    --vtt-danger: #c22828;
+
+    --vtt-warning: #a1560a;
+    --vtt-warning-quiet: rgba(161, 86, 10, 0.12);
+
+    --vtt-text: #111111;
+    --vtt-text-soft: #4a4a4a;
+    --vtt-text-dim: #6a6a68;
+
+    --vtt-hairline: #e5e5e2;
+    --vtt-hairline-strong: #d6d6d2;
+    /* Declared here as well as consumed: the base sheet reads --vtt-border with
+       a white-alpha fallback but never defines it, so on light it would draw an
+       invisible border. */
+    --vtt-border: #e5e5e2;
+
+    --vtt-panel: #f7f7f5;
+    --vtt-panel-solid: #ffffff;
+}
+
+/* ── Sidebar shell ──────────────────────────────────────────────────────── */
+.vtt-light #vtt-sidebar {
+    color: #111111;
+    /* Opaque ground, so the blur has nothing left to sample. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-left: 1px solid #e5e5e2;
+    box-shadow: -10px 0 30px rgba(17, 17, 17, 0.12);
+}
+
+.vtt-light #vtt-sidebar h2 { color: #111111; }
+.vtt-light #vtt-header { border-bottom: 1px solid #e5e5e2; }
+.vtt-light #vtt-settings-btn { color: #4a4a4a; }
+
+.vtt-light #vtt-settings-btn:hover {
+    color: #111111;
+    background: rgba(17, 17, 17, 0.06);
+}
+
+.vtt-light #vtt-toggle-btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #111111;
+    box-shadow: -5px 0 15px rgba(17, 17, 17, 0.12);
+}
+
+.vtt-light #vtt-toggle-btn:hover { background-color: #ffffff; }
+
+/* ── Feedback ───────────────────────────────────────────────────────────── */
+.vtt-light .vtt-feedback-text,
+.vtt-light .vtt-feedback-email {
+    color: #111111;
+    background: #ffffff;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-feedback-text::placeholder,
+.vtt-light .vtt-feedback-email::placeholder { color: #8a8a86; }
+
+.vtt-light .vtt-feedback-send { color: #111111; }
+.vtt-light .vtt-feedback-status { color: #c22828; }
+.vtt-light .vtt-feedback-done { color: #111111; }
+
+/* ── Auth / groups ──────────────────────────────────────────────────────── */
+.vtt-light .lingogram-auth-btn:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-light .vtt-group + .vtt-group { border-top: 1px solid #e5e5e2; }
+
+/* ── Selects ────────────────────────────────────────────────────────────── */
+.vtt-light .vtt-select {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-select:hover { background: #f0f0ee; }
+.vtt-light .vtt-select optgroup { color: #6a6a68; }
+.vtt-light .vtt-select option:disabled { color: #a0a09c; }
+
+/* ── Reading-mode chips ─────────────────────────────────────────────────── */
+.vtt-light .vtt-mode {
+    background: #ffffff;
+    border-color: #e5e5e2;
+    color: #4a4a4a;
+}
+
+.vtt-light .vtt-mode:hover { background: #f0f0ee; }
+.vtt-light .vtt-mode.vtt-mode-blocked:hover { background: #ffffff; }
+.vtt-light .vtt-mode.active { color: #111111; }
+
+/* Tooltips invert: near-black bubble on the light panel, same as the dark
+   theme's light-on-dark — a tooltip should read as an overlay, not a card. */
+.vtt-light .vtt-mode-blocked[data-tip]::after {
+    background: #111111;
+    color: #ffffff;
+}
+
+/* ── Quick-mode cluster ─────────────────────────────────────────────────── */
+.vtt-light #vtt-quickmodes {
+    background: #ffffff;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-qm { color: #4a4a4a; }
+
+.vtt-light .vtt-qm:hover {
+    background: rgba(17, 17, 17, 0.06);
+    color: #111111;
+}
+
+.vtt-light .vtt-qm-sep { background: #e5e5e2; }
+
+.vtt-light .vtt-modeseg {
+    background: #eeeeec;
+    box-shadow: inset 0 1px 2px rgba(17, 17, 17, 0.08);
+}
+
+.vtt-light .vtt-modeseg-thumb {
+    background: #c8ff00;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18);
+}
+
+.vtt-light .vtt-modeseg .vtt-qm.active { color: #111111; }
+.vtt-light .vtt-modeseg .vtt-qm:not(.active) { color: #4a4a4a; }
+.vtt-light .vtt-modeseg .vtt-qm:not(.active):hover { color: #111111; }
+
+/* The on-screen toggle is an independent control, not part of the exclusive
+   mode segment. Filled lime on both made them read as two active modes, so
+   the segment keeps the solid thumb and the toggle states "on" with a ring. */
+.vtt-light .vtt-qm-toggle.active {
+    background: #ffffff;
+    color: #111111;
+    box-shadow: inset 0 0 0 2px #c8ff00;
+}
+
+.vtt-light .vtt-qm-toggle.active:hover { background: #f7f7f5; }
+
+/* ── Tooltips ───────────────────────────────────────────────────────────── */
+.vtt-light #vtt-quickmodes [data-tip]::after {
+    background: #111111;
+    color: #ffffff;
+    border: 1px solid #111111;
+}
+
+.vtt-light #vtt-quickmodes .vtt-qm-blocked::after,
+.vtt-light #vtt-partial-notice[data-tip]::after {
+    background: #111111;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.28);
+}
+
+.vtt-light #vtt-quickmodes .vtt-qm-blocked::first-line { color: #ffffff; }
+
+/* The style preview is a mock film still — it stays dark on purpose; only its
+   frame has to become visible against the light panel. */
+.vtt-light #vtt-style-preview { border: 1px solid #e5e5e2; }
+
+/* ── Segmented control + sliders ────────────────────────────────────────── */
+.vtt-light .vtt-seg {
+    background: #eeeeec;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-seg-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18), inset 0 0 0 1px #e5e5e2;
+}
+
+.vtt-light .vtt-seg-btn.active { color: #111111; }
+
+.vtt-light .vtt-slider {
+    background: linear-gradient(to right,
+        #c8ff00 var(--vtt-slider-fill, 14%), #e5e5e2 var(--vtt-slider-fill, 14%));
+}
+
+.vtt-light .vtt-slider::-webkit-slider-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+
+.vtt-light .vtt-slider::-moz-range-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+
+/* ── Swatches ───────────────────────────────────────────────────────────── */
+.vtt-light .vtt-swatch { border: 1px solid #d6d6d2; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+.vtt-light #vtt-list { scrollbar-color: #d6d6d2 transparent; }
+.vtt-light #vtt-list::-webkit-scrollbar-thumb { background: #d6d6d2; }
+
+/* ── Transcript items ───────────────────────────────────────────────────── */
+.vtt-light .vtt-item {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e2;
+    color: #4a4a4a;
+}
+
+.vtt-light .vtt-item:hover {
+    background-color: #f0f0ee;
+    color: #111111;
+}
+
+.vtt-light .vtt-item.active-sub {
+    background-color: rgba(200, 255, 0, 0.30);
+    border-color: rgba(140, 178, 0, 0.55);
+    color: #111111;
+    box-shadow: 0 4px 15px rgba(17, 17, 17, 0.08);
+}
+
+/* Translation line takes the purple: it is the one place the second accent
+   carries meaning (this text is the other language). */
+.vtt-light .vtt-sub-text {
+    border-top: 1px dashed #e5e5e2;
+    color: #7b2cff;
+}
+
+/* Scoped to #vtt-list for the same reason as .vtt-masked-word below: these
+   classes are ALSO used inside .vtt-overlay-main on the video, where the text
+   is white on a dark box. Unscoped, the light theme painted revealed words
+   #111111 there — black on a black caption box. */
+.vtt-light #vtt-list .vtt-revealed-word,
+.vtt-light #vtt-list .vtt-guess-filler { color: #111111; }
+
+.vtt-light #vtt-list .vtt-item.active-sub .vtt-revealed-word,
+.vtt-light #vtt-list .vtt-item.active-sub .vtt-guess-filler { color: #111111; }
+
+/* ── Guess-mode masked words — SIDEBAR ONLY ─────────────────────────────── */
+/* Scoped to #vtt-list: the same .vtt-masked-word class is also used for the
+   panes drawn ON the video, and those must keep their dark treatment no matter
+   what theme the panel is in. An unscoped .vtt-light .vtt-masked-word ties on
+   specificity with .vtt-overlay-main .vtt-masked-word and wins on source
+   order, which turned the on-video panes near-invisible. */
+.vtt-light #vtt-list .vtt-masked-word {
+    background: rgba(17, 17, 17, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.14);
+}
+
+/* The frosted highlight is built from white-alpha gradients, which do nothing
+   over a light pane — drop it rather than leave a no-op paint. */
+.vtt-light #vtt-list .vtt-masked-word::before { background: none; }
+
+/* ── Language pair chip ─────────────────────────────────────────────────── */
+/* This chip hardcodes a pale blue text colour in the base sheet, which is
+   invisible on light — and it is the language control, so it takes purple. */
+.vtt-light #vtt-langpair .vtt-langpair-inner {
+    background: rgba(123, 44, 255, 0.10);
+    border: 1px solid rgba(123, 44, 255, 0.35);
+    color: #111111;
+}
+
+.vtt-light #vtt-langpair .vtt-langpair-inner:hover {
+    background: rgba(123, 44, 255, 0.18);
+    border-color: rgba(123, 44, 255, 0.55);
+}
+
+.vtt-light #vtt-langpair:focus-visible .vtt-langpair-inner {
+    border-color: #7b2cff;
+    box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
+}
+
+/* ── Notification ───────────────────────────────────────────────────────── */
+.vtt-light #vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }
+
+/* ── Onboarding / status ────────────────────────────────────────────────── */
+.vtt-light #vtt-lang-onboarding,
+.vtt-light #vtt-status {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-lang-onboarding .vtt-lang-onboarding-row span { color: #4a4a4a; }
+
+.vtt-light #vtt-lang-onboarding select {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-status.vtt-status--rich {
+    background: linear-gradient(180deg, rgba(200, 255, 0, 0.22), #ffffff 60%);
+}
+
+.vtt-light #vtt-status .vtt-empty-state-figure svg {
+    filter: drop-shadow(0 6px 18px rgba(17, 17, 17, 0.15));
+}
+
+.vtt-light #vtt-status .vtt-empty-state-steps { color: #4a4a4a; }
+
+.vtt-light #vtt-status .vtt-empty-state-action {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-status .vtt-empty-state-action:hover:not(:disabled) { background: #f0f0ee; }
+
+/* Emergency actions keep the quiet red destructive treatment — never the
+   brand fill, on either theme. */
+.vtt-light #vtt-status .vtt-empty-state-action--emergency {
+    border: 1px solid rgba(194, 40, 40, 0.45);
+    color: #c22828;
+    background: rgba(194, 40, 40, 0.06);
+}
+
+.vtt-light #vtt-status .vtt-empty-state-action--emergency:hover {
+    border-color: rgba(194, 40, 40, 0.7);
+    background: rgba(194, 40, 40, 0.12);
+}
+
+/* ── YouTube player menu — the second panel surface ─────────────────────── */
+.vtt-light #vtt-ytp-menu {
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #e5e5e2;
+    color: #111111;
+    box-shadow: 0 8px 28px rgba(17, 17, 17, 0.18);
+}
+
+.vtt-light .vtt-ytp-row:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-light .vtt-ytp-row-value { color: #4a4a4a; }
+.vtt-light .vtt-ytp-row-key { color: #6a6a68; }
+.vtt-light .vtt-ytp-row--account { color: #4a4a4a; }
+.vtt-light .vtt-ytp-row--status { color: #a1560a; }
+.vtt-light .vtt-ytp-row--status-info { color: #4a4a4a; }
+
+.vtt-light #vtt-ytp-menu-modes,
+.vtt-light #vtt-ytp-menu-panel { border-top: 1px solid #e5e5e2; }
+
+.vtt-light .vtt-ytp-row--back {
+    color: #4a4a4a;
+    border-bottom: 1px solid #e5e5e2;
+}
+
+/* The player-bar buttons (.vtt-ytp-*-btn) are deliberately NOT re-themed:
+   they sit on the video itself, next to YouTube's own white-on-dark controls,
+   so they stay light regardless of panel theme. */
+
+/* ── Panel tail rows + switch ───────────────────────────────────────────── */
+.vtt-light .vtt-panel-row { border-top: 1px solid #e5e5e2; }
+
+.vtt-light .vtt-panel-row:hover {
+    color: #111111;
+    background-color: #f0f0ee;
+}
+
+/* Off-state needs a track dark enough to show the white knob; the on-state
+   track comes from --vtt-accent (lime) via the base rule. */
+.vtt-light .vtt-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
+
+/* ── Light theme: places where the base sheet uses --vtt-accent as a MARK
+ *    rather than a fill. Lime is ~1.3:1 as text/hairline on white, so each of
+ *    these takes the purple accent (or ink) instead. The rule stays "lime
+ *    fills, purple marks" — the two are never asked to do each other's job. ── */
+
+/* Back chip: accent-coloured text. */
+.vtt-light .vtt-back-chip { color: #7b2cff; }
+.vtt-light .vtt-back-chip:hover { background: rgba(123, 44, 255, 0.10); }
+
+/* Mode dots: a 6px lime dot with a lime glow disappears on white. Ink for the
+   selected one, and the base --vtt-text-dim already handles the idle state. */
+.vtt-light .vtt-mode.active .vtt-mode-dot {
+    background: #7b2cff;
+    box-shadow: none;
+}
+
+/* Selected swatch ring: 2px of panel + 2px of accent. The lime ring reads as a
+   pale halo on a white panel, so the outer ring goes ink — it has to survive
+   sitting next to a white swatch. */
+.vtt-light .vtt-swatch.active {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111;
+}
+
+.vtt-light .vtt-swatch.active:focus-visible {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111, 0 0 0 6px rgba(123, 44, 255, 0.45);
+}
+
+/* The checkmark inside a selected swatch is drawn in the swatch's own contrast
+   colour by the base sheet; on the white swatch that leaves ink-on-white, which
+   is correct. Nothing to override. */
+
+/* ── Light theme: the ON-VIDEO overlay ─────────────────────────────────── */
+/* The caption text and its box are NOT re-themed: they sit on the user's
+   footage next to the player's own white-on-dark captions, and light text on a
+   dark box is what keeps them readable over any picture. Only the guess-mode
+   panes take the new accent, because those are brand marks rather than text.
+ *
+ * The "next" pane is OPAQUE lime, where the indigo it replaces was 0.45.
+ * A pane hides its glyphs (they are painted invisible — see .vtt-masked-word),
+ * so nothing has to stay legible THROUGH it; what must read is the pane
+ * against its surroundings. Translucent lime fails that: over the caption box
+ * it lands on olive, 2.75:1 against the box on a bright frame — the mark
+ * disappears exactly when the footage is light. Opaque lime holds 17.8:1 on a
+ * dark frame and 7.2:1 on a bright one, and stays the same colour either way,
+ * which is the independence-from-the-picture the panes were built for.
+ *
+ * Ink ring, not a lime one: the ring has to separate the pane from a bright
+ * frame, and lime-on-lime is no edge at all. */
+/* The plain hidden pane keeps its dark body — it is the neutral state, and
+   two lime marks side by side would stop the "next" pane meaning anything.
+   Restated only to re-tint the ring, which the base rule draws in white:
+   a warm ink edge sits better beside the lime pane than a cold white one.
+   MUST stay above the .vtt-next-word rule below: the next pane carries both
+   classes, so these tie on specificity and the later rule wins. */
+.vtt-light .vtt-overlay-main .vtt-masked-word {
+    background-color: rgba(18, 20, 27, 0.55);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.vtt-light .vtt-overlay-main .vtt-next-word {
+    background-color: #c8ff00;
+    box-shadow:
+        inset 0 0 0 1px rgba(17, 17, 17, 0.55),
+        0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Hover deepens rather than lightens: at full lime there is no brighter step,
+   so the feedback is a darker, more saturated pane. */
+.vtt-light .vtt-overlay-main:hover .vtt-next-word {
+    background-color: #b0e000;
+}
