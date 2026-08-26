@@ -29,7 +29,11 @@
     },
 };
 
-import { BaseVttApp, type ReprocessOptions } from '../src/content/app-base';
+import {
+    BaseVttApp,
+    REPORT_NO_SUBS_TIMEOUT_MS,
+    type ReprocessOptions,
+} from '../src/content/app-base';
 import type { Subtitle } from '@video-transcripts/shared';
 
 class TestApp extends BaseVttApp {
@@ -377,6 +381,74 @@ describe('no_subtitles', () => {
         app.declareNoSubtitles();
         expect(eventsNamed('no_subtitles')).toHaveLength(1);
     });
+
+    // The '' regression: 71% of production events carried an empty failure,
+    // silently merging "video has no subs" with real load breakage. The
+    // resolution order is dominantFailure() ?? cause ?? 'unknown'.
+    test('never sends an empty failure', () => {
+        const app = makeApp();
+        app.declareNoSubtitles();
+        expect(eventsNamed('no_subtitles')[0].params.failure).toBe('unknown');
+    });
+
+    test.each([
+        ['no-tracks'],
+        ['no-language-match'],
+        ['not-attempted'],
+        ['timeout'],
+    ] as const)('a structural cause is reported: %s', (cause) => {
+        const app = makeApp();
+        app.declareNoSubtitles(cause);
+        expect(eventsNamed('no_subtitles')[0].params.failure).toBe(cause);
+    });
+
+    test('a recorded real failure outranks the cause', () => {
+        const app = makeApp();
+        app.noteTrackFailure('English', { failure: 'rate-limited', status: 429 });
+        app.declareNoSubtitles('not-attempted');
+        expect(eventsNamed('no_subtitles')[0].params.failure).toBe('rate-limited');
+    });
+
+    test('an aborted-only failure map resolves to unknown, not empty', () => {
+        // dominantFailure() deliberately skips 'aborted' — the map is non-empty
+        // yet yields undefined, the sneakiest path to the old empty string.
+        const app = makeApp();
+        app.noteTrackFailure('English', { failure: 'aborted' });
+        app.declareNoSubtitles();
+        expect(eventsNamed('no_subtitles')[0].params.failure).toBe('unknown');
+    });
+
+    test('carries the language pair', () => {
+        const app = makeApp();
+        app.declareNoSubtitles('no-tracks');
+        expect(eventsNamed('no_subtitles')[0].params).toMatchObject({
+            learning: 'en',
+            native: 'ru',
+        });
+    });
+
+    describe('grace timer', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        test('nothing attempted → not-attempted', () => {
+            const app = makeApp();
+            app.scheduleNoSubtitlesCheck(7_000);
+            jest.advanceTimersByTime(7_000);
+            expect(eventsNamed('no_subtitles')[0].params.failure).toBe('not-attempted');
+        });
+
+        test('requests still in flight → timeout', () => {
+            // A wedged page-script is a reply that never came, not a video
+            // nobody asked about — schedulePendingTrackCheck only covers the
+            // half-loaded case, so this is the all-empty watchdog.
+            const app = makeApp();
+            app.pendingRequests.set('k1', 'English');
+            app.scheduleNoSubtitlesCheck(7_000);
+            jest.advanceTimersByTime(7_000);
+            expect(eventsNamed('no_subtitles')[0].params.failure).toBe('timeout');
+        });
+    });
 });
 
 describe('onboarding_shown', () => {
@@ -504,6 +576,32 @@ describe('REPORT_NO_SUBS carries the cause', () => {
             attempts: 4,
             tracksLoaded: 1,
         });
+    });
+
+    // The budget IS the feature. It was 400ms, and a live run showed the report
+    // losing that race essentially every time: an MV3 worker has to cold-start,
+    // refresh a token and reach Firestore before the unconditional reload fires.
+    // The value is asserted rather than assumed because shrinking it back
+    // silently disables diagnostics — the failure mode is an empty collection,
+    // not an error anyone would notice.
+    test('the send is given long enough for a cold service worker', () => {
+        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeGreaterThanOrEqual(2000);
+        // Still bounded: the user pressed a button that promises a reload.
+        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeLessThanOrEqual(3000);
+    });
+
+    test('a worker that never answers still lets the page reload', async () => {
+        const app = makeApp();
+        app.noteTrackFailure('Russian', { failure: 'network' });
+        // A send that never settles: only the timeout can end the race.
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(
+            () => new Promise(() => {}),
+        );
+        jest.useFakeTimers();
+        const done = app.reportNoSubsAndReload();
+        jest.advanceTimersByTime(REPORT_NO_SUBS_TIMEOUT_MS + 50);
+        await expect(done).resolves.toBeUndefined();
+        jest.useRealTimers();
     });
 });
 

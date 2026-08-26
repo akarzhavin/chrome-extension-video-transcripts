@@ -631,7 +631,7 @@ class YouTubeCaptionDetector {
         if (currentId && videoId !== currentId) return;
         // The page-script confirmed this video has no caption tracks at all —
         // skip the "searching" wait and say so right away.
-        this.app.declareNoSubtitles();
+        this.app.declareNoSubtitles('no-tracks');
     }
 
     reprocessCurrentVideo(opts: ReprocessOptions = {}): void {

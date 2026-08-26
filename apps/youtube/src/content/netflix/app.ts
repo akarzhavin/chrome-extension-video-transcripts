@@ -1,5 +1,6 @@
 import { labelForLanguage, parseVTT, TrackRole } from '@video-transcripts/shared';
 import { BaseVttApp, SIDEBAR_CHROME_CSS } from '../app-base';
+import { classifyStatus } from '../timedtext-fetch';
 import {
     NetflixRawTrack,
     NetflixTrack,
@@ -96,7 +97,10 @@ class NetflixVttApp extends BaseVttApp {
             if (d.type === 'NFLX_MANIFEST') {
                 this.handleManifest(String(d.movieId), d.tracks as NetflixRawTrack[]);
             } else if (d.type === 'NFLX_VTT_RESULT' && typeof d.key === 'string') {
-                this.handleVttResult(d.key, d.text || '');
+                this.handleVttResult(d.key, d.text || '', {
+                    status: typeof d.status === 'number' ? d.status : undefined,
+                    error: typeof d.error === 'string' ? d.error : undefined,
+                });
             }
         });
 
@@ -158,7 +162,10 @@ class NetflixVttApp extends BaseVttApp {
             // the user can switch to an available language.
             console.log('[NFLX-VTT] no track for chosen pair; available base codes:', [...new Set(tracks.map((t) => t.base))]);
             this.ui.refresh();
-            this.declareNoSubtitles();
+            // planNetflixTracks() returns null both when the pair misses AND
+            // when normalizeTracks() dropped everything (no WebVTT downloads) —
+            // the track count is what tells those two stories apart.
+            this.declareNoSubtitles(tracks.length === 0 ? 'no-tracks' : 'no-language-match');
             return;
         }
         this.loadedForMovie = movieId;
@@ -181,10 +188,32 @@ class NetflixVttApp extends BaseVttApp {
         }
     }
 
-    handleVttResult(key: string, text: string): void {
+    handleVttResult(
+        key: string,
+        text: string,
+        outcome: { status?: number; error?: string } = {},
+    ): void {
         const name = this.takePending(key);
         console.log('[NFLX-VTT] VTT_RESULT <-', name, 'bytes:', text?.length ?? 0);
         if (!name) return;
+
+        // A failed fetch used to end here silently: takePending() had already
+        // dropped the key, parseVTT('') returned zero cues, and addParsedTrack()
+        // bails on an empty array — so nothing was recorded, no subs_partial or
+        // subs_rate_limited could fire, and the 12s pending backstop could no
+        // longer see it either. A throttled Netflix track was indistinguishable
+        // from a title that simply has no subtitles.
+        if (outcome.status !== undefined || outcome.error !== undefined) {
+            // Same vocabulary as YouTube: a 429 means the same thing on both.
+            const failure =
+                outcome.status === undefined
+                    ? 'network'
+                    : classifyStatus(outcome.status, false) ?? 'unknown';
+            console.log('[NFLX-VTT] failed', name, failure, 'status:', outcome.status ?? 0);
+            this.noteTrackFailure(name, { failure, status: outcome.status, attempts: 1 });
+            return;
+        }
+
         // parseVTT strips markup tags; decode the HTML entities it leaves behind.
         const subs = parseVTT(text).map((s) => ({ ...s, text: decodeEntities(s.text) }));
         console.log('[NFLX-VTT] parsed subs:', subs.length, 'for', name);

@@ -36,6 +36,22 @@ export interface TrackFailureInfo {
     at: number;
 }
 
+/**
+ * Why declareNoSubtitles() was called when NO fetch failure was recorded —
+ * the caller knows structurally what the empty trackFailures map cannot say:
+ *
+ *  - 'no-tracks'          the site confirmed the video has no caption tracks
+ *  - 'no-language-match'  tracks exist, but none in the learning/native pair
+ *  - 'not-attempted'      the grace period expired before anything was tried
+ *  - 'timeout'            requests were in flight but never answered
+ *
+ * A recorded real failure always outranks the cause (see declareNoSubtitles):
+ * "nothing loaded because we were rate-limited" beats "nothing loaded".
+ * The first two are expected absence, not defects — the GA4 `failure`
+ * dimension exists precisely to keep them out of the breakage numbers.
+ */
+export type NoSubsCause = 'no-tracks' | 'no-language-match' | 'not-attempted' | 'timeout';
+
 /** A button in the status banner. `disabled` renders it inert but readable. */
 export interface StatusAction {
     label: string;
@@ -70,6 +86,16 @@ export interface ReprocessOptions {
  * and long.
  */
 export const AUTO_PROBE_LIMIT = 2;
+
+/**
+ * How long the emergency "Reload page" diagnostic may delay the reload.
+ *
+ * Exported so a test can assert the budget rather than hard-code it: the value
+ * is the whole feature. Too small and the report never leaves (an MV3 worker
+ * has to cold-start, refresh a token and reach Firestore first); too large and
+ * the user waits on a button that promised a reload.
+ */
+export const REPORT_NO_SUBS_TIMEOUT_MS = 2500;
 
 // Localized UI string with an English fallback. Delegates to the shared helper
 // (honors any demo override, then chrome.i18n, then the fallback).
@@ -265,6 +291,11 @@ export abstract class BaseVttApp implements AppInterface {
     // event is due, and there would be nothing to measure "waited_s" from.
     hadFailures: boolean = false;
     firstFailureAt: number = 0;
+    // The failure value the no_subtitles event reported for this video, kept so
+    // the emergency-reload diagnostic can reuse it after resetForNewVideo() has
+    // cleared trackFailures. Survives "Search again" for the same reason
+    // hadFailures does; cleared in resetNoSubsRetries() on a real video change.
+    lastNoSubsFailure: string | null = null;
     // Set by the retry paths so a recovery can say whether it was the user or
     // the auto-probe that fixed it.
     lastRecoveryTrigger: 'auto_probe' | 'manual_retry' | 'late_arrival' = 'late_arrival';
@@ -505,7 +536,13 @@ export abstract class BaseVttApp implements AppInterface {
             this.noSubsTimer = null;
             if (!this.langPrefs) return;
             if (this.getVideoId() === null) return;
-            if (this.state.tracks.length === 0) this.declareNoSubtitles();
+            if (this.state.tracks.length === 0) {
+                // Requests still in flight mean attempts WERE made — that is a
+                // reply that never came, not a video nobody asked about.
+                this.declareNoSubtitles(
+                    this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted',
+                );
+            }
         }, graceMs);
     }
 
@@ -576,7 +613,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     // Show the "no subtitles" notice now (used both by the grace-period timeout
     // and when the site reports a video has no caption tracks at all).
-    declareNoSubtitles(): void {
+    declareNoSubtitles(cause?: NoSubsCause): void {
         this.clearNoSubtitlesTimer();
         if (!this.langPrefs) return;
         if (this.getVideoId() === null) return;
@@ -585,16 +622,22 @@ export abstract class BaseVttApp implements AppInterface {
         // The failure fields come from trackFailures rather than being
         // recomputed: by now the original fetch result is long gone, and
         // "nothing loaded" is far less actionable than "nothing loaded because
-        // we were rate-limited after 4 attempts".
+        // we were rate-limited after 4 attempts". When nothing was recorded,
+        // the caller's cause fills the gap — never an empty string, which GA4
+        // keeps as an undiagnosable bucket.
         this.analyticsOnce.fire('no_subtitles', () => {
             const worst = this.dominantFailure();
             const detail = [...this.trackFailures.values()].find((i) => i.failure === worst);
+            const failure = worst ?? cause ?? 'unknown';
+            this.lastNoSubsFailure = failure;
             trackVia('no_subtitles', {
                 site: platformOf(location.hostname),
                 retried: this.noSubsRetries > 0,
-                failure: worst ?? '',
+                failure,
                 status: detail?.status ?? 0,
                 attempts: detail?.attempts ?? 0,
+                learning: this.langPrefs?.learning ?? '',
+                native: this.langPrefs?.native ?? '',
             });
         });
 
@@ -717,8 +760,17 @@ export abstract class BaseVttApp implements AppInterface {
     // Emergency "Reload page" handler. The banner copy qualifies the click
     // ("this video HAS subtitles but we aren't showing them"), so it doubles as
     // a bug report: fire a best-effort diagnostic to the background worker, then
-    // reload no matter what. The 400ms race caps how long a slow/dead worker can
-    // delay the reload the user actually asked for.
+    // reload no matter what. The race caps how long a slow/dead worker can delay
+    // the reload the user actually asked for.
+    //
+    // The cap was 400ms. What that budget has to cover is not the message hop —
+    // measured at 18-27ms to a cold worker — but everything addNoSubsReport does
+    // before the write: ensureFreshToken() may spend a full securetoken
+    // round-trip refreshing an expired ID token, and only then does the
+    // Firestore commit go out. A single slow network round-trip overruns 400ms,
+    // and when it does the report is lost silently, because the caller swallows
+    // failures by design. 2500ms covers a refresh plus the commit and is still
+    // far shorter than the page reload the user is already waiting through.
     async reportNoSubsAndReload(): Promise<void> {
         try {
             if (chrome?.runtime?.id) {
@@ -737,13 +789,16 @@ export abstract class BaseVttApp implements AppInterface {
                             native: this.langPrefs?.native ?? '',
                             // The app already knows why; sending it turns
                             // "subtitles missing" into an actionable report.
-                            failure: this.dominantFailure() ?? '',
+                            // Same vocabulary as the no_subtitles event; the
+                            // stored value covers the case where a "Search
+                            // again" already cleared trackFailures.
+                            failure: this.dominantFailure() ?? this.lastNoSubsFailure ?? 'unknown',
                             status: this.failureDetail()?.status ?? 0,
                             attempts: this.failureDetail()?.attempts ?? 0,
                             tracksLoaded: this.state.tracks.length,
                         })
                         .catch(() => undefined),
-                    new Promise((resolve) => setTimeout(resolve, 400)),
+                    new Promise((resolve) => setTimeout(resolve, REPORT_NO_SUBS_TIMEOUT_MS)),
                 ]);
             }
         } catch {
@@ -1281,6 +1336,7 @@ export abstract class BaseVttApp implements AppInterface {
         this.clearSubsLoadedTimer();
         this.hadFailures = false;
         this.firstFailureAt = 0;
+        this.lastNoSubsFailure = null;
         this.lastRecoveryTrigger = 'late_arrival';
     }
 

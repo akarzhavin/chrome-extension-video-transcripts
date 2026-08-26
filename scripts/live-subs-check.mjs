@@ -26,8 +26,13 @@
 //   node scripts/live-subs-check.mjs --video <url> --wait 60000
 //   node scripts/live-subs-check.mjs --app rezka --video <url>
 //   node scripts/live-subs-check.mjs --keep-store    # не трогать копию из CWS
+//   node scripts/live-subs-check.mjs --with-sound    # не глушить видео
+//
+// Вкладки открываются в ФОНЕ и видео глушится: прогон идёт в браузере, за
+// которым человек работает, и красть у него фокус и звук нельзя.
 
 import { chromium } from '../node_modules/playwright-core/index.mjs';
+import { openInBackground, mute } from './lib/cdp-background-tab.mjs';
 
 const argv = process.argv.slice(2);
 const argOf = (flag, fallback) => {
@@ -41,6 +46,7 @@ const APP = argOf('--app', 'youtube');            // youtube | rezka
 const VIDEO = argOf('--video', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 const WAIT_MS = Number(argOf('--wait', '40000'));
 const KEEP_STORE = hasFlag('--keep-store');
+const WITH_SOUND = hasFlag('--with-sound');
 
 // Оба издания логируют под своим тегом; берём строки только от расширения.
 const TAG = APP === 'rezka' ? '[REZKA-VTT]' : '[YT-VTT]';
@@ -64,10 +70,13 @@ if (!ctx) {
     process.exit(1);
 }
 
+// ctx.newPage() создаёт вкладку активной: Chrome поднимает своё окно на
+// передний план и на macOS отбирает фокус у того, чем человек занят. CDP
+// Target.createTarget с background: true открывает ту же вкладку, не трогая
+// ни фокус, ни z-order окна. Окно остаётся видимым — просто не всплывает.
 // chrome://extensions — единственная страница, где доступны chrome.management и
 // chrome.developerPrivate. Обычная вкладка их не видит.
-const mgmt = await ctx.newPage();
-await mgmt.goto('chrome://extensions');
+const mgmt = await openInBackground(ctx, 'chrome://extensions/');
 
 const allExtensions = () => mgmt.evaluate(() => new Promise((resolve) => {
     chrome.developerPrivate.getExtensionsInfo((list) => resolve(
@@ -136,7 +145,8 @@ try {
     console.log(`перезагружаю распакованную (${unpacked.id}):`, await reload(unpacked.id));
     await mgmt.waitForTimeout(2000);   // service worker поднимается не мгновенно
 
-    const page = await ctx.newPage();
+    console.log(`открываю ${VIDEO} в фоне, слушаю ${Math.round(WAIT_MS / 1000)} с\n`);
+    const page = await openInBackground(ctx, VIDEO);
     page.on('console', (m) => {
         const t = m.text();
         if (t.includes(TAG)) {
@@ -145,8 +155,8 @@ try {
         }
     });
 
-    console.log(`открываю ${VIDEO}, слушаю ${Math.round(WAIT_MS / 1000)} с\n`);
-    await page.goto(VIDEO, { waitUntil: 'domcontentloaded' });
+    if (!WITH_SOUND) console.log('  ', await mute(page));
+
     await page.waitForTimeout(WAIT_MS);
     await page.close();
 

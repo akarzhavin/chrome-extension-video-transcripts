@@ -296,10 +296,22 @@ export function installNetflixHook(): void {
     async function fetchVtt(key: string, url: string): Promise<void> {
         try {
             const res = await originalFetch(url, { credentials: 'omit' });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+            if (!res.ok) {
+                // The status travels as a number, not inside a stringified
+                // Error: the isolated world classifies on it, and 'HTTP 429'
+                // parsed back out of a message is a worse contract than a field.
+                console.warn(TAG, 'fetch failed for', key, res.status);
+                window.postMessage(
+                    { type: 'NFLX_VTT_RESULT', key, text: '', status: res.status },
+                    '*',
+                );
+                return;
+            }
             const text = await res.text();
             window.postMessage({ type: 'NFLX_VTT_RESULT', key, text }, '*');
         } catch (e) {
+            // No status at all: the request never got an answer (offline, DNS,
+            // CORS). Distinct from a served error, and classified as 'network'.
             console.warn(TAG, 'fetch failed for', key, e);
             window.postMessage({ type: 'NFLX_VTT_RESULT', key, text: '', error: String(e) }, '*');
         }

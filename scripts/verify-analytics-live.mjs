@@ -17,7 +17,8 @@
 // Reads nothing from the profile, writes nothing to it. It drives tabs and
 // records the extension's own outgoing GA4 requests.
 
-import { chromium } from '../apps/site/node_modules/playwright-core/index.mjs';
+import { chromium } from '../node_modules/playwright-core/index.mjs';
+import { openInBackground, mute } from './lib/cdp-background-tab.mjs';
 
 const argv = process.argv.slice(2);
 const argOf = (flag, fallback) => {
@@ -85,8 +86,9 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Open a URL in a fresh tab and give the extension time to do its work. */
 async function visit(url, settleMs = 25000) {
-    const page = await ctx.newPage();
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+    // В фоне и без звука: подключаемся к браузеру работающего человека.
+    const page = await openInBackground(ctx, url);
+    await mute(page);
     await wait(settleMs);
     return page;
 }
@@ -229,9 +231,9 @@ if (wanted('2.15')) {
     log('\n[2.15] Netflix: site=netflix при том же ext_source');
     log('      Открой серию с субтитрами в браузере. Жду 60 с…');
     const n = since();
-    await ctx.newPage().then((p) =>
-        p.goto('https://www.netflix.com/browse', { waitUntil: 'domcontentloaded', timeout: 60000 })
-            .catch(() => {}));
+    await openInBackground(ctx, 'https://www.netflix.com/browse')
+        .then((p) => mute(p))
+        .catch(() => {});
     await wait(60000);
 
     const nf = sliceFrom(n).filter((h) => h.params.site === 'netflix');

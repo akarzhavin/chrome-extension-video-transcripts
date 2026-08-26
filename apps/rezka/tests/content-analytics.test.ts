@@ -163,6 +163,32 @@ describe('a 429 from the CDN reaches analytics as throttling', () => {
                 });
             }
         }
+
+        /**
+         * Mirrors index.ts declareNoSubtitles — the failure param is never the
+         * empty string: on rezka the player only fetches a track once it's
+         * picked in the CC menu, so "nothing reported a failure" means no
+         * track was selected, an expected absence rather than an error.
+         */
+        declareNoSubtitles(): void {
+            if (!this.langPrefs) return;
+            if (this.state.tracks.length > 0) return;
+            if (this.fired.has('no_subtitles')) return;
+            this.fired.add('no_subtitles');
+            sendMessageMock({
+                action: 'TRACK_EVENT',
+                event: 'no_subtitles',
+                params: {
+                    site: platformOf(location.hostname),
+                    retried: false,
+                    failure: this.lastFailure || 'not-selected',
+                    status: this.lastFailureStatus ?? 0,
+                    attempts: 0,
+                    learning: this.langPrefs?.learning ?? '',
+                    native: this.langPrefs?.native ?? '',
+                },
+            });
+        }
     }
 
     test('429 becomes subs_rate_limited, not silence', async () => {
@@ -220,5 +246,33 @@ describe('a 429 from the CDN reaches analytics as throttling', () => {
         expect(named('subs_partial')).toHaveLength(1);
         expect(named('subs_partial')[0].params.throttled).toBe(true);
         expect(named('subs_partial')[0].params.failure).toBe('rate-limited');
+    });
+
+    test('no_subtitles without any reported failure means no track selected', () => {
+        // The '' regression: an unpicked CC menu and a broken CDN used to land
+        // in the same undiagnosable GA4 bucket.
+        const app = new Harness();
+        app.declareNoSubtitles();
+        expect(named('no_subtitles')).toHaveLength(1);
+        expect(named('no_subtitles')[0].params.failure).toBe('not-selected');
+    });
+
+    test('no_subtitles after a real failure carries that failure', () => {
+        const app = new Harness();
+        app.handleVttLoadFailed({ status: 429, failure: 'rate-limited' });
+        app.declareNoSubtitles();
+        expect(named('no_subtitles')[0].params).toMatchObject({
+            failure: 'rate-limited',
+            status: 429,
+        });
+    });
+
+    test('no_subtitles carries the language pair', () => {
+        const app = new Harness();
+        app.declareNoSubtitles();
+        expect(named('no_subtitles')[0].params).toMatchObject({
+            learning: 'en',
+            native: 'ru',
+        });
     });
 });

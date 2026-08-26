@@ -37,6 +37,20 @@ const ALT_ORIGIN_MATCH = originMatch(
   'EXT_ALT_FRONTEND_BASE_URL',
 );
 
+// EXT_FIREBASE_HOSTS=live keeps a dev build on the cloud Firebase hosts. The
+// emulators are the right default for local work, but they are also the reason
+// a dev build cannot reach a cloud project: applySide() retargets projectId,
+// apiKey and frontendBaseUrl, never the host, so a switch to a cloud project
+// would otherwise still resolve against localhost.
+const useLiveHosts = !isDev || process.env.EXT_FIREBASE_HOSTS === 'live';
+const identityToolkitUrl = useLiveHosts
+  ? 'https://identitytoolkit.googleapis.com'
+  : 'http://localhost:9099/identitytoolkit.googleapis.com';
+const secureTokenUrl = useLiveHosts
+  ? 'https://securetoken.googleapis.com'
+  : 'http://localhost:9099/securetoken.googleapis.com';
+const firestoreUrl = useLiveHosts ? 'https://firestore.googleapis.com' : 'http://localhost:8080';
+
 const EXT_SOURCE = 'youtube-extension';
 const limits = loadLingogramLimits();
 assertSourceAllowed(limits, EXT_SOURCE);
@@ -53,9 +67,12 @@ const buildDefines = {
   __FIREBASE_API_KEY__: JSON.stringify(
     process.env.EXT_FIREBASE_API_KEY ?? (isDev ? 'demo' : 'AIzaSyCHQt2zwkO-x8qm7wM5IwWAWrl_n8mlQLI'),
   ),
-  __IDENTITY_TOOLKIT_URL__: JSON.stringify(isDev ? 'http://localhost:9099/identitytoolkit.googleapis.com' : 'https://identitytoolkit.googleapis.com'),
-  __SECURE_TOKEN_URL__: JSON.stringify(isDev ? 'http://localhost:9099/securetoken.googleapis.com' : 'https://securetoken.googleapis.com'),
-  __FIRESTORE_URL__: JSON.stringify(isDev ? 'http://localhost:8080' : 'https://firestore.googleapis.com'),
+  // Firebase hosts. A dev build defaults to the local emulators, but can be
+  // pointed at the live ones — the env switch retargets the project, not the
+  // host, so switching to a CLOUD project needs these to be cloud too.
+  __IDENTITY_TOOLKIT_URL__: JSON.stringify(identityToolkitUrl),
+  __SECURE_TOKEN_URL__: JSON.stringify(secureTokenUrl),
+  __FIRESTORE_URL__: JSON.stringify(firestoreUrl),
   // Auth/sign-in web app. Always prod unless EXT_FRONTEND_BASE_URL overrides
   // (e.g. staging or a local Vite server) — dev builds intentionally point at
   // the live site so their "Sign in" flow works without running the SPA.
@@ -145,8 +162,9 @@ export default defineConfig(({ command, mode }) => {
                 }
                 // Localhost host_permissions are only needed for the Firebase
                 // emulator + local frontend in dev. Strip them in prod so the
-                // Web Store warning doesn't list http://localhost URLs.
-                if (!isDev && Array.isArray(manifest.host_permissions)) {
+                // Web Store warning doesn't list http://localhost URLs, and in
+                // a dev build on live hosts, which never calls an emulator.
+                if (useLiveHosts && Array.isArray(manifest.host_permissions)) {
                   manifest.host_permissions = manifest.host_permissions.filter(
                     (p: string) => !p.startsWith('http://localhost'),
                   );
