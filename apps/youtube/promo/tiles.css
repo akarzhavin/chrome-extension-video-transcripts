@@ -1,6 +1,6 @@
 /* Chrome Web Store promo tiles — Small (440×280) & Marquee (1400×560).
  * Shares the "daylight utility" brand with the slides (see promo.css §v4):
- * off-white ground (#f7f7f5), ink copy, lime #c8ff00 as the single
+ * light indigo-tinted ground, ink copy, brand violet #483090 as the single
  * accent — no gradient text. Tokens are kept in sync with promo.css. */
 :root {
   --ink: #1d1b2e;
@@ -17,13 +17,13 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .tile--small { width: 440px; height: 280px; }
 .tile--marquee { width: 1400px; height: 560px; }
 
-/* Off-white ground (v5), matching the slides — lime is an accent, not a field. */
+/* Light indigo-tinted ground, matching the slides — not sterile white. */
 .bg { position: absolute; inset: 0; z-index: 0; }
 .bg {
   background:
-    radial-gradient(120% 120% at 8% 6%,   rgba(200,255,0,0.16) 0%, transparent 46%),
-    radial-gradient(120% 120% at 96% 96%, rgba(123,44,255,0.05) 0%, transparent 48%),
-    linear-gradient(180deg, #fbfbf9 0%, #f7f7f5 55%, #f0f0ec 100%);
+    radial-gradient(120% 120% at 8% 6%,   rgba(72,48,144,0.10) 0%, transparent 46%),
+    radial-gradient(120% 120% at 96% 96%, rgba(30,142,77,0.06) 0%, transparent 48%),
+    linear-gradient(180deg, #fbfbfe 0%, #f6f6fb 55%, #eeedf7 100%);
 }
 
 .eyebrow {
