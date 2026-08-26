@@ -50,6 +50,18 @@ function unsubscribe(): void {
     onSystemChange = null;
 }
 
+/**
+ * Drop the 'auto' OS subscription.
+ *
+ * The listener is module-scoped, so it outlives any one panel: without this,
+ * an embed that destroy()s its sidebar leaves a live media query that keeps
+ * toggling `vtt-light` — and with it the global palette tokens — on a page
+ * that no longer has a panel to theme. Registered on SidebarUI's teardown.
+ */
+export function stopThemeTracking(): void {
+    unsubscribe();
+}
+
 /** Apply a theme token, subscribing to the OS only while 'auto' is selected. */
 export function applyTheme(theme: ThemeToken): void {
     unsubscribe();
