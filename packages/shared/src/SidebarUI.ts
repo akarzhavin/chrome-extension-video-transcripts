@@ -661,10 +661,13 @@ export class SidebarUI {
         return row;
     }
 
-    // Compact icon-only mode switcher in the sub-header row: Single · Dual ·
-    // Guess, plus the independent On-screen toggle. The sole home for mode
-    // switching — the settings panel used to carry a second copy. Swap lives on
-    // the language-pair chip (clicking the pair swaps the tracks), so it has no
+    // Full-width mode bar in the sub-header row: Single · Dual · Guess as a
+    // segmented control whose ACTIVE segment expands into a labeled pill
+    // (icon + name), plus the independent On-screen toggle, permanently
+    // labeled. The sole home for mode switching — the settings panel used to
+    // carry a second copy. No "Modes" micro-label: the active pill and the
+    // toggle's caption name the cluster themselves. Swap lives on the
+    // language-pair chip (clicking the pair swaps the tracks), so it has no
     // button here.
     private buildQuickModes(): HTMLDivElement {
         const bar = document.createElement('div');
@@ -673,14 +676,6 @@ export class SidebarUI {
         bar.setAttribute('role', 'group');
         bar.setAttribute('aria-label', msg('ytGroupReadingMode', 'Reading mode'));
         const inner = bar;
-
-        // Visible micro-label so the cluster names itself without hover (the
-        // group aria-label above stays the SR name; this span is decorative).
-        const barLabel = document.createElement('span');
-        barLabel.className = 'vtt-qm-label';
-        barLabel.setAttribute('aria-hidden', 'true');
-        barLabel.textContent = msg('ytModesLabel', 'Modes');
-        inner.appendChild(barLabel);
 
         // `role` is 'radio' for the exclusive Dual/Guess segments, 'switch'
         // for the independent On-screen toggle. Both state via aria-checked.
@@ -698,24 +693,29 @@ export class SidebarUI {
             btn.setAttribute('role', role);
             btn.setAttribute('aria-checked', 'false');
             btn.innerHTML = iconSvg;
+            // Visible name next to the icon. For the radio segments CSS keeps
+            // it collapsed except on the active one — the label rides the
+            // pill, teaching the icons one selection at a time. The On-screen
+            // toggle shows its label permanently (an icon-only switch proved
+            // unreadable). textContent, not innerHTML: locale strings are data.
+            const text = document.createElement('span');
+            text.className = 'vtt-qm-text';
+            text.textContent = label;
+            btn.appendChild(text);
             return btn;
         };
 
-        // The three reading modes share a segmented track with a sliding thumb —
-        // radiogroup semantics, exactly one always selected. Single used to be
-        // the hidden "neither" state of two toggles, which read as a third mode
+        // The three reading modes share a segmented track — radiogroup
+        // semantics, exactly one always selected. The fill sits on the active
+        // button itself (no sliding thumb: segments are variable-width now —
+        // the active one grows to fit its label, animated via flex-grow, and a
+        // fixed-geometry thumb cannot follow that). Single used to be the
+        // hidden "neither" state of two toggles, which read as a third mode
         // smuggled into an off switch.
-        // NB: distinct class from the settings .vtt-seg (overlay-style picker) —
-        // that one has a permanently-visible thumb and equal-flex text buttons.
         const seg = document.createElement('div');
         seg.className = 'vtt-modeseg';
-        seg.dataset.sel = 'single';
         seg.setAttribute('role', 'radiogroup');
         seg.setAttribute('aria-label', msg('ytGroupReadingMode', 'Reading mode'));
-        const thumb = document.createElement('span');
-        thumb.className = 'vtt-modeseg-thumb';
-        thumb.setAttribute('aria-hidden', 'true');
-        seg.appendChild(thumb);
 
         const qmSingleBtn = makeBtn('vtt-qm-single', ICONS.single, msg('ytModeSingle', 'Single'), '', 'radio');
         qmSingleBtn.addEventListener('click', () => this.setMode('single'));
@@ -753,7 +753,7 @@ export class SidebarUI {
         qmOverlayBtn.addEventListener('click', () => this.toggleOverlay());
         inner.appendChild(qmOverlayBtn);
 
-        this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn };
+        this.elements = { ...this.elements, quickModesBar: bar, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn };
         return bar;
     }
 
@@ -1833,11 +1833,11 @@ export class SidebarUI {
 
         // Quick bar mirrors the settings chips: same .active semantics, same
         // single-track disables; hidden entirely until subtitles are loaded.
-        const { quickModesBar, quickModesSeg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
+        const { quickModesBar, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn } = this.elements;
         if (quickModesBar) quickModesBar.style.display = this.state.tracks.length ? '' : 'none';
-        // The three modes are radio segments (aria-checked); the sliding thumb
-        // tracks the selection via data-sel. Exactly one is always checked —
-        // single is a mode of its own, not "both toggles off".
+        // The three modes are radio segments (aria-checked); .active carries
+        // the pill fill and expands the segment's label. Exactly one is always
+        // checked — single is a mode of its own, not "both toggles off".
         const syncRadio = (btn: HTMLButtonElement | undefined, on: boolean): void => {
             if (!btn) return;
             btn.classList.toggle('active', on);
@@ -1846,7 +1846,6 @@ export class SidebarUI {
         syncRadio(qmSingleBtn, mode === 'single');
         syncRadio(qmDualBtn, mode === 'dual');
         syncRadio(qmGuessBtn, mode === 'guess');
-        if (quickModesSeg) quickModesSeg.dataset.sel = mode;
         // On-screen is an independent switch (aria-checked); .active slides
         // the knob and lights the track.
         if (qmOverlayBtn) {

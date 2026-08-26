@@ -713,10 +713,10 @@
     to { transform: rotate(180deg); }
 }
 
-/* -- Sub-header row: language-pair chip left, quick-mode icons right — one
-   line under the title, so modes are switchable without opening settings and
-   without an extra row. Children carry their own vertical margins so the row
-   collapses when both are absent. -- */
+/* -- Sub-header row: the icon-only quick-mode bar, one line under the title,
+   so modes are switchable without opening settings. (The language-pair chip
+   used to share this row; it lives in the header-top now.) Children carry
+   their own vertical margins so the row collapses when the bar is absent. -- */
 #vtt-subheader {
     display: flex;
     align-items: center;
@@ -725,37 +725,23 @@
     padding: 0 16px;
 }
 
-/* Icon-only mode cluster (Single · Dual · Guess | On-screen) in a pill
-   container so it reads as one control group — the only mode switcher in the
-   UI since the settings panel's duplicate chips were removed. */
+/* Mode bar (Single · Dual · Guess | On-screen) in a pill container so it
+   reads as one control group — the only mode switcher in the UI since the
+   settings panel's duplicate chips were removed. Spans the row: it is the
+   sub-header's only child, and the freed width goes into visible labels (the
+   active segment's pill and the On-screen caption) instead of a "Modes"
+   micro-label the cluster no longer needs to name itself. */
 #vtt-quickmodes {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 2px;
-    /* margin-left:auto keeps the cluster pinned right even when it's the only
-       child of the space-between row (chip absent during onboarding). */
-    margin: 6px 0 10px auto;
-    flex: none;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0 10px;
     background: rgba(255, 255, 255, 0.045);
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 999px;
-    padding: 2px;
-}
-
-/* Visible micro-label: the cluster names itself without hover. */
-.vtt-qm-label {
-    /* 10px and a lighter grey than the old 9.5px/#8d92a8, which measured
-       3.73:1 — the smallest type in the panel needs the most contrast, not the
-       least. */
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--vtt-text-dim);
-    padding: 0 4px 0 9px;
-    flex: none;
-    -webkit-user-select: none;
-    user-select: none;
+    padding: 3px;
 }
 
 /* JS manages inline display (hidden until tracks load), so the settings
@@ -783,6 +769,29 @@
 .vtt-qm svg {
     width: 15px;
     height: 15px;
+    flex: none;
+}
+
+/* The button's visible name. Radios keep it collapsed except on the active
+   segment, where it slides open with the pill (max-width, not display: the
+   width change is what animates). The On-screen toggle overrides this to keep
+   its caption permanently visible. */
+.vtt-qm-text {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+    transition: max-width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vtt-qm.active .vtt-qm-text {
+    max-width: 110px;
+    opacity: 1;
+    margin-left: 5px;
 }
 
 .vtt-qm:hover {
@@ -800,61 +809,38 @@
     transform: none;
 }
 
-/* Segmented Dual/Guess control: mutually exclusive (both are displayMode
-   values), so an inset "well" track with one sliding thumb reads as
-   choose-one, not two independent checkboxes. Third state (neither → single):
-   the thumb hides. */
+/* Segmented mode control: mutually exclusive displayMode values, so an inset
+   "well" track reads as choose-one, not three checkboxes. The checked segment
+   grows into a labeled pill (flex-grow is animatable, so the pill morphs
+   between segments); a fixed-geometry sliding thumb can't follow
+   variable-width segments, so the fill lives on the active button itself. */
 .vtt-modeseg {
-    position: relative;
-    display: inline-flex;
-    flex: none;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
     background: rgba(0, 0, 0, 0.35);
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
     border-radius: 999px;
     padding: 2px;
+    gap: 2px;
 }
 
-.vtt-modeseg-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 27px;
-    height: 27px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, var(--vtt-accent), var(--vtt-accent-strong));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s ease;
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Three 27px buttons, no gap: the thumb slides to the checked one. Exactly one
-   mode is always selected, so the thumb never hides — "no thumb" used to be
-   how single mode looked, a state the control never admitted to having. */
-.vtt-modeseg[data-sel="single"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(27px);
-}
-
-.vtt-modeseg[data-sel="guess"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(54px);
-}
-
-/* Icons ride above the thumb; the thumb supplies the fill, so no hover bg. */
 .vtt-modeseg .vtt-qm {
-    width: 27px;
+    flex: 1;
+    min-width: 27px;
+    width: auto;
     height: 27px;
-    z-index: 1;
+    padding: 0 4px;
+    transition: flex-grow 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s, color 0.15s, transform 0.1s;
 }
 
 .vtt-modeseg .vtt-qm.active {
+    /* Room for icon + name; inactive neighbours shrink toward icon-only. */
+    flex-grow: 2.6;
     color: #fff;
+    background: linear-gradient(180deg, var(--vtt-accent), var(--vtt-accent-strong));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .vtt-modeseg .vtt-qm:not(.active) {
@@ -865,8 +851,8 @@
     color: #fff;
 }
 
-.vtt-modeseg .vtt-qm:hover {
-    background: transparent;
+.vtt-modeseg .vtt-qm:not(.active):hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .vtt-modeseg .vtt-qm:focus-visible {
@@ -874,14 +860,24 @@
     box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
-/* On-screen: independent toggle, drawn as a real switch — icon + track/knob —
-   rather than a filled button, which only read as "on" against the memory of
-   its unfilled self. .active (set in updateControls) slides the knob and
-   lights the track. */
+/* On-screen: independent toggle, drawn as a real switch — icon + caption +
+   track/knob. The caption is permanently visible (an icon-only switch proved
+   unreadable: nothing said WHAT it toggled); .active (set in updateControls)
+   slides the knob and lights the track. */
 .vtt-qm-toggle {
     width: auto;
-    padding: 0 6px;
+    flex: none;
+    padding: 0 8px 0 6px;
     gap: 5px;
+}
+
+/* Doubled class matches the .vtt-qm.active label rule's specificity, so the
+   caption doesn't jump 5px of margin when the switch turns on. */
+.vtt-qm.vtt-qm-toggle .vtt-qm-text {
+    max-width: none;
+    opacity: 1;
+    margin-left: 0;
+    font-weight: 500;
 }
 
 .vtt-qm-toggle.active {
@@ -1347,7 +1343,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .vtt-seg-thumb,
-    .vtt-modeseg-thumb,
     .vtt-swatch,
     .vtt-swatch svg {
         transition: none !important;
@@ -1740,15 +1735,26 @@
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */
-/* Flex child of the sub-header row: shrinks (names ellipsize) rather than
-   pushing the quick-mode icons out. It's a button (swaps the pair), so block
-   the text selection the sidebar otherwise forces on for transcript quick-add. */
+/* Header-left slot, the mirror of the settings gear on the right; the
+   centered title sits between them. #vtt-header-top's align-items centers the
+   chip vertically (absolute children take their static position, like the
+   gear). It's a button (swaps the pair), so block the text selection the
+   sidebar otherwise forces on for transcript quick-add. */
 #vtt-langpair {
     display: flex;
+    position: absolute;
+    left: 16px;
     min-width: 0;
-    margin: 6px 0 10px;
     -webkit-user-select: none;
     user-select: none;
+}
+
+/* The settings/feedback takeovers put the "‹ back" chip in this corner, and
+   language changes live inside the settings panel anyway — the pair chip
+   steps aside rather than doubling up. */
+#vtt-sidebar.vtt-settings-open #vtt-langpair,
+#vtt-sidebar.vtt-feedback-open #vtt-langpair {
+    display: none;
 }
 
 /* Remote notification: a message published from the backend without a release
@@ -2826,14 +2832,16 @@
     box-shadow: inset 0 1px 2px rgba(17, 17, 17, 0.08);
 }
 
-.vtt-light .vtt-modeseg-thumb {
+.vtt-light .vtt-modeseg .vtt-qm.active {
+    color: #111111;
     background: #c8ff00;
     box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18);
 }
-
-.vtt-light .vtt-modeseg .vtt-qm.active { color: #111111; }
 .vtt-light .vtt-modeseg .vtt-qm:not(.active) { color: #4a4a4a; }
-.vtt-light .vtt-modeseg .vtt-qm:not(.active):hover { color: #111111; }
+.vtt-light .vtt-modeseg .vtt-qm:not(.active):hover {
+    color: #111111;
+    background: rgba(17, 17, 17, 0.06);
+}
 
 /* The on-screen toggle is an independent switch; its TRACK carries the state
    (lime = on, via --vtt-accent in the base rule), so the button itself stays

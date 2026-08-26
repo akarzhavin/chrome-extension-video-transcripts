@@ -158,19 +158,20 @@ describe('SidebarUI', () => {
 
         const checked = () =>
             Array.from(radios).filter((r) => r.getAttribute('aria-checked') === 'true');
-        // Default mode is dual; the thumb must say so — single is a mode of its
-        // own now, not the "nothing selected" look.
+        const checkedId = () => checked()[0]?.id;
+        // Default mode is dual; the active pill must say so — single is a mode
+        // of its own now, not the "nothing selected" look.
         expect(checked()).toHaveLength(1);
-        expect(seg.dataset.sel).toBe('dual');
+        expect(checkedId()).toBe('vtt-qm-dual');
 
         (document.getElementById('vtt-qm-single') as HTMLButtonElement).click();
         expect(freshState.displayMode).toBe('single');
-        expect(seg.dataset.sel).toBe('single');
+        expect(checkedId()).toBe('vtt-qm-single');
         expect(checked()).toHaveLength(1);
 
         (document.getElementById('vtt-qm-guess') as HTMLButtonElement).click();
         expect(freshState.displayMode).toBe('guess');
-        expect(seg.dataset.sel).toBe('guess');
+        expect(checkedId()).toBe('vtt-qm-guess');
         expect(checked()).toHaveLength(1);
     });
 
@@ -527,14 +528,6 @@ describe('SidebarUI', () => {
             expect(sub).not.toBe(main);
         });
 
-        test('applyOverlayStyle also styles the sidebar preview element', () => {
-            const preview = document.createElement('div');
-            ui.elements.previewEl = preview;
-            (ui as any).setOverlayFontSize(150);
-            expect(preview.style.getPropertyValue('--vtt-overlay-font-size')).toBe('36px');
-            expect(preview.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
-        });
-
         test('resetTextStyle restores text defaults with a single write, leaving box fields alone', async () => {
             const overlay = buildOverlay();
             (ui as any).setOverlayFontSize(150);
@@ -587,29 +580,6 @@ describe('SidebarUI', () => {
             (ui as any).resetBoxStyle();
             await new Promise((r) => setTimeout(r, 0));
             expect((await loadPrefs('other')).overlayEnabled).toBe(true); // default — never written by reset
-        });
-
-        test('updateOverlayPreview falls back to sample text and honors dual mode', () => {
-            const preview = document.createElement('div');
-            const main = document.createElement('div');
-            const sub = document.createElement('div');
-            ui.elements.previewEl = preview;
-            ui.elements.previewMain = main;
-            ui.elements.previewSub = sub;
-
-            state.displayMode = 'dual';
-            (ui as any).updateOverlayPreview();
-            expect(main.textContent).toBe('The quick brown fox');
-            expect(sub.textContent).toBe('Translation preview');
-            expect(sub.style.display).toBe('');
-
-            state.displayMode = 'single';
-            (ui as any).updateOverlayPreview();
-            expect(sub.style.display).toBe('none');
-
-            state.overlayEnabled = false;
-            (ui as any).updateOverlayPreview();
-            expect(preview.classList.contains('vtt-preview-disabled')).toBe(true);
         });
     });
 
