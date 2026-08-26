@@ -3177,45 +3177,17 @@
  *
  * Ink ring, not a lime one: the ring has to separate the pane from a bright
  * frame, and lime-on-lime is no edge at all. */
-/* The plain hidden pane keeps its dark body — it is the neutral state, and
-   two lime marks side by side would stop the "next" pane meaning anything.
-   Restated only to re-tint the ring, which the base rule draws in white:
-   a warm ink edge sits better beside the lime pane than a cold white one.
-   MUST stay above the .vtt-next-word rule below: the next pane carries both
-   classes, so these tie on specificity and the later rule wins. */
-.vtt-light .vtt-overlay-main .vtt-masked-word {
+/* Every hidden pane on the video looks the same in this theme — including the
+   one that opens next. The base sheet tints .vtt-next-word with the accent,
+   which the light theme redefines to lime; listing it here alongside the plain
+   pane keeps that accent off the footage, and covering :hover stops the tint
+   coming back on pointer-over.
+   The sidebar list is unaffected: it still marks its own next word. */
+.vtt-light .vtt-overlay-main .vtt-masked-word,
+.vtt-light .vtt-overlay-main .vtt-next-word,
+.vtt-light .vtt-overlay-main:hover .vtt-next-word {
     background-color: rgba(18, 20, 27, 0.55);
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.35),
         0 1px 6px rgba(0, 0, 0, 0.35);
-}
-
-/* The pane that opens next is a NEUTRAL light grey — no brand hue and no
- * borrowed caption colour. It has one job over the footage: say "this word is
- * next" without adding another colour to a frame that already carries the
- * video, the caption text and the translation line.
- *
- * It is separated from the plain hidden pane by LIGHTNESS, not hue: both sit on
- * the same dark caption box, so with two greys of similar value the mark would
- * disappear. Light-on-dark gives 13.5:1 between the two panes on a dark frame
- * and 9.3:1 on a bright one.
- *
- * #d6d6d2 is the palette's Border one step down. Lighter (#e5e5e2) starts to
- * merge with the white caption words beside it (1.26:1); darker loses its
- * footing against the box once the frame goes bright.
- *
- * Opaque, like the colour version it replaces: a pane hides its glyphs, so
- * nothing needs to read through it, and a translucent grey over the box's dark
- * body would drift with the footage instead of holding one value. */
-.vtt-light .vtt-overlay-main .vtt-next-word {
-    background-color: #d6d6d2;
-    box-shadow:
-        inset 0 0 0 1px rgba(17, 17, 17, 0.45),
-        0 1px 6px rgba(0, 0, 0, 0.35);
-}
-
-/* Hover deepens: the pane is already the light end of the pair, so the only
-   direction left that still reads as "the same thing, pressed" is darker. */
-.vtt-light .vtt-overlay-main:hover .vtt-next-word {
-    background-color: #bcbcb8;
 }
