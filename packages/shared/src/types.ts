@@ -53,6 +53,7 @@ export interface SidebarElements {
   styleOffsetBtns?: HTMLButtonElement[];
   styleBgBtns?: HTMLButtonElement[];
   styleEdgeBtns?: HTMLButtonElement[];
+  themeBtns?: HTMLButtonElement[];
   // Font family dropdown (a full-width row — the CEA-708 class names run too
   // long for the standard label-column layout the segmented rows use).
   styleFontSelect?: HTMLSelectElement;

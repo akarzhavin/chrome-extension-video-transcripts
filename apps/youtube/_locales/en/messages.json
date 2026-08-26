@@ -275,6 +275,26 @@
     "message": "Outline",
     "description": "Edge style preset: dark outline around each letter."
   },
+  "ytGroupPanel": {
+    "message": "Panel",
+    "description": "Settings group heading for the sidebar panel's own appearance."
+  },
+  "ytThemeLabel": {
+    "message": "Theme",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "Auto",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "Light",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "Dark",
+    "description": "Theme preset: always use the dark panel."
+  },
   "ytStyleReset": {
     "message": "Reset",
     "description": "Button that restores the default overlay appearance."

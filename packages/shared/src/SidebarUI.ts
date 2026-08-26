@@ -12,7 +12,9 @@ import {
     OverlayEdgeToken,
     OverlayFontFamily,
     PrefScope,
+    ThemeToken,
 } from './prefs';
+import { applyTheme } from './content/theme';
 import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
@@ -187,6 +189,9 @@ export const ICONS = {
     dual: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13.5" width="18" height="6" rx="1.5"/>'),
     guess: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><circle cx="6.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/>'),
     onScreen: svgIcon('<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 14.5h12"/>'),
+    // A window with its right-hand rail filled — the sidebar itself, which is
+    // what the Panel group configures.
+    panel: svgIcon('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M15 4v16" fill="none"/><path d="M15 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5z" opacity=".35"/>'),
     posLow: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 17h8"/>'),
     posMid: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 13h8"/>'),
     posHigh: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8"/>'),
@@ -219,6 +224,10 @@ export class SidebarUI {
     // Presentation-only overlay style prefs. Held locally (AppState owns
     // playback/track state); mirrored to chrome.storage.local via savePrefs.
     private overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
+
+    // Panel theme, mirrored from prefs. Separate from overlayStyle: it is not
+    // part of what the appearance Reset restores (see the control's comment).
+    private theme: ThemeToken = 'dark';
     // Which site's appearance this sidebar reads and writes. Overlay style is
     // per streaming site (youtube.com and netflix.com ship in ONE extension, so
     // one storage area serves both), and derived from the host rather than
@@ -453,6 +462,25 @@ export class SidebarUI {
 
         boxGroup.appendChild(this.buildBoxStyleControls());
         settingsPanel.appendChild(boxGroup);
+
+        // -- Group 4: the panel itself, not the captions on the video. It gets
+        // its own group rather than a row inside the two above because those
+        // are scoped to one site and carry a Reset that restores CAPTION
+        // defaults — a theme sitting under either would be reset by a button
+        // that says nothing about it, and would look per-site when it is not.
+        // No Reset of its own: one control whose default is one click away.
+        const panelGroup = this.buildGroup(ICONS.panel, msg('ytGroupPanel', 'Panel'));
+        this.elements.themeBtns = this.buildSegRow(
+            panelGroup,
+            msg('ytThemeLabel', 'Theme'),
+            [
+                { value: 'auto', html: msg('ytThemeAuto', 'Auto') },
+                { value: 'light', html: msg('ytThemeLight', 'Light') },
+                { value: 'dark', html: msg('ytThemeDark', 'Dark') },
+            ],
+            (v) => this.setTheme(v as ThemeToken),
+        );
+        settingsPanel.appendChild(panelGroup);
 
         // -- Tail rows -----------------------------------------------------------
         // Two rows of one anatomy close the panel: the analytics opt-out (a
@@ -1131,6 +1159,7 @@ export class SidebarUI {
         mark(this.elements.styleOffsetBtns, this.overlayStyle.overlayBottomOffset);
         mark(this.elements.styleBgBtns, this.overlayStyle.overlayBgOpacity);
         mark(this.elements.styleEdgeBtns, this.overlayStyle.overlayEdgeStyle);
+        mark(this.elements.themeBtns, this.theme);
     }
 
     /**
@@ -1276,6 +1305,16 @@ export class SidebarUI {
         savePrefs({ overlayEdgeStyle: v }, this.scope);
     }
 
+    // No scope argument: the theme is global (see Prefs.theme). Applied before
+    // the write so the panel flips under the click rather than after a storage
+    // round-trip.
+    private setTheme(v: ThemeToken): void {
+        this.theme = v;
+        applyTheme(v);
+        this.markActiveStyleButtons();
+        savePrefs({ theme: v });
+    }
+
     // Loads persisted prefs into AppState + DOM, then subscribes so cross-tab
     // changes (or popup-driven changes later) propagate in. Fire-and-forget —
     // the initial render uses defaults; the prefs swap re-renders if needed.
@@ -1323,6 +1362,12 @@ export class SidebarUI {
             overlayBgOpacity: prefs.overlayBgOpacity,
             overlayEdgeStyle: prefs.overlayEdgeStyle,
         };
+        // Re-applied here too, so a theme change made in another tab (or from
+        // a second panel on the same page) lands without a reload.
+        if (this.theme !== prefs.theme) {
+            this.theme = prefs.theme;
+            applyTheme(prefs.theme);
+        }
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
         this.updateOverlayPreview();

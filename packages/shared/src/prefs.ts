@@ -20,6 +20,12 @@ import { platformOf, type Platform } from './analytics';
 export type OverlaySizePercent = number;
 export type OverlayLevelToken = 'low' | 'medium' | 'high';
 export type OverlayEdgeToken = 'none' | 'shadow' | 'outline';
+
+// Panel theme. 'auto' follows the OS/browser via prefers-color-scheme; the
+// other two pin it. Not a boolean: "follow the system" is a real third state,
+// and storing it as one is what lets the panel keep tracking the OS after the
+// user has seen it resolve either way.
+export type ThemeToken = 'auto' | 'light' | 'dark';
 // The seven CEA-708 font classes — the same set YouTube, Netflix, and the
 // FCC (47 CFR 79.103) all expose. Each resolves to a system font stack in
 // CSS; nothing is bundled, matching the BBC's own guidance that a platform
@@ -56,6 +62,10 @@ export interface Prefs {
     overlayBottomOffset: OverlayLevelToken;
     overlayBgOpacity: OverlayLevelToken;
     overlayEdgeStyle: OverlayEdgeToken;
+    // Panel theme. GLOBAL, not per-site: like displayMode this is how the user
+    // reads, not how one site looks — a panel that flipped theme between
+    // YouTube and Netflix would read as a bug.
+    theme: ThemeToken;
     // Anonymous usage analytics. On by default; the popup's Privacy row flips
     // it. Read only by analytics-bg's track() gate — never branch on it
     // anywhere else (one gate, one place).
@@ -169,6 +179,7 @@ const TOKEN_PREF_VALUES = {
     overlayBottomOffset: ['low', 'medium', 'high'],
     overlayBgOpacity: ['low', 'medium', 'high'],
     overlayEdgeStyle: ['none', 'shadow', 'outline'],
+    theme: ['auto', 'light', 'dark'],
 } as const;
 
 // 0-1, and the only non-token numeric that is not a size percentage.
@@ -255,6 +266,10 @@ const DEFAULT_PREFS: Prefs = {
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.
     overlayEdgeStyle: 'shadow',
+    // 'dark' rather than 'auto': the dark panel is what every existing install
+    // already has, and defaulting to auto would silently flip the UI for
+    // everyone on a light-mode OS at update time. Auto is offered, not imposed.
+    theme: 'dark',
     // ON by default for new AND existing installs: loadPrefs spreads these
     // defaults first, so a stored blob written before this field existed
     // resolves to true with no migration.
