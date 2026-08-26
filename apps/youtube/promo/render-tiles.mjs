@@ -19,8 +19,10 @@ let chromium;
 try { ({ chromium } = await import('playwright')); }
 catch { ({ chromium } = require(PW_FALLBACK)); }
 
+// tile-small.png is NOT rendered from HTML: the 440x280 tile is a downscale of
+// the hand-made key art (see make-small-tile.py). Rendering tile-small.html
+// here would silently overwrite it on every run.
 const TILES = [
-  { file: 'tile-small.html', out: 'tile-small.png', w: 440, h: 280 },
   { file: 'tile-marquee.html', out: 'tile-marquee.png', w: 1400, h: 560 },
 ];
 

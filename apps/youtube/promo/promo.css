@@ -48,28 +48,33 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   filter: drop-shadow(0 4px 10px rgba(33,28,48,0.22));
 }
 
-/* ── Background: light indigo-tinted canvas — the "daylight utility" ground.
- *    Not sterile white: the faint tint + violet dot grid keep brand kinship. ── */
+/* ── Background: off-white ground (v5), lime reserved for accents.
+ *    A full-bleed lime field was tried first and rejected: at 1280x800 the
+ *    colour stops being an accent and becomes the subject, and — worse — it
+ *    swallows the ONE place lime carries meaning, the active subtitle row in
+ *    the product panel. Ground is #F7F7F5 from the UI palette so the slide and
+ *    the screenshot inside it share one surface; a faint lime bloom top-right
+ *    and a purple whisper bottom-left keep brand kinship without a colour cast. ── */
 .bg { position: absolute; inset: 0; z-index: 0; }
 .theme-1 .bg, .theme-2 .bg, .theme-3 .bg, .theme-4 .bg {
   background:
-    radial-gradient(55% 48% at 90% -8%, rgba(72,48,144,0.10) 0%, transparent 62%),
-    radial-gradient(45% 40% at -6% 104%, rgba(30,142,77,0.06) 0%, transparent 60%),
-    linear-gradient(180deg, #fbfbfe 0%, #f6f6fb 55%, #eeedf7 100%);
+    radial-gradient(55% 48% at 90% -8%, rgba(200,255,0,0.16) 0%, transparent 62%),
+    radial-gradient(45% 40% at -6% 104%, rgba(123,44,255,0.05) 0%, transparent 60%),
+    linear-gradient(180deg, #fbfbf9 0%, #f7f7f5 55%, #f0f0ec 100%);
 }
 /* faint dot grid — reads "product / engineering" */
 .bg::before {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background-image: radial-gradient(rgba(72,48,144,0.55) 1px, transparent 1.4px);
+  background-image: radial-gradient(rgba(40,52,0,0.55) 1px, transparent 1.4px);
   background-size: 30px 30px;
-  opacity: 0.09;
+  opacity: 0.07;
   -webkit-mask-image: radial-gradient(90% 80% at 50% 42%, #000 25%, transparent 100%);
           mask-image: radial-gradient(90% 80% at 50% 42%, #000 25%, transparent 100%);
 }
 /* whisper of depth at the edges — light theme, no dark vignette */
 .bg::after {
   content: ""; position: absolute; inset: 0;
-  background: radial-gradient(125% 95% at 50% 45%, transparent 72%, rgba(72,48,144,0.06) 100%);
+  background: radial-gradient(125% 95% at 50% 45%, transparent 72%, rgba(40,52,0,0.05) 100%);
 }
 
 /* ── Copy ───────────────────────────────────────────────────────────────── */
