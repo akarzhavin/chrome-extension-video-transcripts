@@ -110,8 +110,9 @@
 }
 
 /* A permanent fixture on every watch page: full-size so it stays an easy mouse
-   target, but dimmed at rest so it doesn't nag. It's no longer the only way in
-   — the player menu has a panel row — which is what lets it be this quiet. */
+   target. Solid on the page, where it sits over the site's own chrome and a
+   see-through tab just reads as a rendering glitch; see-through in fullscreen,
+   where the only thing behind it is the picture the viewer came for. */
 #vtt-toggle-btn {
     position: absolute;
     top: 50%;
@@ -119,9 +120,12 @@
     transform: translateY(-50%);
     width: 40px;
     height: 60px;
-    background-color: var(--vtt-panel);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    /* Solid, not the panel's translucent glass: off fullscreen the tab overhangs
+       the page itself, and letting the site's own layout show through it is the
+       one place the glass reads as a bug rather than as depth. */
+    background-color: var(--vtt-panel-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: 1px solid var(--vtt-hairline);
     border-right: none;
     border-radius: 8px 0 0 8px;
@@ -130,19 +134,34 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    opacity: 0.7;
+    opacity: 1;
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s, color 0.2s, opacity 0.2s;
 }
 
+/* Fullscreen: the tab is the one piece of our UI left on top of a picture the
+   viewer deliberately made borderless, so it steps back — dimmed at rest, and
+   back on the same translucent glass as the panel it belongs to. */
+#vtt-sidebar.fullscreen #vtt-toggle-btn {
+    background-color: var(--vtt-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0.7;
+}
+
 /* Full strength when the user is anywhere near it, or tabbing through. */
-#vtt-sidebar:hover #vtt-toggle-btn,
-#vtt-toggle-btn:hover,
-#vtt-toggle-btn:focus-visible {
+#vtt-sidebar.fullscreen:hover #vtt-toggle-btn,
+#vtt-sidebar.fullscreen #vtt-toggle-btn:hover,
+#vtt-sidebar.fullscreen #vtt-toggle-btn:focus-visible {
     opacity: 1;
 }
 
 #vtt-toggle-btn:hover {
+    background-color: #323232;
+}
+
+/* Fullscreen hover keeps the glass — same reason the rest state does. */
+#vtt-sidebar.fullscreen #vtt-toggle-btn:hover {
     background-color: rgba(50, 50, 50, 0.9);
 }
 
@@ -596,18 +615,25 @@
     color: #10122b;
 }
 
-/* -- Languages group: labeled select fields -- */
+/* -- Languages group: the Learning/Native selects sit side by side — a
+   language pair reads left-to-right as one unit, and two stacked full-width
+   rows spent a row each on what is half a fact. Labels ride above their
+   selects (the same idiom as the font row) so the halved width all goes to
+   the language name; long track names clip from the tail, where the
+   qualifier lives, not the language. -- */
 #vtt-track-selectors {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
 }
 
 .vtt-field-row {
-    display: grid;
-    grid-template-columns: 64px 1fr;
-    align-items: center;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* Grid items refuse to shrink under their content by default, so one long
+       track name would push its column past the panel edge. */
+    min-width: 0;
 }
 
 .vtt-field-label {
@@ -682,130 +708,6 @@
     color: #6b6f78;
 }
 
-/* -- Reading mode group: 2x2 stateful toggle chips -- */
-#vtt-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.vtt-mode {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--vtt-hairline-strong);
-    color: var(--vtt-text);
-    border-radius: 7px;
-    padding: 8px 10px;
-    font-size: 12.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
-    font-family: inherit;
-}
-
-.vtt-mode svg {
-    width: 15px;
-    height: 15px;
-    flex: none;
-}
-
-.vtt-mode:hover {
-    background: rgba(255, 255, 255, 0.11);
-}
-
-.vtt-mode:active {
-    transform: scale(0.97);
-}
-
-.vtt-mode:disabled,
-/* Same look as :disabled, but the element stays hoverable so it can explain
-   why it's off (a real `disabled` button fires no pointer events, so its
-   tooltip could never appear). See updateControls in SidebarUI. */
-.vtt-mode.vtt-mode-blocked {
-    opacity: 0.45;
-    cursor: default;
-    transform: none;
-}
-
-.vtt-mode.vtt-mode-blocked:hover {
-    /* Nothing happens on click, so nothing should suggest it might. */
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--vtt-hairline-strong);
-}
-
-/* Instant multi-line explanation on the blocked chip, matching the sidebar
-   notice: the native title waits ~1s, long enough that the user gives up. */
-.vtt-mode-blocked[data-tip] {
-    position: relative;
-}
-
-.vtt-mode-blocked[data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    top: calc(100% + 6px);
-    /* Right-aligned, not left: this chip sits early in a 4-button row inside a
-       320px panel, so a bubble growing rightward from its left edge would spill
-       off the sidebar. Growing leftward keeps it inside. */
-    right: 0;
-    width: max-content;
-    max-width: 240px;
-    background: rgba(12, 13, 20, 0.97);
-    color: #dfe3f0;
-    border: 1px solid var(--vtt-hairline-strong);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.45;
-    text-align: left;
-    white-space: normal;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(-2px);
-    transition: opacity 0.12s ease, transform 0.12s ease;
-    z-index: 30;
-}
-
-.vtt-mode-blocked[data-tip]:hover::after,
-.vtt-mode-blocked[data-tip]:focus-visible::after {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.vtt-mode.active {
-    background: var(--vtt-accent-quiet);
-    border-color: var(--vtt-accent-border-strong);
-    color: #dcebff;
-}
-
-.vtt-mode-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.vtt-mode-dot {
-    margin-left: auto;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--vtt-text-dim);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    flex: none;
-}
-
-.vtt-mode.active .vtt-mode-dot {
-    background: var(--vtt-accent);
-    box-shadow: 0 0 7px var(--vtt-accent);
-}
-
-/* Momentary swap feedback: half-turn of the arrows icon. */
-.vtt-mode.vtt-pulse svg {
-    animation: vtt-spin 0.45s ease;
-}
-
 @keyframes vtt-spin {
     from { transform: rotate(0); }
     to { transform: rotate(180deg); }
@@ -823,9 +725,9 @@
     padding: 0 16px;
 }
 
-/* Icon-only mode cluster (Dual · Guess | On-screen) in a pill container so it
-   reads as one control group. Same .active semantics as .vtt-mode (both
-   synced by updateControls). */
+/* Icon-only mode cluster (Single · Dual · Guess | On-screen) in a pill
+   container so it reads as one control group — the only mode switcher in the
+   UI since the settings panel's duplicate chips were removed. */
 #vtt-quickmodes {
     display: inline-flex;
     align-items: center;
@@ -1102,89 +1004,6 @@
 }
 
 
-/* -- Overlay appearance group: live preview -- */
-#vtt-style-preview {
-    position: relative;
-    height: 148px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 13px;
-    background:
-        radial-gradient(340px 150px at 72% 18%, rgba(255, 196, 110, 0.28), transparent 70%),
-        linear-gradient(180deg, #2b3550 0%, #232c44 46%, #1b2438 62%, #141b2c 100%);
-}
-
-/* Fake film still: sun + dark hills, pure CSS so no bundled assets. */
-#vtt-style-preview::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(46px 46px at 72% 22%, #ffd9a0 0 45%, transparent 48%),
-        radial-gradient(420px 190px at 18% 108%, #1d2a3d 0 60%, transparent 61%),
-        radial-gradient(520px 230px at 95% 118%, #16202f 0 60%, transparent 61%);
-}
-
-.vtt-preview-cap {
-    position: absolute;
-    left: 0;
-    right: 0;
-    /* Same position variable as the real overlay, scaled to preview height. */
-    bottom: calc(var(--vtt-overlay-bottom, 80px) * 0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    transition: bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
-}
-
-/* The preview reuses the real overlay classes, scaled down; the caption is a
-   sample, so text interactions are disabled inside the preview. */
-#vtt-style-preview .vtt-overlay-main {
-    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.62);
-    padding: 3px 10px;
-    margin-bottom: 0;
-    max-width: 88%;
-    pointer-events: none;
-    user-select: none;
-    cursor: default;
-}
-
-/* Scales --vtt-overlay-sub-font-size directly, not a ratio of the main line's
-   size: the translation line has its OWN size control now, so the preview
-   must reflect that value independently or it would silently lie about what
-   the slider does. */
-#vtt-style-preview .vtt-overlay-sub {
-    font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * 0.62);
-    padding: 2px 9px;
-    max-width: 88%;
-    pointer-events: none;
-    user-select: none;
-}
-
-.vtt-preview-off {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    color: var(--vtt-text-dim);
-    letter-spacing: 0.5px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-}
-
-#vtt-style-preview.vtt-preview-disabled .vtt-preview-cap {
-    opacity: 0;
-}
-
-#vtt-style-preview.vtt-preview-disabled .vtt-preview-off {
-    opacity: 1;
-}
-
 /* -- Overlay appearance groups: preset rows -- */
 #vtt-style-controls-text,
 #vtt-style-controls-box {
@@ -1267,6 +1086,33 @@
 .vtt-seg-btn svg {
     width: 15px;
     height: 15px;
+}
+
+/* ── Theme strip — the one-line row above the settings groups ───────────── */
+/* Horizontal where the group rows are stacked: label left, segment right.
+   The segment is width-capped so three 15px glyphs don't stretch across the
+   whole panel — percentage thumb math (--vtt-seg-n) is width-agnostic, so the
+   cap costs nothing. Colours come from tokens only, so the light theme covers
+   this strip with no extra rules. */
+.vtt-theme-strip {
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--vtt-hairline, rgba(255, 255, 255, 0.08));
+}
+
+.vtt-theme-strip .vtt-style-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.vtt-theme-strip .vtt-seg {
+    flex: 0 0 auto;
+    width: 132px;
+}
+
+.vtt-theme-strip .vtt-seg-btn {
+    padding: 4px;
 }
 
 /* Fine-grained size control: a 50-400% range slider with a live percent
@@ -1428,9 +1274,6 @@
 @media (prefers-reduced-motion: reduce) {
     .vtt-seg-thumb,
     .vtt-modeseg-thumb,
-    .vtt-preview-cap,
-    .vtt-mode,
-    .vtt-mode svg,
     .vtt-swatch,
     .vtt-swatch svg {
         transition: none !important;
@@ -2811,7 +2654,11 @@
     background: rgba(17, 17, 17, 0.06);
 }
 
-.vtt-light #vtt-toggle-btn {
+/* Both light panel tokens are already opaque, so the tab needs no blur in
+   either state — the base sheet turns it on for fullscreen, and here it has
+   nothing left to sample. */
+.vtt-light #vtt-toggle-btn,
+.vtt-light #vtt-sidebar.fullscreen #vtt-toggle-btn {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     color: #111111;
@@ -2849,24 +2696,6 @@
 .vtt-light .vtt-select:hover { background: #f0f0ee; }
 .vtt-light .vtt-select optgroup { color: #6a6a68; }
 .vtt-light .vtt-select option:disabled { color: #a0a09c; }
-
-/* ── Reading-mode chips ─────────────────────────────────────────────────── */
-.vtt-light .vtt-mode {
-    background: #ffffff;
-    border-color: #e5e5e2;
-    color: #4a4a4a;
-}
-
-.vtt-light .vtt-mode:hover { background: #f0f0ee; }
-.vtt-light .vtt-mode.vtt-mode-blocked:hover { background: #ffffff; }
-.vtt-light .vtt-mode.active { color: #111111; }
-
-/* Tooltips invert: near-black bubble on the light panel, same as the dark
-   theme's light-on-dark — a tooltip should read as an overlay, not a card. */
-.vtt-light .vtt-mode-blocked[data-tip]::after {
-    background: #111111;
-    color: #ffffff;
-}
 
 /* ── Quick-mode cluster ─────────────────────────────────────────────────── */
 .vtt-light #vtt-quickmodes {
@@ -2923,10 +2752,6 @@
 }
 
 .vtt-light #vtt-quickmodes .vtt-qm-blocked::first-line { color: #ffffff; }
-
-/* The style preview is a mock film still — it stays dark on purpose; only its
-   frame has to become visible against the light panel. */
-.vtt-light #vtt-style-preview { border: 1px solid #e5e5e2; }
 
 /* ── Segmented control + sliders ────────────────────────────────────────── */
 .vtt-light .vtt-seg {
@@ -3137,13 +2962,6 @@
 /* Back chip: accent-coloured text. */
 .vtt-light .vtt-back-chip { color: #7b2cff; }
 .vtt-light .vtt-back-chip:hover { background: rgba(123, 44, 255, 0.10); }
-
-/* Mode dots: a 6px lime dot with a lime glow disappears on white. Ink for the
-   selected one, and the base --vtt-text-dim already handles the idle state. */
-.vtt-light .vtt-mode.active .vtt-mode-dot {
-    background: #7b2cff;
-    box-shadow: none;
-}
 
 /* Selected swatch ring: 2px of panel + 2px of accent. The lime ring reads as a
    pale halo on a white panel, so the outer ring goes ink — it has to survive

@@ -275,10 +275,6 @@
     "message": "Outline",
     "description": "Edge style preset: dark outline around each letter."
   },
-  "ytGroupPanel": {
-    "message": "Panel",
-    "description": "Settings group heading for the sidebar panel's own appearance."
-  },
   "ytThemeLabel": {
     "message": "Theme",
     "description": "Label for the panel theme presets (auto / light / dark)."

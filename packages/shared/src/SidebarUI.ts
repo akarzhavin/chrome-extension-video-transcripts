@@ -189,9 +189,12 @@ export const ICONS = {
     dual: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13.5" width="18" height="6" rx="1.5"/>'),
     guess: svgIcon('<rect x="3" y="5" width="18" height="6" rx="1.5"/><circle cx="6.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="16.5" r="1.4" fill="currentColor" stroke="none"/>'),
     onScreen: svgIcon('<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 14.5h12"/>'),
-    // A window with its right-hand rail filled — the sidebar itself, which is
-    // what the Panel group configures.
-    panel: svgIcon('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M15 4v16" fill="none"/><path d="M15 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5z" opacity=".35"/>'),
+    // Theme presets: a half-filled circle for "follow the OS", sun, moon.
+    // Stroke-drawn like every other panel icon; the auto glyph's filled half
+    // is the one deliberate solid — it IS the picture (half light, half dark).
+    themeAuto: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>'),
+    themeLight: svgIcon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'),
+    themeDark: svgIcon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
     posLow: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 17h8"/>'),
     posMid: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 13h8"/>'),
     posHigh: svgIcon('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8"/>'),
@@ -374,6 +377,30 @@ export class SidebarUI {
         const settingsPanel = document.createElement('div');
         settingsPanel.id = 'vtt-settings-panel';
 
+        // -- Theme strip -------------------------------------------------------
+        // One-line row above the groups: label left, icon segment right (auto /
+        // sun / moon). Deliberately NOT a group — a heading plus a stacked row
+        // would spend ~90px on a control the icons explain by themselves, and
+        // the theme is about the panel, not the captions, so it does not belong
+        // under either Reset-bearing appearance group. It reads as a utility
+        // strip, visually lighter than the Languages heading below it, so
+        // sitting first does not out-rank the settings people came for.
+        // The per-option title tooltips (buildSegRow) carry the words the
+        // icons dropped.
+        const themeStrip = document.createElement('div');
+        themeStrip.className = 'vtt-theme-strip';
+        this.elements.themeBtns = this.buildSegRow(
+            themeStrip,
+            msg('ytThemeLabel', 'Theme'),
+            [
+                { value: 'auto', html: ICONS.themeAuto, name: msg('ytThemeAuto', 'Auto') },
+                { value: 'light', html: ICONS.themeLight, name: msg('ytThemeLight', 'Light') },
+                { value: 'dark', html: ICONS.themeDark, name: msg('ytThemeDark', 'Dark') },
+            ],
+            (v) => this.setTheme(v as ThemeToken),
+        );
+        settingsPanel.appendChild(themeStrip);
+
         // -- Group 1: Languages ------------------------------------------------
         const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLanguages', 'Languages'));
 
@@ -398,44 +425,11 @@ export class SidebarUI {
         langGroup.appendChild(fields);
         settingsPanel.appendChild(langGroup);
 
-        // -- Group 2: Reading mode ---------------------------------------------
-        // Swap is not here: it lives on the language-pair chip (clicking the
-        // pair swaps the tracks), so a settings button would duplicate it.
-        const modeGroup = this.buildGroup(ICONS.reading, msg('ytGroupReadingMode', 'Reading mode'));
-        const modes = document.createElement('div');
-        modes.id = 'vtt-controls';
-        modes.className = 'vtt-modes';
-
-        // Three modes, three chips, one always active. Two toggle chips used to
-        // hide `single` as "both off", which read as a third mode smuggled into
-        // a button that just… turns things off.
-        const singleBtn = this.buildModeChip('vtt-single-btn', ICONS.single,
-            msg('ytModeSingle', 'Single'), 'Single Subtitles');
-        singleBtn.addEventListener('click', () => this.setMode('single'));
-        modes.appendChild(singleBtn);
-
-        const dualBtn = this.buildModeChip('vtt-dual-btn', ICONS.dual,
-            msg('ytModeDual', 'Dual'), 'Dual Subtitles (Shift+D)');
-        // aria-disabled (see updateControls) keeps the chip hoverable so it can
-        // explain itself, which means the off state has to be enforced here.
-        dualBtn.addEventListener('click', () => {
-            if (dualBtn.getAttribute?.('aria-disabled') === 'true') return;
-            this.setMode('dual');
-        });
-        modes.appendChild(dualBtn);
-
-        const guessBtn = this.buildModeChip('vtt-guess-btn', ICONS.guess,
-            msg('ytModeGuess', 'Guess'), 'Guess Mode (Shift+G)');
-        guessBtn.addEventListener('click', () => this.setMode('guess'));
-        modes.appendChild(guessBtn);
-
-        const overlayBtn = this.buildModeChip('vtt-overlay-btn', ICONS.onScreen,
-            msg('ytModeOnScreen', 'On-screen'), 'Toggle On-Screen Overlay (Shift+O)');
-        overlayBtn.addEventListener('click', () => this.toggleOverlay());
-        modes.appendChild(overlayBtn);
-
-        modeGroup.appendChild(modes);
-        settingsPanel.appendChild(modeGroup);
+        // The reading-mode chips used to sit here as their own group. They were
+        // a duplicate of the sub-header quick-modes bar — same four modes, same
+        // setMode calls, same shortcuts — so the group was pure panel real
+        // estate. The bar is the single home for mode switching now; the
+        // elements below that updateControls needs point at its buttons.
 
         // -- Group 3: Overlay appearance, split by the question the user is
         // actually asking. "The text is hard to read" and "it's in the way /
@@ -449,7 +443,6 @@ export class SidebarUI {
         textResetBtn.addEventListener('click', () => this.resetTextStyle());
         (textGroup.firstChild as HTMLElement).appendChild(textResetBtn);
 
-        textGroup.appendChild(this.buildOverlayPreview());
         textGroup.appendChild(this.buildTextStyleControls());
         settingsPanel.appendChild(textGroup);
 
@@ -463,24 +456,6 @@ export class SidebarUI {
         boxGroup.appendChild(this.buildBoxStyleControls());
         settingsPanel.appendChild(boxGroup);
 
-        // -- Group 4: the panel itself, not the captions on the video. It gets
-        // its own group rather than a row inside the two above because those
-        // are scoped to one site and carry a Reset that restores CAPTION
-        // defaults — a theme sitting under either would be reset by a button
-        // that says nothing about it, and would look per-site when it is not.
-        // No Reset of its own: one control whose default is one click away.
-        const panelGroup = this.buildGroup(ICONS.panel, msg('ytGroupPanel', 'Panel'));
-        this.elements.themeBtns = this.buildSegRow(
-            panelGroup,
-            msg('ytThemeLabel', 'Theme'),
-            [
-                { value: 'auto', html: msg('ytThemeAuto', 'Auto') },
-                { value: 'light', html: msg('ytThemeLight', 'Light') },
-                { value: 'dark', html: msg('ytThemeDark', 'Dark') },
-            ],
-            (v) => this.setTheme(v as ThemeToken),
-        );
-        settingsPanel.appendChild(panelGroup);
 
         // -- Tail rows -----------------------------------------------------------
         // Two rows of one anatomy close the panel: the analytics opt-out (a
@@ -524,7 +499,7 @@ export class SidebarUI {
         // Store DOM references (style preset controls registered in buildTextStyleControls/buildBoxStyleControls).
         this.elements = {
             ...this.elements,
-            sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, dualBtn, overlayBtn, list,
+            sidebar, settingsBtn, settingsPanel, mainSelect, subSelect, list,
             titleEl, backBtn, feedbackPanel,
         };
 
@@ -653,24 +628,11 @@ export class SidebarUI {
         return row;
     }
 
-    // Reading-mode toggle chip: icon + label + state dot. Active state is the
-    // shared .active class (updateControls toggles it).
-    private buildModeChip(id: string, iconSvg: string, label: string, title: string): HTMLButtonElement {
-        const btn = document.createElement('button');
-        btn.id = id;
-        btn.className = 'vtt-mode';
-        btn.title = title;
-        // Kept so updateControls can restore it after swapping in a contextual
-        // "why is this disabled" explanation.
-        btn.dataset.baseTitle = title;
-        btn.innerHTML = `${iconSvg}<span class="vtt-mode-label">${label}</span><span class="vtt-mode-dot"></span>`;
-        return btn;
-    }
-
-    // Compact icon-only mode switcher in the sub-header row: Dual · Guess ·
-    // On-screen, sharing state with the settings "Reading mode" group via
-    // updateControls. Swap lives on the language-pair chip (clicking the pair
-    // swaps the tracks), so it has no button here.
+    // Compact icon-only mode switcher in the sub-header row: Single · Dual ·
+    // Guess, plus the independent On-screen toggle. The sole home for mode
+    // switching — the settings panel used to carry a second copy. Swap lives on
+    // the language-pair chip (clicking the pair swaps the tracks), so it has no
+    // button here.
     private buildQuickModes(): HTMLDivElement {
         const bar = document.createElement('div');
         bar.id = 'vtt-quickmodes';
@@ -687,9 +649,9 @@ export class SidebarUI {
         barLabel.textContent = msg('ytModesLabel', 'Modes');
         inner.appendChild(barLabel);
 
-        // `role` is 'radio' for the exclusive Dual/Guess segments, 'button'
-        // (aria-pressed) for the independent On-screen toggle.
-        const makeBtn = (id: string, iconSvg: string, label: string, shortcut: string, role: 'radio' | 'button'): HTMLButtonElement => {
+        // `role` is 'radio' for the exclusive Dual/Guess segments, 'switch'
+        // for the independent On-screen toggle. Both state via aria-checked.
+        const makeBtn = (id: string, iconSvg: string, label: string, shortcut: string, role: 'radio' | 'switch'): HTMLButtonElement => {
             const btn = document.createElement('button');
             btn.id = id;
             btn.className = 'vtt-qm';
@@ -701,7 +663,7 @@ export class SidebarUI {
             btn.dataset.baseTip = btn.dataset.tip;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('role', role);
-            btn.setAttribute(role === 'radio' ? 'aria-checked' : 'aria-pressed', 'false');
+            btn.setAttribute('aria-checked', 'false');
             btn.innerHTML = iconSvg;
             return btn;
         };
@@ -746,69 +708,20 @@ export class SidebarUI {
         sep.className = 'vtt-qm-sep';
         inner.appendChild(sep);
 
-        const qmOverlayBtn = makeBtn('vtt-qm-overlay', ICONS.onScreen, msg('ytModeOnScreen', 'On-screen'), 'Shift+O', 'button');
+        const qmOverlayBtn = makeBtn('vtt-qm-overlay', ICONS.onScreen, msg('ytModeOnScreen', 'On-screen'), 'Shift+O', 'switch');
         qmOverlayBtn.classList.add('vtt-qm-toggle');
+        // A real switch track after the icon: the knob's position states on/off
+        // on its own, where the old filled-button look only read as "on"
+        // against the memory of its unfilled self.
+        const overlayTrack = document.createElement('span');
+        overlayTrack.className = 'vtt-qm-switch';
+        overlayTrack.setAttribute('aria-hidden', 'true');
+        qmOverlayBtn.appendChild(overlayTrack);
         qmOverlayBtn.addEventListener('click', () => this.toggleOverlay());
         inner.appendChild(qmOverlayBtn);
 
         this.elements = { ...this.elements, quickModesBar: bar, quickModesSeg: seg, qmSingleBtn, qmDualBtn, qmGuessBtn, qmOverlayBtn };
         return bar;
-    }
-
-    // Live preview of the on-video overlay: a fake film frame containing the
-    // real .vtt-overlay-main/.vtt-overlay-sub elements, styled by the same
-    // --vtt-overlay-* variables (scaled down via CSS) so every preset change
-    // is visible without looking at the video.
-    private buildOverlayPreview(): HTMLDivElement {
-        const preview = document.createElement('div');
-        preview.id = 'vtt-style-preview';
-
-        const cap = document.createElement('div');
-        cap.className = 'vtt-preview-cap';
-        const main = document.createElement('div');
-        main.className = 'vtt-overlay-main';
-        const sub = document.createElement('div');
-        sub.className = 'vtt-overlay-sub';
-        cap.appendChild(main);
-        cap.appendChild(sub);
-        preview.appendChild(cap);
-
-        const off = document.createElement('div');
-        off.className = 'vtt-preview-off';
-        off.textContent = msg('ytOverlayOffNote', 'On-screen overlay is off');
-        preview.appendChild(off);
-
-        this.elements.previewEl = preview;
-        this.elements.previewMain = main;
-        this.elements.previewSub = sub;
-        return preview;
-    }
-
-    // Refreshes the preview's text + visibility to mirror the real overlay:
-    // current subtitle when a track is loaded (falling back to a sample pair),
-    // masked words in guess mode, translation line in dual mode, dimmed state
-    // when the overlay is off.
-    private updateOverlayPreview(): void {
-        const { previewEl, previewMain, previewSub } = this.elements;
-        if (!previewEl || !previewMain || !previewSub) return;
-
-        previewEl.classList.toggle('vtt-preview-disabled', !this.state.overlayEnabled);
-
-        const idx = this.state.currentIndex;
-        const current = idx >= 0 ? this.state.getMainTrack()?.[idx] : undefined;
-        const mainText = current?.text ?? msg('ytPreviewSampleMain', 'The quick brown fox');
-        previewMain.innerHTML = '';
-        if (this.state.displayMode === 'guess') {
-            this.fillMaskedWordsInto(previewMain, mainText, current ? this.state.getRevealedCount(idx) : 1);
-        } else {
-            previewMain.textContent = mainText;
-        }
-
-        const secondary = current
-            ? this.state.getOverlappingSecondary(current).map((s) => s.text).join(' | ')
-            : '';
-        previewSub.textContent = secondary || msg('ytPreviewSampleSub', 'Translation preview');
-        previewSub.style.display = this.state.displayMode === 'dual' ? '' : 'none';
     }
 
     // The overlay-style preset rows: segmented controls (with a sliding thumb)
@@ -1021,7 +934,7 @@ export class SidebarUI {
     private buildSegRow(
         parent: HTMLElement,
         label: string,
-        options: { value: string; html: string }[],
+        options: { value: string; html: string; name?: string }[],
         onPick: (value: string) => void,
     ): HTMLButtonElement[] {
         const row = document.createElement('div');
@@ -1044,7 +957,7 @@ export class SidebarUI {
             const btn = document.createElement('button');
             btn.className = 'vtt-seg-btn';
             btn.dataset.value = opt.value;
-            btn.title = `${label}: ${opt.value}`;
+            btn.title = `${label}: ${opt.name ?? opt.value}`;
             btn.innerHTML = opt.html;
             btn.addEventListener('click', () => onPick(opt.value));
             seg.appendChild(btn);
@@ -1370,7 +1283,6 @@ export class SidebarUI {
         }
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        this.updateOverlayPreview();
     }
 
     // Settings is a takeover state: while open, the transcript list is hidden
@@ -1807,7 +1719,6 @@ export class SidebarUI {
 
     refresh(): void {
         this.updateControls();
-        this.updateOverlayPreview();
         this.renderSubtitles();
         this.syncNativeSubtitles();
         this.app.updateHighlight();
@@ -1871,19 +1782,12 @@ export class SidebarUI {
     }
 
     updateControls(): void {
-        if (!this.elements.settingsBtn || !this.elements.dualBtn || !this.elements.overlayBtn || !this.elements.mainSelect || !this.elements.subSelect) return;
+        if (!this.elements.settingsBtn || !this.elements.mainSelect || !this.elements.subSelect) return;
 
         this.elements.settingsBtn.style.display = 'flex';
 
         const hasMultiple = this.state.hasMultipleTracks();
         const mode = this.state.displayMode;
-        this.elements.dualBtn.classList.toggle('active', mode === 'dual');
-        this.elements.overlayBtn.classList.toggle('active', this.state.overlayEnabled);
-
-        const guessBtn = document.getElementById('vtt-guess-btn') as HTMLButtonElement | null;
-        if (guessBtn) guessBtn.classList.toggle('active', mode === 'guess');
-        const singleBtn = document.getElementById('vtt-single-btn') as HTMLButtonElement | null;
-        if (singleBtn) singleBtn.classList.toggle('active', mode === 'single');
 
         // Quick bar mirrors the settings chips: same .active semantics, same
         // single-track disables; hidden entirely until subtitles are loaded.
@@ -1901,10 +1805,11 @@ export class SidebarUI {
         syncRadio(qmDualBtn, mode === 'dual');
         syncRadio(qmGuessBtn, mode === 'guess');
         if (quickModesSeg) quickModesSeg.dataset.sel = mode;
-        // On-screen is an independent toggle (aria-pressed).
+        // On-screen is an independent switch (aria-checked); .active slides
+        // the knob and lights the track.
         if (qmOverlayBtn) {
             qmOverlayBtn.classList.toggle('active', this.state.overlayEnabled);
-            qmOverlayBtn.setAttribute('aria-pressed', String(this.state.overlayEnabled));
+            qmOverlayBtn.setAttribute('aria-checked', String(this.state.overlayEnabled));
         }
         // The YouTube control-bar button (if installed) needs nothing here: it
         // opens the menu, which is always available, so it has no on/off to
@@ -1953,27 +1858,6 @@ export class SidebarUI {
                 this.elements.subSelect?.appendChild(new Option(track.name, i.toString(), false, i === this.state.secondaryTrackIndex));
             });
         }
-
-        // A disabled control that won't say why reads as broken, so when the
-        // app knows why the second track is missing (throttled, not offered,
-        // expired link) the chip explains itself on hover — the same string the
-        // partial-failure notice shows, so the UI tells one story.
-        //
-        // aria-disabled, not the `disabled` property: a disabled button fires
-        // no pointer events at all, so its tooltip could never appear — the one
-        // control most in need of an explanation would be the one unable to
-        // give it. It also stays focusable, so a screen reader reaches the
-        // reason too. The click handler enforces the off state.
-        const hint = (!hasMultiple && this.app.missingTrackHint?.()) || '';
-        const dualBtn = this.elements.dualBtn;
-        dualBtn.disabled = !hasMultiple && !hint;
-        dualBtn.setAttribute?.('aria-disabled', String(!hasMultiple));
-        dualBtn.classList?.toggle('vtt-mode-blocked', !hasMultiple && !!hint);
-        if (dualBtn.dataset) {
-            if (hint) dualBtn.dataset.tip = hint;
-            else delete dualBtn.dataset.tip;
-        }
-        dualBtn.title = hint || dualBtn.dataset?.baseTitle || '';
 
         if (activeId) {
             const activeEl = document.getElementById(activeId);
@@ -2397,13 +2281,12 @@ export class SidebarUI {
         return overlay;
     }
 
-    // Pushes the current overlayStyle prefs onto the overlay element — and the
-    // sidebar's live preview — as CSS custom properties. The stylesheet reads
-    // var(--vtt-overlay-*) with default fallbacks, so setting these inline
-    // restyles both live (the preview scales them down via calc()).
+    // Pushes the current overlayStyle prefs onto the overlay element as CSS
+    // custom properties. The stylesheet reads var(--vtt-overlay-*) with default
+    // fallbacks, so setting these inline restyles the captions live.
     private applyOverlayStyle(): void {
         const s = this.overlayStyle;
-        const targets = [document.getElementById('vtt-video-overlay'), this.elements.previewEl];
+        const targets = [document.getElementById('vtt-video-overlay')];
         for (const el of targets) {
             if (!el) continue;
             el.style.setProperty('--vtt-overlay-font-family', OVERLAY_FONT_STACK[s.overlayFontFamily]);
