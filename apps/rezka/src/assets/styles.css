@@ -3019,14 +3019,18 @@
 .vtt-light #vtt-status .vtt-empty-state-action:hover:not(:disabled) { background: #f0f0ee; }
 
 /* Emergency actions keep the quiet red destructive treatment — never the
-   brand fill, on either theme. */
-.vtt-light #vtt-status .vtt-empty-state-action--emergency {
+   brand fill, on either theme. The class is doubled to match the dark rule in
+   SIDEBAR_CHROME_CSS, and `html` is prepended on top of that: matching the
+   dark rule is not enough, because that sheet is appended to <head> at
+   runtime and wins any TIE on order — the light rule has to outrank it or the
+   dark salmon paints on the white card. */
+html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emergency {
     border: 1px solid rgba(194, 40, 40, 0.45);
     color: #c22828;
     background: rgba(194, 40, 40, 0.06);
 }
 
-.vtt-light #vtt-status .vtt-empty-state-action--emergency:hover {
+html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emergency:hover {
     border-color: rgba(194, 40, 40, 0.7);
     background: rgba(194, 40, 40, 0.12);
 }

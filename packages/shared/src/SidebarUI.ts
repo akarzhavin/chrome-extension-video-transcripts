@@ -15,7 +15,7 @@ import {
     PrefScope,
     ThemeToken,
 } from './prefs';
-import { applyTheme } from './content/theme';
+import { applyTheme, stopThemeTracking } from './content/theme';
 import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { msg } from './i18n';
@@ -1286,6 +1286,10 @@ export class SidebarUI {
             this.applyCollapsed(prefs.sidebarCollapsed);
             this.refresh();
         }).catch(() => {});
+
+        // The 'auto' OS listener lives at module scope, so it outlives this
+        // panel unless destroy() drops it — see stopThemeTracking.
+        this.teardown.push(stopThemeTracking);
 
         this.teardown.push(onPrefsChanged((prefs) => {
             let changed = false;

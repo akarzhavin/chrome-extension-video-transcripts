@@ -6,6 +6,7 @@ import {
     AppInterface,
     installAuthStatusBadge,
     installQuickAddOverlay,
+    initTheme,
     loadLanguagePrefs,
     saveLanguagePrefs,
     onLanguagePrefsChanged,
@@ -926,6 +927,10 @@ function bootstrap(): void {
     }
 
     if (!isRezka) return;
+    // Panel theme before the panel: the light class goes on <html>, and
+    // building the sidebar first means it paints dark and then repaints on
+    // every load. initTheme also owns the 'auto' media-query subscription.
+    void initTheme();
     const app = new VttApp();
     installQuickAddOverlay();
     // The badge self-attaches to any #vtt-header-top (with an observer retry),
