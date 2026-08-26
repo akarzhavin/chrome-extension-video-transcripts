@@ -1456,8 +1456,11 @@
    here"; a word out of focus says "this is still language, you just can't read
    it yet" — which is what guess mode actually means, and it gives the eye a
    shape to guess at. The letters under the blur are stand-ins of the right
-   length (see maskGlyphs), never the real word: a blur is only paint, so
-   anything real under it could be selected or copied straight back out.
+   the real word itself, painted transparent (see maskGlyphs) — the only string
+   guaranteed to size the pane exactly like the word it hides, so opening one
+   does not shove the line around. It can be selected or copied out, which is a
+   puzzle the user may choose to break for themselves; translate="no" stops the
+   one reader that would break it unasked.
    Unselectable so a click here can only ever mean reveal — this is what stops
    reveal and quick-add branching on the same "is something selected" bit in
    opposite directions. user-select rather than pointer-events, since the latter
@@ -1523,14 +1526,13 @@
        capsule is small, and a short focal length throws its far edge into a
        distorted wedge. */
     perspective: 320px;
-    /* Width is in here because the two faces are different sizes (the filler is
-       half the word's length, see maskGlyphs). Only the face rotates, so
-       without this the pane, its ring and its shadow snapped from one width to
-       the other in the single frame of the swap — the change the flip exists to
-       conceal, made the loudest thing on screen. flipSpan pins a px width and
-       then sets the target, so this eases the box across the WHOLE turn
-       (2×PEEK_FLIP_MS) while the face turns inside it. linear on purpose: an
-       eased width against an eased rotation reads as two separate moves.
+    /* Width transitions even though both faces are now the same size: the mask
+       holds the real word (see maskGlyphs), so a peek measures the same box it
+       started from and this animates nothing. It stays as the safety net for
+       the case where the two DO differ — a font whose metrics shift between the
+       transparent and painted states, say — so such a mismatch eases across the
+       turn instead of snapping in the frame of the swap, which is how this
+       looked back when the filler was a run of 'n' glyphs.
        0.36s is 2×PEEK_FLIP_MS in SidebarUI.ts: JS unpins the width when the
        turn ends, so a shorter duration here would be cut off mid-ease and a
        longer one would snap. Change one, change the other. */
@@ -1628,9 +1630,8 @@
    The turn is halved in the markup, not the stylesheet: JS rotates the face to
    90deg, swaps the text while it is edge-on and invisible, then lets it settle
    back to flat. Two reasons it must be done that way rather than as one 180deg
-   keyframe — the far side would arrive mirrored, and the two faces are
-   different widths (the filler is half the word's length), so the size change
-   has to land in the frame where nothing is visible. */
+   keyframe — the far side would arrive mirrored, so the content swap has to
+   land in the frame where nothing is visible. */
 .vtt-peek-face {
     display: inline-block;
     transform: rotateX(0deg);
@@ -1640,8 +1641,8 @@
     transition: transform 0.18s ease-out;
 }
 
-/* Edge-on: the halfway pose, and the only frame in which the width change
-   between filler and word is invisible. */
+/* Edge-on: the halfway pose, and the only frame in which the swap from frosted
+   pane to legible word is invisible. */
 .vtt-flipping > .vtt-peek-face {
     transform: rotateX(90deg);
     transition: transform 0.18s ease-in;

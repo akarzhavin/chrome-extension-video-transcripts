@@ -298,8 +298,9 @@ describe('SidebarUI', () => {
             const overlay = buildGuessOverlay();
             const lit = () => overlay.querySelectorAll<HTMLElement>('.vtt-next-word');
             expect(lit()).toHaveLength(1);
-            // 'alpha' is free, so 'beta' (index 1) is what opens next.
-            expect(lit()[0].textContent).not.toBe('beta');
+            // 'alpha' is free, so 'beta' (index 1) is what opens next. The lit
+            // capsule renders that word transparently to size itself, so its
+            // identity is read from data-hidden.
             const before = lit()[0].dataset.hidden;
             expect(before).toBe('beta');
 
@@ -534,7 +535,7 @@ describe('SidebarUI', () => {
                 const overlay = buildGuessOverlay();
                 const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
                 const filler = masked.textContent;
-                expect(filler).not.toBe('beta');
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
 
                 over(masked);
                 settleFlip();
@@ -543,6 +544,9 @@ describe('SidebarUI', () => {
 
                 out(masked);
                 settleFlip();
+                // Closing restores the resting text, which IS the word — the
+                // capsule hides it with colour, not by holding another string
+                // (see maskGlyphs). The peeked class is what changes.
                 expect(masked.textContent).toBe(filler);
                 expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
             });
@@ -616,8 +620,10 @@ describe('SidebarUI', () => {
                 out(beta, gamma);
                 over(gamma, beta);
                 settleFlip();
-                expect(beta.textContent).not.toBe('beta');
-                expect(gamma.textContent).toBe('gamma');
+                // The capsule holds the real word at rest too (it is what sizes
+                // the pane), so "is it open" is the peeked class, not the text.
+                expect(beta.classList.contains('vtt-peeked-word')).toBe(false);
+                expect(gamma.classList.contains('vtt-peeked-word')).toBe(true);
                 expect(overlay.querySelectorAll('.vtt-peeked-word')).toHaveLength(1);
             });
 
@@ -694,7 +700,7 @@ describe('SidebarUI', () => {
                 const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
                 over(masked);
                 settleFlip();
-                expect(masked.textContent).toBe('beta');
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
 
                 state.overlayEnabled = false;
                 ui.updateOverlay(0);
@@ -703,7 +709,6 @@ describe('SidebarUI', () => {
                 settleFlip();
 
                 const after = overlay.querySelector('.vtt-masked-word') as HTMLElement;
-                expect(after.textContent).not.toBe('beta');
                 expect(after.classList.contains('vtt-peeked-word')).toBe(false);
                 expect(overlay.querySelectorAll('.vtt-peeked-word')).toHaveLength(0);
             });
@@ -775,9 +780,11 @@ describe('SidebarUI', () => {
 
                     over(masked);
                     expect(masked.classList.contains('vtt-flipping')).toBe(true);
-                    expect(masked.textContent).not.toBe('beta');
+                    // Mid-turn the capsule is not peeked yet: the class, not
+                    // the text, is what the swap moves (see maskGlyphs).
+                    expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
                     settleFlip();
-                    expect(masked.textContent).toBe('beta');
+                    expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
                 });
             });
         });
@@ -989,13 +996,11 @@ describe('SidebarUI', () => {
             expect(spans[1].dataset.word).toBeUndefined();
             expect(spans[1].dataset.hidden).toBe('world');
             expect(spans[1].classList.contains('vtt-masked-word')).toBe(true);
-            // A neutral smudge, never the word: a blur is only paint, and
-            // stand-in letters would survive it as readable nonsense. Longer
-            // words still get wider panes, but not one glyph per letter.
-            const mask = spans[1].textContent ?? '';
-            expect(mask).not.toBe('world');
-            expect(new Set(mask)).toHaveProperty('size', 1);
-            expect(mask.length).toBeGreaterThan(0);
+            // The pane renders the word itself, transparent, so it measures
+            // exactly as wide as what it hides (see maskGlyphs) — data-word is
+            // what keeps quick-add out, not the text.
+            expect(spans[1].textContent).toBe('world');
+            expect(spans[1].translate).toBe(false);
 
             expect(spans[2].dataset.word).toBeUndefined();
             expect(spans[2].dataset.hidden).toBe('foo');
@@ -1034,24 +1039,27 @@ describe('SidebarUI', () => {
             expect(item.querySelector('.vtt-guess-filler')?.textContent).toBe('-');
         });
 
-        test('the frosted text never contains the word, and is stable across repaints', () => {
-            // The blur is only paint: anything real under it could be selected
-            // or copied straight back out, so no masked span may render the
-            // word — including as a substring.
+        test('the frosted pane is sized by the word itself, and marked do-not-translate', () => {
+            // The capsule holds the real word painted transparent: it is the
+            // only string that sizes the pane exactly like the word it hides,
+            // so a peek does not shove the line around. Hiding is done by
+            // colour, and a user who selects or copies it has chosen to look.
+            // translate="no" is what stops the one reader that would expose it
+            // WITHOUT being asked — a page translator rewriting the node.
             const line = 'photosynthesis sustains everything';
             const container = ui.buildMaskedContent(line, 0);
             const masked = container.querySelectorAll<HTMLElement>('.vtt-masked-word');
             expect(masked).toHaveLength(3);
             masked.forEach((span) => {
-                const shown = span.textContent ?? '';
-                const real = span.dataset.hidden ?? '';
-                expect(shown).not.toBe(real);
-                expect(shown).not.toContain(real);
-                expect(shown.trim().length).toBeGreaterThan(0);
+                expect(span.textContent).toBe(span.dataset.hidden);
+                expect(span.translate).toBe(false);
+                // Still off-limits to quick-add: only revealed words are
+                // saveable, and a capsule carries no data-word.
+                expect(span.dataset.word).toBeUndefined();
             });
 
-            // The overlay repaints ~4x/sec; unstable filler would make the line
-            // shimmer, so the same word must always mask to the same letters.
+            // The overlay repaints ~4x/sec; unstable text would make the line
+            // shimmer, so the same word must always render the same.
             const again = ui.buildMaskedContent(line, 0);
             expect(again.textContent).toBe(container.textContent);
         });
@@ -1086,8 +1094,10 @@ describe('SidebarUI', () => {
                 item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
             const beta = wordSpans()[1];
             expect(beta.classList.contains('vtt-masked-word')).toBe(true);
-            expect(beta.textContent).not.toBe('beta');
+            // Masked spans render the word transparent to size the pane, so
+            // data-word — not the text — is what marks it unrevealed.
             expect(beta.dataset.word).toBeUndefined();
+            expect(beta.translate).toBe(false);
 
             // Reveal one more word so index 1 ("beta") flips revealed.
             state.revealNextWord(0);
@@ -1122,9 +1132,10 @@ describe('SidebarUI', () => {
 
             const beta = wordSpans()[1];
             expect(beta.classList.contains('vtt-masked-word')).toBe(true);
-            expect(beta.textContent).not.toBe('beta');
             expect(beta.dataset.word).toBeUndefined();
             expect(beta.dataset.hidden).toBe('beta');
+            // Re-masking must put the no-translate guard back with the word.
+            expect(beta.translate).toBe(false);
         });
     });
 

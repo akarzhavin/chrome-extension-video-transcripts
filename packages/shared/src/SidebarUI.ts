@@ -1946,23 +1946,27 @@ export class SidebarUI {
         return container;
     }
 
-    // What sits under the frosted pane. Its only job is to give the pane the
-    // width of the word it hides — the length is the hint guess mode trades on.
+    // What sits under the frosted pane: the word itself, painted transparent.
+    // Its only job is to give the pane a width, and the word is the one string
+    // guaranteed to give it the RIGHT width — the pane and the peeked word are
+    // the same box, so opening one no longer moves the line around it.
     //
-    // One repeated neutral glyph, not stand-in letters: fake words survive the
-    // blur as readable nonsense ("ptmsph"), so the line reads as gibberish
-    // instead of as language out of focus, which is worse than the asterisks
-    // this replaced. A single repeated shape blurs into an even smudge.
-    // The real word can never go here — a blur is only paint, and the text
-    // under it stays selectable and copyable.
+    // This replaced a run of repeated 'n' glyphs, half the word's length. That
+    // filler was always a guess at the word's width and always wrong: peek had
+    // to animate the capsule from filler width to word width, and the line
+    // visibly re-flowed every time the cursor crossed a word. Halving was
+    // itself a patch — one 'n' per letter ran WIDER than real text, which broke
+    // lines onto two rows — so the width was wrong in both directions and only
+    // roughly wrong in between.
+    //
+    // The word being really in the node means it can be selected or copied out.
+    // That is deliberate: guess mode is a puzzle the user sets for themselves,
+    // and someone who reaches for the clipboard to beat it has simply chosen to
+    // look. The blur is the puzzle, not a lock. translate="no" on the capsule
+    // stops the one reader that would expose it WITHOUT being asked — a page
+    // translator rewriting the node in place.
     private maskGlyphs(token: string, _spaced: boolean): string {
-        // Half the letters, not one per letter: a pane one glyph wide per
-        // character runs far wider than the word it stands for — 'n' is a wide
-        // glyph and real text averages much narrower — which pushed short lines
-        // onto two rows. Halving keeps long words visibly longer than short
-        // ones while the line still fits.
-        const len = Math.min(Math.max(Math.ceil(token.length / 2), 1), 7);
-        return 'n'.repeat(len);
+        return token;
     }
 
     // Both sidebar and on-screen overlay share this layout so the quick-add
@@ -2011,6 +2015,11 @@ export class SidebarUI {
         } else {
             span.dataset.hidden = word;
             span.className = 'vtt-masked-word';
+            // The masked node holds the real word (see maskGlyphs), so this is
+            // what keeps a page translator from rewriting it into a legible
+            // one: a user reaching for the clipboard chose to look, a browser
+            // translating the page did not ask.
+            span.translate = false;
             span.textContent = maskText;
         }
         return span;
@@ -2057,11 +2066,17 @@ export class SidebarUI {
                 // Only this transition animates: the pane clearing is the
                 // reveal. Words already out must not re-focus on every repaint.
                 span.className = 'vtt-revealed-word vtt-just-revealed';
+                // A word that is out is ordinary text again, so it drops the
+                // no-translate guard the mask put on it.
+                span.translate = true;
                 span.textContent = word;
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
                 span.dataset.hidden = span.dataset.hidden ?? span.dataset.word ?? '';
                 delete span.dataset.word;
                 span.className = 'vtt-masked-word';
+                // Re-masking puts the real word back in the node, so it must
+                // also put back the guard that makeMaskedSpan sets.
+                span.translate = false;
                 span.textContent = span.dataset.mask ?? '***';
             }
         });
@@ -2170,14 +2185,15 @@ export class SidebarUI {
 
     // The peek turns the capsule over on its horizontal axis: frosted pane on
     // the front, the word on the back. Done as ONE face rotating rather than
-    // two stacked ones, because the two sides are not the same size — the
-    // filler is half the word's length (see maskGlyphs), so a real two-faced
-    // card would have to pick one width and clip or pad the other.
+    // two stacked ones: the text is swapped at the halfway point, where the
+    // face is edge on to the viewer and a hundred percent invisible, so the
+    // swap lands in the one frame nobody can see. That is what the timer below
+    // is for, and why it must stay in step with the CSS duration.
     //
-    // Instead the text is swapped at the halfway point, where the face is edge
-    // on to the viewer and a hundred percent invisible: the width change lands
-    // in the one frame nobody can see. That is what the timer below is for, and
-    // why it must stay in step with the CSS duration.
+    // Both sides now measure the same — the mask holds the real word (see
+    // maskGlyphs) — so the swap is a repaint of identical geometry. It was not
+    // always so: the filler used to be half the word's length, and hiding that
+    // width change is the reason the halfway swap exists at all.
     //
     // What rotates is an INNER layer, never the span itself. Rotating the span
     // turned it into an endless flip loop: at 90deg the box leaves the cursor's
@@ -2237,13 +2253,13 @@ export class SidebarUI {
             return;
         }
 
-        // Carry the pane's width across the turn. Only the face rotates, so
-        // without this the pane — its body, its ring and its drop shadow —
-        // jumped from filler width to word width in the single frame of the
-        // swap: the one change the flip exists to hide was the most visible
-        // thing on screen. Pin where it is now, then let CSS ease it to where
-        // the far side needs it over the full 2×PEEK_FLIP_MS, so the box grows
-        // smoothly while the face turns inside it.
+        // Carry the pane's width across the turn. With the mask holding the
+        // real word this measures from and to the same number and animates
+        // nothing — kept as the safety net for any font where the transparent
+        // and painted states do not measure alike, so such a gap eases across
+        // the full 2×PEEK_FLIP_MS instead of jumping in the frame of the swap.
+        // That jump is what this was written for, back when the filler was half
+        // the word's length.
         this.setFlipWidth(span, word);
 
         // First half: rotate the face we are leaving out of sight.
