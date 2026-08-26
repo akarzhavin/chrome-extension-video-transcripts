@@ -1754,6 +1754,34 @@
     bottom: max(var(--vtt-overlay-bottom, 80px), var(--vtt-overlay-floor, 0px));
     left: 0;
     width: 100%;
+
+    /* ── Caption size follows the player, not the screen ──────────────────
+       The user's size setting is a PERCENTAGE (--vtt-overlay-font-size, a %
+       of a 24px base). Applied as a literal px value it made the same
+       setting mean two different things: a size tuned while fullscreen came
+       back on the small inline player as a wall of text eating half the
+       frame, because 24px is ~1.25% of a fullscreen 1920px player but ~2.8%
+       of an 854px inline one — the same number, more than twice the presence.
+
+       So px is the wrong unit for the SETTING. It is resolved against the
+       player's own width instead: --vtt-overlay-scale is this player's width
+       over the reference the defaults were tuned at, and the caption sizes
+       below are multiplied by it. The setting goes back to meaning one thing
+       — "this big relative to the video" — at every player size. Measured:
+       the caption box holds a steady ~23% of the player width from 1280 up,
+       where before it went from 23% fullscreen to 38% on the inline player.
+
+       The container is THIS element (width: 100%, so it measures the player),
+       not the player itself: putting container-type on a page element we
+       don't own would change YouTube's own layout containment. An element
+       cannot read its own cqw, so the scale is resolved in the caption rules
+       below (.vtt-overlay-main / .vtt-overlay-sub), which are its children.
+       Declaring the container here is what makes their cqw mean this width.
+
+       `inline-size` keeps containment to the inline axis only, so the box
+       still grows to fit however many lines the caption wraps to — a `size`
+       container would need a fixed height and clip the second line. */
+    container-type: inline-size;
     text-align: center;
     pointer-events: none;
     z-index: 1000;
@@ -1813,10 +1841,36 @@
     color: color-mix(in srgb, var(--vtt-overlay-color, #fff) calc(var(--vtt-overlay-text-opacity, 1) * 100%), transparent);
     font-family: var(--vtt-overlay-font-family, inherit);
     font-variant-caps: var(--vtt-overlay-font-variant, normal);
-    font-size: var(--vtt-overlay-font-size, 24px);
+    /* Player-relative size. --vtt-overlay-font-size is the user's setting as a
+       px value off a 24px base; the scale turns it from "this many px" into
+       "this big relative to the video", so one setting reads the same
+       fullscreen and on the small inline player (see #vtt-video-overlay).
+
+       The reference width is 1920 — a fullscreen 1080p player, which is where
+       the 24px base was tuned. That choice makes the CEILING a no-op for the
+       case that already looked right: at 1920 and above the scale is exactly
+       1, so fullscreen renders the same size it always did and nobody's tuned
+       setting shifts under them. Only the smaller players, the ones that were
+       broken, actually move.
+
+       clamp() bounds the SCALE, not the final size, so the user's slider keeps
+       its full 50-400% range at every player width. The 0.55 floor is where
+       readability gives out: a 854px inline player lands on it at ~13px, and
+       pure proportion below that would keep shrinking text nobody can read.
+       The ceiling holds at 1 so a 4K or ultrawide player doesn't inflate the
+       caption past what the user asked for — past 1920 the text simply stops
+       growing, exactly as it did before.
+
+       cqw is 1% of the container width, so `1cqw / 19.2` is width/1920 as a
+       ratio; dividing by 1px strips the unit, since a scale must be a plain
+       number. The container is #vtt-video-overlay (see there). */
+    --vtt-overlay-scale: clamp(0.55, calc(1cqw / 19.2 / 1px), 1);
+    font-size: calc(var(--vtt-overlay-font-size, 24px) * var(--vtt-overlay-scale));
     font-weight: 600;
-    padding: 6px 16px;
-    border-radius: 8px;
+    /* em, not px: padding and radius have to shrink with the glyphs, or a
+       scaled-down caption keeps a box sized for the full-size text. */
+    padding: 0.25em 0.67em;
+    border-radius: 0.34em;
     margin-bottom: 6px;
     display: inline-block;
     text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
@@ -1849,10 +1903,14 @@
     color: color-mix(in srgb, var(--vtt-overlay-sub-color, #ffd700) calc(var(--vtt-overlay-text-opacity, 1) * 100%), transparent);
     font-family: var(--vtt-overlay-font-family, inherit);
     font-variant-caps: var(--vtt-overlay-font-variant, normal);
-    font-size: var(--vtt-overlay-sub-font-size, 18px);
+    /* Same player-relative scale as the main line above — the two lines have
+       independent size settings but must shrink together, or a small player
+       would show a scaled main line over a full-size translation. */
+    --vtt-overlay-scale: clamp(0.55, calc(1cqw / 19.2 / 1px), 1);
+    font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * var(--vtt-overlay-scale));
     font-weight: 400;
-    padding: 4px 12px;
-    border-radius: 6px;
+    padding: 0.22em 0.67em;
+    border-radius: 0.33em;
     display: inline-block;
     /* Its OWN edge, not --vtt-overlay-edge: that value is substituted on the
        parent against the MAIN line's color, so re-pointing a color variable
