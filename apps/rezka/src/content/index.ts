@@ -352,13 +352,14 @@ class VttApp implements AppInterface {
         }
     }
 
-    // A "🇪🇸 Español → 🇬🇧 English" chip under the header reflecting the chosen
-    // pair, so it's always clear which two languages are in play.
+    // An "EN ⇄ RU" chip at the header's left edge (mirroring the settings gear
+    // on the right) reflecting the chosen pair, so it's always clear which two
+    // languages are in play.
     updateLanguagePairChip(): void {
-        // Mount ONLY into our own sub-header slot. No header-top fallback: the
-        // ids are shared across extension versions, so a fallback would graft
-        // the chip into a sidebar built by another installed copy.
-        const subheader = document.getElementById('vtt-subheader');
+        // Mount ONLY into our own header slot, no fallbacks: the ids are
+        // shared across extension versions, so a fallback would graft the
+        // chip into a sidebar built by another installed copy.
+        const headerTop = document.getElementById('vtt-header-top');
         const existing = document.getElementById('vtt-langpair');
         if (!this.langPrefs) {
             existing?.remove();
@@ -400,7 +401,7 @@ class VttApp implements AppInterface {
                 }
             });
         }
-        if (!existing && subheader) subheader.prepend(chip);
+        if (!existing && headerTop) headerTop.prepend(chip);
     }
 
     showLanguageOnboarding(): void {

@@ -5,6 +5,7 @@ import {
     markSpansSaved,
     refreshAuthStatusBadge,
     msg as i18nMsg,
+    initTheme,
     setI18nOverride,
     Subtitle,
 } from '@video-transcripts/shared';
@@ -35,6 +36,14 @@ function t(key: string, fallback: string): string {
 // the panel against a dimmed page — purely for capturing store screenshots.
 // It is inert for real users: nothing triggers it without the literal token.
 const DEMO_MODE = location.href.includes('vtt-demo');
+
+// ── Panel theme ──────────────────────────────────────────────────────────
+// Light/dark/auto comes from prefs (Settings › Appearance › Theme). Fired
+// as early as the content script runs so the class is on <html> before the
+// panel is built; initTheme owns the 'auto' media-query subscription.
+// No SPA re-apply is needed — the class lives on <html>, which survives
+// YouTube's client-side navigation.
+void initTheme();
 // RTL store locales. YouTube's RTL layout pushes the player to the right, under
 // our fixed sidebar — so in demo mode we force the PAGE to LTR (video stays left,
 // matching every other locale and keeping the on-video overlay visible) while

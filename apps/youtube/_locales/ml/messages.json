@@ -175,6 +175,10 @@
     "message": "വീഡിയോയിൽ",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "ഓഫ്",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "നേർത്ത",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "ഔട്ട്‌ലൈൻ",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "തീം",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "ഓട്ടോ",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "ഓട്ടോ — നിങ്ങളുടെ സിസ്റ്റം തീം പിന്തുടരുന്നു",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "ലൈറ്റ്",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "ഡാർക്ക്",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "പുനഃസജ്ജമാക്കുക",

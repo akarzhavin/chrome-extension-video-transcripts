@@ -26,7 +26,7 @@
 // .gitignore) and an earlier run of capture-demo.mjs destroyed the de captures
 // with no way back. Restore with: cp out-live.bak/<file> out-live/
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, copyFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 const require = createRequire(import.meta.url);
 const PW='/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
@@ -45,6 +45,16 @@ const arg=(n,d)=>{const i=process.argv.indexOf(`--${n}`);return i!==-1?process.a
 const loc=arg('locale','de'), learn=arg('learn','fr'), native=arg('native','de');
 const video=arg('video','kJQP7kiw5Fk');
 const modes=arg('modes','sidebar,guess,onboarding').split(',');
+// --theme light injects screenshots/light-theme.capture.css into the page: the
+// store palette repainted onto the (dark-only) in-page UI, for CAPTURE ONLY.
+// Nothing here ships — see the header of that file.
+const theme=arg('theme','dark');
+// --class vtt-light applies the product's own light theme (the shipped one,
+// via the URL flag) instead of the capture-only override sheet.
+const extraClass=arg('class','');
+const THEME_CSS=theme==='light'
+  ? readFileSync(join(ROOT,'screenshots','light-theme.capture.css'),'utf8')
+  : null;
 const chromeLocale=loc.replace('_','-');
 const hash=m=>(m==='onboarding'?'vtt-demo-onboarding':m==='guess'?'vtt-demo-guess':'vtt-demo')+`?learn=${learn}&native=${native}`;
 const outFor=m=>m==='sidebar'?`live-demo-${loc}.png`:`live-demo-${m}-${loc}.png`;
@@ -65,6 +75,20 @@ const ctx=await chromium.launchPersistentContext(`/tmp/lg-shot-${loc}`,{
     '--mute-audio','--hide-scrollbars',`--lang=${chromeLocale}`],
 });
 await ctx.route(BBB,r=>r.fulfill({path:CLIP,contentType:'video/mp4'}));
+// The light sheet is (re)attached after each navigation rather than via
+// addInitScript: YouTube is an SPA and the extension mounts its own sheet from
+// a content script, so a style added at document_start gets outranked or
+// dropped. Appending last to <head> AFTER the panel exists wins at equal
+// specificity, and the interval survives YT's client-side route changes.
+const applyTheme = async (pg) => {
+  if(!THEME_CSS) return;
+  await pg.evaluate(css=>{
+    const add=()=>{ let el=document.getElementById('lg-capture-theme');
+      if(!el){ el=document.createElement('style'); el.id='lg-capture-theme'; el.textContent=css; }
+      if(document.head.lastElementChild!==el) document.head.appendChild(el); };
+    add(); if(!window.__lgThemeTimer) window.__lgThemeTimer=setInterval(add,500);
+  }, THEME_CSS);
+};
 await sleep(2500);
 let [sw]=ctx.serviceWorkers(); if(!sw) await ctx.waitForEvent('serviceworker',{timeout:15000}).catch(()=>null);
 await ctx.addCookies([
@@ -74,6 +98,9 @@ const page=await ctx.newPage();
 await page.setViewportSize({width:1280,height:800});
 await page.goto(`https://www.youtube.com/watch?v=${video}#${hash(modes[0])}`,{waitUntil:'domcontentloaded',timeout:45000});
 await page.waitForSelector('#vtt-list .vtt-item, #vtt-lang-onboarding',{timeout:30000}).catch(()=>{});
+await applyTheme(page);
+if(extraClass) await page.evaluate(c=>document.documentElement.classList.add(c), extraClass);
+if(THEME_CSS) console.log('theme: light (capture-only override injected)');
 await sleep(2500);
 // cover the player with our own clip
 await page.evaluate((src)=>{

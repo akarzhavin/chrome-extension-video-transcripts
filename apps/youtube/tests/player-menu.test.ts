@@ -292,10 +292,36 @@ describe('reading mode', () => {
 });
 
 describe('rows', () => {
-    test('the overlay toggle is not a menu row — it is the CC button', () => {
-        installPlayerMenu(makeApp());
+    const overlayRow = () => document.getElementById('vtt-ytp-menu-overlay') as HTMLButtonElement;
+
+    test('the on-screen row is a switch that reflects the overlay state', () => {
+        installPlayerMenu(makeApp({ overlayEnabled: true }));
         openMenu();
-        expect(document.getElementById('vtt-ytp-menu-overlay')).toBeNull();
+        expect(overlayRow().getAttribute('role')).toBe('menuitemcheckbox');
+        expect(overlayRow().getAttribute('aria-checked')).toBe('true');
+    });
+
+    test('clicking it toggles the overlay and keeps the menu open', () => {
+        const app = makeApp({ overlayEnabled: true });
+        // The real toggleOverlay flips state; the menu repaints from it.
+        app.ui.toggleOverlay.mockImplementation(() => {
+            app.state.overlayEnabled = !app.state.overlayEnabled;
+        });
+        installPlayerMenu(app);
+        openMenu();
+        overlayRow().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(app.ui.toggleOverlay).toHaveBeenCalled();
+        // A switch answers in place — closing would hide the very state change
+        // the click asked for.
+        expect((menu() as HTMLElement).hidden).toBe(false);
+        expect(overlayRow().getAttribute('aria-checked')).toBe('false');
+    });
+
+    test('the on-screen row is disabled with no track, like the CC button', () => {
+        installPlayerMenu(makeApp({ tracks: [], learningTrack: false, nativeTrack: false }));
+        openMenu();
+        expect(overlayRow().disabled).toBe(true);
+        expect(overlayRow().getAttribute('aria-checked')).toBe('false');
     });
 
     test('rows carry no forward chevrons', () => {
@@ -440,6 +466,7 @@ describe('first run (no languages picked)', () => {
         openMenu();
         expect((document.getElementById('vtt-ytp-menu-onboard') as HTMLElement).hidden).toBe(false);
         expect((document.getElementById('vtt-ytp-menu-modes') as HTMLElement).hidden).toBe(true);
+        expect((document.getElementById('vtt-ytp-menu-overlay') as HTMLElement).hidden).toBe(true);
         // "No subtitles" would be noise before anything is configured.
         expect((document.getElementById('vtt-ytp-menu-status') as HTMLElement).hidden).toBe(true);
     });

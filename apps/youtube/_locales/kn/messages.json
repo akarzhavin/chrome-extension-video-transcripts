@@ -175,6 +175,10 @@
     "message": "ವೀಡಿಯೊದಲ್ಲಿ",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "ಆಫ್",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "ತಿಳಿ",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "ಔಟ್‌ಲೈನ್",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "ಥೀಮ್",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "ಸ್ವಯಂ",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "ಸ್ವಯಂ — ನಿಮ್ಮ ಸಿಸ್ಟಂ ಥೀಮ್ ಅನ್ನು ಅನುಸರಿಸುತ್ತದೆ",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "ತಿಳಿ",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "ಗಾಢ",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "ಮರುಹೊಂದಿಸಿ",

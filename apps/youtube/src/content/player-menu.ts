@@ -126,6 +126,7 @@ class PlayerMenu {
     private onboardRow!: HTMLButtonElement;
     private modesRow!: HTMLButtonElement;
     private modesValue!: HTMLSpanElement;
+    private overlayRow!: HTMLButtonElement;
     private panelRow!: HTMLButtonElement;
     private panelLabel!: HTMLSpanElement;
     private settingsRow!: HTMLButtonElement;
@@ -139,9 +140,9 @@ class PlayerMenu {
         this.anchor = document.createElement('div');
         this.anchor.className = ANCHOR_CLASS;
 
-        // The overlay toggle is its own control rather than a menu row: it's
-        // the one thing wanted mid-video, and a CC glyph next to YouTube's own
-        // says what it does without a word of explanation.
+        // The overlay toggle gets its own bar control in ADDITION to its menu
+        // row: it's the one thing wanted mid-video, and a CC glyph next to
+        // YouTube's own says what it does without a word of explanation.
         this.ccBtn = document.createElement('button');
         this.ccBtn.id = CC_BTN_ID;
         this.ccBtn.className = 'vtt-ytp-cc-btn';
@@ -282,6 +283,26 @@ class PlayerMenu {
         this.modesRow.append(modesLabel, this.modesValue);
         this.modesRow.addEventListener('click', () => this.showPage('modes'));
         page.appendChild(this.modesRow);
+
+        // On-screen captions as a menu row too. The CC button beside the
+        // mascot stays — it's the mid-video reach — but the menu is where the
+        // rest of the controls live, and a labeled switch here names the
+        // feature for anyone who never guessed what the CC glyph toggles.
+        this.overlayRow = row('vtt-ytp-menu-overlay', 'vtt-ytp-row--switch', 'menuitemcheckbox');
+        const overlayLabel = document.createElement('span');
+        overlayLabel.className = 'vtt-ytp-row-label';
+        overlayLabel.textContent = t('ytMenuOverlay', 'Subtitles on video');
+        const overlaySwitch = document.createElement('span');
+        overlaySwitch.className = 'vtt-ytp-switch';
+        overlaySwitch.setAttribute('aria-hidden', 'true');
+        this.overlayRow.append(overlayLabel, overlaySwitch);
+        this.overlayRow.addEventListener('click', () => {
+            this.app.ui.toggleOverlay();
+            // The menu stays open: a switch answers in place, and the result
+            // is visible on the video right behind it.
+            this.render();
+        });
+        page.appendChild(this.overlayRow);
 
         this.panelRow = row('vtt-ytp-menu-panel');
         this.panelLabel = document.createElement('span');
@@ -442,12 +463,20 @@ class PlayerMenu {
 
         this.onboardRow.hidden = !noLangs;
         this.modesRow.hidden = noLangs;
+        this.overlayRow.hidden = noLangs;
         this.panelRow.hidden = noLangs;
         this.settingsRow.hidden = noLangs;
 
         // With no track, the modes are levers attached to nothing too — but the
         // row still says which mode is armed for when one arrives.
         this.modesRow.disabled = noSubs;
+        // Same predicate as the CC button in renderCc: with nothing to show,
+        // an enabled switch that changes nothing visible is a lie.
+        this.overlayRow.disabled = noSubs;
+        this.overlayRow.setAttribute(
+            'aria-checked',
+            String(!noLangs && !noSubs && this.app.state.overlayEnabled),
+        );
 
         this.renderStatus(noLangs, noSubs);
     }

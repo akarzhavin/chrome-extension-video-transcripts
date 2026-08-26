@@ -151,6 +151,12 @@ export const EMBED_CSS = `
      screen, or it would sit half a bar lower than the thing it opens. */
   position: fixed; top: calc((100% - var(--lge-controls-h)) / 2); right: 320px; left: auto;
   transform: translateY(-50%);
+  /* Glass over the picture, mirroring what the extension does for its own
+     fullscreen tab — the extension's rule anchors to #vtt-sidebar, and here the
+     tab has been re-parented into the stage, so it needs its own copy. */
+  background-color: var(--vtt-panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   opacity: 1; z-index: 2147483647;
   transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
 }

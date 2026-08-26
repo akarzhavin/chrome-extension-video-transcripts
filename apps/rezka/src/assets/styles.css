@@ -110,8 +110,9 @@
 }
 
 /* A permanent fixture on every watch page: full-size so it stays an easy mouse
-   target, but dimmed at rest so it doesn't nag. It's no longer the only way in
-   — the player menu has a panel row — which is what lets it be this quiet. */
+   target. Solid on the page, where it sits over the site's own chrome and a
+   see-through tab just reads as a rendering glitch; see-through in fullscreen,
+   where the only thing behind it is the picture the viewer came for. */
 #vtt-toggle-btn {
     position: absolute;
     top: 50%;
@@ -119,9 +120,12 @@
     transform: translateY(-50%);
     width: 40px;
     height: 60px;
-    background-color: var(--vtt-panel);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    /* Solid, not the panel's translucent glass: off fullscreen the tab overhangs
+       the page itself, and letting the site's own layout show through it is the
+       one place the glass reads as a bug rather than as depth. */
+    background-color: var(--vtt-panel-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: 1px solid var(--vtt-hairline);
     border-right: none;
     border-radius: 8px 0 0 8px;
@@ -130,19 +134,34 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    opacity: 0.7;
+    opacity: 1;
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s, color 0.2s, opacity 0.2s;
 }
 
+/* Fullscreen: the tab is the one piece of our UI left on top of a picture the
+   viewer deliberately made borderless, so it steps back — dimmed at rest, and
+   back on the same translucent glass as the panel it belongs to. */
+#vtt-sidebar.fullscreen #vtt-toggle-btn {
+    background-color: var(--vtt-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0.7;
+}
+
 /* Full strength when the user is anywhere near it, or tabbing through. */
-#vtt-sidebar:hover #vtt-toggle-btn,
-#vtt-toggle-btn:hover,
-#vtt-toggle-btn:focus-visible {
+#vtt-sidebar.fullscreen:hover #vtt-toggle-btn,
+#vtt-sidebar.fullscreen #vtt-toggle-btn:hover,
+#vtt-sidebar.fullscreen #vtt-toggle-btn:focus-visible {
     opacity: 1;
 }
 
 #vtt-toggle-btn:hover {
+    background-color: #323232;
+}
+
+/* Fullscreen hover keeps the glass — same reason the rest state does. */
+#vtt-sidebar.fullscreen #vtt-toggle-btn:hover {
     background-color: rgba(50, 50, 50, 0.9);
 }
 
@@ -596,18 +615,25 @@
     color: #10122b;
 }
 
-/* -- Languages group: labeled select fields -- */
+/* -- Languages group: the Learning/Native selects sit side by side — a
+   language pair reads left-to-right as one unit, and two stacked full-width
+   rows spent a row each on what is half a fact. Labels ride above their
+   selects (the same idiom as the font row) so the halved width all goes to
+   the language name; long track names clip from the tail, where the
+   qualifier lives, not the language. -- */
 #vtt-track-selectors {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
 }
 
 .vtt-field-row {
-    display: grid;
-    grid-template-columns: 64px 1fr;
-    align-items: center;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* Grid items refuse to shrink under their content by default, so one long
+       track name would push its column past the panel edge. */
+    min-width: 0;
 }
 
 .vtt-field-label {
@@ -682,139 +708,15 @@
     color: #6b6f78;
 }
 
-/* -- Reading mode group: 2x2 stateful toggle chips -- */
-#vtt-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.vtt-mode {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--vtt-hairline-strong);
-    color: var(--vtt-text);
-    border-radius: 7px;
-    padding: 8px 10px;
-    font-size: 12.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
-    font-family: inherit;
-}
-
-.vtt-mode svg {
-    width: 15px;
-    height: 15px;
-    flex: none;
-}
-
-.vtt-mode:hover {
-    background: rgba(255, 255, 255, 0.11);
-}
-
-.vtt-mode:active {
-    transform: scale(0.97);
-}
-
-.vtt-mode:disabled,
-/* Same look as :disabled, but the element stays hoverable so it can explain
-   why it's off (a real `disabled` button fires no pointer events, so its
-   tooltip could never appear). See updateControls in SidebarUI. */
-.vtt-mode.vtt-mode-blocked {
-    opacity: 0.45;
-    cursor: default;
-    transform: none;
-}
-
-.vtt-mode.vtt-mode-blocked:hover {
-    /* Nothing happens on click, so nothing should suggest it might. */
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--vtt-hairline-strong);
-}
-
-/* Instant multi-line explanation on the blocked chip, matching the sidebar
-   notice: the native title waits ~1s, long enough that the user gives up. */
-.vtt-mode-blocked[data-tip] {
-    position: relative;
-}
-
-.vtt-mode-blocked[data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    top: calc(100% + 6px);
-    /* Right-aligned, not left: this chip sits early in a 4-button row inside a
-       320px panel, so a bubble growing rightward from its left edge would spill
-       off the sidebar. Growing leftward keeps it inside. */
-    right: 0;
-    width: max-content;
-    max-width: 240px;
-    background: rgba(12, 13, 20, 0.97);
-    color: #dfe3f0;
-    border: 1px solid var(--vtt-hairline-strong);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.45;
-    text-align: left;
-    white-space: normal;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(-2px);
-    transition: opacity 0.12s ease, transform 0.12s ease;
-    z-index: 30;
-}
-
-.vtt-mode-blocked[data-tip]:hover::after,
-.vtt-mode-blocked[data-tip]:focus-visible::after {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.vtt-mode.active {
-    background: var(--vtt-accent-quiet);
-    border-color: var(--vtt-accent-border-strong);
-    color: #dcebff;
-}
-
-.vtt-mode-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.vtt-mode-dot {
-    margin-left: auto;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--vtt-text-dim);
-    transition: background-color 0.2s, box-shadow 0.2s;
-    flex: none;
-}
-
-.vtt-mode.active .vtt-mode-dot {
-    background: var(--vtt-accent);
-    box-shadow: 0 0 7px var(--vtt-accent);
-}
-
-/* Momentary swap feedback: half-turn of the arrows icon. */
-.vtt-mode.vtt-pulse svg {
-    animation: vtt-spin 0.45s ease;
-}
-
 @keyframes vtt-spin {
     from { transform: rotate(0); }
     to { transform: rotate(180deg); }
 }
 
-/* -- Sub-header row: language-pair chip left, quick-mode icons right — one
-   line under the title, so modes are switchable without opening settings and
-   without an extra row. Children carry their own vertical margins so the row
-   collapses when both are absent. -- */
+/* -- Sub-header row: the icon-only quick-mode bar, one line under the title,
+   so modes are switchable without opening settings. (The language-pair chip
+   used to share this row; it lives in the header-top now.) Children carry
+   their own vertical margins so the row collapses when the bar is absent. -- */
 #vtt-subheader {
     display: flex;
     align-items: center;
@@ -823,37 +725,23 @@
     padding: 0 16px;
 }
 
-/* Icon-only mode cluster (Dual · Guess | On-screen) in a pill container so it
-   reads as one control group. Same .active semantics as .vtt-mode (both
-   synced by updateControls). */
+/* Mode bar (Single · Dual · Guess | On-screen) in a pill container so it
+   reads as one control group — the only mode switcher in the UI since the
+   settings panel's duplicate chips were removed. Spans the row: it is the
+   sub-header's only child, and the freed width goes into visible labels (the
+   active segment's pill and the On-screen caption) instead of a "Modes"
+   micro-label the cluster no longer needs to name itself. */
 #vtt-quickmodes {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 2px;
-    /* margin-left:auto keeps the cluster pinned right even when it's the only
-       child of the space-between row (chip absent during onboarding). */
-    margin: 6px 0 10px auto;
-    flex: none;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 6px 0 10px;
     background: rgba(255, 255, 255, 0.045);
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 999px;
-    padding: 2px;
-}
-
-/* Visible micro-label: the cluster names itself without hover. */
-.vtt-qm-label {
-    /* 10px and a lighter grey than the old 9.5px/#8d92a8, which measured
-       3.73:1 — the smallest type in the panel needs the most contrast, not the
-       least. */
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--vtt-text-dim);
-    padding: 0 4px 0 9px;
-    flex: none;
-    -webkit-user-select: none;
-    user-select: none;
+    padding: 3px;
 }
 
 /* JS manages inline display (hidden until tracks load), so the settings
@@ -881,6 +769,29 @@
 .vtt-qm svg {
     width: 15px;
     height: 15px;
+    flex: none;
+}
+
+/* The button's visible name. Radios keep it collapsed except on the active
+   segment, where it slides open with the pill (max-width, not display: the
+   width change is what animates). The On-screen toggle overrides this to keep
+   its caption permanently visible. */
+.vtt-qm-text {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+    transition: max-width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease, margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vtt-qm.active .vtt-qm-text {
+    max-width: 110px;
+    opacity: 1;
+    margin-left: 5px;
 }
 
 .vtt-qm:hover {
@@ -898,61 +809,38 @@
     transform: none;
 }
 
-/* Segmented Dual/Guess control: mutually exclusive (both are displayMode
-   values), so an inset "well" track with one sliding thumb reads as
-   choose-one, not two independent checkboxes. Third state (neither → single):
-   the thumb hides. */
+/* Segmented mode control: mutually exclusive displayMode values, so an inset
+   "well" track reads as choose-one, not three checkboxes. The checked segment
+   grows into a labeled pill (flex-grow is animatable, so the pill morphs
+   between segments); a fixed-geometry sliding thumb can't follow
+   variable-width segments, so the fill lives on the active button itself. */
 .vtt-modeseg {
-    position: relative;
-    display: inline-flex;
-    flex: none;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
     background: rgba(0, 0, 0, 0.35);
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
     border-radius: 999px;
     padding: 2px;
+    gap: 2px;
 }
 
-.vtt-modeseg-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 27px;
-    height: 27px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, var(--vtt-accent), var(--vtt-accent-strong));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s ease;
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Three 27px buttons, no gap: the thumb slides to the checked one. Exactly one
-   mode is always selected, so the thumb never hides — "no thumb" used to be
-   how single mode looked, a state the control never admitted to having. */
-.vtt-modeseg[data-sel="single"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.vtt-modeseg[data-sel="dual"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(27px);
-}
-
-.vtt-modeseg[data-sel="guess"] .vtt-modeseg-thumb {
-    opacity: 1;
-    transform: translateX(54px);
-}
-
-/* Icons ride above the thumb; the thumb supplies the fill, so no hover bg. */
 .vtt-modeseg .vtt-qm {
-    width: 27px;
+    flex: 1;
+    min-width: 27px;
+    width: auto;
     height: 27px;
-    z-index: 1;
+    padding: 0 4px;
+    transition: flex-grow 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s, color 0.15s, transform 0.1s;
 }
 
 .vtt-modeseg .vtt-qm.active {
+    /* Room for icon + name; inactive neighbours shrink toward icon-only. */
+    flex-grow: 2.6;
     color: #fff;
+    background: linear-gradient(180deg, var(--vtt-accent), var(--vtt-accent-strong));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .vtt-modeseg .vtt-qm:not(.active) {
@@ -963,8 +851,8 @@
     color: #fff;
 }
 
-.vtt-modeseg .vtt-qm:hover {
-    background: transparent;
+.vtt-modeseg .vtt-qm:not(.active):hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .vtt-modeseg .vtt-qm:focus-visible {
@@ -972,26 +860,63 @@
     box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
-/* On-screen: independent toggle, so a standalone filled+ring button (not part
-   of the segment). Focus ring declared AFTER .active (equal specificity —
-   source order decides) so an active button keeps its ring. */
-.vtt-qm-toggle.active {
-    background: var(--vtt-accent-hover);
-    color: #eaf6ff;
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
+/* On-screen: independent toggle, drawn as a real switch — icon + caption +
+   track/knob. The caption is permanently visible (an icon-only switch proved
+   unreadable: nothing said WHAT it toggled); .active (set in updateControls)
+   slides the knob and lights the track. */
+.vtt-qm-toggle {
+    width: auto;
+    flex: none;
+    padding: 0 8px 0 6px;
+    gap: 5px;
 }
 
-.vtt-qm-toggle.active:hover {
-    background: var(--vtt-accent-hover);
+/* Doubled class matches the .vtt-qm.active label rule's specificity, so the
+   caption doesn't jump 5px of margin when the switch turns on. */
+.vtt-qm.vtt-qm-toggle .vtt-qm-text {
+    max-width: none;
+    opacity: 1;
+    margin-left: 0;
+    font-weight: 500;
+}
+
+.vtt-qm-toggle.active {
+    color: #fff;
+}
+
+.vtt-qm-switch {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 13px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background-color 0.15s;
+}
+
+.vtt-qm-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s ease;
+}
+
+.vtt-qm-toggle.active .vtt-qm-switch {
+    background: var(--vtt-accent);
+}
+
+.vtt-qm-toggle.active .vtt-qm-switch::after {
+    transform: translateX(9px);
 }
 
 .vtt-qm-toggle:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--vtt-accent-ring);
-}
-
-.vtt-qm-toggle.active:focus-visible {
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border), 0 0 0 2px var(--vtt-accent-border-strong);
 }
 
 /* Hairline: exclusive mode choice (left) vs. independent overlay toggle. */
@@ -1102,89 +1027,6 @@
 }
 
 
-/* -- Overlay appearance group: live preview -- */
-#vtt-style-preview {
-    position: relative;
-    height: 148px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 13px;
-    background:
-        radial-gradient(340px 150px at 72% 18%, rgba(255, 196, 110, 0.28), transparent 70%),
-        linear-gradient(180deg, #2b3550 0%, #232c44 46%, #1b2438 62%, #141b2c 100%);
-}
-
-/* Fake film still: sun + dark hills, pure CSS so no bundled assets. */
-#vtt-style-preview::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(46px 46px at 72% 22%, #ffd9a0 0 45%, transparent 48%),
-        radial-gradient(420px 190px at 18% 108%, #1d2a3d 0 60%, transparent 61%),
-        radial-gradient(520px 230px at 95% 118%, #16202f 0 60%, transparent 61%);
-}
-
-.vtt-preview-cap {
-    position: absolute;
-    left: 0;
-    right: 0;
-    /* Same position variable as the real overlay, scaled to preview height. */
-    bottom: calc(var(--vtt-overlay-bottom, 80px) * 0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    transition: bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
-}
-
-/* The preview reuses the real overlay classes, scaled down; the caption is a
-   sample, so text interactions are disabled inside the preview. */
-#vtt-style-preview .vtt-overlay-main {
-    font-size: calc(var(--vtt-overlay-font-size, 24px) * 0.62);
-    padding: 3px 10px;
-    margin-bottom: 0;
-    max-width: 88%;
-    pointer-events: none;
-    user-select: none;
-    cursor: default;
-}
-
-/* Scales --vtt-overlay-sub-font-size directly, not a ratio of the main line's
-   size: the translation line has its OWN size control now, so the preview
-   must reflect that value independently or it would silently lie about what
-   the slider does. */
-#vtt-style-preview .vtt-overlay-sub {
-    font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * 0.62);
-    padding: 2px 9px;
-    max-width: 88%;
-    pointer-events: none;
-    user-select: none;
-}
-
-.vtt-preview-off {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    color: var(--vtt-text-dim);
-    letter-spacing: 0.5px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-}
-
-#vtt-style-preview.vtt-preview-disabled .vtt-preview-cap {
-    opacity: 0;
-}
-
-#vtt-style-preview.vtt-preview-disabled .vtt-preview-off {
-    opacity: 1;
-}
-
 /* -- Overlay appearance groups: preset rows -- */
 #vtt-style-controls-text,
 #vtt-style-controls-box {
@@ -1267,6 +1109,80 @@
 .vtt-seg-btn svg {
     width: 15px;
     height: 15px;
+}
+
+/* ── Theme strip — the one-line row above the settings groups ───────────── */
+/* Horizontal where the group rows are stacked: label left, segment right.
+   The segment is width-capped so three 15px glyphs don't stretch across the
+   whole panel — percentage thumb math (--vtt-seg-n) is width-agnostic, so the
+   cap costs nothing. Colours come from tokens only, so the light theme covers
+   this strip with no extra rules. */
+.vtt-theme-strip {
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--vtt-hairline, rgba(255, 255, 255, 0.08));
+}
+
+.vtt-theme-strip .vtt-style-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.vtt-theme-strip .vtt-seg {
+    flex: 0 0 auto;
+    width: 132px;
+}
+
+.vtt-theme-strip .vtt-seg-btn {
+    padding: 4px;
+}
+
+/* Live readout: the active mode's name, always on screen — the icons never
+   have to be decoded to answer "which one is on right now?". margin-left:auto
+   eats the row's free space, parking the name against the segment. */
+.vtt-theme-value {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vtt-text);
+}
+
+/* Per-option bubbles: the quickmodes data-tip pattern, not native title —
+   title waits ~1s, these show at 0.15s. Ink bubble in both themes: a tooltip
+   is an overlay, not a card (same treatment the light theme gives every other
+   tip). Anchored below the button; the strip sits at the panel's top, so
+   there is always room underneath. */
+.vtt-theme-strip [data-tip] {
+    position: relative;
+}
+
+.vtt-theme-strip [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translate(-50%, -2px);
+    background: #14161f;
+    color: #dfe3f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+}
+
+.vtt-theme-strip [data-tip]:hover::after,
+.vtt-theme-strip [data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 0.15s;
 }
 
 /* Fine-grained size control: a 50-400% range slider with a live percent
@@ -1427,10 +1343,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .vtt-seg-thumb,
-    .vtt-modeseg-thumb,
-    .vtt-preview-cap,
-    .vtt-mode,
-    .vtt-mode svg,
     .vtt-swatch,
     .vtt-swatch svg {
         transition: none !important;
@@ -1823,15 +1735,26 @@
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */
-/* Flex child of the sub-header row: shrinks (names ellipsize) rather than
-   pushing the quick-mode icons out. It's a button (swaps the pair), so block
-   the text selection the sidebar otherwise forces on for transcript quick-add. */
+/* Header-left slot, the mirror of the settings gear on the right; the
+   centered title sits between them. #vtt-header-top's align-items centers the
+   chip vertically (absolute children take their static position, like the
+   gear). It's a button (swaps the pair), so block the text selection the
+   sidebar otherwise forces on for transcript quick-add. */
 #vtt-langpair {
     display: flex;
+    position: absolute;
+    left: 16px;
     min-width: 0;
-    margin: 6px 0 10px;
     -webkit-user-select: none;
     user-select: none;
+}
+
+/* The settings/feedback takeovers put the "‹ back" chip in this corner, and
+   language changes live inside the settings panel anyway — the pair chip
+   steps aside rather than doubling up. */
+#vtt-sidebar.vtt-settings-open #vtt-langpair,
+#vtt-sidebar.vtt-feedback-open #vtt-langpair {
+    display: none;
 }
 
 /* Remote notification: a message published from the backend without a release
@@ -2610,6 +2533,39 @@
     opacity: 1;
 }
 
+/* On-screen row: a switch, not a check — the row toggles a state rather than
+   picking one of a set, and the knob's position names which state you're in.
+   Same anatomy as the sidebar's .vtt-switch, sized for the menu row. */
+.vtt-ytp-row--switch .vtt-ytp-switch {
+    position: relative;
+    flex: none;
+    width: 26px;
+    height: 15px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background-color 0.15s;
+}
+
+.vtt-ytp-row--switch .vtt-ytp-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s ease;
+}
+
+.vtt-ytp-row--switch[aria-checked='true'] .vtt-ytp-switch {
+    background: var(--vtt-accent);
+}
+
+.vtt-ytp-row--switch[aria-checked='true'] .vtt-ytp-switch::after {
+    transform: translateX(11px);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .vtt-ytp-row,
     .vtt-ytp-row--switch .vtt-ytp-switch,
@@ -2720,7 +2676,468 @@
     .vtt-panel-row,
     .vtt-panel-row > svg,
     .vtt-switch,
-    .vtt-switch::after {
+    .vtt-switch::after,
+    .vtt-qm-switch,
+    .vtt-qm-switch::after {
         transition: none;
     }
+}
+
+/* ══ Light theme ═════════════════════════════════════════════════════════════
+ *
+ * Applied by the `.vtt-light` class on the panel root, driven by the Theme
+ * control in Settings (Auto / Light / Dark). Auto follows the OS via
+ * prefers-color-scheme. Netflix is dark-only and never gets the class.
+ *
+ * Palette:
+ *   Brand Lime  #C8FF00  active elements, toggles, highlight
+ *   Primary     #111111  primary text
+ *   Secondary   #4A4A4A  secondary text
+ *   Background  #F7F7F5  panel ground
+ *   Surface     #FFFFFF  cards, rows
+ *   Border      #E5E5E2  dividers
+ *   Purple      #7B2CFF  secondary accent (language / translation)
+ *
+ * Two constraints drive the colour choices, both from the lime's luminance
+ * (~0.85, i.e. brighter than most "light" greys):
+ *   - Lime is a FILL, never a text colour. #C8FF00 as text on white is ~1.3:1.
+ *   - Text ON lime is #111111, never white: white-on-lime is ~1.2:1.
+ *
+ * Unlike the dark theme, the panel here is OPAQUE. The dark theme's 0.86 alpha
+ * works because a bright video frame showing through only ever lightens a dark
+ * ground, which helps its light text. The inverse is not symmetric: a dark
+ * frame under a translucent light panel drags the ground down and sinks
+ * #111111 text with it. Opaque is what keeps this readable over any footage.
+ *
+ * Rules are scoped under .vtt-light (set on <html>) rather than left at :root,
+ * so they also outrank the base rules they replace regardless of source order.
+ */
+.vtt-light {
+    --vtt-accent: #c8ff00;
+    --vtt-accent-strong: #b8ea00;
+    --vtt-accent-quiet: rgba(200, 255, 0, 0.22);
+    --vtt-accent-hover: rgba(200, 255, 0, 0.38);
+    --vtt-accent-border: rgba(140, 178, 0, 0.45);
+    --vtt-accent-border-strong: rgba(140, 178, 0, 0.75);
+    /* Focus rings switch to purple: a lime ring on a lime fill is invisible. */
+    --vtt-accent-ring: rgba(123, 44, 255, 0.55);
+    --vtt-accent-text: #111111;
+
+    /* Success/danger/warning are re-darkened: the dark theme's pastel steps
+       (#34d399, #f87171, #ffa257) all fall under 3:1 on a white card. */
+    --vtt-success: #15803d;
+    --vtt-success-text: #15803d;
+    --vtt-success-quiet: rgba(21, 128, 61, 0.12);
+    --vtt-success-border: rgba(21, 128, 61, 0.35);
+
+    --vtt-danger: #c22828;
+
+    --vtt-warning: #a1560a;
+    --vtt-warning-quiet: rgba(161, 86, 10, 0.12);
+
+    --vtt-text: #111111;
+    --vtt-text-soft: #4a4a4a;
+    --vtt-text-dim: #6a6a68;
+
+    --vtt-hairline: #e5e5e2;
+    --vtt-hairline-strong: #d6d6d2;
+    /* Declared here as well as consumed: the base sheet reads --vtt-border with
+       a white-alpha fallback but never defines it, so on light it would draw an
+       invisible border. */
+    --vtt-border: #e5e5e2;
+
+    --vtt-panel: #f7f7f5;
+    --vtt-panel-solid: #ffffff;
+}
+
+/* ── Sidebar shell ──────────────────────────────────────────────────────── */
+.vtt-light #vtt-sidebar {
+    color: #111111;
+    /* Opaque ground, so the blur has nothing left to sample. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-left: 1px solid #e5e5e2;
+    box-shadow: -10px 0 30px rgba(17, 17, 17, 0.12);
+}
+
+.vtt-light #vtt-sidebar h2 { color: #111111; }
+.vtt-light #vtt-header { border-bottom: 1px solid #e5e5e2; }
+.vtt-light #vtt-settings-btn { color: #4a4a4a; }
+
+.vtt-light #vtt-settings-btn:hover {
+    color: #111111;
+    background: rgba(17, 17, 17, 0.06);
+}
+
+/* Both light panel tokens are already opaque, so the tab needs no blur in
+   either state — the base sheet turns it on for fullscreen, and here it has
+   nothing left to sample. */
+.vtt-light #vtt-toggle-btn,
+.vtt-light #vtt-sidebar.fullscreen #vtt-toggle-btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #111111;
+    box-shadow: -5px 0 15px rgba(17, 17, 17, 0.12);
+}
+
+.vtt-light #vtt-toggle-btn:hover,
+.vtt-light #vtt-sidebar.fullscreen #vtt-toggle-btn:hover {
+    background-color: #ffffff;
+}
+
+/* ── Feedback ───────────────────────────────────────────────────────────── */
+.vtt-light .vtt-feedback-text,
+.vtt-light .vtt-feedback-email {
+    color: #111111;
+    background: #ffffff;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-feedback-text::placeholder,
+.vtt-light .vtt-feedback-email::placeholder { color: #8a8a86; }
+
+.vtt-light .vtt-feedback-send { color: #111111; }
+.vtt-light .vtt-feedback-status { color: #c22828; }
+.vtt-light .vtt-feedback-done { color: #111111; }
+
+/* ── Auth / groups ──────────────────────────────────────────────────────── */
+.vtt-light .lingogram-auth-btn:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-light .vtt-group + .vtt-group { border-top: 1px solid #e5e5e2; }
+
+/* ── Selects ────────────────────────────────────────────────────────────── */
+.vtt-light .vtt-select {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-select:hover { background: #f0f0ee; }
+.vtt-light .vtt-select optgroup { color: #6a6a68; }
+.vtt-light .vtt-select option:disabled { color: #a0a09c; }
+
+/* ── Quick-mode cluster ─────────────────────────────────────────────────── */
+.vtt-light #vtt-quickmodes {
+    background: #ffffff;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-qm { color: #4a4a4a; }
+
+.vtt-light .vtt-qm:hover {
+    background: rgba(17, 17, 17, 0.06);
+    color: #111111;
+}
+
+.vtt-light .vtt-qm-sep { background: #e5e5e2; }
+
+.vtt-light .vtt-modeseg {
+    background: #eeeeec;
+    box-shadow: inset 0 1px 2px rgba(17, 17, 17, 0.08);
+}
+
+.vtt-light .vtt-modeseg .vtt-qm.active {
+    color: #111111;
+    background: #c8ff00;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18);
+}
+.vtt-light .vtt-modeseg .vtt-qm:not(.active) { color: #4a4a4a; }
+.vtt-light .vtt-modeseg .vtt-qm:not(.active):hover {
+    color: #111111;
+    background: rgba(17, 17, 17, 0.06);
+}
+
+/* The on-screen toggle is an independent switch; its TRACK carries the state
+   (lime = on, via --vtt-accent in the base rule), so the button itself stays
+   unfilled — filled lime next to the segment read as two active modes. */
+.vtt-light .vtt-qm-toggle.active { color: #111111; }
+
+/* Off-state needs a track dark enough to show the white knob (same reasoning
+   as .vtt-light .vtt-switch below). */
+.vtt-light .vtt-qm-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-qm-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
+
+/* ── Tooltips ───────────────────────────────────────────────────────────── */
+.vtt-light #vtt-quickmodes [data-tip]::after {
+    background: #111111;
+    color: #ffffff;
+    border: 1px solid #111111;
+}
+
+.vtt-light #vtt-quickmodes .vtt-qm-blocked::after,
+.vtt-light #vtt-partial-notice[data-tip]::after {
+    background: #111111;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.28);
+}
+
+.vtt-light #vtt-quickmodes .vtt-qm-blocked::first-line { color: #ffffff; }
+
+/* ── Segmented control + sliders ────────────────────────────────────────── */
+.vtt-light .vtt-seg {
+    background: #eeeeec;
+    border: 1px solid #e5e5e2;
+}
+
+.vtt-light .vtt-seg-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.18), inset 0 0 0 1px #e5e5e2;
+}
+
+.vtt-light .vtt-seg-btn.active { color: #111111; }
+
+.vtt-light .vtt-slider {
+    background: linear-gradient(to right,
+        #c8ff00 var(--vtt-slider-fill, 14%), #e5e5e2 var(--vtt-slider-fill, 14%));
+}
+
+.vtt-light .vtt-slider::-webkit-slider-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+
+.vtt-light .vtt-slider::-moz-range-thumb {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(17, 17, 17, 0.25), inset 0 0 0 1px #d6d6d2;
+}
+
+/* ── Swatches ───────────────────────────────────────────────────────────── */
+.vtt-light .vtt-swatch { border: 1px solid #d6d6d2; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+.vtt-light #vtt-list { scrollbar-color: #d6d6d2 transparent; }
+.vtt-light #vtt-list::-webkit-scrollbar-thumb { background: #d6d6d2; }
+
+/* ── Transcript items ───────────────────────────────────────────────────── */
+.vtt-light .vtt-item {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e2;
+    color: #4a4a4a;
+}
+
+.vtt-light .vtt-item:hover {
+    background-color: #f0f0ee;
+    color: #111111;
+}
+
+.vtt-light .vtt-item.active-sub {
+    background-color: rgba(200, 255, 0, 0.30);
+    border-color: rgba(140, 178, 0, 0.55);
+    color: #111111;
+    box-shadow: 0 4px 15px rgba(17, 17, 17, 0.08);
+}
+
+/* Translation line takes the purple: it is the one place the second accent
+   carries meaning (this text is the other language). */
+.vtt-light .vtt-sub-text {
+    border-top: 1px dashed #e5e5e2;
+    color: #7b2cff;
+}
+
+/* Scoped to #vtt-list for the same reason as .vtt-masked-word below: these
+   classes are ALSO used inside .vtt-overlay-main on the video, where the text
+   is white on a dark box. Unscoped, the light theme painted revealed words
+   #111111 there — black on a black caption box. */
+.vtt-light #vtt-list .vtt-revealed-word,
+.vtt-light #vtt-list .vtt-guess-filler { color: #111111; }
+
+.vtt-light #vtt-list .vtt-item.active-sub .vtt-revealed-word,
+.vtt-light #vtt-list .vtt-item.active-sub .vtt-guess-filler { color: #111111; }
+
+/* ── Guess-mode masked words — SIDEBAR ONLY ─────────────────────────────── */
+/* Scoped to #vtt-list: the same .vtt-masked-word class is also used for the
+   panes drawn ON the video, and those must keep their dark treatment no matter
+   what theme the panel is in. An unscoped .vtt-light .vtt-masked-word ties on
+   specificity with .vtt-overlay-main .vtt-masked-word and wins on source
+   order, which turned the on-video panes near-invisible. */
+.vtt-light #vtt-list .vtt-masked-word {
+    background: rgba(17, 17, 17, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.14);
+}
+
+/* The frosted highlight is built from white-alpha gradients, which do nothing
+   over a light pane — drop it rather than leave a no-op paint. */
+.vtt-light #vtt-list .vtt-masked-word::before { background: none; }
+
+/* ── Language pair chip ─────────────────────────────────────────────────── */
+/* This chip hardcodes a pale blue text colour in the base sheet, which is
+   invisible on light — and it is the language control, so it takes purple. */
+.vtt-light #vtt-langpair .vtt-langpair-inner {
+    background: rgba(123, 44, 255, 0.10);
+    border: 1px solid rgba(123, 44, 255, 0.35);
+    color: #111111;
+}
+
+.vtt-light #vtt-langpair .vtt-langpair-inner:hover {
+    background: rgba(123, 44, 255, 0.18);
+    border-color: rgba(123, 44, 255, 0.55);
+}
+
+.vtt-light #vtt-langpair:focus-visible .vtt-langpair-inner {
+    border-color: #7b2cff;
+    box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
+}
+
+/* ── Notification ───────────────────────────────────────────────────────── */
+.vtt-light #vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }
+
+/* ── Onboarding / status ────────────────────────────────────────────────── */
+.vtt-light #vtt-lang-onboarding,
+.vtt-light #vtt-status {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-lang-onboarding .vtt-lang-onboarding-row span { color: #4a4a4a; }
+
+.vtt-light #vtt-lang-onboarding select {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-status.vtt-status--rich {
+    background: linear-gradient(180deg, rgba(200, 255, 0, 0.22), #ffffff 60%);
+}
+
+.vtt-light #vtt-status .vtt-empty-state-figure svg {
+    filter: drop-shadow(0 6px 18px rgba(17, 17, 17, 0.15));
+}
+
+.vtt-light #vtt-status .vtt-empty-state-steps { color: #4a4a4a; }
+
+.vtt-light #vtt-status .vtt-empty-state-action {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light #vtt-status .vtt-empty-state-action:hover:not(:disabled) { background: #f0f0ee; }
+
+/* Emergency actions keep the quiet red destructive treatment — never the
+   brand fill, on either theme. */
+.vtt-light #vtt-status .vtt-empty-state-action--emergency {
+    border: 1px solid rgba(194, 40, 40, 0.45);
+    color: #c22828;
+    background: rgba(194, 40, 40, 0.06);
+}
+
+.vtt-light #vtt-status .vtt-empty-state-action--emergency:hover {
+    border-color: rgba(194, 40, 40, 0.7);
+    background: rgba(194, 40, 40, 0.12);
+}
+
+/* ── YouTube player menu — the second panel surface ─────────────────────── */
+.vtt-light #vtt-ytp-menu {
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #e5e5e2;
+    color: #111111;
+    box-shadow: 0 8px 28px rgba(17, 17, 17, 0.18);
+}
+
+.vtt-light .vtt-ytp-row:hover:not(:disabled) { background: rgba(17, 17, 17, 0.06); }
+.vtt-light .vtt-ytp-row-value { color: #4a4a4a; }
+.vtt-light .vtt-ytp-row-key { color: #6a6a68; }
+.vtt-light .vtt-ytp-row--account { color: #4a4a4a; }
+.vtt-light .vtt-ytp-row--status { color: #a1560a; }
+.vtt-light .vtt-ytp-row--status-info { color: #4a4a4a; }
+
+.vtt-light #vtt-ytp-menu-modes,
+.vtt-light #vtt-ytp-menu-panel { border-top: 1px solid #e5e5e2; }
+
+.vtt-light .vtt-ytp-row--back {
+    color: #4a4a4a;
+    border-bottom: 1px solid #e5e5e2;
+}
+
+/* On-screen row's switch: light off-track + shadowed knob; the on-track comes
+   from --vtt-accent (lime) via the base rule. */
+.vtt-light .vtt-ytp-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-ytp-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
+
+/* The player-bar buttons (.vtt-ytp-*-btn) are deliberately NOT re-themed:
+   they sit on the video itself, next to YouTube's own white-on-dark controls,
+   so they stay light regardless of panel theme. */
+
+/* ── Panel tail rows + switch ───────────────────────────────────────────── */
+.vtt-light .vtt-panel-row { border-top: 1px solid #e5e5e2; }
+
+.vtt-light .vtt-panel-row:hover {
+    color: #111111;
+    background-color: #f0f0ee;
+}
+
+/* Off-state needs a track dark enough to show the white knob; the on-state
+   track comes from --vtt-accent (lime) via the base rule. */
+.vtt-light .vtt-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
+
+/* ── Light theme: places where the base sheet uses --vtt-accent as a MARK
+ *    rather than a fill. Lime is ~1.3:1 as text/hairline on white, so each of
+ *    these takes the purple accent (or ink) instead. The rule stays "lime
+ *    fills, purple marks" — the two are never asked to do each other's job. ── */
+
+/* Back chip: accent-coloured text. */
+.vtt-light .vtt-back-chip { color: #7b2cff; }
+.vtt-light .vtt-back-chip:hover { background: rgba(123, 44, 255, 0.10); }
+
+/* Selected swatch ring: 2px of panel + 2px of accent. The lime ring reads as a
+   pale halo on a white panel, so the outer ring goes ink — it has to survive
+   sitting next to a white swatch. */
+.vtt-light .vtt-swatch.active {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111;
+}
+
+.vtt-light .vtt-swatch.active:focus-visible {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111, 0 0 0 6px rgba(123, 44, 255, 0.45);
+}
+
+/* The checkmark inside a selected swatch is drawn in the swatch's own contrast
+   colour by the base sheet; on the white swatch that leaves ink-on-white, which
+   is correct. Nothing to override. */
+
+/* ── Light theme: the ON-VIDEO overlay ─────────────────────────────────── */
+/* The caption text and its box are NOT re-themed: they sit on the user's
+   footage next to the player's own white-on-dark captions, and light text on a
+   dark box is what keeps them readable over any picture. Only the guess-mode
+   panes take the new accent, because those are brand marks rather than text.
+ *
+ * The "next" pane is OPAQUE lime, where the indigo it replaces was 0.45.
+ * A pane hides its glyphs (they are painted invisible — see .vtt-masked-word),
+ * so nothing has to stay legible THROUGH it; what must read is the pane
+ * against its surroundings. Translucent lime fails that: over the caption box
+ * it lands on olive, 2.75:1 against the box on a bright frame — the mark
+ * disappears exactly when the footage is light. Opaque lime holds 17.8:1 on a
+ * dark frame and 7.2:1 on a bright one, and stays the same colour either way,
+ * which is the independence-from-the-picture the panes were built for.
+ *
+ * Ink ring, not a lime one: the ring has to separate the pane from a bright
+ * frame, and lime-on-lime is no edge at all. */
+/* Every hidden pane on the video looks the same in this theme — including the
+   one that opens next. The base sheet tints .vtt-next-word with the accent,
+   which the light theme redefines to lime; listing it here alongside the plain
+   pane keeps that accent off the footage, and covering :hover stops the tint
+   coming back on pointer-over.
+   The sidebar list is unaffected: it still marks its own next word. */
+.vtt-light .vtt-overlay-main .vtt-masked-word,
+.vtt-light .vtt-overlay-main .vtt-next-word,
+.vtt-light .vtt-overlay-main:hover .vtt-next-word {
+    background-color: rgba(18, 20, 27, 0.55);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 1px 6px rgba(0, 0, 0, 0.35);
 }
