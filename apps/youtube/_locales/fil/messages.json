@@ -175,6 +175,10 @@
     "message": "Sa video",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "Wala",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "Magaan",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "Balangkas",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "Tema",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "Awtomatiko",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "Awtomatiko — sinusunod ang tema ng iyong system",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "Maliwanag",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "Madilim",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "I-reset",

@@ -19,6 +19,11 @@ import { platformOf, type Platform } from './analytics';
 // no equivalent "everyone wants a value in between" complaint about those.
 export type OverlaySizePercent = number;
 export type OverlayLevelToken = 'low' | 'medium' | 'high';
+// The backdrop adds a fourth: 'off' is a fully transparent box, not a fourth
+// step on the opacity ramp. Kept separate from OverlayLevelToken because
+// Position shares that type and has no meaningful "off" — a caption still has
+// to sit somewhere.
+export type OverlayBackdropToken = OverlayLevelToken | 'off';
 export type OverlayEdgeToken = 'none' | 'shadow' | 'outline';
 
 // Panel theme. 'auto' follows the OS/browser via prefers-color-scheme; the
@@ -60,7 +65,7 @@ export interface Prefs {
     overlayTextOpacity: number; // 0-1, glyph fill only — see overlayBgOpacity for the box
     overlayBgColor: string; // hex, the caption box behind both lines
     overlayBottomOffset: OverlayLevelToken;
-    overlayBgOpacity: OverlayLevelToken;
+    overlayBgOpacity: OverlayBackdropToken;
     overlayEdgeStyle: OverlayEdgeToken;
     // Panel theme. GLOBAL, not per-site: like displayMode this is how the user
     // reads, not how one site looks — a panel that flipped theme between
@@ -177,7 +182,7 @@ const COLOR_PREF_KEYS = ['overlayColor', 'overlaySubColor', 'overlayBgColor'] as
 const TOKEN_PREF_VALUES = {
     overlayFontFamily: ['monoSerif', 'propSerif', 'monoSans', 'propSans', 'casual', 'cursive', 'smallCaps'],
     overlayBottomOffset: ['low', 'medium', 'high'],
-    overlayBgOpacity: ['low', 'medium', 'high'],
+    overlayBgOpacity: ['off', 'low', 'medium', 'high'],
     overlayEdgeStyle: ['none', 'shadow', 'outline'],
     theme: ['auto', 'light', 'dark'],
 } as const;

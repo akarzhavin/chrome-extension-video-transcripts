@@ -2683,11 +2683,11 @@
     }
 }
 
-/* ══ Light theme — EXPERIMENTAL, opt-in via `#vtt-light` in the URL ══════════
+/* ══ Light theme ═════════════════════════════════════════════════════════════
  *
- * Off by default and unreachable without the literal token in location.hash
- * (see apps/youtube/src/content/index.ts). Nothing here applies to a normal
- * page load, so the shipped product is unchanged until the flag is typed.
+ * Applied by the `.vtt-light` class on the panel root, driven by the Theme
+ * control in Settings (Auto / Light / Dark). Auto follows the OS via
+ * prefers-color-scheme. Netflix is dark-only and never gets the class.
  *
  * Palette:
  *   Brand Lime  #C8FF00  active elements, toggles, highlight
@@ -2780,7 +2780,10 @@
     box-shadow: -5px 0 15px rgba(17, 17, 17, 0.12);
 }
 
-.vtt-light #vtt-toggle-btn:hover { background-color: #ffffff; }
+.vtt-light #vtt-toggle-btn:hover,
+.vtt-light #vtt-sidebar.fullscreen #vtt-toggle-btn:hover {
+    background-color: #ffffff;
+}
 
 /* ── Feedback ───────────────────────────────────────────────────────────── */
 .vtt-light .vtt-feedback-text,

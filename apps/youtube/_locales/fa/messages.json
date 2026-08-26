@@ -175,6 +175,10 @@
     "message": "روی ویدیو",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "خاموش",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "کم‌رنگ",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "خط دور",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "زمینه",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "خودکار",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "خودکار — از زمینهٔ سیستم شما پیروی می‌کند",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "روشن",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "تیره",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "بازنشانی",

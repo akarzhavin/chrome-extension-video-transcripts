@@ -175,6 +175,10 @@
     "message": "บนวิดีโอ",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "ปิด",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "จาง",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "เส้นขอบ",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "ธีม",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "อัตโนมัติ",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "อัตโนมัติ — เป็นไปตามธีมของระบบ",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "สว่าง",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "มืด",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "รีเซ็ต",

@@ -175,6 +175,10 @@
     "message": "En el video",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "Ninguno",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "Ligero",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "Contorno",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "Tema",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "Automático",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "Automático: sigue el tema de tu sistema",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "Claro",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "Oscuro",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "Restablecer",

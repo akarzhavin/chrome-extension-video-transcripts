@@ -175,6 +175,10 @@
     "message": "வீடியோவில்",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "ஆஃப்",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "மெல்லிய",
     "description": "Backdrop opacity preset: mostly transparent."
@@ -202,6 +206,26 @@
   "ytEdgeOutline": {
     "message": "அவுட்லைன்",
     "description": "Edge style preset: dark outline around each letter."
+  },
+  "ytThemeLabel": {
+    "message": "தீம்",
+    "description": "Label for the panel theme presets (auto / light / dark)."
+  },
+  "ytThemeAuto": {
+    "message": "தானியங்கு",
+    "description": "Theme preset: follow the operating system's light/dark setting."
+  },
+  "ytThemeAutoTip": {
+    "message": "தானியங்கு — உங்கள் சிஸ்டம் தீமைப் பின்பற்றும்",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
+  "ytThemeLight": {
+    "message": "வெளிர்",
+    "description": "Theme preset: always use the light panel."
+  },
+  "ytThemeDark": {
+    "message": "அடர்",
+    "description": "Theme preset: always use the dark panel."
   },
   "ytStyleReset": {
     "message": "மீட்டமை",

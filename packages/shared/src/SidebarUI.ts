@@ -9,6 +9,7 @@ import {
     Prefs,
     OverlaySizePercent,
     OverlayLevelToken,
+    OverlayBackdropToken,
     OverlayEdgeToken,
     OverlayFontFamily,
     PrefScope,
@@ -46,7 +47,10 @@ const OVERLAY_BOTTOM_PX: Record<OverlayLevelToken, string> = {
     medium: '80px',
     high: '140px',
 };
-const OVERLAY_BG_OPACITY: Record<OverlayLevelToken, string> = {
+const OVERLAY_BG_OPACITY: Record<OverlayBackdropToken, string> = {
+    // 'off' is a real transparent box, not a low step: with no box at all the
+    // Edge control is the only thing keeping glyphs legible over raw video.
+    off: '0',
     low: '0.4',
     medium: '0.7',
     high: '0.9',
@@ -837,11 +841,12 @@ export class SidebarUI {
             wrap,
             msg('ytStyleBgLabel', 'Backdrop'),
             [
+                { value: 'off', html: msg('ytBackdropOff', 'Off') },
                 { value: 'low', html: msg('ytBackdropLight', 'Light') },
                 { value: 'medium', html: msg('ytBackdropMedium', 'Medium') },
                 { value: 'high', html: msg('ytBackdropSolid', 'Solid') },
             ],
-            (v) => this.setOverlayBgOpacity(v as OverlayLevelToken),
+            (v) => this.setOverlayBgOpacity(v as OverlayBackdropToken),
         );
 
         this.elements.styleOffsetBtns = this.buildSegRow(
@@ -1240,7 +1245,7 @@ export class SidebarUI {
         savePrefs({ overlayBottomOffset: v }, this.scope);
     }
 
-    private setOverlayBgOpacity(v: OverlayLevelToken): void {
+    private setOverlayBgOpacity(v: OverlayBackdropToken): void {
         this.overlayStyle.overlayBgOpacity = v;
         this.applyOverlayStyle();
         this.markActiveStyleButtons();

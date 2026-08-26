@@ -247,6 +247,10 @@
     "message": "On-screen",
     "description": "Toggle that shows subtitles on the video itself."
   },
+  "ytBackdropOff": {
+    "message": "Off",
+    "description": "Backdrop opacity preset: no caption box at all, only the text."
+  },
   "ytBackdropLight": {
     "message": "Light",
     "description": "Backdrop opacity preset: mostly transparent."

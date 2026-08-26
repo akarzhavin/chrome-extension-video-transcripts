@@ -63,6 +63,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            theme: 'dark',
         });
     });
 
@@ -139,6 +140,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            theme: 'dark',
         });
     });
 
@@ -375,6 +377,21 @@ describe('prefs', () => {
         expect(p.overlayBottomOffset).toBe('medium');
         expect(p.overlayBgOpacity).toBe('medium');
         expect(typeof p.overlayEnabled).toBe('boolean');
+    });
+
+    test("the backdrop accepts 'off', which Position still rejects", async () => {
+        // 'off' is a real fourth backdrop preset (a fully transparent caption
+        // box), but the two controls no longer share a value set: a caption
+        // still has to sit somewhere, so Position has no 'off' and must fall
+        // back rather than persist it.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: {
+                youtube: { overlayBgOpacity: 'off', overlayBottomOffset: 'off' },
+            },
+        };
+        const p = await loadPrefs('youtube');
+        expect(p.overlayBgOpacity).toBe('off');
+        expect(p.overlayBottomOffset).toBe('medium');
     });
 
     test('savePrefs skips silently when extension context is invalidated', async () => {
