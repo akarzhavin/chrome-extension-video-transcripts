@@ -2391,16 +2391,6 @@ export class SidebarUI {
                 '--vtt-overlay-sub-edge',
                 edgeValue(s.overlayEdgeStyle, hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff'),
             );
-            // Ring for the guess panes, which take the translation colour as
-            // their fill (light theme). The fill is whatever the user picked,
-            // so the ring cannot be a fixed colour: it has to separate the pane
-            // from the caption box for a pale pick AND for a dark one. Same
-            // luminance test as the edges above, emitted as a variable because
-            // CSS cannot branch on a custom property's value.
-            el.style.setProperty(
-                '--vtt-overlay-sub-ring',
-                hexLuminance(s.overlaySubColor) > 0.5 ? 'rgba(17,17,17,0.55)' : 'rgba(255,255,255,0.55)',
-            );
         }
     }
 

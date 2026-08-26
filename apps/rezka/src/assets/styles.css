@@ -3190,31 +3190,32 @@
         0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
-/* The pane takes the TRANSLATION colour — the same hue the second caption line
-   is drawn in (--vtt-overlay-sub-color, gold by default, user-settable). The
-   pane marks the word you are about to reveal, and revealing it is what puts
-   the translation within reach; borrowing that line's colour ties the two
-   without introducing a third hue over the footage.
+/* The pane that opens next is a NEUTRAL light grey — no brand hue and no
+ * borrowed caption colour. It has one job over the footage: say "this word is
+ * next" without adding another colour to a frame that already carries the
+ * video, the caption text and the translation line.
  *
- * Opaque, not translucent: a pane hides its glyphs, so nothing needs to stay
- * legible through it — what must read is the pane against the caption box. A
- * translucent fill over the box's dark body desaturates toward olive/brown and
- * collapses to ~2.8:1 on a bright frame, i.e. the mark disappears exactly when
- * the footage is light.
+ * It is separated from the plain hidden pane by LIGHTNESS, not hue: both sit on
+ * the same dark caption box, so with two greys of similar value the mark would
+ * disappear. Light-on-dark gives 13.5:1 between the two panes on a dark frame
+ * and 9.3:1 on a bright one.
  *
- * The ring is emitted per-colour by applyOverlayStyle() rather than fixed here:
- * the fill is a user setting, so a pale pick needs an ink edge and a dark pick
- * a light one, and CSS cannot branch on a custom property's value. */
+ * #d6d6d2 is the palette's Border one step down. Lighter (#e5e5e2) starts to
+ * merge with the white caption words beside it (1.26:1); darker loses its
+ * footing against the box once the frame goes bright.
+ *
+ * Opaque, like the colour version it replaces: a pane hides its glyphs, so
+ * nothing needs to read through it, and a translucent grey over the box's dark
+ * body would drift with the footage instead of holding one value. */
 .vtt-light .vtt-overlay-main .vtt-next-word {
-    background-color: var(--vtt-overlay-sub-color, #ffd700);
+    background-color: #d6d6d2;
     box-shadow:
-        inset 0 0 0 1px var(--vtt-overlay-sub-ring, rgba(17, 17, 17, 0.55)),
+        inset 0 0 0 1px rgba(17, 17, 17, 0.45),
         0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
-/* Hover deepens rather than lightens: the fill is already at full strength, so
-   there is no brighter step to move to. color-mix keeps this working for any
-   colour the user picks instead of hardcoding a second shade. */
+/* Hover deepens: the pane is already the light end of the pair, so the only
+   direction left that still reads as "the same thing, pressed" is darker. */
 .vtt-light .vtt-overlay-main:hover .vtt-next-word {
-    background-color: color-mix(in srgb, var(--vtt-overlay-sub-color, #ffd700) 85%, #000);
+    background-color: #bcbcb8;
 }
