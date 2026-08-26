@@ -1553,6 +1553,12 @@
 .vtt-masked-word {
     position: relative;
     display: inline-block;
+    /* The peek pins a px width measured off getBoundingClientRect, which is a
+       border-box figure. Under the default content-box that width would have
+       the pane's padding added back on top, so the flip animated toward a box
+       ~17px wider than the word actually needs and then snapped back the
+       moment the pin was released. Here the two agree. */
+    box-sizing: border-box;
     /* A solid pane with real body — the pill is the word's container, so it
        needs height and side padding rather than hugging the glyphs. */
     background: rgba(255, 255, 255, 0.10);
@@ -1569,14 +1575,26 @@
        words without descenders (most of a caption line): the ascent overhang
        all sat above. -0.22em splits the overhang between top and bottom. */
     vertical-align: -0.22em;
+    /* Pins the seating against the overflow change above. An inline-block with
+       overflow:hidden takes its baseline from its bottom margin edge; one with
+       visible overflow takes it from its last line box — so simply dropping the
+       clip re-seated every capsule 6.7px lower in the line. Layout containment
+       gives the box an independent formatting context, which restores the
+       margin-edge baseline without clipping anything. `layout` alone, never
+       `paint`: paint containment would crop the rotating face exactly the way
+       overflow:hidden did. */
+    contain: layout;
     /* An inline-block is an unbreakable box, and .vtt-overlay-main sets
        word-wrap: break-word for long real words — together they made the line
        wrap far earlier than its width required. */
     white-space: nowrap;
     margin: 0 0.02em;
-    /* Clip the blur to the pane. Without this the smear spills past the
-       rounded edge and the capsule stops reading as one solid object. */
-    overflow: hidden;
+    /* No overflow:hidden here. It used to clip the frosted gradient to the
+       rounded edge, but the peek's face rotates INSIDE this box and a clipped
+       box cropped that face top and bottom for the whole turn — the capsule
+       read as a sliver being wiped rather than a card standing on edge. The
+       gradient carries the same border-radius on ::before instead, which
+       rounds it without imposing a clip on anything else in the pane. */
     /* The glyph run only sizes the pane — it must never paint. Colour, not
        display:none, so the text keeps giving the box its width; and the shadow
        must go too: .vtt-overlay-main sets a text-shadow that renders even for
@@ -1593,7 +1611,19 @@
        capsule is small, and a short focal length throws its far edge into a
        distorted wedge. */
     perspective: 320px;
-    transition: background-color 0.16s ease, box-shadow 0.16s ease;
+    /* Width is in here because the two faces are different sizes (the filler is
+       half the word's length, see maskGlyphs). Only the face rotates, so
+       without this the pane, its ring and its shadow snapped from one width to
+       the other in the single frame of the swap — the change the flip exists to
+       conceal, made the loudest thing on screen. flipSpan pins a px width and
+       then sets the target, so this eases the box across the WHOLE turn
+       (2×PEEK_FLIP_MS) while the face turns inside it. linear on purpose: an
+       eased width against an eased rotation reads as two separate moves.
+       0.36s is 2×PEEK_FLIP_MS in SidebarUI.ts: JS unpins the width when the
+       turn ends, so a shorter duration here would be cut off mid-ease and a
+       longer one would snap. Change one, change the other. */
+    transition: background-color 0.16s ease, box-shadow 0.16s ease,
+                width 0.36s linear;
 }
 
 /* Nothing legible inside — the pane is empty frosted glass. Every attempt to
@@ -1606,6 +1636,9 @@
     content: '';
     position: absolute;
     inset: 0;
+    /* Matches .vtt-masked-word's radius: this is what keeps the gradient inside
+       the rounded edge now that the pane no longer clips its children. */
+    border-radius: inherit;
     background:
         radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 70%),
         radial-gradient(ellipse 70% 60% at 50% 90%, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
@@ -1710,6 +1743,13 @@
     .vtt-flipping > .vtt-peek-face {
         transform: none;
         transition: none;
+    }
+    /* The width goes with it — an animated box around an instant swap is the
+       same motion by another name. JS reads the same query and skips its
+       halfway timer, so the text changes on the hover itself rather than after
+       a wait with nothing to look at. */
+    .vtt-masked-word {
+        transition: background-color 0.16s ease, box-shadow 0.16s ease;
     }
 }
 

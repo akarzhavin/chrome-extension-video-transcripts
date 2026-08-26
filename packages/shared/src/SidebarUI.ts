@@ -2206,6 +2206,9 @@ export class SidebarUI {
     // mouseover fires again — measured with a dead-still mouse, OVER/OUT
     // repeating forever and the word never once showing. The span stays flat
     // and keeps the hit area; only its contents turn.
+    // Two halves of 180ms. The stylesheet's `transition: width 0.36s` on
+    // .vtt-masked-word is this doubled — the pane eases across the whole turn
+    // while the face rotates in halves — so the two must move together.
     private static readonly PEEK_FLIP_MS = 180;
     // Keyed by span, NOT one shared timer: sliding the cursor from one capsule
     // to the next closes the first and opens the second in the same breath, and
@@ -2240,8 +2243,38 @@ export class SidebarUI {
     // word when opening, the filler when closing.
     private flipSpan(span: HTMLSpanElement, word: string, peeked: boolean): void {
         this.cancelFlip(span);
+
+        // Asked for less motion: swap now, no turn, no wait. The stylesheet
+        // already drops the rotation, but the 180ms timer is JS — left in, it
+        // gave reduced-motion users a dead zone with no feedback at all, which
+        // is worse than the animation they turned off.
+        if (SidebarUI.prefersReducedMotion()) {
+            span.classList.remove('vtt-flipping');
+            if (!span.isConnected || !span.classList.contains('vtt-masked-word')) return;
+            this.faceOf(span).textContent = word;
+            span.classList.toggle('vtt-peeked-word', peeked);
+            span.style.removeProperty('width');
+            if (!peeked) this.unwrapFace(span);
+            return;
+        }
+
+        // Carry the pane's width across the turn. Only the face rotates, so
+        // without this the pane — its body, its ring and its drop shadow —
+        // jumped from filler width to word width in the single frame of the
+        // swap: the one change the flip exists to hide was the most visible
+        // thing on screen. Pin where it is now, then let CSS ease it to where
+        // the far side needs it over the full 2×PEEK_FLIP_MS, so the box grows
+        // smoothly while the face turns inside it.
+        this.setFlipWidth(span, word);
+
         // First half: rotate the face we are leaving out of sight.
-        this.faceOf(span);
+        // The face may have just been created, in which case flat is its very
+        // first computed style and the browser has nothing to transition FROM —
+        // it snapped straight to 90deg and sat there for the whole first half,
+        // so the turn had no opening move at all, just a pause and a return.
+        // Flushing layout commits the flat pose as the start state.
+        const face = this.faceOf(span);
+        void face.offsetWidth;
         span.classList.add('vtt-flipping');
         const timer = setTimeout(() => {
             this.peekFlips.delete(span);
@@ -2251,16 +2284,71 @@ export class SidebarUI {
             // is no longer ours to write.
             if (!span.isConnected || !span.classList.contains('vtt-masked-word')) {
                 span.classList.remove('vtt-flipping');
+                span.style.removeProperty('width');
                 return;
             }
             this.faceOf(span).textContent = word;
             span.classList.toggle('vtt-peeked-word', peeked);
             span.classList.remove('vtt-flipping');
+            // Hand the width back to the content once the turn is over: a
+            // pinned px width would survive into the next repaint and fight
+            // whatever text lands in the span then. Same moment the closing
+            // turn earns its unwrap — the capsule is frosted and flat again, so
+            // the rotating layer has nothing left to do and a span at rest is
+            // once more exactly the markup the rest of the code expects.
+            const release = setTimeout(() => {
+                this.peekWidthReleases.delete(span);
+                span.style.removeProperty('width');
+                if (!peeked) this.unwrapFace(span);
+            }, SidebarUI.PEEK_FLIP_MS);
+            this.peekWidthReleases.set(span, release);
         }, SidebarUI.PEEK_FLIP_MS);
         this.peekFlips.set(span, timer);
     }
 
+    // Measure what the far side will need and start the pane moving there.
+    // Measured off a detached clone rather than by writing the word into the
+    // live span: the span is on screen mid-turn, and a one-frame flash of the
+    // real word inside a capsule that has not opened yet would give away the
+    // very thing being hidden.
+    private setFlipWidth(span: HTMLSpanElement, word: string): void {
+        const from = span.getBoundingClientRect().width;
+        // jsdom has no layout, so every box measures 0. Nothing to animate.
+        if (!from) return;
+        const probe = span.cloneNode(false) as HTMLSpanElement;
+        probe.textContent = word;
+        probe.style.position = 'absolute';
+        probe.style.visibility = 'hidden';
+        probe.style.width = 'auto';
+        probe.style.left = '-9999px';
+        span.parentElement?.appendChild(probe);
+        const to = probe.getBoundingClientRect().width;
+        probe.remove();
+        if (!to) return;
+        span.style.width = `${from}px`;
+        // Force the pinned width to take before the target overwrites it,
+        // otherwise the browser coalesces both into one style and never
+        // transitions.
+        void span.offsetWidth;
+        span.style.width = `${to}px`;
+    }
+
+    // Width releases are tracked so a repaint can drop a pinned px width that
+    // would otherwise outlive the span's turn.
+    private peekWidthReleases = new Map<HTMLSpanElement, ReturnType<typeof setTimeout>>();
+
+    // Read fresh each time rather than cached: the OS setting can change while
+    // the page is open, and a peek is cheap enough to ask on.
+    private static prefersReducedMotion(): boolean {
+        return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+    }
+
     private cancelFlip(span: HTMLSpanElement): void {
+        const release = this.peekWidthReleases.get(span);
+        if (release !== undefined) {
+            clearTimeout(release);
+            this.peekWidthReleases.delete(span);
+        }
         const timer = this.peekFlips.get(span);
         if (timer === undefined) return;
         clearTimeout(timer);
@@ -2270,6 +2358,19 @@ export class SidebarUI {
     private cancelAllFlips(): void {
         this.peekFlips.forEach((timer) => clearTimeout(timer));
         this.peekFlips.clear();
+        this.peekWidthReleases.forEach((timer, span) => {
+            clearTimeout(timer);
+            span.style.removeProperty('width');
+        });
+        this.peekWidthReleases.clear();
+    }
+
+    // Let go of the peek without touching the span — for the paths where the
+    // spans are going away (or already gone from view) and so must not be
+    // written to. peekOff is the opposite: it closes the capsule on screen.
+    private dropPeek(): void {
+        this.peekedSpan = null;
+        this.cancelAllFlips();
     }
 
     private peekOn(span: HTMLSpanElement): void {
@@ -2293,6 +2394,7 @@ export class SidebarUI {
         if (!span.classList.contains('vtt-masked-word')) {
             this.cancelFlip(span);
             span.classList.remove('vtt-flipping', 'vtt-peeked-word');
+            span.style.removeProperty('width');
             this.unwrapFace(span);
             return;
         }
@@ -2343,8 +2445,18 @@ export class SidebarUI {
     // not of time, and three of them can span a rapid exchange or half a minute
     // of silence. What separates "this line" from "over there" is how far the
     // video has to move.
+    //
+    // Measured to the nearest point of the cue, not to its start: a film cue
+    // routinely runs 5-7s, so measuring from startTime alone made a long line
+    // un-revealable as soon as playback was REVEAL_REACH_S into it — and the
+    // click then seeked backwards to the cue start, which is the opposite of
+    // what pressing the line you are watching should do. Pausing mid-cue hit
+    // the same wall. While the playhead is anywhere inside the cue the
+    // distance is zero, which is the honest answer: that IS the line you are
+    // on, however long it lasts.
     private isNavigationClick(sub: Subtitle): boolean {
-        return Math.abs(sub.startTime - this.playbackTime) > SidebarUI.REVEAL_REACH_S;
+        const nearest = Math.min(Math.max(this.playbackTime, sub.startTime), sub.endTime);
+        return Math.abs(nearest - this.playbackTime) > SidebarUI.REVEAL_REACH_S;
     }
 
     // Every sidebar route into guess mode goes through here, so the
@@ -2440,7 +2552,18 @@ export class SidebarUI {
         const existing = document.getElementById('vtt-video-overlay');
 
         if (!this.state.overlayEnabled) {
-            if (existing) existing.style.display = 'none';
+            if (existing) {
+                existing.style.display = 'none';
+                // Forget the signature along with the peek. The children stay
+                // in the DOM while hidden, so without this the sig check would
+                // short-circuit the rebuild when the overlay comes back and
+                // hand back the very capsule that was open under the cursor —
+                // face-up, showing a word nobody revealed, with no cursor on it
+                // to close it again. Guess mode's whole contract is that a
+                // peeked word is masked the moment the cursor leaves.
+                delete existing.dataset.sig;
+            }
+            this.dropPeek();
             return;
         }
 
@@ -2478,8 +2601,7 @@ export class SidebarUI {
         // The peeked span is about to be detached with the rest of the
         // children; drop the reference so peekOff never touches an orphan, and
         // cancel any half-finished flip along with it.
-        this.peekedSpan = null;
-        this.cancelAllFlips();
+        this.dropPeek();
         overlay.innerHTML = '';
         if (!sub) return;
 

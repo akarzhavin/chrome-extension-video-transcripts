@@ -417,6 +417,41 @@ describe('SidebarUI', () => {
                 expect(state.getRevealedCount(1)).toBe(2);
             });
 
+            test('a long cue stays revealable all the way through', () => {
+                // Film cues routinely run 5-7s. Measuring only to startTime made
+                // a line un-revealable once playback was REVEAL_REACH_S into it
+                // — and the click then seeked BACKWARDS to the cue start, which
+                // is the opposite of pressing the line you are watching. While
+                // the playhead is inside the cue, the distance is zero.
+                state.displayMode = 'guess';
+                state.addTrack('English', [
+                    { startTime: 0, endTime: 8, text: 'alpha beta gamma' },
+                ] as Subtitle[]);
+                ui.renderSubtitles();
+                ui.highlightSubtitle(7); // 7s in — well past the 5s reach
+                const list = ui.elements.list!;
+
+                itemAt(list, 0).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(state.getRevealedCount(0)).toBe(2);
+            });
+
+            test('a line just off the end of a long cue is still navigation', () => {
+                // The clamp must not turn the reach into "anywhere near a long
+                // line": past the cue's own end, the reach applies as before.
+                state.displayMode = 'guess';
+                state.addTrack('English', [
+                    { startTime: 0, endTime: 8, text: 'alpha beta gamma' },
+                    { startTime: 40, endTime: 42, text: 'delta epsilon zeta' },
+                ] as Subtitle[]);
+                ui.renderSubtitles();
+                ui.highlightSubtitle(7);
+                const list = ui.elements.list!;
+
+                itemAt(list, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(40);
+                expect(state.getRevealedCount(1)).toBe(1);
+            });
+
             test('a jump then a second click on the same line reveals it', () => {
                 // The video's currentTime lags a seek, so the sidebar records
                 // where it sent playback. Without that, this second click would
@@ -647,6 +682,102 @@ describe('SidebarUI', () => {
                 over(masked);
                 settleFlip();
                 expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
+            });
+
+            test('turning the overlay off and on again does not bring the peek back', () => {
+                // The hidden overlay keeps its children, so the signature check
+                // used to short-circuit the rebuild and hand back the capsule
+                // that was open under the cursor — face-up, showing a word
+                // nobody revealed, and with no cursor on it to close it.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                over(masked);
+                settleFlip();
+                expect(masked.textContent).toBe('beta');
+
+                state.overlayEnabled = false;
+                ui.updateOverlay(0);
+                state.overlayEnabled = true;
+                ui.updateOverlay(0);
+                settleFlip();
+
+                const after = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                expect(after.textContent).not.toBe('beta');
+                expect(after.classList.contains('vtt-peeked-word')).toBe(false);
+                expect(overlay.querySelectorAll('.vtt-peeked-word')).toHaveLength(0);
+            });
+
+            test('the rotating layer is gone once the capsule is frosted again', () => {
+                // A span at rest must be exactly the markup the rest of the code
+                // expects — no leftover .vtt-peek-face wrapper.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+
+                over(masked);
+                settleFlip();
+                expect(masked.querySelector('.vtt-peek-face')).not.toBeNull();
+
+                out(masked);
+                settleFlip();  // halfway swap
+                settleFlip();  // the turn finishes and the layer is folded away
+                expect(masked.querySelector('.vtt-peek-face')).toBeNull();
+                expect(masked.textContent).toBe(masked.dataset.mask);
+            });
+
+            describe('reduced motion', () => {
+                // The stylesheet already drops the rotation, but the halfway
+                // timer is JS: left in, it gave anyone who asked for less motion
+                // a 180ms dead zone with no feedback at all — worse than the
+                // animation they turned off.
+                const setReducedMotion = (on: boolean) => {
+                    window.matchMedia = ((q: string) => ({
+                        matches: on && q.includes('prefers-reduced-motion'),
+                        media: q, onchange: null,
+                        addListener: () => {}, removeListener: () => {},
+                        addEventListener: () => {}, removeEventListener: () => {},
+                        dispatchEvent: () => false,
+                    })) as unknown as typeof window.matchMedia;
+                };
+                afterEach(() => {
+                    delete (window as { matchMedia?: unknown }).matchMedia;
+                });
+
+                test('the word swaps on the hover itself, with no wait', () => {
+                    setReducedMotion(true);
+                    const overlay = buildGuessOverlay();
+                    const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+
+                    over(masked);
+                    // No settleFlip: the swap must already have happened.
+                    expect(masked.textContent).toBe('beta');
+                    expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
+                    expect(masked.classList.contains('vtt-flipping')).toBe(false);
+                });
+
+                test('and closes just as immediately', () => {
+                    setReducedMotion(true);
+                    const overlay = buildGuessOverlay();
+                    const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                    over(masked);
+                    const filler = masked.dataset.mask;
+
+                    out(masked);
+                    expect(masked.textContent).toBe(filler);
+                    expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
+                    expect(masked.querySelector('.vtt-peek-face')).toBeNull();
+                });
+
+                test('with motion allowed the turn still takes its time', () => {
+                    setReducedMotion(false);
+                    const overlay = buildGuessOverlay();
+                    const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+
+                    over(masked);
+                    expect(masked.classList.contains('vtt-flipping')).toBe(true);
+                    expect(masked.textContent).not.toBe('beta');
+                    settleFlip();
+                    expect(masked.textContent).toBe('beta');
+                });
             });
         });
     });
