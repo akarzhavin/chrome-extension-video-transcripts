@@ -196,13 +196,16 @@ export const SIDEBAR_CHROME_CSS = `
         border-color: rgba(248, 113, 113, 0.6);
         background: rgba(239, 68, 68, 0.16);
     }
-    /* Flex child of the sub-header row: shrinks (names ellipsize) rather than
-       pushing the quick-mode icons out. It's a button (swaps the pair), so
-       block the text selection the sidebar forces on for transcript quick-add. */
+    /* Header-left slot, the mirror of the settings gear on the right; the
+       centered title sits between them, and #vtt-header-top's align-items
+       centers the chip vertically (absolute children take their static
+       position). It's a button (swaps the pair), so block the text selection
+       the sidebar forces on for transcript quick-add. */
     #vtt-langpair {
         display: flex;
+        position: absolute;
+        left: 16px;
         min-width: 0;
-        margin: 6px 0 10px;
         -webkit-user-select: none;
         user-select: none;
     }
@@ -384,13 +387,14 @@ export abstract class BaseVttApp implements AppInterface {
         }
     }
 
-    // A "🇪🇸 Español → 🇬🇧 English" chip under the header reflecting the chosen
-    // pair, so it's always clear which two languages are in play.
+    // An "EN ⇄ RU" chip at the header's left edge (mirroring the settings gear
+    // on the right) reflecting the chosen pair, so it's always clear which two
+    // languages are in play.
     updateLanguagePairChip(): void {
-        // Mount ONLY into our own sub-header slot. No header-top fallback: the
-        // ids are shared across extension versions, so a fallback would graft
-        // the chip into a sidebar built by another installed copy.
-        const subheader = document.getElementById('vtt-subheader');
+        // Mount ONLY into our own header slot, no fallbacks: the ids are
+        // shared across extension versions, so a fallback would graft the
+        // chip into a sidebar built by another installed copy.
+        const headerTop = document.getElementById('vtt-header-top');
         const existing = document.getElementById('vtt-langpair');
         if (!this.langPrefs) {
             existing?.remove();
@@ -432,7 +436,7 @@ export abstract class BaseVttApp implements AppInterface {
                 }
             });
         }
-        if (!existing && subheader) subheader.prepend(chip);
+        if (!existing && headerTop) headerTop.prepend(chip);
     }
 
     showLanguageOnboarding(): void {

@@ -260,18 +260,18 @@ export function mount(options: EmbedOptions): EmbedInstance {
     };
 }
 
-// The "EN ⇄ RU" chip in the sidebar's sub-header, ported from the extensions'
-// app-base.ts (updateLanguagePairChip). It lives in each app rather than in
-// SidebarUI, so an embed that only implements AppInterface would otherwise be
-// missing it — and the chip is not decoration: it IS the swap control, so
-// without it the demo has no way to flip which language leads.
+// The "EN ⇄ RU" chip at the left edge of the sidebar's header, ported from the
+// extensions' app-base.ts (updateLanguagePairChip). It lives in each app
+// rather than in SidebarUI, so an embed that only implements AppInterface
+// would otherwise be missing it — and the chip is not decoration: it IS the
+// swap control, so without it the demo has no way to flip which language leads.
 function renderLanguagePairChip(state: AppState, ui: SidebarUI, tracks: EmbedTrack[]): void {
-    const subheader = document.getElementById('vtt-subheader');
-    if (!subheader || document.getElementById('vtt-langpair')) return;
-    // Only ever mount into OUR sidebar. #vtt-subheader is a shared id, so
+    const headerTop = document.getElementById('vtt-header-top');
+    if (!headerTop || document.getElementById('vtt-langpair')) return;
+    // Only ever mount into OUR sidebar. #vtt-header-top is a shared id, so
     // without this the chip lands in a foreign panel (see the ownership note in
     // mount) and becomes a control that clicks but never changes anything.
-    if (!subheader.closest('[data-lge-sidebar]')) return;
+    if (!headerTop.closest('[data-lge-sidebar]')) return;
 
     // Codes come from the tracks themselves; a track without `lang` shows its
     // name instead, which is still readable ("English ⇄ Русский").
@@ -316,7 +316,7 @@ function renderLanguagePairChip(state: AppState, ui: SidebarUI, tracks: EmbedTra
         }
     });
 
-    subheader.prepend(chip);
+    headerTop.prepend(chip);
 }
 
 // The mascot from the extension's real player button

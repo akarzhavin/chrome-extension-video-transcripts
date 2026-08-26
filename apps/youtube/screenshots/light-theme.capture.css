@@ -251,6 +251,13 @@
 .vtt-ytp-row--status-info { color: #4a4a4a; }
 #vtt-ytp-menu-modes, #vtt-ytp-menu-panel { border-top: 1px solid #e5e5e2; }
 .vtt-ytp-row--back { color: #4a4a4a; border-bottom: 1px solid #e5e5e2; }
+/* On-screen row's switch: light off-track + shadowed knob; the on-track is
+   lime via --vtt-accent above. */
+.vtt-ytp-switch { background: #d6d6d2; }
+.vtt-ytp-switch::after {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
 
 /* ── Panel tail rows + switch ───────────────────────────────────────────── */
 .vtt-panel-row { border-top: 1px solid #e5e5e2; }
@@ -280,13 +287,12 @@
   box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
 }
 
-/* The on-screen toggle is a separate control from the mode segment, but with
-   both filled lime they read as two active modes. The segment keeps the solid
-   lime thumb (it marks an exclusive choice); the toggle states "on" with a
-   lime ring over white instead. */
-.vtt-qm-toggle.active {
+/* The on-screen toggle is an independent switch; its TRACK carries the state
+   (lime = on, via --vtt-accent above), so the button itself stays unfilled —
+   filled lime next to the segment read as two active modes. */
+.vtt-qm-toggle.active { color: #111111; }
+.vtt-qm-switch { background: #d6d6d2; }
+.vtt-qm-switch::after {
   background: #ffffff;
-  color: #111111;
-  box-shadow: inset 0 0 0 2px #c8ff00;
+  box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
 }
-.vtt-qm-toggle.active:hover { background: #f7f7f5; }
