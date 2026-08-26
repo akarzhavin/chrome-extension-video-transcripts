@@ -874,26 +874,53 @@
     box-shadow: 0 0 0 2px var(--vtt-accent-ring);
 }
 
-/* On-screen: independent toggle, so a standalone filled+ring button (not part
-   of the segment). Focus ring declared AFTER .active (equal specificity —
-   source order decides) so an active button keeps its ring. */
-.vtt-qm-toggle.active {
-    background: var(--vtt-accent-hover);
-    color: #eaf6ff;
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
+/* On-screen: independent toggle, drawn as a real switch — icon + track/knob —
+   rather than a filled button, which only read as "on" against the memory of
+   its unfilled self. .active (set in updateControls) slides the knob and
+   lights the track. */
+.vtt-qm-toggle {
+    width: auto;
+    padding: 0 6px;
+    gap: 5px;
 }
 
-.vtt-qm-toggle.active:hover {
-    background: var(--vtt-accent-hover);
+.vtt-qm-toggle.active {
+    color: #fff;
+}
+
+.vtt-qm-switch {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 13px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background-color 0.15s;
+}
+
+.vtt-qm-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s ease;
+}
+
+.vtt-qm-toggle.active .vtt-qm-switch {
+    background: var(--vtt-accent);
+}
+
+.vtt-qm-toggle.active .vtt-qm-switch::after {
+    transform: translateX(9px);
 }
 
 .vtt-qm-toggle:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--vtt-accent-ring);
-}
-
-.vtt-qm-toggle.active:focus-visible {
-    box-shadow: inset 0 0 0 1px var(--vtt-accent-border), 0 0 0 2px var(--vtt-accent-border-strong);
 }
 
 /* Hairline: exclusive mode choice (left) vs. independent overlay toggle. */
@@ -1113,6 +1140,53 @@
 
 .vtt-theme-strip .vtt-seg-btn {
     padding: 4px;
+}
+
+/* Live readout: the active mode's name, always on screen — the icons never
+   have to be decoded to answer "which one is on right now?". margin-left:auto
+   eats the row's free space, parking the name against the segment. */
+.vtt-theme-value {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vtt-text);
+}
+
+/* Per-option bubbles: the quickmodes data-tip pattern, not native title —
+   title waits ~1s, these show at 0.15s. Ink bubble in both themes: a tooltip
+   is an overlay, not a card (same treatment the light theme gives every other
+   tip). Anchored below the button; the strip sits at the panel's top, so
+   there is always room underneath. */
+.vtt-theme-strip [data-tip] {
+    position: relative;
+}
+
+.vtt-theme-strip [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translate(-50%, -2px);
+    background: #14161f;
+    color: #dfe3f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+}
+
+.vtt-theme-strip [data-tip]:hover::after,
+.vtt-theme-strip [data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 0.15s;
 }
 
 /* Fine-grained size control: a 50-400% range slider with a live percent
@@ -2453,6 +2527,39 @@
     opacity: 1;
 }
 
+/* On-screen row: a switch, not a check — the row toggles a state rather than
+   picking one of a set, and the knob's position names which state you're in.
+   Same anatomy as the sidebar's .vtt-switch, sized for the menu row. */
+.vtt-ytp-row--switch .vtt-ytp-switch {
+    position: relative;
+    flex: none;
+    width: 26px;
+    height: 15px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background-color 0.15s;
+}
+
+.vtt-ytp-row--switch .vtt-ytp-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s ease;
+}
+
+.vtt-ytp-row--switch[aria-checked='true'] .vtt-ytp-switch {
+    background: var(--vtt-accent);
+}
+
+.vtt-ytp-row--switch[aria-checked='true'] .vtt-ytp-switch::after {
+    transform: translateX(11px);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .vtt-ytp-row,
     .vtt-ytp-row--switch .vtt-ytp-switch,
@@ -2563,7 +2670,9 @@
     .vtt-panel-row,
     .vtt-panel-row > svg,
     .vtt-switch,
-    .vtt-switch::after {
+    .vtt-switch::after,
+    .vtt-qm-switch,
+    .vtt-qm-switch::after {
         transition: none;
     }
 }
@@ -2726,16 +2835,19 @@
 .vtt-light .vtt-modeseg .vtt-qm:not(.active) { color: #4a4a4a; }
 .vtt-light .vtt-modeseg .vtt-qm:not(.active):hover { color: #111111; }
 
-/* The on-screen toggle is an independent control, not part of the exclusive
-   mode segment. Filled lime on both made them read as two active modes, so
-   the segment keeps the solid thumb and the toggle states "on" with a ring. */
-.vtt-light .vtt-qm-toggle.active {
-    background: #ffffff;
-    color: #111111;
-    box-shadow: inset 0 0 0 2px #c8ff00;
-}
+/* The on-screen toggle is an independent switch; its TRACK carries the state
+   (lime = on, via --vtt-accent in the base rule), so the button itself stays
+   unfilled — filled lime next to the segment read as two active modes. */
+.vtt-light .vtt-qm-toggle.active { color: #111111; }
 
-.vtt-light .vtt-qm-toggle.active:hover { background: #f7f7f5; }
+/* Off-state needs a track dark enough to show the white knob (same reasoning
+   as .vtt-light .vtt-switch below). */
+.vtt-light .vtt-qm-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-qm-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
+}
 
 /* ── Tooltips ───────────────────────────────────────────────────────────── */
 .vtt-light #vtt-quickmodes [data-tip]::after {
@@ -2931,6 +3043,15 @@
 .vtt-light .vtt-ytp-row--back {
     color: #4a4a4a;
     border-bottom: 1px solid #e5e5e2;
+}
+
+/* On-screen row's switch: light off-track + shadowed knob; the on-track comes
+   from --vtt-accent (lime) via the base rule. */
+.vtt-light .vtt-ytp-switch { background: #d6d6d2; }
+
+.vtt-light .vtt-ytp-switch::after {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.25);
 }
 
 /* The player-bar buttons (.vtt-ytp-*-btn) are deliberately NOT re-themed:

@@ -283,6 +283,10 @@
     "message": "Auto",
     "description": "Theme preset: follow the operating system's light/dark setting."
   },
+  "ytThemeAutoTip": {
+    "message": "Auto — follows your system theme",
+    "description": "Tooltip for the Auto theme preset, explaining that it tracks the OS light/dark setting."
+  },
   "ytThemeLight": {
     "message": "Light",
     "description": "Theme preset: always use the light panel."

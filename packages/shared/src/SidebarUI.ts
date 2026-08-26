@@ -399,6 +399,33 @@ export class SidebarUI {
             ],
             (v) => this.setTheme(v as ThemeToken),
         );
+        // The icons need to answer "which is active?" and "what does this one
+        // do?" faster than a native title tooltip (~1s hover delay) can.
+        // Two moves:
+        //  - a live readout of the active mode's name sits right before the
+        //    segment, so the answer is on screen with no hover at all;
+        //  - the per-option bubbles reuse the quickmodes data-tip pattern
+        //    (instant CSS, ~0.15s) instead of `title`. The native title is
+        //    removed so the browser doesn't stack its slow bubble on top,
+        //    and aria-label keeps the name the title used to provide.
+        {
+            const row = themeStrip.querySelector('.vtt-style-row');
+            const value = document.createElement('span');
+            value.className = 'vtt-theme-value';
+            this.elements.themeValueEl = value;
+            row?.insertBefore(value, row.querySelector('.vtt-seg'));
+            const tips: Record<string, string> = {
+                auto: msg('ytThemeAutoTip', 'Auto — follows your system theme'),
+                light: msg('ytThemeLight', 'Light'),
+                dark: msg('ytThemeDark', 'Dark'),
+            };
+            for (const b of this.elements.themeBtns) {
+                const v = b.dataset.value ?? '';
+                b.setAttribute('aria-label', b.title);
+                b.removeAttribute('title');
+                b.dataset.tip = tips[v] ?? v;
+            }
+        }
         settingsPanel.appendChild(themeStrip);
 
         // -- Group 1: Languages ------------------------------------------------
@@ -1073,6 +1100,9 @@ export class SidebarUI {
         mark(this.elements.styleBgBtns, this.overlayStyle.overlayBgOpacity);
         mark(this.elements.styleEdgeBtns, this.overlayStyle.overlayEdgeStyle);
         mark(this.elements.themeBtns, this.theme);
+        if (this.elements.themeValueEl) {
+            this.elements.themeValueEl.textContent = this.themeName(this.theme);
+        }
     }
 
     /**
@@ -1216,6 +1246,12 @@ export class SidebarUI {
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
         savePrefs({ overlayEdgeStyle: v }, this.scope);
+    }
+
+    private themeName(t: ThemeToken): string {
+        return t === 'auto' ? msg('ytThemeAuto', 'Auto')
+            : t === 'light' ? msg('ytThemeLight', 'Light')
+            : msg('ytThemeDark', 'Dark');
     }
 
     // No scope argument: the theme is global (see Prefs.theme). Applied before

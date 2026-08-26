@@ -40,8 +40,6 @@ export interface SidebarElements {
   settingsPanel?: HTMLDivElement;
   mainSelect?: HTMLSelectElement;
   subSelect?: HTMLSelectElement;
-  dualBtn?: HTMLButtonElement;
-  overlayBtn?: HTMLButtonElement;
   list?: HTMLDivElement;
   // Overlay-style preset buttons, each carrying a data-value; markActiveStyleButtons
   // toggles the .active class (and slides the segmented thumb) by matching
@@ -54,6 +52,8 @@ export interface SidebarElements {
   styleBgBtns?: HTMLButtonElement[];
   styleEdgeBtns?: HTMLButtonElement[];
   themeBtns?: HTMLButtonElement[];
+  // Live readout of the active theme's localized name (the theme strip).
+  themeValueEl?: HTMLSpanElement;
   // Font family dropdown (a full-width row — the CEA-708 class names run too
   // long for the standard label-column layout the segmented rows use).
   styleFontSelect?: HTMLSelectElement;
@@ -61,10 +61,6 @@ export interface SidebarElements {
   // percent readouts.
   styleSizeSlider?: SliderRowElements;
   styleSubSizeSlider?: SliderRowElements;
-  // Live overlay preview inside the settings panel.
-  previewEl?: HTMLDivElement;
-  previewMain?: HTMLDivElement;
-  previewSub?: HTMLDivElement;
   // Settings-takeover navigation: header title (swaps Subtitles ↔ Settings)
   // and the "‹ Subtitles" back chip.
   titleEl?: HTMLHeadingElement;
