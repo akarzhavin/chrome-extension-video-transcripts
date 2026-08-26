@@ -6,6 +6,15 @@ const track = (lang: string, name = lang): CaptionTrack => ({
     name,
 });
 
+// Auto-generated (speech recognition) counterpart of the same language. YouTube
+// lists these FIRST, which is what made the naive first-match pick them.
+const asr = (lang: string): CaptionTrack => ({
+    baseUrl: `https://yt/${lang}-asr`,
+    lang,
+    name: `${lang} (auto-generated)`,
+    kind: 'asr',
+});
+
 const VID = 'vid123';
 
 describe('planTrackRequests', () => {
@@ -86,6 +95,56 @@ describe('planTrackRequests', () => {
         )!;
         expect(plan.requests).toHaveLength(1);
         expect(plan.requests[0]).toMatchObject({ name: 'English', baseUrl: 'https://yt/en' });
+    });
+
+    // Measured on a live video (EDap9qxb96k): the catalog listed `asr` at index
+    // 0 and the human track at index 1, while every audioTracks entry set
+    // defaultCaptionTrackIndex: 1. The player rendered the human track; taking
+    // the first language match rendered the ASR one, so our captions were cut
+    // mid-sentence where YouTube's broke on clauses.
+    test('prefers the human track over auto-generated for the same language', () => {
+        const plan = planTrackRequests(
+            { learning: 'en', native: 'ru' },
+            [asr('en'), track('en'), track('ru')],
+            VID,
+        )!;
+        expect(plan.requests[0]).toEqual({
+            key: `${VID}:English`, name: 'English', baseUrl: 'https://yt/en',
+        });
+    });
+
+    test('prefers the human track for the native language too', () => {
+        const plan = planTrackRequests(
+            { learning: 'en', native: 'ru' },
+            [track('en'), asr('ru'), track('ru')],
+            VID,
+        )!;
+        expect(plan.requests[1]).toEqual({
+            key: `${VID}:Russian`, name: 'Russian', baseUrl: 'https://yt/ru',
+        });
+    });
+
+    test('falls back to the ASR track when it is the only one', () => {
+        // Auto-generated captions still beat showing none.
+        const plan = planTrackRequests(
+            { learning: 'en', native: 'ru' },
+            [asr('en')],
+            VID,
+        )!;
+        expect(plan.requests[0]).toMatchObject({ name: 'English', baseUrl: 'https://yt/en-asr' });
+        expect(plan.requests[0].tlang).toBeUndefined();
+    });
+
+    test('machine-translates from the human track, not the ASR one', () => {
+        // The translation inherits the source's grouping, so translating the
+        // auto-generated stream would reproduce its mid-sentence cuts.
+        const plan = planTrackRequests(
+            { learning: 'de', native: 'ru' },
+            [asr('en'), track('en')],
+            VID,
+        )!;
+        expect(plan.requests[0]).toMatchObject({ name: 'German', tlang: 'de', baseUrl: 'https://yt/en' });
+        expect(plan.requests[1]).toMatchObject({ name: 'Russian', tlang: 'ru', baseUrl: 'https://yt/en' });
     });
 
     test('does not reuse the same track for both slots', () => {
