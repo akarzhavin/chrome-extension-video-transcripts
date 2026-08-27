@@ -1,0 +1,38 @@
+{
+  "name": "fullscreen",
+  "version": "1.0.0",
+  "title": "Fullscreen slide — the product edge to edge over swappable footage",
+  "style": "No slide ground of its own: the video frame IS the slide. Headline sits over a left-weighted scrim, panel on the right, dual captions bottom-centre.",
+  "run": "node pipelines/fullscreen@1/render.mjs [--backdrop <path>] [--variant base|warm]",
+  "sourceOfTruth": "slide.html + assets/panel.css — the panel is REBUILT in HTML, not captured",
+  "inputs": {
+    "assets": [
+      "assets/panel.css",
+      "assets/slide.css",
+      "assets/warm.css",
+      "assets/backdrop.jpg"
+    ],
+    "note": "This pipeline reads NO shared product captures — the one pipeline that doesn't. Everything it needs is vendored beside it, so the backdrop is a parameter (--backdrop) instead of pixels welded behind a screenshot."
+  },
+  "outputs": {
+    "dir": "out/fullscreen@1",
+    "files": [
+      "fullscreen.png (1280x800, CWS size) + fullscreen@2x.png (2560x1600)",
+      "fullscreen-warm.png + fullscreen-warm@2x.png — the --variant warm render"
+    ],
+    "intermediates": "shots/fullscreen@1"
+  },
+  "whyRebuiltNotCaptured": [
+    "In fullscreen SidebarUI re-parents the panel INTO #movie_player, so any capture of it carries that player's frame behind it.",
+    "Keying the video out was tried twice and failed: a key layer above the video also covers the caption overlay (both are children of the player), and one below it disappears the moment the tab leaves fullscreen, when position:fixed spans the whole viewport.",
+    "Rebuilding turns the backdrop into an input. Swapping footage is now one flag, with no browser, no login, and no YouTube."
+  ],
+  "knownIssues": [
+    "The panel is a REPLICA, not a capture. Values were measured from the running extension over CDP on 2026-08-27 (getComputedStyle: panel 320px/#F7F7F5, card #FFF/1px #E5E5E2/r8/p14, original 14px/21px #4A4A4A, translation 13px/19.5px #7B2CFF). If the product's panel changes, this slide keeps showing the old one until assets/panel.css is updated — no capture check can catch that drift.",
+    "Caption sizes are the shipped defaults resolved at 1280px, not at the 1920px reference the product tunes against, so they read slightly larger relative to the frame than in a real 1080p fullscreen session."
+  ],
+  "variants": {
+    "base": "Panel in the shipped light theme: neutral-cool #F7F7F5 ground.",
+    "warm": "assets/warm.css layers ~2-3 points of red over blue onto the panel's greys only (ground #F8F6F2, surface #FFFDFA, border #E8E4DE). Accents, type colours and all geometry are untouched, so the panel is still the product's. It exists because the cool ground meets a warm frame and the seam down the panel's left edge reads as a paste-up. Contrast was re-measured after the shift: original text 8.7:1, translation 5.7:1 on the card, 5.5:1 on the active card — all still AA."
+  }
+}
