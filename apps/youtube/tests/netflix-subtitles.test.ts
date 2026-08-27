@@ -8,6 +8,7 @@ import {
     buildLanguageCatalog,
     trackForBaseCode,
     isManifestForCurrentTitle,
+    mergeCuesByTime,
     WEBVTT_PROFILE,
     NetflixRawTrack,
 } from '../src/content/netflix/subtitles';
@@ -306,5 +307,73 @@ describe('isManifestForCurrentTitle', () => {
     test('rejects a manifest with no movieId', () => {
         expect(isManifestForCurrentTitle(null, '111')).toBe(false);
         expect(isManifestForCurrentTitle('', '')).toBe(false);
+    });
+});
+
+// Netflix encodes a two-line caption as two cues sharing one timecode, ordered
+// by their `line:` placement rather than by their order in the file. Parsed
+// literally, the overlay showed one half and dropped the other. Shape measured
+// live on title 70044867 (3585 cues / 2102 distinct timecodes, 1217 shared).
+describe('mergeCuesByTime', () => {
+    const cue = (startTime: number, endTime: number, text: string, line?: number) =>
+        (line === undefined ? { startTime, endTime, text } : { startTime, endTime, text, line });
+
+    test('joins two cues that share a timecode, ordered by line', () => {
+        const merged = mergeCuesByTime([
+            cue(1, 2, 'second half', 84.62),
+            cue(1, 2, 'first half', 79.29),
+        ]);
+        expect(merged).toEqual([{ startTime: 1, endTime: 2, text: 'first half second half' }]);
+    });
+
+    test('orders by line even when the file order already matches', () => {
+        // The same track flips between both orders, so neither can be assumed.
+        const merged = mergeCuesByTime([
+            cue(5, 6, 'upper', 79.29),
+            cue(5, 6, 'lower', 84.62),
+        ]);
+        expect(merged[0].text).toBe('upper lower');
+    });
+
+    test('merges three cues (the observed maximum)', () => {
+        const merged = mergeCuesByTime([
+            cue(1, 2, 'c', 88),
+            cue(1, 2, 'a', 79),
+            cue(1, 2, 'b', 84),
+        ]);
+        expect(merged).toHaveLength(1);
+        expect(merged[0].text).toBe('a b c');
+    });
+
+    test('leaves single-cue captions untouched, line and all', () => {
+        const subs = [cue(1, 2, 'alone', 84.62)];
+        expect(mergeCuesByTime(subs)).toEqual(subs);
+    });
+
+    test('is a no-op for a track with no placement at all', () => {
+        // Single-line languages (and YouTube/rezka sources) carry no `line`.
+        const subs = [cue(1, 2, 'one'), cue(3, 4, 'two')];
+        expect(mergeCuesByTime(subs)).toEqual(subs);
+    });
+
+    test('does not merge captions whose timecodes only nearly match', () => {
+        // Consecutive captions, not two halves of one.
+        const subs = [cue(1, 2, 'one', 84.62), cue(2, 3, 'two', 84.62)];
+        expect(mergeCuesByTime(subs)).toHaveLength(2);
+    });
+
+    test('returns cues in time order', () => {
+        const merged = mergeCuesByTime([
+            cue(9, 10, 'late'),
+            cue(1, 2, 'lower', 84.62),
+            cue(1, 2, 'upper', 79.29),
+        ]);
+        expect(merged.map((s) => s.startTime)).toEqual([1, 9]);
+        expect(merged[0].text).toBe('upper lower');
+    });
+
+    test('keeps file order for unplaced cues sharing a timecode', () => {
+        const merged = mergeCuesByTime([cue(1, 2, 'first'), cue(1, 2, 'second')]);
+        expect(merged[0].text).toBe('first second');
     });
 });

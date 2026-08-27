@@ -2,6 +2,16 @@ export interface Subtitle {
   startTime: number;
   endTime: number;
   text: string;
+  /**
+   * Vertical placement from the WebVTT `line:` cue setting, as a percentage
+   * from the top (79.29 sits above 84.62). Undefined when the cue carried no
+   * setting — YouTube's timedtext and rezka's files never do.
+   *
+   * Netflix needs it: it encodes a two-line caption as two cues sharing one
+   * timecode, and their FILE order does not follow their screen order, so
+   * `line` is the only thing that says which half is the top one.
+   */
+  line?: number;
 }
 
 export interface Track {
