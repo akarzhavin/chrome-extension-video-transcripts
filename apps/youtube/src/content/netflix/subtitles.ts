@@ -2,6 +2,7 @@ import {
     labelForLanguage,
     LanguageChoice,
     LanguagePrefs,
+    Subtitle,
     SUPPORTED_LANGUAGES,
 } from '@video-transcripts/shared';
 
@@ -92,6 +93,63 @@ const NAMED_ENTITIES: Record<string, string> = {
     lrm: '‎',
     rlm: '‏',
 };
+
+/**
+ * Join the cues Netflix splits a multi-line caption across.
+ *
+ * Netflix does not put a line break inside a cue. A two-line caption is TWO
+ * cues sharing one timecode, each carrying its own `line:` placement — which
+ * is how its own player stacks them into one caption box. Parsed literally,
+ * each half becomes a separate subtitle, and the overlay (which renders the
+ * one cue matching the current time) shows a half-caption while the other
+ * half never appears at all. Measured on 70044867: 3585 cues over 2102
+ * distinct timecodes, 1217 of them shared — roughly 1500 dropped half-lines.
+ *
+ * Ordering comes from `line`, NOT from file order. `line` is a percentage
+ * from the top, so ascending order is top-to-bottom. File order does not
+ * track it and flips between cue groups within the same track: at 00:00:45
+ * the lower half (84.62%) is stored first, at 00:00:58 the upper (79.29%)
+ * is. Concatenating in file order would silently reverse every other caption.
+ *
+ * Cues without `line` keep their relative order (sort is stable) and sort
+ * before placed ones — a track with no placement at all is simply unchanged,
+ * which is what keeps this a no-op for single-line languages.
+ */
+export function mergeCuesByTime(subs: Subtitle[]): Subtitle[] {
+    const groups = new Map<string, Subtitle[]>();
+    // Key on the exact pair: cues belong to one caption only when Netflix gave
+    // them the same start AND end. Near-misses are consecutive captions.
+    for (const sub of subs) {
+        const key = `${sub.startTime}|${sub.endTime}`;
+        const group = groups.get(key);
+        if (group) group.push(sub);
+        else groups.set(key, [sub]);
+    }
+
+    const merged: Subtitle[] = [];
+    for (const group of groups.values()) {
+        if (group.length === 1) {
+            merged.push(group[0]);
+            continue;
+        }
+        const ordered = [...group].sort(
+            (a, b) => (a.line ?? -Infinity) - (b.line ?? -Infinity),
+        );
+        // Joined with a space, not a newline: everything downstream treats the
+        // caption as one run of words — tokenizeForGuess splits on whitespace,
+        // and the overlay wraps to the player's width on its own.
+        merged.push({
+            startTime: group[0].startTime,
+            endTime: group[0].endTime,
+            text: ordered.map((s) => s.text).join(' '),
+        });
+    }
+
+    // Map iteration is insertion-ordered, so this is already the order the cues
+    // arrived in — sorted anyway, because a track that is not in time order
+    // would break the binary search that picks the current subtitle.
+    return merged.sort((a, b) => a.startTime - b.startTime);
+}
 
 /**
  * Decode HTML entities that Netflix WebVTT cues carry (e.g. `&amp;`, `&#39;`,

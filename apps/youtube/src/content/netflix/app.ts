@@ -7,6 +7,7 @@ import {
     normalizeTracks,
     planNetflixTracks,
     decodeEntities,
+    mergeCuesByTime,
     buildLanguageCatalog,
     trackForBaseCode,
     baseLang,
@@ -215,7 +216,12 @@ class NetflixVttApp extends BaseVttApp {
         }
 
         // parseVTT strips markup tags; decode the HTML entities it leaves behind.
-        const subs = parseVTT(text).map((s) => ({ ...s, text: decodeEntities(s.text) }));
+        // mergeCuesByTime then rejoins the cues Netflix splits a two-line
+        // caption across — without it the overlay shows one half and drops the
+        // other (see mergeCuesByTime).
+        const subs = mergeCuesByTime(parseVTT(text)).map(
+            (s) => ({ ...s, text: decodeEntities(s.text) }),
+        );
         console.log('[NFLX-VTT] parsed subs:', subs.length, 'for', name);
         this.addParsedTrack(name, subs);
     }
