@@ -1,44 +1,40 @@
-// Render the LOCALIZED promo screenshot series for every store locale.
+// PIPELINE store-i18n@5 — the localized store screenshot series, every locale.
 //
-//   node render-i18n.mjs                # all locales in promo-copy.json
-//   node render-i18n.mjs ru de fr       # only the given locales
-//   node render-i18n.mjs -j 4 ru de     # cap parallelism at 4 concurrent pages
+//   node pipelines/store-i18n@5/render.mjs                # all 54 locales
+//   node pipelines/store-i18n@5/render.mjs ru de fr       # only the given ones
+//   node pipelines/store-i18n@5/render.mjs -j 4 ru de     # cap parallelism
 //
-// For each locale it writes self-contained slide1-5.html into build/<locale>/
-// (absolute file:// asset paths so locales render in parallel without clobbering
-// each other), screenshots them at deviceScaleFactor 2 (2560×1600), then
-// downscales each to 1280×800 (Chrome Web Store size, alpha stripped by sips)
-// into out/<locale>/screenshot-N.png — the folder layout the CWS autofill
-// snippet expects (out/<lang>/… → language code from the subfolder name).
+// Everything this pipeline needs is beside it: manifest.json describes it,
+// assets/ holds its CSS, brand mark and the localized copy, lib.mjs is its
+// runtime. The product captures (~345 MB, shared by every pipeline) stay in
+// screenshots/out-live/ and are declared in the manifest — see lib.mjs.
 //
-// Both the marketing copy (eyebrow / title / sub) and the embedded product
-// shots are localized: each locale uses live-demo-<loc>.png etc. when present
-// (captured via screenshots/capture-backdrop.mjs --locale <loc>), falling back
-// to the English demo capture for any locale not yet captured.
+// Renders the SAME layouts as store-en@5 but from JSON copy instead of static
+// HTML, which is why they are separate pipelines rather than one with a flag:
+// different source of truth, locale count, and output filename.
 //
-// capture-backdrop.mjs covers the bot-walled YouTube player with our own CC-BY
-// clip, so every locale now has a real playing frame + on-video dual subtitles.
-// The hand-built live-demo-en-composite.png is therefore no longer needed here.
+// Per locale it writes self-contained slide1-5.html into a scratch build dir
+// (absolute file:// asset paths, so locales render in parallel without
+// clobbering each other), screenshots them at deviceScaleFactor 2, then
+// downscales each to 1280x800 (alpha stripped by sips).
+//
+// Both the copy and the embedded product shots are localized: each locale uses
+// live-demo-<loc>.png when present, falling back to the English capture.
 import { execFileSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import {
+  chromium, CWS_SCREENSHOT, ASSETS, BUILD, CAPTURES, ID, MANIFEST, OUT, SHOTS,
+  requireCaptures,
+} from './lib.mjs';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-const PW_FALLBACK =
-  '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
-let chromium;
-try { ({ chromium } = await import('playwright')); }
-catch { ({ chromium } = require(PW_FALLBACK)); }
-
-const COPY = JSON.parse(fs.readFileSync(path.join(HERE, 'promo-copy.json'), 'utf8'));
-const SHOT_DIR = path.join(HERE, '..', 'screenshots', 'out-live');
-const CSS_HREF = pathToFileURL(path.join(HERE, 'promo.css')).href;
-const BRAND_TILE = pathToFileURL(path.join(HERE, 'brand-tile.png')).href;
-const BRAND = `<div class="brand"><img src="${BRAND_TILE}" alt="" /><span>Lingogram</span></div>`;
+const COPY = JSON.parse(fs.readFileSync(path.join(ASSETS, 'promo-copy.json'), 'utf8'));
+const SHOT_DIR = CAPTURES;
+const CSS_HREF = pathToFileURL(path.join(ASSETS, 'promo.css')).href;
+const BRAND_TILE_HREF = pathToFileURL(path.join(ASSETS, 'brand-tile.png')).href;
+const BRAND = `<div class="brand"><img src="${BRAND_TILE_HREF}" alt="" /><span>Lingogram</span></div>`;
 const shotUrl = (name) => pathToFileURL(path.join(SHOT_DIR, name)).href;
 
 // Per-locale product shots, falling back to the English demo capture when a
@@ -174,31 +170,55 @@ const TEMPLATES = { 1: slide1, 2: slide2, 3: slide3, 4: slide4, 5: slide5 };
 let argv = process.argv.slice(2);
 let jobs = Math.min(os.cpus().length, 8);
 if (argv[0] === '-j') { jobs = parseInt(argv[1], 10); argv = argv.slice(2); }
-const locales = argv.length
-  ? argv
-  : Object.keys(COPY).filter((k) => !k.startsWith('_'));
+
+const KNOWN = Object.keys(COPY).filter((k) => !k.startsWith('_'));
+
+if (argv.includes('-h') || argv.includes('--help')) {
+  console.log(`usage: ${MANIFEST.run}
+
+  no locales   render all ${KNOWN.length} locales in assets/promo-copy.json
+  -j N         cap parallelism at N concurrent pages (default: min(cpus, 8))
+
+writes ${MANIFEST.outputs.dir}/<locale>/screenshot-<n>.png`);
+  process.exit(0);
+}
+
+// Anything unknown used to be rendered as if it were a locale — a stray
+// `--help` once produced a whole shots/--help/ slide set. Fail instead.
+const unknown = argv.filter((a) => !KNOWN.includes(a));
+if (unknown.length) {
+  console.error(`unknown locale(s): ${unknown.join(', ')}`);
+  console.error(`known: ${KNOWN.join(' ')}`);
+  process.exit(1);
+}
+
+const locales = argv.length ? argv : KNOWN;
+
+// Every locale falls back to the English capture, so those must exist even when
+// a locale has its own. Verified before we spend time launching a browser.
+requireCaptures(['live-demo-en.png', 'live-demo-guess-en.png', 'live-demo-onboarding-en.png']);
 
 const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
 
 async function renderLocale(loc) {
-  const build = path.join(HERE, 'build', loc);
+  const build = path.join(BUILD, loc);
   fs.rmSync(build, { recursive: true, force: true });
   fs.mkdirSync(build, { recursive: true });
-  fs.mkdirSync(path.join(HERE, 'shots', loc), { recursive: true });
-  fs.mkdirSync(path.join(HERE, 'out', loc), { recursive: true });
+  fs.mkdirSync(path.join(SHOTS, loc), { recursive: true });
+  fs.mkdirSync(path.join(OUT, loc), { recursive: true });
   const p = copyFor(loc);
   const shots = shotsFor(loc);
 
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+  const ctx = await browser.newContext({ viewport: { ...CWS_SCREENSHOT }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
   for (const n of SLIDES) {
     const file = path.join(build, `slide${n}.html`);
     fs.writeFileSync(file, TEMPLATES[n](p, loc, shots));
     await page.goto(pathToFileURL(file).href, { waitUntil: 'networkidle' });
-    const shot = path.join(HERE, 'shots', loc, `slide${n}.png`);
+    const shot = path.join(SHOTS, loc, `slide${n}.png`);
     await page.screenshot({ path: shot });
-    execFileSync('sips', ['-z', '800', '1280', shot, '--out',
-      path.join(HERE, 'out', loc, `screenshot-${n}.png`)], { stdio: 'ignore' });
+    execFileSync('sips', ['-z', String(CWS_SCREENSHOT.height), String(CWS_SCREENSHOT.width),
+      shot, '--out', path.join(OUT, loc, `screenshot-${n}.png`)], { stdio: 'ignore' });
   }
   await ctx.close();
   fs.rmSync(build, { recursive: true, force: true });
@@ -216,5 +236,5 @@ async function worker() {
 }
 await Promise.all(Array.from({ length: Math.min(jobs, locales.length) }, worker));
 await browser.close();
-try { fs.rmdirSync(path.join(HERE, 'build')); } catch {}
-console.log('done → out/<locale>/screenshot-N.png');
+try { fs.rmdirSync(BUILD); } catch {}
+console.log(`done → ${MANIFEST.outputs.dir}/<locale>/screenshot-N.png`);

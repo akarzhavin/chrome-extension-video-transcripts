@@ -1,0 +1,23 @@
+{
+  "name": "store-i18n",
+  "version": "5.0.0",
+  "title": "Localized Chrome Web Store screenshot series, all locales",
+  "style": "v5 — same off-white ground and geometry as store-en@5, rendered from JSON copy instead of static HTML.",
+  "run": "node pipelines/store-i18n@5/render.mjs [-j N] [locale...]",
+  "sourceOfTruth": "assets/promo-copy.json — 54 locales, English is the per-field fallback",
+  "inputs": {
+    "assets": ["assets/promo.css", "assets/brand-tile.png", "assets/promo-copy.json"],
+    "captures": {
+      "dir": "../../../screenshots/out-live",
+      "files": ["live-demo-<locale>.png", "live-demo-guess-<locale>.png", "live-demo-onboarding-<locale>.png"],
+      "recapture": "node apps/youtube/screenshots/capture-backdrop.mjs --locale <loc>",
+      "note": "Resolved per locale at run time, falling back to the English capture when a locale has not been captured. Only the English fallbacks are required up front."
+    }
+  },
+  "outputs": {
+    "dir": "out/store-i18n@5",
+    "files": ["<locale>/screenshot-<n>.png (1280x800)"],
+    "intermediates": "shots/store-i18n@5",
+    "note": "The CWS autofill snippet reads the language from the folder directly containing screenshot-N.png, so <locale>/ must stay the last path segment. Point that snippet at out/store-i18n@5/."
+  }
+}

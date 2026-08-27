@@ -1,0 +1,33 @@
+{
+  "name": "store-en",
+  "version": "5.0.0",
+  "title": "English Chrome Web Store screenshot series",
+  "style": "v5 — off-white ground (#F7F7F5) with a lime bloom top-right and a purple whisper bottom-left; lime is an accent, never the subject (commit dba00f2).",
+  "run": "node pipelines/store-en@5/render.mjs",
+  "sourceOfTruth": "slide1..5.html — English copy is inline in the HTML",
+  "inputs": {
+    "assets": [
+      "assets/promo.css",
+      "assets/brand-tile.png"
+    ],
+    "captures": {
+      "dir": "../../../screenshots/out-live",
+      "files": [
+        "live-demo-en.png",
+        "live-demo-guess-en.png",
+        "live-demo-onboarding-en.png"
+      ],
+      "recapture": "node apps/youtube/screenshots/capture-backdrop.mjs --locale en --learn es --native en --modes sidebar,guess,onboarding --class vtt-light",
+      "note": "Shared by every pipeline (~345 MB, 2560x1600 PNG) and therefore referenced, not vendored. render.mjs verifies these exist before launching a browser. Captured in the extension's OWN light theme (--class vtt-light puts the shipped vtt-light class on <html>) — NOT the legacy screenshots/light-theme.capture.css override, which predates the product having a light theme. Capture from a PROD build (plain `vite build`, no EXT_ENV=dev): a dev build paints a lime 'backend: env' switch across the top of the panel."
+    }
+  },
+  "outputs": {
+    "dir": "out/store-en@5",
+    "files": [
+      "promo-<n>.png (1280x800, upload to CWS)",
+      "promo-<n>@2x.png (2560x1600, for the website)"
+    ],
+    "intermediates": "shots/store-en@5"
+  },
+  "knownIssues": []
+}

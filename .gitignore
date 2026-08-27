@@ -14,9 +14,13 @@ graphify-out/
 # Vendored unpacked extensions for screenshot capture (AdBlock Plus, etc.)
 apps/*/screenshots/vendor/
 
-# Promo render intermediates / previews (regenerate via apps/*/promo/render*.mjs)
+# Promo render intermediates / previews (regenerate via
+# apps/*/promo/pipelines/<pipeline>/render.mjs). Each pipeline owns one subtree
+# under out/ and shots/. apps/*/promo/archive/ is deliberately NOT ignored:
+# it holds generations that can no longer be re-rendered from source.
 apps/*/promo/shots/
 apps/*/promo/out/
+apps/*/promo/.build/
 apps/*/screenshots/out-live/
 
 # Responsive-audit captures (regenerate via

@@ -1,32 +1,34 @@
-// TEST harness — render 3 color variants of the RU promo series for review.
+// PIPELINE experiments@1 — throwaway design explorations, NOT store assets.
 //
-//   node render-ru-variants.mjs
+//   node pipelines/experiments@1/render-ru-variants.mjs
 //
-// Same layout + same RU copy as render-i18n.mjs, but the promo.css palette is
-// hue-rotated into three distinct "zoomer" moods. Only CSS *color literals* are
-// transformed (hex + rgb/rgba) — the real product screenshots are external PNGs
-// and stay untouched, so the UI doesn't get tinted/broken.
+// Nothing here is uploaded. It exists so a colour/layout idea can be rendered
+// and compared without touching a real pipeline's output — kept separate from
+// store-en@5 / store-i18n@5 precisely so an exploratory run can never be
+// mistaken for, or overwrite, a deliverable.
 //
-// Writes:  out/ru-v1/  out/ru-v2/  out/ru-v3/  (screenshot-1..5.png, 1280×800)
-// Does NOT touch promo.css, render-i18n.mjs, or out/ru/.
+// Same layout and RU copy as store-i18n@5, but the promo.css palette is
+// hue-rotated into three moods. Only CSS *colour literals* are transformed
+// (hex + rgb/rgba) — the product screenshots are external PNGs and stay
+// untouched, so the UI isn't tinted or broken.
 import { execFileSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { chromium, ASSETS, BUILD, CAPTURES, ID, MANIFEST, OUT, requireCaptures } from './lib.mjs';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-const PW_FALLBACK =
-  '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
-let chromium;
-try { ({ chromium } = await import('playwright')); }
-catch { ({ chromium } = require(PW_FALLBACK)); }
+if (process.argv.includes('-h') || process.argv.includes('--help')) {
+  console.log(`${ID} — ${MANIFEST.title}\n\n  ${MANIFEST.run}\n\nwrites ${MANIFEST.outputs.dir}/`);
+  process.exit(0);
+}
+
+// Falls back to the English captures, so require those rather than the RU ones.
+requireCaptures(['live-demo-en.png', 'live-demo-guess-en.png', 'live-demo-onboarding-en.png']);
 
 const LOC = 'ru';
-const COPY = JSON.parse(fs.readFileSync(path.join(HERE, 'promo-copy.json'), 'utf8'));
-const BASE_CSS = fs.readFileSync(path.join(HERE, 'promo.css'), 'utf8');
-const SHOT_DIR = path.join(HERE, '..', 'screenshots', 'out-live');
+const COPY = JSON.parse(fs.readFileSync(path.join(ASSETS, 'promo-copy.json'), 'utf8'));
+const BASE_CSS = fs.readFileSync(path.join(ASSETS, 'promo.css'), 'utf8');
+const SHOT_DIR = CAPTURES;
 const shotUrl = (name) => pathToFileURL(path.join(SHOT_DIR, name)).href;
 function shotFor(kind) {
   const name = kind === 'demo' ? `live-demo-${LOC}.png` : `live-demo-${kind}-${LOC}.png`;
@@ -224,10 +226,10 @@ const p = copyFor();
 const only = process.argv.slice(2);
 const todo = only.length ? VARIANTS.filter((v) => only.includes(v.id)) : VARIANTS;
 for (const v of todo) {
-  const build = path.join(HERE, 'build', v.id);
+  const build = path.join(BUILD, v.id);
   fs.rmSync(build, { recursive: true, force: true });
   fs.mkdirSync(build, { recursive: true });
-  fs.mkdirSync(path.join(HERE, 'out', v.id), { recursive: true });
+  fs.mkdirSync(path.join(OUT, v.id), { recursive: true });
   const cssFile = path.join(build, 'promo.css');
   fs.writeFileSync(cssFile, v.css ? BASE_CSS + '\n' + v.css : recolor(BASE_CSS, v));
   const cssHref = pathToFileURL(cssFile).href;
@@ -241,12 +243,12 @@ for (const v of todo) {
     const shot = path.join(build, `slide${n}.png`);
     await page.screenshot({ path: shot });
     execFileSync('sips', ['-z', '800', '1280', shot, '--out',
-      path.join(HERE, 'out', v.id, `screenshot-${n}.png`)], { stdio: 'ignore' });
+      path.join(OUT, v.id, `screenshot-${n}.png`)], { stdio: 'ignore' });
   }
   await ctx.close();
   fs.rmSync(build, { recursive: true, force: true });
   console.log(`✓ ${v.id} — ${v.name}`);
 }
 await browser.close();
-try { fs.rmdirSync(path.join(HERE, 'build')); } catch {}
-console.log('done → out/ru-v1, out/ru-v2, out/ru-v3');
+try { fs.rmdirSync(BUILD); } catch {}
+console.log(`done → ${MANIFEST.outputs.dir}/`);

@@ -1,0 +1,26 @@
+{
+  "name": "tiles",
+  "version": "2.0.0",
+  "title": "Chrome Web Store marketing tiles",
+  "style": "v2 — light tile palette declared in assets/tiles.css; independent of promo.css.",
+  "run": "node pipelines/tiles@2/render.mjs",
+  "sourceOfTruth": "tile-marquee.html + assets/tiles.css",
+  "inputs": {
+    "assets": ["assets/tiles.css", "assets/brand-tile.png"],
+    "captures": {
+      "dir": "../../../screenshots/out-live",
+      "files": ["live-demo-en.png"],
+      "recapture": "node apps/youtube/screenshots/capture-demo.mjs --mode sidebar",
+      "note": "The marquee reuses the sidebar panel from the English demo capture."
+    }
+  },
+  "outputs": {
+    "dir": "out/tiles@2",
+    "files": ["tile-marquee.png (1400x560, opaque 24-bit)", "tile-small.png (440x280, opaque 24-bit)"],
+    "intermediates": "shots/tiles@2"
+  },
+  "notes": [
+    "tile-small.png is key art, NOT rendered from HTML — build it with `python3 pipelines/tiles@2/make-small-tile.py`. tile-small.html is kept only as the historical template; rendering it would overwrite the hand-made art.",
+    "Alpha is stripped with PIL because the store rejects PNGs with an alpha channel."
+  ]
+}

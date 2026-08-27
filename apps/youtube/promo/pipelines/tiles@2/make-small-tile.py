@@ -9,8 +9,10 @@ source to the exact CWS aspect, then downscale with LANCZOS.
 import sys, pathlib
 from PIL import Image
 
-HERE = pathlib.Path(__file__).parent
-DEFAULT_SRC = HERE.parent.parent.parent / 'ChatGPT Image Aug 26, 2026, 11_17_44 AM.png'
+HERE = pathlib.Path(__file__).parent            # pipelines/tiles@2/
+PROMO_ROOT = HERE.parent.parent                 # apps/youtube/promo/
+REPO_ROOT = PROMO_ROOT.parents[2]               # repo root
+DEFAULT_SRC = REPO_ROOT / 'docs' / 'ChatGPT Image Aug 26, 2026, 11_17_44 AM.png'
 W, H = 440, 280
 
 src = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_SRC
@@ -27,7 +29,7 @@ else:                                     # too tall → trim top and bottom
     nh = int(sw / target)
     im = im.crop((0, (sh - nh) // 2, sw, (sh - nh) // 2 + nh))
 
-out = HERE / 'out' / 'tile-small.png'
-out.parent.mkdir(exist_ok=True)
+out = PROMO_ROOT / 'out' / 'tiles@2' / 'tile-small.png'
+out.parent.mkdir(parents=True, exist_ok=True)
 im.resize((W, H), Image.LANCZOS).save(out)
 print(f'wrote {out} ({W}x{H}) from {src.name}')

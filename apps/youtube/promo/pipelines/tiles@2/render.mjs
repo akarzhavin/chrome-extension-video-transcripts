@@ -1,23 +1,27 @@
-// Render the Chrome Web Store promo tiles at their exact canvas sizes, as
-// 24-bit PNG WITHOUT alpha (the store requires JPEG or 24-bit no-alpha PNG).
+// PIPELINE tiles@2 — the Chrome Web Store marketing tiles.
 //
-//   node render-tiles.mjs   → out/tile-small.png (440×280), out/tile-marquee.png (1400×560)
+//   node pipelines/tiles@2/render.mjs
 //
-// Each tile is shot at deviceScaleFactor 2 then downscaled with `sips`; the
-// alpha channel is stripped with PIL (Python) so the output is opaque 24-bit.
+// Everything this pipeline needs is beside it: manifest.json describes it,
+// assets/ holds tiles.css and the brand mark, lib.mjs is its runtime. The
+// product capture the marquee reuses is declared in the manifest.
+//
+// Tiles are NOT screenshots: different canvas sizes, different CSS, and the
+// store treats them as a separate asset class — hence their own pipeline.
+// Rendered at 2x then downscaled; the alpha channel is stripped with PIL so the
+// output is opaque 24-bit PNG (the store rejects PNGs with alpha).
 import { execFileSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { chromium, HERE, ID, MANIFEST, OUT, SHOTS, requireCaptures } from './lib.mjs';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-const PW_FALLBACK =
-  '/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
-let chromium;
-try { ({ chromium } = await import('playwright')); }
-catch { ({ chromium } = require(PW_FALLBACK)); }
+if (process.argv.includes('-h') || process.argv.includes('--help')) {
+  console.log(`${ID} — ${MANIFEST.title}\n\n  ${MANIFEST.run}\n\nwrites ${MANIFEST.outputs.dir}/`);
+  process.exit(0);
+}
+
+requireCaptures(MANIFEST.inputs.captures.files);
 
 // tile-small.png is NOT rendered from HTML: the 440x280 tile is a downscale of
 // the hand-made key art (see make-small-tile.py). Rendering tile-small.html
@@ -26,8 +30,8 @@ const TILES = [
   { file: 'tile-marquee.html', out: 'tile-marquee.png', w: 1400, h: 560 },
 ];
 
-fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
-fs.mkdirSync(path.join(HERE, 'out'), { recursive: true });
+fs.mkdirSync(SHOTS, { recursive: true });
+fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
 
@@ -35,9 +39,9 @@ for (const t of TILES) {
   const ctx = await browser.newContext({ viewport: { width: t.w, height: t.h }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
   await page.goto(pathToFileURL(path.join(HERE, t.file)).href, { waitUntil: 'networkidle' });
-  const shot = path.join(HERE, 'shots', t.out);
+  const shot = path.join(SHOTS, t.out);
   await page.screenshot({ path: shot });                     // 2× of the canvas
-  const out = path.join(HERE, 'out', t.out);
+  const out = path.join(OUT, t.out);
   execFileSync('sips', ['-z', String(t.h), String(t.w), shot, '--out', out], { stdio: 'ignore' });
   // Strip alpha → opaque 24-bit PNG (composite on white to match the light bg).
   execFileSync('python3', ['-c',
@@ -50,4 +54,4 @@ for (const t of TILES) {
 }
 
 await browser.close();
-console.log('done → out/');
+console.log(`done → ${MANIFEST.outputs.dir}/`);

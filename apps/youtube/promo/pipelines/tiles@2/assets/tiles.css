@@ -99,6 +99,6 @@ p { color: var(--ink-soft); font-weight: 460; }
   position: absolute;
   width: 1418px; height: 886px;          /* 1280×800 capture × 1.108 */
   background-repeat: no-repeat; background-size: 1418px 886px;
-  background-image: url('../screenshots/out-live/live-demo-en.png');
+  background-image: url('../../../../screenshots/out-live/live-demo-en.png');
   left: -1058px; top: -36px;
 }
