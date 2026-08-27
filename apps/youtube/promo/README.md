@@ -94,11 +94,12 @@ output folder that is **not** gitignored.
 
 | File | Layout | Copy | Imagery |
 | --- | --- | --- | --- |
-| `slide1.html` | full window (straight, macOS chrome) | *Turn YouTube into language practice* | `live-demo-en` (full page) |
-| `slide2.html` | side + panel crop | *Every line, in both languages* | demo sidebar panel detail |
-| `slide3.html` | side + panel crop | *Listen first, then check yourself* | demo guess-mode panel detail |
-| `slide4.html` | side + video card | *Subtitles right on the video* | demo player-region crop (on-video overlay) |
-| `slide5.html` | side + panel crop | *Set up once, then just press play* | demo onboarding panel detail |
+| `slide1.html` | full-bleed video frame | *Works on any video with subtitles* | none — panel **rebuilt**, vendored from `fullscreen@1` |
+| `slide2.html` | full window (straight, macOS chrome) | *Turn YouTube into language practice* | `live-demo-en` (full page) |
+| `slide3.html` | side + panel crop | *Every line, in both languages* | demo sidebar panel detail |
+| `slide4.html` | side + panel crop | *Listen first, then check yourself* | demo guess-mode panel detail |
+| `slide5.html` | side + video card | *Subtitles right on the video* | demo player-region crop (on-video overlay) |
+| `slide6.html` | side + panel crop | *Set up once, then just press play* | demo onboarding panel detail |
 
 > **Style (v3, "credible tool"):** sentence-case editorial headlines, calm
 > violet→teal backdrop with a faint dot grid, ghost-chip eyebrows, glassy
@@ -214,7 +215,10 @@ then downscaled, and the alpha channel is stripped with PIL so they're **opaque
 `live-demo-en.png` sidebar panel on the right.
 
 ## CWS asset checklist
-- Screenshots: `out/store-en@5/promo-1…5.png` — 1280×800, 24-bit PNG, no alpha (≤ 5 ✓).
+- Screenshots: `out/store-en@5/promo-1…6.png` — 1280×800, 24-bit PNG, no alpha.
+  **The store takes five per locale and this series now renders six.** Pick the five
+  that ship before uploading; `promo-6` is the onboarding close, displaced from the
+  front when the fullscreen hero took slide 1.
 - Small promo tile: `out/tiles@2/tile-small.png` — 440×280, no alpha.
 - Marquee promo tile: `out/tiles@2/tile-marquee.png` — 1400×560, no alpha.
 

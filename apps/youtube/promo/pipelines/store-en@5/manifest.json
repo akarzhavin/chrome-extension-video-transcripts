@@ -4,11 +4,15 @@
   "title": "English Chrome Web Store screenshot series",
   "style": "v5 — off-white ground (#F7F7F5) with a lime bloom top-right and a purple whisper bottom-left; lime is an accent, never the subject (commit dba00f2).",
   "run": "node pipelines/store-en@5/render.mjs",
-  "sourceOfTruth": "slide1..5.html — English copy is inline in the HTML",
+  "sourceOfTruth": "slide1..6.html — English copy is inline in the HTML",
   "inputs": {
     "assets": [
       "assets/promo.css",
-      "assets/brand-tile.png"
+      "assets/brand-tile.png",
+      "assets/fullscreen-panel.css",
+      "assets/fullscreen-slide.css",
+      "assets/fullscreen-warm.css",
+      "assets/fullscreen-backdrop.jpg"
     ],
     "captures": {
       "dir": "../../../screenshots/out-live",
@@ -24,10 +28,13 @@
   "outputs": {
     "dir": "out/store-en@5",
     "files": [
-      "promo-<n>.png (1280x800, upload to CWS)",
-      "promo-<n>@2x.png (2560x1600, for the website)"
+      "promo-1..6.png (1280x800) + @2x (2560x1600)",
+      "CWS accepts 5 per locale: upload promo-1..5. promo-6 is the overflow slide."
     ],
     "intermediates": "shots/store-en@5"
   },
-  "knownIssues": []
+  "knownIssues": [
+    "The series now renders SIX slides but the Chrome Web Store accepts five per locale. promo-6 (the onboarding close) is rendered but not uploadable — decide which five ship before an upload.",
+    "slide1 does NOT use a product capture: it is the fullscreen@1 slide, vendored here (assets/fullscreen-*). The panel there is a REBUILT replica, measured off the running extension rather than captured, so it drifts silently if the product's panel changes. The other five slides still embed real captures."
+  ]
 }
