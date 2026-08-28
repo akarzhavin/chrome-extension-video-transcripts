@@ -6,6 +6,13 @@ import {
     type VttOutcome,
     type YtVttResultMessage,
 } from './timedtext-fetch';
+import {
+    PotStore,
+    buildTimedTextUrl,
+    isEmptyish,
+    potFromResourceTiming,
+    shouldRetryWithPot,
+} from './pot';
 
 interface RawCaptionTrack {
     baseUrl: string;
@@ -299,19 +306,77 @@ function installYouTubeHook() {
     }
 
     // ---------- timedtext fetching ----------
-    // No `pot` handling anywhere here. YouTube used to require a PO token on
-    // timedtext, and this script minted one by toggling CC and sniffing the
-    // player's own request. As of ~2026-08 the player itself sends timedtext
-    // WITHOUT pot and the endpoint serves it fine — what matters now is only
-    // that the signed baseUrl comes from the LIVE player response (see
-    // readPlayerResponseFromPlayerApi).
+    // `pot` (PO token) came back. As of 2026-08-28 /api/timedtext answers a
+    // request WITHOUT it as HTTP 200 with a ZERO-BYTE body — measured on a
+    // logged-in profile with playabilityStatus OK, on the bare baseUrl as well
+    // as ours. The same URL with `pot` returns the full track. So an empty
+    // 200 now usually means "no token", not "stale link".
+    //
+    // The token is NOT minted by us. The player fetches its own caption track
+    // ~0.4s into a watch page and puts `pot` on that request; we passively read
+    // it there. That is the whole mechanism — no CC toggling, no synthetic
+    // request. It is also why the previous pot implementation was removed
+    // (9cf1f39): it BLOCKED on the token (waitForPot, 15s) and reported
+    // 'no-pot' when the sniff missed. Nothing here ever waits: a request goes
+    // out with whatever is known at the time, and the token — if it arrives
+    // later — only improves the retry. Guaranteeing a load means never letting
+    // the absence of the optimisation stop the attempt.
+    const pots = new PotStore();
 
-    function buildUrl(baseUrl: string, tlang?: string): string {
-        const u = new URL(baseUrl, location.href);
-        u.searchParams.set('fmt', 'json3');
-        u.searchParams.set('c', 'WEB');
-        if (tlang) u.searchParams.set('tlang', tlang);
-        return u.toString();
+    // How long to give the player to mint a token AFTER our own request already
+    // came back empty. Short by design: the user is staring at an empty panel,
+    // and this is an optimisation on a retry, never a precondition for one.
+    // How long the CC flash may last while waiting for the player to sign a
+    // request. Bounded because the user sees YouTube's own captions during it.
+    const POT_TOGGLE_TIMEOUT_MS = 4000;
+    const POT_POLL_MS = 150;
+
+    // Sniff both transports the player might use. These wrappers only observe:
+    // they must never change what the page sends, or we would break playback to
+    // fix subtitles.
+    const xhrOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: unknown[]) {
+        try {
+            const raw = typeof url === 'string' ? url : url.href;
+            if (pots.capture(raw, location.href)) console.log(TAG, 'captured pot (xhr)');
+        } catch {
+            // ignore
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return xhrOpen.apply(this, [method, url, ...rest] as any);
+    };
+
+    window.fetch = function (...args: Parameters<typeof fetch>) {
+        try {
+            const input = args[0];
+            const raw = typeof input === 'string' ? input
+                : input instanceof URL ? input.href
+                : (input as Request)?.url;
+            if (raw && pots.capture(raw, location.href)) console.log(TAG, 'captured pot');
+        } catch {
+            // ignore
+        }
+        return originalFetch.apply(window, args);
+    };
+
+    /** The token for this video, consulting resource timing as a late fallback. */
+    function knownPot(videoId: string): string | null {
+        const cached = pots.get(videoId);
+        if (cached) return cached;
+        try {
+            const late = potFromResourceTiming(videoId, performance.getEntriesByType('resource'));
+            if (late) {
+                pots.remember(videoId, late);
+                return late;
+            }
+        } catch {
+            // ignore
+        }
+        return null;
+    }
+
+    function buildUrl(baseUrl: string, tlang?: string, pot?: string | null): string {
+        return buildTimedTextUrl(baseUrl, { tlang, pot, base: location.href });
     }
 
     // One breaker for every TRANSLATION track: machine translation is what
@@ -384,6 +449,81 @@ function installYouTubeHook() {
         window.postMessage({ type: 'YT_VTT_RESULT', ...msg } satisfies YtVttResultMessage, '*');
     }
 
+    /**
+     * Mint a `pot` by briefly switching YouTube's own captions on.
+     *
+     * This is the expensive path, and it runs ONLY after a request already came
+     * back empty — never speculatively. The player fetches a caption track (and
+     * signs it with a token) when, and only when, native captions are turned
+     * on; with them off it never asks for one, so there is nothing to sniff. So
+     * for a user who does not run native captions — which is most of them, and
+     * which our own overlay actively arranges by turning them off — the token
+     * has to be provoked.
+     *
+     * Restores the previous state in a finally: the extension turns native
+     * captions OFF on purpose (they would stack behind our overlay), and this
+     * must not leave them on. The flash is bounded by POT_TOGGLE_TIMEOUT_MS.
+     *
+     * Once per video: if a toggle did not produce a token, a second one will
+     * not either, and repeating it would blink the player's captions on every
+     * failed track.
+     */
+    const potToggleTried = new Set<string>();
+
+    /**
+     * The control to flip when minting a token. Unlike findCcButton() this does
+     * NOT reject an "unavailable" label — see mintPotViaCcToggle — but it keeps
+     * that function's surface order, because on Shorts the standard button is
+     * the inert one.
+     */
+    function ccToggleForMinting(): HTMLElement | null {
+        return (document.querySelector('.ytmClosedCaptioningButtonButton')
+            ?? document.querySelector('.ytp-subtitles-button')) as HTMLElement | null;
+    }
+
+    async function mintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
+        if (potToggleTried.has(videoId)) return knownPot(videoId);
+        potToggleTried.add(videoId);
+
+        // NOT findCcButton(): that helper skips a control whose aria-label says
+        // captions are "unavailable", which is right for its job (don't offer a
+        // toggle that does nothing) and wrong here. Measured live: on a watch
+        // page YouTube labels the button "Subtitles/closed captions
+        // unavailable" while the player response DOES list caption tracks, and
+        // clicking it anyway flips aria-pressed and produces a pot-signed
+        // request. The label describes the track not being loaded yet, not the
+        // video lacking captions.
+        //
+        // Both surfaces, in findCcButton()'s order: on Shorts the standard
+        // control is the dead one and .ytmClosedCaptioningButtonButton is what
+        // works, so trying only the standard button minted nothing there.
+        const btn = ccToggleForMinting();
+        if (!btn) return null;
+        // Already on: the player has fetched its track and we simply missed the
+        // sniff, so a toggle would turn captions OFF and mint nothing.
+        if (btn.getAttribute('aria-pressed') === 'true') return knownPot(videoId);
+
+        console.log(TAG, 'no pot — briefly enabling native captions to mint one');
+        btn.click();
+        try {
+            const deadline = Date.now() + POT_TOGGLE_TIMEOUT_MS;
+            while (Date.now() < deadline) {
+                if (signal.aborted) break;
+                const now = knownPot(videoId);
+                if (now) return now;
+                await sleep(POT_POLL_MS, signal);
+            }
+            return knownPot(videoId);
+        } finally {
+            // Put the player back the way we found it, whatever happened above.
+            const after = ccToggleForMinting();
+            if (after && after.getAttribute('aria-pressed') === 'true') {
+                after.click();
+                console.log(TAG, 'native captions -> Off (restored)');
+            }
+        }
+    }
+
     async function fetchVtt(
         reqKey: string,
         baseUrl: string,
@@ -398,12 +538,48 @@ function installYouTubeHook() {
         // collapse. The isolated world may hand us a baseUrl it read a while
         // ago (or one that came from SSR data) — swap in the live player's
         // freshly signed URL for the same track before fetching.
-        const url = buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang);
-        const outcome = await fetchDeduped(url, signal, {
+        // Every URL is built fresh from the live player response AND whatever
+        // token is known right now. refreshUrl re-runs both between the
+        // empty-answer re-asks inside fetchTimedText, so a pot the player mints
+        // while our first request is in flight is picked up without any waiting.
+        const makeUrl = () => buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang, knownPot(videoId));
+        // Snapshot BEFORE the request, not after: the player's own caption
+        // request commonly lands while ours is in flight, and reading the token
+        // afterwards would make a just-arrived one look like it had been there
+        // all along — the retry would then be skipped in exactly the case it
+        // exists for.
+        const potBefore = knownPot(videoId);
+        const url = makeUrl();
+        let outcome = await fetchDeduped(url, signal, {
             translation: !!tlang,
             probe: !!probe,
-            refreshUrl: () => buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang),
+            refreshUrl: makeUrl,
         });
+
+        // Second way in — the cascade. An empty answer with no token in hand is
+        // the signature of the pot requirement, so provoke a token and ask
+        // again rather than reporting a failure the user has to click their way
+        // out of (and, as it turns out, could not click their way out of: no
+        // amount of "Search again" mints a token).
+        //
+        // Cheap path first: the request already went out without a token,
+        // because most of the time that is all it takes and touching the
+        // player is not free. Only an actually-empty answer escalates.
+        //
+        // Guarded on the token being NEW: without that this would re-send an
+        // identical request and launder the same empty answer into a second
+        // attempt.
+        if (!outcome.ok && !signal.aborted && !potBefore && isEmptyish(outcome.failure)) {
+            const late = await mintPotViaCcToggle(videoId, signal);
+            if (shouldRetryWithPot(outcome.failure, potBefore, late)) {
+                console.log(TAG, 'retrying with a freshly captured pot for', reqKey);
+                outcome = await fetchDeduped(makeUrl(), signal, {
+                    translation: !!tlang,
+                    probe: !!probe,
+                    refreshUrl: makeUrl,
+                });
+            }
+        }
 
         if (outcome.ok) {
             console.log(TAG, 'fetched', outcome.text.length, 'bytes for', reqKey,
