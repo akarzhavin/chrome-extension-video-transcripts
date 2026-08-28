@@ -463,6 +463,10 @@
     "message": "자막 링크가 만료되었습니다. 다시 검색하면 대부분 해결됩니다.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "다시 검색해도 해결되지 않았습니다. 페이지를 새로고침하면 자막 링크가 갱신되어 대부분 문제가 해결됩니다.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube에서 번역을 제한함 — 탭하여 다시 시도",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

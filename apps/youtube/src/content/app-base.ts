@@ -645,6 +645,8 @@ export abstract class BaseVttApp implements AppInterface {
             });
         });
 
+        this.reportNativeCcMismatch(cause);
+
         // Throttled, not subtitle-less. Saying "this video has no subtitles"
         // here is simply false — the tracks exist, YouTube declined to serve
         // the request — and it sends the user off to another video for nothing.
@@ -683,15 +685,41 @@ export abstract class BaseVttApp implements AppInterface {
         // response, which is exactly what "Search again" triggers.
         const failure = this.dominantFailure();
         if (this.isRecoverableFailure()) {
+            // ...but only when re-reading yields a DIFFERENT URL. The live
+            // player response is cached in the player for the lifetime of the
+            // page, so when its signed URLs are the dead ones, every retry
+            // re-sends the identical request and gets the identical empty
+            // answer. The user is then stuck clicking a button that structurally
+            // cannot work, with no way out offered — the reload escalation lived
+            // below this early return and so never appeared here. Once they have
+            // retried and it is still empty, surface the same emergency reload
+            // the no-subtitles branch offers; only a page load re-mints the URLs.
+            const retryActions: StatusAction[] = [
+                {
+                    label: '↻ ' + t('ytSearchAgain', 'Search again'),
+                    onClick: () => this.retrySubtitleSearch(),
+                },
+            ];
+            if (this.noSubsRetries > 0) {
+                retryActions.push({
+                    label: '⟳ ' + t('ytReloadPage', 'Reload page'),
+                    onClick: () => void this.reportNoSubsAndReload(),
+                    emergency: true,
+                });
+            }
             this.showStatusBanner(
                 t('ytLoadFailedTitle', "Couldn't load subtitles"),
-                t('ytLoadFailedText', 'The subtitle link expired. Searching again usually fixes it.'),
-                [
-                    {
-                        label: '↻ ' + t('ytSearchAgain', 'Search again'),
-                        onClick: () => this.retrySubtitleSearch(),
-                    },
-                ],
+                this.noSubsRetries > 0
+                    ? t(
+                          'ytLoadFailedRetryText',
+                          'Searching again did not help. Reloading the page refreshes the ' +
+                              'subtitle link and usually fixes it.',
+                      )
+                    : t(
+                          'ytLoadFailedText',
+                          'The subtitle link expired. Searching again usually fixes it.',
+                      ),
+                retryActions,
             );
             return;
         }
@@ -726,6 +754,60 @@ export abstract class BaseVttApp implements AppInterface {
                   ),
             actions,
         );
+    }
+
+    /**
+     * Ask the page whether the site's OWN caption control says this video has
+     * captions. Answered asynchronously because on YouTube the verdict lives in
+     * the MAIN world (see nativeCcState in page-script.ts) behind a postMessage
+     * round trip. The base implementation resolves 'unknown' — a site with no
+     * native control to read must not be counted as either agreeing or
+     * disagreeing with us.
+     */
+    queryNativeCc(): Promise<'yes' | 'no' | 'unknown'> {
+        return Promise.resolve('unknown');
+    }
+
+    /**
+     * Report the one case that is unambiguously OUR failure: the panel is empty
+     * while the site's own caption button says captions exist.
+     *
+     * Kept apart from no_subtitles rather than folded in as a param, because
+     * that event fires for the healthy "this video genuinely has no captions"
+     * case too. Here, a hit always means a user who could have had subtitles and
+     * didn't — so the count needs no filtering to be read as breakage.
+     *
+     * 'unknown' is dropped, never reported as a mismatch: the control renders
+     * late and is missing entirely on some surfaces, so treating "couldn't read
+     * it" as "captions exist" would manufacture breakage out of our own timing.
+     * Shares the no_subtitles one-shot scope, so retries on one video cannot
+     * report the same miss twice.
+     */
+    reportNativeCcMismatch(cause?: NoSubsCause): void {
+        if (this.analyticsOnce.hasFired('subs_missed_with_cc')) return;
+        const failureAtCall = this.dominantFailure() ?? cause ?? 'unknown';
+        const detail = this.failureDetail();
+        void this.queryNativeCc()
+            .then((state) => {
+                if (state !== 'yes') return;
+                // Re-checked after the await: a track that landed while the
+                // round trip was in flight means nothing was missed at all.
+                if (this.state.tracks.length > 0) return;
+                this.analyticsOnce.fire('subs_missed_with_cc', () => {
+                    trackVia('subs_missed_with_cc', {
+                        site: platformOf(location.hostname),
+                        failure: failureAtCall,
+                        status: detail?.status ?? 0,
+                        attempts: detail?.attempts ?? 0,
+                        retried: this.noSubsRetries > 0,
+                        learning: this.langPrefs?.learning ?? '',
+                        native: this.langPrefs?.native ?? '',
+                    });
+                });
+            })
+            .catch(() => {
+                // Analytics must never break a user flow.
+            });
     }
 
     // "Search again" handler: remember that the user retried (so the next empty

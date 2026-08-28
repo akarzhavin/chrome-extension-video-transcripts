@@ -463,6 +463,10 @@
     "message": "Le lien des sous-titres a expiré. Relancer la recherche résout généralement le problème.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Relancer la recherche n'a pas fonctionné. Recharger la page renouvelle le lien des sous-titres et résout généralement le problème.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Traduction limitée par YouTube — appuyez pour réessayer",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

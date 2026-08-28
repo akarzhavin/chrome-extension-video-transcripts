@@ -463,6 +463,10 @@
     "message": "सबटायटल लिंकची मुदत संपली आहे. पुन्हा शोधल्याने सहसा हे सुटते.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "पुन्हा शोधूनही उपयोग झाला नाही. पेज पुन्हा लोड केल्याने सबटायटल लिंक नव्याने तयार होते आणि सहसा समस्या सुटते.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube ने भाषांतर मर्यादित केले — पुन्हा प्रयत्नासाठी टॅप करा",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

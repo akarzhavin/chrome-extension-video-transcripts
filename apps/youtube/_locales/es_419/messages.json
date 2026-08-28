@@ -463,6 +463,10 @@
     "message": "El enlace de los subtítulos venció. Volver a buscar suele solucionarlo.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Volver a buscar no funcionó. Recargar la página renueva el enlace de los subtítulos y suele solucionarlo.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Traducción limitada por YouTube — toca para reintentar",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

@@ -463,6 +463,10 @@
     "message": "字幕連結已過期。重新搜尋通常能解決問題。",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "重新搜尋仍未解決問題。重新載入頁面會更新字幕連結，通常能解決問題。",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "翻譯已被 YouTube 限制——點按重試",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

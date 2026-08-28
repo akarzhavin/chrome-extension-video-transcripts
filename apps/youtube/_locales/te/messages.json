@@ -463,6 +463,10 @@
     "message": "సబ్‌టైటిల్ లింక్ గడువు ముగిసింది. మళ్లీ వెతకడం సాధారణంగా దీన్ని పరిష్కరిస్తుంది.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "మళ్లీ వెతికినా పని చేయలేదు. పేజీని రీలోడ్ చేయడం వల్ల సబ్‌టైటిల్ లింక్ కొత్తగా తయారవుతుంది, ఇది సాధారణంగా సమస్యను పరిష్కరిస్తుంది.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube అనువాదాన్ని పరిమితం చేసింది — మళ్లీ ప్రయత్నించడానికి నొక్కండి",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

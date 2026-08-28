@@ -463,6 +463,10 @@
     "message": "সাবটাইটেল লিঙ্কের মেয়াদ শেষ হয়ে গেছে। আবার খুঁজলে সাধারণত ঠিক হয়ে যায়।",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "আবার খুঁজেও কাজ হয়নি। পেজ রিলোড করলে সাবটাইটেল লিঙ্কটি নতুন করে তৈরি হয় এবং সাধারণত সমস্যাটি সমাধান হয়ে যায়।",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube দ্বারা অনুবাদ সীমিত — আবার চেষ্টা করতে ট্যাপ করুন",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

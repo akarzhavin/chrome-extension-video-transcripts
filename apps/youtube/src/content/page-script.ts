@@ -231,6 +231,23 @@ function installYouTubeHook() {
         return null;
     }
 
+    // Does YouTube's OWN caption control say this video has captions? The
+    // isolated world cannot answer this: the player chrome is the same DOM, but
+    // the verdict belongs next to findCcButton()/isUnavailable(), which already
+    // encode where the button lives and how it reports "unavailable" across
+    // locales.
+    //
+    // Three-valued on purpose. The control is rendered late and is absent
+    // outright on some surfaces, so "no button found" is not evidence that the
+    // video has no captions — reporting it as 'no' would invent a mismatch, or
+    // hide a real one, depending on which way we guessed. 'unknown' keeps that
+    // ambiguity out of the data.
+    function nativeCcState(): 'yes' | 'no' | 'unknown' {
+        const std = document.querySelector('.ytp-subtitles-button');
+        if (std) return isUnavailable(std) ? 'no' : 'yes';
+        return findCcButton() ? 'yes' : 'unknown';
+    }
+
     // Turn YouTube's own captions OFF once, only if they're currently on. Used
     // to keep native captions from stacking behind our dual-subtitle overlay.
     // One-shot per request: it never turns captions back on, so a user who
@@ -410,6 +427,13 @@ function installYouTubeHook() {
         if (!data) return;
         if (data.type === 'YT_QUERY_CAPTIONS') {
             broadcastCurrent();
+            return;
+        }
+        if (data.type === 'YT_QUERY_NATIVE_CC') {
+            window.postMessage(
+                { type: 'YT_NATIVE_CC_STATE', videoId: currentUrlVideoId(), state: nativeCcState() },
+                '*',
+            );
             return;
         }
         if (data.type === 'YT_SET_NATIVE_SUBS' && data.enabled === false) {

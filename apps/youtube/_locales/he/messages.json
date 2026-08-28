@@ -463,6 +463,10 @@
     "message": "פג תוקף הקישור לכתוביות. חיפוש מחדש בדרך כלל פותר את זה.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "חיפוש מחדש לא עזר. טעינה מחדש של הדף מרעננת את הקישור לכתוביות ובדרך כלל פותרת את הבעיה.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "התרגום הוגבל על ידי YouTube — הקש כדי לנסות שוב",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

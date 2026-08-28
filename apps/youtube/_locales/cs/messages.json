@@ -463,6 +463,10 @@
     "message": "Platnost odkazu na titulky vypršela. Nové vyhledání to obvykle vyřeší.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Nové vyhledání nepomohlo. Opětovné načtení stránky obnoví odkaz na titulky a obvykle to problém vyřeší.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Překlad omezen YouTube — klepnutím zkusíte znovu",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

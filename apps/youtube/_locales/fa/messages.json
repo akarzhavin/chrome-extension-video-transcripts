@@ -463,6 +463,10 @@
     "message": "پیوند زیرنویس منقضی شده است. جستجوی دوباره معمولاً مشکل را برطرف می‌کند.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "جستجوی دوباره کمکی نکرد. بارگذاری مجدد صفحه پیوند زیرنویس را تازه می‌کند و معمولاً مشکل را برطرف می‌کند.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "ترجمه توسط YouTube محدود شده — برای تلاش مجدد ضربه بزنید",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

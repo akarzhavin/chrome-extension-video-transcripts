@@ -463,6 +463,10 @@
     "message": "A ligação da legenda expirou. Procurar novamente costuma resolver isto.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Procurar novamente não ajudou. Recarregar a página renova a ligação da legenda e costuma resolver isto.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Tradução limitada pelo YouTube — toque para tentar novamente",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
