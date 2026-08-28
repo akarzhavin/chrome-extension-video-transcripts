@@ -1,0 +1,199 @@
+/* SLIDE 2 — "Save every word to your personal dictionary".
+ *
+ * Only slide 2 loads this; promo.css stays the series' shared ground.
+ *
+ * WHY THIS SLIDE NEEDED ANYTHING EXTRA
+ * The saving mechanic was already IN the capture — demo mode highlights a word
+ * and pins a "✓ saved" badge to it through markSpansSaved(), the very function
+ * the real save flow calls. But at slide scale that badge is ~7px tall inside a
+ * panel holding eight subtitle cards, so the slide read as "here is a list of
+ * subtitles" no matter what the headline said. Two additions fix that without
+ * faking any UI:
+ *
+ *   .spotlight   dims the panel except the card the saved word sits in
+ *   .selword     the live selection staged on "vamos"
+ *   .quickpill   the quick-add pill that appears before saving
+ *   .inlinepill  the same button, named inside the body copy
+ *
+ * Every colour below is a token from apps/rezka/src/assets/styles.css's LIGHT
+ * theme block (the capture is light-theme), not a value picked to taste:
+ *
+ *   --vtt-accent              #7c8dff → light theme overrides to lime
+ *   --vtt-accent-border-strong rgba(140,178,0,0.75)
+ *   --vtt-success-text        #15803d      (light; the dark theme's #6ee7b7
+ *                                           would be illegible on white)
+ *   --vtt-success-quiet       rgba(21,128,61,0.12)
+ *   --vtt-success-border      rgba(21,128,61,0.35)
+ */
+
+/* ── Spotlight on the saved card ────────────────────────────────────────── */
+/* The active card sits at roughly 41–58% of the panel's height. Rather than
+   masking a rectangle (which would need re-measuring every time the capture is
+   retaken), this is a soft vertical dim that fades to nothing across that band
+   — so it degrades gracefully if the card shifts by a few percent. */
+.stage .panel .spotlight {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        rgba(247, 247, 245, 0.62) 0%,
+        rgba(247, 247, 245, 0.52) 30%,
+        rgba(247, 247, 245, 0.10) 40%,
+        rgba(247, 247, 245, 0) 46%,
+        rgba(247, 247, 245, 0) 55%,
+        rgba(247, 247, 245, 0.14) 61%,
+        rgba(247, 247, 245, 0.52) 72%,
+        rgba(247, 247, 245, 0.66) 100%
+    );
+}
+
+/* ── The counter chip ───────────────────────────────────────────────────── */
+/* The series' callout with its dot recoloured: on this slide the chip reports
+   the dictionary's size ("142 words saved" — popup.ts's ytWordsSaved string),
+   so its marker is the success green rather than the generic emerald. */
+.callout--saved::before {
+    background: #15803d;
+}
+
+/* ── The pre-save moment, staged on "vamos" ─────────────────────────────── */
+/* Why these live in CSS rather than in the capture: the pill exists only while
+ * a selection is live. Any screenshot that contains it cannot also contain a
+ * finished save, so the slide stages both — "vamos" mid-save, "divertido" done
+ * — to show the mechanic as a before/after rather than a single frozen frame.
+ *
+ * The .panel is position:relative and the .shot inside it is the capture at a
+ * known scale, so absolute offsets here are stable as long as the capture is
+ * not re-cropped. Coordinates were MEASURED off out/store-en@5/promo-2@2x.png
+ * by scanning glyph columns, not estimated:
+ *
+ *   "vamos" glyph box   x 818.5 → 870.5 css px, y 397.5 → 406.5
+ *   "divertido" wash    y 390.0 → 410.5  (21px tall, ~14px pad each side)
+ *
+ * The .panel's own box starts at x 750.5 / y 82 on the canvas, so the offsets
+ * below are those figures rebased to the panel's origin.
+ */
+
+/* The live selection. NOT .vtt-saved-word (lime wash + underline) — that is the
+ * state AFTER saving, which the same line already shows on "divertido". Using
+ * the saved style here would show the end state twice and lose the before/after
+ * the slide is built on.
+ *
+ * The extension defines no ::selection rule anywhere (checked), so a real
+ * selection here is the browser's own — macOS system blue. Reproducing that
+ * faithfully needed one extra step: painted straight onto the active card, blue
+ * at 30% over the lime ground resolves to (162,210,196), a grey-teal that reads
+ * as a smudge rather than as selected text. So the card is knocked back to near
+ * white underneath first (::before), and the blue is laid on that — which is
+ * what the eye expects and what the same selection looks like on the panel's
+ * ordinary white cards. */
+.stage .panel .selword {
+    position: absolute;
+    z-index: 4;
+    /* NOTE the offsets are pre-scale: .stage .panel carries transform:
+       scale(1.07), so every value here is multiplied by 1.07 before it lands on
+       the canvas. These were solved backwards from the measured target box
+       (x 814.5-874.5, y 388-412.5 on the canvas) rather than written by hand. */
+    left: 65.3px;
+    top: 287.2px;
+    width: 56.1px;
+    height: 22.9px;
+    border-radius: 3px;
+    /* OPAQUE, because that is what a browser selection actually is: the
+       highlight is painted behind the glyphs, not blended with the page, so the
+       card's colour underneath is irrelevant. Getting here took three tries and
+       the failures are worth recording — over this lime card, blue at 30% alpha
+       resolves to (162,210,196) and `darken` to (167,208,166); both read as a
+       grey-green smudge rather than as selected text, because the lime ground
+       drags any translucent blue toward green. Opaque #b3d7ff (macOS's own
+       selection tint on a light page) sidesteps the ground entirely.
+
+       The glyphs are then redrawn on top by .selword::after — the capture's own
+       "vamos" is underneath this swatch and would otherwise be hidden. */
+    background: #b3d7ff;
+    pointer-events: none;
+}
+
+/* The word, redrawn over the swatch. Type spec copied from the panel's
+   .vtt-main-text as it renders in the capture: 14px/600 #111 at the panel's
+   scale, which is 15px here because .stage .panel is scaled 1.07. */
+.stage .panel .selword::after {
+    content: 'vamos';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.1px;
+    color: #111111;
+}
+
+/* quick-add-overlay.ts showPill(): centred on the selection and 32px above its
+ * top edge, radius 999px, 6px 12px, 12px/600, --vtt-accent ground with #0a1129
+ * type and a 0 4px 14px rgba(0,0,0,0.35) shadow. Reproduced at slide scale;
+ * the accent is lime because the capture is the light theme. */
+.stage .panel .quickpill {
+    position: absolute;
+    z-index: 5;
+    /* Pre-scale, like .selword above: solved so the pill lands centred on the
+       selection with its tail 8px clear of the word. */
+    left: 44.3px;
+    top: 255.7px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    color: #1a2410;
+    background: #c8ff00;
+    border: 1px solid rgba(140, 178, 0, 0.75);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+/* The pill's pointer, so it reads as attached to the word rather than floating
+ * beside it. The product has no tail — on a live page the 32px gap plus motion
+ * makes the association obvious; a still frame has neither. */
+.stage .panel .quickpill::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -4px;
+    border: 4px solid transparent;
+    border-top-color: #c8ff00;
+}
+
+/* The saved card is the one part of the panel the spotlight must not dim, and
+ * the pill sits just above it — keep both fully lit. */
+.stage .panel .spotlight { z-index: 3; }
+
+/* ── The button named in the body copy ──────────────────────────────────── */
+/* The paragraph tells the reader to tap "+ Lingogram", and that button is
+ * visible twice elsewhere on the slide — over "vamos" in the panel and in the
+ * word→pill→badge strip. Setting it as running text would make the reader
+ * match a phrase to a shape; setting it as the button makes the instruction
+ * point at the thing itself.
+ *
+ * Deliberately quieter than the real pill: no shadow, no full lime fill. Body
+ * copy is a paragraph, not a call to action, and a solid lime chip mid-sentence
+ * out-shouts both the headline and the two real pills it refers to. */
+.copy p .inlinepill {
+    display: inline-block;
+    padding: 1px 8px;
+    margin: 0 1px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.35;
+    white-space: nowrap;
+    color: #2c3a12;
+    background: rgba(200, 255, 0, 0.42);
+    border: 1px solid rgba(140, 178, 0, 0.55);
+}

@@ -155,8 +155,10 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .stage .callout { z-index: 4; }
 
 /* Panel device = a cropped slice of the real capture, framed & floating.
- * The full 1280×800 capture is scaled up (≈1.108×) and shifted so only the
- * dark sidebar panel (orig x≈955→1280) fills the frame. Offsets set inline. */
+ * The full 1280×800 capture is scaled up (1.125×) and shifted so only the
+ * sidebar panel (orig x 960→1280, i.e. 320 css px) fills the 360px frame
+ * exactly — at any smaller scale the page gradient bleeds down the left edge.
+ * Offsets set inline. */
 .panel {
   position: relative;
   width: 360px; height: 600px;
@@ -171,9 +173,9 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 }
 .panel .shot {
   position: absolute;
-  width: 1418px; height: 886px;     /* 1280×800 × 1.108 */
+  width: 1440px; height: 900px;     /* 1280×800 × 1.125 */
   background-repeat: no-repeat;
-  background-size: 1418px 886px;
+  background-size: 1440px 900px;
 }
 /* subtle glass top highlight on the device */
 .panel::after {
