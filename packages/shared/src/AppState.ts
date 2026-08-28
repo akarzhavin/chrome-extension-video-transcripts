@@ -148,7 +148,21 @@ export class AppState {
         }
     }
 
-    isDuplicate(newSubs: Subtitle[]): boolean {
+    /**
+     * Content check for "we already have this track".
+     *
+     * Compares only the first and middle cue, which is enough for the case it
+     * was written for (the same file arriving twice) but NOT enough to tell two
+     * genuinely different tracks apart when they share those cues — a film's
+     * theatrical and director's-cut subtitles typically do.
+     *
+     * Pass `name` when the site gave the track its own identity: a name we have
+     * not seen means a distinct track, whatever the sampled cues say. Callers
+     * without a meaningful name (YouTube derives names from content) can omit
+     * it and get the original content-only behaviour.
+     */
+    isDuplicate(newSubs: Subtitle[], name?: string): boolean {
+        if (name !== undefined && !this.tracks.some(t => t.name === name)) return false;
         return this.tracks.some(track => 
             track.subtitles.length > 0 && 
             track.subtitles[0].text === newSubs[0].text && 

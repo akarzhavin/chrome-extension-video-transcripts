@@ -96,6 +96,43 @@ describe('AppState', () => {
         expect(state.isDuplicate([{ text: 'Different', startTime: 0, endTime: 1 }, { text: 'Content', startTime: 1, endTime: 2 }, { text: 'Here', startTime: 2, endTime: 3 }])).toBe(false);
     });
 
+    // Regression: two rezka tracks for one film (theatrical vs director's cut)
+    // are both Russian and share their opening and middle cue, which is all the
+    // content check samples. Collapsing them dropped the second track, so
+    // picking "(реж.)" showed the theatrical one — the only track left.
+    test('isDuplicate should not collapse same-content tracks under different names', () => {
+        const subs: Subtitle[] = [
+            { text: 'Hello', startTime: 0, endTime: 1 },
+            { text: 'World', startTime: 1, endTime: 2 },
+            { text: 'Test', startTime: 2, endTime: 3 }
+        ];
+        state.addTrack('Russian — Оригинал (+субтитры)', subs);
+
+        expect(state.isDuplicate(subs, 'Russian — Оригинал (+субтитры) (реж.)')).toBe(false);
+        expect(state.isDuplicate(subs, 'Russian — Оригинал (+субтитры)')).toBe(true);
+    });
+
+    test('isDuplicate keeps content-only behaviour when no name is given', () => {
+        const subs: Subtitle[] = [
+            { text: 'Hello', startTime: 0, endTime: 1 },
+            { text: 'World', startTime: 1, endTime: 2 },
+            { text: 'Test', startTime: 2, endTime: 3 }
+        ];
+        state.addTrack('English', subs);
+
+        expect(state.isDuplicate(subs)).toBe(true);
+    });
+
+    // The language word has to survive in the name: pair ordering matches on it.
+    test('applyPreferences still orders labelled rezka tracks by language pair', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('Russian — Оригинал (+субтитры) (реж.)', [{ text: 'Привет' } as Subtitle]);
+        state.addTrack('English — Original', [{ text: 'Hello' } as Subtitle]);
+
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English — Original');
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian — Оригинал (+субтитры) (реж.)');
+    });
+
     test('getMainTrack should return the active track data', () => {
         const engSubs = [{ text: 'Hello' } as Subtitle];
         const rusSubs = [{ text: 'Привет' } as Subtitle];

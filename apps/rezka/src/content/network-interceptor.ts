@@ -32,20 +32,59 @@ import { FEATURES } from '../config';
     // HDrezka's JSON are escaped (\/), so we normalize before matching.
     const VTT_RE = /https?:\/\/[^\s"'<>,\]\\]+\.vtt[^\s"'<>,\]\\]*/g;
 
-    const buffer: string[] = [];
-    const seen = new Set<string>();
+    // The `subtitle` field of a CDN data response lists the tracks as
+    // "[Label]url,[Label]url" — the label is the player's own name for the
+    // track ("Русские", "Оригинал (+субтитры) (реж.)"). It is the ONLY thing
+    // that distinguishes two tracks in the same language: a director's-cut
+    // track and the theatrical one are both Russian, and guessing a name from
+    // the text of the cues cannot tell them apart. Capture it here, at the one
+    // point where the pairing exists, because nothing downstream can recover it.
+    const LABELLED_VTT_RE =
+        /\[([^\]]*)\]\s*(https?:\/\/[^\s"'<>,\]\\]+\.vtt[^\s"'<>,\]\\]*)/g;
 
-    function emit(url: string): void {
-        if (!url || seen.has(url)) return;
-        seen.add(url);
-        buffer.push(url);
-        window.postMessage({ type: 'VTT_URL_DETECTED', url }, '*');
+    interface Found {
+        url: string;
+        label?: string;
+    }
+
+    const buffer: Found[] = [];
+    const seen = new Map<string, Found>();
+
+    function emit(url: string, label?: string): void {
+        if (!url) return;
+        const known = seen.get(url);
+        // A URL can surface twice: once bare (the player fetching it) and once
+        // labelled (the CDN listing). Re-announce it when the label is new, so
+        // whichever arrives second still gets the name attached.
+        if (known && (!label || known.label === label)) return;
+        const found: Found = { url, label: label || known?.label };
+        seen.set(url, found);
+        if (!known) buffer.push(found);
+        else buffer[buffer.indexOf(known)] = found;
+        window.postMessage({ type: 'VTT_URL_DETECTED', url, label: found.label }, '*');
+    }
+
+    // Labels arrive as JSON \uXXXX escapes ("\u0420\u0443\u0441..."), because we
+    // scan the RAW response text — the parse that would decode them belongs to
+    // the player, not to us. Left as-is they reach the UI verbatim, so decode
+    // them here. Only \uXXXX: the surrounding text is not JSON, so anything
+    // heavier would be guessing at escapes we never produced.
+    function decodeEscapes(text: string): string {
+        return text.replace(/\\u([0-9a-fA-F]{4})/g,
+            (_, hex) => String.fromCharCode(parseInt(hex, 16)));
     }
 
     // Pull every .vtt URL out of a blob of text (inline config or JSON body).
     function scanBody(text: string): void {
         if (!text || text.indexOf('.vtt') === -1) return;
         const normalized = text.replace(/\\\//g, '/');
+        // Labelled pass first, so a track's name is known before the bare pass
+        // sees the same URL.
+        LABELLED_VTT_RE.lastIndex = 0;
+        let labelled: RegExpExecArray | null;
+        while ((labelled = LABELLED_VTT_RE.exec(normalized)) !== null) {
+            emit(labelled[2], decodeEscapes(labelled[1]).trim());
+        }
         VTT_RE.lastIndex = 0;
         let m: RegExpExecArray | null;
         while ((m = VTT_RE.exec(normalized)) !== null) emit(m[0]);
@@ -93,7 +132,8 @@ import { FEATURES } from '../config';
     // before it was listening aren't lost.
     window.addEventListener('message', (e: MessageEvent) => {
         if (e.source === window && e.data && e.data.type === 'VTT_SINK_READY') {
-            buffer.forEach((url) => window.postMessage({ type: 'VTT_URL_DETECTED', url }, '*'));
+            buffer.forEach(({ url, label }) =>
+                window.postMessage({ type: 'VTT_URL_DETECTED', url, label }, '*'));
         }
     });
 })();

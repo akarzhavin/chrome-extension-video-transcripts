@@ -21,6 +21,7 @@ import {
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     fetchAndRenderNotification,
+    type Subtitle,
 } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 
@@ -117,7 +118,7 @@ class VttApp implements AppInterface {
     setupListeners(): void {
         chrome.runtime.onMessage.addListener((request) => {
             if (request.action === "VTT_LOADED") {
-                this.handleNewSubtitles(request.payload);
+                this.handleNewSubtitles(request.payload, request.label);
             } else if (request.action === "VTT_LOAD_FAILED") {
                 this.handleVttLoadFailed({ status: request.status, failure: request.failure });
             } else if (request.action === "TIME_UPDATE") {
@@ -162,12 +163,17 @@ class VttApp implements AppInterface {
         }, settleMs);
     }
 
-    handleNewSubtitles(vttText: string): void {
+    handleNewSubtitles(vttText: string, label?: string): void {
         const newSubs = parseVTT(vttText);
         if (newSubs.length === 0) return;
 
-        if (!this.state.isDuplicate(newSubs)) {
-            const name = LanguageUtils.generateTrackName(newSubs, this.state.tracks);
+        const name = this.trackNameFor(newSubs, label);
+        // Content-identical tracks under DIFFERENT player labels are not
+        // duplicates: a director's cut and the theatrical version share their
+        // opening and often their middle line, which is all the content check
+        // compares. Trusting it there dropped the second track outright, so the
+        // user picked "(реж.)" and got the other one — the only track left.
+        if (!this.state.isDuplicate(newSubs, name)) {
             this.state.addTrack(name, newSubs);
         }
         this.ui.refresh();
@@ -218,6 +224,30 @@ class VttApp implements AppInterface {
      * what was often a rate limit — the same bug that was fixed on the YouTube
      * side. Records the reason and reports it.
      */
+    /**
+     * Name for a freshly loaded track.
+     *
+     * The language word comes first and is always present: ordering by the
+     * user's language pair matches on it (AppState.applyPreferences does
+     * `name.includes('Russian')`), so a bare player label like
+     * "Оригинал (+субтитры)" would silently break the pair selection.
+     *
+     * The player's own label is appended when the CDN listing gave one, because
+     * the language word alone cannot separate two tracks of the same language —
+     * exactly the theatrical/director's-cut case. Without a label we fall back
+     * to the old numbering ("Russian 2"), which at least stays unique.
+     */
+    trackNameFor(subs: Subtitle[], label?: string): string {
+        const lang = LanguageUtils.guessLanguage(subs);
+        if (!label) return LanguageUtils.generateTrackName(subs, this.state.tracks);
+        // Rezka labels often already name the language ("Русский"); keep the
+        // name short when the label adds nothing beyond it.
+        const composed = `${lang} — ${label}`;
+        return this.state.tracks.some(t => t.name === composed)
+            ? `${composed} ${this.state.tracks.filter(t => t.name.startsWith(composed)).length + 1}`
+            : composed;
+    }
+
     handleVttLoadFailed(info: { status?: number; failure?: string }): void {
         const failure = info.failure ?? 'unknown';
         if (!this.hadFailures) {
@@ -784,6 +814,10 @@ class VttApp implements AppInterface {
 class VttDetector {
     app: VttApp;
     processedUrls: Set<string> = new Set();
+    // The player's own name for each track, keyed by URL, as captured from the
+    // CDN listing by the MAIN-world interceptor. Two tracks of one language
+    // (theatrical vs director's cut) are indistinguishable without it.
+    labelsByUrl: Map<string, string> = new Map();
 
     constructor(app: VttApp) {
         this.app = app;
@@ -868,7 +902,8 @@ class VttDetector {
         }
     }
 
-    async loadVtt(url: string): Promise<void> {
+    async loadVtt(url: string, label?: string): Promise<void> {
+        if (label) this.labelsByUrl.set(url, label);
         if (this.processedUrls.has(url)) return;
         this.processedUrls.add(url);
 
@@ -877,9 +912,13 @@ class VttDetector {
         try {
             // We send the request to the background because it has host_permissions for voidboost
             // and is not subject to the CORS restrictions that affect the content script.
+            // The label rides along: the fetch answer comes back as a broadcast to
+            // every frame, so it has to carry its own identity — there is no
+            // request/response pairing to look it up by.
             chrome.runtime.sendMessage({
                 action: "FETCH_VTT",
-                url: url
+                url: url,
+                label: this.labelsByUrl.get(url)
             });
         } catch (err) {
             console.error("VttDetector: Failed to send FETCH_VTT message:", err);
@@ -896,7 +935,7 @@ class VttDetector {
         window.addEventListener('message', (event) => {
             if (event.source !== window) return;
             if (event.data && event.data.type === 'VTT_URL_DETECTED') {
-                this.loadVtt(event.data.url);
+                this.loadVtt(event.data.url, event.data.label);
             }
         });
         window.postMessage({ type: 'VTT_SINK_READY' }, '*');

@@ -101,7 +101,12 @@ chrome.runtime.onMessage.addListener((request: VttMessage, sender, sendResponse)
                     chrome.tabs.sendMessage(sender.tab.id, {
                         action: "VTT_LOADED",
                         payload: text,
-                        url: request.url
+                        url: request.url,
+                        // The player's own name for this track, when the CDN
+                        // listing gave one. Without it the content script can
+                        // only guess a name from the cue text, which cannot
+                        // separate two tracks in the same language.
+                        label: request.label
                     });
                 }
             })

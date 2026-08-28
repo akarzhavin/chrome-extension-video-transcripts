@@ -206,18 +206,48 @@ function coerceSize(v: unknown, fallback: number): number {
     return fallback;
 }
 
+// Per-platform starting sizes, applied only where the user has expressed no
+// preference at all -- see resolve(). On a video player the caption is the
+// thing being read, not chrome around it, and the 100/75 baseline (inherited
+// from the generic web-page overlay) lands too small to read from couch
+// distance on these two. Netflix and the generic web scope keep the baseline:
+// changing them was not asked for, and a silent resize is a regression to
+// anyone already happy with what they see.
+export const PLATFORM_SIZE_DEFAULTS: Partial<
+    Record<PrefScope, Pick<Prefs, 'overlayFontSize' | 'overlaySubFontSize'>>
+> = {
+    rezka: { overlayFontSize: 160, overlaySubFontSize: 110 },
+    youtube: { overlayFontSize: 160, overlaySubFontSize: 110 },
+};
+
 /**
  * Storage bytes → the flat resolved view for one scope:
- * DEFAULT_PREFS → stored top-level → byPlatform[scope].
+ * DEFAULT_PREFS → PLATFORM_SIZE_DEFAULTS[scope] → stored top-level → byPlatform[scope].
  */
 function resolve(raw: unknown, scope: PrefScope): Prefs {
     const stored: Partial<StoredPrefs> = isPrefs(raw) ? raw : {};
     const resolved: Prefs = { ...DEFAULT_PREFS, ...stored };
-    resolved.overlayFontSize = coerceSize(stored.overlayFontSize, DEFAULT_PREFS.overlayFontSize);
-    resolved.overlaySubFontSize = coerceSize(stored.overlaySubFontSize, DEFAULT_PREFS.overlaySubFontSize);
+    // The platform default is a fallback for "never set", not an override: it
+    // seeds coerceSize only when neither the top level nor this scope holds a
+    // value. Slotting it between DEFAULT_PREFS and `stored` instead would beat
+    // nobody -- an install that predates this change still has a top-level
+    // 100/75 written by the old code, and that would keep winning -- while a
+    // plain override would resize captions for users who had already chosen.
+    const scopeSizes = PLATFORM_SIZE_DEFAULTS[scope];
+    const scopedOver = stored.byPlatform?.[scope];
+    const sizeSeed =
+        scopeSizes && stored.overlayFontSize === undefined && scopedOver?.overlayFontSize === undefined
+            ? scopeSizes.overlayFontSize
+            : DEFAULT_PREFS.overlayFontSize;
+    const subSizeSeed =
+        scopeSizes && stored.overlaySubFontSize === undefined && scopedOver?.overlaySubFontSize === undefined
+            ? scopeSizes.overlaySubFontSize
+            : DEFAULT_PREFS.overlaySubFontSize;
+    resolved.overlayFontSize = coerceSize(stored.overlayFontSize, sizeSeed);
+    resolved.overlaySubFontSize = coerceSize(stored.overlaySubFontSize, subSizeSeed);
     const topLevelSize = resolved.overlayFontSize;
     const topLevelSubSize = resolved.overlaySubFontSize;
-    const over = stored.byPlatform?.[scope];
+    const over = scopedOver;
     // Copy key-by-key rather than spreading `...over` wholesale: a scope object
     // must never be able to set a GLOBAL. A stray analyticsEnabled inside
     // byPlatform.youtube spreading over the top-level value would silently
