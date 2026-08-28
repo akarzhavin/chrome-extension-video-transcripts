@@ -94,10 +94,19 @@ body {
     width: 320px;
     height: 100%;
     background: var(--panel-bg);
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--panel-edge, var(--border));
     display: flex;
     flex-direction: column;
     color: var(--text);
+    /* The product's own edge, restored. styles.css gives the light panel
+       `box-shadow: -10px 0 30px rgba(17,17,17,0.12)` — the replica dropped it,
+       and on a bright frame that cost the panel its edge entirely: measured
+       1.02:1 between the photo and the panel on the guess slide, i.e. no
+       visible boundary at all. The shipped shadow is the first layer; the
+       hairline of light in front of it is the second, and it is what actually
+       separates two near-white surfaces, since a shadow alone only darkens the
+       photo side. */
+    box-shadow: -10px 0 30px rgba(17, 17, 17, 0.12);
 }
 
 .p-header { padding: 12px 14px 0; }
@@ -198,6 +207,39 @@ body {
     border-color: rgba(140, 178, 0, 0.45);
 }
 .item.active .orig { color: var(--text); font-weight: 600; }
+
+/* ── The panel's glow (opt-in) ────────────────────────────────────────────
+   Off by default. A variant turns it on by setting --glow-reach; without that
+   the pseudo-element has zero width and paints nothing.
+
+   The values come from the store series, where the same violet spill sits left
+   of the panel (out/store-i18n@5/en/screenshot-1.png). That one is not drawn in
+   CSS at all — it is baked into the capture, cast by the extension's own
+   demo-mode spotlight — so it was measured off the capture rather than guessed:
+
+     hue        253deg, holding within a degree across the whole ramp
+     saturation  8% at the far edge rising to 40% at the panel
+     value      86% rising to 95% — it LIGHTENS toward the panel
+
+   That last point is what makes it read as light rather than as a border: the
+   source is the panel, and it falls off into the video. An edge that darkens
+   toward the panel is a shadow, and sits on the frame like a smudge.
+
+   Two stops of the same violet, so the falloff is perceptual rather than
+   linear — a straight ramp banded visibly at this width. */
+.panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 100%;
+    width: var(--glow-reach, 0);
+    background: linear-gradient(to right,
+        transparent 0%,
+        var(--glow-mid, rgba(150, 122, 245, 0.16)) 55%,
+        var(--glow-near, rgba(150, 122, 245, 0.42)) 100%);
+    pointer-events: none;
+}
 
 /* The collapse tab, riding the panel's left edge. In fullscreen the product
    drops it to 0.7 opacity — the one piece of UI left over a picture the

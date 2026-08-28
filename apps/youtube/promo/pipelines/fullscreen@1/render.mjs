@@ -3,6 +3,7 @@
 //   node pipelines/fullscreen@1/render.mjs
 //   node pipelines/fullscreen@1/render.mjs --backdrop ~/shots/podcast.jpg
 //   node pipelines/fullscreen@1/render.mjs --variant warm
+//   node pipelines/fullscreen@1/render.mjs --variant guess
 //
 // The one pipeline that reads no shared product capture. The panel is rebuilt
 // in HTML (assets/panel.css) so the backdrop is an input rather than pixels
@@ -24,12 +25,22 @@ if (process.argv.includes('-h') || process.argv.includes('--help')) {
 
 const arg = (n) => { const i = process.argv.indexOf(`--${n}`); return i !== -1 ? process.argv[i + 1] : null; };
 
-// --variant warm layers assets/warm.css over the base panel: same geometry and
-// accents, warmer greys. Rendered to its own filename so variants sit side by
-// side rather than overwriting one another.
+// Each variant is a (page, extra stylesheets) pair. Sheets layer in order over
+// the base, so 'guess' gets the warm panel too — it was chosen as the panel
+// look, and a second slide in the cool one would read as a different product.
+const VARIANTS = {
+  base:  { page: 'slide.html',       sheets: [] },
+  warm:  { page: 'slide.html',       sheets: ['warm'] },
+  // guess rides the DARK panel: its frame is a bright window, and a light
+  // panel on it left no visible boundary (measured 1.02:1 photo-to-panel).
+  guess: { page: 'slide-guess.html', sheets: ['dark', 'guess'] },
+  // The theme follows the footage: this frame is dark (mean value 41% against
+  // the light panel's 95%), so the panel goes dark with it. See assets/dark.css.
+  dark:  { page: 'slide.html',       sheets: ['dark'] },
+};
 const variant = arg('variant') || 'base';
-if (!['base', 'warm'].includes(variant)) {
-  console.error(`unknown --variant ${variant} (expected: base, warm)`);
+if (!VARIANTS[variant]) {
+  console.error(`unknown --variant ${variant} (expected: ${Object.keys(VARIANTS).join(', ')})`);
   process.exit(1);
 }
 const name = variant === 'base' ? 'fullscreen' : `fullscreen-${variant}`;
@@ -38,7 +49,10 @@ const backdrop = arg('backdrop');
 if (backdrop) {
   const src = path.resolve(backdrop.replace(/^~/, process.env.HOME));
   if (!fs.existsSync(src)) { console.error(`backdrop not found: ${src}`); process.exit(1); }
-  fs.copyFileSync(src, path.join(HERE, 'assets', 'backdrop.jpg'));
+  // Each variant has its own vendored backdrop, so swapping one never silently
+  // changes the other slide.
+  const target = variant === 'guess' ? 'backdrop-guess.jpg' : 'backdrop.jpg';
+  fs.copyFileSync(src, path.join(HERE, 'assets', target));
   console.log(`backdrop ← ${src}`);
 }
 
@@ -52,9 +66,9 @@ const page = await ctx.newPage();
 // The variant sheet is injected into a temp copy of slide.html rather than
 // added with page.addStyleTag: the screenshot must come from a file that can be
 // opened by hand and look identical.
-const html = fs.readFileSync(path.join(HERE, 'slide.html'), 'utf8').replace(
+const html = fs.readFileSync(path.join(HERE, VARIANTS[variant].page), 'utf8').replace(
   '<!-- VARIANT -->',
-  variant === 'base' ? '' : `<link rel="stylesheet" href="assets/${variant}.css" />`);
+  VARIANTS[variant].sheets.map((s) => `<link rel="stylesheet" href="assets/${s}.css" />`).join('\n'));
 const page_file = path.join(HERE, `.slide.${variant}.html`);
 fs.writeFileSync(page_file, html);
 

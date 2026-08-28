@@ -32,3 +32,13 @@
 
 /* The collapse tab is the panel's own material, so it follows the ground. */
 .tab { background: rgba(248, 246, 242, 0.86); }
+
+/* The panel's outer edge. The shipped border (#E5E5E2) is a divider meant for
+   a page, not for a photograph. Over the dark studio the panel already stands
+   out on brightness alone, so this only needs to seat it, not rescue it. */
+.panel {
+    /* No glow on this slide: the panel is separated from the dark studio by
+       being 54 points brighter than it, which needs no help. The border is the
+       product's own divider, nothing more. */
+    --panel-edge: rgba(17, 17, 17, 0.16);
+}
