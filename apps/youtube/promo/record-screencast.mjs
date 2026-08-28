@@ -691,10 +691,11 @@ else console.log('\n! ffmpeg failed', r.status);
 
 // Open on the polished store hero for the first ~1s, then crossfade into the live
 // demo — a stronger hook than the bare onboarding frame. Prefer the 2× source
-// (shots/en/slide1.png) so the intro is crisp; fall back to the 1× store shot.
-const introImg = existsSync(join(HERE, 'shots', 'en', 'slide1.png'))
-    ? join(HERE, 'shots', 'en', 'slide1.png')
-    : join(HERE, 'out', 'en', 'screenshot-1.png');
+// (shots/store-i18n@5/en/slide1.png) so the intro is crisp; fall back to the 1×
+// store shot. Both live under the store-i18n pipeline's own subtree.
+const introImg = existsSync(join(HERE, 'shots', 'store-i18n@5', 'en', 'slide1.png'))
+    ? join(HERE, 'shots', 'store-i18n@5', 'en', 'slide1.png')
+    : join(HERE, 'out', 'store-i18n@5', 'en', 'screenshot-1.png');
 if (r.status === 0 && existsSync(introImg)) {
     const tmp = join(OUT_DIR, 'lingogram-live-demo.intro.mp4');
     // The hero is 16:10; frame it (fit to height) over a blurred-cover copy so it

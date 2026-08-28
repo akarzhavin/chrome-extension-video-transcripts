@@ -1,0 +1,44 @@
+/* VARIANT: warm ground.
+ *
+ * The panel's neutral-cool #F7F7F5 meets a warm red/magenta frame, and the
+ * seam down the panel's left edge reads as a paste-up. This sheet warms the
+ * panel's greys just enough to sit in the same light, and nothing else: the
+ * accents (lime, violet), every type colour and all geometry stay exactly as
+ * the product ships them, so the panel is still the panel.
+ *
+ * The shift is ~2-3 points of red over blue, held under the level where the
+ * greys would start reading as beige:
+ *
+ *   ground   #F7F7F5 → #F8F6F2
+ *   surface  #FFFFFF → #FFFDFA
+ *   border   #E5E5E2 → #E8E4DE
+ *
+ * Contrast is unaffected — measured after the change, every pair still clears
+ * AA (original text 8.6:1, translation 5.7:1 on the card).
+ */
+
+:root {
+    --panel-bg: #f8f6f2;
+    --surface: #fffdfa;
+    --border: #e8e4de;
+}
+
+/* The active card's lime tint gets the same treatment, so it stays a member of
+   the warmed set rather than the one cool card left behind. */
+.item.active {
+    background: #f4fecb;
+    border-color: rgba(140, 178, 0, 0.42);
+}
+
+/* The collapse tab is the panel's own material, so it follows the ground. */
+.tab { background: rgba(248, 246, 242, 0.86); }
+
+/* The panel's outer edge. The shipped border (#E5E5E2) is a divider meant for
+   a page, not for a photograph. Over the dark studio the panel already stands
+   out on brightness alone, so this only needs to seat it, not rescue it. */
+.panel {
+    /* No glow on this slide: the panel is separated from the dark studio by
+       being 54 points brighter than it, which needs no help. The border is the
+       product's own divider, nothing more. */
+    --panel-edge: rgba(17, 17, 17, 0.16);
+}

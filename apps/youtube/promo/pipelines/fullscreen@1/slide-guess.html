@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />
+<link rel="stylesheet" href="assets/panel.css" />
+<link rel="stylesheet" href="assets/slide.css" />
+<!-- VARIANT --></head>
+<body>
+  <div class="frame">
+    <img class="backdrop" src="assets/backdrop-guess.jpg" alt="" />
+    <div class="scrim"></div>
+
+    <div class="copy">
+      <span class="eyebrow">ACTIVE RECALL, BUILT IN</span>
+      <h1>Listen first,<br>then <span class="hl">check yourself</span></h1>
+      <p>Guess mode hides each line until you reveal it — train your ear on real
+         speech instead of just reading along.</p>
+    </div>
+
+    <!-- The on-video line is masked too: guess mode hides the words wherever
+         they appear, not only in the panel. -->
+    <div class="captions">
+      <span class="cap-main">Hoy <span class="mask">vamos</span> a <span class="mask">aprender</span> algo <span class="mask">divertido</span></span>
+      <span class="cap-sub">Today we'll learn something fun</span>
+    </div>
+
+    <div class="tab">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+
+    <div class="panel">
+      <div class="p-header">
+        <div class="p-top">
+          <span class="langpair">ES<span class="arrow">⇄</span>EN</span>
+          <span class="p-title">Subtitles</span>
+          <span class="p-gear">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+        </div>
+        <div class="p-status">
+          <span class="brand">LINGOGRAM</span>
+          <span class="dot"></span>
+          <span class="saved">142 words saved</span>
+        </div>
+      </div>
+
+      <!-- Guess is the selected mode here, not Dual. -->
+      <div class="p-modes">
+        <div class="seg">
+          <button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="1.5"/></svg>
+          </button>
+          <button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13" width="18" height="6" rx="1.5"/></svg>
+          </button>
+          <button class="active">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M4 8h5M12 8h3M18 8h2"/></svg>
+            Guess
+          </button>
+        </div>
+        <span class="divider"></span>
+        <span class="toggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/></svg>
+          On-screen<span class="sw"></span>
+        </span>
+      </div>
+
+      <!-- The line already played keeps its words; everything from the current
+           line on is still masked. That ordering is the feature working, not a
+           decorative mix. -->
+      <div class="p-list">
+        <div class="item">
+          <div class="orig">Hola, ¿qué tal? Me alegro de verte</div>
+          <div class="trans">Hey, how are you? Glad to see you</div>
+        </div>
+        <div class="item active">
+          <div class="orig">Hoy <span class="mask">vamos</span> a <span class="mask">aprender</span> <span class="mask">algo</span> <span class="mask">divertido</span></div>
+          <div class="trans">Today we'll learn something fun</div>
+        </div>
+        <div class="item">
+          <div class="orig"><span class="mask">Escucha</span> con <span class="mask">calma</span> y <span class="mask">repite</span> <span class="mask">conmigo</span></div>
+        </div>
+        <div class="item">
+          <div class="orig">Mira <span class="mask">cómo</span> se <span class="mask">pronuncia</span> <span class="mask">esta</span> <span class="mask">palabra</span></div>
+        </div>
+        <div class="item">
+          <div class="orig">No te <span class="mask">preocupes</span> si te <span class="mask">equivocas</span></div>
+        </div>
+        <div class="item">
+          <div class="orig"><span class="mask">Cada</span> día <span class="mask">entiendes</span> un <span class="mask">poco</span> <span class="mask">más</span></div>
+        </div>
+        <div class="item">
+          <div class="orig"><span class="mask">Guarda</span> las <span class="mask">palabras</span> que no <span class="mask">conozcas</span></div>
+        </div>
+        <div class="item">
+          <div class="orig">¡Lo <span class="mask">estás</span> <span class="mask">haciendo</span> muy <span class="mask">bien</span>!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body></html>

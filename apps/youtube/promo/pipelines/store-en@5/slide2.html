@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />
+<link rel="stylesheet" href="assets/promo.css" />
+<link rel="stylesheet" href="assets/save-slide.css" /></head>
+<body class="theme-2">
+  <div class="slide slide--side">
+    <div class="bg"></div>
+    <div class="brand"><img src="assets/brand-tile.png" alt="" /><span>Lingogram</span></div>
+    <div class="copy">
+      <span class="eyebrow">YOUR OWN DICTIONARY</span>
+      <h1>Every word you save,<br>in <span class="hl">your own dictionary</span></h1>
+      <p>Select any word, tap <span class="inlinepill">+ Lingogram</span>, and it goes
+         straight to your personal dictionary on lingogram.ai.</p>
+
+    </div>
+    <div class="stage">
+      <div class="panel">
+        <div class="shot" style="background-image:url('../../../screenshots/out-live/live-demo-en.png'); left:-1080px; top:0;"></div>
+        <!-- Spotlight on the saved card. The capture already contains the
+             highlighted word and its badge (demo mode marks it via the same
+             markSpansSaved() the real save flow calls); everything above and
+             below it is dimmed so the eye lands there instead of reading the
+             list as an undifferentiated stack of subtitles. -->
+        <div class="spotlight"></div>
+
+        <!-- The step BEFORE saving, staged on "vamos": the word under selection
+             with the quick-add pill above it. The capture cannot contain this —
+             a screenshot catches one moment, and the pill only exists while a
+             selection is live, by which point "divertido" is already saved. So
+             the two halves of the mechanic are shown at once: vamos mid-save,
+             divertido done.
+
+             Positions are measured off the capture, not eyeballed: the glyph box
+             of "vamos" scans to x 818.5-870.5, baseline band y 390-410.5 (css px
+             on the 1280x800 canvas). See save-slide.css for the pill offset. -->
+        <div class="selword"></div>
+        <div class="quickpill">+ Lingogram</div>
+      </div>
+      <div class="callout callout--saved" style="left:34px; bottom:-18px;">Synced to your account</div>
+    </div>
+  </div>
+</body></html>

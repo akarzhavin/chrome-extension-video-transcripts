@@ -1,0 +1,1463 @@
+{
+ "_note": "Localized marketing copy for the 4 promo screenshots (v5). Register: sentence-case titles, NO slang — the audience is motivated adult learners (exam prep, expats, professionals), tone = competent friend, not hype. Each slide has: eyebrow (short ALL-CAPS label), title (HTML — may contain <br> and exactly one <span class=\"hl\">…</span> highlighting the key phrase), sub (one sentence), and optionally callout. slide2's sub contains <span class=\"inlinepill\">+ Lingogram</span> — that is the product's own button name and must stay Latin and untranslated in every locale, though the words around it are localized. slide1/slide3 carry caption/captionSub: the on-video subtitle pair, where caption is the LEARNED language (Spanish in the reference) and captionSub is the locale's own language. English is the fallback for any missing field. Slide order (v5): 1 fullscreen hero, 2 personal dictionary, 3 guess/active recall, 4 customisation (capture: settings).",
+ "_stale": "2026-08-27: current. The en block holds the v5 copy (4 slides) and all 53 other locales were transcreated from it on the same day. Re-localize from en whenever the en block changes. Eight titles (da/no slide4, fi/ja slide3, th/vi/ms slide2, id slide4) were shortened after a first pass because they wrapped one line further than intended and left an orphan — run check-orphans.mjs after any copy change rather than trusting character counts.",
+ "_l10n": "TRANSCREATION, NOT TRANSLATION (2026-07-14 pass). English is the reference for MEANING only — do not mirror its syntax, em-dashes or word choices. Per-locale rules: (1) slide1/2 eyebrow = the locale's native 'dual subtitles' search term from docs/keywords-by-language.md (slide 1 mirrors the query the user typed, e.g. fr SOUS-TITRES BILINGUES, hu DUPLA FELIRAT, th ซับสองภาษา, fa دوزبانه, id SUBTITLE DUA BAHASA); (2) 'one tap' → the locale's native desktop CLICK idiom (это десктопное расширение: клик/Klick/clic/clique/kliknięcie/一键/ワンクリック…), never touchscreen 'tap' calques; (3) slide3 callout + any in-copy mode name must match the product UI string ytModeGuess in _locales/<loc>/messages.json (ru «Угадай», bg „Познай“, zh_CN 猜词, hi अनुमान, sw kukisia…); (4) keep register: sentence case, no slang, adult credible tool; (5) layout budgets — title ≤ ~22 chars per <br>-line (slide1 ≤ ~36 total, slide4 ≤ ~45 total), sub ≤ ~130 chars, callout ≤ ~30 chars (white-space: nowrap), eyebrow is NOT auto-uppercased by CSS so caps live here in the JSON.",
+ "en": {
+  "slide1": {
+   "eyebrow": "YOUTUBE &amp; NETFLIX",
+   "title": "Works on<br><span class=\"hl\">any video</span><br>with subtitles",
+   "sub": "Both languages render right on the player — regular videos, Shorts, and fullscreen alike. Nothing to switch on twice.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide2": {
+   "eyebrow": "YOUR OWN DICTIONARY",
+   "title": "Every word you save,<br>in <span class=\"hl\">your own dictionary</span>",
+   "sub": "Select any word, tap <span class=\"inlinepill\">+ Lingogram</span>, and it goes straight to your personal dictionary on lingogram.ai.",
+   "callout": "Synced to your account"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL, BUILT IN",
+   "title": "Listen first,<br>then <span class=\"hl\">check yourself</span>",
+   "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide4": {
+   "eyebrow": "MAKE IT YOURS",
+   "title": "Make the subtitles<br><span class=\"hl\">look how you want</span>",
+   "sub": "Seven fonts, any colour, your own size, position and backdrop — set the two lines up independently until they read exactly how you like."
+  }
+ },
+ "ru": {
+  "slide1": {
+   "eyebrow": "ДВОЙНЫЕ СУБТИТРЫ · YOUTUBE &amp; NETFLIX",
+   "title": "Работает на<br><span class=\"hl\">любом видео</span><br>с субтитрами",
+   "sub": "Оба языка выводятся прямо в плеере — в обычных роликах, Shorts и на полном экране. Ничего не нужно включать дважды.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Сегодня мы выучим кое-что интересное"
+  },
+  "slide2": {
+   "eyebrow": "СВОЙ СЛОВАРЬ",
+   "title": "Каждое сохранённое слово —<br>в <span class=\"hl\">вашем личном словаре</span>",
+   "sub": "Выделите слово, нажмите <span class=\"inlinepill\">+ Lingogram</span> — и оно сразу попадёт в личный словарь на lingogram.ai.",
+   "callout": "Синхронизация с аккаунтом"
+  },
+  "slide3": {
+   "eyebrow": "АКТИВНОЕ ПРИПОМИНАНИЕ",
+   "title": "Сначала слушайте,<br>потом <span class=\"hl\">проверяйте себя</span>",
+   "sub": "Режим «Угадай» скрывает реплику, пока вы её не откроете — тренируйте восприятие речи на слух, а не чтение с экрана.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Сегодня мы выучим кое-что интересное"
+  },
+  "slide4": {
+   "eyebrow": "НАСТРОЙТЕ ПОД СЕБЯ",
+   "title": "Субтитры,<br><span class=\"hl\">какими вы хотите их видеть</span>",
+   "sub": "Семь шрифтов, любой цвет, свой размер, положение и подложка — обе строки настраиваются отдельно друг от друга."
+  }
+ },
+ "es": {
+  "slide1": {
+   "eyebrow": "SUBTÍTULOS DOBLES · YOUTUBE &amp; NETFLIX",
+   "title": "Funciona en<br><span class=\"hl\">cualquier vídeo</span><br>con subtítulos",
+   "sub": "Los dos idiomas aparecen directamente en el reproductor: vídeos normales, Shorts y pantalla completa. Nada que activar dos veces.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoy vamos a aprender algo divertido"
+  },
+  "slide2": {
+   "eyebrow": "TU PROPIO DICCIONARIO",
+   "title": "Cada palabra que guardas,<br>en <span class=\"hl\">tu propio diccionario</span>",
+   "sub": "Selecciona una palabra, pulsa <span class=\"inlinepill\">+ Lingogram</span> y pasa directo a tu diccionario personal en lingogram.ai.",
+   "callout": "Sincronizado con tu cuenta"
+  },
+  "slide3": {
+   "eyebrow": "REPASO ACTIVO INCLUIDO",
+   "title": "Escucha primero,<br><span class=\"hl\">luego compruébalo</span>",
+   "sub": "El modo Adivinar oculta cada línea hasta que la destapas: entrenas el oído con habla real, no solo leyendo.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoy vamos a aprender algo divertido"
+  },
+  "slide4": {
+   "eyebrow": "A TU MEDIDA",
+   "title": "Los subtítulos,<br><span class=\"hl\">como tú los quieras</span>",
+   "sub": "Siete fuentes, cualquier color, tu propio tamaño, posición y fondo — configura cada línea de forma independiente."
+  }
+ },
+ "de": {
+  "slide1": {
+   "eyebrow": "DOPPELTE UNTERTITEL · YOUTUBE &amp; NETFLIX",
+   "title": "Funktioniert bei<br><span class=\"hl\">jedem Video</span><br>mit Untertiteln",
+   "sub": "Beide Sprachen erscheinen direkt im Player — bei normalen Videos, Shorts und im Vollbild. Nichts muss doppelt aktiviert werden.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Heute lernen wir etwas Lustiges"
+  },
+  "slide2": {
+   "eyebrow": "DEIN EIGENES WÖRTERBUCH",
+   "title": "Jedes gespeicherte Wort,<br>in <span class=\"hl\">deinem eigenen Wörterbuch</span>",
+   "sub": "Wort markieren, auf <span class=\"inlinepill\">+ Lingogram</span> klicken — schon landet es in deinem persönlichen Wörterbuch auf lingogram.ai.",
+   "callout": "Mit deinem Konto synchronisiert"
+  },
+  "slide3": {
+   "eyebrow": "AKTIVES ABRUFEN, EINGEBAUT",
+   "title": "Erst hören,<br><span class=\"hl\">dann selbst prüfen</span>",
+   "sub": "Der Rate-Modus blendet jede Zeile aus, bis du sie aufdeckst — so trainierst du dein Ohr an echter Sprache statt nur mitzulesen.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Heute lernen wir etwas Lustiges"
+  },
+  "slide4": {
+   "eyebrow": "GANZ NACH DEINEM GESCHMACK",
+   "title": "Untertitel,<br><span class=\"hl\">wie du sie willst</span>",
+   "sub": "Sieben Schriftarten, jede Farbe, eigene Größe, Position und Hintergrund — beide Zeilen lassen sich unabhängig einstellen."
+  }
+ },
+ "fr": {
+  "slide1": {
+   "eyebrow": "SOUS-TITRES BILINGUES · YOUTUBE &amp; NETFLIX",
+   "title": "Fonctionne sur<br><span class=\"hl\">toute vidéo</span><br>sous-titrée",
+   "sub": "Les deux langues s'affichent directement sur le lecteur — vidéos classiques, Shorts et plein écran. Rien à réactiver.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Aujourd'hui, on va apprendre quelque chose d'amusant"
+  },
+  "slide2": {
+   "eyebrow": "VOTRE PROPRE DICTIONNAIRE",
+   "title": "Chaque mot enregistré,<br><span class=\"hl\">dans votre dico perso</span>",
+   "sub": "Sélectionnez un mot, cliquez sur <span class=\"inlinepill\">+ Lingogram</span> : il file droit dans votre dictionnaire personnel sur lingogram.ai.",
+   "callout": "Synchronisé avec votre compte"
+  },
+  "slide3": {
+   "eyebrow": "RAPPEL ACTIF INTÉGRÉ",
+   "title": "Écoutez d'abord,<br><span class=\"hl\">vérifiez ensuite</span>",
+   "sub": "Le mode Deviner masque chaque réplique jusqu'à ce que vous la révéliez — entraînez votre oreille sur de la parole réelle.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Aujourd'hui, on va apprendre quelque chose d'amusant"
+  },
+  "slide4": {
+   "eyebrow": "À VOTRE IMAGE",
+   "title": "Des sous-titres<br><span class=\"hl\">comme vous les voulez</span>",
+   "sub": "Sept polices, toutes les couleurs, votre taille, position et fond — chaque ligne se règle indépendamment de l'autre."
+  }
+ },
+ "it": {
+  "slide1": {
+   "eyebrow": "DOPPI SOTTOTITOLI · YOUTUBE &amp; NETFLIX",
+   "title": "Funziona su<br><span class=\"hl\">ogni video</span><br>con sottotitoli",
+   "sub": "Le due lingue compaiono direttamente sul player — video normali, Shorts e schermo intero. Niente da riattivare.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Oggi impariamo qualcosa di divertente"
+  },
+  "slide2": {
+   "eyebrow": "IL TUO DIZIONARIO",
+   "title": "Ogni parola salvata,<br>nel <span class=\"hl\">tuo dizionario personale</span>",
+   "sub": "Seleziona una parola, tocca <span class=\"inlinepill\">+ Lingogram</span> e finisce subito nel tuo dizionario su lingogram.ai.",
+   "callout": "Sincronizzato con il tuo account"
+  },
+  "slide3": {
+   "eyebrow": "RIPASSO ATTIVO INTEGRATO",
+   "title": "Prima ascolta,<br><span class=\"hl\">poi verifica</span>",
+   "sub": "La modalità Indovina nasconde ogni battuta finché non la sveli: alleni l'orecchio sul parlato vero, non solo sulla lettura.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Oggi impariamo qualcosa di divertente"
+  },
+  "slide4": {
+   "eyebrow": "TUTTO SU MISURA",
+   "title": "Sottotitoli<br><span class=\"hl\">come li vuoi tu</span>",
+   "sub": "Sette font, qualsiasi colore, dimensione, posizione e sfondo a tua scelta — le due righe si impostano in modo indipendente."
+  }
+ },
+ "pt_PT": {
+  "slide1": {
+   "eyebrow": "LEGENDAS DUPLAS · YOUTUBE &amp; NETFLIX",
+   "title": "Funciona em<br><span class=\"hl\">qualquer vídeo</span><br>com legendas",
+   "sub": "As duas línguas aparecem diretamente no leitor — vídeos normais, Shorts e ecrã inteiro. Não é preciso ativar nada duas vezes.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoje vamos aprender algo divertido"
+  },
+  "slide2": {
+   "eyebrow": "O TEU DICIONÁRIO",
+   "title": "Cada palavra guardada,<br>no <span class=\"hl\">teu próprio dicionário</span>",
+   "sub": "Seleciona uma palavra, clica em <span class=\"inlinepill\">+ Lingogram</span> e ela vai direta para o teu dicionário em lingogram.ai.",
+   "callout": "Sincronizado com a tua conta"
+  },
+  "slide3": {
+   "eyebrow": "EVOCAÇÃO ATIVA INCLUÍDA",
+   "title": "Ouve primeiro,<br><span class=\"hl\">depois confirma</span>",
+   "sub": "O modo Adivinhar esconde cada fala até a revelares — treinas o ouvido com fala real, em vez de apenas leres.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoje vamos aprender algo divertido"
+  },
+  "slide4": {
+   "eyebrow": "À TUA MANEIRA",
+   "title": "As legendas,<br><span class=\"hl\">como tu as queres</span>",
+   "sub": "Sete tipos de letra, qualquer cor, o teu tamanho, posição e fundo — cada linha configura-se de forma independente."
+  }
+ },
+ "pt_BR": {
+  "slide1": {
+   "eyebrow": "LEGENDAS DUPLAS · YOUTUBE &amp; NETFLIX",
+   "title": "Funciona em<br><span class=\"hl\">qualquer vídeo</span><br>com legenda",
+   "sub": "Os dois idiomas aparecem direto no player — vídeos normais, Shorts e tela cheia. Nada precisa ser ativado de novo.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoje vamos aprender algo divertido"
+  },
+  "slide2": {
+   "eyebrow": "SEU PRÓPRIO DICIONÁRIO",
+   "title": "Cada palavra salva,<br>no <span class=\"hl\">seu próprio dicionário</span>",
+   "sub": "Selecione uma palavra, clique em <span class=\"inlinepill\">+ Lingogram</span> e ela vai direto para o seu dicionário em lingogram.ai.",
+   "callout": "Sincronizado com sua conta"
+  },
+  "slide3": {
+   "eyebrow": "RECORDAÇÃO ATIVA INCLUÍDA",
+   "title": "Ouça primeiro,<br><span class=\"hl\">depois se confira</span>",
+   "sub": "O modo Adivinhar esconde cada fala até você revelar — treine o ouvido com fala de verdade, não só lendo junto.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoje vamos aprender algo divertido"
+  },
+  "slide4": {
+   "eyebrow": "DO SEU JEITO",
+   "title": "Legendas<br><span class=\"hl\">do jeito que você quiser</span>",
+   "sub": "Sete fontes, qualquer cor, seu tamanho, posição e fundo — as duas linhas se configuram de forma independente."
+  }
+ },
+ "ca": {
+  "slide1": {
+   "eyebrow": "SUBTÍTOLS DOBLES · YOUTUBE &amp; NETFLIX",
+   "title": "Funciona a<br><span class=\"hl\">qualsevol vídeo</span><br>amb subtítols",
+   "sub": "Els dos idiomes surten sobre el reproductor mateix — vídeos normals, Shorts i pantalla completa. Res a activar dues vegades.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Avui aprendrem alguna cosa divertida"
+  },
+  "slide2": {
+   "eyebrow": "EL TEU DICCIONARI",
+   "title": "Cada paraula desada,<br>al <span class=\"hl\">teu propi diccionari</span>",
+   "sub": "Selecciona una paraula, clica <span class=\"inlinepill\">+ Lingogram</span> i va directa al teu diccionari personal a lingogram.ai.",
+   "callout": "Sincronitzat amb el teu compte"
+  },
+  "slide3": {
+   "eyebrow": "REPÀS ACTIU INCLÒS",
+   "title": "Escolta primer,<br><span class=\"hl\">després comprova-ho</span>",
+   "sub": "El mode Endevina amaga cada frase fins que la destapes: entrenes l'oïda amb parla real, no només llegint.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Avui aprendrem alguna cosa divertida"
+  },
+  "slide4": {
+   "eyebrow": "A LA TEVA MANERA",
+   "title": "Els subtítols,<br><span class=\"hl\">com tu els vulguis</span>",
+   "sub": "Set tipus de lletra, qualsevol color, mida, posició i fons al teu gust — les dues línies es configuren per separat."
+  }
+ },
+ "nl": {
+  "slide1": {
+   "eyebrow": "DUBBELE ONDERTITELING · YOUTUBE &amp; NETFLIX",
+   "title": "Werkt bij<br><span class=\"hl\">elke video</span><br>met ondertiteling",
+   "sub": "Beide talen verschijnen direct op de speler — gewone video's, Shorts en volledig scherm. Niets hoeft twee keer aan.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Vandaag leren we iets leuks"
+  },
+  "slide2": {
+   "eyebrow": "JOUW EIGEN WOORDENBOEK",
+   "title": "Elk woord dat je opslaat,<br>in <span class=\"hl\">je eigen woordenboek</span>",
+   "sub": "Selecteer een woord, klik op <span class=\"inlinepill\">+ Lingogram</span> en het gaat direct naar je persoonlijke woordenboek op lingogram.ai.",
+   "callout": "Gesynchroniseerd met je account"
+  },
+  "slide3": {
+   "eyebrow": "ACTIEF OPHALEN, INGEBOUWD",
+   "title": "Eerst luisteren,<br><span class=\"hl\">dan jezelf testen</span>",
+   "sub": "De raadmodus verbergt elke regel tot je hem onthult — zo train je je oor op echte spraak in plaats van alleen mee te lezen.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Vandaag leren we iets leuks"
+  },
+  "slide4": {
+   "eyebrow": "HELEMAAL NAAR WENS",
+   "title": "Ondertiteling<br><span class=\"hl\">zoals jij hem wilt</span>",
+   "sub": "Zeven lettertypen, elke kleur, je eigen grootte, positie en achtergrond — beide regels stel je apart in."
+  }
+ },
+ "sv": {
+  "slide1": {
+   "eyebrow": "DUBBLA UNDERTEXTER · YOUTUBE &amp; NETFLIX",
+   "title": "Fungerar på<br><span class=\"hl\">alla videor</span><br>med undertext",
+   "sub": "Båda språken visas direkt i spelaren — vanliga videor, Shorts och helskärm. Inget behöver slås på två gånger.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Idag ska vi lära oss något roligt"
+  },
+  "slide2": {
+   "eyebrow": "DIN EGEN ORDLISTA",
+   "title": "Varje sparat ord,<br>i <span class=\"hl\">din egen ordlista</span>",
+   "sub": "Markera ett ord, klicka på <span class=\"inlinepill\">+ Lingogram</span> — det hamnar direkt i din personliga ordlista på lingogram.ai.",
+   "callout": "Synkas med ditt konto"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL, INBYGGT",
+   "title": "Lyssna först,<br><span class=\"hl\">kolla sedan facit</span>",
+   "sub": "Gissningsläget döljer varje replik tills du visar den — du tränar örat på riktigt tal i stället för att bara läsa med.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Idag ska vi lära oss något roligt"
+  },
+  "slide4": {
+   "eyebrow": "HELT EFTER DIN SMAK",
+   "title": "Undertexter<br><span class=\"hl\">som du vill ha dem</span>",
+   "sub": "Sju typsnitt, valfri färg, egen storlek, position och bakgrund — de två raderna ställs in var för sig."
+  }
+ },
+ "da": {
+  "slide1": {
+   "eyebrow": "DOBBELTE UNDERTEKSTER · YOUTUBE &amp; NETFLIX",
+   "title": "Virker på<br><span class=\"hl\">enhver video</span><br>med undertekster",
+   "sub": "Begge sprog vises direkte i afspilleren — almindelige videoer, Shorts og fuld skærm. Intet skal slås til to gange.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "I dag skal vi lære noget sjovt"
+  },
+  "slide2": {
+   "eyebrow": "DIN EGEN ORDBOG",
+   "title": "Hvert gemte ord,<br>i <span class=\"hl\">din egen ordbog</span>",
+   "sub": "Markér et ord, klik på <span class=\"inlinepill\">+ Lingogram</span> — så lander det direkte i din personlige ordbog på lingogram.ai.",
+   "callout": "Synkroniseret med din konto"
+  },
+  "slide3": {
+   "eyebrow": "AKTIV GENKALDELSE INDBYGGET",
+   "title": "Lyt først,<br><span class=\"hl\">tjek så dig selv</span>",
+   "sub": "Gættetilstanden skjuler hver replik, til du afslører den — du træner øret på rigtig tale i stedet for bare at læse med.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "I dag skal vi lære noget sjovt"
+  },
+  "slide4": {
+   "eyebrow": "HELT SOM DU VIL",
+   "title": "Undertekster,<br><span class=\"hl\">helt som du vil</span>",
+   "sub": "Syv skrifttyper, enhver farve, din egen størrelse, placering og baggrund — de to linjer indstilles hver for sig."
+  }
+ },
+ "no": {
+  "slide1": {
+   "eyebrow": "DOBLE UNDERTEKSTER · YOUTUBE &amp; NETFLIX",
+   "title": "Fungerer på<br><span class=\"hl\">alle videoer</span><br>med undertekst",
+   "sub": "Begge språk vises rett i spilleren — vanlige videoer, Shorts og fullskjerm. Ingenting må slås på to ganger.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "I dag skal vi lære noe morsomt"
+  },
+  "slide2": {
+   "eyebrow": "DIN EGEN ORDBOK",
+   "title": "Hvert lagrede ord,<br>i <span class=\"hl\">din egen ordbok</span>",
+   "sub": "Merk et ord, klikk på <span class=\"inlinepill\">+ Lingogram</span> — det havner rett i din personlige ordbok på lingogram.ai.",
+   "callout": "Synkronisert med kontoen din"
+  },
+  "slide3": {
+   "eyebrow": "AKTIV GJENKALLING INNEBYGD",
+   "title": "Lytt først,<br><span class=\"hl\">sjekk så deg selv</span>",
+   "sub": "Gjettemodus skjuler hver replikk til du avslører den — du trener øret på ekte tale i stedet for bare å lese med.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "I dag skal vi lære noe morsomt"
+  },
+  "slide4": {
+   "eyebrow": "HELT SOM DU VIL",
+   "title": "Undertekster,<br><span class=\"hl\">helt som du vil</span>",
+   "sub": "Sju skrifttyper, enhver farge, egen størrelse, plassering og bakgrunn — de to linjene stilles inn hver for seg."
+  }
+ },
+ "fi": {
+  "slide1": {
+   "eyebrow": "KAKSOISTEKSTITYS · YOUTUBE &amp; NETFLIX",
+   "title": "Toimii<br><span class=\"hl\">kaikissa videoissa</span><br>joissa on tekstitys",
+   "sub": "Molemmat kielet näkyvät suoraan soittimessa — tavalliset videot, Shorts ja koko näyttö. Mitään ei tarvitse kytkeä kahdesti.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Tänään opimme jotain hauskaa"
+  },
+  "slide2": {
+   "eyebrow": "OMA SANASTOSI",
+   "title": "Jokainen tallennettu sana,<br><span class=\"hl\">omassa sanastossasi</span>",
+   "sub": "Valitse sana, napsauta <span class=\"inlinepill\">+ Lingogram</span> — se siirtyy suoraan omaan sanastoosi osoitteessa lingogram.ai.",
+   "callout": "Synkronoitu tilillesi"
+  },
+  "slide3": {
+   "eyebrow": "AKTIIVINEN MIELEENPALAUTUS",
+   "title": "Kuuntele ensin,<br><span class=\"hl\">tarkista itse</span>",
+   "sub": "Arvaustila piilottaa repliikin, kunnes paljastat sen — korva harjaantuu aitoon puheeseen, ei vain lukemiseen.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Tänään opimme jotain hauskaa"
+  },
+  "slide4": {
+   "eyebrow": "JUURI SINUN NÄKÖISESI",
+   "title": "Tekstitys<br><span class=\"hl\">juuri sellaisena kuin haluat</span>",
+   "sub": "Seitsemän fonttia, mikä tahansa väri, oma koko, sijainti ja tausta — molemmat rivit muokataan erikseen."
+  }
+ },
+ "et": {
+  "slide1": {
+   "eyebrow": "TOPELTSUBTIITRID · YOUTUBE &amp; NETFLIX",
+   "title": "Töötab<br><span class=\"hl\">igal videol</span><br>millel on subtiitrid",
+   "sub": "Mõlemad keeled ilmuvad otse mängijasse — tavalised videod, Shorts ja täisekraan. Midagi pole vaja kaks korda sisse lülitada.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Täna õpime midagi lõbusat"
+  },
+  "slide2": {
+   "eyebrow": "SINU ENDA SÕNASTIK",
+   "title": "Iga salvestatud sõna —<br><span class=\"hl\">sinu enda sõnastikus</span>",
+   "sub": "Vali sõna, klõpsa <span class=\"inlinepill\">+ Lingogram</span> — see jõuab kohe sinu isiklikku sõnastikku lehel lingogram.ai.",
+   "callout": "Sünkroonitud sinu kontoga"
+  },
+  "slide3": {
+   "eyebrow": "AKTIIVNE MEENUTAMINE",
+   "title": "Kuula esmalt,<br><span class=\"hl\">siis kontrolli end</span>",
+   "sub": "Arvamisrežiim peidab rea, kuni selle avad — treenid kõrva päris kõnega, mitte ainult lugedes.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Täna õpime midagi lõbusat"
+  },
+  "slide4": {
+   "eyebrow": "TÄPSELT SINU MOODI",
+   "title": "Subtiitrid<br><span class=\"hl\">just sellisena, nagu soovid</span>",
+   "sub": "Seitse fonti, iga värv, oma suurus, asukoht ja taust — mõlemat rida saab seadistada eraldi."
+  }
+ },
+ "lv": {
+  "slide1": {
+   "eyebrow": "DUBULTI SUBTITRI · YOUTUBE &amp; NETFLIX",
+   "title": "Darbojas<br><span class=\"hl\">jebkurā video</span><br>ar subtitriem",
+   "sub": "Abas valodas parādās tieši atskaņotājā — parastie video, Shorts un pilnekrāns. Nekas nav jāieslēdz divreiz.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Šodien mācīsimies kaut ko jautru"
+  },
+  "slide2": {
+   "eyebrow": "TAVA PAŠA VĀRDNĪCA",
+   "title": "Katrs saglabātais vārds —<br><span class=\"hl\">tavā personīgajā vārdnīcā</span>",
+   "sub": "Atlasi vārdu, uzklikšķini <span class=\"inlinepill\">+ Lingogram</span> — tas nonāk tieši tavā vārdnīcā vietnē lingogram.ai.",
+   "callout": "Sinhronizēts ar tavu kontu"
+  },
+  "slide3": {
+   "eyebrow": "AKTĪVĀ ATCERĒŠANĀS",
+   "title": "Vispirms klausies,<br><span class=\"hl\">tad pārbaudi sevi</span>",
+   "sub": "Minēšanas režīms slēpj rindu, līdz to atklāj — dzirdi trenē īsta runa, nevis tikai lasīšana līdzi.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Šodien mācīsimies kaut ko jautru"
+  },
+  "slide4": {
+   "eyebrow": "TIEŠI PĒC TAVA PRĀTA",
+   "title": "Subtitri<br><span class=\"hl\">tādi, kādus tu gribi</span>",
+   "sub": "Septiņi fonti, jebkura krāsa, savs izmērs, novietojums un fons — abas rindas iestata neatkarīgi viena no otras."
+  }
+ },
+ "lt": {
+  "slide1": {
+   "eyebrow": "DVIGUBI SUBTITRAI · YOUTUBE &amp; NETFLIX",
+   "title": "Veikia<br><span class=\"hl\">bet kuriame vaizde</span><br>su subtitrais",
+   "sub": "Abi kalbos rodomos tiesiai grotuve — įprasti įrašai, Shorts ir visas ekranas. Nieko nereikia įjungti antrą kartą.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Šiandien išmoksime ko nors smagaus"
+  },
+  "slide2": {
+   "eyebrow": "TAVO ASMENINIS ŽODYNAS",
+   "title": "Kiekvienas žodis —<br><span class=\"hl\">tavo asmeniniame žodyne</span>",
+   "sub": "Pažymėk žodį, spausk <span class=\"inlinepill\">+ Lingogram</span> — jis iškart atsiduria tavo asmeniniame žodyne lingogram.ai.",
+   "callout": "Sinchronizuota su tavo paskyra"
+  },
+  "slide3": {
+   "eyebrow": "AKTYVUS PRISIMINIMAS",
+   "title": "Pirma klausyk,<br><span class=\"hl\">paskui pasitikrink</span>",
+   "sub": "Spėjimo režimas slepia eilutę, kol ją atskleidi — klausą treniruoji tikra kalba, o ne vien skaitydamas.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Šiandien išmoksime ko nors smagaus"
+  },
+  "slide4": {
+   "eyebrow": "TIKSLIAI TAVO SKONIUI",
+   "title": "Subtitrai<br><span class=\"hl\">tokie, kokių nori</span>",
+   "sub": "Septyni šriftai, bet kuri spalva, savas dydis, vieta ir fonas — abi eilutės nustatomos nepriklausomai."
+  }
+ },
+ "pl": {
+  "slide1": {
+   "eyebrow": "PODWÓJNE NAPISY · YOUTUBE &amp; NETFLIX",
+   "title": "Działa w<br><span class=\"hl\">każdym filmie</span><br>z napisami",
+   "sub": "Oba języki wyświetlają się prosto na odtwarzaczu — zwykłe filmy, Shorts i pełny ekran. Niczego nie włączasz dwa razy.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dziś nauczymy się czegoś zabawnego"
+  },
+  "slide2": {
+   "eyebrow": "TWÓJ WŁASNY SŁOWNIK",
+   "title": "Każde zapisane słowo —<br>w <span class=\"hl\">twoim własnym słowniku</span>",
+   "sub": "Zaznacz słowo, kliknij <span class=\"inlinepill\">+ Lingogram</span> — trafia od razu do twojego słownika na lingogram.ai.",
+   "callout": "Zsynchronizowane z kontem"
+  },
+  "slide3": {
+   "eyebrow": "AKTYWNE PRZYPOMINANIE",
+   "title": "Najpierw słuchaj,<br><span class=\"hl\">potem się sprawdź</span>",
+   "sub": "Tryb zgadywania ukrywa kwestię, dopóki jej nie odsłonisz — ćwiczysz słuch na prawdziwej mowie, a nie tylko czytasz.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dziś nauczymy się czegoś zabawnego"
+  },
+  "slide4": {
+   "eyebrow": "DOPASUJ DO SIEBIE",
+   "title": "Napisy takie,<br><span class=\"hl\">jakich chcesz</span>",
+   "sub": "Siedem czcionek, dowolny kolor, własny rozmiar, pozycja i tło — obie linie ustawiasz niezależnie od siebie."
+  }
+ },
+ "cs": {
+  "slide1": {
+   "eyebrow": "DVOJITÉ TITULKY · YOUTUBE &amp; NETFLIX",
+   "title": "Funguje u<br><span class=\"hl\">každého videa</span><br>s titulky",
+   "sub": "Oba jazyky se zobrazí přímo v přehrávači — běžná videa, Shorts i celá obrazovka. Nic nezapínáte dvakrát.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dnes se naučíme něco zábavného"
+  },
+  "slide2": {
+   "eyebrow": "VÁŠ VLASTNÍ SLOVNÍK",
+   "title": "Každé uložené slovo —<br>ve <span class=\"hl\">vašem vlastním slovníku</span>",
+   "sub": "Označte slovo, klikněte na <span class=\"inlinepill\">+ Lingogram</span> — rovnou putuje do vašeho slovníku na lingogram.ai.",
+   "callout": "Synchronizováno s účtem"
+  },
+  "slide3": {
+   "eyebrow": "AKTIVNÍ VYBAVOVÁNÍ",
+   "title": "Nejdřív poslouchejte,<br><span class=\"hl\">pak se zkontrolujte</span>",
+   "sub": "Režim hádání skryje repliku, dokud ji neodkryjete — sluch trénujete na skutečné řeči, ne jen na čtení.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dnes se naučíme něco zábavného"
+  },
+  "slide4": {
+   "eyebrow": "PŘESNĚ PODLE VÁS",
+   "title": "Titulky<br><span class=\"hl\">takové, jaké chcete</span>",
+   "sub": "Sedm písem, libovolná barva, vlastní velikost, pozice a podklad — obě řádky nastavíte nezávisle na sobě."
+  }
+ },
+ "sk": {
+  "slide1": {
+   "eyebrow": "DVOJITÉ TITULKY · YOUTUBE &amp; NETFLIX",
+   "title": "Funguje pri<br><span class=\"hl\">každom videu</span><br>s titulkami",
+   "sub": "Oba jazyky sa zobrazia priamo v prehrávači — bežné videá, Shorts aj celá obrazovka. Nič nezapínate dvakrát.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dnes sa naučíme niečo zábavné"
+  },
+  "slide2": {
+   "eyebrow": "VÁŠ VLASTNÝ SLOVNÍK",
+   "title": "Každé uložené slovo —<br>vo <span class=\"hl\">vašom vlastnom slovníku</span>",
+   "sub": "Označte slovo, kliknite na <span class=\"inlinepill\">+ Lingogram</span> — hneď putuje do vášho slovníka na lingogram.ai.",
+   "callout": "Synchronizované s účtom"
+  },
+  "slide3": {
+   "eyebrow": "AKTÍVNE VYBAVOVANIE",
+   "title": "Najprv počúvajte,<br><span class=\"hl\">potom sa skontrolujte</span>",
+   "sub": "Režim hádania skryje repliku, kým ju neodkryjete — sluch trénujete na skutočnej reči, nie iba na čítaní.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Dnes sa naučíme niečo zábavné"
+  },
+  "slide4": {
+   "eyebrow": "PRESNE PODĽA VÁS",
+   "title": "Titulky<br><span class=\"hl\">také, aké chcete</span>",
+   "sub": "Sedem písiem, ľubovoľná farba, vlastná veľkosť, pozícia a pozadie — obidva riadky nastavíte nezávisle."
+  }
+ },
+ "hu": {
+  "slide1": {
+   "eyebrow": "DUPLA FELIRAT · YOUTUBE &amp; NETFLIX",
+   "title": "Működik<br><span class=\"hl\">minden videón</span><br>amin van felirat",
+   "sub": "Mindkét nyelv a lejátszón jelenik meg — normál videók, Shorts és teljes képernyő. Semmit sem kell kétszer bekapcsolni.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Ma valami vidámat tanulunk"
+  },
+  "slide2": {
+   "eyebrow": "SAJÁT SZÓTÁRAD",
+   "title": "Minden mentett szó,<br><span class=\"hl\">a saját szótáradban</span>",
+   "sub": "Jelölj ki egy szót, kattints a <span class=\"inlinepill\">+ Lingogram</span> gombra — máris a saját szótáradban van a lingogram.ai oldalon.",
+   "callout": "Szinkronizálva a fiókoddal"
+  },
+  "slide3": {
+   "eyebrow": "AKTÍV FELIDÉZÉS",
+   "title": "Előbb hallgasd,<br><span class=\"hl\">aztán ellenőrizd</span>",
+   "sub": "A találós mód addig rejti a sort, amíg fel nem feded — a füled valódi beszéden edződik, nem csak olvasáson.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Ma valami vidámat tanulunk"
+  },
+  "slide4": {
+   "eyebrow": "PONTOSAN A TE ÍZLÉSED SZERINT",
+   "title": "Felirat,<br><span class=\"hl\">ahogy te szeretnéd</span>",
+   "sub": "Hét betűtípus, bármilyen szín, saját méret, pozíció és háttér — a két sort egymástól függetlenül állítod be."
+  }
+ },
+ "ro": {
+  "slide1": {
+   "eyebrow": "SUBTITRARE DUBLA · YOUTUBE &amp; NETFLIX",
+   "title": "Merge pe<br><span class=\"hl\">orice videoclip</span><br>cu subtitrare",
+   "sub": "Ambele limbi apar direct pe player — videoclipuri obișnuite, Shorts și ecran complet. Nimic de activat a doua oară.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Azi învățăm ceva amuzant"
+  },
+  "slide2": {
+   "eyebrow": "DICȚIONARUL TĂU",
+   "title": "Fiecare cuvânt salvat,<br>în <span class=\"hl\">dicționarul tău propriu</span>",
+   "sub": "Selectează un cuvânt, apasă <span class=\"inlinepill\">+ Lingogram</span> și ajunge direct în dicționarul tău personal pe lingogram.ai.",
+   "callout": "Sincronizat cu contul tău"
+  },
+  "slide3": {
+   "eyebrow": "REAMINTIRE ACTIVĂ",
+   "title": "Ascultă întâi,<br><span class=\"hl\">apoi verifică-te</span>",
+   "sub": "Modul Ghicește ascunde fiecare replică până o dezvălui — îți antrenezi urechea cu vorbire reală, nu doar citind.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Azi învățăm ceva amuzant"
+  },
+  "slide4": {
+   "eyebrow": "EXACT CUM VREI TU",
+   "title": "Subtitrări<br><span class=\"hl\">așa cum le vrei tu</span>",
+   "sub": "Șapte fonturi, orice culoare, dimensiune, poziție și fundal la alegere — cele două rânduri se configurează independent."
+  }
+ },
+ "hr": {
+  "slide1": {
+   "eyebrow": "DUPLI TITLOVI · YOUTUBE &amp; NETFLIX",
+   "title": "Radi na<br><span class=\"hl\">svakom videu</span><br>s titlovima",
+   "sub": "Oba se jezika prikazuju izravno na playeru — obični videi, Shorts i puni zaslon. Ništa ne uključuješ dvaput.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Danas učimo nešto zabavno"
+  },
+  "slide2": {
+   "eyebrow": "TVOJ VLASTITI RJEČNIK",
+   "title": "Svaka spremljena riječ,<br>u <span class=\"hl\">tvojem vlastitom rječniku</span>",
+   "sub": "Označi riječ, klikni <span class=\"inlinepill\">+ Lingogram</span> — odmah ide u tvoj osobni rječnik na lingogram.ai.",
+   "callout": "Sinkronizirano s tvojim računom"
+  },
+  "slide3": {
+   "eyebrow": "AKTIVNO PRISJEĆANJE",
+   "title": "Prvo slušaj,<br><span class=\"hl\">pa provjeri sebe</span>",
+   "sub": "Način pogađanja skriva redak dok ga ne otkriješ — uho treniraš na stvarnom govoru, a ne samo čitanjem.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Danas učimo nešto zabavno"
+  },
+  "slide4": {
+   "eyebrow": "TOČNO PO TVOJEM UKUSU",
+   "title": "Titlovi<br><span class=\"hl\">kakvi ih ti želiš</span>",
+   "sub": "Sedam fontova, bilo koja boja, tvoja veličina, položaj i pozadina — oba se retka postavljaju neovisno."
+  }
+ },
+ "sl": {
+  "slide1": {
+   "eyebrow": "DVOJNI PODNAPISI · YOUTUBE &amp; NETFLIX",
+   "title": "Deluje pri<br><span class=\"hl\">vsakem videu</span><br>s podnapisi",
+   "sub": "Oba jezika se izpišeta kar na predvajalniku — običajni videi, Shorts in celozaslonski način. Ničesar ne vklapljaš dvakrat.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Danes se naučimo nekaj zabavnega"
+  },
+  "slide2": {
+   "eyebrow": "TVOJ LASTNI SLOVAR",
+   "title": "Vsaka shranjena beseda,<br>v <span class=\"hl\">tvojem lastnem slovarju</span>",
+   "sub": "Izberi besedo, klikni <span class=\"inlinepill\">+ Lingogram</span> — takoj gre v tvoj osebni slovar na lingogram.ai.",
+   "callout": "Sinhronizirano z računom"
+  },
+  "slide3": {
+   "eyebrow": "AKTIVNI PRIKLIC",
+   "title": "Najprej poslušaj,<br><span class=\"hl\">nato se preveri</span>",
+   "sub": "Način ugibanja skrije vrstico, dokler je ne razkriješ — uho uriš na pravem govoru, ne le z branjem.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Danes se naučimo nekaj zabavnega"
+  },
+  "slide4": {
+   "eyebrow": "NATANKO PO TVOJE",
+   "title": "Podnapisi<br><span class=\"hl\">takšni, kot jih želiš</span>",
+   "sub": "Sedem pisav, poljubna barva, lastna velikost, položaj in ozadje — obe vrstici nastaviš neodvisno druga od druge."
+  }
+ },
+ "uk": {
+  "slide1": {
+   "eyebrow": "ПОДВІЙНІ СУБТИТРИ · YOUTUBE &amp; NETFLIX",
+   "title": "Працює на<br><span class=\"hl\">будь-якому відео</span><br>із субтитрами",
+   "sub": "Обидва рядки — просто в плеєрі: звичайні відео, Shorts і повний екран. Нічого не потрібно вмикати двічі.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Сьогодні вивчимо щось цікаве"
+  },
+  "slide2": {
+   "eyebrow": "ВЛАСНИЙ СЛОВНИК",
+   "title": "Кожне збережене слово —<br>у <span class=\"hl\">вашому особистому словнику</span>",
+   "sub": "Виділіть слово, натисніть <span class=\"inlinepill\">+ Lingogram</span> — і воно одразу потрапить у ваш словник на lingogram.ai.",
+   "callout": "Синхронізовано з акаунтом"
+  },
+  "slide3": {
+   "eyebrow": "АКТИВНЕ ПРИГАДУВАННЯ",
+   "title": "Спершу слухайте,<br><span class=\"hl\">потім перевіряйте себе</span>",
+   "sub": "Режим «Вгадай» ховає репліку, доки ви її не відкриєте — тренуйте розуміння живої мови на слух, а не читання з екрана.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Сьогодні вивчимо щось цікаве"
+  },
+  "slide4": {
+   "eyebrow": "САМЕ ТАК, ЯК ВАМ ЗРУЧНО",
+   "title": "Субтитри<br><span class=\"hl\">такі, якими хочете їх бачити</span>",
+   "sub": "Сім шрифтів, будь-який колір, свій розмір, розташування і підкладка — обидва рядки налаштовуються окремо."
+  }
+ },
+ "bg": {
+  "slide1": {
+   "eyebrow": "ДВОЙНИ СУБТИТРИ · YOUTUBE &amp; NETFLIX",
+   "title": "Работи на<br><span class=\"hl\">всяко видео</span><br>със субтитри",
+   "sub": "Двата езика се показват директно върху плейъра — обикновени видеа, Shorts и цял екран. Нищо не включваш два пъти.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Днес ще научим нещо забавно"
+  },
+  "slide2": {
+   "eyebrow": "ТВОЯТ СОБСТВЕН РЕЧНИК",
+   "title": "Всяка запазена дума —<br>в <span class=\"hl\">твоя личен речник</span>",
+   "sub": "Избери дума, натисни <span class=\"inlinepill\">+ Lingogram</span> — тя веднага отива в личния ти речник на lingogram.ai.",
+   "callout": "Синхронизирано с профила ти"
+  },
+  "slide3": {
+   "eyebrow": "АКТИВНО ПРИПОМНЯНЕ",
+   "title": "Първо слушай,<br><span class=\"hl\">после се провери</span>",
+   "sub": "Режимът „Познай“ скрива реда, докато не го разкриеш — тренираш слуха си с истинска реч, а не само с четене.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Днес ще научим нещо забавно"
+  },
+  "slide4": {
+   "eyebrow": "ТОЧНО ПО ТВОЙ ВКУС",
+   "title": "Субтитри,<br><span class=\"hl\">каквито ти искаш</span>",
+   "sub": "Седем шрифта, всякакъв цвят, свой размер, позиция и фон — двата реда се настройват отделно."
+  }
+ },
+ "sr": {
+  "slide1": {
+   "eyebrow": "ДУПЛИ ТИТЛОВИ · YOUTUBE &amp; NETFLIX",
+   "title": "Ради на<br><span class=\"hl\">сваком видеу</span><br>са титловима",
+   "sub": "Оба језика приказују се директно на плејеру — обични снимци, Shorts и пун екран. Ништа не укључујеш двапут.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Данас учимо нешто забавно"
+  },
+  "slide2": {
+   "eyebrow": "ТВОЈ СОПСТВЕНИ РЕЧНИК",
+   "title": "Свака сачувана реч —<br>у <span class=\"hl\">твом личном речнику</span>",
+   "sub": "Означи реч, кликни на <span class=\"inlinepill\">+ Lingogram</span> — одмах иде у твој лични речник на lingogram.ai.",
+   "callout": "Синхронизовано с налогом"
+  },
+  "slide3": {
+   "eyebrow": "АКТИВНО ПРИСЕЋАЊЕ",
+   "title": "Прво слушај,<br><span class=\"hl\">па провери себе</span>",
+   "sub": "Режим погађања крије ред док га не откријеш — ухо тренираш на правом говору, а не само читањем.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Данас учимо нешто забавно"
+  },
+  "slide4": {
+   "eyebrow": "БАШ ПО ТВОМ УКУСУ",
+   "title": "Титлови<br><span class=\"hl\">какве их ти желиш</span>",
+   "sub": "Седам фонтова, било која боја, твоја величина, позиција и позадина — оба реда се подешавају независно."
+  }
+ },
+ "el": {
+  "slide1": {
+   "eyebrow": "ΔΙΠΛΟΙ ΥΠΟΤΙΤΛΟΙ · YOUTUBE &amp; NETFLIX",
+   "title": "Δουλεύει σε<br><span class=\"hl\">κάθε βίντεο</span><br>με υπότιτλους",
+   "sub": "Και οι δύο γλώσσες εμφανίζονται πάνω στο player — κανονικά βίντεο, Shorts και πλήρης οθόνη. Τίποτα δεν ανάβεις δύο φορές.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Σήμερα θα μάθουμε κάτι διασκεδαστικό"
+  },
+  "slide2": {
+   "eyebrow": "ΤΟ ΔΙΚΟ ΣΟΥ ΛΕΞΙΚΟ",
+   "title": "Κάθε λέξη που αποθηκεύεις,<br>στο <span class=\"hl\">δικό σου λεξικό</span>",
+   "sub": "Επίλεξε μια λέξη, πάτησε <span class=\"inlinepill\">+ Lingogram</span> και πάει κατευθείαν στο προσωπικό σου λεξικό στο lingogram.ai.",
+   "callout": "Συγχρονισμένο με τον λογαριασμό σου"
+  },
+  "slide3": {
+   "eyebrow": "ΕΝΕΡΓΗ ΑΝΑΚΛΗΣΗ",
+   "title": "Άκου πρώτα,<br><span class=\"hl\">μετά έλεγξε τον εαυτό σου</span>",
+   "sub": "Η λειτουργία Μάντεψε κρύβει κάθε ατάκα μέχρι να την αποκαλύψεις — γυμνάζεις το αυτί σου σε αληθινό λόγο, όχι μόνο στο διάβασμα.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Σήμερα θα μάθουμε κάτι διασκεδαστικό"
+  },
+  "slide4": {
+   "eyebrow": "ΑΚΡΙΒΩΣ ΣΤΟ ΓΟΥΣΤΟ ΣΟΥ",
+   "title": "Υπότιτλοι<br><span class=\"hl\">όπως τους θέλεις εσύ</span>",
+   "sub": "Επτά γραμματοσειρές, οποιοδήποτε χρώμα, δικό σου μέγεθος, θέση και φόντο — οι δύο γραμμές ρυθμίζονται ανεξάρτητα."
+  }
+ },
+ "tr": {
+  "slide1": {
+   "eyebrow": "ÇİFT ALTYAZI · YOUTUBE &amp; NETFLIX",
+   "title": "Altyazılı<br><span class=\"hl\">her videoda</span><br>çalışır",
+   "sub": "İki dil de doğrudan oynatıcıda görünür — normal videolar, Shorts ve tam ekran. Hiçbir şeyi iki kez açman gerekmez.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Bugün eğlenceli bir şey öğreneceğiz"
+  },
+  "slide2": {
+   "eyebrow": "KENDİ SÖZLÜĞÜN",
+   "title": "Kaydettiğin her kelime,<br><span class=\"hl\">kendi sözlüğünde</span>",
+   "sub": "Bir kelime seç, <span class=\"inlinepill\">+ Lingogram</span> düğmesine tıkla — kelime doğrudan lingogram.ai'deki kişisel sözlüğüne gider.",
+   "callout": "Hesabınla senkronize"
+  },
+  "slide3": {
+   "eyebrow": "AKTİF HATIRLAMA DAHİL",
+   "title": "Önce dinle,<br><span class=\"hl\">sonra kendini sına</span>",
+   "sub": "Tahmin modu, sen açana kadar her repliği gizler — kulağını gerçek konuşmayla eğitirsin, sadece okuyarak değil.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Bugün eğlenceli bir şey öğreneceğiz"
+  },
+  "slide4": {
+   "eyebrow": "TAMAMEN SANA GÖRE",
+   "title": "Altyazı<br><span class=\"hl\">tam istediğin gibi</span>",
+   "sub": "Yedi yazı tipi, istediğin renk, kendi boyutun, konumun ve arka planın — iki satır birbirinden bağımsız ayarlanır."
+  }
+ },
+ "ar": {
+  "slide1": {
+   "eyebrow": "ترجمة مزدوجة · YOUTUBE &amp; NETFLIX",
+   "title": "يعمل مع<br><span class=\"hl\">أي فيديو</span><br>به ترجمة",
+   "sub": "تظهر اللغتان مباشرة على المشغّل — الفيديوهات العادية وShorts وملء الشاشة. لا شيء تفعّله مرتين.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "اليوم سنتعلم شيئًا ممتعًا"
+  },
+  "slide2": {
+   "eyebrow": "قاموسك الخاص",
+   "title": "كل كلمة تحفظها،<br>في <span class=\"hl\">قاموسك الخاص</span>",
+   "sub": "حدّد كلمة، انقر <span class=\"inlinepill\">+ Lingogram</span> — وتذهب مباشرة إلى قاموسك الشخصي على lingogram.ai.",
+   "callout": "متزامن مع حسابك"
+  },
+  "slide3": {
+   "eyebrow": "استرجاع نشط مدمج",
+   "title": "استمع أولًا،<br><span class=\"hl\">ثم اختبر نفسك</span>",
+   "sub": "وضع التخمين يخفي كل سطر حتى تكشفه — درّب أذنك على الكلام الحقيقي، لا على القراءة فقط.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "اليوم سنتعلم شيئًا ممتعًا"
+  },
+  "slide4": {
+   "eyebrow": "بالضبط كما تريد",
+   "title": "ترجمة<br><span class=\"hl\">بالشكل الذي تريده</span>",
+   "sub": "سبعة خطوط، أي لون، وحجم وموضع وخلفية من اختيارك — يُضبط كل سطر بشكل مستقل عن الآخر."
+  }
+ },
+ "fa": {
+  "slide1": {
+   "eyebrow": "زیرنویس دوزبانه · YOUTUBE &amp; NETFLIX",
+   "title": "روی<br><span class=\"hl\">هر ویدیویی</span><br>با زیرنویس کار می‌کند",
+   "sub": "هر دو زبان مستقیم روی پخش‌کننده نمایش داده می‌شوند — ویدیوهای معمولی، Shorts و تمام‌صفحه. لازم نیست چیزی را دوبار روشن کنید.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "امروز چیز جالبی یاد می‌گیریم"
+  },
+  "slide2": {
+   "eyebrow": "واژه‌نامهٔ شخصی شما",
+   "title": "هر واژه‌ای که ذخیره می‌کنید،<br>در <span class=\"hl\">واژه‌نامهٔ شخصی خودتان</span>",
+   "sub": "واژه‌ای را انتخاب کنید، روی <span class=\"inlinepill\">+ Lingogram</span> بزنید — مستقیم به واژه‌نامهٔ شخصی‌تان در lingogram.ai می‌رود.",
+   "callout": "همگام با حساب شما"
+  },
+  "slide3": {
+   "eyebrow": "یادآوری فعال",
+   "title": "اول گوش کنید،<br><span class=\"hl\">بعد خودتان را بسنجید</span>",
+   "sub": "حالت حدس هر جمله را پنهان می‌کند تا خودتان آشکارش کنید — گوش‌تان با گفتار واقعی تمرین می‌کند، نه فقط با خواندن.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "امروز چیز جالبی یاد می‌گیریم"
+  },
+  "slide4": {
+   "eyebrow": "دقیقاً به سلیقهٔ خودتان",
+   "title": "زیرنویسی<br><span class=\"hl\">درست همان‌طور که می‌خواهید</span>",
+   "sub": "هفت فونت، هر رنگی، اندازه و موقعیت و پس‌زمینهٔ دلخواه — هر دو خط جدا از هم تنظیم می‌شوند."
+  }
+ },
+ "he": {
+  "slide1": {
+   "eyebrow": "כתוביות כפולות · YOUTUBE &amp; NETFLIX",
+   "title": "עובד בכל<br><span class=\"hl\">סרטון</span><br>עם כתוביות",
+   "sub": "שתי השפות מוצגות ישירות על הנגן — סרטונים רגילים, Shorts ומסך מלא. שום דבר לא מפעילים פעמיים.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "היום נלמד משהו כיפי"
+  },
+  "slide2": {
+   "eyebrow": "המילון האישי שלך",
+   "title": "כל מילה שאתה שומר,<br>ב<span class=\"hl\">מילון האישי שלך</span>",
+   "sub": "בחר מילה, לחץ על <span class=\"inlinepill\">+ Lingogram</span> — והיא עוברת ישר למילון האישי שלך באתר lingogram.ai.",
+   "callout": "מסונכרן עם החשבון שלך"
+  },
+  "slide3": {
+   "eyebrow": "היזכרות פעילה מובנית",
+   "title": "קודם מקשיבים,<br><span class=\"hl\">ואז בודקים את עצמך</span>",
+   "sub": "מצב הניחוש מסתיר כל שורה עד שחושפים אותה — מאמנים את האוזן על דיבור אמיתי, לא רק קוראים.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "היום נלמד משהו כיפי"
+  },
+  "slide4": {
+   "eyebrow": "בדיוק לפי הטעם שלך",
+   "title": "כתוביות<br><span class=\"hl\">בדיוק כמו שאתה רוצה</span>",
+   "sub": "שבעה גופנים, כל צבע, גודל, מיקום ורקע לבחירתך — שתי השורות מוגדרות בנפרד זו מזו."
+  }
+ },
+ "hi": {
+  "slide1": {
+   "eyebrow": "डुअल सबटाइटल · YOUTUBE &amp; NETFLIX",
+   "title": "काम करता है<br><span class=\"hl\">हर उस वीडियो पर</span><br>जिसमें सबटाइटल हों",
+   "sub": "दोनों भाषाएँ सीधे प्लेयर पर दिखती हैं — आम वीडियो, Shorts और फ़ुलस्क्रीन। कुछ भी दोबारा चालू नहीं करना पड़ता।",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "आज हम कुछ मज़ेदार सीखेंगे"
+  },
+  "slide2": {
+   "eyebrow": "आपकी अपनी डिक्शनरी",
+   "title": "हर सेव किया शब्द,<br>आपकी <span class=\"hl\">अपनी डिक्शनरी में</span>",
+   "sub": "कोई शब्द चुनें, <span class=\"inlinepill\">+ Lingogram</span> पर क्लिक करें — वह सीधे lingogram.ai पर आपकी पर्सनल डिक्शनरी में चला जाता है।",
+   "callout": "आपके अकाउंट से सिंक"
+  },
+  "slide3": {
+   "eyebrow": "एक्टिव रिकॉल बिल्ट-इन",
+   "title": "पहले सुनें,<br><span class=\"hl\">फिर खुद जाँचें</span>",
+   "sub": "अनुमान मोड हर पंक्ति तब तक छिपाए रखता है जब तक आप उसे न खोलें — कान असली बोलचाल पर तैयार होता है, सिर्फ़ पढ़ने पर नहीं।",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "आज हम कुछ मज़ेदार सीखेंगे"
+  },
+  "slide4": {
+   "eyebrow": "पूरी तरह आपकी पसंद से",
+   "title": "सबटाइटल<br><span class=\"hl\">जैसे आप चाहें वैसे</span>",
+   "sub": "सात फ़ॉन्ट, कोई भी रंग, अपनी पसंद का साइज़, पोज़िशन और बैकग्राउंड — दोनों लाइनें अलग-अलग सेट होती हैं।"
+  }
+ },
+ "bn": {
+  "slide1": {
+   "eyebrow": "ডুয়াল সাবটাইটেল · YOUTUBE &amp; NETFLIX",
+   "title": "কাজ করে<br><span class=\"hl\">সাবটাইটেলযুক্ত</span><br>যেকোনো ভিডিওতে",
+   "sub": "দুই ভাষাই সরাসরি প্লেয়ারে দেখায় — সাধারণ ভিডিও, Shorts আর ফুলস্ক্রিন। কিছুই দুবার চালু করতে হয় না।",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "আজ আমরা মজার কিছু শিখব"
+  },
+  "slide2": {
+   "eyebrow": "আপনার নিজের অভিধান",
+   "title": "সেভ করা প্রতিটি শব্দ,<br>আপনার <span class=\"hl\">নিজের অভিধানে</span>",
+   "sub": "একটি শব্দ বেছে নিন, <span class=\"inlinepill\">+ Lingogram</span>-এ ক্লিক করুন — সরাসরি lingogram.ai-এ আপনার ব্যক্তিগত অভিধানে চলে যাবে।",
+   "callout": "আপনার অ্যাকাউন্টের সাথে সিঙ্ক"
+  },
+  "slide3": {
+   "eyebrow": "অ্যাকটিভ রিকল, বিল্ট-ইন",
+   "title": "আগে শুনুন,<br><span class=\"hl\">তারপর নিজেকে যাচাই করুন</span>",
+   "sub": "অনুমান মোড প্রতিটি লাইন লুকিয়ে রাখে যতক্ষণ না আপনি খোলেন — কান তৈরি হয় সত্যিকারের কথায়, শুধু পড়ায় নয়।",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "আজ আমরা মজার কিছু শিখব"
+  },
+  "slide4": {
+   "eyebrow": "একদম আপনার মতো করে",
+   "title": "সাবটাইটেল<br><span class=\"hl\">আপনি যেমন চান তেমন</span>",
+   "sub": "সাতটি ফন্ট, যেকোনো রং, নিজের সাইজ়, পজিশন আর ব্যাকগ্রাউন্ড — দুটি লাইন আলাদাভাবে সাজানো যায়।"
+  }
+ },
+ "gu": {
+  "slide1": {
+   "eyebrow": "ડ્યુઅલ સબટાઈટલ · YOUTUBE &amp; NETFLIX",
+   "title": "કામ કરે છે<br><span class=\"hl\">સબટાઈટલવાળા</span><br>કોઈપણ વીડિયો પર",
+   "sub": "બંને ભાષાઓ સીધી પ્લેયર પર દેખાય છે — સામાન્ય વીડિયો, Shorts અને ફુલસ્ક્રીન. કંઈ બે વાર ચાલુ કરવાનું નથી.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "આજે આપણે કંઈક મજેદાર શીખીશું"
+  },
+  "slide2": {
+   "eyebrow": "તમારો પોતાનો શબ્દકોશ",
+   "title": "સેવ કરેલો દરેક શબ્દ,<br>તમારા <span class=\"hl\">પોતાના શબ્દકોશમાં</span>",
+   "sub": "શબ્દ પસંદ કરો, <span class=\"inlinepill\">+ Lingogram</span> પર ક્લિક કરો — તે સીધો lingogram.ai પર તમારા પર્સનલ શબ્દકોશમાં જાય છે.",
+   "callout": "તમારા એકાઉન્ટ સાથે સિંક"
+  },
+  "slide3": {
+   "eyebrow": "એક્ટિવ રિકોલ, બિલ્ટ-ઇન",
+   "title": "પહેલાં સાંભળો,<br><span class=\"hl\">પછી જાતે ચકાસો</span>",
+   "sub": "અનુમાન મોડ દરેક પંક્તિ ત્યાં સુધી છુપાવે છે જ્યાં સુધી તમે ન ખોલો — કાન સાચી બોલી પર કેળવાય છે, માત્ર વાંચન પર નહીં.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "આજે આપણે કંઈક મજેદાર શીખીશું"
+  },
+  "slide4": {
+   "eyebrow": "એકદમ તમારી પસંદથી",
+   "title": "સબટાઈટલ<br><span class=\"hl\">તમે ઈચ્છો એ રીતે</span>",
+   "sub": "સાત ફોન્ટ, કોઈપણ રંગ, પોતાનું સાઈઝ, પોઝિશન અને બેકગ્રાઉન્ડ — બંને લાઈન અલગ-અલગ સેટ થાય છે."
+  }
+ },
+ "kn": {
+  "slide1": {
+   "eyebrow": "ಡ್ಯುಯಲ್ ಸಬ್‌ಟೈಟಲ್ · YOUTUBE &amp; NETFLIX",
+   "title": "ಕೆಲಸ ಮಾಡುತ್ತದೆ<br><span class=\"hl\">ಸಬ್‌ಟೈಟಲ್ ಇರುವ</span><br>ಯಾವುದೇ ವೀಡಿಯೊದಲ್ಲಿ",
+   "sub": "ಎರಡೂ ಭಾಷೆಗಳು ನೇರವಾಗಿ ಪ್ಲೇಯರ್‌ನಲ್ಲಿ ಕಾಣುತ್ತವೆ — ಸಾಮಾನ್ಯ ವೀಡಿಯೊ, Shorts ಮತ್ತು ಫುಲ್‌ಸ್ಕ್ರೀನ್. ಯಾವುದನ್ನೂ ಎರಡು ಬಾರಿ ಆನ್ ಮಾಡಬೇಕಿಲ್ಲ.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ಇಂದು ನಾವು ಸ್ವಾರಸ್ಯಕರವಾದದ್ದನ್ನು ಕಲಿಯೋಣ"
+  },
+  "slide2": {
+   "eyebrow": "ನಿಮ್ಮ ಸ್ವಂತ ನಿಘಂಟು",
+   "title": "ಸೇವ್ ಮಾಡಿದ ಪ್ರತಿ ಪದವೂ,<br>ನಿಮ್ಮ <span class=\"hl\">ಸ್ವಂತ ನಿಘಂಟಿನಲ್ಲಿ</span>",
+   "sub": "ಪದ ಆಯ್ಕೆಮಾಡಿ, <span class=\"inlinepill\">+ Lingogram</span> ಕ್ಲಿಕ್ ಮಾಡಿ — ಅದು ನೇರವಾಗಿ lingogram.ai ನಲ್ಲಿರುವ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ನಿಘಂಟಿಗೆ ಸೇರುತ್ತದೆ.",
+   "callout": "ನಿಮ್ಮ ಖಾತೆಯೊಂದಿಗೆ ಸಿಂಕ್"
+  },
+  "slide3": {
+   "eyebrow": "ಆ್ಯಕ್ಟಿವ್ ರೀಕಾಲ್, ಬಿಲ್ಟ್-ಇನ್",
+   "title": "ಮೊದಲು ಕೇಳಿ,<br><span class=\"hl\">ನಂತರ ನಿಮ್ಮನ್ನೇ ಪರಿಶೀಲಿಸಿ</span>",
+   "sub": "ಊಹೆ ಮೋಡ್ ನೀವು ತೆರೆಯುವವರೆಗೆ ಪ್ರತಿ ಸಾಲನ್ನು ಮರೆಮಾಡುತ್ತದೆ — ಕಿವಿ ನಿಜವಾದ ಮಾತಿನಲ್ಲಿ ಪಳಗುತ್ತದೆ, ಬರೀ ಓದಿನಲ್ಲಿ ಅಲ್ಲ.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ಇಂದು ನಾವು ಸ್ವಾರಸ್ಯಕರವಾದದ್ದನ್ನು ಕಲಿಯೋಣ"
+  },
+  "slide4": {
+   "eyebrow": "ನಿಮ್ಮ ಇಷ್ಟದಂತೆಯೇ",
+   "title": "ಸಬ್‌ಟೈಟಲ್<br><span class=\"hl\">ನೀವು ಬಯಸಿದಂತೆಯೇ</span>",
+   "sub": "ಏಳು ಫಾಂಟ್‌ಗಳು, ಯಾವುದೇ ಬಣ್ಣ, ಸ್ವಂತ ಗಾತ್ರ, ಸ್ಥಾನ ಮತ್ತು ಹಿನ್ನೆಲೆ — ಎರಡೂ ಸಾಲುಗಳನ್ನು ಪ್ರತ್ಯೇಕವಾಗಿ ಹೊಂದಿಸಬಹುದು."
+  }
+ },
+ "ml": {
+  "slide1": {
+   "eyebrow": "ഡ്യുവൽ സബ്‌ടൈറ്റിൽ · YOUTUBE &amp; NETFLIX",
+   "title": "പ്രവർത്തിക്കും<br><span class=\"hl\">സബ്‌ടൈറ്റിലുള്ള</span><br>ഏത് വീഡിയോയിലും",
+   "sub": "രണ്ട് ഭാഷകളും നേരിട്ട് പ്ലെയറിൽ കാണാം — സാധാരണ വീഡിയോകൾ, Shorts, ഫുൾസ്ക്രീൻ. ഒന്നും രണ്ടുതവണ ഓൺ ചെയ്യേണ്ട.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ഇന്ന് നമുക്ക് രസകരമായ എന്തെങ്കിലും പഠിക്കാം"
+  },
+  "slide2": {
+   "eyebrow": "നിങ്ങളുടെ സ്വന്തം നിഘണ്ടു",
+   "title": "സേവ് ചെയ്യുന്ന ഓരോ വാക്കും,<br>നിങ്ങളുടെ <span class=\"hl\">സ്വന്തം നിഘണ്ടുവിൽ</span>",
+   "sub": "ഒരു വാക്ക് തിരഞ്ഞെടുക്കൂ, <span class=\"inlinepill\">+ Lingogram</span> ക്ലിക്ക് ചെയ്യൂ — അത് നേരിട്ട് lingogram.ai-ലെ നിങ്ങളുടെ വ്യക്തിഗത നിഘണ്ടുവിലേക്ക് പോകും.",
+   "callout": "നിങ്ങളുടെ അക്കൗണ്ടുമായി സിങ്ക്"
+  },
+  "slide3": {
+   "eyebrow": "ആക്ടീവ് റീകോൾ, ബിൽറ്റ്-ഇൻ",
+   "title": "ആദ്യം കേൾക്കൂ,<br><span class=\"hl\">പിന്നെ സ്വയം പരിശോധിക്കൂ</span>",
+   "sub": "ഊഹ മോഡ് നിങ്ങൾ വെളിപ്പെടുത്തും വരെ ഓരോ വരിയും മറയ്ക്കും — ചെവി പരിശീലിക്കുന്നത് യഥാർത്ഥ സംസാരത്തിലാണ്, വെറും വായനയിലല്ല.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ഇന്ന് നമുക്ക് രസകരമായ എന്തെങ്കിലും പഠിക്കാം"
+  },
+  "slide4": {
+   "eyebrow": "നിങ്ങളുടെ ഇഷ്ടത്തിനൊത്ത്",
+   "title": "സബ്‌ടൈറ്റിൽ<br><span class=\"hl\">നിങ്ങൾ ആഗ്രഹിക്കുന്ന പോലെ</span>",
+   "sub": "ഏഴ് ഫോണ്ടുകൾ, ഏത് നിറവും, സ്വന്തം വലുപ്പം, സ്ഥാനം, പശ്ചാത്തലം — രണ്ട് വരികളും വെവ്വേറെ ക്രമീകരിക്കാം."
+  }
+ },
+ "mr": {
+  "slide1": {
+   "eyebrow": "ड्युअल सबटायटल · YOUTUBE &amp; NETFLIX",
+   "title": "काम करतं<br><span class=\"hl\">सबटायटल असलेल्या</span><br>कोणत्याही व्हिडिओवर",
+   "sub": "दोन्ही भाषा थेट प्लेयरवर दिसतात — नेहमीचे व्हिडिओ, Shorts आणि फुलस्क्रीन. काहीही दोनदा चालू करावं लागत नाही.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "आज आपण काहीतरी मजेदार शिकू"
+  },
+  "slide2": {
+   "eyebrow": "तुमचा स्वतःचा शब्दकोश",
+   "title": "सेव्ह केलेला प्रत्येक शब्द,<br>तुमच्या <span class=\"hl\">स्वतःच्या शब्दकोशात</span>",
+   "sub": "शब्द निवडा, <span class=\"inlinepill\">+ Lingogram</span> वर क्लिक करा — तो थेट lingogram.ai वरील तुमच्या वैयक्तिक शब्दकोशात जातो.",
+   "callout": "तुमच्या खात्याशी सिंक"
+  },
+  "slide3": {
+   "eyebrow": "अ‍ॅक्टिव्ह रिकॉल, बिल्ट-इन",
+   "title": "आधी ऐका,<br><span class=\"hl\">मग स्वतः तपासा</span>",
+   "sub": "अंदाज मोड तुम्ही उघडेपर्यंत प्रत्येक ओळ लपवतो — कान खऱ्या बोलण्यावर तयार होतो, नुसत्या वाचनावर नाही.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "आज आपण काहीतरी मजेदार शिकू"
+  },
+  "slide4": {
+   "eyebrow": "अगदी तुमच्या आवडीनुसार",
+   "title": "सबटायटल<br><span class=\"hl\">तुम्हाला हवं तसं</span>",
+   "sub": "सात फॉन्ट, कोणताही रंग, स्वतःचा आकार, स्थान आणि बॅकग्राउंड — दोन्ही ओळी वेगवेगळ्या सेट होतात."
+  }
+ },
+ "ta": {
+  "slide1": {
+   "eyebrow": "டூயல் சப்டைட்டில் · YOUTUBE &amp; NETFLIX",
+   "title": "வேலை செய்யும்<br><span class=\"hl\">வசனம் உள்ள</span><br>எந்த வீடியோவிலும்",
+   "sub": "இரு மொழிகளும் நேரடியாக பிளேயரில் தெரியும் — வழக்கமான வீடியோக்கள், Shorts, ஃபுல்ஸ்கிரீன். எதையும் இருமுறை ஆன் செய்ய வேண்டாம்.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "இன்று சுவாரஸ்யமான ஒன்றைக் கற்போம்"
+  },
+  "slide2": {
+   "eyebrow": "உங்கள் சொந்த அகராதி",
+   "title": "ஒவ்வொரு சொல்லும்,<br>உங்கள் <span class=\"hl\">சொந்த அகராதியில்</span>",
+   "sub": "ஒரு சொல்லைத் தேர்ந்தெடுத்து <span class=\"inlinepill\">+ Lingogram</span> கிளிக் செய்யுங்கள் — lingogram.ai-இல் உங்கள் அகராதிக்குச் செல்லும்.",
+   "callout": "உங்கள் கணக்குடன் ஒத்திசைவு"
+  },
+  "slide3": {
+   "eyebrow": "ஆக்டிவ் ரீகால், உள்ளேயே",
+   "title": "முதலில் கேளுங்கள்,<br><span class=\"hl\">பிறகு சரிபாருங்கள்</span>",
+   "sub": "யூகப் பயன்முறை நீங்கள் காட்டும் வரை ஒவ்வொரு வரியையும் மறைக்கும் — காது பழகுவது உண்மையான பேச்சில், வெறும் வாசிப்பில் அல்ல.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "இன்று சுவாரஸ்யமான ஒன்றைக் கற்போம்"
+  },
+  "slide4": {
+   "eyebrow": "உங்கள் விருப்பப்படியே",
+   "title": "<span class=\"hl\">வசனம் உள்ள</span> எந்த&nbsp;வீடியோவிலும் இயங்கும்",
+   "sub": "ஏழு எழுத்துருக்கள், எந்த நிறமும், சொந்த அளவு, இடம், பின்னணி — இரு வரிகளும் தனித்தனியாக அமைக்கலாம்."
+  }
+ },
+ "te": {
+  "slide1": {
+   "eyebrow": "డ్యూయల్ సబ్‌టైటిల్స్ · YOUTUBE &amp; NETFLIX",
+   "title": "పనిచేస్తుంది<br><span class=\"hl\">సబ్‌టైటిల్స్ ఉన్న</span><br>ఏ వీడియోలోనైనా",
+   "sub": "రెండు భాషలూ నేరుగా ప్లేయర్‌పై కనిపిస్తాయి — మామూలు వీడియోలు, Shorts, ఫుల్‌స్క్రీన్. ఏదీ రెండుసార్లు ఆన్ చేయనవసరం లేదు.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ఈరోజు సరదాగా ఏదైనా నేర్చుకుందాం"
+  },
+  "slide2": {
+   "eyebrow": "మీ సొంత నిఘంటువు",
+   "title": "సేవ్ చేసిన ప్రతి పదం,<br>మీ <span class=\"hl\">సొంత నిఘంటువులో</span>",
+   "sub": "ఒక పదాన్ని ఎంచుకోండి, <span class=\"inlinepill\">+ Lingogram</span> క్లిక్ చేయండి — ఇది నేరుగా lingogram.ai లోని మీ వ్యక్తిగత నిఘంటువుకు వెళుతుంది.",
+   "callout": "మీ ఖాతాతో సింక్"
+  },
+  "slide3": {
+   "eyebrow": "యాక్టివ్ రీకాల్, బిల్ట్-ఇన్",
+   "title": "ముందు వినండి,<br><span class=\"hl\">తర్వాత సొంతంగా సరిచూసుకోండి</span>",
+   "sub": "ఊహ మోడ్ మీరు తెరిచే వరకు ప్రతి పంక్తిని దాచి ఉంచుతుంది — చెవి నిజమైన మాటలతో సిద్ధమవుతుంది, కేవలం చదవడంతో కాదు.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ఈరోజు సరదాగా ఏదైనా నేర్చుకుందాం"
+  },
+  "slide4": {
+   "eyebrow": "మీ ఇష్టప్రకారమే",
+   "title": "సబ్‌టైటిల్స్<br><span class=\"hl\">మీకు నచ్చిన విధంగా</span>",
+   "sub": "ఏడు ఫాంట్‌లు, ఏ రంగైనా, సొంత సైజు, స్థానం, బ్యాక్‌గ్రౌండ్ — రెండు లైన్లూ విడివిడిగా సెట్ చేసుకోవచ్చు."
+  }
+ },
+ "th": {
+  "slide1": {
+   "eyebrow": "ซับสองภาษา · YOUTUBE &amp; NETFLIX",
+   "title": "ใช้ได้กับ<br><span class=\"hl\">วิดีโอทุกคลิป</span><br>ที่มีซับไตเติล",
+   "sub": "ทั้งสองภาษาแสดงบนตัวเล่นโดยตรง — วิดีโอทั่วไป Shorts และเต็มจอ ไม่ต้องเปิดอะไรซ้ำ",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "วันนี้เราจะเรียนอะไรสนุก ๆ กัน"
+  },
+  "slide2": {
+   "eyebrow": "พจนานุกรมส่วนตัวของคุณ",
+   "title": "ทุกคำที่คุณบันทึกอยู่ใน<br><span class=\"hl\">พจนานุกรมคุณ</span>",
+   "sub": "เลือกคำศัพท์ กดปุ่ม <span class=\"inlinepill\">+ Lingogram</span> แล้วมันจะไปอยู่ในพจนานุกรมส่วนตัวของคุณที่ lingogram.ai ทันที",
+   "callout": "ซิงก์กับบัญชีของคุณ"
+  },
+  "slide3": {
+   "eyebrow": "ทบทวนเชิงรุกในตัว",
+   "title": "ฟังก่อน<br><span class=\"hl\">แล้วค่อยตรวจคำตอบ</span>",
+   "sub": "โหมดทายจะซ่อนแต่ละบรรทัดไว้จนกว่าคุณจะเปิดดู — ฝึกหูกับเสียงพูดจริง ไม่ใช่แค่อ่านตาม",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "วันนี้เราจะเรียนอะไรสนุก ๆ กัน"
+  },
+  "slide4": {
+   "eyebrow": "ปรับได้ตามใจคุณ",
+   "title": "ซับไตเติล<br><span class=\"hl\">ในแบบที่คุณต้องการ</span>",
+   "sub": "ฟอนต์เจ็ดแบบ สีอะไรก็ได้ ขนาด ตำแหน่ง และพื้นหลังตามใจ — ตั้งค่าสองบรรทัดแยกจากกันได้"
+  }
+ },
+ "vi": {
+  "slide1": {
+   "eyebrow": "PHỤ ĐỀ SONG NGỮ · YOUTUBE &amp; NETFLIX",
+   "title": "Hoạt động trên<br><span class=\"hl\">mọi video</span><br>có phụ đề",
+   "sub": "Cả hai ngôn ngữ hiện ngay trên trình phát — video thường, Shorts và toàn màn hình. Không phải bật lại thứ gì lần hai.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hôm nay chúng ta sẽ học một điều thú vị"
+  },
+  "slide2": {
+   "eyebrow": "TỪ ĐIỂN CỦA RIÊNG BẠN",
+   "title": "Mỗi từ bạn lưu lại,<br>vào <span class=\"hl\">từ điển riêng bạn</span>",
+   "sub": "Chọn một từ, nhấp <span class=\"inlinepill\">+ Lingogram</span> — từ đó sẽ chuyển thẳng vào từ điển cá nhân của bạn trên lingogram.ai.",
+   "callout": "Đồng bộ với tài khoản của bạn"
+  },
+  "slide3": {
+   "eyebrow": "GỢI NHỚ CHỦ ĐỘNG",
+   "title": "Nghe trước,<br><span class=\"hl\">rồi tự kiểm tra</span>",
+   "sub": "Chế độ Đoán ẩn từng câu thoại cho đến khi bạn mở ra — luyện tai bằng lời nói thật, thay vì chỉ đọc theo.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hôm nay chúng ta sẽ học một điều thú vị"
+  },
+  "slide4": {
+   "eyebrow": "ĐÚNG Ý BẠN",
+   "title": "Phụ đề<br><span class=\"hl\">theo đúng cách bạn muốn</span>",
+   "sub": "Bảy kiểu chữ, mọi màu sắc, cỡ chữ, vị trí và nền tùy chọn — hai dòng phụ đề chỉnh độc lập với nhau."
+  }
+ },
+ "id": {
+  "slide1": {
+   "eyebrow": "SUBTITLE DUA BAHASA · YOUTUBE &amp; NETFLIX",
+   "title": "Berfungsi di<br><span class=\"hl\">video apa pun</span><br>yang bersubtitle",
+   "sub": "Dua bahasa tampil langsung di pemutar — video biasa, Shorts, dan layar penuh. Tak ada yang perlu dinyalakan dua kali.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hari ini kita akan belajar sesuatu yang seru"
+  },
+  "slide2": {
+   "eyebrow": "KAMUS PRIBADIMU",
+   "title": "Setiap kata simpananmu,<br>di <span class=\"hl\">kamus pribadimu</span>",
+   "sub": "Pilih sebuah kata, klik <span class=\"inlinepill\">+ Lingogram</span> — langsung masuk ke kamus pribadimu di lingogram.ai.",
+   "callout": "Tersinkron dengan akunmu"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL BAWAAN",
+   "title": "Dengar dulu,<br><span class=\"hl\">baru periksa sendiri</span>",
+   "sub": "Mode Tebak menyembunyikan tiap baris sampai kamu buka — telinga terlatih dengan ucapan asli, bukan cuma membaca.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hari ini kita akan belajar sesuatu yang seru"
+  },
+  "slide4": {
+   "eyebrow": "SESUAI SELERAMU",
+   "title": "Subtitle<br><span class=\"hl\">sesuai maumu</span>",
+   "sub": "Tujuh font, warna apa saja, ukuran, posisi, dan latar sendiri — kedua baris diatur terpisah satu sama lain."
+  }
+ },
+ "ms": {
+  "slide1": {
+   "eyebrow": "SARI KATA DWIBAHASA · YOUTUBE &amp; NETFLIX",
+   "title": "Berfungsi pada<br><span class=\"hl\">mana-mana video</span><br>bersari kata",
+   "sub": "Kedua-dua bahasa dipaparkan terus pada pemain — video biasa, Shorts dan skrin penuh. Tiada apa yang perlu dihidupkan dua kali.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hari ini kita akan belajar sesuatu yang menyeronokkan"
+  },
+  "slide2": {
+   "eyebrow": "KAMUS PERIBADI ANDA",
+   "title": "Setiap perkataan disimpan,<br><span class=\"hl\">dalam kamus peribadimu</span>",
+   "sub": "Pilih satu perkataan, klik <span class=\"inlinepill\">+ Lingogram</span> — ia terus masuk ke kamus peribadi anda di lingogram.ai.",
+   "callout": "Diselaraskan dengan akaun anda"
+  },
+  "slide3": {
+   "eyebrow": "INGAT KEMBALI AKTIF",
+   "title": "Dengar dahulu,<br><span class=\"hl\">kemudian semak sendiri</span>",
+   "sub": "Mod Teka menyembunyikan setiap baris sehingga anda dedahkan — telinga terlatih dengan pertuturan sebenar, bukan sekadar membaca.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hari ini kita akan belajar sesuatu yang menyeronokkan"
+  },
+  "slide4": {
+   "eyebrow": "IKUT CITA RASA ANDA",
+   "title": "Sari kata<br><span class=\"hl\">sebagaimana anda mahu</span>",
+   "sub": "Tujuh fon, sebarang warna, saiz, kedudukan dan latar belakang pilihan anda — kedua-dua baris ditetapkan secara berasingan."
+  }
+ },
+ "fil": {
+  "slide1": {
+   "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+   "title": "Gumagana sa<br><span class=\"hl\">kahit anong video</span><br>na may subtitle",
+   "sub": "Lumalabas ang dalawang wika mismo sa player — karaniwang video, Shorts at fullscreen. Walang kailangang buksan nang dalawang beses.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Ngayon, matututo tayo ng masaya"
+  },
+  "slide2": {
+   "eyebrow": "SARILI MONG DICTIONARY",
+   "title": "Bawat salitang i-save mo,<br>nasa <span class=\"hl\">sarili mong dictionary</span>",
+   "sub": "Pumili ng salita, i-click ang <span class=\"inlinepill\">+ Lingogram</span> — diretso ito sa personal mong dictionary sa lingogram.ai.",
+   "callout": "Naka-sync sa account mo"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL, KASAMA NA",
+   "title": "Makinig muna,<br><span class=\"hl\">saka mo tingnan</span>",
+   "sub": "Itinatago ng Hulaan mode ang bawat linya hanggang buksan mo — nasasanay ang tainga sa totoong pananalita, hindi puro basa.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Ngayon, matututo tayo ng masaya"
+  },
+  "slide4": {
+   "eyebrow": "AYON MISMO SA GUSTO MO",
+   "title": "Subtitle<br><span class=\"hl\">kung paano mo talaga gusto</span>",
+   "sub": "Pitong font, kahit anong kulay, sarili mong size, posisyon at background — hiwalay na naka-set ang dalawang linya."
+  }
+ },
+ "sw": {
+  "slide1": {
+   "eyebrow": "MANUKUU MAWILI · YOUTUBE &amp; NETFLIX",
+   "title": "Hufanya kazi kwenye<br><span class=\"hl\">video yoyote</span><br>yenye manukuu",
+   "sub": "Lugha zote mbili huonekana moja kwa moja kwenye kichezaji — video za kawaida, Shorts na skrini nzima. Hakuna cha kuwasha mara mbili.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Leo tutajifunza jambo la kufurahisha"
+  },
+  "slide2": {
+   "eyebrow": "KAMUSI YAKO MWENYEWE",
+   "title": "Kila neno unalohifadhi,<br>katika <span class=\"hl\">kamusi yako mwenyewe</span>",
+   "sub": "Chagua neno, bofya <span class=\"inlinepill\">+ Lingogram</span> — huenda moja kwa moja kwenye kamusi yako binafsi kwenye lingogram.ai.",
+   "callout": "Imesawazishwa na akaunti yako"
+  },
+  "slide3": {
+   "eyebrow": "UKUMBUSHO AMILIFU",
+   "title": "Sikiliza kwanza,<br><span class=\"hl\">kisha jipime mwenyewe</span>",
+   "sub": "Hali ya kukisia huficha kila mstari hadi uufunue — sikio lako linazoea mazungumzo halisi, si kusoma tu.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Leo tutajifunza jambo la kufurahisha"
+  },
+  "slide4": {
+   "eyebrow": "KAMA UNAVYOPENDA",
+   "title": "Manukuu<br><span class=\"hl\">jinsi unavyoyataka</span>",
+   "sub": "Fonti saba, rangi yoyote, ukubwa wako, nafasi na mandhari — mistari yote miwili hupangwa kila mmoja peke yake."
+  }
+ },
+ "ja": {
+  "slide1": {
+   "eyebrow": "二か国語字幕 · YOUTUBE &amp; NETFLIX",
+   "title": "<span class=\"hl\">字幕付きの動画</span>なら<br>どれでも使える",
+   "sub": "2つの言語がプレーヤー上に直接表示されます。通常の動画もShortsも全画面も同じ。二度切り替える必要はありません。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今日は楽しいことを学びましょう"
+  },
+  "slide2": {
+   "eyebrow": "自分だけの単語帳",
+   "title": "保存した単語はすべて、<br><span class=\"hl\">自分だけの単語帳</span>に",
+   "sub": "単語を選んで<span class=\"inlinepill\">+ Lingogram</span>をクリックするだけ。lingogram.aiの個人単語帳にそのまま保存されます。",
+   "callout": "アカウントと同期"
+  },
+  "slide3": {
+   "eyebrow": "アクティブリコール内蔵",
+   "title": "まず聞いて、<br><span class=\"hl\">答え合わせ</span>",
+   "sub": "推測モードは表示するまで各行を隠します。読むだけでなく、本物の音声で耳を鍛えられます。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今日は楽しいことを学びましょう"
+  },
+  "slide4": {
+   "eyebrow": "好みに合わせて調整",
+   "title": "字幕を<br><span class=\"hl\">思いどおりの見た目に</span>",
+   "sub": "7種類のフォント、好きな色、サイズ、位置、背景。2行それぞれを個別に設定できます。"
+  }
+ },
+ "ko": {
+  "slide1": {
+   "eyebrow": "이중자막 · YOUTUBE &amp; NETFLIX",
+   "title": "<span class=\"hl\">자막 있는 영상</span>이면<br>어디서나 작동",
+   "sub": "두 언어가 플레이어 위에 바로 표시됩니다 — 일반 영상, Shorts, 전체 화면 모두. 두 번 켤 필요가 없습니다.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "오늘은 재미있는 걸 배워볼까요"
+  },
+  "slide2": {
+   "eyebrow": "나만의 단어장",
+   "title": "저장한 단어가 모두,<br><span class=\"hl\">나만의 단어장에</span>",
+   "sub": "단어를 선택하고 <span class=\"inlinepill\">+ Lingogram</span>을 클릭하세요 — lingogram.ai의 개인 단어장으로 바로 저장됩니다.",
+   "callout": "계정과 동기화"
+  },
+  "slide3": {
+   "eyebrow": "액티브 리콜 기본 제공",
+   "title": "먼저 듣고,<br><span class=\"hl\">그다음 확인하세요</span>",
+   "sub": "추측 모드는 직접 열기 전까지 각 줄을 가립니다 — 눈으로만 읽지 않고 실제 발화로 귀를 훈련하세요.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "오늘은 재미있는 걸 배워볼까요"
+  },
+  "slide4": {
+   "eyebrow": "취향대로 딱 맞게",
+   "title": "자막을<br><span class=\"hl\">원하는 모습 그대로</span>",
+   "sub": "일곱 가지 폰트, 원하는 색상, 크기, 위치, 배경까지 — 두 줄을 각각 따로 설정할 수 있습니다."
+  }
+ },
+ "zh_CN": {
+  "slide1": {
+   "eyebrow": "双语字幕 · YOUTUBE &amp; NETFLIX",
+   "title": "适用于<span class=\"hl\">任何</span><br>带字幕的视频",
+   "sub": "两种语言直接显示在播放器上——普通视频、Shorts 和全屏都一样。无需重复开启。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今天我们来学点有趣的东西"
+  },
+  "slide2": {
+   "eyebrow": "专属你的词典",
+   "title": "保存的每个生词，<br>都在<span class=\"hl\">你自己的词典里</span>",
+   "sub": "选中一个词，点击<span class=\"inlinepill\">+ Lingogram</span>——它就会存入 lingogram.ai 上你的个人词典。",
+   "callout": "与你的账号同步"
+  },
+  "slide3": {
+   "eyebrow": "内置主动回忆",
+   "title": "先听，<br><span class=\"hl\">再自我检验</span>",
+   "sub": "猜词模式会先藏起每一句，等你自己揭晓——用真实语音练听力，而不只是跟着读。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今天我们来学点有趣的东西"
+  },
+  "slide4": {
+   "eyebrow": "完全按你的喜好",
+   "title": "字幕外观，<br><span class=\"hl\">由你说了算</span>",
+   "sub": "七种字体、任意颜色，自定义大小、位置和底色——两行字幕可以分别独立设置。"
+  }
+ },
+ "zh_TW": {
+  "slide1": {
+   "eyebrow": "雙語字幕 · YOUTUBE &amp; NETFLIX",
+   "title": "適用於<span class=\"hl\">任何</span><br>有字幕的影片",
+   "sub": "兩種語言直接顯示在播放器上——一般影片、Shorts 和全螢幕都一樣。不必重複開啟。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今天我們來學點有趣的東西"
+  },
+  "slide2": {
+   "eyebrow": "專屬於你的字典",
+   "title": "儲存的每個生字，<br>都在<span class=\"hl\">你自己的字典裡</span>",
+   "sub": "選取一個字，點擊<span class=\"inlinepill\">+ Lingogram</span>——它就會存入 lingogram.ai 上你的個人字典。",
+   "callout": "與你的帳號同步"
+  },
+  "slide3": {
+   "eyebrow": "內建主動回想",
+   "title": "先聽，<br><span class=\"hl\">再自我檢驗</span>",
+   "sub": "猜詞模式會先藏起每一句，等你自己揭曉——用真實語音練聽力，而不只是跟著唸。",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "今天我們來學點有趣的東西"
+  },
+  "slide4": {
+   "eyebrow": "完全依你喜好",
+   "title": "字幕外觀，<br><span class=\"hl\">由你決定</span>",
+   "sub": "七種字型、任意顏色，自訂大小、位置和底色——兩行字幕可以分別獨立設定。"
+  }
+ },
+ "am": {
+  "slide1": {
+   "eyebrow": "ሁለት ቋንቋ ሰብታይትል · YOUTUBE &amp; NETFLIX",
+   "title": "በሚሠራበት<br><span class=\"hl\">ማንኛውም ቪዲዮ</span><br>የትርጉም ጽሑፍ ካለው",
+   "sub": "ሁለቱም ቋንቋዎች በቀጥታ በማጫወቻው ላይ ይታያሉ — መደበኛ ቪዲዮዎች፣ Shorts እና ሙሉ ማያ ገጽ። ሁለት ጊዜ የሚበራ ነገር የለም።",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ዛሬ አስደሳች ነገር እንማራለን"
+  },
+  "slide2": {
+   "eyebrow": "የራስዎ መዝገበ ቃላት",
+   "title": "የሚያስቀምጡት እያንዳንዱ ቃል፣<br>በ<span class=\"hl\">የራስዎ መዝገበ ቃላት</span> ውስጥ",
+   "sub": "ቃል ይምረጡ፣ <span class=\"inlinepill\">+ Lingogram</span>ን ይጫኑ — ወደ lingogram.ai ላይ ወዳለው የግል መዝገበ ቃላትዎ በቀጥታ ይሄዳል።",
+   "callout": "ከመለያዎ ጋር ይመሳሰላል"
+  },
+  "slide3": {
+   "eyebrow": "ንቁ ማስታወስ ተካቷል",
+   "title": "መጀመሪያ ያዳምጡ፣<br><span class=\"hl\">ከዚያ ራስዎን ይፈትሹ</span>",
+   "sub": "የግምት ሁነታ እርስዎ እስኪከፍቱት ድረስ እያንዳንዱን መስመር ይሸፍናል — ጆሮዎ በእውነተኛ ንግግር ይለማመዳል፣ በንባብ ብቻ አይደለም።",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "ዛሬ አስደሳች ነገር እንማራለን"
+  },
+  "slide4": {
+   "eyebrow": "እንደ ፍላጎትዎ",
+   "title": "የትርጉም ጽሑፍ<br><span class=\"hl\">እርስዎ በሚፈልጉት መልኩ</span>",
+   "sub": "ሰባት ቅርጸ ቁምፊዎች፣ ማንኛውም ቀለም፣ የራስዎ መጠን፣ ቦታ እና መደብ — ሁለቱ መስመሮች ለየብቻ ይስተካከላሉ።"
+  }
+ },
+ "en_GB": {
+  "slide1": {
+   "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+   "title": "Works on<br><span class=\"hl\">any video</span><br>with subtitles",
+   "sub": "Both languages render right on the player — regular videos, Shorts and fullscreen alike. Nothing to switch on twice.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide2": {
+   "eyebrow": "YOUR OWN DICTIONARY",
+   "title": "Every word you save,<br>in <span class=\"hl\">your own dictionary</span>",
+   "sub": "Select any word, tap <span class=\"inlinepill\">+ Lingogram</span>, and it goes straight to your personal dictionary on lingogram.ai.",
+   "callout": "Synced to your account"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL, BUILT IN",
+   "title": "Listen first,<br>then <span class=\"hl\">check yourself</span>",
+   "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide4": {
+   "eyebrow": "MAKE IT YOURS",
+   "title": "Make the subtitles<br><span class=\"hl\">look how you want</span>",
+   "sub": "Seven fonts, any colour, your own size, position and backdrop — set the two lines up independently until they read exactly how you like."
+  }
+ },
+ "en_US": {
+  "slide1": {
+   "eyebrow": "DUAL SUBTITLES · YOUTUBE &amp; NETFLIX",
+   "title": "Works on<br><span class=\"hl\">any video</span><br>with subtitles",
+   "sub": "Both languages render right on the player — regular videos, Shorts, and fullscreen alike. Nothing to switch on twice.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide2": {
+   "eyebrow": "YOUR OWN DICTIONARY",
+   "title": "Every word you save,<br>in <span class=\"hl\">your own dictionary</span>",
+   "sub": "Select any word, tap <span class=\"inlinepill\">+ Lingogram</span>, and it goes straight to your personal dictionary on lingogram.ai.",
+   "callout": "Synced to your account"
+  },
+  "slide3": {
+   "eyebrow": "ACTIVE RECALL, BUILT IN",
+   "title": "Listen first,<br>then <span class=\"hl\">check yourself</span>",
+   "sub": "Guess mode hides each line until you reveal it — train your ear on real speech instead of just reading along.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Today we'll learn something fun"
+  },
+  "slide4": {
+   "eyebrow": "MAKE IT YOURS",
+   "title": "Make the subtitles<br><span class=\"hl\">look how you want</span>",
+   "sub": "Seven fonts, any color, your own size, position, and backdrop — set the two lines up independently until they read exactly how you like."
+  }
+ },
+ "es_419": {
+  "slide1": {
+   "eyebrow": "SUBTÍTULOS DOBLES · YOUTUBE &amp; NETFLIX",
+   "title": "Funciona en<br><span class=\"hl\">cualquier video</span><br>con subtítulos",
+   "sub": "Los dos idiomas aparecen directamente en el reproductor: videos normales, Shorts y pantalla completa. Nada que activar dos veces.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoy vamos a aprender algo divertido"
+  },
+  "slide2": {
+   "eyebrow": "TU PROPIO DICCIONARIO",
+   "title": "Cada palabra que guardas,<br>en <span class=\"hl\">tu propio diccionario</span>",
+   "sub": "Selecciona una palabra, haz clic en <span class=\"inlinepill\">+ Lingogram</span> y pasa directo a tu diccionario personal en lingogram.ai.",
+   "callout": "Sincronizado con tu cuenta"
+  },
+  "slide3": {
+   "eyebrow": "REPASO ACTIVO INCLUIDO",
+   "title": "Escucha primero,<br><span class=\"hl\">luego compruébalo</span>",
+   "sub": "El modo Adivinar oculta cada línea hasta que la destapas: entrenas el oído con habla real, no solo leyendo.",
+   "caption": "Hoy vamos a aprender algo divertido",
+   "captionSub": "Hoy vamos a aprender algo divertido"
+  },
+  "slide4": {
+   "eyebrow": "A TU MEDIDA",
+   "title": "Los subtítulos,<br><span class=\"hl\">como tú los quieras</span>",
+   "sub": "Siete fuentes, cualquier color, tu propio tamaño, posición y fondo — configura cada línea de forma independiente."
+  }
+ }
+}

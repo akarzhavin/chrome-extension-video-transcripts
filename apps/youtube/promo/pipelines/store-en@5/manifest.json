@@ -1,0 +1,45 @@
+{
+  "name": "store-en",
+  "version": "5.0.0",
+  "title": "English Chrome Web Store screenshot series",
+  "style": "v5 — off-white ground (#F7F7F5) with a lime bloom top-right and a purple whisper bottom-left; lime is an accent, never the subject (commit dba00f2).",
+  "run": "node pipelines/store-en@5/render.mjs",
+  "sourceOfTruth": "slide1..4.html — English copy is inline in the HTML",
+  "inputs": {
+    "assets": [
+      "assets/promo.css",
+      "assets/save-slide.css",
+      "assets/brand-tile.png",
+      "assets/fullscreen-panel.css",
+      "assets/fullscreen-slide.css",
+      "assets/fullscreen-warm.css",
+      "assets/fullscreen-backdrop.jpg"
+    ],
+    "captures": {
+      "dir": "../../../screenshots/out-live",
+      "files": [
+        "live-demo-en.png",
+        "live-demo-guess-en.png",
+        "live-demo-settings-en.png"
+      ],
+      "recapture": "node apps/youtube/screenshots/capture-backdrop.mjs --locale en --learn es --native en --modes sidebar,guess,settings --theme-pref light",
+      "note": "Shared by every pipeline (~345 MB, 2560x1600 PNG) and therefore referenced, not vendored. render.mjs verifies these exist before launching a browser. Captured in the extension's OWN light theme (--class vtt-light puts the shipped vtt-light class on <html>) — NOT the legacy screenshots/light-theme.capture.css override, which predates the product having a light theme. Capture from a PROD build (plain `vite build`, no EXT_ENV=dev): a dev build paints a lime 'backend: env' switch across the top of the panel."
+    }
+  },
+  "outputs": {
+    "dir": "out/store-en@5",
+    "files": [
+      "promo-1..4.png (1280x800, upload to CWS) + @2x (2560x1600, for the website)"
+    ],
+    "intermediates": "shots/store-en@5"
+  },
+  "knownIssues": [
+    "promo-3.png is NOT this pipeline's own render any more. On 2026-08-27 it was replaced by hand with out/fullscreen@1/fullscreen-guess.png — the same guess-mode message, but shot as a fullscreen frame instead of a panel crop. Re-running render.mjs OVERWRITES it with slide3.html's output. Restore afterwards with: cp out/fullscreen@1/fullscreen-guess.png out/store-en@5/promo-3.png && cp out/fullscreen@1/fullscreen-guess@2x.png out/store-en@5/promo-3@2x.png (the displaced original is kept at archive/2026-08-27-v5-slide3-panelcrop/).",
+    "slide2.html paints two things ON TOP of the capture that the capture cannot contain: a selection swatch over \"vamos\" and the quick-add pill above it. The pill only exists while a selection is live, so no single screenshot can show both it and a finished save — the slide stages the before (vamos) and the after (divertido) side by side. Their offsets in assets/save-slide.css were measured off the capture by scanning glyph columns and are PRE-SCALE (the .panel carries transform: scale(1.07)). If live-demo-en.png is re-captured or the crop changes, both will land in the wrong place — re-measure rather than nudging by eye."
+  ],
+  "history": [
+    "2026-08-27: the fullscreen hero took slide 1, and the two slides it made redundant were dropped — the old opener (\"Dual subtitles turn any video into a language lesson\") and the old fullscreen slide (\"Works on any video with subtitles\"), whose claim the hero now carries. Both renders are kept under archive/2026-08-27-displaced-by-fullscreen-hero/. The series went 5 → 6 → 4; four is under the store's five-per-locale cap, so nothing has to be chosen at upload time.",
+    "2026-08-27: slide 2 was retargeted from dual subtitles to the personal dictionary (\"Every word you save, in your own dictionary\"). The saving mechanic was already present in the capture — demo mode marks a word via the same markSpansSaved() the real save flow uses — but at slide scale the 10px badge was invisible, so the slide read as another subtitle-list shot. assets/save-slide.css fixes that without faking any UI: a soft vertical dim over the panel so the saved card is what the eye lands on, plus a staged pre-save moment on \"vamos\" (selection swatch + quick-add pill). The body copy names the button and the destination — \"tap + Lingogram ... straight to your personal dictionary on lingogram.ai\" — matching the site's own wording (en.json feat4P/faq.words). An earlier draft also carried a word→pill→badge strip under the paragraph; it was dropped once the copy named the button, because it put a third + Lingogram on a slide that already showed two and retold the story the panel tells.",
+    "2026-08-27: slide 4 was retargeted from onboarding (\"Set up once, then just press play\" / FREE · NO ACCOUNT TO START) to customisation (\"Every subtitle, tuned to your taste\" / MAKE IT YOURS). The capture was always the settings panel; the copy just wasn't about it, and led on setup while naming only \"size, colour and position\". The new copy is specific and checked against SidebarUI.ts: FONT_OPTIONS holds 7 fonts, every swatch row ends in a custom colour well (<input type=color>) so \"any colour\" is literal rather than the 5 presets, and the main and translation lines carry separate size/colour prefs (overlayFontSize/overlayColor vs overlaySubFontSize/overlaySubColor, defaulting to 100%/#ffffff and 75%/#ffd700 — which is what the panel shows). The headline was then softened from \"Every subtitle, tuned to your taste\", which read as ad copy rather than as a description, to \"Make the subtitles look how you want\". A second panel — the same settings screen captured in the dark theme, offset behind the light one — was built and then REMOVED by decision on the same day. It worked visually, but the series already carries the dark theme on slides 1 and 3 (both fullscreen frames render the panel with fullscreen@1's dark sheet; measured 52% and 30% dark pixels against slide 4's 4%), so this made slide 4 the second telling of something already said, while costing the one frame where the light panel is shown whole. The dark band also could not carry the point on its own: the Theme row that would explain it was clipped out of the exposed strip. live-demo-settings-dark-en.png is kept in out-live/ if it is ever wanted. The dropped \"free, no account to start\" claim is still carried by the store listing itself; it was never something this capture illustrated."
+  ]
+}

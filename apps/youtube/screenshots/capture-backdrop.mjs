@@ -26,7 +26,7 @@
 // .gitignore) and an earlier run of capture-demo.mjs destroyed the de captures
 // with no way back. Restore with: cp out-live.bak/<file> out-live/
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, readdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, copyFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 const require = createRequire(import.meta.url);
 const PW='/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
@@ -52,10 +52,19 @@ const theme=arg('theme','dark');
 // --class vtt-light applies the product's own light theme (the shipped one,
 // via the URL flag) instead of the capture-only override sheet.
 const extraClass=arg('class','');
+// --theme-pref light|dark|auto picks the theme through the panel's OWN Theme
+// control (Settings → Theme), rather than forcing the class. Needed for the
+// settings shot: --class paints the panel light but leaves the stored pref on
+// 'dark', so the Theme row would read "Dark" on a visibly light panel.
+const themePref=arg('theme-pref','');
 const THEME_CSS=theme==='light'
   ? readFileSync(join(ROOT,'screenshots','light-theme.capture.css'),'utf8')
   : null;
 const chromeLocale=loc.replace('_','-');
+// 'settings' is not a demo state — the extension only knows sidebar/guess/
+// onboarding. It is the sidebar state with the settings panel opened by
+// clicking #vtt-settings-btn, which is how a user reaches it too.
+const demoModeFor=m=>m==='settings'?'sidebar':m;
 const hash=m=>(m==='onboarding'?'vtt-demo-onboarding':m==='guess'?'vtt-demo-guess':'vtt-demo')+`?learn=${learn}&native=${native}`;
 const outFor=m=>m==='sidebar'?`live-demo-${loc}.png`:`live-demo-${m}-${loc}.png`;
 
@@ -67,7 +76,18 @@ if(existsSync(OUT)){ mkdirSync(BAK,{recursive:true});
   console.log('backed up out-live/ → out-live.bak/');
 }
 
-const ctx=await chromium.launchPersistentContext(`/tmp/lg-shot-${loc}`,{
+// The persistent profile is reused across runs so YouTube's consent state and
+// the extension's prefs survive. A run that is killed (or whose Chrome exits
+// uncleanly) leaves SingletonLock behind, and the NEXT run for that locale then
+// dies with "Failed to create a ProcessSingleton for your profile directory" —
+// which is how a 54-locale sweep reported 22 false failures while every PNG had
+// in fact been written. The lock is a stale artefact, never state worth keeping.
+const PROFILE=`/tmp/lg-shot-${loc}`;
+for(const f of ['SingletonLock','SingletonSocket','SingletonCookie']){
+  try{ rmSync(join(PROFILE,f),{force:true}); }catch{}
+}
+
+const ctx=await chromium.launchPersistentContext(PROFILE,{
   headless:false, viewport:{width:1280,height:800}, deviceScaleFactor:2, bypassCSP:true,
   locale:chromeLocale,
   args:['--headless=new',`--disable-extensions-except=${EXTS}`,`--load-extension=${EXTS}`,
@@ -134,6 +154,21 @@ await sleep(2500);
 // OUR footage rather than YT's offscreen (bot-walled) <video>.
 await page.evaluate(a=>window.postMessage({__lingogram:'demo',state:{mode:'sidebar',learn:a.l,native:a.n}},'*'),{l:learn,n:native});
 await sleep(1800);
+// Set the theme through the panel's own control, then close settings again so
+// the per-mode loop below starts from a known (panel-closed) state.
+if(themePref){
+  await page.evaluate(async(want)=>{
+    const sidebar=document.getElementById('vtt-sidebar');
+    if(!sidebar?.classList.contains('vtt-settings-open')) document.getElementById('vtt-settings-btn')?.click();
+    await new Promise(r=>setTimeout(r,600));
+    document.querySelector(`.vtt-seg-btn[data-value="${want}"]`)?.click();
+    await new Promise(r=>setTimeout(r,600));
+    document.getElementById('vtt-settings-btn')?.click();
+  }, themePref);
+  await sleep(1200);
+  const applied=await page.evaluate(()=>document.documentElement.classList.contains('vtt-light'));
+  console.log(`  theme pref: ${themePref} (vtt-light on <html>: ${applied})`);
+}
 const st=await page.evaluate(()=>{
   const v=document.getElementById('lg-bgvid');
   const o=document.getElementById('vtt-video-overlay');
@@ -144,8 +179,18 @@ console.log('  backdrop:', st.backdrop, '| dual-subtitle overlay:', st.overlay);
 if (st.backdrop==='MISSING') console.warn('  ! backdrop missing — shots will show the bot-wall');
 for(let k=0;k<modes.length;k++){
   const m=modes[k];
-  if(k>0){ await page.evaluate(s=>window.postMessage({__lingogram:'demo',state:s},'*'),{mode:m,learn,native}); }
-  await page.waitForFunction(mm=>(mm==='onboarding'?!!document.getElementById('vtt-lang-onboarding'):document.querySelectorAll('#vtt-list .vtt-item').length>3),m,{timeout:8000}).catch(()=>{});
+  if(k>0){ await page.evaluate(s=>window.postMessage({__lingogram:'demo',state:s},'*'),{mode:demoModeFor(m),learn,native}); }
+  await page.waitForFunction(mm=>(mm==='onboarding'?!!document.getElementById('vtt-lang-onboarding'):document.querySelectorAll('#vtt-list .vtt-item').length>3),demoModeFor(m),{timeout:8000}).catch(()=>{});
+  // Open (or close) the settings panel to match the requested mode, so
+  // sidebar/guess never inherit a panel a previous 'settings' shot left open.
+  await page.evaluate((want)=>{
+    const sidebar=document.getElementById('vtt-sidebar');
+    const open=!!sidebar && sidebar.classList.contains('vtt-settings-open');
+    if(want!==open) document.getElementById('vtt-settings-btn')?.click();
+  }, m==='settings');
+  if(m==='settings') await page.waitForFunction(
+    ()=>document.getElementById('vtt-settings-panel')?.classList.contains('open'),
+    null,{timeout:8000}).catch(()=>{});
   await sleep(1400);
   await page.screenshot({path:join(OUT,outFor(m)),type:'png',clip:{x:0,y:0,width:1280,height:800}});
   console.log('✓',outFor(m));

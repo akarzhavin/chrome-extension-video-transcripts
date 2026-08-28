@@ -14,9 +14,13 @@ graphify-out/
 # Vendored unpacked extensions for screenshot capture (AdBlock Plus, etc.)
 apps/*/screenshots/vendor/
 
-# Promo render intermediates / previews (regenerate via apps/*/promo/render*.mjs)
+# Promo render intermediates / previews (regenerate via
+# apps/*/promo/pipelines/<pipeline>/render.mjs). Each pipeline owns one subtree
+# under out/ and shots/. apps/*/promo/archive/ is deliberately NOT ignored:
+# it holds generations that can no longer be re-rendered from source.
 apps/*/promo/shots/
 apps/*/promo/out/
+apps/*/promo/.build/
 apps/*/screenshots/out-live/
 
 # Responsive-audit captures (regenerate via
@@ -81,3 +85,12 @@ coverage/
 # The already-tracked zips are unaffected: git keeps following files that are
 # already in the index, ignore rules only govern untracked ones.
 releases/*.zip
+
+# One-off live-debugging probes against preprod, driven over CDP (port 9333).
+# Each was written to answer a single question — which apiBase the login page
+# resolves, who still calls the retired gateway, what fails during sign-in —
+# against a browser session a human was holding open at that moment. They are
+# throwaway instruments, not tooling: none runs without that live session, and
+# the next question wants a new probe rather than a rerun of an old one. The
+# reusable CDP helpers live in scripts/lib/ and stay tracked.
+scripts/lingogram-*.mjs
