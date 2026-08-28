@@ -79,10 +79,9 @@ No video, no transcript — just select English text on any page, right-click, a
 chrome-extension-video-transcripts/
 ├── apps/
 │   ├── rezka/              # Rezka.ag / HDRezka extension
-│   ├── youtube/            # YouTube extension
-│   └── web/                # Any-site right-click "Add to Lingogram" (no content script)
+│   └── youtube/            # YouTube extension
 ├── packages/
-│   └── shared/             # Code reused by all three extensions
+│   └── shared/             # Code reused by both extensions
 │       ├── src/auth/       # Firebase REST auth, Firestore inbox writer, MV3 SW handoff
 │       ├── src/content/    # In-page auth pill, highlight → quick-add overlay (video apps)
 │       ├── src/popup/      # "Sign in on Lingogram" popup (html + css + ts)
@@ -116,7 +115,6 @@ chrome-extension-video-transcripts/
    npm run build                  # builds all, emits zips into releases/
    npm run build --workspace=@video-transcripts/rezka     # one app only
    npm run build --workspace=@video-transcripts/youtube
-   npm run build --workspace=@video-transcripts/web
    ```
    Dev builds (point at local Firebase emulators + `http://localhost:5173`):
    ```bash
@@ -131,7 +129,7 @@ chrome-extension-video-transcripts/
    - Open `chrome://extensions/`.
    - Enable **Developer mode**.
    - Click **Load unpacked**.
-   - Select `apps/rezka/build`, `apps/youtube/build`, or `apps/web/build`.
+   - Select `apps/rezka/build` or `apps/youtube/build`.
 
 ---
 

@@ -90,7 +90,7 @@ if [[ "$ENV_NAME" == "dev" ]]; then
     BUILD_TARGET=build:dev
 fi
 
-for app in youtube rezka web; do
+for app in youtube rezka; do
     echo "--- apps/$app ---"
     npm run "$BUILD_TARGET" -w "apps/$app"
 done
@@ -98,7 +98,7 @@ done
 echo
 echo "Verifying the api_secret stayed out of the page-readable bundles."
 leaked=0
-for app in youtube rezka web; do
+for app in youtube rezka; do
     for bundle in "apps/$app/build/src/content/index.js" \
                   "apps/$app/build/src/popup/popup.js" \
                   "apps/$app/build/src/content/page-script.js"; do
