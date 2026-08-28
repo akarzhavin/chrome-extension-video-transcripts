@@ -26,7 +26,7 @@
 // .gitignore) and an earlier run of capture-demo.mjs destroyed the de captures
 // with no way back. Restore with: cp out-live.bak/<file> out-live/
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, readdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, copyFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 const require = createRequire(import.meta.url);
 const PW='/Users/aliaksandrkarzhavin/workspace/chrome-extentions/Disable automatic tab discarding/node_modules/playwright/index.js';
@@ -76,7 +76,18 @@ if(existsSync(OUT)){ mkdirSync(BAK,{recursive:true});
   console.log('backed up out-live/ → out-live.bak/');
 }
 
-const ctx=await chromium.launchPersistentContext(`/tmp/lg-shot-${loc}`,{
+// The persistent profile is reused across runs so YouTube's consent state and
+// the extension's prefs survive. A run that is killed (or whose Chrome exits
+// uncleanly) leaves SingletonLock behind, and the NEXT run for that locale then
+// dies with "Failed to create a ProcessSingleton for your profile directory" —
+// which is how a 54-locale sweep reported 22 false failures while every PNG had
+// in fact been written. The lock is a stale artefact, never state worth keeping.
+const PROFILE=`/tmp/lg-shot-${loc}`;
+for(const f of ['SingletonLock','SingletonSocket','SingletonCookie']){
+  try{ rmSync(join(PROFILE,f),{force:true}); }catch{}
+}
+
+const ctx=await chromium.launchPersistentContext(PROFILE,{
   headless:false, viewport:{width:1280,height:800}, deviceScaleFactor:2, bypassCSP:true,
   locale:chromeLocale,
   args:['--headless=new',`--disable-extensions-except=${EXTS}`,`--load-extension=${EXTS}`,
