@@ -89,17 +89,14 @@ function installYouTubeHook() {
     // answers with HTTP 200 and an EMPTY body (since YouTube dropped the pot
     // parameter, ~2026-08). Only getPlayerResponse() carries URLs that serve.
     function readPlayerResponseFromPlayerApi(): PlayerResponse | null {
-        // Watch pages use #movie_player; Shorts has its own #shorts-player.
-        for (const id of ['movie_player', 'shorts-player']) {
-            try {
-                const el = document.getElementById(id) as
-                    | (HTMLElement & { getPlayerResponse?: () => PlayerResponse | null })
-                    | null;
-                const pr = el?.getPlayerResponse?.();
-                if (pr?.videoDetails?.videoId) return pr;
-            } catch {
-                // Player API shape is not a contract.
-            }
+        try {
+            const el = document.getElementById('movie_player') as
+                | (HTMLElement & { getPlayerResponse?: () => PlayerResponse | null })
+                | null;
+            const pr = el?.getPlayerResponse?.();
+            if (pr?.videoDetails?.videoId) return pr;
+        } catch {
+            // Player API shape is not a contract.
         }
         return null;
     }
@@ -149,11 +146,12 @@ function installYouTubeHook() {
         }
     }
 
+    // Watch pages only: Shorts is deliberately unsupported, so its URLs resolve
+    // to no video and nothing downstream ever runs there.
     function currentUrlVideoId(): string | null {
         try {
             const p = location.pathname;
             if (p === '/watch') return new URLSearchParams(location.search).get('v');
-            if (p.startsWith('/shorts/')) return p.split('/')[2] || null;
         } catch {
             // ignore
         }
@@ -163,8 +161,8 @@ function installYouTubeHook() {
     // Resolve captions for whatever video the URL currently points at. Posts
     // tracks the moment they appear (videoId + captions ship together). Only
     // declares "no captions" once the player response has caught up to THIS
-    // video (matching id) and stayed caption-less briefly — so scrolling
-    // between Shorts, where the response lags the URL, never misfires.
+    // video (matching id) and stayed caption-less briefly — so a navigation
+    // whose player response lags the URL never misfires.
     async function broadcastCurrent(): Promise<void> {
         const target = currentUrlVideoId();
         let caughtUpNoCap = 0;
@@ -210,20 +208,14 @@ function installYouTubeHook() {
 
     // ---------- native captions control ----------
 
-    // Finds the captions toggle. Surfaces differ:
-    //  - Shorts uses `.ytmClosedCaptioningButtonButton`; its standard
-    //    `.ytp-subtitles-button` reports "unavailable" and does nothing.
-    //  - The watch player uses `.ytp-subtitles-button`.
-    // Buttons may be present-but-hidden (e.g. inside the Shorts "More actions"
-    // menu) — HTMLElement.click() still toggles them, so visibility is fine.
+    // Finds the captions toggle. The watch player uses `.ytp-subtitles-button`.
+    // Buttons may be present-but-hidden — HTMLElement.click() still toggles
+    // them, so visibility is fine.
     function isUnavailable(el: Element): boolean {
         return /unavailable|недоступн|недосту?пні/i.test(el.getAttribute('aria-label') || '');
     }
 
     function findCcButton(): HTMLElement | null {
-        const shorts = document.querySelector('.ytmClosedCaptioningButtonButton') as HTMLElement | null;
-        if (shorts && !isUnavailable(shorts)) return shorts;
-
         const std = document.querySelector('.ytp-subtitles-button') as HTMLElement | null;
         if (std && !isUnavailable(std)) return std;
 
