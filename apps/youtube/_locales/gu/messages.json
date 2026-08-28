@@ -467,6 +467,18 @@
     "message": "ફરીથી શોધવાથી મદદ મળી નહીં. પેજ ફરી લોડ કરવાથી સબટાઈટલ લિંક નવેસરથી બને છે અને સામાન્ય રીતે સમસ્યા ઠીક થાય છે.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "સબટાઈટલ લોડ કરવા માટે તૈયાર છે",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "પેનલ બંધ હતી, તેથી આ વીડિયો માટે હજુ સુધી કંઈ ડાઉનલોડ થયું નથી.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "સબટાઈટલ શોધો",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube દ્વારા અનુવાદ મર્યાદિત — ફરી પ્રયાસ કરવા ટૅપ કરો",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

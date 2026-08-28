@@ -467,6 +467,18 @@
     "message": "Å søke på nytt hjalp ikke. Å laste inn siden på nytt fornyer undertekstlenken og løser det som regel.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "Undertekster er klare til å lastes inn",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "Panelet var lukket, så det er ikke lastet ned noe for denne videoen ennå.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "Søk etter undertekster",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "Oversettelse begrenset av YouTube — trykk for å prøve igjen",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

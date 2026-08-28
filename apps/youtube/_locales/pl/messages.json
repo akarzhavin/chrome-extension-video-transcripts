@@ -467,6 +467,18 @@
     "message": "Ponowne wyszukanie nie pomogło. Ponowne załadowanie strony odświeża link do napisów i zwykle to naprawia.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "Napisy są gotowe do wczytania",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "Panel był zamknięty, więc dla tego filmu nic jeszcze nie pobrano.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "Szukaj napisów",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "Tłumaczenie ograniczone przez YouTube — dotknij, aby spróbować ponownie",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

@@ -467,6 +467,18 @@
     "message": "جستجوی دوباره کمکی نکرد. بارگذاری مجدد صفحه پیوند زیرنویس را تازه می‌کند و معمولاً مشکل را برطرف می‌کند.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "زیرنویس آماده بارگذاری است",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "پنل بسته بود، بنابراین هنوز چیزی برای این ویدیو دانلود نشده است.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "جستجوی زیرنویس",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "ترجمه توسط YouTube محدود شده — برای تلاش مجدد ضربه بزنید",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

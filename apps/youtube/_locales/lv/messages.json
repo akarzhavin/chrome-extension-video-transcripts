@@ -467,6 +467,18 @@
     "message": "Atkārtota meklēšana nepalīdzēja. Lapas pārlādēšana atjauno subtitru saiti un parasti novērš problēmu.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "Subtitri ir gatavi ielādei",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "Panelis bija aizvērts, tāpēc šim videoklipam pagaidām nekas nav lejupielādēts.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "Meklēt subtitrus",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube ierobežoja tulkojumu — pieskarieties, lai mēģinātu vēlreiz",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."
