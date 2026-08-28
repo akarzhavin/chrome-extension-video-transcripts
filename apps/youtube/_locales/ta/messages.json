@@ -463,6 +463,10 @@
     "message": "வசன வரி இணைப்பு காலாவதியானது. மீண்டும் தேடுவது பொதுவாக இதை சரிசெய்யும்.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "மீண்டும் தேடியும் பயனளிக்கவில்லை. பக்கத்தை மீண்டும் ஏற்றுவது வசன வரி இணைப்பைப் புதுப்பிக்கும், இது பொதுவாக சிக்கலைச் சரிசெய்யும்.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "மொழிபெயர்ப்பு YouTube ஆல் கட்டுப்படுத்தப்பட்டது — மீண்டும் முயற்சிக்க தட்டவும்",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

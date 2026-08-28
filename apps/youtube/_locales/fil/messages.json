@@ -463,6 +463,10 @@
     "message": "Nag-expire na ang link ng subtitle. Karaniwang naaayos ito ng muling paghahanap.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Hindi nakatulong ang muling paghahanap. Ang pag-reload sa page ay nagpapanibago sa link ng subtitle at karaniwang naaayos nito ang problema.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Nilimitahan ng YouTube ang salin — i-tap para subukan ulit",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

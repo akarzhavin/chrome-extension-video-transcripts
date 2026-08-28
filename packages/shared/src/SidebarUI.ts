@@ -14,6 +14,7 @@ import {
     OverlayFontFamily,
     PrefScope,
     ThemeToken,
+    PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
@@ -1176,10 +1177,14 @@ export class SidebarUI {
     // write (so other tabs converge in one onPrefsChanged tick) that touches
     // only the fields the user was just looking at.
     private resetTextStyle(): void {
-        Object.assign(this.overlayStyle, OVERLAY_TEXT_DEFAULTS);
+        // Reset has to land on the same sizes a fresh install sees on THIS
+        // site, or the button would shrink captions on rezka/youtube to a
+        // baseline those two never start from.
+        const defaults = { ...OVERLAY_TEXT_DEFAULTS, ...(PLATFORM_SIZE_DEFAULTS[this.scope] ?? {}) };
+        Object.assign(this.overlayStyle, defaults);
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ ...OVERLAY_TEXT_DEFAULTS }, this.scope);
+        savePrefs({ ...defaults }, this.scope);
     }
 
     private resetBoxStyle(): void {

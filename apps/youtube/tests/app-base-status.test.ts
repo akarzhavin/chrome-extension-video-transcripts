@@ -277,6 +277,27 @@ describe('rate-limited subtitle failures', () => {
         expect(app.reprocessed).toBe(1);
     });
 
+    // The signed URL is cached in the page, so a retry re-sends the identical
+    // dead request. Without the escalation the user is left clicking a button
+    // that structurally cannot succeed, with no way out on offer — the reload
+    // escalation used to sit below this branch's early return.
+    test('an expired link escalates to reload once searching again did not help', () => {
+        const app = makeApp();
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+
+        // First banner: recovery only, no emergency button yet.
+        expect(actions()).toHaveLength(1);
+
+        actions()[0].click();
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+
+        const labels = actions().map((b) => b.textContent ?? '');
+        expect(labels.some((l) => l.includes('Reload page'))).toBe(true);
+        expect(bannerText()).toContain('Reloading the page');
+        // Still an expired link, not a caption-less video.
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+
     // Unchanged behaviour: when YouTube genuinely offers no translation, the
     // original copy is the honest one.
     test('an unoffered translation keeps the plain no-subtitles copy', () => {

@@ -463,6 +463,10 @@
     "message": "የንዑስ ጽሑፍ አገናኝ ጊዜው አልፎበታል። እንደገና መፈለግ ብዙውን ጊዜ ያስተካክለዋል።",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "እንደገና መፈለግ አልረዳም። ገጹን እንደገና መጫን የንዑስ ጽሑፍ አገናኙን ያድሳል እና አብዛኛውን ጊዜ ችግሩን ይፈታል።",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "ትርጉም በYouTube ተገድቧል — ለድጋሚ ሙከራ ይንኩ",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

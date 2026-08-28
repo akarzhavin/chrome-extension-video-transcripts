@@ -463,6 +463,10 @@
     "message": "Tautan subtitle telah kedaluwarsa. Mencari ulang biasanya memperbaikinya.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Mencari ulang tidak membantu. Memuat ulang halaman memperbarui tautan subtitle dan biasanya memperbaiki masalah ini.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Terjemahan dibatasi oleh YouTube — ketuk untuk coba lagi",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

@@ -34,6 +34,11 @@ export type AnalyticsEvent =
     | 'subs_partial'
     | 'subs_rate_limited'
     | 'subs_recovered'
+    // The extension showed no subtitles for a video whose native CC control
+    // says captions exist. Deliberately NOT a param on no_subtitles: that event
+    // fires for the perfectly healthy "this video has no captions" case too, and
+    // this one only ever means our own failure.
+    | 'subs_missed_with_cc'
     // Value moment
     | 'word_save_attempt'
     | 'word_saved'
@@ -65,6 +70,7 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'subs_partial',
     'subs_rate_limited',
     'subs_recovered',
+    'subs_missed_with_cc',
     'word_save_attempt',
     'word_saved',
     'signin_started',
@@ -91,6 +97,7 @@ export const SITE_BEARING_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<Analytic
     'subs_partial',
     'subs_rate_limited',
     'subs_recovered',
+    'subs_missed_with_cc',
     'word_save_attempt',
     'word_saved',
 ]);

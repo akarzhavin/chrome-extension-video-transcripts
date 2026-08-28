@@ -463,6 +463,10 @@
     "message": "Undertextlänken har gått ut. Att söka igen löser det oftast.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "Att söka igen hjälpte inte. Att ladda om sidan förnyar undertextlänken och löser oftast problemet.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "Översättning begränsad av YouTube — tryck för att försöka igen",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

@@ -30,6 +30,15 @@ function t(key: string, fallback: string): string {
     return i18nMsg(key, fallback);
 }
 
+/**
+ * How long to wait for the MAIN world's answer about YouTube's own CC control.
+ * Nothing user-facing depends on it — the reply only decides whether one
+ * analytics event is sent — so it is generous enough to survive a busy frame
+ * and short enough that a page-script that never answers (orphaned by an
+ * extension reload) doesn't strand the listener.
+ */
+const NATIVE_CC_QUERY_TIMEOUT_MS = 2000;
+
 // ── Promo demo mode ──────────────────────────────────────────────────────
 // Loading any watch page with `#vtt-demo` in the URL fills the sidebar with
 // canned dual subtitles (no network, so it can't be throttled) and spotlights
@@ -114,6 +123,38 @@ class YouTubeVttApp extends BaseVttApp {
     isAdPlaying(): boolean {
         const player = document.querySelector('#movie_player, .html5-video-player');
         return !!player && player.classList.contains('ad-showing');
+    }
+
+    // Read YouTube's own CC control (MAIN world) to tell "this video has no
+    // captions" apart from "captions exist and we failed to load them". Times
+    // out rather than hanging: the page-script may be absent (an extension
+    // reload orphaned it) or late, and an unanswered promise would keep the
+    // reporting closure alive for the life of the page.
+    queryNativeCc(): Promise<'yes' | 'no' | 'unknown'> {
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = (state: 'yes' | 'no' | 'unknown') => {
+                if (done) return;
+                done = true;
+                window.removeEventListener('message', onMessage);
+                clearTimeout(timer);
+                resolve(state);
+            };
+            const onMessage = (event: MessageEvent) => {
+                if (event.source !== window) return;
+                if (event.data?.type !== 'YT_NATIVE_CC_STATE') return;
+                // A reply about a video the user already left says nothing about
+                // this one.
+                const current = this.getVideoId();
+                if (event.data.videoId && current && event.data.videoId !== current) return;
+                finish(event.data.state === 'yes' || event.data.state === 'no'
+                    ? event.data.state
+                    : 'unknown');
+            };
+            const timer = setTimeout(() => finish('unknown'), NATIVE_CC_QUERY_TIMEOUT_MS);
+            window.addEventListener('message', onMessage);
+            window.postMessage({ type: 'YT_QUERY_NATIVE_CC' }, '*');
+        });
     }
 
     setNativeSubtitlesEnabled(enabled: boolean): void {
@@ -562,12 +603,11 @@ class YouTubeCaptionDetector {
         window.postMessage({ type: 'YT_QUERY_CAPTIONS' }, '*');
     }
 
-    // Watch pages only: Shorts is deliberately unsupported. Returning null there
-    // keeps the sidebar hidden and stops any caption work from starting.
     getVideoIdFromUrl(): string | null {
         try {
             const url = new URL(location.href);
             if (url.pathname === '/watch') return url.searchParams.get('v');
+            if (url.pathname.startsWith('/shorts/')) return url.pathname.split('/')[2] || null;
         } catch {
             // ignore
         }

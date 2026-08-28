@@ -463,6 +463,10 @@
     "message": "字幕のリンクの有効期限が切れました。再検索すると通常は解決します。",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "再検索しても解決しませんでした。ページを再読み込みすると字幕のリンクが更新され、通常はこれで解決します。",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube により翻訳が制限されています — タップして再試行",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

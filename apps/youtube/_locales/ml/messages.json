@@ -463,6 +463,10 @@
     "message": "സബ്ടൈറ്റിൽ ലിങ്കിന്റെ കാലാവധി കഴിഞ്ഞു. വീണ്ടും തിരയുന്നത് സാധാരണയായി ഇത് പരിഹരിക്കും.",
     "description": "Status banner body for the expired-link case."
   },
+  "ytLoadFailedRetryText": {
+    "message": "വീണ്ടും തിരഞ്ഞിട്ടും ഫലമുണ്ടായില്ല. പേജ് വീണ്ടും ലോഡ് ചെയ്യുന്നത് സബ്ടൈറ്റിൽ ലിങ്ക് പുതുക്കുകയും സാധാരണയായി പ്രശ്നം പരിഹരിക്കുകയും ചെയ്യും.",
+    "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
+  },
   "ytMenuThrottled": {
     "message": "YouTube വിവർത്തനം പരിമിതപ്പെടുത്തി — വീണ്ടും ശ്രമിക്കാൻ ടാപ്പ് ചെയ്യുക",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

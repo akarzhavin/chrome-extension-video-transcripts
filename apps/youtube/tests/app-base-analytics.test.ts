@@ -73,6 +73,9 @@ function sent(): Array<{ event: string; params: Record<string, unknown> }> {
 
 const eventsNamed = (name: string) => sent().filter((m) => m.event === name);
 
+/** Let the queryNativeCc() promise chain settle. */
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
 beforeEach(() => {
     (chrome.runtime.sendMessage as jest.Mock).mockClear();
 });
@@ -616,5 +619,126 @@ describe('never leaks identifying data', () => {
         expect(blob).not.toContain('watch?v=');
         expect(blob).not.toContain('www.youtube.com');
         expect(blob).not.toContain('abc'); // the video id
+    });
+});
+
+// ---------------------------------------------------------------------------
+// subs_missed_with_cc
+// ---------------------------------------------------------------------------
+
+// The one signal that is unambiguously our own failure: the panel is empty
+// while the site's own caption control says captions exist. Deliberately not a
+// param on no_subtitles, which also fires for the healthy "this video has no
+// captions" case.
+describe('subs_missed_with_cc', () => {
+    function appWithCc(state: 'yes' | 'no' | 'unknown'): TestApp {
+        const app = makeApp();
+        app.queryNativeCc = () => Promise.resolve(state);
+        return app;
+    }
+
+    test('fires when native CC exists but nothing loaded', async () => {
+        const app = appWithCc('yes');
+        app.noteTrackFailure('English', { failure: 'stale-url', status: 200, attempts: 3 });
+        app.declareNoSubtitles();
+        await flush();
+
+        const hits = eventsNamed('subs_missed_with_cc');
+        expect(hits).toHaveLength(1);
+        expect(hits[0].params).toMatchObject({ failure: 'stale-url', status: 200, attempts: 3 });
+    });
+
+    // A video that genuinely has no captions is not breakage — this event must
+    // stay readable as a pure failure count with no filtering.
+    test('stays silent when the native control says there are no captions', async () => {
+        const app = appWithCc('no');
+        app.declareNoSubtitles('no-tracks');
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
+        expect(eventsNamed('no_subtitles')).toHaveLength(1);
+    });
+
+    // The control renders late and is absent on some surfaces; counting an
+    // unreadable button as "captions exist" would invent breakage out of timing.
+    test('stays silent when the native control could not be read', async () => {
+        const app = appWithCc('unknown');
+        app.declareNoSubtitles('no-tracks');
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
+    });
+
+    // Same one-shot discipline as no_subtitles: "Search again" runs
+    // resetForNewVideo(), which must not re-arm the event for one video.
+    test('reports one miss per video, not one per retry', async () => {
+        const app = appWithCc('yes');
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+        await flush();
+
+        app.retrySubtitleSearch();
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(1);
+    });
+
+    // The CC answer is a postMessage round trip, so a track can land while it
+    // is in flight — nothing was missed in that case.
+    test('does not report a miss when a track lands during the CC query', async () => {
+        const app = makeApp();
+        let answer: (s: 'yes') => void = () => {};
+        app.queryNativeCc = () => new Promise((r) => { answer = r as (s: 'yes') => void; });
+
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+        app.addParsedTrack('English', [sub('late but here')]);
+        answer('yes');
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
+    });
+
+    // The CC answer is a postMessage round trip with a timeout, so it can
+    // outlive a navigation. A video change re-arms analyticsOnce and zeroes
+    // noSubsRetries, so without an explicit check the late callback sails
+    // through every guard and reports the OLD video's failure against the NEW
+    // video's prefs — while consuming the new video's one-shot slot.
+    test('does not report the old video when the CC answer outlives a navigation', async () => {
+        const app = makeApp();
+        let answer: (s: 'yes') => void = () => {};
+        app.queryNativeCc = () => new Promise((r) => { answer = r as (s: 'yes') => void; });
+
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+
+        // Navigate while the round trip is still in flight.
+        app.videoId = 'vid2';
+        app.resetNoSubsRetries();
+        app.resetForNewVideo();
+
+        answer('yes');
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
+    });
+
+    // A genuine video change re-arms it, or a user hitting a broken run of
+    // videos would be counted once.
+    test('re-arms on a real video change', async () => {
+        const app = appWithCc('yes');
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+        await flush();
+
+        app.resetNoSubsRetries();
+        app.resetForNewVideo();
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(2);
     });
 });
