@@ -63,26 +63,50 @@ body {
     /* Centred on the VISIBLE video, not the frame: the panel covers the right
        320px, so captions centred edge-to-edge would sit visibly off-axis. */
     right: 320px;
-    bottom: 54px;
+    bottom: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     text-align: center;
     padding: 0 80px;
 }
 .cap-main,
 .cap-sub {
     display: inline-block;
-    padding: 2px 10px;
-    border-radius: 2px;
     background: rgba(0, 0, 0, 0.7);
     line-height: 1.35;
 }
-.cap-main { font-size: 21px; font-weight: 600; color: #fff; }
+
+/* ── Caption size ─────────────────────────────────────────────────────────
+   A deliberate departure from the product's own formula, recorded because it
+   is one. The product sizes captions as `24px * (player width / 1920)`, which
+   on this 1280-wide frame resolves to 16px main / 12px sub. That is right on a
+   real screen — the frame there is 1920 across and the viewer is at arm's
+   length — but this slide is a 1280x800 THUMBNAIL in a store listing, usually
+   seen smaller still. The on-video captions ARE the product; at the literal
+   size they stop registering as the feature at a glance.
+
+   28/20px is 1.75x the formula. Padding and radius stay in em, and stay the
+   product's own (.vtt-overlay-main 0.25em/0.67em r0.34em; -sub 0.22em/0.67em
+   r0.33em), so the box grows with the glyphs instead of keeping a box sized
+   for smaller text. */
+.cap-main {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    padding: 0.25em 0.67em;
+    border-radius: 0.34em;
+}
 /* The translation is the quieter line: smaller, and in the amber the shipped
    defaults give the secondary caption. */
-.cap-sub { font-size: 16px; font-weight: 500; color: #ffd54a; }
+.cap-sub {
+    font-size: 20px;
+    font-weight: 500;
+    color: #ffd54a;
+    padding: 0.22em 0.67em;
+    border-radius: 0.33em;
+}
 
 /* ── The panel ────────────────────────────────────────────────────────────
    Opaque, not the dark theme's glass: the light theme is opaque by design
