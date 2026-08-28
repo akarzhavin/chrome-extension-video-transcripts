@@ -273,6 +273,13 @@ export abstract class BaseVttApp implements AppInterface {
     // diagnostics events can report *how* it failed, not just *that* it did —
     // by the time declareNoSubtitles() runs, the original message is long gone.
     trackFailures: Map<string, TrackFailureInfo> = new Map();
+    // Set while a search was deliberately NOT run (Shorts with the panel
+    // collapsed). It has to outlive scheduleNoSubtitlesCheck(), which runs on
+    // every resetForNewVideo() and would otherwise repaint "No subtitles
+    // available" over the offer — a verdict on a search that never happened,
+    // and a false one: the catalogue is what told us there ARE captions.
+    // Cleared on a real video change and once a search actually runs.
+    searchDeferred: boolean = false;
     // Absolute epoch ms until which the fetcher's rate-limit breaker is open.
     cooldownUntil: number = 0;
     // Ticks the cooldown countdown in the banner while it runs.
@@ -526,6 +533,11 @@ export abstract class BaseVttApp implements AppInterface {
     // onboarding is showing.
     scheduleNoSubtitlesCheck(graceMs: number = 7000): void {
         this.clearNoSubtitlesTimer();
+        // A deferred search is not a search in progress. page-script re-sends
+        // the track list several times per video, so each round would repaint
+        // "Searching…" over the offer and re-arm the timer that concludes "No
+        // subtitles available" — about a fetch that was never issued.
+        if (this.searchDeferred) return;
         this.hideStatusBanner();
         if (!this.langPrefs) return;
         if (this.getVideoId() === null) return;
@@ -815,6 +827,45 @@ export abstract class BaseVttApp implements AppInterface {
             .catch(() => {
                 // Analytics must never break a user flow.
             });
+    }
+
+    /** Is the panel slid off-screen? Used to skip work nobody can see. */
+    isSidebarCollapsed(): boolean {
+        return this.ui.isCollapsed();
+    }
+
+    /**
+     * Offer a search the caller declined to run on its own.
+     *
+     * Shorts with a collapsed panel skips fetching (see handleCaptionTracks),
+     * so the panel must not simply sit empty when the user opens it: an empty
+     * panel with no explanation reads as "this short has no subtitles", which
+     * is the opposite of true — we know the catalogue lists some, that is why
+     * this banner is offered at all.
+     *
+     * A button rather than an automatic fetch on expand: the user opening the
+     * panel is not necessarily asking for THIS short, and spending the requests
+     * unasked is the very thing the deferral exists to avoid.
+     */
+    offerDeferredSearch(): void {
+        this.searchDeferred = true;
+        this.clearNoSubtitlesTimer();
+        this.showStatusBanner(
+            t('ytDeferredTitle', 'Subtitles are ready to load'),
+            t(
+                'ytDeferredText',
+                'The panel was closed, so nothing was downloaded for this video yet.',
+            ),
+            [
+                {
+                    label: '⌕ ' + t('ytFindSubtitles', 'Find subtitles'),
+                    onClick: () => {
+                        this.searchDeferred = false;
+                        this.reprocessCurrentVideo();
+                    },
+                },
+            ],
+        );
     }
 
     // "Search again" handler: remember that the user retried (so the next empty
@@ -1416,6 +1467,9 @@ export abstract class BaseVttApp implements AppInterface {
     // to outlive exactly the retry spam it exists to absorb.
     resetNoSubsRetries(): void {
         this.noSubsRetries = 0;
+        // Only here, not in resetForNewVideo(): this runs on a genuine video
+        // change, while that one also runs on every retry round.
+        this.searchDeferred = false;
         this.cooldownUntil = 0;
         this.autoProbes = 0;
         // Analytics one-shots re-arm HERE, for the same reason the cooldown

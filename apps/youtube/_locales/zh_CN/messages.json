@@ -467,6 +467,18 @@
     "message": "重新搜索没有解决问题。重新加载页面会刷新字幕链接，通常可以解决问题。",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "字幕已准备好加载",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "面板当时是关闭的，因此该视频尚未下载任何内容。",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "查找字幕",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "翻译已被 YouTube 限制——点按重试",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

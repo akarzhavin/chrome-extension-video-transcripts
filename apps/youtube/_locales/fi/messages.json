@@ -467,6 +467,18 @@
     "message": "Uudelleen hakeminen ei auttanut. Sivun lataaminen uudelleen päivittää tekstityslinkin ja korjaa tämän yleensä.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "Tekstitykset ovat valmiina ladattaviksi",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "Paneeli oli suljettu, joten tälle videolle ei ole vielä ladattu mitään.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "Etsi tekstityksiä",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube rajoitti käännöstä — yritä uudelleen napauttamalla",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

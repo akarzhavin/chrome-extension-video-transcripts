@@ -467,6 +467,18 @@
     "message": "Повторный поиск не помог. Обновите страницу — тогда ссылка на субтитры создастся заново, и обычно это решает проблему.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "Субтитры готовы к загрузке",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "Панель была закрыта, поэтому для этого видео пока ничего не загружено.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "Искать субтитры",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube ограничил перевод — нажмите для повтора",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

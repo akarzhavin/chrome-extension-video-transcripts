@@ -268,6 +268,42 @@ describe('rate-limited subtitle failures', () => {
         expect(notice()).toBeNull();
     });
 
+    // Shorts with a collapsed panel skips fetching, so the panel must explain
+    // itself when opened instead of sitting empty — an empty panel reads as
+    // "this video has no subtitles", the opposite of what we know.
+    test('a deferred search offers a button and cancels the no-subtitles verdict', () => {
+        const app = makeApp();
+        // The state a video change leaves behind: "Searching…" plus the timer
+        // that flips it to "No subtitles" once the grace period is up.
+        app.scheduleNoSubtitlesCheck(1);
+        expect(bannerText()).toContain('Searching');
+
+        app.offerDeferredSearch();
+
+        expect(bannerText()).toContain('ready to load');
+        const labels = actions().map((b) => b.textContent ?? '');
+        expect(labels.some((l) => l.includes('Find subtitles'))).toBe(true);
+
+        // The timer must be dead: nothing was searched, so "No subtitles" would
+        // be a verdict on a search that never ran.
+        expect(app.noSubsTimer).toBeNull();
+    });
+
+    // Guards the assertion above: without offerDeferredSearch() the timer is
+    // armed, so a null check on it is testing something real.
+    test('the no-subtitles timer is armed without the deferral', () => {
+        const app = makeApp();
+        app.scheduleNoSubtitlesCheck(1000);
+        expect(app.noSubsTimer).not.toBeNull();
+    });
+
+    test('the offered button runs a real search', () => {
+        const app = makeApp();
+        app.offerDeferredSearch();
+        actions()[0].click();
+        expect(app.reprocessed).toBe(1);
+    });
+
     test('an expired link asks to search again rather than declaring defeat', () => {
         const app = makeApp();
         app.noteTrackFailure('English', { failure: 'stale-url' });

@@ -467,6 +467,18 @@
     "message": "ಮತ್ತೆ ಹುಡುಕಿದರೂ ಪ್ರಯೋಜನವಾಗಲಿಲ್ಲ. ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡುವುದರಿಂದ ಉಪಶೀರ್ಷಿಕೆ ಲಿಂಕ್ ಹೊಸದಾಗುತ್ತದೆ ಮತ್ತು ಸಾಮಾನ್ಯವಾಗಿ ಸಮಸ್ಯೆ ಸರಿಹೋಗುತ್ತದೆ.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳು ಲೋಡ್ ಆಗಲು ಸಿದ್ಧವಾಗಿವೆ",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "ಪ್ಯಾನಲ್ ಮುಚ್ಚಿದ್ದ ಕಾರಣ, ಈ ವೀಡಿಯೊಗೆ ಇನ್ನೂ ಏನನ್ನೂ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳನ್ನು ಹುಡುಕಿ",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube ಅನುವಾದವನ್ನು ಮಿತಿಗೊಳಿಸಿದೆ — ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

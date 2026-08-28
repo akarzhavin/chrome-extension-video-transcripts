@@ -467,6 +467,18 @@
     "message": "మళ్లీ వెతికినా పని చేయలేదు. పేజీని రీలోడ్ చేయడం వల్ల సబ్‌టైటిల్ లింక్ కొత్తగా తయారవుతుంది, ఇది సాధారణంగా సమస్యను పరిష్కరిస్తుంది.",
     "description": "Status banner body after a failed manual retry on an expired subtitle link: the signed URL is cached in the page, so only a reload re-mints it."
   },
+  "ytDeferredTitle": {
+    "message": "ఉపశీర్షికలు లోడ్ కావడానికి సిద్ధంగా ఉన్నాయి",
+    "description": "Status banner heading on a Short whose search was deferred because the panel was closed. The catalogue says captions exist; nothing was downloaded yet."
+  },
+  "ytDeferredText": {
+    "message": "ప్యానెల్ మూసివేయబడింది, కాబట్టి ఈ వీడియో కోసం ఇంకా ఏమీ డౌన్‌లోడ్ కాలేదు.",
+    "description": "Status banner body for the deferred-search case."
+  },
+  "ytFindSubtitles": {
+    "message": "ఉపశీర్షికల కోసం వెతకండి",
+    "description": "Button that starts the search that was deferred while the panel was closed."
+  },
   "ytMenuThrottled": {
     "message": "YouTube అనువాదాన్ని పరిమితం చేసింది — మళ్లీ ప్రయత్నించడానికి నొక్కండి",
     "description": "Quiet player-menu status line when the translated track was rate-limited and a retry is available. The other track is playing normally, so this must not read as a failure of the whole extension."

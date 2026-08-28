@@ -614,6 +614,14 @@ class YouTubeCaptionDetector {
         return null;
     }
 
+    isShortsPage(): boolean {
+        try {
+            return new URL(location.href).pathname.startsWith('/shorts/');
+        } catch {
+            return false;
+        }
+    }
+
     checkCurrentVideo(): void {
         const id = this.getVideoIdFromUrl();
         if (!id || id === this.currentVideoId) return;
@@ -659,6 +667,26 @@ class YouTubeCaptionDetector {
         // nature: it only bites when the message wins the race against storage.
         if (!this.app.langPrefs) {
             this.app.showLanguageOnboarding();
+            return;
+        }
+
+        // Shorts with the panel closed: don't fetch. The feed is scrolled fast
+        // and every short would spend its own requests on subtitles nobody is
+        // looking at — and on a surface where translation is throttled per IP,
+        // those requests are exactly what makes the throttle arrive sooner for
+        // the videos the user DOES open the panel on.
+        //
+        // Deliberately here and not earlier: the track catalogue above is free
+        // (it is read out of the player response, no network), and having it
+        // is what lets the panel offer a "Find subtitles" button that knows
+        // there is something to find. Watch pages are unaffected — they are
+        // opened one at a time and deliberately.
+        //
+        // Not claiming captionsLoadedForVideo: nothing was loaded, so expanding
+        // the panel must still be able to run a real search for this video.
+        if (this.isShortsPage() && this.app.isSidebarCollapsed()) {
+            console.log('[YT-VTT] shorts + collapsed panel — deferring the search');
+            this.app.offerDeferredSearch();
             return;
         }
 
