@@ -683,7 +683,6 @@ export abstract class BaseVttApp implements AppInterface {
 
         // A stale signed URL is recoverable by re-reading the player
         // response, which is exactly what "Search again" triggers.
-        const failure = this.dominantFailure();
         if (this.isRecoverableFailure()) {
             // ...but only when re-reading yields a DIFFERENT URL. The live
             // player response is cached in the player for the lifetime of the
@@ -787,9 +786,17 @@ export abstract class BaseVttApp implements AppInterface {
         if (this.analyticsOnce.hasFired('subs_missed_with_cc')) return;
         const failureAtCall = this.dominantFailure() ?? cause ?? 'unknown';
         const detail = this.failureDetail();
+        // The video this report is ABOUT. queryNativeCc() is a postMessage
+        // round trip with a timeout, so it can outlive a navigation — and a
+        // video change re-arms analyticsOnce and zeroes noSubsRetries, so the
+        // late callback would sail through every guard and emit a row mixing
+        // the old video's failure with the new video's prefs, while consuming
+        // the new video's one-shot slot.
+        const forVideo = this.getVideoId();
         void this.queryNativeCc()
             .then((state) => {
                 if (state !== 'yes') return;
+                if (this.getVideoId() !== forVideo) return;
                 // Re-checked after the await: a track that landed while the
                 // round trip was in flight means nothing was missed at all.
                 if (this.state.tracks.length > 0) return;

@@ -701,6 +701,30 @@ describe('subs_missed_with_cc', () => {
         expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
     });
 
+    // The CC answer is a postMessage round trip with a timeout, so it can
+    // outlive a navigation. A video change re-arms analyticsOnce and zeroes
+    // noSubsRetries, so without an explicit check the late callback sails
+    // through every guard and reports the OLD video's failure against the NEW
+    // video's prefs — while consuming the new video's one-shot slot.
+    test('does not report the old video when the CC answer outlives a navigation', async () => {
+        const app = makeApp();
+        let answer: (s: 'yes') => void = () => {};
+        app.queryNativeCc = () => new Promise((r) => { answer = r as (s: 'yes') => void; });
+
+        app.noteTrackFailure('English', { failure: 'stale-url' });
+        app.declareNoSubtitles();
+
+        // Navigate while the round trip is still in flight.
+        app.videoId = 'vid2';
+        app.resetNoSubsRetries();
+        app.resetForNewVideo();
+
+        answer('yes');
+        await flush();
+
+        expect(eventsNamed('subs_missed_with_cc')).toHaveLength(0);
+    });
+
     // A genuine video change re-arms it, or a user hitting a broken run of
     // videos would be counted once.
     test('re-arms on a real video change', async () => {

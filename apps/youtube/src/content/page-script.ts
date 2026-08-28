@@ -8,6 +8,7 @@ import {
 } from './timedtext-fetch';
 import {
     PotStore,
+    SharedOnce,
     buildTimedTextUrl,
     isEmptyish,
     potFromResourceTiming,
@@ -264,12 +265,13 @@ function installYouTubeHook() {
         // reading the standard button first would answer 'no' for a Short that
         // does have captions.
         if (findCcButton()) return 'yes';
-        // No usable control anywhere. The standard button being present and
-        // explicitly "unavailable" is YouTube stating there are no captions;
-        // no button at all means the chrome has not rendered yet (or this
-        // surface has none), which is not evidence either way.
-        const std = document.querySelector('.ytp-subtitles-button');
-        return std && isUnavailable(std) ? 'no' : 'unknown';
+        // Everything else is 'unknown', including a standard button labelled
+        // "unavailable". That label is NOT YouTube saying the video has no
+        // captions: measured live (see mintPotViaCcToggle), a watch page shows
+        // it while the player response DOES list caption tracks, and clicking
+        // it anyway mints a token. Answering 'no' here suppressed
+        // subs_missed_with_cc in exactly the case the event exists to count.
+        return 'unknown';
     }
 
     // Turn YouTube's own captions OFF once, only if they're currently on. Used
@@ -312,15 +314,19 @@ function installYouTubeHook() {
     // as ours. The same URL with `pot` returns the full track. So an empty
     // 200 now usually means "no token", not "stale link".
     //
-    // The token is NOT minted by us. The player fetches its own caption track
-    // ~0.4s into a watch page and puts `pot` on that request; we passively read
-    // it there. That is the whole mechanism — no CC toggling, no synthetic
-    // request. It is also why the previous pot implementation was removed
-    // (9cf1f39): it BLOCKED on the token (waitForPot, 15s) and reported
-    // 'no-pot' when the sniff missed. Nothing here ever waits: a request goes
-    // out with whatever is known at the time, and the token — if it arrives
-    // later — only improves the retry. Guaranteeing a load means never letting
-    // the absence of the optimisation stop the attempt.
+    // The token is not ours to compute: only the player mints one, and only
+    // when it fetches a caption track — which it does only while native
+    // captions are ON. We read it off that request. With captions off (which
+    // our own overlay arranges) the player never asks, so nothing can be
+    // sniffed passively and the token has to be provoked; see
+    // mintPotViaCcToggle, which runs ONLY after a request already came back
+    // empty.
+    //
+    // Nothing here blocks on the token. That is why the previous
+    // implementation was removed (9cf1f39): it waited 15s and reported
+    // 'no-pot' when the sniff missed, so a missing optimisation became a total
+    // outage. A request always goes out with whatever is known at the time,
+    // and the token only ever improves a retry.
     const pots = new PotStore();
 
     // How long to give the player to mint a token AFTER our own request already
@@ -468,7 +474,8 @@ function installYouTubeHook() {
      * not either, and repeating it would blink the player's captions on every
      * failed track.
      */
-    const potToggleTried = new Set<string>();
+    // One mint per video, shared by every track waiting on it. See SharedOnce.
+    const potMint = new SharedOnce<string | null>();
 
     /**
      * The control to flip when minting a token. Unlike findCcButton() this does
@@ -481,10 +488,26 @@ function installYouTubeHook() {
             ?? document.querySelector('.ytp-subtitles-button')) as HTMLElement | null;
     }
 
-    async function mintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
-        if (potToggleTried.has(videoId)) return knownPot(videoId);
-        potToggleTried.add(videoId);
+    /**
+     * One mint per video, SHARED by every track waiting on it.
+     *
+     * Tracks are fetched in parallel (index.ts fans out the whole plan at
+     * once), so on a video that needs a token they all come back empty within
+     * milliseconds of each other. Handing the first caller the toggle and
+     * turning the rest away returned null to them — the token existed half a
+     * second later, but they had already given up, so dual subtitles collapsed
+     * to a single language on every video that took this path. Everyone awaits
+     * the same promise instead, and they all see the token it produces.
+     */
+    function mintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
+        return potMint.run(
+            videoId,
+            () => doMintPotViaCcToggle(videoId, signal),
+            () => knownPot(videoId),
+        );
+    }
 
+    async function doMintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
         // NOT findCcButton(): that helper skips a control whose aria-label says
         // captions are "unavailable", which is right for its job (don't offer a
         // toggle that does nothing) and wrong here. Measured live: on a watch
@@ -498,10 +521,20 @@ function installYouTubeHook() {
         // control is the dead one and .ytmClosedCaptioningButtonButton is what
         // works, so trying only the standard button minted nothing there.
         const btn = ccToggleForMinting();
+        // No control yet — the player chrome renders late and this runs seconds
+        // into the page. Claiming the attempt HERE would burn the one mint this
+        // video gets on a button that had not appeared, and every later track
+        // and every "Search again" would then return null without ever clicking
+        // the control that exists by then. Leave the video unclaimed so the next
+        // attempt can try again.
         if (!btn) return null;
         // Already on: the player has fetched its track and we simply missed the
         // sniff, so a toggle would turn captions OFF and mint nothing.
         if (btn.getAttribute('aria-pressed') === 'true') return knownPot(videoId);
+
+        // Claimed only now that a real toggle is about to happen — an attempt
+        // that bailed above (no control rendered yet) stays retryable.
+        potMint.complete(videoId);
 
         console.log(TAG, 'no pot — briefly enabling native captions to mint one');
         btn.click();
@@ -515,10 +548,15 @@ function installYouTubeHook() {
             }
             return knownPot(videoId);
         } finally {
-            // Put the player back the way we found it, whatever happened above.
-            const after = ccToggleForMinting();
-            if (after && after.getAttribute('aria-pressed') === 'true') {
-                after.click();
+            // Restore the control WE clicked, and only while it is still that
+            // video's control. Re-querying the DOM here would, after a
+            // navigation, hand back the NEW video's button — and YouTube
+            // persists the CC preference across videos, so if that one is on we
+            // would switch the user's captions off on a video we never touched.
+            if (currentUrlVideoId() === videoId
+                && btn.isConnected
+                && btn.getAttribute('aria-pressed') === 'true') {
+                btn.click();
                 console.log(TAG, 'native captions -> Off (restored)');
             }
         }

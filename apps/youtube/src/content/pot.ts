@@ -118,3 +118,43 @@ export function shouldRetryWithPot(
     if (!potNow) return false;
     return potNow !== potBefore;
 }
+
+/**
+ * Run `task` at most once per key, and hand every concurrent caller the SAME
+ * promise.
+ *
+ * Written for pot minting, where the shape of the bug is specific: tracks are
+ * fetched in parallel, so on a video that needs a token they all come back
+ * empty within milliseconds. A naive "first caller wins, everyone else is
+ * turned away" guard returned null to the others — the token existed half a
+ * second later, but they had already given up, so dual subtitles collapsed to
+ * one language on every video that took that path.
+ *
+ * `once` records keys whose task has already COMPLETED, so a finished attempt
+ * is not repeated; in-flight callers share the running promise instead.
+ */
+export class SharedOnce<T> {
+    private inFlight = new Map<string, Promise<T>>();
+    private done = new Set<string>();
+
+    run(key: string, task: () => Promise<T>, whenDone: () => T): Promise<T> {
+        const running = this.inFlight.get(key);
+        if (running) return running;
+        if (this.done.has(key)) return Promise.resolve(whenDone());
+
+        const p = task().finally(() => {
+            this.inFlight.delete(key);
+        });
+        this.inFlight.set(key, p);
+        return p;
+    }
+
+    /** Mark a key as attempted, so later calls take the whenDone() path. */
+    complete(key: string): void {
+        this.done.add(key);
+    }
+
+    hasCompleted(key: string): boolean {
+        return this.done.has(key);
+    }
+}

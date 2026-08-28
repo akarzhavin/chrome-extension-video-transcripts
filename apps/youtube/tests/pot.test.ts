@@ -13,6 +13,7 @@
 
 import {
     PotStore,
+    SharedOnce,
     buildTimedTextUrl,
     isEmptyish,
     potFromResourceTiming,
@@ -154,5 +155,65 @@ describe('shouldRetryWithPot', () => {
 
     test('does not retry a request the user navigated away from', () => {
         expect(shouldRetryWithPot('aborted', null, 'TOKEN')).toBe(false);
+    });
+});
+
+describe('SharedOnce', () => {
+    const deferred = <T,>() => {
+        let resolve!: (v: T) => void;
+        const promise = new Promise<T>((r) => { resolve = r; });
+        return { promise, resolve };
+    };
+
+    // The parallel-tracks bug: every track that comes back empty must end up
+    // with the token the single toggle produces, not just whichever one got
+    // there first.
+    test('concurrent callers all receive the one result', async () => {
+        const s = new SharedOnce<string | null>();
+        const d = deferred<string | null>();
+        let runs = 0;
+        const task = () => { runs++; return d.promise; };
+
+        const a = s.run('vid', task, () => null);
+        const b = s.run('vid', task, () => null);
+        const c = s.run('vid', task, () => null);
+
+        d.resolve('TOKEN');
+        expect(await a).toBe('TOKEN');
+        expect(await b).toBe('TOKEN');
+        expect(await c).toBe('TOKEN');
+        expect(runs).toBe(1);
+    });
+
+    test('a completed key does not run the task again', async () => {
+        const s = new SharedOnce<string | null>();
+        let runs = 0;
+        await s.run('vid', () => { runs++; return Promise.resolve('T'); }, () => null);
+        s.complete('vid');
+
+        expect(await s.run('vid', () => { runs++; return Promise.resolve('T2'); }, () => 'CACHED'))
+            .toBe('CACHED');
+        expect(runs).toBe(1);
+    });
+
+    // A key is only "done" once something marks it so — an attempt that bailed
+    // before doing any work (no CC button rendered yet) must stay retryable.
+    test('an unmarked key is retried', async () => {
+        const s = new SharedOnce<string | null>();
+        let runs = 0;
+        const task = () => { runs++; return Promise.resolve(null); };
+
+        await s.run('vid', task, () => null);
+        await s.run('vid', task, () => null);
+        expect(runs).toBe(2);
+        expect(s.hasCompleted('vid')).toBe(false);
+    });
+
+    test('keys are independent', async () => {
+        const s = new SharedOnce<string | null>();
+        let runs = 0;
+        const task = () => { runs++; return Promise.resolve('T'); };
+        await Promise.all([s.run('a', task, () => null), s.run('b', task, () => null)]);
+        expect(runs).toBe(2);
     });
 });
