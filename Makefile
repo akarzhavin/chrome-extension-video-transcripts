@@ -11,7 +11,7 @@
 
 SHELL := /bin/bash
 
-APPS := youtube rezka web
+APPS := youtube rezka
 RELEASES := releases
 
 # Read from each app's package.json rather than hardcoded: a stale version here
