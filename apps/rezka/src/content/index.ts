@@ -118,6 +118,10 @@ class VttApp implements AppInterface {
     setupListeners(): void {
         chrome.runtime.onMessage.addListener((request) => {
             if (request.action === "VTT_LOADED") {
+                // A track fetched for the version the user has since switched
+                // away from: its cues do not match the video that is playing.
+                if (typeof request.trackSetId === 'number'
+                    && request.trackSetId !== this.detector.trackSetId) return;
                 this.handleNewSubtitles(request.payload, request.label);
             } else if (request.action === "VTT_LOAD_FAILED") {
                 this.handleVttLoadFailed({ status: request.status, failure: request.failure });
@@ -818,6 +822,13 @@ class VttDetector {
     // CDN listing by the MAIN-world interceptor. Two tracks of one language
     // (theatrical vs director's cut) are indistinguishable without it.
     labelsByUrl: Map<string, string> = new Map();
+    // Which track set the tracks currently on screen belong to. Bumped whenever
+    // a new listing arrives, so a fetch still in flight for the PREVIOUS
+    // version can be recognised and dropped when it lands — the background
+    // fetches asynchronously and broadcasts the result, so a slow response for
+    // the version the user just left would otherwise repopulate the panel it
+    // was cleared from.
+    trackSetId: number = 0;
 
     constructor(app: VttApp) {
         this.app = app;
@@ -902,6 +913,31 @@ class VttDetector {
         }
     }
 
+    /**
+     * A fresh subtitle listing arrived — the user switched translator (e.g. the
+     * theatrical cut to the director's one), which happens over AJAX without a
+     * page load.
+     *
+     * The tracks already on screen belong to the version being left. Keeping
+     * them meant the new ones queued up behind as "English 2" and the panel went
+     * on showing the old ones, whose timing does not match the new video.
+     *
+     * processedUrls has to go too: the new listing carries different URLs, but
+     * a re-selected version repeats URLs we have already fetched, and those
+     * would be dropped as duplicates, leaving the panel empty.
+     */
+    onNewTrackSet(): void {
+        // The first listing of the page fires this as well, with nothing loaded
+        // yet — a reset there is just a no-op, so no need to special-case it.
+        if (this.app.state.tracks.length === 0 && this.processedUrls.size === 0) return;
+        console.log('VTT Detector: new track set — dropping the previous one');
+        this.trackSetId++;
+        this.processedUrls.clear();
+        this.app.state.reset();
+        this.labelsByUrl.clear();
+        this.app.ui.refresh();
+    }
+
     async loadVtt(url: string, label?: string): Promise<void> {
         if (label) this.labelsByUrl.set(url, label);
         if (this.processedUrls.has(url)) return;
@@ -918,7 +954,8 @@ class VttDetector {
             chrome.runtime.sendMessage({
                 action: "FETCH_VTT",
                 url: url,
-                label: this.labelsByUrl.get(url)
+                label: this.labelsByUrl.get(url),
+                trackSetId: this.trackSetId
             });
         } catch (err) {
             console.error("VttDetector: Failed to send FETCH_VTT message:", err);
@@ -934,6 +971,9 @@ class VttDetector {
         // readiness so it flushes anything detected before we started listening.
         window.addEventListener('message', (event) => {
             if (event.source !== window) return;
+            if (event.data && event.data.type === 'VTT_TRACKS_RESET') {
+                this.onNewTrackSet();
+            }
             if (event.data && event.data.type === 'VTT_URL_DETECTED') {
                 this.loadVtt(event.data.url, event.data.label);
             }

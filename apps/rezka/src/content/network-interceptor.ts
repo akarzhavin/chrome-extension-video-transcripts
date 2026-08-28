@@ -93,6 +93,22 @@ import { FEATURES } from '../config';
     // Player CDN endpoints whose JSON carries the subtitle list.
     const isCdnDataUrl = (url: string): boolean => /get_cdn|cdn_|\/ajax\//i.test(url);
 
+    // Switching translator ("Оригинал (+субтитры)" -> the same with "(реж.)")
+    // is an AJAX call on the same page: a new listing arrives and the previous
+    // tracks stop applying. Announce that so the isolated world can drop them —
+    // otherwise the new tracks pile up behind the old ones and the panel keeps
+    // showing the version the user just switched away from, at the wrong timing.
+    //
+    // Keyed off the RESPONSE rather than a click on the translator menu: the
+    // response is what actually carries the new list, and it does not depend on
+    // HDrezka's markup. get_cdn_tiles is excluded — those are the thumbnail
+    // sprite sheets, they match the endpoint pattern above and fire constantly.
+    function announceNewTrackSet(url: string, text: string): void {
+        if (/get_cdn_tiles/i.test(url)) return;
+        if (!text || text.indexOf('.vtt') === -1) return;
+        window.postMessage({ type: 'VTT_TRACKS_RESET' }, '*');
+    }
+
     const originalFetch = window.fetch;
     window.fetch = async function (...args: any[]) {
         const response = await originalFetch.apply(window, args as [RequestInfo | URL, RequestInit?]);
@@ -101,7 +117,12 @@ import { FEATURES } from '../config';
         // Auto-search: clone so reading the body doesn't consume it for the player.
         try {
             if (FEATURES.autoSubtitleSearch && url && isCdnDataUrl(String(url))) {
-                response.clone().text().then(scanBody).catch(() => {});
+                response.clone().text().then((text) => {
+                    // Order matters: the reset has to reach the isolated world
+                    // before the tracks it is meant to precede.
+                    announceNewTrackSet(String(url), text);
+                    scanBody(text);
+                }).catch(() => {});
             }
         } catch {
             /* ignore */
@@ -117,6 +138,7 @@ import { FEATURES } from '../config';
             if (FEATURES.autoSubtitleSearch && isCdnDataUrl(url)) {
                 this.addEventListener('load', function (this: XMLHttpRequest) {
                     try {
+                        announceNewTrackSet(url, this.responseText);
                         scanBody(this.responseText);
                     } catch {
                         /* ignore */

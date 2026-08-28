@@ -106,7 +106,11 @@ chrome.runtime.onMessage.addListener((request: VttMessage, sender, sendResponse)
                         // listing gave one. Without it the content script can
                         // only guess a name from the cue text, which cannot
                         // separate two tracks in the same language.
-                        label: request.label
+                        label: request.label,
+                        // Which track set this fetch was issued for. Echoed back
+                        // so a result that arrives after the user switched
+                        // version can be recognised as stale and dropped.
+                        trackSetId: request.trackSetId
                     });
                 }
             })
