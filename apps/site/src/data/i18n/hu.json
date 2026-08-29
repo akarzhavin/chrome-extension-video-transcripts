@@ -281,7 +281,7 @@
     "title": "Sajnáljuk, hogy távozol — Lingogram",
     "description": "Mondd el, miért távolítottad el a Lingogramot, hogy javíthassunk rajta.",
     "h1": "Sajnáljuk, hogy távozol",
-    "sub": "Egyetlen koppintás elárulja, miért távolítottad el a(z) {ext} kiterjesztést. Ennyit kérünk csak — ebből tudjuk, mit javítsunk legközelebb.",
+    "sub": "Szánnál rá egy percet, hogy elmondd, miért távolítottad el a(z) {ext} kiterjesztést? Ebből tudjuk, mit javítsunk legközelebb.",
     "reason": {
       "subtitles": "A feliratok nem jelentek meg",
       "translation": "A fordítás hibás vagy esetlen volt",

@@ -282,7 +282,7 @@
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
     "h1": "Ikävä nähdä sinun lähtevän",
-    "sub": "Yksi napautus kertoo meille, miksi poistit {ext}:n. Siinä koko pyyntö — se kertoo, mitä korjata seuraavaksi.",
+    "sub": "Kertoisitko hetken verran, miksi poistit {ext}:n? Se kertoo meille, mitä korjata seuraavaksi.",
     "reason": {
       "subtitles": "Tekstitykset eivät näkyneet",
       "translation": "Käännös oli väärä tai kömpelö",

@@ -282,7 +282,7 @@
     "title": "Tråkigt att se dig gå — Lingogram",
     "description": "Berätta varför du tog bort Lingogram så vi kan åtgärda det.",
     "h1": "Tråkigt att se dig gå",
-    "sub": "Ett tryck berättar för oss varför du tog bort {ext}. Det är hela vår begäran — det visar vad vi ska fixa härnäst.",
+    "sub": "Har du en stund att berätta för oss varför du tog bort {ext}? Det visar oss vad vi ska fixa härnäst.",
     "reason": {
       "subtitles": "Undertexter dök inte upp",
       "translation": "Översättningen var fel eller klumpig",

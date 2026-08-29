@@ -282,7 +282,7 @@
     "title": "Ærgerligt, at du forlader os — Lingogram",
     "description": "Fortæl os, hvorfor du fjernede Lingogram, så vi kan rette det.",
     "h1": "Ærgerligt, at du forlader os",
-    "sub": "Ét tryk fortæller os, hvorfor du fjernede {ext}. Det er hele opgaven — det viser os, hvad vi skal rette næste gang.",
+    "sub": "Har du et øjeblik til at fortælle os, hvorfor du fjernede {ext}? Det er det, der viser os, hvad vi skal rette næste gang.",
     "reason": {
       "subtitles": "Undertekster dukkede ikke op",
       "translation": "Oversættelsen var forkert eller akavet",

@@ -284,7 +284,7 @@
     "title": "Je nám líto, že odcházíte — Lingogram",
     "description": "Napište nám, proč jste Lingogram odinstalovali, ať to můžeme opravit.",
     "h1": "Je nám líto, že odcházíte",
-    "sub": "Jedno klepnutí nám řekne, proč jste {ext} odinstalovali. To je celá žádost — díky ní víme, co příště opravit.",
+    "sub": "Nevadilo by vám chvíli se zastavit a říct nám, proč jste {ext} odinstalovali? Díky tomu víme, co příště opravit.",
     "reason": {
       "subtitles": "Titulky se nezobrazily",
       "translation": "Překlad byl špatný nebo neohrabaný",

@@ -282,7 +282,7 @@
     "title": "Triste de vous voir partir — Lingogram",
     "description": "Dites-nous pourquoi vous avez supprimé Lingogram pour qu'on puisse s'améliorer.",
     "h1": "Triste de vous voir partir",
-    "sub": "Un simple tap nous dit pourquoi vous avez supprimé {ext}. C'est tout ce qu'on demande — ça nous montre quoi corriger ensuite.",
+    "sub": "Auriez-vous un instant pour nous dire pourquoi vous avez supprimé {ext} ? Cela nous montre quoi corriger ensuite.",
     "reason": {
       "subtitles": "Les sous-titres ne s'affichaient pas",
       "translation": "La traduction était fausse ou maladroite",

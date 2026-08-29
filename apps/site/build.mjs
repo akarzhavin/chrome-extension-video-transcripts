@@ -1363,17 +1363,18 @@ ${footer(t, root)}`,
 //
 // The page Chrome opens when someone removes the extension (setUninstallURL).
 //
-// The ask is a single tap, not a paragraph. An open textarea at the moment of
-// uninstall answers from the few percent who were angry enough to type, which
-// is the least representative slice there is; a reason chip is cheap enough
-// that the merely-disappointed majority answers too. The textarea stays, but
-// as optional depth under the chips rather than the whole question.
+// An ordinary form: tick what applies, add a note if you like, press the
+// button. Nothing leaves the browser until that press — no partial answer is
+// recorded behind the visitor's back, and the whole page is one deliberate
+// act. Checkboxes rather than one choice because the reasons genuinely
+// co-occur: "subtitles never showed up" and "too fiddly to set up" are one
+// person's story, not two people's.
 //
-// Both halves land in ONE Firestore feedback doc (see src/js/main.js). The
-// chip rides as a machine-readable "[reason:<id>]" prefix on `text` rather
-// than its own field: the rules pin the doc to a fixed key set, so a new
-// column would need a rules deploy, while a prefix aggregates by grep today.
-// Same trick the extension already uses for a signed-out reply address.
+// The answer lands in ONE Firestore feedback doc (see src/js/main.js) as a
+// machine-readable "[reason:a,b]" prefix on `text` rather than its own field:
+// the rules pin the doc to a fixed key set, so a new column would need a rules
+// deploy, while a prefix aggregates by grep today. Same trick the extension
+// already uses for a signed-out reply address.
 const UNINSTALL_REASONS = ['subtitles', 'translation', 'setup', 'expected', 'oneoff', 'other'];
 
 const uninstallPage = (locale, hrefLang) => {
@@ -1381,14 +1382,22 @@ const uninstallPage = (locale, hrefLang) => {
   const t = makeT(strings);
   const root = lang === 'en' ? '' : `/${lang}`;
 
-  // value= is the STABLE id, label is the translated text: the aggregate has
-  // to survive both translation and copy edits, so nothing user-visible is
-  // ever what gets counted.
-  const chips = UNINSTALL_REASONS.map((id) => `
-      <button type="button" class="uni-chip" data-reason="${id}" aria-pressed="false">
-        <span class="uni-chip-tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
-        ${esc(t(`uninstall.reason.${id}`))}
-      </button>`).join('');
+  // Real <input type="checkbox">, not styled buttons. Several reasons can be
+  // true at once ("subtitles never showed up" AND "too fiddly to set up"), and
+  // a native control brings its own keyboard handling, its own focus ring and
+  // its own screen-reader semantics — none of which a div can be talked into
+  // fully. It also means the no-JS branch below needs no special casing: the
+  // form is a working form before any script runs.
+  //
+  // value= is the STABLE id, never the translated label: the aggregate has to
+  // survive both translation and copy edits, so nothing user-visible is what
+  // gets counted.
+  const options = UNINSTALL_REASONS.map((id) => `
+        <label class="uni-opt">
+          <input type="checkbox" name="reason" value="${id}">
+          <span class="uni-opt-box" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          <span class="uni-opt-label">${esc(t(`uninstall.reason.${id}`))}</span>
+        </label>`).join('');
 
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
@@ -1407,39 +1416,29 @@ ${header(t, root)}
   <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
   <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
 
-  <!-- Without JS the chips are inert and the textarea would never unhide, so
-       the page would silently swallow the one thing it exists to ask for. The
-       no-JS branch drops the chips and hands back the plain mailto form the
-       page used before — worse, but never a dead end. -->
-  <noscript><style>
-    .uni-chips { display: none; }
-    /* Beats the [hidden] attribute's UA display:none. The attribute stays on
-       the element, but with no JS there is nothing that would ever remove it
-       and a visitor with assistive tech needs the form, not consistency. */
-    .uni-more[hidden] { display: block !important; }
-  </style></noscript>
+  <!-- action/method are the no-JS path and nothing else: with scripting on,
+       the submit handler preventDefaults and posts to Firestore instead. A
+       checkbox form degrades to mailto cleanly, so there is no <noscript>
+       override to maintain any more. -->
   <form id="feedback-form" data-mailto="${SITE.supportEmail}"
         action="mailto:${SITE.supportEmail}" method="post" enctype="text/plain">
-    <div class="uni-chips" role="group" aria-label="${esc(t('uninstall.ariaLabel'))}">${chips}
+    <fieldset class="uni-opts">
+      <legend class="uni-legend">${esc(t('uninstall.ariaLabel'))}</legend>${options}
+    </fieldset>
+
+    <textarea id="feedback-text" name="details" rows="3"
+      placeholder="${esc(t('uninstall.detailHint'))}"
+      aria-label="${esc(t('uninstall.detailHint'))}"></textarea>
+
+    <div class="cta-row uni-actions">
+      <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
+      <a class="uni-skip" href="${root}/">${esc(t('uninstall.skip'))}</a>
     </div>
 
-    <!-- Above .uni-more, not below the form: the confirmation belongs next to
-         the chips that produced it, not under a textarea nobody has touched —
-         and on a phone that keeps it on the first screen. It also puts the
-         live region ahead of the controls it describes. -->
+    <!-- Last in the form, after the control that produces it: a live region
+         announcing the outcome should follow the button, not precede the
+         inputs. -->
     <p class="uni-status" data-status role="status" aria-live="polite"></p>
-
-    <!-- Revealed once a reason is picked. The answer is already recorded by
-         then, so this is an optional addition, not a step. -->
-    <div class="uni-more" hidden>
-      <textarea id="feedback-text" rows="3"
-        placeholder="${esc(t('uninstall.detailHint'))}"
-        aria-label="${esc(t('uninstall.detailHint'))}"></textarea>
-      <div class="cta-row uni-actions">
-        <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
-        <a class="uni-skip" href="${root}/">${esc(t('uninstall.skip'))}</a>
-      </div>
-    </div>
   </form>
 
   <p class="sub uni-foot">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>

@@ -282,7 +282,7 @@
     "title": "Leit at du drar — Lingogram",
     "description": "Fortell oss hvorfor du fjernet Lingogram, så vi kan fikse det.",
     "h1": "Leit at du drar",
-    "sub": "Ett trykk forteller oss hvorfor du fjernet {ext}. Det er alt vi spør om — det viser oss hva vi skal fikse videre.",
+    "sub": "Har du et øyeblikk til å fortelle oss hvorfor du fjernet {ext}? Det viser oss hva vi skal fikse videre.",
     "reason": {
       "subtitles": "Undertekster dukket ikke opp",
       "translation": "Oversettelsen var feil eller klønete",

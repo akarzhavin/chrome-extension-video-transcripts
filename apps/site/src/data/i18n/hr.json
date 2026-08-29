@@ -283,7 +283,7 @@
     "title": "Žao nam je što odlazite — Lingogram",
     "description": "Recite nam zašto ste uklonili Lingogram kako bismo to popravili.",
     "h1": "Žao nam je što odlazite",
-    "sub": "Jedan dodir nam govori zašto ste uklonili {ext}. To je sve što tražimo — pokazuje nam što popraviti sljedeće.",
+    "sub": "Biste li izdvojili trenutak i rekli nam zašto ste uklonili {ext}? To nam pokazuje što popraviti sljedeće.",
     "reason": {
       "subtitles": "Titlovi se nisu pojavili",
       "translation": "Prijevod je bio pogrešan ili nespretan",
