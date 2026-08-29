@@ -170,6 +170,21 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
   background-repeat: no-repeat;
   background-size: 1418px 886px;
 }
+/* Settings panel (slide 3) only: the shot is scaled 1.125 instead of the 1.108
+ * the other slides use. That is the YouTube series' scale, and it is not a
+ * cosmetic difference here — at 1.108 the frame's bottom edge lands at capture
+ * row 1083, which is the middle of the opacity row, so the label is sliced
+ * through its descenders. At 1.125 the edge falls at row 1067, inside the quiet
+ * band between rows (1052..1117 in all three locales), so the panel ends on a
+ * gap and reads as scrolling on rather than cut.
+ *
+ * Scoped to this slide because the other four crops were measured against
+ * 1.108; changing the shared value would shift every one of them. */
+.slide--settings .panel .shot {
+  width: 1440px; height: 900px;     /* 1280×800 × 1.125 */
+  background-size: 1440px 900px;
+}
+
 /* subtle glass top highlight on the device */
 .panel::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
