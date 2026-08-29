@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
-    "h1": "Ikävä nähdä sinun lähtevän",
-    "sub": "Kerro meille, missä {ext} jäi vajaaksi — se auttaa meitä parantamaan sitä.",
+    "h1": "Ikävä nähdä sinun lähtevän!",
+    "sub": "Voisitko hetken verran kertoa meille, miksi poistit {ext}:n käytöstä:",
     "reason": {
       "subtitles": "Tekstitykset eivät näkyneet",
       "translation": "Käännös oli epätarkka tai luonnoton",
@@ -300,8 +300,8 @@
     "failed": "Lähetys epäonnistui. Yritetäänkö uudelleen?",
     "mailtoFallback": "lähetä se sen sijaan sähköpostilla",
     "skip": "Ei kiitos",
-    "reinstall": "Asenna uudelleen milloin vain.",
-    "reinstallNote": "Olisi hienoa nähdä sinut taas"
+    "bannerQ": "Etkö halunnut poistaa sitä?",
+    "bannerCta": "Asenna uudelleen"
   },
   "auth": {
     "or": "tai",

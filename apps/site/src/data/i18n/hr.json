@@ -282,8 +282,8 @@
   "uninstall": {
     "title": "Žao nam je što odlazite — Lingogram",
     "description": "Recite nam zašto ste uklonili Lingogram kako bismo to popravili.",
-    "h1": "Žao nam je što odlazite",
-    "sub": "Recite nam gdje vas je {ext} iznevjerio — to nam pomaže da ga poboljšamo.",
+    "h1": "Žao nam je što odlazite!",
+    "sub": "Možete li izdvojiti trenutak i reći nam zašto ste deinstalirali {ext}:",
     "reason": {
       "subtitles": "Titlovi se nisu pojavili",
       "translation": "Prijevod je bio netočan ili neprirodan",
@@ -301,8 +301,8 @@
     "failed": "Slanje nije uspjelo. Pokušati ponovno?",
     "mailtoFallback": "pošaljite to putem e-pošte",
     "skip": "Ne, hvala",
-    "reinstall": "Ponovno instalirajte kad god želite.",
-    "reinstallNote": "Bit će nam drago ponovno vas vidjeti"
+    "bannerQ": "Niste željeli deinstalirati?",
+    "bannerCta": "Ponovno instaliraj"
   },
   "auth": {
     "or": "ili",

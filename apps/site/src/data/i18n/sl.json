@@ -283,8 +283,8 @@
   "uninstall": {
     "title": "Škoda, da odhajate — Lingogram",
     "description": "Povejte nam, zakaj ste odstranili Lingogram, da lahko to popravimo.",
-    "h1": "Škoda, da odhajate",
-    "sub": "Povejte nam, kje vas je {ext} razočaral — to nam pomaga, da ga izboljšamo.",
+    "h1": "Škoda, da odhajate!",
+    "sub": "Bi si vzeli trenutek in nam povedali, zakaj ste odstranili {ext}:",
     "reason": {
       "subtitles": "Podnapisi se niso prikazali",
       "translation": "Prevod je bil netočen ali nenaraven",
@@ -302,8 +302,8 @@
     "failed": "Pošiljanje ni uspelo. Poskusite znova?",
     "mailtoFallback": "raje ga pošljite po e-pošti",
     "skip": "Ne, hvala",
-    "reinstall": "Znova namestite kadar koli.",
-    "reinstallNote": "Veseli bomo, če se spet vrnete"
+    "bannerQ": "Niste je želeli odstraniti?",
+    "bannerCta": "Znova namesti"
   },
   "auth": {
     "or": "ali",

@@ -283,8 +283,8 @@
   "uninstall": {
     "title": "Je nám líto, že odcházíte — Lingogram",
     "description": "Napište nám, proč jste Lingogram odinstalovali, ať to můžeme opravit.",
-    "h1": "Je nám líto, že odcházíte",
-    "sub": "Řekněte nám, v čem vás {ext} zklamal — pomůže nám to udělat ho lepším.",
+    "h1": "Je nám líto, že odcházíte!",
+    "sub": "Můžete nám prosím věnovat chvíli a říct, proč jste odinstalovali {ext}:",
     "reason": {
       "subtitles": "Titulky se nezobrazily",
       "translation": "Překlad byl nepřesný nebo nepřirozený",
@@ -302,8 +302,8 @@
     "failed": "Odeslání se nezdařilo. Zkusit znovu?",
     "mailtoFallback": "poslat to raději e-mailem",
     "skip": "Ne, díky",
-    "reinstall": "Kdykoli je můžete znovu nainstalovat.",
-    "reinstallNote": "Rádi vás uvidíme zpět"
+    "bannerQ": "Nechtěli jste ho odinstalovat?",
+    "bannerCta": "Znovu nainstalovat"
   },
   "auth": {
     "or": "nebo",

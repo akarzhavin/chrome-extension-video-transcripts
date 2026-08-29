@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "Sedih melihat Anda pergi — Lingogram",
     "description": "Beri tahu kami alasan Anda menghapus Lingogram agar kami bisa memperbaikinya.",
-    "h1": "Sedih melihat Anda pergi",
-    "sub": "Beri tahu kami di mana {ext} kurang memuaskan — ini membantu kami menyempurnakannya.",
+    "h1": "Sedih melihat Anda pergi!",
+    "sub": "Bisakah Anda meluangkan waktu sebentar untuk memberi tahu kami mengapa Anda menghapus {ext}:",
     "reason": {
       "subtitles": "Subtitle tidak muncul",
       "translation": "Terjemahannya tidak akurat atau tidak wajar",
@@ -299,8 +299,8 @@
     "failed": "Gagal mengirim. Coba lagi?",
     "mailtoFallback": "kirim lewat email saja",
     "skip": "Tidak, terima kasih",
-    "reinstall": "Instal ulang kapan saja.",
-    "reinstallNote": "Kami akan senang melihat Anda kembali"
+    "bannerQ": "Tidak sengaja menghapusnya?",
+    "bannerCta": "Instal ulang"
   },
   "auth": {
     "or": "atau",

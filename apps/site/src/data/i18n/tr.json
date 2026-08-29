@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "Gitmenize üzüldük — Lingogram",
     "description": "Lingogram'ı neden kaldırdığınızı söyleyin, düzeltebilelim.",
-    "h1": "Gitmenize üzüldük",
-    "sub": "{ext}'in nerede eksik kaldığını bize anlatın — bu, onu geliştirmemize yardımcı olur.",
+    "h1": "Gitmenize üzüldük!",
+    "sub": "Bir dakikanızı ayırıp {ext}'i neden kaldırdığınızı bize söyler misiniz:",
     "reason": {
       "subtitles": "Altyazılar görünmedi",
       "translation": "Çeviri hatalı veya doğal değildi",
@@ -299,8 +299,8 @@
     "failed": "Gönderilemedi. Tekrar denensin mi?",
     "mailtoFallback": "bunun yerine e-postayla gönderin",
     "skip": "Hayır, teşekkürler",
-    "reinstall": "İstediğiniz zaman yeniden kurabilirsiniz.",
-    "reinstallNote": "Sizi tekrar görmekten mutluluk duyarız"
+    "bannerQ": "Kaldırmak istememiş miydiniz?",
+    "bannerCta": "Yeniden yükle"
   },
   "auth": {
     "or": "veya",

@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "Nakakalungkot na aalis ka na — Lingogram",
     "description": "Sabihin mo sa amin kung bakit mo tinanggal ang Lingogram para maayos namin ito.",
-    "h1": "Nakakalungkot na aalis ka na",
-    "sub": "Sabihin mo sa amin kung saan kulang ang {ext} — makakatulong ito para mapaganda pa namin ito.",
+    "h1": "Nakakalungkot na aalis ka na!",
+    "sub": "Puwede bang maglaan ka ng sandali at sabihin sa amin kung bakit mo tinanggal ang {ext}:",
     "reason": {
       "subtitles": "Hindi lumabas ang mga subtitle",
       "translation": "Mali o hindi natural ang pagsasalin",
@@ -299,8 +299,8 @@
     "failed": "Hindi naipadala. Subukan ulit?",
     "mailtoFallback": "ipadala na lang sa email",
     "skip": "Hindi na po",
-    "reinstall": "Mag-reinstall anumang oras.",
-    "reinstallNote": "Masaya kaming makita kang bumalik"
+    "bannerQ": "Ayaw mo bang i-uninstall?",
+    "bannerCta": "I-install muli"
   },
   "auth": {
     "or": "o",

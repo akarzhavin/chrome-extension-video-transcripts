@@ -38,6 +38,10 @@ function pageHTML(): string {
         </label>`,
   ).join('');
   return `
+<div class="uni-banner">
+  <p class="uni-banner-q">Didn't want to uninstall?</p>
+  <a class="uni-banner-cta" data-reinstall href="https://store.example/primary?hl=ru">Reinstall now</a>
+</div>
 <main class="narrow uni">
   <form id="feedback-form" class="uni-card" data-mailto="team@example.com"
         action="mailto:team@example.com" method="post" enctype="text/plain">
@@ -51,9 +55,6 @@ function pageHTML(): string {
     </div>
     <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
-  <div class="cta-row uni-reinstall">
-    <a class="btn btn-ghost" data-reinstall href="https://store.example/primary?hl=ru">Reinstall</a>
-  </div>
 </main>`;
 }
 
@@ -344,6 +345,53 @@ describe('submitting', () => {
     const text = fs.commits[0].text;
     expect(new TextEncoder().encode(text).length).toBeLessThanOrEqual(2000);
     expect(text.indexOf('[reason:confusing] ')).toBe(0);
+  });
+});
+
+describe('when the inline payload never arrives', () => {
+  // main.js is deferred and cached separately from the inline __UNINSTALL
+  // script, so the two can come apart (CSP, or a cached script meeting a
+  // rebuilt page). Guarding the whole block on the payload left the native
+  // `action="mailto:" method=post` submit to Chrome, which ignores it: Send
+  // did nothing whatsoever. The visitor must always get a way out.
+  function bootWithoutPayload(): void {
+    window.history.replaceState(null, '', '/uninstall/');
+    document.body.innerHTML = pageHTML();
+    delete (window as unknown as { __UNINSTALL?: unknown }).__UNINSTALL;
+    // eslint-disable-next-line no-new-func
+    new Function(MAIN_JS)();
+  }
+
+  it('falls back to mailto carrying the answer instead of doing nothing', () => {
+    const fs = mockFirestore();
+    bootWithoutPayload();
+    tick('confusing');
+    type('and a note');
+
+    // The fallback opens mailto by clicking a synthesised anchor; capture it.
+    const clicked: string[] = [];
+    document.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest('a');
+      if (a) clicked.push(a.getAttribute('href') || '');
+    }, true);
+    pressSend();
+
+    expect(fs.calls).toEqual([]);
+    const href = decodeURIComponent(clicked[0]);
+    expect(href).toContain('mailto:team@example.com');
+    expect(href).toContain('[reason:confusing]');
+    expect(href).toContain('and a note');
+  });
+
+  it('does not navigate when there is nothing to send', () => {
+    bootWithoutPayload();
+    const clicked: string[] = [];
+    document.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest('a');
+      if (a) clicked.push(a.getAttribute('href') || '');
+    }, true);
+    pressSend();
+    expect(clicked).toEqual([]);
   });
 });
 

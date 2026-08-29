@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Kahju, et lahkud — Lingogram",
     "description": "Räägi meile, miks Lingogrami eemaldasid, et saaksime seda parandada.",
-    "h1": "Kahju, et lahkud",
-    "sub": "Anna teada, mis sind {ext} juures pettumust valmistas — see aitab meil seda paremaks muuta.",
+    "h1": "Kahju, et lahkud!",
+    "sub": "Kas leiad hetke, et öelda meile, miks sa {ext} eemaldasid:",
     "reason": {
       "subtitles": "Subtiitrid ei ilmunud",
       "translation": "Tõlge oli ebatäpne või ebaloomulik",
@@ -300,8 +300,8 @@
     "failed": "Ei õnnestunud saata. Proovid uuesti?",
     "mailtoFallback": "saada see hoopis e-kirjaga",
     "skip": "Ei, aitäh",
-    "reinstall": "Paigalda uuesti, millal iganes soovid.",
-    "reinstallNote": "Näeksime sind hea meelega tagasi"
+    "bannerQ": "Kas eemaldasid kogemata?",
+    "bannerCta": "Paigalda uuesti"
   },
   "auth": {
     "or": "või",

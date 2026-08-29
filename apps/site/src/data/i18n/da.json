@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Ærgerligt, at du forlader os — Lingogram",
     "description": "Fortæl os, hvorfor du fjernede Lingogram, så vi kan rette det.",
-    "h1": "Ærgerligt, at du forlader os",
-    "sub": "Fortæl os, hvor {ext} kom til kort — det hjælper os med at gøre den bedre.",
+    "h1": "Ærgerligt, at du forlader os!",
+    "sub": "Vil du give os et øjeblik og fortælle os, hvorfor du afinstallerede {ext}:",
     "reason": {
       "subtitles": "Undertekster dukkede ikke op",
       "translation": "Oversættelsen var upræcis eller unaturlig",
@@ -300,8 +300,8 @@
     "failed": "Kunne ikke sende. Prøv igen?",
     "mailtoFallback": "send det som e-mail i stedet",
     "skip": "Nej tak",
-    "reinstall": "Geninstallér når som helst.",
-    "reinstallNote": "Vi vil meget gerne se dig igen"
+    "bannerQ": "Ville du ikke afinstallere?",
+    "bannerCta": "Geninstallér nu"
   },
   "auth": {
     "or": "eller",

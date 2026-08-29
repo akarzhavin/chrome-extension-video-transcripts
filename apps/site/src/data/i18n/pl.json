@@ -283,8 +283,8 @@
   "uninstall": {
     "title": "Szkoda, że odchodzisz — Lingogram",
     "description": "Powiedz nam, dlaczego usunąłeś Lingogram, abyśmy mogli to naprawić.",
-    "h1": "Szkoda, że odchodzisz",
-    "sub": "Powiedz nam, w czym {ext} zawiódł Twoje oczekiwania — to pomaga nam go ulepszać.",
+    "h1": "Szkoda, że odchodzisz!",
+    "sub": "Czy możesz poświęcić chwilę i powiedzieć nam, dlaczego odinstalowałeś {ext}:",
     "reason": {
       "subtitles": "Napisy się nie pojawiły",
       "translation": "Tłumaczenie było niedokładne lub nienaturalne",
@@ -302,8 +302,8 @@
     "failed": "Nie udało się wysłać. Spróbować ponownie?",
     "mailtoFallback": "wyślij to zamiast tego e-mailem",
     "skip": "Nie, dziękuję",
-    "reinstall": "Zainstaluj ponownie w dowolnym momencie.",
-    "reinstallNote": "Będzie nam miło znów Cię tu zobaczyć"
+    "bannerQ": "Nie chciałeś jej odinstalować?",
+    "bannerCta": "Zainstaluj ponownie"
   },
   "auth": {
     "or": "lub",

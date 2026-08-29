@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Sorry to see you go — Lingogram",
     "description": "Tell us why you removed Lingogram so we can fix it.",
-    "h1": "Sorry to see you go",
-    "sub": "Tell us where {ext} fell short — it helps us make it better.",
+    "h1": "Sorry to see you go!",
+    "sub": "Would you mind taking a moment and telling us why you’ve uninstalled {ext}:",
     "reason": {
       "subtitles": "Subtitles didn't show up",
       "translation": "The translation was inaccurate or unnatural",
@@ -300,8 +300,8 @@
     "failed": "Couldn't send. Try again?",
     "mailtoFallback": "send it by email instead",
     "skip": "No thanks",
-    "reinstall": "Reinstall anytime.",
-    "reinstallNote": "We’d be glad to see you back"
+    "bannerQ": "Didn't want to uninstall?",
+    "bannerCta": "Reinstall now"
   },
   "auth": {
     "or": "or",

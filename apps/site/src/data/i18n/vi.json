@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "Rất tiếc khi bạn rời đi — Lingogram",
     "description": "Hãy cho chúng tôi biết vì sao bạn gỡ Lingogram để chúng tôi có thể khắc phục.",
-    "h1": "Rất tiếc khi bạn rời đi",
-    "sub": "Hãy cho chúng tôi biết {ext} còn thiếu sót ở đâu — điều đó giúp chúng tôi cải thiện nó.",
+    "h1": "Rất tiếc khi bạn rời đi!",
+    "sub": "Bạn có thể dành chút thời gian cho chúng tôi biết vì sao bạn đã gỡ {ext} không:",
     "reason": {
       "subtitles": "Phụ đề không hiện ra",
       "translation": "Bản dịch không chính xác hoặc thiếu tự nhiên",
@@ -299,8 +299,8 @@
     "failed": "Gửi không thành công. Thử lại nhé?",
     "mailtoFallback": "gửi qua email thay vào đó",
     "skip": "Không, cảm ơn",
-    "reinstall": "Cài lại bất cứ lúc nào.",
-    "reinstallNote": "Chúng tôi rất vui nếu được gặp lại bạn"
+    "bannerQ": "Bạn không muốn gỡ cài đặt?",
+    "bannerCta": "Cài đặt lại"
   },
   "auth": {
     "or": "hoặc",

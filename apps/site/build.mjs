@@ -1424,6 +1424,14 @@ const uninstallPage = (locale, hrefLang) => {
     scripts: `<script src="/auth-config.js?v=${BUST}" defer></script>
 <script src="/main.js?v=${BUST}" defer></script>`,
     body: `
+<!-- Above the site header, not inside the page: a share of uninstalls are
+     accidental or regretted within the minute, and that visitor wants one
+     thing only. A strip at the very top is the one place they cannot scroll
+     past. main.js retargets the href from the ?ext= slug. -->
+<div class="uni-banner">
+  <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
+  <a class="uni-banner-cta" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
+</div>
 ${header(t, root)}
 <main class="narrow uni">
   <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
@@ -1459,10 +1467,6 @@ ${header(t, root)}
        for this button, not for the checkboxes. Ghost, not primary — it must
        not outshout Send. The href is the primary listing (covers the
        YouTube+Netflix install); main.js retargets it per ?ext= slug. -->
-  <p class="uni-invite">${esc(t('uninstall.reinstallNote'))}</p>
-  <div class="cta-row uni-reinstall">
-    <a class="btn btn-ghost" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.reinstall'))}</a>
-  </div>
 </main>
 ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};

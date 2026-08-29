@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Jammer dat je weggaat — Lingogram",
     "description": "Vertel ons waarom je Lingogram hebt verwijderd, zodat we het kunnen verbeteren.",
-    "h1": "Jammer dat je weggaat",
-    "sub": "Vertel ons waar {ext} tekortschoot — dat helpt ons om hem beter te maken.",
+    "h1": "Jammer dat je weggaat!",
+    "sub": "Wil je even de tijd nemen om ons te vertellen waarom je {ext} hebt verwijderd:",
     "reason": {
       "subtitles": "Ondertitels verschenen niet",
       "translation": "De vertaling was onnauwkeurig of onnatuurlijk",
@@ -300,8 +300,8 @@
     "failed": "Versturen mislukt. Opnieuw proberen?",
     "mailtoFallback": "stuur het dan via e-mail",
     "skip": "Nee, bedankt",
-    "reinstall": "Op elk moment opnieuw te installeren.",
-    "reinstallNote": "We zien je graag terug"
+    "bannerQ": "Wilde je hem niet verwijderen?",
+    "bannerCta": "Opnieuw installeren"
   },
   "auth": {
     "or": "of",

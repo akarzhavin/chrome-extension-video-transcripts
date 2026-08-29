@@ -1321,11 +1321,34 @@ footer.site {
 .uni-status-ok { color: var(--teal-deep); }
 .uni-status-err { color: #d13b3b; }
 .uni-status-err a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-/* Invite + button read as one unit: the line leads, the button answers it,
-   and the tight 10px gap keeps them apart from the dictionary footnote. */
-.uni-invite { margin: 24px 0 0; font-size: 15px; color: var(--muted); }
-.uni-reinstall { margin-top: 10px; }
-.uni-reinstall .btn { padding: 11px 22px; font-size: 15px; }
+/* The recovery strip, above the site header. Deliberately outside the brand
+   palette: this is not a marketing CTA but an undo, and it has to read as one
+   at a glance on a page the visitor did not mean to reach. Hard-coded green
+   and red rather than tokens for that reason — they must not drift with the
+   theme, and they stay identical in light and dark. */
+.uni-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 16px; background: var(--panel);
+  /* Logical, not physical: the accent bar marks where the line STARTS, so it
+     has to move to the right edge in RTL along with the text. */
+  border: 1px solid var(--line); border-inline-start: 5px solid #e8483f;
+}
+.uni-banner-q { margin: 0; font-size: 17px; font-weight: 800; color: var(--ink); }
+.uni-banner-cta {
+  display: inline-flex; align-items: center; gap: 10px; flex: none;
+  padding: 11px 20px; border-radius: 4px;
+  background: #37a84a; color: #fff;
+  font-size: 14px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none; white-space: nowrap;
+}
+.uni-banner-cta:hover { background: #2f9440; }
+.uni-banner-cta svg { flex: none; }
+@media (max-width: 560px) {
+  /* Stacked rather than shrunk: the label is uppercase and cannot wrap, so
+     squeezing it onto one row with the question is what would break first. */
+  .uni-banner { flex-direction: column; align-items: stretch; gap: 10px; text-align: center; }
+  .uni-banner-cta { justify-content: center; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .uni-opt, .uni-opt-box, .uni-opt-box svg { transition: none; }

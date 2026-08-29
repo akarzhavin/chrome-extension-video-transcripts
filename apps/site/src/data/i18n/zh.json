@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "很遗憾你要离开 — Lingogram",
     "description": "告诉我们你卸载 Lingogram 的原因，帮助我们改进。",
-    "h1": "很遗憾你要离开",
-    "sub": "告诉我们{ext}哪里没做好——这能帮助我们把它做得更好。",
+    "h1": "很遗憾你要离开！",
+    "sub": "能否花点时间告诉我们你卸载{ext}的原因：",
     "reason": {
       "subtitles": "字幕没有出现",
       "translation": "翻译不准确或不自然",
@@ -299,8 +299,8 @@
     "failed": "发送失败，要重试吗？",
     "mailtoFallback": "改用邮件发送",
     "skip": "不用了",
-    "reinstall": "随时可以重新安装。",
-    "reinstallNote": "很高兴能再次见到你"
+    "bannerQ": "不是想卸载吗？",
+    "bannerCta": "重新安装"
   },
   "auth": {
     "or": "或",

@@ -280,8 +280,8 @@
   "uninstall": {
     "title": "Sajnáljuk, hogy távozol — Lingogram",
     "description": "Mondd el, miért távolítottad el a Lingogramot, hogy javíthassunk rajta.",
-    "h1": "Sajnáljuk, hogy távozol",
-    "sub": "Mondd el, miben maradt el a(z) {ext} — ez segít nekünk jobbá tenni.",
+    "h1": "Sajnáljuk, hogy távozol!",
+    "sub": "Szánnál egy percet, hogy elmondd, miért távolítottad el a(z) {ext}-t:",
     "reason": {
       "subtitles": "A feliratok nem jelentek meg",
       "translation": "A fordítás pontatlan vagy nem természetes volt",
@@ -299,8 +299,8 @@
     "failed": "Nem sikerült elküldeni. Próbáljuk újra?",
     "mailtoFallback": "küldd el inkább e-mailben",
     "skip": "Nem, köszönöm",
-    "reinstall": "Bármikor újratelepítheted.",
-    "reinstallNote": "Örülnénk, ha visszatérnél"
+    "bannerQ": "Nem akartad eltávolítani?",
+    "bannerCta": "Újratelepítés"
   },
   "auth": {
     "or": "vagy",

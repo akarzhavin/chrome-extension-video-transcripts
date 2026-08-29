@@ -283,8 +283,8 @@
   "uninstall": {
     "title": "Mrzí nás, že odchádzate — Lingogram",
     "description": "Povedzte nám, prečo ste Lingogram odinštalovali, aby sme to mohli opraviť.",
-    "h1": "Mrzí nás, že odchádzate",
-    "sub": "Povedzte nám, v čom vás {ext} sklamal — pomôže nám to urobiť ho lepším.",
+    "h1": "Mrzí nás, že odchádzate!",
+    "sub": "Mohli by ste si nájsť chvíľku a povedať nám, prečo ste odinštalovali {ext}:",
     "reason": {
       "subtitles": "Titulky sa nezobrazili",
       "translation": "Preklad bol nepresný alebo neprirodzený",
@@ -302,8 +302,8 @@
     "failed": "Odoslanie zlyhalo. Skúsiť znova?",
     "mailtoFallback": "pošlite to radšej e-mailom",
     "skip": "Nie, ďakujem",
-    "reinstall": "Kedykoľvek si to môžete znova nainštalovať.",
-    "reinstallNote": "Radi vás opäť uvidíme"
+    "bannerQ": "Nechceli ste ju odinštalovať?",
+    "bannerCta": "Preinštalovať"
   },
   "auth": {
     "or": "alebo",

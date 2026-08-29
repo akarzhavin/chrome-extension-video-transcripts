@@ -281,8 +281,8 @@
   "uninstall": {
     "title": "Tråkigt att se dig gå — Lingogram",
     "description": "Berätta varför du tog bort Lingogram så vi kan åtgärda det.",
-    "h1": "Tråkigt att se dig gå",
-    "sub": "Berätta var {ext} inte höll måttet — det hjälper oss att göra den bättre.",
+    "h1": "Tråkigt att se dig gå!",
+    "sub": "Skulle du vilja ta en stund och berätta för oss varför du avinstallerade {ext}:",
     "reason": {
       "subtitles": "Undertexter dök inte upp",
       "translation": "Översättningen var felaktig eller onaturlig",
@@ -300,8 +300,8 @@
     "failed": "Det gick inte att skicka. Försöka igen?",
     "mailtoFallback": "skicka det via e-post istället",
     "skip": "Nej tack",
-    "reinstall": "Installera igen när som helst.",
-    "reinstallNote": "Vi ser gärna att du kommer tillbaka"
+    "bannerQ": "Ville du inte avinstallera?",
+    "bannerCta": "Installera igen"
   },
   "auth": {
     "or": "eller",

@@ -282,8 +282,8 @@
   "uninstall": {
     "title": "Gaila, kad išeinate — Lingogram",
     "description": "Papasakokite, kodėl pašalinote Lingogram, kad galėtume tai ištaisyti.",
-    "h1": "Gaila, kad išeinate",
-    "sub": "Pasakykite, kur {ext} nepateisino lūkesčių — tai padeda mums ją patobulinti.",
+    "h1": "Gaila, kad išeinate!",
+    "sub": "Ar galėtumėte skirti minutę ir pasakyti, kodėl pašalinote {ext}:",
     "reason": {
       "subtitles": "Subtitrai neatsirado",
       "translation": "Vertimas buvo netikslus arba nenatūralus",
@@ -301,8 +301,8 @@
     "failed": "Nepavyko išsiųsti. Bandyti dar kartą?",
     "mailtoFallback": "geriau atsiųskite el. paštu",
     "skip": "Ne, ačiū",
-    "reinstall": "Įdiekite iš naujo bet kada.",
-    "reinstallNote": "Būtume labai malonu jus vėl pamatyti"
+    "bannerQ": "Nenorėjote pašalinti?",
+    "bannerCta": "Įdiegti iš naujo"
   },
   "auth": {
     "or": "arba",

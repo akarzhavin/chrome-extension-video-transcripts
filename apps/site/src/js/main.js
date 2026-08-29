@@ -270,6 +270,35 @@
   // into build/ with no bundler, and pulling the shared module in would drag
   // the whole auth stack onto a page that never signs anyone in.
   var fb = document.getElementById('feedback-form');
+  // The payload is an inline script; this file is `defer` and separately
+  // cached, so the two can come apart — a CSP that drops inline scripts, or a
+  // cached main.js meeting a rebuilt page. Guarding the whole block on the
+  // payload used to leave the browser to submit `action="mailto:" method=post`
+  // natively, which Chrome does not act on: Send did nothing at all, with no
+  // status and no way forward. Bind the handler on the form alone and let the
+  // missing payload take the mailto path the failure branch already uses.
+  if (fb && !window.__UNINSTALL) {
+    fb.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var picked = [].slice.call(fb.querySelectorAll('input[name=reason]:checked'))
+        .map(function (b) { return b.value; });
+      var note = document.getElementById('feedback-text');
+      var body = ((picked.length ? '[reason:' + picked.join(',') + ']' : '') +
+        ' ' + ((note && note.value) || '')).trim();
+      if (!body) return;
+      // A synthesised anchor click rather than a location assignment: the
+      // browser hands mailto: to the mail client without navigating away, so
+      // a visitor with no mail client configured keeps the page they are on.
+      var a = document.createElement('a');
+      a.href = 'mailto:' + fb.getAttribute('data-mailto') +
+        '?subject=' + encodeURIComponent('Lingogram uninstall feedback') +
+        '&body=' + encodeURIComponent(body);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
   if (fb && window.__UNINSTALL) {
     var UN = window.__UNINSTALL;
     var T = UN.i18n || {};
