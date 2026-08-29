@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Tråkigt att se dig gå — Lingogram",
     "description": "Berätta varför du tog bort Lingogram så vi kan åtgärda det.",
-    "h1": "Tråkigt att se dig gå",
-    "sub": "En mening om varför du tog bort {ext} hjälper oss fixa det för alla.",
-    "placeholder": "Det gick sönder vid… / Jag förväntade mig… / Jag hittade något bättre…",
+    "h1": "Tråkigt att se dig gå!",
+    "sub": "Berätta var {ext} inte höll måttet — det hjälper oss att göra den bättre.",
+    "reason": {
+      "subtitles": "Undertexter dök inte upp",
+      "translation": "Översättningen var felaktig eller onaturlig",
+      "confusing": "Det var otydligt hur man skulle använda det",
+      "vocab": "För få verktyg för att lära sig sparade ord",
+      "expected": "Inte det som söktes",
+      "oneoff": "Behövde den bara för en video",
+      "other": "Något annat"
+    },
+    "detailHint": "Vill du lägga till något? (valfritt)",
     "ariaLabel": "Varför avinstallerade du?",
-    "send": "Skicka feedback",
-    "footPrefix": "Dina sparade ord finns fortfarande i",
-    "footLink": "din ordbok",
-    "footMid": "— de väntar på dig om du kommer tillbaka.",
-    "reinstall": "Installera igen när som helst."
+    "send": "Skicka",
+    "sending": "Skickar…",
+    "sent": "Tack — det hjälper oss verkligen.",
+    "failed": "Det gick inte att skicka. Försöka igen?",
+    "mailtoFallback": "skicka det via e-post istället",
+    "bannerQ": "Avinstallerade du av misstag?",
+    "bannerCta": "Installera igen"
   },
   "auth": {
     "or": "eller",

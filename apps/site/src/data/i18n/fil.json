@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Nakakalungkot na aalis ka na — Lingogram",
     "description": "Sabihin mo sa amin kung bakit mo tinanggal ang Lingogram para maayos namin ito.",
-    "h1": "Nakakalungkot na aalis ka na",
-    "sub": "Isang pangungusap tungkol sa kung bakit mo tinanggal ang {ext} ay makakatulong sa amin para ayusin ito para sa lahat.",
-    "placeholder": "Nasira ito noong… / Inasahan ko na… / Nakahanap ako ng mas maganda…",
+    "h1": "Nakakalungkot na aalis ka na!",
+    "sub": "Sabihin mo sa amin kung saan kulang ang {ext} — makakatulong ito para mapaganda pa namin ito.",
+    "reason": {
+      "subtitles": "Hindi lumabas ang mga subtitle",
+      "translation": "Mali o hindi natural ang pagsasalin",
+      "confusing": "Hindi malinaw kung paano ito gagamitin",
+      "vocab": "Kulang ang mga tool para sa pag-aaral ng mga naka-save na salita",
+      "expected": "Hindi ito ang hinahanap",
+      "oneoff": "Isang video lang naman ang kailangan ko nito",
+      "other": "Iba pang dahilan"
+    },
+    "detailHint": "May gusto ka pang idagdag? (opsyonal)",
     "ariaLabel": "Bakit mo ito ni-uninstall?",
-    "send": "Ipadala ang feedback",
-    "footPrefix": "Nasa",
-    "footLink": "iyong diksyunaryo",
-    "footMid": "pa rin ang mga na-save mong salita — maghihintay sila kung babalik ka.",
-    "reinstall": "Mag-reinstall anumang oras."
+    "send": "Ipadala",
+    "sending": "Ipinapadala…",
+    "sent": "Salamat — malaking tulong ito.",
+    "failed": "Hindi naipadala. Subukan ulit?",
+    "mailtoFallback": "ipadala na lang sa email",
+    "bannerQ": "Aksidenteng na-uninstall?",
+    "bannerCta": "I-install muli"
   },
   "auth": {
     "or": "o",

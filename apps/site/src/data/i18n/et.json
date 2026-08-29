@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Kahju, et lahkud — Lingogram",
     "description": "Räägi meile, miks Lingogrami eemaldasid, et saaksime seda parandada.",
-    "h1": "Kahju, et lahkud",
-    "sub": "Üks lause selle kohta, miks {ext} eemaldasid, aitab meil seda kõigi jaoks paremaks teha.",
-    "placeholder": "See läks katki, kui… / Ootasin, et… / Leidsin parema…",
+    "h1": "Kahju, et lahkud!",
+    "sub": "Anna teada, mis sind {ext} juures pettumust valmistas — see aitab meil seda paremaks muuta.",
+    "reason": {
+      "subtitles": "Subtiitrid ei ilmunud",
+      "translation": "Tõlge oli ebatäpne või ebaloomulik",
+      "confusing": "Ei olnud selge, kuidas seda kasutada",
+      "vocab": "Liiga vähe tööriistu salvestatud sõnade õppimiseks",
+      "expected": "Ei olnud see, mida otsiti",
+      "oneoff": "Vajasin seda ainult ühe video jaoks",
+      "other": "Miski muu"
+    },
+    "detailHint": "Kas soovid midagi lisada? (valikuline)",
     "ariaLabel": "Miks sa laienduse eemaldasid?",
-    "send": "Saada tagasiside",
-    "footPrefix": "Sinu salvestatud sõnad on endiselt siin:",
-    "footLink": "sinu sõnastik",
-    "footMid": "— need ootavad sind, kui tagasi tuled.",
-    "reinstall": "Paigalda uuesti, millal iganes soovid."
+    "send": "Saada",
+    "sending": "Saatmine…",
+    "sent": "Aitäh — sellest on tõesti abi.",
+    "failed": "Ei õnnestunud saata. Proovid uuesti?",
+    "mailtoFallback": "saada see hoopis e-kirjaga",
+    "bannerQ": "Kas eemaldasid kogemata?",
+    "bannerCta": "Paigalda uuesti"
   },
   "auth": {
     "or": "või",

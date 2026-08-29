@@ -282,15 +282,26 @@
   "uninstall": {
     "title": "Ne pare rău că pleci — Lingogram",
     "description": "Spune-ne de ce ai dezinstalat Lingogram, ca să putem repara.",
-    "h1": "Ne pare rău că pleci",
-    "sub": "O singură propoziție despre motivul pentru care ai dezinstalat {ext} ne ajută să reparăm pentru toată lumea.",
-    "placeholder": "S-a stricat la… / Mă așteptam… / Am găsit ceva mai bun…",
+    "h1": "Ne pare rău că pleci!",
+    "sub": "Spune-ne unde {ext} nu s-a ridicat la nivelul așteptărilor — ne ajută să o îmbunătățim.",
+    "reason": {
+      "subtitles": "Subtitrările nu au apărut",
+      "translation": "Traducerea era imprecisă sau nenaturală",
+      "confusing": "Nu era clar cum se folosește",
+      "vocab": "Instrumente insuficiente pentru învățarea cuvintelor salvate",
+      "expected": "Nu era ceea ce se căuta",
+      "oneoff": "Aveam nevoie de el doar pentru un videoclip",
+      "other": "Altceva"
+    },
+    "detailHint": "Vrei să adaugi ceva? (opțional)",
     "ariaLabel": "De ce ai dezinstalat?",
-    "send": "Trimite feedback",
-    "footPrefix": "Cuvintele tale salvate sunt încă în",
-    "footLink": "dicționarul tău",
-    "footMid": "— te vor aștepta dacă revii.",
-    "reinstall": "Reinstalează oricând."
+    "send": "Trimite",
+    "sending": "Se trimite…",
+    "sent": "Mulțumim — chiar ne ajută.",
+    "failed": "Trimiterea a eșuat. Încerci din nou?",
+    "mailtoFallback": "trimite-l mai bine prin email",
+    "bannerQ": "Ai dezinstalat-o din greșeală?",
+    "bannerCta": "Reinstalează acum"
   },
   "auth": {
     "or": "sau",

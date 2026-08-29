@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Triste de vous voir partir — Lingogram",
     "description": "Dites-nous pourquoi vous avez supprimé Lingogram pour qu'on puisse s'améliorer.",
-    "h1": "Triste de vous voir partir",
-    "sub": "Une phrase sur la raison de la suppression de {ext} nous aide à l'améliorer pour tout le monde.",
-    "placeholder": "Ça a cassé sur… / Je m'attendais à… / J'ai trouvé mieux…",
+    "h1": "Triste de vous voir partir !",
+    "sub": "Dites-nous sur quel point {ext} n'a pas été à la hauteur — cela nous aide à l'améliorer.",
+    "reason": {
+      "subtitles": "Les sous-titres ne s'affichaient pas",
+      "translation": "La traduction était inexacte ou peu naturelle",
+      "confusing": "On ne comprenait pas bien comment l'utiliser",
+      "vocab": "Pas assez d'outils pour apprendre les mots enregistrés",
+      "expected": "Pas ce qui était recherché",
+      "oneoff": "Je n'en avais besoin que pour une vidéo",
+      "other": "Autre chose"
+    },
+    "detailHint": "Voulez-vous ajouter quelque chose ? (facultatif)",
     "ariaLabel": "Pourquoi avez-vous désinstallé ?",
-    "send": "Envoyer le retour",
-    "footPrefix": "Vos mots enregistrés sont toujours dans",
-    "footLink": "votre dictionnaire",
-    "footMid": "— ils vous attendront si vous revenez.",
-    "reinstall": "Réinstallable à tout moment."
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "sent": "Merci — ça nous aide vraiment.",
+    "failed": "Échec de l'envoi. Réessayer ?",
+    "mailtoFallback": "envoyez-le plutôt par e-mail",
+    "bannerQ": "Désinstallée par erreur ?",
+    "bannerCta": "Réinstaller"
   },
   "auth": {
     "or": "ou",

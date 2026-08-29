@@ -282,15 +282,26 @@
   "uninstall": {
     "title": "Žao nam je što odlazite — Lingogram",
     "description": "Recite nam zašto ste uklonili Lingogram kako bismo to popravili.",
-    "h1": "Žao nam je što odlazite",
-    "sub": "Jedna rečenica o tome zašto ste uklonili {ext} pomaže nam da to popravimo za sve.",
-    "placeholder": "Pokvarilo se na… / Očekivao/la sam… / Našao/la sam bolje…",
+    "h1": "Žao nam je što odlazite!",
+    "sub": "Recite nam gdje vas je {ext} iznevjerio — to nam pomaže da ga poboljšamo.",
+    "reason": {
+      "subtitles": "Titlovi se nisu pojavili",
+      "translation": "Prijevod je bio netočan ili neprirodan",
+      "confusing": "Nije bilo jasno kako se to koristi",
+      "vocab": "Nedovoljno alata za učenje spremljenih riječi",
+      "expected": "Nije bilo traženo",
+      "oneoff": "Trebao/la mi je samo za jedan video",
+      "other": "Nešto drugo"
+    },
+    "detailHint": "Želite li nešto dodati? (neobavezno)",
     "ariaLabel": "Zašto ste deinstalirali?",
-    "send": "Pošalji povratnu informaciju",
-    "footPrefix": "Vaše spremljene riječi i dalje su u",
-    "footLink": "vašem rječniku",
-    "footMid": "— čekat će vas ako se vratite.",
-    "reinstall": "Ponovno instalirajte kad god želite."
+    "send": "Pošalji",
+    "sending": "Šalje se…",
+    "sent": "Hvala — ovo nam stvarno pomaže.",
+    "failed": "Slanje nije uspjelo. Pokušati ponovno?",
+    "mailtoFallback": "pošaljite to putem e-pošte",
+    "bannerQ": "Slučajno deinstalirano?",
+    "bannerCta": "Ponovno instaliraj"
   },
   "auth": {
     "or": "ili",

@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Jammer dat je weggaat — Lingogram",
     "description": "Vertel ons waarom je Lingogram hebt verwijderd, zodat we het kunnen verbeteren.",
-    "h1": "Jammer dat je weggaat",
-    "sub": "Eén zin over waarom je {ext} hebt verwijderd, helpt ons dit voor iedereen te verbeteren.",
-    "placeholder": "Het brak bij… / Ik verwachtte… / Ik vond iets beters…",
+    "h1": "Jammer dat je weggaat!",
+    "sub": "Vertel ons waar {ext} tekortschoot — dat helpt ons om hem beter te maken.",
+    "reason": {
+      "subtitles": "Ondertitels verschenen niet",
+      "translation": "De vertaling was onnauwkeurig of onnatuurlijk",
+      "confusing": "Onduidelijk hoe het te gebruiken",
+      "vocab": "Te weinig hulpmiddelen om opgeslagen woorden te leren",
+      "expected": "Niet wat er werd gezocht",
+      "oneoff": "Ik had het maar voor één video nodig",
+      "other": "Iets anders"
+    },
+    "detailHint": "Nog iets toevoegen? (optioneel)",
     "ariaLabel": "Waarom heb je de extensie verwijderd?",
-    "send": "Feedback versturen",
-    "footPrefix": "Je opgeslagen woorden staan nog steeds in",
-    "footLink": "je woordenboek",
-    "footMid": "— ze wachten op je als je terugkomt.",
-    "reinstall": "Op elk moment opnieuw te installeren."
+    "send": "Versturen",
+    "sending": "Versturen…",
+    "sent": "Bedankt — dit helpt ons echt.",
+    "failed": "Versturen mislukt. Opnieuw proberen?",
+    "mailtoFallback": "stuur het dan via e-mail",
+    "bannerQ": "Per ongeluk verwijderd?",
+    "bannerCta": "Opnieuw installeren"
   },
   "auth": {
     "or": "of",

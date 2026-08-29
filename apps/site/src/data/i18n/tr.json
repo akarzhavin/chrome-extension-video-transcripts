@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Gitmenize üzüldük — Lingogram",
     "description": "Lingogram'ı neden kaldırdığınızı söyleyin, düzeltebilelim.",
-    "h1": "Gitmenize üzüldük",
-    "sub": "{ext}'i neden kaldırdığınız hakkında tek bir cümle, herkes için düzeltmemize yardımcı olur.",
-    "placeholder": "Şurada bozuldu… / Şunu bekliyordum… / Daha iyi bir şey buldum…",
+    "h1": "Gitmenize üzüldük!",
+    "sub": "{ext}'in nerede eksik kaldığını bize anlatın — bu, onu geliştirmemize yardımcı olur.",
+    "reason": {
+      "subtitles": "Altyazılar görünmedi",
+      "translation": "Çeviri hatalı veya doğal değildi",
+      "confusing": "Nasıl kullanılacağı belli değildi",
+      "vocab": "Kaydedilen kelimeleri öğrenmek için yeterli araç yoktu",
+      "expected": "Aranan şey bu değildi",
+      "oneoff": "Sadece tek bir video için gerekiyordu",
+      "other": "Başka bir şey"
+    },
+    "detailHint": "Eklemek istediğiniz bir şey var mı? (isteğe bağlı)",
     "ariaLabel": "Neden kaldırdınız?",
-    "send": "Geri bildirim gönder",
-    "footPrefix": "Kaydettiğiniz kelimeler hâlâ",
-    "footLink": "sözlüğünüzde",
-    "footMid": "— geri dönerseniz sizi bekliyor olacaklar.",
-    "reinstall": "İstediğiniz zaman yeniden kurabilirsiniz."
+    "send": "Gönder",
+    "sending": "Gönderiliyor…",
+    "sent": "Teşekkürler — bu gerçekten işimize yarıyor.",
+    "failed": "Gönderilemedi. Tekrar denensin mi?",
+    "mailtoFallback": "bunun yerine e-postayla gönderin",
+    "bannerQ": "Yanlışlıkla mı kaldırdınız?",
+    "bannerCta": "Yeniden yükle"
   },
   "auth": {
     "or": "veya",

@@ -253,16 +253,231 @@
     });
   }
 
-  // Uninstall page: send feedback via mailto (no backend yet).
+  // ---------------------------------------------------------- /uninstall/
+  //
+  // A plain form: tick the reasons that apply, optionally add a note, press
+  // the button. NOTHING is sent before that press — the visitor is never
+  // recorded behind their own back, and a page they abandon leaves no trace.
+  //
+  // The answer goes into the Firestore `feedback` collection, the same one
+  // (and the same global daily quota) the extension's rating card writes.
+  // Signed out and unauthenticated: the rules allow that path with uid === "",
+  // which is the whole point — the people worth hearing from at this moment
+  // are mostly the ones who never made an account.
+  //
+  // Mirrors addFeedback() in packages/shared/src/auth/firestoreRest.ts. It is
+  // reimplemented rather than imported because this file is copied verbatim
+  // into build/ with no bundler, and pulling the shared module in would drag
+  // the whole auth stack onto a page that never signs anyone in.
   var fb = document.getElementById('feedback-form');
-  if (fb) {
+  // The payload is an inline script; this file is `defer` and separately
+  // cached, so the two can come apart — a CSP that drops inline scripts, or a
+  // cached main.js meeting a rebuilt page. Guarding the whole block on the
+  // payload used to leave the browser to submit `action="mailto:" method=post`
+  // natively, which Chrome does not act on: Send did nothing at all, with no
+  // status and no way forward. Bind the handler on the form alone and let the
+  // missing payload take the mailto path the failure branch already uses.
+  if (fb && !window.__UNINSTALL) {
     fb.addEventListener('submit', function (e) {
       e.preventDefault();
-      var text = document.getElementById('feedback-text').value.trim();
-      var addr = fb.getAttribute('data-mailto');
-      location.href = 'mailto:' + addr +
+      var picked = [].slice.call(fb.querySelectorAll('input[name=reason]:checked'))
+        .map(function (b) { return b.value; });
+      var note = document.getElementById('feedback-text');
+      var body = ((picked.length ? '[reason:' + picked.join(',') + ']' : '') +
+        ' ' + ((note && note.value) || '')).trim();
+      if (!body) return;
+      // A synthesised anchor click rather than a location assignment: the
+      // browser hands mailto: to the mail client without navigating away, so
+      // a visitor with no mail client configured keeps the page they are on.
+      var a = document.createElement('a');
+      a.href = 'mailto:' + fb.getAttribute('data-mailto') +
+        '?subject=' + encodeURIComponent('Lingogram uninstall feedback') +
+        '&body=' + encodeURIComponent(body);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
+  if (fb && window.__UNINSTALL) {
+    var UN = window.__UNINSTALL;
+    var T = UN.i18n || {};
+    var opts = fb.querySelector('.uni-opts');
+    var status = fb.querySelector('[data-status]');
+    var submit = fb.querySelector('button[type=submit]');
+    var textEl = document.getElementById('feedback-text');
+    var boxes = [].slice.call(fb.querySelectorAll('input[name=reason]'));
+    var sent = false;
+    var busy = false;
+
+    // Firestore counts UTF-8 BYTES while maxLength counts UTF-16 units, so a
+    // Russian message would be silently halved on send. Same clamp as
+    // packages/shared/src/feedback.ts, and the same reason it exists.
+    var enc = new TextEncoder();
+    function utf8Len(s) { return enc.encode(s).length; }
+    function clampToBytes(s, max) {
+      if (utf8Len(s) <= max) return s;
+      var lo = 0, hi = s.length;
+      while (lo < hi) {
+        var mid = (lo + hi + 1) >>> 1;
+        if (utf8Len(s.slice(0, mid)) <= max) lo = mid; else hi = mid - 1;
+      }
+      // Step back off a lone high surrogate: TextEncoder turns it into U+FFFD
+      // (3 bytes), which the search above would have accepted as fitting.
+      while (lo > 0) {
+        var c = s.charCodeAt(lo - 1);
+        if (c >= 0xd800 && c <= 0xdbff) lo--; else break;
+      }
+      return s.slice(0, lo);
+    }
+
+    function todayBucket() {
+      var d = new Date();
+      return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    }
+
+    function setStatus(text, kind) {
+      status.textContent = text || '';
+      status.className = 'uni-status' + (kind ? ' uni-status-' + kind : '');
+    }
+
+    function checked() {
+      return boxes.filter(function (b) { return b.checked; })
+        .map(function (b) { return b.value; });
+    }
+    function prose() { return (textEl.value || '').trim(); }
+
+    // Prefix, not a field: the rules pin the doc to a fixed key set, so the
+    // reasons ride in `text` where they stay greppable without a rules deploy.
+    // Prepended for the same reason the reply address is — a message clamped
+    // at the ceiling must not lose the one part that is always machine-read.
+    // Comma-joined in the order they appear on screen, not click order, so the
+    // same pair of answers always produces the same string.
+    function compose() {
+      var picked = checked();
+      var tag = picked.length ? '[reason:' + picked.join(',') + ']' : '';
+      var body = prose();
+      return clampToBytes((tag && body) ? tag + ' ' + body : (tag || body), UN.maxBytes);
+    }
+
+    // Nothing ticked and nothing typed is nothing to send. Disabling the
+    // button says so before the click rather than after it, and it is the only
+    // state in which the form is genuinely empty: reasons alone are a complete
+    // answer, and so is a note with no boxes ticked.
+    function syncSubmit() {
+      if (sent || busy) return;
+      submit.disabled = !checked().length && !prose();
+    }
+    opts.addEventListener('change', syncSubmit);
+    textEl.addEventListener('input', syncSubmit);
+    syncSubmit();
+
+    // Point the reinstall button at the listing of the edition that was
+    // actually removed. The static href (the primary listing) stays for
+    // unknown slugs and for no JS at all. hasOwnProperty for the same reason
+    // as the welcome copy lookup above: `?ext=constructor` must miss.
+    var reinstall = document.querySelector('[data-reinstall]');
+    if (reinstall && UN.stores &&
+        Object.prototype.hasOwnProperty.call(UN.stores, extSlug)) {
+      reinstall.href = UN.stores[extSlug];
+    }
+
+    function mailtoHref(text) {
+      return 'mailto:' + fb.getAttribute('data-mailto') +
         '?subject=' + encodeURIComponent('Lingogram uninstall feedback') +
         '&body=' + encodeURIComponent(text);
+    }
+
+    // Quota burned, offline, or a lost race. An error with no way forward
+    // wastes the one moment this visitor was willing to talk, so the old
+    // mailto path becomes the fallback rather than the primary ask.
+    function showFailure(text) {
+      setStatus((T.failed || '') + ' ', 'err');
+      var a = document.createElement('a');
+      a.href = mailtoHref(text);
+      a.textContent = T.mailtoFallback || '';
+      status.appendChild(a);
+    }
+
+    // Read today's counter, then commit the doc and its +1 in ONE batch. The
+    // read-then-write is racy by construction: two simultaneous senders
+    // compute the same next count and one loses the rules' getAfter() check.
+    // That is a dropped message, not a corrupted counter — and the caller
+    // turns the loss into the mailto offer above.
+    function send(text) {
+      var cfg = window.LINGOGRAM_AUTH || {};
+      var base = cfg.firestoreUrl, pid = cfg.projectId;
+      if (!base || !pid) return Promise.resolve(false);
+      var docs = base + '/v1/projects/' + pid + '/databases/(default)/documents';
+      var day = String(todayBucket());
+      var quotaName = 'projects/' + pid + '/databases/(default)/documents/feedbackQuota/' + day;
+
+      return fetch(docs + '/feedbackQuota/' + day)
+        .then(function (r) {
+          if (r.ok) return r.json().then(function (d) {
+            var n = Number((d.fields && d.fields.count && d.fields.count.integerValue) || 0);
+            return (isFinite(n) ? n : 0) + 1;
+          });
+          if (r.status === 404) return 1; // nobody has written today yet
+          throw new Error('quota ' + r.status);
+        })
+        .then(function (next) {
+          return fetch(docs + ':commit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ writes: [
+              {
+                update: {
+                  // Id pinned to {day}_{count}: it is what stops N docs from
+                  // riding a single counter bump (two would need one id).
+                  name: 'projects/' + pid + '/databases/(default)/documents/feedback/' + day + '_' + next,
+                  fields: {
+                    text: { stringValue: text },
+                    uid: { stringValue: '' },
+                    site: { stringValue: location.hostname.slice(0, 100) },
+                    version: { stringValue: '' },
+                    locale: { stringValue: (document.documentElement.lang || '').slice(0, 16) },
+                    source: { stringValue: UN.source }
+                  }
+                },
+                currentDocument: { exists: false },
+                updateTransforms: [{ fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' }]
+              },
+              {
+                update: { name: quotaName, fields: { count: { integerValue: String(next) } } },
+                updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }]
+              }
+            ] })
+          });
+        })
+        .then(function (r) { return r.ok; })
+        .catch(function () { return false; });
+    }
+
+    fb.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (sent || busy) return;
+      var text = compose();
+      if (!text) return;
+      busy = true;
+      submit.disabled = true;
+      setStatus(T.sending || '');
+      send(text).then(function (ok) {
+        busy = false;
+        if (ok) {
+          sent = true;
+          // Collapse the form: leaving a live Send button under a thank-you
+          // invites a second submission that the day counter would reject
+          // anyway, and reads as though the first one did not land.
+          opts.hidden = true;
+          textEl.hidden = true;
+          fb.querySelector('.uni-actions').hidden = true;
+          setStatus(T.sent || '', 'ok');
+          return;
+        }
+        submit.disabled = false;
+        showFailure(text);
+      });
     });
   }
 })();

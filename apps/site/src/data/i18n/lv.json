@@ -282,15 +282,26 @@
   "uninstall": {
     "title": "Žēl, ka aizej — Lingogram",
     "description": "Pastāsti, kāpēc noņēmi Lingogram, lai mēs varētu to uzlabot.",
-    "h1": "Žēl, ka aizej",
-    "sub": "Viens teikums par to, kāpēc noņēmi {ext}, palīdz mums to uzlabot visiem.",
-    "placeholder": "Kaut kas salūza, kad… / Es gaidīju… / Es atradu labāku…",
+    "h1": "Žēl, ka aizej!",
+    "sub": "Pastāsti, kur {ext} nepiepildīja cerības — tas palīdz mums to uzlabot.",
+    "reason": {
+      "subtitles": "Subtitri neparādījās",
+      "translation": "Tulkojums bija neprecīzs vai nedabisks",
+      "confusing": "Nebija skaidrs, kā to lietot",
+      "vocab": "Par maz rīku saglabāto vārdu apguvei",
+      "expected": "Netika atrasts meklētais",
+      "oneoff": "Vajadzēja to tikai vienam video",
+      "other": "Kaut kas cits"
+    },
+    "detailHint": "Vai vēlies kaut ko piebilst? (nav obligāti)",
     "ariaLabel": "Kāpēc atinstalēji?",
-    "send": "Sūtīt atsauksmi",
-    "footPrefix": "Tavi saglabātie vārdi joprojām ir",
-    "footLink": "tavā vārdnīcā",
-    "footMid": "— tie gaidīs tevi, ja atgriezīsies.",
-    "reinstall": "Instalē no jauna jebkurā laikā."
+    "send": "Sūtīt",
+    "sending": "Sūta…",
+    "sent": "Paldies — tas tiešām palīdz.",
+    "failed": "Neizdevās nosūtīt. Mēģināt vēlreiz?",
+    "mailtoFallback": "sūti to pa e-pastu",
+    "bannerQ": "Atinstalēji nejauši?",
+    "bannerCta": "Instalēt vēlreiz"
   },
   "auth": {
     "or": "vai",

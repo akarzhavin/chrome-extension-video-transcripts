@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Leit at du drar — Lingogram",
     "description": "Fortell oss hvorfor du fjernet Lingogram, så vi kan fikse det.",
-    "h1": "Leit at du drar",
-    "sub": "Én setning om hvorfor du fjernet {ext}, hjelper oss å forbedre det for alle.",
-    "placeholder": "Det sluttet å virke på… / Jeg forventet… / Jeg fant noe bedre…",
+    "h1": "Leit at du drar!",
+    "sub": "Fortell oss hvor {ext} kom til kort — det hjelper oss å gjøre den bedre.",
+    "reason": {
+      "subtitles": "Undertekster dukket ikke opp",
+      "translation": "Oversettelsen var unøyaktig eller unaturlig",
+      "confusing": "Det var uklart hvordan man skulle bruke det",
+      "vocab": "For få verktøy for å lære lagrede ord",
+      "expected": "Ikke det som ble søkt etter",
+      "oneoff": "Trengte det bare til én video",
+      "other": "Noe annet"
+    },
+    "detailHint": "Vil du legge til noe? (valgfritt)",
     "ariaLabel": "Hvorfor avinstallerte du?",
-    "send": "Send tilbakemelding",
-    "footPrefix": "De lagrede ordene dine ligger fortsatt i",
-    "footLink": "ordboken din",
-    "footMid": "— de venter på deg hvis du kommer tilbake.",
-    "reinstall": "Installer på nytt når som helst."
+    "send": "Send",
+    "sending": "Sender…",
+    "sent": "Takk — dette hjelper virkelig.",
+    "failed": "Kunne ikke sende. Prøve igjen?",
+    "mailtoFallback": "send det på e-post i stedet",
+    "bannerQ": "Avinstallerte du ved et uhell?",
+    "bannerCta": "Installer på nytt"
   },
   "auth": {
     "or": "eller",

@@ -283,15 +283,26 @@
   "uninstall": {
     "title": "Je nám líto, že odcházíte — Lingogram",
     "description": "Napište nám, proč jste Lingogram odinstalovali, ať to můžeme opravit.",
-    "h1": "Je nám líto, že odcházíte",
-    "sub": "Jedna věta o tom, proč jste {ext} odinstalovali, nám pomůže opravit to pro všechny.",
-    "placeholder": "Nefungovalo mi to na… / Čekal jsem… / Našel jsem lepší…",
+    "h1": "Je nám líto, že odcházíte!",
+    "sub": "Řekněte nám, v čem vás {ext} zklamal — pomůže nám to udělat ho lepším.",
+    "reason": {
+      "subtitles": "Titulky se nezobrazily",
+      "translation": "Překlad byl nepřesný nebo nepřirozený",
+      "confusing": "Nebylo jasné, jak to používat",
+      "vocab": "Málo nástrojů pro učení uložených slov",
+      "expected": "Neodpovídalo to očekávání",
+      "oneoff": "Potřeboval jsem to jen na jedno video",
+      "other": "Něco jiného"
+    },
+    "detailHint": "Chcete něco dodat? (nepovinné)",
     "ariaLabel": "Proč jste rozšíření odinstalovali?",
-    "send": "Odeslat zpětnou vazbu",
-    "footPrefix": "Vaše uložená slova jsou stále ve",
-    "footLink": "vašem slovníku",
-    "footMid": "— budou tam čekat, kdybyste se vrátili.",
-    "reinstall": "Kdykoli je můžete znovu nainstalovat."
+    "send": "Odeslat",
+    "sending": "Odesílá se…",
+    "sent": "Děkujeme — opravdu nám to pomůže.",
+    "failed": "Odeslání se nezdařilo. Zkusit znovu?",
+    "mailtoFallback": "poslat to raději e-mailem",
+    "bannerQ": "Odinstalovali jste ho omylem?",
+    "bannerCta": "Znovu nainstalovat"
   },
   "auth": {
     "or": "nebo",

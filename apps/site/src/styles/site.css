@@ -1215,6 +1215,143 @@ footer.site {
 .keys span { font-size: 13.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; }
 .keys kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 1px 6px; }
 
+/* ---------- /uninstall/ feedback ---------- */
+/* The form is a card in the same visual language as .auth-card: panel on
+   ground, one border, the shared shadow token. The card is what keeps the
+   page straight — options, textarea and button all inherit one left edge
+   from it instead of each centring itself against a different width. */
+.uni-h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.03em; }
+
+/* The same accent aura the auth pages hang behind their card, kept inside
+   the .narrow column (left/right 0) so a 390px phone gets no sideways
+   scrollbar out of it. */
+.uni { position: relative; }
+.uni::before {
+  content: ""; position: absolute; inset: -20px 0 auto; height: 480px;
+  z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 55% at 50% 12%, var(--accent-soft) 0%, transparent 65%);
+}
+
+.uni-card {
+  margin: 30px auto 0; max-width: 520px; text-align: left;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 20px; box-shadow: var(--shadow);
+  padding: 12px 14px 18px;
+}
+
+.uni-opts {
+  margin: 0; padding: 0; border: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+/* Any `display` above outranks the hidden attribute's UA display:none, so the
+   success path's opts.hidden would leave the whole list on screen under a
+   thank-you. Restore the attribute's meaning explicitly — the same trap the
+   chip version of this page fell into. */
+.uni-opts[hidden] { display: none; }
+/* The legend is the question the checkboxes answer; the page headline already
+   asks it, so this is for screen readers only rather than a second visible
+   heading. Not `display:none` — that would drop it from the accessibility
+   tree, which is the one place it needs to exist. */
+.uni-legend {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* The whole row is the hit target, not just the box: a 15px square is a miss
+   waiting to happen on a phone. */
+.uni-opt {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 10px; border-radius: 10px; cursor: pointer;
+  font-size: 15.5px; line-height: 1.35;
+  transition: background .15s;
+}
+.uni-opt:hover { background: var(--accent-soft); }
+/* The real input is hidden from sight but not from the accessibility tree or
+   the keyboard: it still takes focus, still toggles on Space, still announces
+   itself as a checkbox. .uni-opt-box is only its picture. */
+.uni-opt input {
+  position: absolute; opacity: 0; width: 0; height: 0; margin: 0;
+}
+.uni-opt-box {
+  flex: none; width: 21px; height: 21px; border-radius: 6px;
+  border: 2px solid var(--line); background: var(--panel);
+  display: inline-flex; align-items: center; justify-content: center;
+  /* Optically centred on the first line of the label rather than the row: a
+     two-line label in a verbose locale would otherwise drift its box down. */
+  margin-top: 1px;
+  color: var(--accent-ink);
+  transition: background .15s, border-color .15s;
+}
+.uni-opt-box svg { width: 13px; height: 13px; opacity: 0; transition: opacity .12s; }
+.uni-opt input:checked + .uni-opt-box {
+  background: var(--accent); border-color: var(--accent);
+}
+.uni-opt input:checked + .uni-opt-box svg { opacity: 1; }
+/* Focus lands on the box because the input itself is invisible — without this
+   a keyboard user tabbing through has no idea where they are. */
+.uni-opt input:focus-visible + .uni-opt-box {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.uni-opt-label { flex: 1; }
+
+/* Recessed against the card the way inputs sit inside .auth-card: ground
+   under panel reads as "type here", panel-on-panel read as a printing error
+   — the crookedness this redesign was asked to fix. */
+.uni-card textarea {
+  margin-top: 12px; min-height: 96px; background: var(--ground);
+  text-align: left;
+}
+.uni-card textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.uni-card textarea[hidden] { display: none; }
+
+/* Stacked like .auth-submit + .auth-alt, not a side-by-side pair: a
+   full-width primary and a quiet centred escape line under it keep the card
+   symmetric at every locale's button-label length. */
+.uni-actions { margin-top: 14px; flex-direction: column; gap: 12px; }
+.uni-actions .btn { width: 100%; padding: 12px 24px; font-size: 15.5px; }
+.uni-actions .btn:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
+/* .cta-row's display:flex outranks the hidden attribute's UA rule — same
+   trap as .uni-opts below, third time on this page. */
+.uni-actions[hidden] { display: none; }
+
+.uni-status { margin: 14px 0 0; font-size: 15px; font-weight: 600; color: var(--muted); text-align: center; }
+.uni-status:empty { display: none; }
+.uni-status-ok { color: var(--teal-deep); }
+.uni-status-err { color: #d13b3b; }
+.uni-status-err a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+/* The recovery strip, above the site header. Deliberately outside the brand
+   palette: this is not a marketing CTA but an undo, and it has to read as one
+   at a glance on a page the visitor did not mean to reach. Hard-coded green
+   and red rather than tokens for that reason — they must not drift with the
+   theme, and they stay identical in light and dark. */
+.uni-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 16px; background: var(--panel);
+  /* Logical, not physical: the accent bar marks where the line STARTS, so it
+     has to move to the right edge in RTL along with the text. */
+  border: 1px solid var(--line); border-inline-start: 5px solid #e8483f;
+}
+.uni-banner-q { margin: 0; font-size: 17px; font-weight: 800; color: var(--ink); }
+.uni-banner-cta {
+  display: inline-flex; align-items: center; gap: 10px; flex: none;
+  padding: 11px 20px; border-radius: 4px;
+  background: #37a84a; color: #fff;
+  font-size: 14px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none; white-space: nowrap;
+}
+.uni-banner-cta:hover { background: #2f9440; }
+.uni-banner-cta svg { flex: none; }
+@media (max-width: 560px) {
+  /* Stacked rather than shrunk: the label is uppercase and cannot wrap, so
+     squeezing it onto one row with the question is what would break first. */
+  .uni-banner { flex-direction: column; align-items: stretch; gap: 10px; text-align: center; }
+  .uni-banner-cta { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uni-opt, .uni-opt-box, .uni-opt-box svg { transition: none; }
+}
+
 /* First-run disclosure that anonymous stats are on. Deliberately quiet — it is
    a fact the user is entitled to on day one, not a step in the three-step flow
    above, and styling it louder would compete with "save your first word". */

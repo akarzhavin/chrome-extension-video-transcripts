@@ -282,15 +282,26 @@
   "uninstall": {
     "title": "Gaila, kad išeinate — Lingogram",
     "description": "Papasakokite, kodėl pašalinote Lingogram, kad galėtume tai ištaisyti.",
-    "h1": "Gaila, kad išeinate",
-    "sub": "Vienas sakinys apie tai, kodėl pašalinote {ext}, padeda mums patobulinti jį visiems.",
-    "placeholder": "Sugedo, kai… / Tikėjausi… / Radau geresnį…",
+    "h1": "Gaila, kad išeinate!",
+    "sub": "Pasakykite, kur {ext} nepateisino lūkesčių — tai padeda mums ją patobulinti.",
+    "reason": {
+      "subtitles": "Subtitrai neatsirado",
+      "translation": "Vertimas buvo netikslus arba nenatūralus",
+      "confusing": "Nebuvo aišku, kaip tuo naudotis",
+      "vocab": "Trūko įrankių išsaugotiems žodžiams mokytis",
+      "expected": "Tai ne tai, kas buvo ieškoma",
+      "oneoff": "Reikėjo tik vienam video",
+      "other": "Kažkas kita"
+    },
+    "detailHint": "Norite ką nors pridurti? (neprivaloma)",
     "ariaLabel": "Kodėl pašalinote plėtinį?",
-    "send": "Siųsti atsiliepimą",
-    "footPrefix": "Jūsų išsaugoti žodžiai vis dar",
-    "footLink": "jūsų žodyne",
-    "footMid": "— jie lauks jūsų, jei sugrįšite.",
-    "reinstall": "Įdiekite iš naujo bet kada."
+    "send": "Siųsti",
+    "sending": "Siunčiama…",
+    "sent": "Ačiū — tai mums tikrai padeda.",
+    "failed": "Nepavyko išsiųsti. Bandyti dar kartą?",
+    "mailtoFallback": "geriau atsiųskite el. paštu",
+    "bannerQ": "Pašalinote netyčia?",
+    "bannerCta": "Įdiegti iš naujo"
   },
   "auth": {
     "or": "arba",

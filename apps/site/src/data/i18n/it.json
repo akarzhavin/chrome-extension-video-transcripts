@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Ci dispiace vederti andare via — Lingogram",
     "description": "Dicci perché hai rimosso Lingogram così possiamo migliorarlo.",
-    "h1": "Ci dispiace vederti andare via",
-    "sub": "Una frase sul perché hai rimosso {ext} ci aiuta a migliorarlo per tutti.",
-    "placeholder": "Si è rotto quando… / Mi aspettavo… / Ho trovato di meglio…",
+    "h1": "Ci dispiace vederti andare via!",
+    "sub": "Dicci dove {ext} non ti ha convinto — ci aiuta a migliorarla.",
+    "reason": {
+      "subtitles": "I sottotitoli non comparivano",
+      "translation": "La traduzione era imprecisa o innaturale",
+      "confusing": "Non era chiaro come si usasse",
+      "vocab": "Strumenti insufficienti per imparare le parole salvate",
+      "expected": "Non era ciò che si cercava",
+      "oneoff": "Mi serviva solo per un video",
+      "other": "Altro"
+    },
+    "detailHint": "Vuoi aggiungere altro? (facoltativo)",
     "ariaLabel": "Perché hai disinstallato?",
-    "send": "Invia feedback",
-    "footPrefix": "Le tue parole salvate sono ancora nel",
-    "footLink": "tuo dizionario",
-    "footMid": "— ti aspetteranno se torni.",
-    "reinstall": "Reinstalla quando vuoi."
+    "send": "Invia",
+    "sending": "Invio…",
+    "sent": "Grazie — ci aiuta davvero.",
+    "failed": "Invio non riuscito. Riprovare?",
+    "mailtoFallback": "inviacelo invece via email",
+    "bannerQ": "L'hai disinstallata per sbaglio?",
+    "bannerCta": "Reinstalla ora"
   },
   "auth": {
     "or": "oppure",

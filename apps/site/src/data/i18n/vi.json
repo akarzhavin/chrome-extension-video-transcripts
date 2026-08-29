@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Rất tiếc khi bạn rời đi — Lingogram",
     "description": "Hãy cho chúng tôi biết vì sao bạn gỡ Lingogram để chúng tôi có thể khắc phục.",
-    "h1": "Rất tiếc khi bạn rời đi",
-    "sub": "Một câu ngắn về lý do bạn gỡ {ext} sẽ giúp chúng tôi cải thiện cho mọi người.",
-    "placeholder": "Nó bị lỗi ở… / Tôi mong đợi… / Tôi tìm thấy lựa chọn tốt hơn…",
+    "h1": "Rất tiếc khi bạn rời đi!",
+    "sub": "Hãy cho chúng tôi biết {ext} còn thiếu sót ở đâu — điều đó giúp chúng tôi cải thiện nó.",
+    "reason": {
+      "subtitles": "Phụ đề không hiện ra",
+      "translation": "Bản dịch không chính xác hoặc thiếu tự nhiên",
+      "confusing": "Không rõ cách sử dụng",
+      "vocab": "Không đủ công cụ để học từ đã lưu",
+      "expected": "Không phải điều đang tìm kiếm",
+      "oneoff": "Tôi chỉ cần cho một video",
+      "other": "Lý do khác"
+    },
+    "detailHint": "Bạn muốn nói thêm gì không? (không bắt buộc)",
     "ariaLabel": "Vì sao bạn gỡ cài đặt?",
-    "send": "Gửi phản hồi",
-    "footPrefix": "Các từ bạn đã lưu vẫn còn trong",
-    "footLink": "từ điển của bạn",
-    "footMid": "— chúng sẽ chờ bạn nếu bạn quay lại.",
-    "reinstall": "Cài lại bất cứ lúc nào."
+    "send": "Gửi",
+    "sending": "Đang gửi…",
+    "sent": "Cảm ơn bạn — điều này thực sự hữu ích.",
+    "failed": "Gửi không thành công. Thử lại nhé?",
+    "mailtoFallback": "gửi qua email thay vào đó",
+    "bannerQ": "Vô tình gỡ cài đặt?",
+    "bannerCta": "Cài đặt lại"
   },
   "auth": {
     "or": "hoặc",

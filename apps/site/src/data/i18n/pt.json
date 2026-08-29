@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "É pena vê-lo partir — Lingogram",
     "description": "Diga-nos porque removeu o Lingogram para podermos corrigir isso.",
-    "h1": "É pena vê-lo partir",
-    "sub": "Uma frase sobre o motivo por que removeu {ext} ajuda-nos a corrigir isso para todos.",
-    "placeholder": "Deixou de funcionar em… / Esperava… / Encontrei uma alternativa melhor…",
+    "h1": "É pena vê-lo partir!",
+    "sub": "Diga-nos onde o {ext} ficou aquém — isso ajuda-nos a torná-lo melhor.",
+    "reason": {
+      "subtitles": "As legendas não apareceram",
+      "translation": "A tradução era imprecisa ou pouco natural",
+      "confusing": "Não ficou claro como usar",
+      "vocab": "Ferramentas insuficientes para aprender palavras guardadas",
+      "expected": "Não era o que se procurava",
+      "oneoff": "Só precisava para um vídeo",
+      "other": "Outro motivo"
+    },
+    "detailHint": "Quer acrescentar algo? (opcional)",
     "ariaLabel": "Porque desinstalou?",
-    "send": "Enviar feedback",
-    "footPrefix": "As suas palavras guardadas continuam no",
-    "footLink": "seu dicionário",
-    "footMid": "— vão estar à sua espera se voltar.",
-    "reinstall": "Reinstale a qualquer momento."
+    "send": "Enviar",
+    "sending": "A enviar…",
+    "sent": "Obrigado — isto ajuda-nos mesmo.",
+    "failed": "Não foi possível enviar. Tentar novamente?",
+    "mailtoFallback": "envie por email em vez disso",
+    "bannerQ": "Desinstalou sem querer?",
+    "bannerCta": "Reinstalar agora"
   },
   "auth": {
     "or": "ou",

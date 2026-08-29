@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Sedih melihat Anda pergi — Lingogram",
     "description": "Beri tahu kami alasan Anda menghapus Lingogram agar kami bisa memperbaikinya.",
-    "h1": "Sedih melihat Anda pergi",
-    "sub": "Satu kalimat tentang alasan Anda menghapus {ext} membantu kami memperbaikinya untuk semua orang.",
-    "placeholder": "Rusak saat… / Saya berharap… / Saya menemukan yang lebih baik…",
+    "h1": "Sedih melihat Anda pergi!",
+    "sub": "Beri tahu kami di mana {ext} kurang memuaskan — ini membantu kami menyempurnakannya.",
+    "reason": {
+      "subtitles": "Subtitle tidak muncul",
+      "translation": "Terjemahannya tidak akurat atau tidak wajar",
+      "confusing": "Tidak jelas cara menggunakannya",
+      "vocab": "Alat untuk mempelajari kata tersimpan kurang memadai",
+      "expected": "Bukan yang dicari",
+      "oneoff": "Hanya perlu untuk satu video",
+      "other": "Alasan lain"
+    },
+    "detailHint": "Ada yang ingin ditambahkan? (opsional)",
     "ariaLabel": "Kenapa Anda menghapus instalasi?",
-    "send": "Kirim masukan",
-    "footPrefix": "Kata-kata tersimpan Anda masih ada di",
-    "footLink": "kamus Anda",
-    "footMid": "— akan menunggu Anda jika kembali lagi.",
-    "reinstall": "Instal ulang kapan saja."
+    "send": "Kirim",
+    "sending": "Mengirim…",
+    "sent": "Terima kasih — ini sangat membantu.",
+    "failed": "Gagal mengirim. Coba lagi?",
+    "mailtoFallback": "kirim lewat email saja",
+    "bannerQ": "Tidak sengaja menghapusnya?",
+    "bannerCta": "Instal ulang"
   },
   "auth": {
     "or": "atau",

@@ -29,7 +29,17 @@ const DEFAULTS = {
     MAX_CONTEXT_BYTES: 2048,
     MAX_TITLE_BYTES: 512,
     MAX_FEEDBACK_TEXT_BYTES: 2000,
-    ALLOWED_SOURCES: ['rezka-extension', 'youtube-extension', 'web-extension'],
+    // Keep in step with lingogram-limits.json. A standalone checkout (the
+    // site's CI builds from GitHub with no infrastructure repo beside it)
+    // falls back to this list, so a source missing here fails that build even
+    // though the canonical file allows it — which is exactly how the
+    // /uninstall/ page's first PreProd deploy died.
+    ALLOWED_SOURCES: [
+        'rezka-extension',
+        'youtube-extension',
+        'web-extension',
+        'site-uninstall',
+    ],
 };
 
 export function loadLingogramLimits() {

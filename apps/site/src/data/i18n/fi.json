@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
-    "h1": "Ikävä nähdä sinun lähtevän",
-    "sub": "Yksi lause siitä, miksi poistit {ext}:n, auttaa meitä korjaamaan sen kaikille.",
-    "placeholder": "Se hajosi kohdassa… / Odotin… / Löysin paremman…",
+    "h1": "Ikävä nähdä sinun lähtevän!",
+    "sub": "Kerro meille, missä {ext} jäi vajaaksi — se auttaa meitä parantamaan sitä.",
+    "reason": {
+      "subtitles": "Tekstitykset eivät näkyneet",
+      "translation": "Käännös oli epätarkka tai luonnoton",
+      "confusing": "Ei ollut selvää, miten sitä käytetään",
+      "vocab": "Liian vähän työkaluja tallennettujen sanojen opetteluun",
+      "expected": "Ei ollut sitä, mitä etsittiin",
+      "oneoff": "Tarvitsin sitä vain yhteen videoon",
+      "other": "Jotain muuta"
+    },
+    "detailHint": "Haluatko lisätä jotain? (valinnainen)",
     "ariaLabel": "Miksi poistit asennuksen?",
-    "send": "Lähetä palaute",
-    "footPrefix": "Tallennetut sanasi ovat yhä",
-    "footLink": "sanastossasi",
-    "footMid": "— ne odottavat sinua, jos palaat.",
-    "reinstall": "Asenna uudelleen milloin vain."
+    "send": "Lähetä",
+    "sending": "Lähetetään…",
+    "sent": "Kiitos — tästä on todella apua.",
+    "failed": "Lähetys epäonnistui. Yritetäänkö uudelleen?",
+    "mailtoFallback": "lähetä se sen sijaan sähköpostilla",
+    "bannerQ": "Poistitko sen vahingossa?",
+    "bannerCta": "Asenna uudelleen"
   },
   "auth": {
     "or": "tai",

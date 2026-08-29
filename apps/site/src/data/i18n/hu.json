@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Sajnáljuk, hogy távozol — Lingogram",
     "description": "Mondd el, miért távolítottad el a Lingogramot, hogy javíthassunk rajta.",
-    "h1": "Sajnáljuk, hogy távozol",
-    "sub": "Egyetlen mondat arról, hogy miért távolítottad el a(z) {ext} kiterjesztést, segít nekünk javítani mindenki számára.",
-    "placeholder": "Elromlott, amikor… / Azt vártam, hogy… / Találtam egy jobbat…",
+    "h1": "Sajnáljuk, hogy távozol!",
+    "sub": "Mondd el, miben maradt el a(z) {ext} — ez segít nekünk jobbá tenni.",
+    "reason": {
+      "subtitles": "A feliratok nem jelentek meg",
+      "translation": "A fordítás pontatlan vagy nem természetes volt",
+      "confusing": "Nem volt világos, hogyan kell használni",
+      "vocab": "Túl kevés eszköz a mentett szavak tanulásához",
+      "expected": "Nem ez volt a keresett",
+      "oneoff": "Csak egyetlen videóhoz kellett",
+      "other": "Valami más"
+    },
+    "detailHint": "Szeretnél még valamit hozzáfűzni? (nem kötelező)",
     "ariaLabel": "Miért távolítottad el?",
-    "send": "Visszajelzés küldése",
-    "footPrefix": "A mentett szavaid továbbra is ott vannak",
-    "footLink": "a szótáradban",
-    "footMid": "— ott várnak, ha visszatérsz.",
-    "reinstall": "Bármikor újratelepítheted."
+    "send": "Küldés",
+    "sending": "Küldés…",
+    "sent": "Köszönjük — ez tényleg sokat segít.",
+    "failed": "Nem sikerült elküldeni. Próbáljuk újra?",
+    "mailtoFallback": "küldd el inkább e-mailben",
+    "bannerQ": "Véletlenül távolítottad el?",
+    "bannerCta": "Újratelepítés"
   },
   "auth": {
     "or": "vagy",

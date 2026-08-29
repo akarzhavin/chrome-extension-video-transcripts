@@ -283,15 +283,26 @@
   "uninstall": {
     "title": "Szkoda, że odchodzisz — Lingogram",
     "description": "Powiedz nam, dlaczego usunąłeś Lingogram, abyśmy mogli to naprawić.",
-    "h1": "Szkoda, że odchodzisz",
-    "sub": "Jedno zdanie o tym, dlaczego usunąłeś {ext}, pomoże nam to naprawić dla wszystkich.",
-    "placeholder": "Coś przestało działać przy… / Spodziewałem się… / Znalazłem coś lepszego…",
+    "h1": "Szkoda, że odchodzisz!",
+    "sub": "Powiedz nam, w czym {ext} zawiódł Twoje oczekiwania — to pomaga nam go ulepszać.",
+    "reason": {
+      "subtitles": "Napisy się nie pojawiły",
+      "translation": "Tłumaczenie było niedokładne lub nienaturalne",
+      "confusing": "Nie było jasne, jak z tego korzystać",
+      "vocab": "Za mało narzędzi do nauki zapisanych słów",
+      "expected": "To nie było to, czego szukano",
+      "oneoff": "Potrzebowałem go tylko do jednego filmu",
+      "other": "Coś innego"
+    },
+    "detailHint": "Chcesz coś dodać? (opcjonalnie)",
     "ariaLabel": "Dlaczego odinstalowałeś rozszerzenie?",
-    "send": "Wyślij opinię",
-    "footPrefix": "Twoje zapisane słowa nadal są w",
-    "footLink": "Twoim słowniku",
-    "footMid": "— będą czekać, jeśli wrócisz.",
-    "reinstall": "Zainstaluj ponownie w dowolnym momencie."
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "sent": "Dziękujemy — to naprawdę pomaga.",
+    "failed": "Nie udało się wysłać. Spróbować ponownie?",
+    "mailtoFallback": "wyślij to zamiast tego e-mailem",
+    "bannerQ": "Odinstalowano przez przypadek?",
+    "bannerCta": "Zainstaluj ponownie"
   },
   "auth": {
     "or": "lub",

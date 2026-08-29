@@ -283,15 +283,26 @@
   "uninstall": {
     "title": "Škoda, da odhajate — Lingogram",
     "description": "Povejte nam, zakaj ste odstranili Lingogram, da lahko to popravimo.",
-    "h1": "Škoda, da odhajate",
-    "sub": "En stavek o tem, zakaj ste odstranili {ext}, nam pomaga to popraviti za vse.",
-    "placeholder": "Nekaj se je pokvarilo pri… / Pričakoval sem… / Našel sem boljšo…",
+    "h1": "Škoda, da odhajate!",
+    "sub": "Povejte nam, kje vas je {ext} razočaral — to nam pomaga, da ga izboljšamo.",
+    "reason": {
+      "subtitles": "Podnapisi se niso prikazali",
+      "translation": "Prevod je bil netočen ali nenaraven",
+      "confusing": "Ni bilo jasno, kako to uporabljati",
+      "vocab": "Premalo orodij za učenje shranjenih besed",
+      "expected": "Ni bilo iskano",
+      "oneoff": "Potreboval sem ga le za en video",
+      "other": "Nekaj drugega"
+    },
+    "detailHint": "Želite dodati še kaj? (neobvezno)",
     "ariaLabel": "Zakaj ste odstranili razširitev?",
-    "send": "Pošlji povratno informacijo",
-    "footPrefix": "Vaše shranjene besede so še vedno v",
-    "footLink": "vašem slovarju",
-    "footMid": "— čakale bodo, če se vrnete.",
-    "reinstall": "Znova namestite kadar koli."
+    "send": "Pošlji",
+    "sending": "Pošiljanje…",
+    "sent": "Hvala — to nam res pomaga.",
+    "failed": "Pošiljanje ni uspelo. Poskusite znova?",
+    "mailtoFallback": "raje ga pošljite po e-pošti",
+    "bannerQ": "Ste jo odstranili po pomoti?",
+    "bannerCta": "Znova namesti"
   },
   "auth": {
     "or": "ali",

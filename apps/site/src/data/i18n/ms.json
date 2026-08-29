@@ -280,15 +280,26 @@
   "uninstall": {
     "title": "Sedih melihat anda pergi — Lingogram",
     "description": "Beritahu kami sebab anda mengalih keluar Lingogram supaya kami boleh memperbaikinya.",
-    "h1": "Sedih melihat anda pergi",
-    "sub": "Satu ayat tentang sebab anda mengalih keluar {ext} membantu kami memperbaikinya untuk semua orang.",
-    "placeholder": "Ia rosak semasa… / Saya menyangka… / Saya menjumpai yang lebih baik…",
+    "h1": "Sedih melihat anda pergi!",
+    "sub": "Beritahu kami di mana {ext} tidak memenuhi jangkaan anda — ini membantu kami menambah baiknya.",
+    "reason": {
+      "subtitles": "Sari kata tidak muncul",
+      "translation": "Terjemahan tidak tepat atau janggal",
+      "confusing": "Tidak jelas cara menggunakannya",
+      "vocab": "Alat yang tidak mencukupi untuk belajar perkataan tersimpan",
+      "expected": "Bukan yang dicari",
+      "oneoff": "Hanya perlu untuk satu video",
+      "other": "Sebab lain"
+    },
+    "detailHint": "Ada apa-apa nak ditambah? (pilihan)",
     "ariaLabel": "Kenapa anda nyahpasang?",
-    "send": "Hantar maklum balas",
-    "footPrefix": "Perkataan simpanan anda masih ada di",
-    "footLink": "kamus anda",
-    "footMid": "— ia akan menunggu jika anda kembali.",
-    "reinstall": "Pasang semula pada bila-bila masa."
+    "send": "Hantar",
+    "sending": "Menghantar…",
+    "sent": "Terima kasih — ini sungguh membantu.",
+    "failed": "Gagal menghantar. Cuba lagi?",
+    "mailtoFallback": "hantar melalui e-mel sahaja",
+    "bannerQ": "Tidak sengaja alih keluar?",
+    "bannerCta": "Pasang semula"
   },
   "auth": {
     "or": "atau",

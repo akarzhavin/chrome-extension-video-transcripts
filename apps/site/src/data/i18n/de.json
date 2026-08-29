@@ -281,15 +281,26 @@
   "uninstall": {
     "title": "Schade, dass Sie gehen — Lingogram",
     "description": "Sagen Sie uns, warum Sie Lingogram entfernt haben, damit wir es verbessern können.",
-    "h1": "Schade, dass Sie gehen",
-    "sub": "Ein Satz dazu, warum Sie {ext} entfernt haben, hilft uns, es für alle zu verbessern.",
-    "placeholder": "Es hat nicht mehr funktioniert bei… / Ich hatte erwartet… / Ich habe etwas Besseres gefunden…",
+    "h1": "Schade, dass Sie gehen!",
+    "sub": "Sagen Sie uns, woran {ext} bei Ihnen gescheitert ist — das hilft uns, sie zu verbessern.",
+    "reason": {
+      "subtitles": "Untertitel fehlten",
+      "translation": "Die Übersetzung war ungenau oder unnatürlich",
+      "confusing": "Unklar, wie man es benutzt",
+      "vocab": "Zu wenig Werkzeuge zum Lernen gespeicherter Wörter",
+      "expected": "Nicht das Gesuchte",
+      "oneoff": "Ich brauchte es nur für ein Video",
+      "other": "Etwas anderes"
+    },
+    "detailHint": "Möchten Sie noch etwas ergänzen? (optional)",
     "ariaLabel": "Warum haben Sie die Erweiterung deinstalliert?",
-    "send": "Feedback senden",
-    "footPrefix": "Ihre gespeicherten Wörter sind weiterhin in",
-    "footLink": "Ihrem Wörterbuch",
-    "footMid": "— sie warten dort auf Sie, falls Sie zurückkommen.",
-    "reinstall": "Jederzeit neu installierbar."
+    "send": "Senden",
+    "sending": "Wird gesendet…",
+    "sent": "Danke — das hilft uns wirklich.",
+    "failed": "Senden fehlgeschlagen. Erneut versuchen?",
+    "mailtoFallback": "stattdessen per E-Mail senden",
+    "bannerQ": "Versehentlich deinstalliert?",
+    "bannerCta": "Erneut installieren"
   },
   "auth": {
     "or": "oder",

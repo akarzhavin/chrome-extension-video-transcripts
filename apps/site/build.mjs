@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadLingogramLimits, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, 'src');
@@ -19,6 +20,16 @@ const OUT = path.join(HERE, 'build');
 
 const SITE = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'site.json'), 'utf8'));
 const EDITIONS = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'editions.json'), 'utf8'));
+
+// The same canonical caps the extensions build against — /uninstall/ writes
+// into the very Firestore collection the in-product rating card does, so its
+// byte ceiling has to be the rules' ceiling and not a second guess.
+const LIMITS = loadLingogramLimits();
+// The `source` this site stamps on those docs. Rules pin `source` to an
+// allow-list, so a value missing from it makes every write fail with a
+// PERMISSION_DENIED that looks like an outage — fail the BUILD instead.
+const SITE_FEEDBACK_SOURCE = 'site-uninstall';
+assertSourceAllowed(LIMITS, SITE_FEEDBACK_SOURCE);
 
 // Cache-buster: python http.server sends no Cache-Control, so browsers may
 // keep serving stale css/js after a rebuild. New value every build.
@@ -1348,30 +1359,135 @@ ${footer(t, root)}`,
   });
 };
 
+// ------------------------------------------------------------- /uninstall/
+//
+// The page Chrome opens when someone removes the extension (setUninstallURL).
+//
+// An ordinary form: tick what applies, add a note if you like, press the
+// button. Nothing leaves the browser until that press — no partial answer is
+// recorded behind the visitor's back, and the whole page is one deliberate
+// act. Checkboxes rather than one choice because the reasons genuinely
+// co-occur: "subtitles never showed up" and "too fiddly to set up" are one
+// person's story, not two people's.
+//
+// The answer lands in ONE Firestore feedback doc (see src/js/main.js) as a
+// machine-readable "[reason:a,b]" prefix on `text` rather than its own field:
+// the rules pin the doc to a fixed key set, so a new column would need a rules
+// deploy, while a prefix aggregates by grep today. Same trick the extension
+// already uses for a signed-out reply address.
+const UNINSTALL_REASONS = [
+  // Ordered from breakage to fit: the specific complaints come before the
+  // vague ones, because a visitor reads top-down and must meet the precise
+  // option before the catch-all that would otherwise absorb it.
+  'subtitles',    // core failure: nothing showed up
+  'translation',  // quality of what did show up
+  'confusing',    // couldn't work out how to use it — the single friction
+                  // item; setup/usability/performance were folded into it
+                  // deliberately rather than enumerated
+  'vocab',        // came for word learning, found too little of it
+  'expected',     // product/promise mismatch
+  'oneoff',       // natural churn, not a defect
+  'other',
+];
+
 const uninstallPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
   const root = lang === 'en' ? '' : `/${lang}`;
+
+  // Real <input type="checkbox">, not styled buttons. Several reasons can be
+  // true at once ("subtitles never showed up" AND "too fiddly to set up"), and
+  // a native control brings its own keyboard handling, its own focus ring and
+  // its own screen-reader semantics — none of which a div can be talked into
+  // fully. It also means the no-JS branch below needs no special casing: the
+  // form is a working form before any script runs.
+  //
+  // value= is the STABLE id, never the translated label: the aggregate has to
+  // survive both translation and copy edits, so nothing user-visible is what
+  // gets counted.
+  const options = UNINSTALL_REASONS.map((id) => `
+        <label class="uni-opt">
+          <input type="checkbox" name="reason" value="${id}">
+          <span class="uni-opt-box" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          <span class="uni-opt-label">${esc(t(`uninstall.reason.${id}`))}</span>
+        </label>`).join('');
+
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
     title: t('uninstall.title'),
     description: t('uninstall.description'),
     pathName: `${root}/uninstall/`,
+    // auth-config.js, which the default layout does NOT ship: it is what
+    // resolves projectId/firestoreUrl from the hostname, and the feedback
+    // write below reads them. Both are `defer`, so auth-config.js is
+    // guaranteed to have run before main.js looks for window.LINGOGRAM_AUTH.
+    scripts: `<script src="/auth-config.js?v=${BUST}" defer></script>
+<script src="/main.js?v=${BUST}" defer></script>`,
     body: `
 ${header(t, root)}
-<main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('uninstall.h1'))}</h1>
+<main class="narrow uni">
+  <!-- Ahead of the headline, because a share of uninstalls are accidental or
+       regretted within the minute and that visitor wants one thing only —
+       they should meet the way back before they are asked to explain
+       themselves. main.js retargets the href from the ?ext= slug. -->
+  <div class="uni-banner">
+    <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
+    <a class="uni-banner-cta" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
+  </div>
+
+  <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
   <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
-  <form id="feedback-form" data-mailto="${SITE.supportEmail}">
-    <textarea id="feedback-text" placeholder="${esc(t('uninstall.placeholder'))}" aria-label="${esc(t('uninstall.ariaLabel'))}"></textarea>
-    <div class="cta-row" style="margin-top:16px">
+
+  <!-- No action/method. It used to carry a mailto: target as a no-JS fallback,
+       but Chrome does not act on a mailto form POST at all — verified with
+       scripting disabled — so it bought nothing, while a non-HTTPS form
+       target on an HTTPS page made Chrome flag the form as insecure and
+       switch autofill off, with a red warning over the textarea. The address
+       survives in data-mailto, which is what every fallback path here
+       actually reads. -->
+  <form id="feedback-form" class="uni-card" data-mailto="${SITE.supportEmail}">
+    <fieldset class="uni-opts">
+      <legend class="uni-legend">${esc(t('uninstall.ariaLabel'))}</legend>${options}
+    </fieldset>
+
+    <textarea id="feedback-text" name="details" rows="3"
+      placeholder="${esc(t('uninstall.detailHint'))}"
+      aria-label="${esc(t('uninstall.detailHint'))}"></textarea>
+
+    <div class="cta-row uni-actions">
       <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
     </div>
+
+    <!-- Last in the form, after the control that produces it: a live region
+         announcing the outcome should follow the button, not precede the
+         inputs. -->
+    <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
-  <p class="sub" style="margin-top:34px;font-size:15px">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
+
+  <!-- The way back, as visible as the form itself: a share of uninstalls are
+       accidental or regretted within the minute, and that visitor came here
+       for this button, not for the checkboxes. Ghost, not primary — it must
+       not outshout Send. The href is the primary listing (covers the
+       YouTube+Netflix install); main.js retargets it per ?ext= slug. -->
 </main>
 ${footer(t, root)}
-<script>window.__EDITIONS = ${editionsMap};</script>`,
+<script>window.__EDITIONS = ${editionsMap};
+window.__UNINSTALL = ${scriptJSON({
+      i18n: {
+        sending: t('uninstall.sending'),
+        sent: t('uninstall.sent'),
+        failed: t('uninstall.failed'),
+        mailtoFallback: t('uninstall.mailtoFallback'),
+      },
+      maxBytes: LIMITS.MAX_FEEDBACK_TEXT_BYTES,
+      source: SITE_FEEDBACK_SOURCE,
+      // slug → listing for the reinstall button, hl= already baked in per
+      // locale. Only editions with a listing of their own: netflix shares
+      // the youtube URL and both are the static default anyway.
+      stores: Object.fromEntries(EDITIONS.editions
+        .filter((e) => e.storeUrl)
+        .map((e) => [e.slug, storeHref(e.storeUrl, lang)])),
+    })};</script>`,
   });
 };
 
