@@ -284,7 +284,7 @@
     "title": "Mrzí nás, že odchádzate — Lingogram",
     "description": "Povedzte nám, prečo ste Lingogram odinštalovali, aby sme to mohli opraviť.",
     "h1": "Mrzí nás, že odchádzate!",
-    "sub": "Mohli by ste si nájsť chvíľku a povedať nám, prečo ste odinštalovali {ext}:",
+    "sub": "Povedzte nám, v čom vás {ext} sklamal — pomôže nám to urobiť ho lepším.",
     "reason": {
       "subtitles": "Titulky sa nezobrazili",
       "translation": "Preklad bol nepresný alebo neprirodzený",
@@ -301,8 +301,7 @@
     "sent": "Ďakujeme — naozaj nám to pomáha.",
     "failed": "Odoslanie zlyhalo. Skúsiť znova?",
     "mailtoFallback": "pošlite to radšej e-mailom",
-    "skip": "Nie, ďakujem",
-    "bannerQ": "Nechceli ste ju odinštalovať?",
+    "bannerQ": "Odinštalovali ste ju omylom?",
     "bannerCta": "Preinštalovať"
   },
   "auth": {

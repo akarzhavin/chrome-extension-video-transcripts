@@ -282,7 +282,7 @@
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
     "h1": "Ikävä nähdä sinun lähtevän!",
-    "sub": "Voisitko hetken verran kertoa meille, miksi poistit {ext}:n käytöstä:",
+    "sub": "Kerro meille, missä {ext} jäi vajaaksi — se auttaa meitä parantamaan sitä.",
     "reason": {
       "subtitles": "Tekstitykset eivät näkyneet",
       "translation": "Käännös oli epätarkka tai luonnoton",
@@ -299,8 +299,7 @@
     "sent": "Kiitos — tästä on todella apua.",
     "failed": "Lähetys epäonnistui. Yritetäänkö uudelleen?",
     "mailtoFallback": "lähetä se sen sijaan sähköpostilla",
-    "skip": "Ei kiitos",
-    "bannerQ": "Etkö halunnut poistaa sitä?",
+    "bannerQ": "Poistitko sen vahingossa?",
     "bannerCta": "Asenna uudelleen"
   },
   "auth": {

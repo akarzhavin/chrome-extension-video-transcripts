@@ -281,7 +281,7 @@
     "title": "Gitmenize üzüldük — Lingogram",
     "description": "Lingogram'ı neden kaldırdığınızı söyleyin, düzeltebilelim.",
     "h1": "Gitmenize üzüldük!",
-    "sub": "Bir dakikanızı ayırıp {ext}'i neden kaldırdığınızı bize söyler misiniz:",
+    "sub": "{ext}'in nerede eksik kaldığını bize anlatın — bu, onu geliştirmemize yardımcı olur.",
     "reason": {
       "subtitles": "Altyazılar görünmedi",
       "translation": "Çeviri hatalı veya doğal değildi",
@@ -298,8 +298,7 @@
     "sent": "Teşekkürler — bu gerçekten işimize yarıyor.",
     "failed": "Gönderilemedi. Tekrar denensin mi?",
     "mailtoFallback": "bunun yerine e-postayla gönderin",
-    "skip": "Hayır, teşekkürler",
-    "bannerQ": "Kaldırmak istememiş miydiniz?",
+    "bannerQ": "Yanlışlıkla mı kaldırdınız?",
     "bannerCta": "Yeniden yükle"
   },
   "auth": {

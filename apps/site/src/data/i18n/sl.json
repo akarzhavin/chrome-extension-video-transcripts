@@ -284,7 +284,7 @@
     "title": "Škoda, da odhajate — Lingogram",
     "description": "Povejte nam, zakaj ste odstranili Lingogram, da lahko to popravimo.",
     "h1": "Škoda, da odhajate!",
-    "sub": "Bi si vzeli trenutek in nam povedali, zakaj ste odstranili {ext}:",
+    "sub": "Povejte nam, kje vas je {ext} razočaral — to nam pomaga, da ga izboljšamo.",
     "reason": {
       "subtitles": "Podnapisi se niso prikazali",
       "translation": "Prevod je bil netočen ali nenaraven",
@@ -301,8 +301,7 @@
     "sent": "Hvala — to nam res pomaga.",
     "failed": "Pošiljanje ni uspelo. Poskusite znova?",
     "mailtoFallback": "raje ga pošljite po e-pošti",
-    "skip": "Ne, hvala",
-    "bannerQ": "Niste je želeli odstraniti?",
+    "bannerQ": "Ste jo odstranili po pomoti?",
     "bannerCta": "Znova namesti"
   },
   "auth": {

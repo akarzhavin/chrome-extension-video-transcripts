@@ -281,7 +281,7 @@
     "title": "Sajnáljuk, hogy távozol — Lingogram",
     "description": "Mondd el, miért távolítottad el a Lingogramot, hogy javíthassunk rajta.",
     "h1": "Sajnáljuk, hogy távozol!",
-    "sub": "Szánnál egy percet, hogy elmondd, miért távolítottad el a(z) {ext}-t:",
+    "sub": "Mondd el, miben maradt el a(z) {ext} — ez segít nekünk jobbá tenni.",
     "reason": {
       "subtitles": "A feliratok nem jelentek meg",
       "translation": "A fordítás pontatlan vagy nem természetes volt",
@@ -298,8 +298,7 @@
     "sent": "Köszönjük — ez tényleg sokat segít.",
     "failed": "Nem sikerült elküldeni. Próbáljuk újra?",
     "mailtoFallback": "küldd el inkább e-mailben",
-    "skip": "Nem, köszönöm",
-    "bannerQ": "Nem akartad eltávolítani?",
+    "bannerQ": "Véletlenül távolítottad el?",
     "bannerCta": "Újratelepítés"
   },
   "auth": {

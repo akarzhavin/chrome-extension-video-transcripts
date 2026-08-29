@@ -281,7 +281,7 @@
     "title": "Nakakalungkot na aalis ka na — Lingogram",
     "description": "Sabihin mo sa amin kung bakit mo tinanggal ang Lingogram para maayos namin ito.",
     "h1": "Nakakalungkot na aalis ka na!",
-    "sub": "Puwede bang maglaan ka ng sandali at sabihin sa amin kung bakit mo tinanggal ang {ext}:",
+    "sub": "Sabihin mo sa amin kung saan kulang ang {ext} — makakatulong ito para mapaganda pa namin ito.",
     "reason": {
       "subtitles": "Hindi lumabas ang mga subtitle",
       "translation": "Mali o hindi natural ang pagsasalin",
@@ -298,8 +298,7 @@
     "sent": "Salamat — malaking tulong ito.",
     "failed": "Hindi naipadala. Subukan ulit?",
     "mailtoFallback": "ipadala na lang sa email",
-    "skip": "Hindi na po",
-    "bannerQ": "Ayaw mo bang i-uninstall?",
+    "bannerQ": "Aksidenteng na-uninstall?",
     "bannerCta": "I-install muli"
   },
   "auth": {

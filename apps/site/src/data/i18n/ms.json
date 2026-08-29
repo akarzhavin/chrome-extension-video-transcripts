@@ -281,7 +281,7 @@
     "title": "Sedih melihat anda pergi — Lingogram",
     "description": "Beritahu kami sebab anda mengalih keluar Lingogram supaya kami boleh memperbaikinya.",
     "h1": "Sedih melihat anda pergi!",
-    "sub": "Bolehkah anda luangkan sedikit masa untuk beritahu kami sebab anda mengalih keluar {ext}:",
+    "sub": "Beritahu kami di mana {ext} tidak memenuhi jangkaan anda — ini membantu kami menambah baiknya.",
     "reason": {
       "subtitles": "Sari kata tidak muncul",
       "translation": "Terjemahan tidak tepat atau janggal",
@@ -298,8 +298,7 @@
     "sent": "Terima kasih — ini sungguh membantu.",
     "failed": "Gagal menghantar. Cuba lagi?",
     "mailtoFallback": "hantar melalui e-mel sahaja",
-    "skip": "Tidak, terima kasih",
-    "bannerQ": "Tidak mahu alih keluar?",
+    "bannerQ": "Tidak sengaja alih keluar?",
     "bannerCta": "Pasang semula"
   },
   "auth": {

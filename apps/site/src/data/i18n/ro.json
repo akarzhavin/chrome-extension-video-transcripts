@@ -283,7 +283,7 @@
     "title": "Ne pare rău că pleci — Lingogram",
     "description": "Spune-ne de ce ai dezinstalat Lingogram, ca să putem repara.",
     "h1": "Ne pare rău că pleci!",
-    "sub": "Ai putea să-ți faci un moment liber și să ne spui de ce ai dezinstalat {ext}:",
+    "sub": "Spune-ne unde {ext} nu s-a ridicat la nivelul așteptărilor — ne ajută să o îmbunătățim.",
     "reason": {
       "subtitles": "Subtitrările nu au apărut",
       "translation": "Traducerea era imprecisă sau nenaturală",
@@ -300,8 +300,7 @@
     "sent": "Mulțumim — chiar ne ajută.",
     "failed": "Trimiterea a eșuat. Încerci din nou?",
     "mailtoFallback": "trimite-l mai bine prin email",
-    "skip": "Nu, mulțumesc",
-    "bannerQ": "N-ai vrut s-o dezinstalezi?",
+    "bannerQ": "Ai dezinstalat-o din greșeală?",
     "bannerCta": "Reinstalează acum"
   },
   "auth": {

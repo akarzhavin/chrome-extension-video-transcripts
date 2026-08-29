@@ -282,7 +282,7 @@
     "title": "Leit at du drar — Lingogram",
     "description": "Fortell oss hvorfor du fjernet Lingogram, så vi kan fikse det.",
     "h1": "Leit at du drar!",
-    "sub": "Kan du ta deg et øyeblikk til å fortelle oss hvorfor du avinstallerte {ext}:",
+    "sub": "Fortell oss hvor {ext} kom til kort — det hjelper oss å gjøre den bedre.",
     "reason": {
       "subtitles": "Undertekster dukket ikke opp",
       "translation": "Oversettelsen var unøyaktig eller unaturlig",
@@ -299,8 +299,7 @@
     "sent": "Takk — dette hjelper virkelig.",
     "failed": "Kunne ikke sende. Prøve igjen?",
     "mailtoFallback": "send det på e-post i stedet",
-    "skip": "Nei takk",
-    "bannerQ": "Ville du ikke avinstallere?",
+    "bannerQ": "Avinstallerte du ved et uhell?",
     "bannerCta": "Installer på nytt"
   },
   "auth": {

@@ -1313,8 +1313,6 @@ footer.site {
 /* .cta-row's display:flex outranks the hidden attribute's UA rule — same
    trap as .uni-opts below, third time on this page. */
 .uni-actions[hidden] { display: none; }
-.uni-skip { font-size: 14px; color: var(--muted); text-decoration: none; }
-.uni-skip:hover { color: var(--accent); text-decoration: underline; }
 
 .uni-status { margin: 14px 0 0; font-size: 15px; font-weight: 600; color: var(--muted); text-align: center; }
 .uni-status:empty { display: none; }

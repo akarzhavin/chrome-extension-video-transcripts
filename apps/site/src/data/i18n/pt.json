@@ -282,7 +282,7 @@
     "title": "É pena vê-lo partir — Lingogram",
     "description": "Diga-nos porque removeu o Lingogram para podermos corrigir isso.",
     "h1": "É pena vê-lo partir!",
-    "sub": "Importa-se de dedicar um momento a dizer-nos porque desinstalou o {ext}:",
+    "sub": "Diga-nos onde o {ext} ficou aquém — isso ajuda-nos a torná-lo melhor.",
     "reason": {
       "subtitles": "As legendas não apareceram",
       "translation": "A tradução era imprecisa ou pouco natural",
@@ -299,8 +299,7 @@
     "sent": "Obrigado — isto ajuda-nos mesmo.",
     "failed": "Não foi possível enviar. Tentar novamente?",
     "mailtoFallback": "envie por email em vez disso",
-    "skip": "Não, obrigado",
-    "bannerQ": "Não queria desinstalar?",
+    "bannerQ": "Desinstalou sem querer?",
     "bannerCta": "Reinstalar agora"
   },
   "auth": {

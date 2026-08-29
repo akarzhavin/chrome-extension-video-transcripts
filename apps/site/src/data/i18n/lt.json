@@ -283,7 +283,7 @@
     "title": "Gaila, kad išeinate — Lingogram",
     "description": "Papasakokite, kodėl pašalinote Lingogram, kad galėtume tai ištaisyti.",
     "h1": "Gaila, kad išeinate!",
-    "sub": "Ar galėtumėte skirti minutę ir pasakyti, kodėl pašalinote {ext}:",
+    "sub": "Pasakykite, kur {ext} nepateisino lūkesčių — tai padeda mums ją patobulinti.",
     "reason": {
       "subtitles": "Subtitrai neatsirado",
       "translation": "Vertimas buvo netikslus arba nenatūralus",
@@ -300,8 +300,7 @@
     "sent": "Ačiū — tai mums tikrai padeda.",
     "failed": "Nepavyko išsiųsti. Bandyti dar kartą?",
     "mailtoFallback": "geriau atsiųskite el. paštu",
-    "skip": "Ne, ačiū",
-    "bannerQ": "Nenorėjote pašalinti?",
+    "bannerQ": "Pašalinote netyčia?",
     "bannerCta": "Įdiegti iš naujo"
   },
   "auth": {

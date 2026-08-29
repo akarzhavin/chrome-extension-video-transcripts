@@ -281,7 +281,7 @@
     "title": "Rất tiếc khi bạn rời đi — Lingogram",
     "description": "Hãy cho chúng tôi biết vì sao bạn gỡ Lingogram để chúng tôi có thể khắc phục.",
     "h1": "Rất tiếc khi bạn rời đi!",
-    "sub": "Bạn có thể dành chút thời gian cho chúng tôi biết vì sao bạn đã gỡ {ext} không:",
+    "sub": "Hãy cho chúng tôi biết {ext} còn thiếu sót ở đâu — điều đó giúp chúng tôi cải thiện nó.",
     "reason": {
       "subtitles": "Phụ đề không hiện ra",
       "translation": "Bản dịch không chính xác hoặc thiếu tự nhiên",
@@ -298,8 +298,7 @@
     "sent": "Cảm ơn bạn — điều này thực sự hữu ích.",
     "failed": "Gửi không thành công. Thử lại nhé?",
     "mailtoFallback": "gửi qua email thay vào đó",
-    "skip": "Không, cảm ơn",
-    "bannerQ": "Bạn không muốn gỡ cài đặt?",
+    "bannerQ": "Vô tình gỡ cài đặt?",
     "bannerCta": "Cài đặt lại"
   },
   "auth": {

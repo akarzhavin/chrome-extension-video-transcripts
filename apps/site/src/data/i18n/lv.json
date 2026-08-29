@@ -283,7 +283,7 @@
     "title": "Žēl, ka aizej — Lingogram",
     "description": "Pastāsti, kāpēc noņēmi Lingogram, lai mēs varētu to uzlabot.",
     "h1": "Žēl, ka aizej!",
-    "sub": "Vai varētu veltīt mirkli un pastāstīt, kāpēc atinstalēji {ext}:",
+    "sub": "Pastāsti, kur {ext} nepiepildīja cerības — tas palīdz mums to uzlabot.",
     "reason": {
       "subtitles": "Subtitri neparādījās",
       "translation": "Tulkojums bija neprecīzs vai nedabisks",
@@ -300,8 +300,7 @@
     "sent": "Paldies — tas tiešām palīdz.",
     "failed": "Neizdevās nosūtīt. Mēģināt vēlreiz?",
     "mailtoFallback": "sūti to pa e-pastu",
-    "skip": "Nē, paldies",
-    "bannerQ": "Negribēji atinstalēt?",
+    "bannerQ": "Atinstalēji nejauši?",
     "bannerCta": "Instalēt vēlreiz"
   },
   "auth": {

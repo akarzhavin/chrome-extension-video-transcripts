@@ -282,7 +282,7 @@
     "title": "Kahju, et lahkud — Lingogram",
     "description": "Räägi meile, miks Lingogrami eemaldasid, et saaksime seda parandada.",
     "h1": "Kahju, et lahkud!",
-    "sub": "Kas leiad hetke, et öelda meile, miks sa {ext} eemaldasid:",
+    "sub": "Anna teada, mis sind {ext} juures pettumust valmistas — see aitab meil seda paremaks muuta.",
     "reason": {
       "subtitles": "Subtiitrid ei ilmunud",
       "translation": "Tõlge oli ebatäpne või ebaloomulik",
@@ -299,7 +299,6 @@
     "sent": "Aitäh — sellest on tõesti abi.",
     "failed": "Ei õnnestunud saata. Proovid uuesti?",
     "mailtoFallback": "saada see hoopis e-kirjaga",
-    "skip": "Ei, aitäh",
     "bannerQ": "Kas eemaldasid kogemata?",
     "bannerCta": "Paigalda uuesti"
   },

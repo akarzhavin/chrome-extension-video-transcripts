@@ -282,7 +282,7 @@
     "title": "Schade, dass Sie gehen — Lingogram",
     "description": "Sagen Sie uns, warum Sie Lingogram entfernt haben, damit wir es verbessern können.",
     "h1": "Schade, dass Sie gehen!",
-    "sub": "Könnten Sie sich kurz Zeit nehmen und uns sagen, warum Sie {ext} deinstalliert haben:",
+    "sub": "Sagen Sie uns, woran {ext} bei Ihnen gescheitert ist — das hilft uns, sie zu verbessern.",
     "reason": {
       "subtitles": "Untertitel fehlten",
       "translation": "Die Übersetzung war ungenau oder unnatürlich",
@@ -299,8 +299,7 @@
     "sent": "Danke — das hilft uns wirklich.",
     "failed": "Senden fehlgeschlagen. Erneut versuchen?",
     "mailtoFallback": "stattdessen per E-Mail senden",
-    "skip": "Nein danke",
-    "bannerQ": "Wollten Sie das nicht deinstallieren?",
+    "bannerQ": "Versehentlich deinstalliert?",
     "bannerCta": "Erneut installieren"
   },
   "auth": {

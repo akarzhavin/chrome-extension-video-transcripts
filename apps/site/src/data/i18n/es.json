@@ -282,7 +282,7 @@
     "title": "Lamentamos verte partir — Lingogram",
     "description": "Cuéntanos por qué desinstalaste Lingogram para que podamos mejorarlo.",
     "h1": "¡Lamentamos verte partir!",
-    "sub": "¿Te importaría dedicar un momento a contarnos por qué desinstalaste {ext}:",
+    "sub": "Cuéntanos en qué falló {ext} — nos ayuda a mejorarla.",
     "reason": {
       "subtitles": "Los subtítulos no aparecieron",
       "translation": "La traducción era imprecisa o poco natural",
@@ -299,8 +299,7 @@
     "sent": "Gracias — esto nos ayuda de verdad.",
     "failed": "No se pudo enviar. ¿Intentar de nuevo?",
     "mailtoFallback": "envíalo por correo en su lugar",
-    "skip": "No, gracias",
-    "bannerQ": "¿No querías desinstalarla?",
+    "bannerQ": "¿La desinstalaste por accidente?",
     "bannerCta": "Reinstalar ahora"
   },
   "auth": {

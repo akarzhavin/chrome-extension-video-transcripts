@@ -283,7 +283,7 @@
     "title": "Žao nam je što odlazite — Lingogram",
     "description": "Recite nam zašto ste uklonili Lingogram kako bismo to popravili.",
     "h1": "Žao nam je što odlazite!",
-    "sub": "Možete li izdvojiti trenutak i reći nam zašto ste deinstalirali {ext}:",
+    "sub": "Recite nam gdje vas je {ext} iznevjerio — to nam pomaže da ga poboljšamo.",
     "reason": {
       "subtitles": "Titlovi se nisu pojavili",
       "translation": "Prijevod je bio netočan ili neprirodan",
@@ -300,8 +300,7 @@
     "sent": "Hvala — ovo nam stvarno pomaže.",
     "failed": "Slanje nije uspjelo. Pokušati ponovno?",
     "mailtoFallback": "pošaljite to putem e-pošte",
-    "skip": "Ne, hvala",
-    "bannerQ": "Niste željeli deinstalirati?",
+    "bannerQ": "Slučajno deinstalirano?",
     "bannerCta": "Ponovno instaliraj"
   },
   "auth": {

@@ -43,15 +43,13 @@ function pageHTML(): string {
   <a class="uni-banner-cta" data-reinstall href="https://store.example/primary?hl=ru">Reinstall now</a>
 </div>
 <main class="narrow uni">
-  <form id="feedback-form" class="uni-card" data-mailto="team@example.com"
-        action="mailto:team@example.com" method="post" enctype="text/plain">
+  <form id="feedback-form" class="uni-card" data-mailto="team@example.com">
     <fieldset class="uni-opts">
       <legend class="uni-legend">Why did you uninstall?</legend>${options}
     </fieldset>
     <textarea id="feedback-text" name="details" rows="3"></textarea>
     <div class="cta-row uni-actions">
       <button class="btn btn-primary" type="submit">Send</button>
-      <a class="uni-skip" href="/">No thanks</a>
     </div>
     <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>

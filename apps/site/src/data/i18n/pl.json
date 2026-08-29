@@ -284,7 +284,7 @@
     "title": "Szkoda, że odchodzisz — Lingogram",
     "description": "Powiedz nam, dlaczego usunąłeś Lingogram, abyśmy mogli to naprawić.",
     "h1": "Szkoda, że odchodzisz!",
-    "sub": "Czy możesz poświęcić chwilę i powiedzieć nam, dlaczego odinstalowałeś {ext}:",
+    "sub": "Powiedz nam, w czym {ext} zawiódł Twoje oczekiwania — to pomaga nam go ulepszać.",
     "reason": {
       "subtitles": "Napisy się nie pojawiły",
       "translation": "Tłumaczenie było niedokładne lub nienaturalne",
@@ -301,8 +301,7 @@
     "sent": "Dziękujemy — to naprawdę pomaga.",
     "failed": "Nie udało się wysłać. Spróbować ponownie?",
     "mailtoFallback": "wyślij to zamiast tego e-mailem",
-    "skip": "Nie, dziękuję",
-    "bannerQ": "Nie chciałeś jej odinstalować?",
+    "bannerQ": "Odinstalowano przez przypadek?",
     "bannerCta": "Zainstaluj ponownie"
   },
   "auth": {

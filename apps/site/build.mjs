@@ -1424,25 +1424,28 @@ const uninstallPage = (locale, hrefLang) => {
     scripts: `<script src="/auth-config.js?v=${BUST}" defer></script>
 <script src="/main.js?v=${BUST}" defer></script>`,
     body: `
-<!-- Above the site header, not inside the page: a share of uninstalls are
-     accidental or regretted within the minute, and that visitor wants one
-     thing only. A strip at the very top is the one place they cannot scroll
-     past. main.js retargets the href from the ?ext= slug. -->
-<div class="uni-banner">
-  <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
-  <a class="uni-banner-cta" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
-</div>
 ${header(t, root)}
 <main class="narrow uni">
+  <!-- Ahead of the headline, because a share of uninstalls are accidental or
+       regretted within the minute and that visitor wants one thing only —
+       they should meet the way back before they are asked to explain
+       themselves. main.js retargets the href from the ?ext= slug. -->
+  <div class="uni-banner">
+    <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
+    <a class="uni-banner-cta" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
+  </div>
+
   <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
   <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
 
-  <!-- action/method are the no-JS path and nothing else: with scripting on,
-       the submit handler preventDefaults and posts to Firestore instead. A
-       checkbox form degrades to mailto cleanly, so there is no <noscript>
-       override to maintain any more. -->
-  <form id="feedback-form" class="uni-card" data-mailto="${SITE.supportEmail}"
-        action="mailto:${SITE.supportEmail}" method="post" enctype="text/plain">
+  <!-- No action/method. It used to carry a mailto: target as a no-JS fallback,
+       but Chrome does not act on a mailto form POST at all — verified with
+       scripting disabled — so it bought nothing, while a non-HTTPS form
+       target on an HTTPS page made Chrome flag the form as insecure and
+       switch autofill off, with a red warning over the textarea. The address
+       survives in data-mailto, which is what every fallback path here
+       actually reads. -->
+  <form id="feedback-form" class="uni-card" data-mailto="${SITE.supportEmail}">
     <fieldset class="uni-opts">
       <legend class="uni-legend">${esc(t('uninstall.ariaLabel'))}</legend>${options}
     </fieldset>
@@ -1453,7 +1456,6 @@ ${header(t, root)}
 
     <div class="cta-row uni-actions">
       <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
-      <a class="uni-skip" href="${root}/">${esc(t('uninstall.skip'))}</a>
     </div>
 
     <!-- Last in the form, after the control that produces it: a live region
