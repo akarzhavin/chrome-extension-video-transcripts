@@ -1216,20 +1216,32 @@ footer.site {
 .keys kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 1px 6px; }
 
 /* ---------- /uninstall/ feedback ---------- */
-/* An ordinary form, styled like one. The options are a left-aligned column
-   rather than a centred ragged wrap: this is a list to read down and tick, and
-   six labels of very different lengths across 41 locales never make a tidy
-   centred block anyway. The page's own text stays centred around it. */
+/* The form is a card in the same visual language as .auth-card: panel on
+   ground, one border, the shared shadow token. The card is what keeps the
+   page straight — options, textarea and button all inherit one left edge
+   from it instead of each centring itself against a different width. */
 .uni-h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.03em; }
 
+/* The same accent aura the auth pages hang behind their card, kept inside
+   the .narrow column (left/right 0) so a 390px phone gets no sideways
+   scrollbar out of it. */
+.uni { position: relative; }
+.uni::before {
+  content: ""; position: absolute; inset: -20px 0 auto; height: 480px;
+  z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 55% at 50% 12%, var(--accent-soft) 0%, transparent 65%);
+}
+
+.uni-card {
+  margin: 30px auto 0; max-width: 520px; text-align: left;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 20px; box-shadow: var(--shadow);
+  padding: 12px 14px 18px;
+}
+
 .uni-opts {
-  margin: 28px 0 0; padding: 0; border: 0;
-  display: flex; flex-direction: column; gap: 2px; text-align: left;
-  /* Shrink-wrapped and centred as a block, so the boxes sit beside their
-     labels instead of at the far edge of a 640px container. The rows still
-     grow their own hit area; it is the COLUMN that stops being full-bleed. */
-  align-items: flex-start; width: fit-content; max-width: 100%;
-  margin-inline: auto;
+  margin: 0; padding: 0; border: 0;
+  display: flex; flex-direction: column; gap: 2px;
 }
 /* Any `display` above outranks the hidden attribute's UA display:none, so the
    success path's opts.hidden would leave the whole list on screen under a
@@ -1248,8 +1260,8 @@ footer.site {
 /* The whole row is the hit target, not just the box: a 15px square is a miss
    waiting to happen on a phone. */
 .uni-opt {
-  display: flex; align-items: flex-start; gap: 12px; align-self: stretch;
-  padding: 11px 12px; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 10px; border-radius: 10px; cursor: pointer;
   font-size: 15.5px; line-height: 1.35;
   transition: background .15s;
 }
@@ -1282,16 +1294,38 @@ footer.site {
 }
 .uni-opt-label { flex: 1; }
 
-.uni .narrow textarea, .uni textarea { text-align: left; }
-.uni-actions { margin-top: 16px; }
-.uni-skip { font-size: 14.5px; color: var(--muted); text-decoration: none; }
+/* Recessed against the card the way inputs sit inside .auth-card: ground
+   under panel reads as "type here", panel-on-panel read as a printing error
+   — the crookedness this redesign was asked to fix. */
+.uni-card textarea {
+  margin-top: 12px; min-height: 96px; background: var(--ground);
+  text-align: left;
+}
+.uni-card textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.uni-card textarea[hidden] { display: none; }
+
+/* Stacked like .auth-submit + .auth-alt, not a side-by-side pair: a
+   full-width primary and a quiet centred escape line under it keep the card
+   symmetric at every locale's button-label length. */
+.uni-actions { margin-top: 14px; flex-direction: column; gap: 12px; }
+.uni-actions .btn { width: 100%; padding: 12px 24px; font-size: 15.5px; }
+.uni-actions .btn:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
+/* .cta-row's display:flex outranks the hidden attribute's UA rule — same
+   trap as .uni-opts below, third time on this page. */
+.uni-actions[hidden] { display: none; }
+.uni-skip { font-size: 14px; color: var(--muted); text-decoration: none; }
 .uni-skip:hover { color: var(--accent); text-decoration: underline; }
 
-.uni-status { margin: 16px 0 0; font-size: 15px; font-weight: 600; min-height: 1.4em; color: var(--muted); }
+.uni-status { margin: 14px 0 0; font-size: 15px; font-weight: 600; color: var(--muted); text-align: center; }
+.uni-status:empty { display: none; }
 .uni-status-ok { color: var(--teal-deep); }
 .uni-status-err { color: #d13b3b; }
 .uni-status-err a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.uni-foot { margin-top: 34px; font-size: 15px; }
+/* Invite + button read as one unit: the line leads, the button answers it,
+   and the tight 10px gap keeps them apart from the dictionary footnote. */
+.uni-invite { margin: 24px 0 0; font-size: 15px; color: var(--muted); }
+.uni-reinstall { margin-top: 10px; }
+.uni-reinstall .btn { padding: 11px 22px; font-size: 15px; }
 
 @media (prefers-reduced-motion: reduce) {
   .uni-opt, .uni-opt-box, .uni-opt-box svg { transition: none; }

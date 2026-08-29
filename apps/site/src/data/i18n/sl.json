@@ -284,12 +284,13 @@
     "title": "Škoda, da odhajate — Lingogram",
     "description": "Povejte nam, zakaj ste odstranili Lingogram, da lahko to popravimo.",
     "h1": "Škoda, da odhajate",
-    "sub": "Bi si vzeli trenutek in nam povedali, zakaj ste odstranili {ext}? To nam pove, kaj popraviti naslednjič.",
+    "sub": "Povejte nam, kje vas je {ext} razočaral — to nam pomaga, da ga izboljšamo.",
     "reason": {
       "subtitles": "Podnapisi se niso prikazali",
-      "translation": "Prevod je bil napačen ali okoren",
-      "setup": "Prezapleteno za nastavitev",
-      "expected": "Ni bilo, kar sem pričakoval",
+      "translation": "Prevod je bil netočen ali nenaraven",
+      "confusing": "Ni bilo jasno, kako to uporabljati",
+      "vocab": "Premalo orodij za učenje shranjenih besed",
+      "expected": "Ni bilo iskano",
       "oneoff": "Potreboval sem ga le za en video",
       "other": "Nekaj drugega"
     },
@@ -301,10 +302,8 @@
     "failed": "Pošiljanje ni uspelo. Poskusite znova?",
     "mailtoFallback": "raje ga pošljite po e-pošti",
     "skip": "Ne, hvala",
-    "footPrefix": "Vaše shranjene besede so še vedno v",
-    "footLink": "vašem slovarju",
-    "footMid": "— čakale bodo, če se vrnete.",
-    "reinstall": "Znova namestite kadar koli."
+    "reinstall": "Znova namestite kadar koli.",
+    "reinstallNote": "Veseli bomo, če se spet vrnete"
   },
   "auth": {
     "or": "ali",

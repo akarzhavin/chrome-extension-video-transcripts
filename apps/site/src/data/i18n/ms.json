@@ -281,12 +281,13 @@
     "title": "Sedih melihat anda pergi — Lingogram",
     "description": "Beritahu kami sebab anda mengalih keluar Lingogram supaya kami boleh memperbaikinya.",
     "h1": "Sedih melihat anda pergi",
-    "sub": "Bolehkah anda luangkan sedikit masa untuk beritahu kami sebab anda mengalih keluar {ext}? Itulah yang menunjukkan apa yang perlu diperbaiki seterusnya.",
+    "sub": "Beritahu kami di mana {ext} tidak memenuhi jangkaan anda — ini membantu kami menambah baiknya.",
     "reason": {
       "subtitles": "Sari kata tidak muncul",
-      "translation": "Terjemahan salah atau janggal",
-      "setup": "Terlalu rumit untuk disediakan",
-      "expected": "Bukan seperti yang disangka",
+      "translation": "Terjemahan tidak tepat atau janggal",
+      "confusing": "Tidak jelas cara menggunakannya",
+      "vocab": "Alat yang tidak mencukupi untuk belajar perkataan tersimpan",
+      "expected": "Bukan yang dicari",
       "oneoff": "Hanya perlu untuk satu video",
       "other": "Sebab lain"
     },
@@ -298,10 +299,8 @@
     "failed": "Gagal menghantar. Cuba lagi?",
     "mailtoFallback": "hantar melalui e-mel sahaja",
     "skip": "Tidak, terima kasih",
-    "footPrefix": "Perkataan simpanan anda masih ada di",
-    "footLink": "kamus anda",
-    "footMid": "— ia akan menunggu jika anda kembali.",
-    "reinstall": "Pasang semula pada bila-bila masa."
+    "reinstall": "Pasang semula pada bila-bila masa.",
+    "reinstallNote": "Kami akan gembira melihat anda kembali"
   },
   "auth": {
     "or": "atau",

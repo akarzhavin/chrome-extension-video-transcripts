@@ -281,12 +281,13 @@
     "title": "Gitmenize üzüldük — Lingogram",
     "description": "Lingogram'ı neden kaldırdığınızı söyleyin, düzeltebilelim.",
     "h1": "Gitmenize üzüldük",
-    "sub": "{ext}'i neden kaldırdığınızı bize anlatmak için birkaç dakikanızı ayırır mısınız? Bu, bir sonraki neyi düzelteceğimizi bize gösteriyor.",
+    "sub": "{ext}'in nerede eksik kaldığını bize anlatın — bu, onu geliştirmemize yardımcı olur.",
     "reason": {
       "subtitles": "Altyazılar görünmedi",
-      "translation": "Çeviri yanlış veya beceriksizdi",
-      "setup": "Kurulumu çok uğraştırıcıydı",
-      "expected": "Beklediğim gibi değildi",
+      "translation": "Çeviri hatalı veya doğal değildi",
+      "confusing": "Nasıl kullanılacağı belli değildi",
+      "vocab": "Kaydedilen kelimeleri öğrenmek için yeterli araç yoktu",
+      "expected": "Aranan şey bu değildi",
       "oneoff": "Sadece tek bir video için gerekiyordu",
       "other": "Başka bir şey"
     },
@@ -298,10 +299,8 @@
     "failed": "Gönderilemedi. Tekrar denensin mi?",
     "mailtoFallback": "bunun yerine e-postayla gönderin",
     "skip": "Hayır, teşekkürler",
-    "footPrefix": "Kaydettiğiniz kelimeler hâlâ",
-    "footLink": "sözlüğünüzde",
-    "footMid": "— geri dönerseniz sizi bekliyor olacaklar.",
-    "reinstall": "İstediğiniz zaman yeniden kurabilirsiniz."
+    "reinstall": "İstediğiniz zaman yeniden kurabilirsiniz.",
+    "reinstallNote": "Sizi tekrar görmekten mutluluk duyarız"
   },
   "auth": {
     "or": "veya",

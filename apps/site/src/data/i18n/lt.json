@@ -283,12 +283,13 @@
     "title": "Gaila, kad išeinate — Lingogram",
     "description": "Papasakokite, kodėl pašalinote Lingogram, kad galėtume tai ištaisyti.",
     "h1": "Gaila, kad išeinate",
-    "sub": "Ar galėtumėte skirti minutę ir pasakyti, kodėl pašalinote {ext}? Tai parodo mums, ką taisyti toliau.",
+    "sub": "Pasakykite, kur {ext} nepateisino lūkesčių — tai padeda mums ją patobulinti.",
     "reason": {
       "subtitles": "Subtitrai neatsirado",
-      "translation": "Vertimas buvo klaidingas arba nevykęs",
-      "setup": "Per daug sudėtinga nustatyti",
-      "expected": "Ne tai, ko tikėjausi",
+      "translation": "Vertimas buvo netikslus arba nenatūralus",
+      "confusing": "Nebuvo aišku, kaip tuo naudotis",
+      "vocab": "Trūko įrankių išsaugotiems žodžiams mokytis",
+      "expected": "Tai ne tai, kas buvo ieškoma",
       "oneoff": "Reikėjo tik vienam video",
       "other": "Kažkas kita"
     },
@@ -300,10 +301,8 @@
     "failed": "Nepavyko išsiųsti. Bandyti dar kartą?",
     "mailtoFallback": "geriau atsiųskite el. paštu",
     "skip": "Ne, ačiū",
-    "footPrefix": "Jūsų išsaugoti žodžiai vis dar",
-    "footLink": "jūsų žodyne",
-    "footMid": "— jie lauks jūsų, jei sugrįšite.",
-    "reinstall": "Įdiekite iš naujo bet kada."
+    "reinstall": "Įdiekite iš naujo bet kada.",
+    "reinstallNote": "Būtume labai malonu jus vėl pamatyti"
   },
   "auth": {
     "or": "arba",

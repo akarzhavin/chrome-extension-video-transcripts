@@ -282,12 +282,13 @@
     "title": "Schade, dass Sie gehen — Lingogram",
     "description": "Sagen Sie uns, warum Sie Lingogram entfernt haben, damit wir es verbessern können.",
     "h1": "Schade, dass Sie gehen",
-    "sub": "Würden Sie sich kurz Zeit nehmen und uns sagen, warum Sie {ext} entfernt haben? Das zeigt uns, was als Nächstes zu reparieren ist.",
+    "sub": "Sagen Sie uns, woran {ext} bei Ihnen gescheitert ist — das hilft uns, sie zu verbessern.",
     "reason": {
       "subtitles": "Untertitel fehlten",
-      "translation": "Die Übersetzung war falsch oder holprig",
-      "setup": "Einrichtung war zu umständlich",
-      "expected": "Nicht wie erwartet",
+      "translation": "Die Übersetzung war ungenau oder unnatürlich",
+      "confusing": "Unklar, wie man es benutzt",
+      "vocab": "Zu wenig Werkzeuge zum Lernen gespeicherter Wörter",
+      "expected": "Nicht das Gesuchte",
       "oneoff": "Ich brauchte es nur für ein Video",
       "other": "Etwas anderes"
     },
@@ -299,10 +300,8 @@
     "failed": "Senden fehlgeschlagen. Erneut versuchen?",
     "mailtoFallback": "stattdessen per E-Mail senden",
     "skip": "Nein danke",
-    "footPrefix": "Ihre gespeicherten Wörter sind weiterhin in",
-    "footLink": "Ihrem Wörterbuch",
-    "footMid": "— sie warten dort auf Sie, falls Sie zurückkommen.",
-    "reinstall": "Jederzeit neu installierbar."
+    "reinstall": "Jederzeit neu installierbar.",
+    "reinstallNote": "Wir würden uns freuen, Sie wiederzusehen"
   },
   "auth": {
     "or": "oder",

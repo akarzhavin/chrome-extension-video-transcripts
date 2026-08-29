@@ -281,12 +281,13 @@
     "title": "Nakakalungkot na aalis ka na — Lingogram",
     "description": "Sabihin mo sa amin kung bakit mo tinanggal ang Lingogram para maayos namin ito.",
     "h1": "Nakakalungkot na aalis ka na",
-    "sub": "Pwede ba naming hingin ang konting oras mo para sabihin kung bakit mo tinanggal ang {ext}? Iyon ang magpapakita sa amin kung ano ang aayusin susunod.",
+    "sub": "Sabihin mo sa amin kung saan kulang ang {ext} — makakatulong ito para mapaganda pa namin ito.",
     "reason": {
       "subtitles": "Hindi lumabas ang mga subtitle",
-      "translation": "Mali o pasakit ang pagsasalin",
-      "setup": "Nakakahirap i-set up",
-      "expected": "Hindi ito ang inasahan ko",
+      "translation": "Mali o hindi natural ang pagsasalin",
+      "confusing": "Hindi malinaw kung paano ito gagamitin",
+      "vocab": "Kulang ang mga tool para sa pag-aaral ng mga naka-save na salita",
+      "expected": "Hindi ito ang hinahanap",
       "oneoff": "Isang video lang naman ang kailangan ko nito",
       "other": "Iba pang dahilan"
     },
@@ -298,10 +299,8 @@
     "failed": "Hindi naipadala. Subukan ulit?",
     "mailtoFallback": "ipadala na lang sa email",
     "skip": "Hindi na po",
-    "footPrefix": "Nasa",
-    "footLink": "iyong diksyunaryo",
-    "footMid": "pa rin ang mga na-save mong salita — maghihintay sila kung babalik ka.",
-    "reinstall": "Mag-reinstall anumang oras."
+    "reinstall": "Mag-reinstall anumang oras.",
+    "reinstallNote": "Masaya kaming makita kang bumalik"
   },
   "auth": {
     "or": "o",

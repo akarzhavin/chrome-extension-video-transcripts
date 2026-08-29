@@ -282,12 +282,13 @@
     "title": "Lamentamos verte partir — Lingogram",
     "description": "Cuéntanos por qué desinstalaste Lingogram para que podamos mejorarlo.",
     "h1": "Lamentamos verte partir",
-    "sub": "¿Te importaría contarnos por qué desinstalaste {ext}? Eso es lo que nos muestra qué arreglar después.",
+    "sub": "Cuéntanos en qué falló {ext} — nos ayuda a mejorarla.",
     "reason": {
       "subtitles": "Los subtítulos no aparecieron",
-      "translation": "La traducción era incorrecta o torpe",
-      "setup": "Configuración muy complicada",
-      "expected": "No era lo que esperaba",
+      "translation": "La traducción era imprecisa o poco natural",
+      "confusing": "No quedaba claro cómo usarlo",
+      "vocab": "Herramientas insuficientes para aprender palabras guardadas",
+      "expected": "No era lo que se buscaba",
       "oneoff": "Solo lo necesitaba para un vídeo",
       "other": "Otra cosa"
     },
@@ -299,10 +300,8 @@
     "failed": "No se pudo enviar. ¿Intentar de nuevo?",
     "mailtoFallback": "envíalo por correo en su lugar",
     "skip": "No, gracias",
-    "footPrefix": "Tus palabras guardadas siguen en",
-    "footLink": "tu diccionario",
-    "footMid": "— te estarán esperando si vuelves.",
-    "reinstall": "Reinstala cuando quieras."
+    "reinstall": "Reinstala cuando quieras.",
+    "reinstallNote": "Nos encantaría volver a verte"
   },
   "auth": {
     "or": "o",

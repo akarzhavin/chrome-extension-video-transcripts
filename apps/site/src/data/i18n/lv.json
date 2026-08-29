@@ -283,12 +283,13 @@
     "title": "Žēl, ka aizej — Lingogram",
     "description": "Pastāsti, kāpēc noņēmi Lingogram, lai mēs varētu to uzlabot.",
     "h1": "Žēl, ka aizej",
-    "sub": "Vai varētu veltīt mirkli un pastāstīt, kāpēc noņēmi {ext}? Tas parāda mums, ko labot nākamreiz.",
+    "sub": "Pastāsti, kur {ext} nepiepildīja cerības — tas palīdz mums to uzlabot.",
     "reason": {
       "subtitles": "Subtitri neparādījās",
-      "translation": "Tulkojums bija nepareizs vai neveikls",
-      "setup": "Pārāk sarežģīti iestatīt",
-      "expected": "Ne tas, ko gaidīju",
+      "translation": "Tulkojums bija neprecīzs vai nedabisks",
+      "confusing": "Nebija skaidrs, kā to lietot",
+      "vocab": "Par maz rīku saglabāto vārdu apguvei",
+      "expected": "Netika atrasts meklētais",
       "oneoff": "Vajadzēja to tikai vienam video",
       "other": "Kaut kas cits"
     },
@@ -300,10 +301,8 @@
     "failed": "Neizdevās nosūtīt. Mēģināt vēlreiz?",
     "mailtoFallback": "sūti to pa e-pastu",
     "skip": "Nē, paldies",
-    "footPrefix": "Tavi saglabātie vārdi joprojām ir",
-    "footLink": "tavā vārdnīcā",
-    "footMid": "— tie gaidīs tevi, ja atgriezīsies.",
-    "reinstall": "Instalē no jauna jebkurā laikā."
+    "reinstall": "Instalē no jauna jebkurā laikā.",
+    "reinstallNote": "Priecāsimies tevi atkal redzēt"
   },
   "auth": {
     "or": "vai",

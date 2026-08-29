@@ -284,12 +284,13 @@
     "title": "Mrzí nás, že odchádzate — Lingogram",
     "description": "Povedzte nám, prečo ste Lingogram odinštalovali, aby sme to mohli opraviť.",
     "h1": "Mrzí nás, že odchádzate",
-    "sub": "Nevadilo by vám venovať chvíľu a povedať nám, prečo ste odinštalovali {ext}? Vďaka tomu vieme, čo opraviť ďalej.",
+    "sub": "Povedzte nám, v čom vás {ext} sklamal — pomôže nám to urobiť ho lepším.",
     "reason": {
       "subtitles": "Titulky sa nezobrazili",
-      "translation": "Preklad bol nesprávny alebo neohrabaný",
-      "setup": "Nastavenie bolo príliš zložité",
-      "expected": "Nebolo to, čo som čakal",
+      "translation": "Preklad bol nepresný alebo neprirodzený",
+      "confusing": "Nebolo jasné, ako to používať",
+      "vocab": "Nedostatok nástrojov na učenie uložených slov",
+      "expected": "Nezodpovedalo to hľadanému",
       "oneoff": "Potreboval som ho len na jedno video",
       "other": "Niečo iné"
     },
@@ -301,10 +302,8 @@
     "failed": "Odoslanie zlyhalo. Skúsiť znova?",
     "mailtoFallback": "pošlite to radšej e-mailom",
     "skip": "Nie, ďakujem",
-    "footPrefix": "Vaše uložené slová sú stále vo",
-    "footLink": "vašom slovníku",
-    "footMid": "— budú na vás čakať, ak sa vrátite.",
-    "reinstall": "Kedykoľvek si to môžete znova nainštalovať."
+    "reinstall": "Kedykoľvek si to môžete znova nainštalovať.",
+    "reinstallNote": "Radi vás opäť uvidíme"
   },
   "auth": {
     "or": "alebo",

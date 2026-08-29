@@ -282,12 +282,13 @@
     "title": "Leit at du drar — Lingogram",
     "description": "Fortell oss hvorfor du fjernet Lingogram, så vi kan fikse det.",
     "h1": "Leit at du drar",
-    "sub": "Har du et øyeblikk til å fortelle oss hvorfor du fjernet {ext}? Det viser oss hva vi skal fikse videre.",
+    "sub": "Fortell oss hvor {ext} kom til kort — det hjelper oss å gjøre den bedre.",
     "reason": {
       "subtitles": "Undertekster dukket ikke opp",
-      "translation": "Oversettelsen var feil eller klønete",
-      "setup": "For krøkete å sette opp",
-      "expected": "Ikke det jeg forventet",
+      "translation": "Oversettelsen var unøyaktig eller unaturlig",
+      "confusing": "Det var uklart hvordan man skulle bruke det",
+      "vocab": "For få verktøy for å lære lagrede ord",
+      "expected": "Ikke det som ble søkt etter",
       "oneoff": "Trengte det bare til én video",
       "other": "Noe annet"
     },
@@ -299,10 +300,8 @@
     "failed": "Kunne ikke sende. Prøve igjen?",
     "mailtoFallback": "send det på e-post i stedet",
     "skip": "Nei takk",
-    "footPrefix": "De lagrede ordene dine ligger fortsatt i",
-    "footLink": "ordboken din",
-    "footMid": "— de venter på deg hvis du kommer tilbake.",
-    "reinstall": "Installer på nytt når som helst."
+    "reinstall": "Installer på nytt når som helst.",
+    "reinstallNote": "Vi blir så glade for å se deg igjen"
   },
   "auth": {
     "or": "eller",

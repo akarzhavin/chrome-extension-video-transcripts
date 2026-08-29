@@ -281,12 +281,13 @@
     "title": "Rất tiếc khi bạn rời đi — Lingogram",
     "description": "Hãy cho chúng tôi biết vì sao bạn gỡ Lingogram để chúng tôi có thể khắc phục.",
     "h1": "Rất tiếc khi bạn rời đi",
-    "sub": "Bạn có thể dành chút thời gian cho chúng tôi biết vì sao bạn gỡ {ext} không? Điều đó giúp chúng tôi biết nên sửa gì tiếp theo.",
+    "sub": "Hãy cho chúng tôi biết {ext} còn thiếu sót ở đâu — điều đó giúp chúng tôi cải thiện nó.",
     "reason": {
       "subtitles": "Phụ đề không hiện ra",
-      "translation": "Bản dịch sai hoặc gượng gạo",
-      "setup": "Cài đặt quá rắc rối",
-      "expected": "Không như tôi mong đợi",
+      "translation": "Bản dịch không chính xác hoặc thiếu tự nhiên",
+      "confusing": "Không rõ cách sử dụng",
+      "vocab": "Không đủ công cụ để học từ đã lưu",
+      "expected": "Không phải điều đang tìm kiếm",
       "oneoff": "Tôi chỉ cần cho một video",
       "other": "Lý do khác"
     },
@@ -298,10 +299,8 @@
     "failed": "Gửi không thành công. Thử lại nhé?",
     "mailtoFallback": "gửi qua email thay vào đó",
     "skip": "Không, cảm ơn",
-    "footPrefix": "Các từ bạn đã lưu vẫn còn trong",
-    "footLink": "từ điển của bạn",
-    "footMid": "— chúng sẽ chờ bạn nếu bạn quay lại.",
-    "reinstall": "Cài lại bất cứ lúc nào."
+    "reinstall": "Cài lại bất cứ lúc nào.",
+    "reinstallNote": "Chúng tôi rất vui nếu được gặp lại bạn"
   },
   "auth": {
     "or": "hoặc",

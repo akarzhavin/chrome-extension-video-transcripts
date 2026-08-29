@@ -1375,7 +1375,20 @@ ${footer(t, root)}`,
 // the rules pin the doc to a fixed key set, so a new column would need a rules
 // deploy, while a prefix aggregates by grep today. Same trick the extension
 // already uses for a signed-out reply address.
-const UNINSTALL_REASONS = ['subtitles', 'translation', 'setup', 'expected', 'oneoff', 'other'];
+const UNINSTALL_REASONS = [
+  // Ordered from breakage to fit: the specific complaints come before the
+  // vague ones, because a visitor reads top-down and must meet the precise
+  // option before the catch-all that would otherwise absorb it.
+  'subtitles',    // core failure: nothing showed up
+  'translation',  // quality of what did show up
+  'confusing',    // couldn't work out how to use it — the single friction
+                  // item; setup/usability/performance were folded into it
+                  // deliberately rather than enumerated
+  'vocab',        // came for word learning, found too little of it
+  'expected',     // product/promise mismatch
+  'oneoff',       // natural churn, not a defect
+  'other',
+];
 
 const uninstallPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
@@ -1420,7 +1433,7 @@ ${header(t, root)}
        the submit handler preventDefaults and posts to Firestore instead. A
        checkbox form degrades to mailto cleanly, so there is no <noscript>
        override to maintain any more. -->
-  <form id="feedback-form" data-mailto="${SITE.supportEmail}"
+  <form id="feedback-form" class="uni-card" data-mailto="${SITE.supportEmail}"
         action="mailto:${SITE.supportEmail}" method="post" enctype="text/plain">
     <fieldset class="uni-opts">
       <legend class="uni-legend">${esc(t('uninstall.ariaLabel'))}</legend>${options}
@@ -1441,7 +1454,15 @@ ${header(t, root)}
     <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
 
-  <p class="sub uni-foot">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
+  <!-- The way back, as visible as the form itself: a share of uninstalls are
+       accidental or regretted within the minute, and that visitor came here
+       for this button, not for the checkboxes. Ghost, not primary — it must
+       not outshout Send. The href is the primary listing (covers the
+       YouTube+Netflix install); main.js retargets it per ?ext= slug. -->
+  <p class="uni-invite">${esc(t('uninstall.reinstallNote'))}</p>
+  <div class="cta-row uni-reinstall">
+    <a class="btn btn-ghost" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.reinstall'))}</a>
+  </div>
 </main>
 ${footer(t, root)}
 <script>window.__EDITIONS = ${editionsMap};
@@ -1454,6 +1475,12 @@ window.__UNINSTALL = ${scriptJSON({
       },
       maxBytes: LIMITS.MAX_FEEDBACK_TEXT_BYTES,
       source: SITE_FEEDBACK_SOURCE,
+      // slug → listing for the reinstall button, hl= already baked in per
+      // locale. Only editions with a listing of their own: netflix shares
+      // the youtube URL and both are the static default anyway.
+      stores: Object.fromEntries(EDITIONS.editions
+        .filter((e) => e.storeUrl)
+        .map((e) => [e.slug, storeHref(e.storeUrl, lang)])),
     })};</script>`,
   });
 };

@@ -282,12 +282,13 @@
     "title": "Tråkigt att se dig gå — Lingogram",
     "description": "Berätta varför du tog bort Lingogram så vi kan åtgärda det.",
     "h1": "Tråkigt att se dig gå",
-    "sub": "Har du en stund att berätta för oss varför du tog bort {ext}? Det visar oss vad vi ska fixa härnäst.",
+    "sub": "Berätta var {ext} inte höll måttet — det hjälper oss att göra den bättre.",
     "reason": {
       "subtitles": "Undertexter dök inte upp",
-      "translation": "Översättningen var fel eller klumpig",
-      "setup": "För krångligt att ställa in",
-      "expected": "Inte det jag förväntade mig",
+      "translation": "Översättningen var felaktig eller onaturlig",
+      "confusing": "Det var otydligt hur man skulle använda det",
+      "vocab": "För få verktyg för att lära sig sparade ord",
+      "expected": "Inte det som söktes",
       "oneoff": "Behövde den bara för en video",
       "other": "Något annat"
     },
@@ -299,10 +300,8 @@
     "failed": "Det gick inte att skicka. Försöka igen?",
     "mailtoFallback": "skicka det via e-post istället",
     "skip": "Nej tack",
-    "footPrefix": "Dina sparade ord finns fortfarande i",
-    "footLink": "din ordbok",
-    "footMid": "— de väntar på dig om du kommer tillbaka.",
-    "reinstall": "Installera igen när som helst."
+    "reinstall": "Installera igen när som helst.",
+    "reinstallNote": "Vi ser gärna att du kommer tillbaka"
   },
   "auth": {
     "or": "eller",

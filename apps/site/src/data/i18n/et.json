@@ -282,12 +282,13 @@
     "title": "Kahju, et lahkud — Lingogram",
     "description": "Räägi meile, miks Lingogrami eemaldasid, et saaksime seda parandada.",
     "h1": "Kahju, et lahkud",
-    "sub": "Kas leiaksid hetke, et öelda meile, miks eemaldasid {ext}? See näitab meile, mida järgmisena parandada.",
+    "sub": "Anna teada, mis sind {ext} juures pettumust valmistas — see aitab meil seda paremaks muuta.",
     "reason": {
       "subtitles": "Subtiitrid ei ilmunud",
-      "translation": "Tõlge oli vale või kohmakas",
-      "setup": "Seadistamine oli liiga tülikas",
-      "expected": "Ei olnud see, mida ootasin",
+      "translation": "Tõlge oli ebatäpne või ebaloomulik",
+      "confusing": "Ei olnud selge, kuidas seda kasutada",
+      "vocab": "Liiga vähe tööriistu salvestatud sõnade õppimiseks",
+      "expected": "Ei olnud see, mida otsiti",
       "oneoff": "Vajasin seda ainult ühe video jaoks",
       "other": "Miski muu"
     },
@@ -299,10 +300,8 @@
     "failed": "Ei õnnestunud saata. Proovid uuesti?",
     "mailtoFallback": "saada see hoopis e-kirjaga",
     "skip": "Ei, aitäh",
-    "footPrefix": "Sinu salvestatud sõnad on endiselt siin:",
-    "footLink": "sinu sõnastik",
-    "footMid": "— need ootavad sind, kui tagasi tuled.",
-    "reinstall": "Paigalda uuesti, millal iganes soovid."
+    "reinstall": "Paigalda uuesti, millal iganes soovid.",
+    "reinstallNote": "Näeksime sind hea meelega tagasi"
   },
   "auth": {
     "or": "või",

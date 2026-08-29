@@ -343,6 +343,16 @@
     textEl.addEventListener('input', syncSubmit);
     syncSubmit();
 
+    // Point the reinstall button at the listing of the edition that was
+    // actually removed. The static href (the primary listing) stays for
+    // unknown slugs and for no JS at all. hasOwnProperty for the same reason
+    // as the welcome copy lookup above: `?ext=constructor` must miss.
+    var reinstall = document.querySelector('[data-reinstall]');
+    if (reinstall && UN.stores &&
+        Object.prototype.hasOwnProperty.call(UN.stores, extSlug)) {
+      reinstall.href = UN.stores[extSlug];
+    }
+
     function mailtoHref(text) {
       return 'mailto:' + fb.getAttribute('data-mailto') +
         '?subject=' + encodeURIComponent('Lingogram uninstall feedback') +

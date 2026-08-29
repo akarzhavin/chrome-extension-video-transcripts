@@ -282,12 +282,13 @@
     "title": "Jammer dat je weggaat — Lingogram",
     "description": "Vertel ons waarom je Lingogram hebt verwijderd, zodat we het kunnen verbeteren.",
     "h1": "Jammer dat je weggaat",
-    "sub": "Wil je even de tijd nemen om ons te vertellen waarom je {ext} hebt verwijderd? Dat laat ons zien wat we hierna moeten oplossen.",
+    "sub": "Vertel ons waar {ext} tekortschoot — dat helpt ons om hem beter te maken.",
     "reason": {
       "subtitles": "Ondertitels verschenen niet",
-      "translation": "De vertaling was fout of onhandig",
-      "setup": "Te omslachtig om in te stellen",
-      "expected": "Niet wat ik verwachtte",
+      "translation": "De vertaling was onnauwkeurig of onnatuurlijk",
+      "confusing": "Onduidelijk hoe het te gebruiken",
+      "vocab": "Te weinig hulpmiddelen om opgeslagen woorden te leren",
+      "expected": "Niet wat er werd gezocht",
       "oneoff": "Ik had het maar voor één video nodig",
       "other": "Iets anders"
     },
@@ -299,10 +300,8 @@
     "failed": "Versturen mislukt. Opnieuw proberen?",
     "mailtoFallback": "stuur het dan via e-mail",
     "skip": "Nee, bedankt",
-    "footPrefix": "Je opgeslagen woorden staan nog steeds in",
-    "footLink": "je woordenboek",
-    "footMid": "— ze wachten op je als je terugkomt.",
-    "reinstall": "Op elk moment opnieuw te installeren."
+    "reinstall": "Op elk moment opnieuw te installeren.",
+    "reinstallNote": "We zien je graag terug"
   },
   "auth": {
     "or": "of",

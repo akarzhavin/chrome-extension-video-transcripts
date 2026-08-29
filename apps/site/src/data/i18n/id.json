@@ -281,12 +281,13 @@
     "title": "Sedih melihat Anda pergi — Lingogram",
     "description": "Beri tahu kami alasan Anda menghapus Lingogram agar kami bisa memperbaikinya.",
     "h1": "Sedih melihat Anda pergi",
-    "sub": "Bolehkah Anda meluangkan waktu sebentar untuk memberi tahu kami alasan Anda menghapus {ext}? Itu yang menunjukkan apa yang harus diperbaiki selanjutnya.",
+    "sub": "Beri tahu kami di mana {ext} kurang memuaskan — ini membantu kami menyempurnakannya.",
     "reason": {
       "subtitles": "Subtitle tidak muncul",
-      "translation": "Terjemahannya salah atau kaku",
-      "setup": "Terlalu ribet untuk disiapkan",
-      "expected": "Bukan yang saya harapkan",
+      "translation": "Terjemahannya tidak akurat atau tidak wajar",
+      "confusing": "Tidak jelas cara menggunakannya",
+      "vocab": "Alat untuk mempelajari kata tersimpan kurang memadai",
+      "expected": "Bukan yang dicari",
       "oneoff": "Hanya perlu untuk satu video",
       "other": "Alasan lain"
     },
@@ -298,10 +299,8 @@
     "failed": "Gagal mengirim. Coba lagi?",
     "mailtoFallback": "kirim lewat email saja",
     "skip": "Tidak, terima kasih",
-    "footPrefix": "Kata-kata tersimpan Anda masih ada di",
-    "footLink": "kamus Anda",
-    "footMid": "— akan menunggu Anda jika kembali lagi.",
-    "reinstall": "Instal ulang kapan saja."
+    "reinstall": "Instal ulang kapan saja.",
+    "reinstallNote": "Kami akan senang melihat Anda kembali"
   },
   "auth": {
     "or": "atau",

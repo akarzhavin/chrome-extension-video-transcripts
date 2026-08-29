@@ -282,12 +282,13 @@
     "title": "Ikävä nähdä sinun lähtevän — Lingogram",
     "description": "Kerro, miksi poistit Lingogramin, jotta voimme korjata sen.",
     "h1": "Ikävä nähdä sinun lähtevän",
-    "sub": "Kertoisitko hetken verran, miksi poistit {ext}:n? Se kertoo meille, mitä korjata seuraavaksi.",
+    "sub": "Kerro meille, missä {ext} jäi vajaaksi — se auttaa meitä parantamaan sitä.",
     "reason": {
       "subtitles": "Tekstitykset eivät näkyneet",
-      "translation": "Käännös oli väärä tai kömpelö",
-      "setup": "Käyttöönotto oli liian hankalaa",
-      "expected": "Ei ollut sitä, mitä odotin",
+      "translation": "Käännös oli epätarkka tai luonnoton",
+      "confusing": "Ei ollut selvää, miten sitä käytetään",
+      "vocab": "Liian vähän työkaluja tallennettujen sanojen opetteluun",
+      "expected": "Ei ollut sitä, mitä etsittiin",
       "oneoff": "Tarvitsin sitä vain yhteen videoon",
       "other": "Jotain muuta"
     },
@@ -299,10 +300,8 @@
     "failed": "Lähetys epäonnistui. Yritetäänkö uudelleen?",
     "mailtoFallback": "lähetä se sen sijaan sähköpostilla",
     "skip": "Ei kiitos",
-    "footPrefix": "Tallennetut sanasi ovat yhä",
-    "footLink": "sanastossasi",
-    "footMid": "— ne odottavat sinua, jos palaat.",
-    "reinstall": "Asenna uudelleen milloin vain."
+    "reinstall": "Asenna uudelleen milloin vain.",
+    "reinstallNote": "Olisi hienoa nähdä sinut taas"
   },
   "auth": {
     "or": "tai",

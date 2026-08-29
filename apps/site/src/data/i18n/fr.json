@@ -282,12 +282,13 @@
     "title": "Triste de vous voir partir — Lingogram",
     "description": "Dites-nous pourquoi vous avez supprimé Lingogram pour qu'on puisse s'améliorer.",
     "h1": "Triste de vous voir partir",
-    "sub": "Auriez-vous un instant pour nous dire pourquoi vous avez supprimé {ext} ? Cela nous montre quoi corriger ensuite.",
+    "sub": "Dites-nous sur quel point {ext} n'a pas été à la hauteur — cela nous aide à l'améliorer.",
     "reason": {
       "subtitles": "Les sous-titres ne s'affichaient pas",
-      "translation": "La traduction était fausse ou maladroite",
-      "setup": "Trop compliqué à configurer",
-      "expected": "Pas ce à quoi je m'attendais",
+      "translation": "La traduction était inexacte ou peu naturelle",
+      "confusing": "On ne comprenait pas bien comment l'utiliser",
+      "vocab": "Pas assez d'outils pour apprendre les mots enregistrés",
+      "expected": "Pas ce qui était recherché",
       "oneoff": "Je n'en avais besoin que pour une vidéo",
       "other": "Autre chose"
     },
@@ -299,10 +300,8 @@
     "failed": "Échec de l'envoi. Réessayer ?",
     "mailtoFallback": "envoyez-le plutôt par e-mail",
     "skip": "Non merci",
-    "footPrefix": "Vos mots enregistrés sont toujours dans",
-    "footLink": "votre dictionnaire",
-    "footMid": "— ils vous attendront si vous revenez.",
-    "reinstall": "Réinstallable à tout moment."
+    "reinstall": "Réinstallable à tout moment.",
+    "reinstallNote": "Nous serions ravis de vous revoir"
   },
   "auth": {
     "or": "ou",

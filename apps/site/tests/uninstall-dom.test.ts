@@ -19,7 +19,7 @@ import { resolve } from 'node:path';
 
 const MAIN_JS = readFileSync(resolve(__dirname, '../src/js/main.js'), 'utf8');
 
-const REASONS = ['subtitles', 'translation', 'setup', 'expected', 'oneoff', 'other'];
+const REASONS = ['subtitles', 'translation', 'confusing', 'vocab', 'expected', 'oneoff', 'other'];
 
 const I18N = {
   sending: 'Sending…',
@@ -39,7 +39,7 @@ function pageHTML(): string {
   ).join('');
   return `
 <main class="narrow uni">
-  <form id="feedback-form" data-mailto="team@example.com"
+  <form id="feedback-form" class="uni-card" data-mailto="team@example.com"
         action="mailto:team@example.com" method="post" enctype="text/plain">
     <fieldset class="uni-opts">
       <legend class="uni-legend">Why did you uninstall?</legend>${options}
@@ -51,8 +51,16 @@ function pageHTML(): string {
     </div>
     <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
+  <div class="cta-row uni-reinstall">
+    <a class="btn btn-ghost" data-reinstall href="https://store.example/primary?hl=ru">Reinstall</a>
+  </div>
 </main>`;
 }
+
+const STORES = {
+  youtube: 'https://store.example/primary?hl=ru',
+  rezka: 'https://store.example/rezka?hl=ru',
+};
 
 type Commit = { id: string; text: string; source: string; uid: string };
 
@@ -111,12 +119,16 @@ function mockFirestore(opts: { failCommits?: boolean; defer?: boolean } = {}): H
   };
 }
 
-function boot(): void {
+function boot(search = ''): void {
+  // extSlug is read from location.search at eval time, so the URL must be in
+  // place before the script runs.
+  window.history.replaceState(null, '', `/uninstall/${search}`);
   document.body.innerHTML = pageHTML();
   (window as unknown as { __UNINSTALL: unknown }).__UNINSTALL = {
     i18n: I18N,
     maxBytes: 2000,
     source: 'site-uninstall',
+    stores: STORES,
   };
   (window as unknown as { LINGOGRAM_AUTH: unknown }).LINGOGRAM_AUTH = {
     projectId: 'p',
@@ -152,7 +164,7 @@ describe('nothing is sent before the button is pressed', () => {
   it('makes no request when a box is ticked', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     await flush();
     expect(fs.calls).toEqual([]);
   });
@@ -160,7 +172,7 @@ describe('nothing is sent before the button is pressed', () => {
   it('makes no request while the visitor types', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     type('half a thought');
     type('half a thought, finished');
     await flush();
@@ -170,8 +182,8 @@ describe('nothing is sent before the button is pressed', () => {
   it('makes no request when the visitor changes their mind and unticks', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
-    tick('setup');
+    tick('confusing');
+    tick('confusing');
     tick('oneoff');
     await flush();
     expect(fs.calls).toEqual([]);
@@ -189,7 +201,7 @@ describe('the submit button reflects whether there is anything to send', () => {
   it('enables on a ticked box alone — reasons are a complete answer', () => {
     mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     expect(submitBtn().disabled).toBe(false);
   });
 
@@ -203,11 +215,11 @@ describe('the submit button reflects whether there is anything to send', () => {
   it('goes back to disabled when the last input is cleared', () => {
     mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     type('something');
     type('');
     expect(submitBtn().disabled).toBe(false); // box still ticked
-    tick('setup');
+    tick('confusing');
     expect(submitBtn().disabled).toBe(true);
   });
 
@@ -223,12 +235,12 @@ describe('submitting', () => {
   it('sends one doc with the ticked reasons', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     await flush();
 
     expect(fs.commits).toHaveLength(1);
-    expect(fs.commits[0].text).toBe('[reason:setup]');
+    expect(fs.commits[0].text).toBe('[reason:confusing]');
     expect(fs.commits[0].source).toBe('site-uninstall');
     expect(fs.commits[0].uid).toBe('');
     expect(fs.commits[0].id).toMatch(/^\d{8}_1$/);
@@ -240,11 +252,11 @@ describe('submitting', () => {
     // Ticked bottom-up; the doc must still read top-down.
     tick('oneoff');
     tick('subtitles');
-    tick('setup');
+    tick('confusing');
     pressSend();
     await flush();
 
-    expect(fs.commits[0].text).toBe('[reason:subtitles,setup,oneoff]');
+    expect(fs.commits[0].text).toBe('[reason:subtitles,confusing,oneoff]');
   });
 
   it('appends the prose after the machine-read prefix', async () => {
@@ -272,7 +284,7 @@ describe('submitting', () => {
   it('collapses the form and thanks the visitor', async () => {
     mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     await flush();
 
@@ -285,7 +297,7 @@ describe('submitting', () => {
   it('announces sending before the outcome, never a false success', async () => {
     const fs = mockFirestore({ defer: true });
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     expect(statusText()).toBe(I18N.sending);
 
@@ -299,7 +311,7 @@ describe('submitting', () => {
   it('ignores a double submit while the first is in flight', async () => {
     const fs = mockFirestore({ defer: true });
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     pressSend();
     for (let i = 0; i < 4; i += 1) {
@@ -312,7 +324,7 @@ describe('submitting', () => {
   it('ignores further submits once the form has closed', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     await flush();
     pressSend();
@@ -323,7 +335,7 @@ describe('submitting', () => {
   it('clamps to the UTF-8 budget while keeping the prefix intact', async () => {
     const fs = mockFirestore();
     boot();
-    tick('setup');
+    tick('confusing');
     // Cyrillic is 2 bytes per char, so 3000 chars is 6000 bytes — well over.
     type('я'.repeat(3000));
     pressSend();
@@ -331,7 +343,29 @@ describe('submitting', () => {
 
     const text = fs.commits[0].text;
     expect(new TextEncoder().encode(text).length).toBeLessThanOrEqual(2000);
-    expect(text.indexOf('[reason:setup] ')).toBe(0);
+    expect(text.indexOf('[reason:confusing] ')).toBe(0);
+  });
+});
+
+describe('the reinstall button targets the edition that was removed', () => {
+  const href = () => $<HTMLAnchorElement>('[data-reinstall]').href;
+
+  it('retargets to the listing named by ?ext=', () => {
+    mockFirestore();
+    boot('?ext=rezka');
+    expect(href()).toBe(STORES.rezka);
+  });
+
+  it('keeps the static default without an ext param', () => {
+    mockFirestore();
+    boot();
+    expect(href()).toBe(STORES.youtube);
+  });
+
+  it('keeps the static default for an unknown slug, including prototype members', () => {
+    mockFirestore();
+    boot('?ext=constructor');
+    expect(href()).toBe(STORES.youtube);
   });
 });
 
@@ -339,7 +373,7 @@ describe('when the write is refused', () => {
   it('offers mailto carrying the whole answer, and lets the visitor retry', async () => {
     mockFirestore({ failCommits: true });
     boot();
-    tick('setup');
+    tick('confusing');
     type('and a note');
     pressSend();
     await flush();
@@ -348,7 +382,7 @@ describe('when the write is refused', () => {
     const link = $<HTMLAnchorElement>('[data-status] a');
     expect(link.textContent).toBe(I18N.mailtoFallback);
     const href = decodeURIComponent(link.href);
-    expect(href).toContain('[reason:setup]');
+    expect(href).toContain('[reason:confusing]');
     expect(href).toContain('and a note');
 
     // The form stays open and the button live — this is recoverable.
@@ -359,7 +393,7 @@ describe('when the write is refused', () => {
   it('sends again on retry rather than staying stuck', async () => {
     mockFirestore({ failCommits: true });
     boot();
-    tick('setup');
+    tick('confusing');
     pressSend();
     await flush();
 

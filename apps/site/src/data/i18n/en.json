@@ -282,12 +282,13 @@
     "title": "Sorry to see you go — Lingogram",
     "description": "Tell us why you removed Lingogram so we can fix it.",
     "h1": "Sorry to see you go",
-    "sub": "Would you mind taking a moment and telling us why you removed {ext}? It's what tells us what to fix next.",
+    "sub": "Tell us where {ext} fell short — it helps us make it better.",
     "reason": {
       "subtitles": "Subtitles didn't show up",
-      "translation": "The translation was wrong or clumsy",
-      "setup": "Too fiddly to set up",
-      "expected": "Not what I expected",
+      "translation": "The translation was inaccurate or unnatural",
+      "confusing": "I didn't understand how to use it",
+      "vocab": "Not enough tools for learning saved words",
+      "expected": "It wasn't what I was looking for",
       "oneoff": "I only needed it for one video",
       "other": "Something else"
     },
@@ -299,10 +300,8 @@
     "failed": "Couldn't send. Try again?",
     "mailtoFallback": "send it by email instead",
     "skip": "No thanks",
-    "footPrefix": "Your saved words are still in",
-    "footLink": "your dictionary",
-    "footMid": "— they'll be waiting if you come back.",
-    "reinstall": "Reinstall anytime."
+    "reinstall": "Reinstall anytime.",
+    "reinstallNote": "We’d be glad to see you back"
   },
   "auth": {
     "or": "or",
