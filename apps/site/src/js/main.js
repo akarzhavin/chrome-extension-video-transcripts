@@ -253,16 +253,180 @@
     });
   }
 
-  // Uninstall page: send feedback via mailto (no backend yet).
+  // ---------------------------------------------------------- /uninstall/
+  //
+  // Reason chips + optional prose -> one Firestore `feedback` doc, the same
+  // collection (and the same global daily quota) the extension's rating card
+  // writes. Signed out and unauthenticated: the rules allow that path with
+  // uid === "", which is the whole point — the people worth hearing from at
+  // this moment are mostly the ones who never made an account.
+  //
+  // Mirrors addFeedback() in packages/shared/src/auth/firestoreRest.ts. It is
+  // reimplemented rather than imported because this file is copied verbatim
+  // into build/ with no bundler, and pulling the shared module in would drag
+  // the whole auth stack onto a page that never signs anyone in.
   var fb = document.getElementById('feedback-form');
-  if (fb) {
-    fb.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var text = document.getElementById('feedback-text').value.trim();
-      var addr = fb.getAttribute('data-mailto');
-      location.href = 'mailto:' + addr +
+  if (fb && window.__UNINSTALL) {
+    var UN = window.__UNINSTALL;
+    var T = UN.i18n || {};
+    var chipBox = fb.querySelector('.uni-chips');
+    var more = fb.querySelector('.uni-more');
+    var status = fb.querySelector('[data-status]');
+    var submit = fb.querySelector('button[type=submit]');
+    var textEl = document.getElementById('feedback-text');
+    var reason = '';
+    var sent = false;
+
+    // Firestore counts UTF-8 BYTES while maxLength counts UTF-16 units, so a
+    // Russian message would be silently halved on send. Same clamp as
+    // packages/shared/src/feedback.ts, and the same reason it exists.
+    var enc = new TextEncoder();
+    function utf8Len(s) { return enc.encode(s).length; }
+    function clampToBytes(s, max) {
+      if (utf8Len(s) <= max) return s;
+      var lo = 0, hi = s.length;
+      while (lo < hi) {
+        var mid = (lo + hi + 1) >>> 1;
+        if (utf8Len(s.slice(0, mid)) <= max) lo = mid; else hi = mid - 1;
+      }
+      // Step back off a lone high surrogate: TextEncoder turns it into U+FFFD
+      // (3 bytes), which the search above would have accepted as fitting.
+      while (lo > 0) {
+        var c = s.charCodeAt(lo - 1);
+        if (c >= 0xd800 && c <= 0xdbff) lo--; else break;
+      }
+      return s.slice(0, lo);
+    }
+
+    function todayBucket() {
+      var d = new Date();
+      return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    }
+
+    function setStatus(text, kind) {
+      status.textContent = text || '';
+      status.className = 'uni-status' + (kind ? ' uni-status-' + kind : '');
+    }
+
+    // Picking a chip is itself the answer, so it reveals the optional prose
+    // rather than waiting for it. Radio semantics on buttons: aria-pressed
+    // carries the state a native radio group would.
+    chipBox.addEventListener('click', function (e) {
+      var btn = e.target.closest('.uni-chip');
+      if (!btn) return;
+      reason = btn.getAttribute('data-reason');
+      [].slice.call(chipBox.querySelectorAll('.uni-chip')).forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      if (more.hidden) {
+        more.hidden = false;
+        // Only steal focus once, and never on the first paint: moving the
+        // caret into a textarea the visitor did not ask for is how a one-tap
+        // form turns back into an essay prompt.
+        more.classList.add('uni-more-in');
+      }
+      setStatus('');
+    });
+
+    // Prefix, not a field: the rules pin the doc to a fixed key set, so the
+    // reason rides in `text` where it stays greppable without a rules deploy.
+    // Prepended for the same reason the reply address is — a message clamped
+    // at the ceiling must not lose the one part that is always machine-read.
+    function compose() {
+      var body = (textEl.value || '').trim();
+      var tag = reason ? '[reason:' + reason + ']' : '';
+      return clampToBytes((tag && body) ? tag + ' ' + body : (tag || body), UN.maxBytes);
+    }
+
+    function mailtoHref(text) {
+      return 'mailto:' + fb.getAttribute('data-mailto') +
         '?subject=' + encodeURIComponent('Lingogram uninstall feedback') +
         '&body=' + encodeURIComponent(text);
+    }
+
+    // Read today's counter, then commit the doc and its +1 in ONE batch. The
+    // read-then-write is racy by construction: two simultaneous senders
+    // compute the same next count and one loses the rules' getAfter() check.
+    // That is a dropped message, not a corrupted counter — and the caller
+    // turns the loss into the mailto offer below.
+    function send(text) {
+      var cfg = window.LINGOGRAM_AUTH || {};
+      var base = cfg.firestoreUrl, pid = cfg.projectId;
+      if (!base || !pid) return Promise.resolve(false);
+      var docs = base + '/v1/projects/' + pid + '/databases/(default)/documents';
+      var day = String(todayBucket());
+      var quotaName = 'projects/' + pid + '/databases/(default)/documents/feedbackQuota/' + day;
+
+      return fetch(docs + '/feedbackQuota/' + day)
+        .then(function (r) {
+          if (r.ok) return r.json().then(function (d) {
+            var n = Number((d.fields && d.fields.count && d.fields.count.integerValue) || 0);
+            return (isFinite(n) ? n : 0) + 1;
+          });
+          if (r.status === 404) return 1; // nobody has written today yet
+          throw new Error('quota ' + r.status);
+        })
+        .then(function (next) {
+          return fetch(docs + ':commit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ writes: [
+              {
+                update: {
+                  // Id pinned to {day}_{count}: it is what stops N docs from
+                  // riding a single counter bump (two would need one id).
+                  name: 'projects/' + pid + '/databases/(default)/documents/feedback/' + day + '_' + next,
+                  fields: {
+                    text: { stringValue: text },
+                    uid: { stringValue: '' },
+                    site: { stringValue: location.hostname.slice(0, 100) },
+                    version: { stringValue: '' },
+                    locale: { stringValue: (document.documentElement.lang || '').slice(0, 16) },
+                    source: { stringValue: UN.source }
+                  }
+                },
+                currentDocument: { exists: false },
+                updateTransforms: [{ fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' }]
+              },
+              {
+                update: { name: quotaName, fields: { count: { integerValue: String(next) } } },
+                updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }]
+              }
+            ] })
+          });
+        })
+        .then(function (r) { return r.ok; })
+        .catch(function () { return false; });
+    }
+
+    fb.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (sent) return;
+      var text = compose();
+      if (!text) return;
+      submit.disabled = true;
+      setStatus(T.sending || '');
+      send(text).then(function (ok) {
+        submit.disabled = false;
+        if (ok) {
+          sent = true;
+          // Collapse the form: leaving a live Send button under a thank-you
+          // invites a second submission that the day counter would reject
+          // anyway, and reads as though the first one did not land.
+          more.hidden = true;
+          chipBox.hidden = true;
+          setStatus(T.sent || '', 'ok');
+          return;
+        }
+        // Quota burned, offline, or a lost race. An error with no way forward
+        // wastes the one moment this visitor was willing to talk, so the old
+        // mailto path becomes the fallback rather than the primary ask.
+        setStatus((T.failed || '') + ' ', 'err');
+        var a = document.createElement('a');
+        a.href = mailtoHref(text);
+        a.textContent = T.mailtoFallback || '';
+        status.appendChild(a);
+      });
     });
   }
 })();

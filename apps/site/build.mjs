@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadLingogramLimits, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, 'src');
@@ -19,6 +20,16 @@ const OUT = path.join(HERE, 'build');
 
 const SITE = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'site.json'), 'utf8'));
 const EDITIONS = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'editions.json'), 'utf8'));
+
+// The same canonical caps the extensions build against — /uninstall/ writes
+// into the very Firestore collection the in-product rating card does, so its
+// byte ceiling has to be the rules' ceiling and not a second guess.
+const LIMITS = loadLingogramLimits();
+// The `source` this site stamps on those docs. Rules pin `source` to an
+// allow-list, so a value missing from it makes every write fail with a
+// PERMISSION_DENIED that looks like an outage — fail the BUILD instead.
+const SITE_FEEDBACK_SOURCE = 'site-uninstall';
+assertSourceAllowed(LIMITS, SITE_FEEDBACK_SOURCE);
 
 // Cache-buster: python http.server sends no Cache-Control, so browsers may
 // keep serving stale css/js after a rebuild. New value every build.
@@ -1348,30 +1359,99 @@ ${footer(t, root)}`,
   });
 };
 
+// ------------------------------------------------------------- /uninstall/
+//
+// The page Chrome opens when someone removes the extension (setUninstallURL).
+//
+// The ask is a single tap, not a paragraph. An open textarea at the moment of
+// uninstall answers from the few percent who were angry enough to type, which
+// is the least representative slice there is; a reason chip is cheap enough
+// that the merely-disappointed majority answers too. The textarea stays, but
+// as optional depth under the chips rather than the whole question.
+//
+// Both halves land in ONE Firestore feedback doc (see src/js/main.js). The
+// chip rides as a machine-readable "[reason:<id>]" prefix on `text` rather
+// than its own field: the rules pin the doc to a fixed key set, so a new
+// column would need a rules deploy, while a prefix aggregates by grep today.
+// Same trick the extension already uses for a signed-out reply address.
+const UNINSTALL_REASONS = ['subtitles', 'translation', 'setup', 'expected', 'oneoff', 'other'];
+
 const uninstallPage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
   const root = lang === 'en' ? '' : `/${lang}`;
+
+  // value= is the STABLE id, label is the translated text: the aggregate has
+  // to survive both translation and copy edits, so nothing user-visible is
+  // ever what gets counted.
+  const chips = UNINSTALL_REASONS.map((id) => `
+      <button type="button" class="uni-chip" data-reason="${id}" aria-pressed="false">
+        <span class="uni-chip-tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+        ${esc(t(`uninstall.reason.${id}`))}
+      </button>`).join('');
+
   return layout({
     lang, htmlLang: strings.meta.htmlLang, hrefLang,
     title: t('uninstall.title'),
     description: t('uninstall.description'),
     pathName: `${root}/uninstall/`,
+    // auth-config.js, which the default layout does NOT ship: it is what
+    // resolves projectId/firestoreUrl from the hostname, and the feedback
+    // write below reads them. Both are `defer`, so auth-config.js is
+    // guaranteed to have run before main.js looks for window.LINGOGRAM_AUTH.
+    scripts: `<script src="/auth-config.js?v=${BUST}" defer></script>
+<script src="/main.js?v=${BUST}" defer></script>`,
     body: `
 ${header(t, root)}
-<main class="narrow">
-  <h1 style="font-size:clamp(30px,5vw,44px);letter-spacing:-0.03em">${esc(t('uninstall.h1'))}</h1>
+<main class="narrow uni">
+  <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
   <p class="sub">${t('uninstall.sub', { ext: '<span data-ext-name>Lingogram</span>' })}</p>
-  <form id="feedback-form" data-mailto="${SITE.supportEmail}">
-    <textarea id="feedback-text" placeholder="${esc(t('uninstall.placeholder'))}" aria-label="${esc(t('uninstall.ariaLabel'))}"></textarea>
-    <div class="cta-row" style="margin-top:16px">
-      <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
+
+  <!-- Without JS the chips are inert and the textarea would never unhide, so
+       the page would silently swallow the one thing it exists to ask for. The
+       no-JS branch drops the chips and hands back the plain mailto form the
+       page used before — worse, but never a dead end. -->
+  <noscript><style>
+    .uni-chips { display: none; }
+    /* Beats the [hidden] attribute's UA display:none. The attribute stays on
+       the element, but with no JS there is nothing that would ever remove it
+       and a visitor with assistive tech needs the form, not consistency. */
+    .uni-more[hidden] { display: block !important; }
+  </style></noscript>
+  <form id="feedback-form" data-mailto="${SITE.supportEmail}"
+        action="mailto:${SITE.supportEmail}" method="post" enctype="text/plain">
+    <div class="uni-chips" role="group" aria-label="${esc(t('uninstall.ariaLabel'))}">${chips}
     </div>
+
+    <!-- Revealed once a reason is picked: asking for prose before the visitor
+         has committed to anything is what made the old page a dead end. -->
+    <div class="uni-more" hidden>
+      <textarea id="feedback-text" rows="3"
+        placeholder="${esc(t('uninstall.detailHint'))}"
+        aria-label="${esc(t('uninstall.detailHint'))}"></textarea>
+      <div class="cta-row uni-actions">
+        <button class="btn btn-primary" type="submit">${esc(t('uninstall.send'))}</button>
+        <a class="uni-skip" href="${root}/">${esc(t('uninstall.skip'))}</a>
+      </div>
+    </div>
+
+    <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
-  <p class="sub" style="margin-top:34px;font-size:15px">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
+
+  <p class="sub uni-foot">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
 </main>
 ${footer(t, root)}
-<script>window.__EDITIONS = ${editionsMap};</script>`,
+<script>window.__EDITIONS = ${editionsMap};
+window.__UNINSTALL = ${scriptJSON({
+      i18n: {
+        sending: t('uninstall.sending'),
+        sent: t('uninstall.sent'),
+        failed: t('uninstall.failed'),
+        mailtoFallback: t('uninstall.mailtoFallback'),
+      },
+      maxBytes: LIMITS.MAX_FEEDBACK_TEXT_BYTES,
+      source: SITE_FEEDBACK_SOURCE,
+    })};</script>`,
   });
 };
 

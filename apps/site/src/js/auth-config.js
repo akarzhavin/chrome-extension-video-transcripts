@@ -20,6 +20,11 @@
     config = {
       env: 'dev',
       apiKey: 'demo-key',
+      // Firestore project + REST host. Used by the /uninstall/ feedback form,
+      // which writes the same `feedback` collection the extension's rating
+      // card does. The emulator serves the REST surface on its own port.
+      projectId: 'demo-lingogram',
+      firestoreUrl: 'http://localhost:8080',
       // Emulator serves the Identity Toolkit REST surface under this prefix.
       identityToolkitUrl: 'http://localhost:9099/identitytoolkit.googleapis.com',
       apiBase: 'http://localhost:8000',
@@ -28,6 +33,8 @@
     config = {
       env: 'preprod',
       apiKey: 'AIzaSyBmSrf73K03PYNv1F197fNpvVZE-_E6eMI',
+      projectId: 'lingogram-preprod',
+      firestoreUrl: 'https://firestore.googleapis.com',
       identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
       // Preprod edge gateway: the Go edge-gateway (feature 014 replaced ESPv2,
       // which has been deleted). Mirrors english/frontend/.env.preprod
@@ -38,6 +45,8 @@
     config = {
       env: 'prod',
       apiKey: 'AIzaSyCHQt2zwkO-x8qm7wM5IwWAWrl_n8mlQLI',
+      projectId: 'lingogram-prod',
+      firestoreUrl: 'https://firestore.googleapis.com',
       identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
       apiBase: 'https://api.lingogram.ai',
     };
