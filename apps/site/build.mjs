@@ -1423,8 +1423,14 @@ ${header(t, root)}
     <div class="uni-chips" role="group" aria-label="${esc(t('uninstall.ariaLabel'))}">${chips}
     </div>
 
-    <!-- Revealed once a reason is picked: asking for prose before the visitor
-         has committed to anything is what made the old page a dead end. -->
+    <!-- Above .uni-more, not below the form: the confirmation belongs next to
+         the chips that produced it, not under a textarea nobody has touched —
+         and on a phone that keeps it on the first screen. It also puts the
+         live region ahead of the controls it describes. -->
+    <p class="uni-status" data-status role="status" aria-live="polite"></p>
+
+    <!-- Revealed once a reason is picked. The answer is already recorded by
+         then, so this is an optional addition, not a step. -->
     <div class="uni-more" hidden>
       <textarea id="feedback-text" rows="3"
         placeholder="${esc(t('uninstall.detailHint'))}"
@@ -1434,8 +1440,6 @@ ${header(t, root)}
         <a class="uni-skip" href="${root}/">${esc(t('uninstall.skip'))}</a>
       </div>
     </div>
-
-    <p class="uni-status" data-status role="status" aria-live="polite"></p>
   </form>
 
   <p class="sub uni-foot">${esc(t('uninstall.footPrefix'))} <a href="${SITE.appUrl}">${esc(t('uninstall.footLink'))}</a> ${esc(t('uninstall.footMid'))} <a href="${root}/#platforms">${esc(t('uninstall.reinstall'))}</a></p>
