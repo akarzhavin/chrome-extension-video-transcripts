@@ -79,6 +79,16 @@ describe('the analytics block, with a measurement id', () => {
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
+  it('configures the beacon transport where gtag actually honours it', () => {
+    // On `config`, not on each event: inside an event's params it is silently
+    // demoted to a custom parameter and the transport never changes. It covers
+    // every event, which is what is wanted — store_click, login and sign_up all
+    // fire immediately before a navigation.
+    expect(tagged['index.html']).toContain("gtag('config','G-TEST123',{transport_type:'beacon'})");
+    expect(readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8'))
+      .not.toMatch(/transport_type:\s*'beacon'/);
+  });
+
   it('denies all four Consent Mode v2 signals by default', () => {
     for (const signal of ['ad_storage', 'ad_user_data', 'ad_personalization', 'analytics_storage']) {
       expect(tagged['index.html']).toContain(`${signal}:'denied'`);

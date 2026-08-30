@@ -83,11 +83,19 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 //
 // `anonymize_ip` is not set: GA4 anonymises IPs unconditionally, and the
 // parameter is a Universal Analytics leftover that GA4 ignores.
+//
+// `transport_type` belongs on `config`, not on individual events: gtag treats
+// it as a directive only here, and passing it inside an event's params makes it
+// an ordinary custom parameter — it would show up in reports as a dimension
+// whose every value is the string "beacon", while the transport itself stayed
+// unchanged. Set here it covers every event the site sends, which is what is
+// wanted: store_click, login and sign_up all fire immediately before a
+// navigation that would otherwise cancel the request in flight.
 const analyticsHead = () => GA4 ? `<script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
 try{if(localStorage.getItem('lingogram_consent')==='granted')gtag('consent','update',{analytics_storage:'granted'})}catch(e){}
-gtag('js',new Date());gtag('config','${GA4}');
+gtag('js',new Date());gtag('config','${GA4}',{transport_type:'beacon'});
 window.LG_GA4='${GA4}';
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA4)}"></script>

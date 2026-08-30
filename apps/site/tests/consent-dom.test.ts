@@ -486,32 +486,27 @@ describe('store_click', () => {
     });
     $<HTMLAnchorElement>('a[href*="chromewebstore"]').click();
     expect(h.gtagCalls).toEqual([
-      ['event', 'store_click', {
-        edition: 'rezka', placement: 'home-card', page_locale: 'en',
-        // These links navigate the same tab, so the hit has to outlive the
-        // unload — often it is queued before async gtag.js has even loaded.
-        transport_type: 'beacon',
-      }],
+      ['event', 'store_click', { edition: 'rezka', placement: 'home-card', page_locale: 'en' }],
     ]);
   });
 
   it('carries an exact, closed set of params', () => {
     // The allowlist. /privacy/site/ states that no email or account id is ever
-    // attached; this fails the moment a call site adds a key. transport_type is
-    // a gtag directive rather than reported data, but it is listed here anyway
-    // so that adding anything at all has to be a deliberate edit to this line.
+    // attached; this fails the moment a call site adds a key.
     const h = boot({ stored: 'granted', extraHTML: link('data-store="a" data-place="b"') });
     $<HTMLAnchorElement>('a[href*="chromewebstore"]').click();
     const params = h.gtagCalls[0][2] as Record<string, unknown>;
-    expect(Object.keys(params).sort()).toEqual(
-      ['edition', 'page_locale', 'placement', 'transport_type'],
-    );
+    expect(Object.keys(params).sort()).toEqual(['edition', 'page_locale', 'placement']);
   });
 
-  it('asks for the beacon transport so the hit survives the navigation', () => {
+  it('does NOT smuggle transport_type in as an event parameter', () => {
+    // gtag honours transport_type on `config` only. Passed inside an event it
+    // is not a directive at all — it becomes a custom parameter, so GA4 grows a
+    // dimension whose every value is the string "beacon" while the transport
+    // stays whatever it already was. Measured on preprod when it lived here.
     const h = boot({ stored: 'granted', extraHTML: link('data-store="a" data-place="b"') });
     $<HTMLAnchorElement>('a[href*="chromewebstore"]').click();
-    expect((h.gtagCalls[0][2] as Record<string, string>).transport_type).toBe('beacon');
+    expect(h.gtagCalls[0][2]).not.toHaveProperty('transport_type');
   });
 
   it('still fires for the legacy webstore URL', () => {
@@ -541,9 +536,7 @@ describe('store_click', () => {
     // 'unknown' rather than silently as some other edition.
     const h = boot({ stored: 'granted', extraHTML: link('') });
     $<HTMLAnchorElement>('a[href*="chromewebstore"]').click();
-    expect(h.gtagCalls[0][2]).toEqual({
-      edition: 'unknown', placement: 'other', page_locale: 'en', transport_type: 'beacon',
-    });
+    expect(h.gtagCalls[0][2]).toEqual({ edition: 'unknown', placement: 'other', page_locale: 'en' });
   });
 
   it('caps oversized attribute values', () => {

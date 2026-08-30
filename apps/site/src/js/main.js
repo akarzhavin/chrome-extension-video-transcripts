@@ -668,17 +668,13 @@
       // Where on the site the click came from — hero, card, final CTA — so
       // the same listing's clicks can be attributed to a position.
       placement: (a.getAttribute('data-place') || 'other').slice(0, 64),
-      page_locale: (document.documentElement.lang || '').slice(0, 16),
-      // These links navigate the SAME tab, and the hit is queued the instant
-      // the click lands — often before the async gtag.js has finished
-      // loading, while the event is still only in the in-memory dataLayer.
-      // Without beacon the unload cancels it and the one conversion this site
-      // measures is lost. Worst on /uninstall/, whose re-install CTA is the
-      // first thing a visitor who regretted it reaches for.
-      //
-      // sendBeacon survives the navigation; browsers without it fall back to
-      // gtag.js's own transport, which is exactly today's behaviour.
-      transport_type: 'beacon'
+      // These links navigate the SAME tab, so the hit has to outlive the
+      // unload — it is queued the instant the click lands, often before the
+      // async gtag.js has finished loading. The transport that survives that
+      // is configured once, on `config` in build.mjs's inline block: gtag only
+      // honours transport_type there, and passing it here would just add a
+      // custom parameter named transport_type to every store_click.
+      page_locale: (document.documentElement.lang || '').slice(0, 16)
     });
   });
 
