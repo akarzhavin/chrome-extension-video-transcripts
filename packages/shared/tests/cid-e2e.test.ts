@@ -25,11 +25,14 @@ const store: Record<string, unknown> = {};
   },
 };
 import { OPTED_OUT, installOnboarding } from '../src/onboarding';
-import { getClientId, isAnalyticsEnabled, markInstalled, _resetAnalyticsCacheForTests }
+import { markInstalled, onboardingClientId, _resetAnalyticsCacheForTests }
   from '../src/analytics-bg';
 
-const resolver = async () =>
-  (await isAnalyticsEnabled()) ? ((await getClientId()) ?? OPTED_OUT) : OPTED_OUT;
+// The resolver a background script passes — the SHARED one, not a copy of its
+// logic. A new edition wires `clientId: onboardingClientId` and is done; if
+// this ever stops being a single shared function, these tests keep passing
+// against the copy while a real edition drifts, so the import matters.
+const resolver = onboardingClientId;
 const settle = () => new Promise((r) => setTimeout(r, 0));
 
 beforeEach(() => { for (const k of Object.keys(store)) delete store[k]; _resetAnalyticsCacheForTests(); setUninstallURL.mockClear(); });
@@ -52,4 +55,21 @@ test('analytics OFF: the placeholder goes instead, and the real id never appears
   const url = setUninstallURL.mock.calls.at(-1)![0] as string;
   expect(url).toContain(`cid=${OPTED_OUT}`);
   expect(url).not.toContain(minted);
+});
+
+test('a brand-new edition inherits the rule by passing the shared resolver alone', async () => {
+    // Stands in for tomorrow's apps/<something>/background.ts. It knows the
+    // slug and nothing about consent, placeholders, or storage keys.
+    await markInstalled(Date.now());
+    store['prefs.v1'] = { analyticsEnabled: false };
+    installOnboarding('netflix', { clientId: onboardingClientId });
+    await settle();
+    expect(setUninstallURL.mock.calls.at(-1)![0]).toContain(`cid=${OPTED_OUT}`);
+});
+
+test('the shared resolver falls to the placeholder when storage throws', async () => {
+    const broken = { ...(global as any).chrome.storage.local };
+    (global as any).chrome.storage.local.get = async () => { throw new Error('gone'); };
+    await expect(onboardingClientId()).resolves.toBe(OPTED_OUT);
+    (global as any).chrome.storage.local = broken;
 });

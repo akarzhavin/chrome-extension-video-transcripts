@@ -10,6 +10,7 @@
 // TRACK_EVENT message handler — never re-check the preference, so there is
 // exactly one gate to audit and no call site that can bypass it.
 
+import { OPTED_OUT } from './onboarding';
 import { PREFS_KEY } from './prefs';
 import { ANALYTICS_KEYS, ANALYTICS_SESSION_KEYS } from './auth/storage';
 import {
@@ -407,4 +408,31 @@ export async function handleTrackMessage(
     }
     await track(event as AnalyticsEvent, params);
     return { ok: true };
+}
+
+/**
+ * The `cid` resolver every background script hands to installOnboarding.
+ *
+ * Lives here rather than in each extension because the rule it encodes is not
+ * a per-edition choice: an install whose owner switched analytics off must
+ * hand the onboarding pages a placeholder, never its real id. Copied into
+ * three background scripts that rule would eventually be copied wrong, and the
+ * failure is silent — the URL still works, it just quietly carries an identity
+ * it had no permission to carry. A new edition gets the correct behaviour by
+ * passing this function, and nothing else.
+ *
+ * It cannot live in onboarding.ts: that module is reachable from content
+ * bundles and importing this file there would risk pulling the GA4 api_secret
+ * into a page-readable script. Composition happens in the background entry
+ * point, which is the only place both halves are legal.
+ */
+export async function onboardingClientId(): Promise<string> {
+    try {
+        if (!(await isAnalyticsEnabled())) return OPTED_OUT;
+        return (await getClientId()) ?? OPTED_OUT;
+    } catch {
+        // Fails to the placeholder, not to a real id: an unreadable preference
+        // is not permission. Same direction as the consent gate above.
+        return OPTED_OUT;
+    }
 }

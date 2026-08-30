@@ -1,10 +1,9 @@
-import { OPTED_OUT, installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
 // Relative paths, not the barrel: analytics-bg carries the GA4 api_secret and
 // must stay out of anything a content script can pull in.
 import {
-    getClientId,
-    isAnalyticsEnabled,
     markInstalled,
+    onboardingClientId,
     setBackendResolver,
     track,
 } from '../../../../packages/shared/src/analytics-bg';
@@ -56,12 +55,10 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 
 installAuthBackground();
 installOnboarding('rezka', {
-    // The `cid` on /welcome/ and /uninstall/. Honours the analytics switch:
-    // Chrome opens the uninstall page whether or not the visitor consented, so
-    // an opted-out install must hand over the placeholder rather than a real
-    // identity — see OPTED_OUT in onboarding.ts.
-    clientId: async () =>
-        (await isAnalyticsEnabled()) ? ((await getClientId()) ?? OPTED_OUT) : OPTED_OUT,
+    // Shared, not spelled out here: the opted-out placeholder rule is the same
+    // for every edition, and a copy per background script is a copy that can
+    // drift silently.
+    clientId: onboardingClientId,
     onInstall: () => {
         void markInstalled();
         // See the youtube edition: ext_source already carries this.
