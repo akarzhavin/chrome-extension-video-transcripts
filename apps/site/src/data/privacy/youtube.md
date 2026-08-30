@@ -1,12 +1,14 @@
-# Privacy Policy — Lingogram: Dual Subtitles & Transcript for YouTube
+# Privacy Policy — Lingogram for YouTube and Netflix
+
+Covers the **Lingogram: Dual Subtitles & Transcript for YouTube** extension, which
+works on both YouTube and Netflix.
 
 **Effective date:** June 22, 2026
-**Last updated:** August 25, 2026
+**Last updated:** August 30, 2026
 
-This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
-Transcript for YouTube** browser extension ("the Extension") collects, how it is
-used, where it is stored, and the choices you have. The same extension also works on
-**Netflix**, and this policy covers it there too.
+This Privacy Policy explains what information the Extension collects, how it is used,
+where it is stored, and the choices you have. It applies to the Extension on both
+**YouTube** and **Netflix**.
 
 *This English version at https://lingogram.ai/privacy/youtube/ is the authoritative one.*
 

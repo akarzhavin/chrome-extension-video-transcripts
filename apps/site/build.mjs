@@ -883,11 +883,15 @@ ${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e
 
 const privacyEditionPage = (slug) => {
   const t = makeT(EN_STRINGS);
-  const ed = EDITIONS.editions.find((e) => e.slug === slug);
+  // The label from PRIVACY_EDITIONS, not editions.json's `name`: the YouTube
+  // record is named "Lingogram for YouTube" because Netflix has its own landing
+  // card, but ONE policy covers both — a tab titled "for YouTube" would read as
+  // the wrong document to someone who installed it for Netflix.
+  const { label } = PRIVACY_EDITIONS.find((e) => e.slug === slug);
   return layout({
     lang: 'en', htmlLang: 'en',
-    title: `Privacy policy — ${ed.name}`,
-    description: `How ${ed.name} obtains subtitles, and what that means for your data.`,
+    title: `Privacy policy — ${label}`,
+    description: `How ${label} obtains subtitles, and what that means for your data.`,
     pathName: `/privacy/${slug}/`,
     body: `${header(t, '')}<main><article class="doc">${md(privacyBody(slug))}</article></main>${footer(t, '')}`,
   });
