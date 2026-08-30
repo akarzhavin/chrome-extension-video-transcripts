@@ -3,7 +3,7 @@
 // consentBanner(), so nothing here has to build markup.
 
 import { readConsent, writeConsent, isDecided, effectiveChoice, clearGaCookies } from './consent';
-import { CONSENT_DENIED, signals } from './constants.mjs';
+import { CONSENT_DENIED, signals } from './constants.cjs';
 
 export function initBanner(): void {
   const consentEl = document.getElementById('consent');

@@ -5,7 +5,7 @@ import {
   MAX_LOCALE_LEN,
   EDITION_FALLBACK,
   PLACEMENT_FALLBACK,
-} from './constants.mjs';
+} from './constants.cjs';
 
 // Store clicks: the one conversion this site has. `edition` is the card or
 // landing page the visitor chose — youtube, netflix, rezka — and the CTAs

@@ -1,5 +1,5 @@
 import { readConsent } from './consent';
-import { CONSENT_GRANTED } from './constants.mjs';
+import { CONSENT_GRANTED } from './constants.cjs';
 
 declare global {
   interface Window {

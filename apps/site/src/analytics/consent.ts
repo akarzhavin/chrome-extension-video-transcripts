@@ -7,7 +7,7 @@ import {
   CONSENT_GRANTED,
   CONSENT_DENIED,
   GA_COOKIE_EXPIRY,
-} from './constants.mjs';
+} from './constants.cjs';
 
 export function readConsent(): string | null {
   // Safari's "block all cookies" throws on localStorage access, not just on

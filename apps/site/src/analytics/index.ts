@@ -9,7 +9,7 @@
 // duplicated: build.mjs's inline <head> block seeds all four signals to
 // 'denied' BEFORE gtag.js loads and upgrades them from storage on a returning
 // visit, while this bundle owns the banner UI and the click that updates
-// consent. Both read the key and the signal set from ./constants.mjs.
+// consent. Both read the key and the signal set from ./constants.cjs.
 
 import { track } from './track';
 import { initBanner } from './banner';

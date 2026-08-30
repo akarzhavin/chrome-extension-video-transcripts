@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["chrome"],
-    // For src/analytics/constants.mjs, which is plain JS because build.mjs —
+    // For src/analytics/constants.cjs, which is plain JS because build.mjs —
     // a Node script with no TypeScript pipeline — imports it too. `include`
     // still only lists .ts files, so this permits following that one explicit
     // import and does NOT pull src/js/main.js into the program.

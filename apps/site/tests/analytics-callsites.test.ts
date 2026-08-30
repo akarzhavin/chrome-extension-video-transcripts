@@ -1,15 +1,17 @@
 /**
- * The analytics call sites outside main.js: the hero demo and the auth pages.
+ * The analytics call sites outside the analytics bundle: the hero demo and the
+ * auth pages.
  *
- * Both are separate Vite builds that reach main.js only through the global
+ * Both are separate Vite builds that reach analytics.js only through the global
  * `window.lgTrack`, and both self-execute on import (the demo mounts a player,
  * entry.ts reads window.LINGOGRAM_AUTH and binds forms). Driving them through
  * a mocked Firebase SDK and a mocked embed package would mostly assert that the
  * mocks were wired correctly, so the split here is deliberate:
  *
- *  - the CONTRACT between those bundles and main.js is exercised for real,
- *    against the shipped main.js, because that is where a mismatch actually
- *    bites (a renamed global silently stops every demo and auth event);
+ *  - the CONTRACT between those bundles and the analytics one is exercised for
+ *    real, against the same modules analytics.js is built from, because that is
+ *    where a mismatch actually bites (a renamed global silently stops every
+ *    demo and auth event);
  *  - the call sites themselves are read as source, which is enough to pin the
  *    things that matter about them: the event names, that no PII rides along,
  *    that demo events are gated once per page load, and that the Google button
@@ -27,35 +29,37 @@ const read = (rel: string) => readFileSync(resolve(SRC, rel), 'utf8');
 const DEMO = read('demo/index.ts');
 const ENTRY = read('auth/entry.ts');
 const GOOGLE = read('auth/google.ts');
-const MAIN_JS = read('js/main.js');
+const ANALYTICS_ENTRY = read('analytics/index.ts');
 
 describe('the window.lgTrack contract', () => {
   it('is the single name every other bundle calls through', () => {
-    // Renaming this global in main.js without touching the three consumers
-    // would stop every demo and auth event with no error anywhere.
-    expect(MAIN_JS).toContain('window.lgTrack = track');
+    // Renaming this global in the analytics entry without touching the three
+    // consumers would stop every demo and auth event with no error anywhere.
+    expect(ANALYTICS_ENTRY).toContain('window.lgTrack = track');
     for (const [name, src] of [['demo', DEMO], ['entry', ENTRY], ['google', GOOGLE]] as const) {
       expect([name, /lgTrack\?\.\(/.test(src)]).toEqual([name, true]);
     }
   });
 
-  it('is optional at every call site, so a page without main.js cannot break', () => {
-    // auth.js is a module script: it runs after main.js's defer, but a future
-    // page could load it alone. Every call uses ?. and sits inside try/catch.
+  it('is optional at every call site, so a page without analytics.js cannot break', () => {
+    // auth.js is a module script: it runs after the analytics bundle's defer,
+    // but a future page could load it alone. Every call uses ?. and sits inside
+    // try/catch.
     for (const [name, src] of [['demo', DEMO], ['entry', ENTRY], ['google', GOOGLE]] as const) {
       expect([name, src.includes('lgTrack?.(')]).toEqual([name, true]);
     }
   });
 
   it('really is a no-op when the tag was never built', () => {
-    // The behavioural half: boot the shipped main.js with no LG_GA4 and confirm
+    // The behavioural half: boot the analytics entry with no LG_GA4 and confirm
     // the global still exists and still swallows the call.
     document.body.innerHTML = '';
     const calls: unknown[][] = [];
     (window as unknown as { gtag: unknown }).gtag = (...a: unknown[]) => calls.push(a);
     delete (window as unknown as { LG_GA4?: string }).LG_GA4;
-    // eslint-disable-next-line no-new-func
-    new Function(MAIN_JS)();
+    jest.isolateModules(() => {
+      require('../src/analytics/index');
+    });
     const lgTrack = (window as unknown as { lgTrack: (n: string, p?: unknown) => void }).lgTrack;
     expect(typeof lgTrack).toBe('function');
     expect(() => lgTrack('demo_word_saved')).not.toThrow();
