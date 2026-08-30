@@ -7,10 +7,9 @@
 // family — adding a record there creates the card on the home page and the
 // /<slug>/ landing page. No dependencies; plain template literals.
 //
-// The privacy policy is authored under src/data/privacy/ and published here in
-// English only: index.md is the family-wide document at /privacy/, and one
-// <slug>.md per extension at /privacy/<slug>/ carries the part that differs
-// (how that edition obtains subtitles). See privacyPage below.
+// Privacy policies are authored under src/data/privacy/ and published here in
+// English only: one complete, self-contained document per extension at
+// /privacy/<slug>/, plus a short chooser at /privacy/. See privacyPage below.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -832,28 +831,35 @@ const md = (text) => {
   return blocks.join('\n');
 };
 
-// The privacy policy lives HERE, in English only, and this site is where it
-// is published — the extensions carry no copy of their own to drift from it.
+// The privacy policies live HERE, in English only, and this site is where they
+// are published — the extensions carry no copy of their own to drift from.
 //
-// It is split the way the document actually splits: index.md holds everything
-// that is true of every edition (the optional account, Firebase, the anonymous
-// analytics and the switch that stops them, retention, rights, contact), and
-// <slug>.md holds the one thing that genuinely differs — how that edition gets
-// its subtitles. A Rezka user arriving from the footer must not land on a page
-// describing YouTube's player, which is what a single shared document did.
+// One COMPLETE document per extension, not a shared policy plus per-edition
+// appendices: each Chrome Web Store listing must point at a page that answers
+// every question on its own, and a Rezka user must never land on a document
+// describing YouTube's player. The two overlap heavily (same account backend,
+// same Firebase, same analytics) and that duplication is deliberate — a reader
+// of either page needs no second page.
 //
 // English only, deliberately: a legal text retranslated into 41 locales on every
 // edit is 41 chances to ship a translation that says something the English one
-// does not. The English page is the authoritative version and says so.
+// does not. Each page states which URL is authoritative.
 const PRIVACY_DIR = path.join(SRC, 'data', 'privacy');
 const privacyBody = (name) => fs.readFileSync(path.join(PRIVACY_DIR, `${name}.md`), 'utf8');
 
 // Editions with their own policy page. Netflix ships INSIDE the YouTube
 // extension (one install, one Chrome Web Store listing — see editions.json),
-// so it is covered by that page rather than getting a third one that would
-// describe the same extension a second time.
-const PRIVACY_EDITIONS = ['youtube', 'rezka'];
+// so the YouTube document covers it rather than a third page describing the
+// same extension a second time.
+const PRIVACY_EDITIONS = [
+  { slug: 'youtube', label: 'Lingogram for YouTube and Netflix' },
+  { slug: 'rezka', label: 'Lingogram for HDrezka' },
+];
 
+// /privacy/ is a chooser, not a policy. It stays because the footer, /welcome/,
+// /help/analytics/, the register form and both published store listings already
+// point at it; sending that traffic to one edition's document would show half
+// the readers the wrong one.
 const privacyPage = () => {
   const t = makeT(EN_STRINGS);
   return layout({
@@ -861,7 +867,17 @@ const privacyPage = () => {
     title: t('privacy.title'),
     description: t('privacy.description'),
     pathName: '/privacy/',
-    body: `${header(t, '')}<main><article class="doc">${md(privacyBody('index'))}</article></main>${footer(t, '')}`,
+    body: `${header(t, '')}<main><article class="doc">
+      <h1>Privacy policy</h1>
+      <p>Each Lingogram extension has its own privacy policy. Open the one for the
+      extension you installed:</p>
+      <ul>
+${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e.label)}</a></li>`).join('\n')}
+      </ul>
+      <p>The two documents describe the same optional account, the same cloud storage
+      and the same anonymous usage analytics; they differ in how each extension
+      obtains the subtitles it displays.</p>
+    </article></main>${footer(t, '')}`,
   });
 };
 
@@ -1738,7 +1754,7 @@ ${Object.entries(alternates).map(([tag, href]) =>
     ...EDITIONS.editions.map((ed) => urlEntry(`/${ed.slug}/`, {})),
     // Privacy pages are English-only, so they carry no alternates either.
     urlEntry('/privacy/', {}),
-    ...PRIVACY_EDITIONS.map((slug) => urlEntry(`/privacy/${slug}/`, {})),
+    ...PRIVACY_EDITIONS.map(({ slug }) => urlEntry(`/privacy/${slug}/`, {})),
   ];
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -1772,10 +1788,10 @@ Sitemap: ${SITE.domain}/sitemap.xml
   // i18n rollout note at the top of this file.
   for (const ed of EDITIONS.editions) write(path.join(ed.slug, 'index.html'), editionPage(ed));
 
-  // Privacy is English-only (see privacyPage): one family document plus one
-  // page per extension, rendered once rather than per locale.
+  // Privacy is English-only (see privacyPage): one complete document per
+  // extension plus a chooser, rendered once rather than per locale.
   write(path.join('privacy', 'index.html'), privacyPage());
-  for (const slug of PRIVACY_EDITIONS) write(path.join('privacy', slug, 'index.html'), privacyEditionPage(slug));
+  for (const { slug } of PRIVACY_EDITIONS) write(path.join('privacy', slug, 'index.html'), privacyEditionPage(slug));
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));
