@@ -155,10 +155,28 @@ export async function daysSinceInstall(now: number = Date.now()): Promise<number
 }
 
 /**
- * Stamps the install date. Called from the onInstalled INSTALL branch only.
- * Never overwrites: an update must not restart the retention clock.
+ * Stamps the install date and mints the client id. Called from the onInstalled
+ * INSTALL branch only. The date is never overwritten: an update must not
+ * restart the retention clock.
+ *
+ * The id is minted here rather than left to the first hit that needs it, and
+ * unconditionally — the consent gate is NOT consulted. Minting is not
+ * collecting: getClientId only writes a random UUID to this extension's own
+ * storage.local, and `track` still refuses to send anything while analytics is
+ * off, so an opted-out install produces an id that is never read and never
+ * leaves the machine. What this buys is that the id exists from the install
+ * event onward, so it cannot be missed by a first hit that dies with the
+ * worker, fails on a cold network, or arrives while the preference is still
+ * being written — and a visitor who turns analytics back on later keeps the
+ * same identity instead of arriving as a brand-new user.
  */
 export async function markInstalled(now: number = Date.now()): Promise<void> {
+    // Awaited, not fire-and-forget: the worker can be torn down moments after
+    // onInstalled returns, and an unawaited mint would race that teardown —
+    // exactly the case this function exists to close. getClientId swallows its
+    // own storage errors and is independent of the date stamp below, so a
+    // failure on either side cannot cost us the other.
+    await getClientId();
     try {
         const v = await chrome.storage.local.get(ANALYTICS_KEYS.installedAt);
         if (v[ANALYTICS_KEYS.installedAt]) return;
