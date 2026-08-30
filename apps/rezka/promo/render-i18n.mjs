@@ -55,6 +55,11 @@ function shotsFor(loc) {
     demo: shotFor(loc, 'demo'),
     onboarding: shotFor(loc, 'onboarding'),
     guess: shotFor(loc, 'guess'),
+    // The settings panel in the DARK theme. Rezka's panel is shown dark here on
+    // purpose: 'settings-dark' is a capture kind of its own rather than a theme
+    // flag, because the light captures of the same screen are what the YouTube
+    // series uses and must not be overwritten by this one.
+    settings: shotFor(loc, 'settings-dark'),
     // Real HDrezka host captures (same for every locale).
     host: shotUrl('host-hero.png'),
     hostOverlay: shotUrl('host-overlay.png'),
@@ -114,10 +119,10 @@ const slide2 = (p, loc, s) => `${head(loc)}
   </div>
 </body></html>`;
 
-// slide3 — side layout, onboarding panel crop
+// slide3 — side layout, settings panel crop (dark theme)
 const slide3 = (p, loc, s) => `${head(loc)}
 <body class="theme-3">
-  <div class="slide slide--side">
+  <div class="slide slide--side slide--settings">
     <div class="bg"></div>${BRAND}
     <div class="copy">
       <span class="eyebrow">${p('slide3', 'eyebrow')}</span>
@@ -126,7 +131,7 @@ const slide3 = (p, loc, s) => `${head(loc)}
     </div>
     <div class="stage">
       <div class="panel">
-        <div class="shot" style="background-image:url('${s.onboarding}'); left:-1058px; top:0;"></div>
+        <div class="shot" style="background-image:url('${s.settings}'); left:-1080px; top:0;"></div>
       </div>
     </div>
   </div>
