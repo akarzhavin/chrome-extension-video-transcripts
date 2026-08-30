@@ -588,8 +588,17 @@
         // call reads back null and drops its event. Telling GA 'granted'
         // anyway would claim a consent the page cannot honour, so an
         // unpersisted acceptance stays denied for this page load too.
+        var value = (choice === 'granted' && !stored) ? 'denied' : choice;
+        // All four signals move together, matching the returning-visitor
+        // upgrade in build.mjs's inline block. ad_storage is the one Google
+        // Signals actually needs: without it the property setting is on and
+        // inert. Granting a signal here but not there — or vice versa — would
+        // make a visitor's second page behave unlike their first.
         window.gtag('consent', 'update', {
-          analytics_storage: (choice === 'granted' && !stored) ? 'denied' : choice
+          ad_storage: value,
+          ad_user_data: value,
+          ad_personalization: value,
+          analytics_storage: value
         });
       }
       // Withdrawal has to remove the identifier, not just stop writing new

@@ -124,6 +124,11 @@ function boot(opts: BootOpts = {}): Harness {
 
 const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T;
 const consentEl = () => $<HTMLElement>('#consent');
+/** All four Consent Mode v2 signals move together — see build.mjs. */
+const allSignals = (v: string) => ({
+  ad_storage: v, ad_user_data: v, ad_personalization: v, analytics_storage: v,
+});
+
 const track = (name: string, params?: Record<string, unknown>) =>
   (window as unknown as { lgTrack: (n: string, p?: Record<string, unknown>) => void }).lgTrack(name, params);
 
@@ -184,7 +189,29 @@ describe('answering the banner', () => {
     $<HTMLButtonElement>('[data-consent="granted"]').click();
     expect(localStorage.getItem('lingogram_consent')).toBe('granted');
     expect(consentEl().hidden).toBe(true);
-    expect(h.gtagCalls).toEqual([['consent', 'update', { analytics_storage: 'granted' }]]);
+    expect(h.gtagCalls).toEqual([['consent', 'update', allSignals('granted')]]);
+  });
+
+  it('grants all four signals, not analytics alone', () => {
+    // Google Signals needs ad_storage to function; granting analytics_storage
+    // by itself would leave the property setting switched on and inert.
+    const h = boot({});
+    $<HTMLButtonElement>('[data-consent="granted"]').click();
+    const update = h.gtagCalls[0][2] as Record<string, string>;
+    expect(Object.keys(update).sort()).toEqual(
+      ['ad_personalization', 'ad_storage', 'ad_user_data', 'analytics_storage'],
+    );
+  });
+
+  it('sends the same signal set the returning-visitor upgrade sends', () => {
+    // build.mjs's inline block re-grants on a later page load. If the two sets
+    // drifted, a visitor's second page would behave unlike their first.
+    const buildMjs = readFileSync(resolve(__dirname, '../build.mjs'), 'utf8');
+    const inline = /gtag\('consent','update',\{([^}]*)\}\)/.exec(buildMjs);
+    const inlineKeys = [...(inline?.[1] ?? '').matchAll(/(\w+):/g)].map((m) => m[1]).sort();
+    const h = boot({});
+    $<HTMLButtonElement>('[data-consent="granted"]').click();
+    expect(Object.keys(h.gtagCalls[0][2] as object).sort()).toEqual(inlineKeys);
   });
 
   it('does NOT re-send page_view on Accept', () => {
@@ -201,7 +228,7 @@ describe('answering the banner', () => {
     const h = boot({});
     $<HTMLButtonElement>('[data-consent="denied"]').click();
     expect(localStorage.getItem('lingogram_consent')).toBe('denied');
-    expect(h.gtagCalls).toEqual([['consent', 'update', { analytics_storage: 'denied' }]]);
+    expect(h.gtagCalls).toEqual([['consent', 'update', allSignals('denied')]]);
   });
 
   it('ignores a click that is not on a choice', () => {
@@ -233,13 +260,13 @@ describe('when localStorage will not persist the choice', () => {
     // the page cannot honour is worse than admitting it did not stick.
     const h = boot({ storage: 'silent' });
     $<HTMLButtonElement>('[data-consent="granted"]').click();
-    expect(h.gtagCalls).toEqual([['consent', 'update', { analytics_storage: 'denied' }]]);
+    expect(h.gtagCalls).toEqual([['consent', 'update', allSignals('denied')]]);
   });
 
   it('downgrades when storage throws outright', () => {
     const h = boot({ storage: 'throws' });
     expect(() => $<HTMLButtonElement>('[data-consent="granted"]').click()).not.toThrow();
-    expect(h.gtagCalls).toEqual([['consent', 'update', { analytics_storage: 'denied' }]]);
+    expect(h.gtagCalls).toEqual([['consent', 'update', allSignals('denied')]]);
   });
 
   it('still shows the banner when the read itself throws', () => {
@@ -252,7 +279,7 @@ describe('when localStorage will not persist the choice', () => {
   it('passes Decline through unchanged — refusal never needs to persist to count', () => {
     const h = boot({ storage: 'silent' });
     $<HTMLButtonElement>('[data-consent="denied"]').click();
-    expect(h.gtagCalls).toEqual([['consent', 'update', { analytics_storage: 'denied' }]]);
+    expect(h.gtagCalls).toEqual([['consent', 'update', allSignals('denied')]]);
   });
 });
 

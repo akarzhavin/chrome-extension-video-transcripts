@@ -79,7 +79,14 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 //
 // LG_CONSENT / lingogram_consent are shared with src/js/main.js, which owns
 // the banner UI and calls gtag('consent','update',…) on click. Keep the key
-// and the two values ('granted' | 'denied') identical in both files.
+// and the two values ('granted' | 'denied') identical in both files — and keep
+// the SET OF SIGNALS in the two update calls identical too: the one below runs
+// for a returning visitor, main.js's runs on the click, and a signal granted in
+// only one of them would make a visitor's second page behave unlike their first.
+//
+// All four signals move together on acceptance. ad_storage is what Google
+// Signals needs to function at all, so granting analytics_storage alone would
+// leave the property setting switched on and doing nothing.
 //
 // `anonymize_ip` is not set: GA4 anonymises IPs unconditionally, and the
 // parameter is a Universal Analytics leftover that GA4 ignores.
@@ -95,7 +102,7 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 const analyticsHead = () => GA4 ? `<script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
-try{if(localStorage.getItem('lingogram_consent')==='granted')gtag('consent','update',{analytics_storage:'granted'})}catch(e){}
+try{if(localStorage.getItem('lingogram_consent')==='granted')gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'})}catch(e){}
 gtag('js',new Date());gtag('config','${GA4}');
 window.LG_GA4='${GA4}';
 </script>
