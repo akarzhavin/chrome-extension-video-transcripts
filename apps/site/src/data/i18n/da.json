@@ -54,6 +54,14 @@
     "legal": "Juridisk",
     "privacyPolicy": "Privatlivspolitik"
   },
+  "consent": {
+    "body": "Vi bruger cookies til at gøre vores produkt bedre.",
+    "accept": "Accepter",
+    "decline": "Afvis",
+    "more": "Sådan bruger vi dem",
+    "settings": "Cookies",
+    "close": "Luk"
+  },
   "proof": {
     "rating": "på Chrome Web Store",
     "learners": "der lærer sprog",

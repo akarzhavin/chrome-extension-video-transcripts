@@ -56,6 +56,14 @@
     "legal": "Pravno",
     "privacyPolicy": "Politika zasebnosti"
   },
+  "consent": {
+    "body": "Piškotke uporabljamo za izboljšanje našega izdelka.",
+    "accept": "Sprejmi",
+    "decline": "Zavrni",
+    "more": "Kako jih uporabljamo",
+    "settings": "Piškotki",
+    "close": "Zapri"
+  },
   "proof": {
     "rating": "na Chrome Web Store",
     "learners": "uporabnikov se uči",

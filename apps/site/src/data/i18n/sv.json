@@ -54,6 +54,14 @@
     "legal": "Juridiskt",
     "privacyPolicy": "Integritetspolicy"
   },
+  "consent": {
+    "body": "Vi använder cookies för att göra vår produkt bättre.",
+    "accept": "Acceptera",
+    "decline": "Avvisa",
+    "more": "Hur vi använder dem",
+    "settings": "Cookies",
+    "close": "Stäng"
+  },
   "proof": {
     "rating": "på Chrome Web Store",
     "learners": "användare lär sig",

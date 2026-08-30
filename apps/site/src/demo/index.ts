@@ -352,6 +352,27 @@ const start = () => {
       </p>`;
   };
 
+  // ---- analytics --------------------------------------------------------
+  //
+  // Whether the hero demo is actually TRIED, which is the one question the
+  // page's bounce rate cannot answer: a visitor who reads the copy and one
+  // who drives the sidebar look identical in page_view terms.
+  //
+  // Once per event name per page load. The slider auto-advances on a timer
+  // and remounts on playback failure, so an ungated send would report demo
+  // engagement for a visitor who never touched anything — inflating the very
+  // number this exists to measure. main.js owns window.lgTrack and the
+  // consent gate; a page where it never ran simply reports nothing.
+  const demoSent = new Set<string>();
+  const trackDemo = (name: string, params?: Record<string, unknown>): void => {
+    if (demoSent.has(name)) return;
+    demoSent.add(name);
+    try {
+      (window as { lgTrack?: (n: string, p?: Record<string, unknown>) => void })
+        .lgTrack?.(name, params);
+    } catch (e) { /* analytics must never break the demo */ }
+  };
+
   const mountFile = () => {
     console.info('[lingogram-demo] source: local file (YouTube embed unavailable)');
     return mount({
@@ -360,7 +381,8 @@ const start = () => {
       tracks,
       savedWordCount: 247,
       onOwnershipConflict,
-      onModeChange: (m) => syncSliderToDemo(m),
+      onModeChange: (m) => { trackDemo('demo_mode_change', { mode: m }); syncSliderToDemo(m); },
+      onWordSaved: () => trackDemo('demo_word_saved'),
     });
   };
 
@@ -373,7 +395,8 @@ const start = () => {
     tracks,
     savedWordCount: 247,
     onOwnershipConflict,
-    onModeChange: (m) => syncSliderToDemo(m),
+    onModeChange: (m) => { trackDemo('demo_mode_change', { mode: m }); syncSliderToDemo(m); },
+    onWordSaved: () => trackDemo('demo_word_saved'),
     onPlaybackFail: () => {
       instance.destroy();
       // The slider must drive whatever is mounted now, not the instance that

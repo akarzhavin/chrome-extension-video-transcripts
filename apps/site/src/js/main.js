@@ -380,6 +380,14 @@
     if (reinstall && UN.stores &&
         Object.prototype.hasOwnProperty.call(UN.stores, extSlug)) {
       reinstall.href = UN.stores[extSlug];
+      // Keep the analytics label in step with the href this just retargeted,
+      // so a rezka re-install is not reported as a click on the default
+      // listing. Static builds and unknown slugs keep the rendered default.
+      //
+      // ?ext= names the edition that was UNINSTALLED, which is exactly what
+      // this event is about — a netflix uninstall stays `netflix` even though
+      // its re-install link is the shared YouTube listing.
+      reinstall.setAttribute('data-store', extSlug);
     }
 
     function mailtoHref(text) {
@@ -480,4 +488,203 @@
       });
     });
   }
+  // ------------------------------------------------------------- analytics
+  //
+  // Consent banner + the site's own GA4 events. Both halves are no-ops unless
+  // build.mjs emitted a tag (window.LG_GA4), so a local build with no
+  // SITE_GA4_MEASUREMENT_ID runs this file unchanged and sends nothing.
+  //
+  // The consent contract, split across two files by necessity:
+  //   - build.mjs (inline <head>) seeds analytics_storage:'denied' BEFORE
+  //     gtag.js loads, and upgrades it from storage on a returning visit.
+  //   - this file owns the banner UI and the click that updates consent.
+  // The storage key and its two values are duplicated between them; changing
+  // one without the other silently strands returning visitors at 'denied'.
+  var CONSENT_KEY = 'lingogram_consent';
+
+  function consentRead() {
+    // Safari's "block all cookies" throws on localStorage access, not just on
+    // write — so a bare read has to be guarded like a write.
+    try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; }
+  }
+  // Returns whether the choice actually persisted. Safari's "block all
+  // cookies" throws here, and a silent failure would be the worst of both
+  // worlds: consent is granted to GA for this page load while `track()` — which
+  // re-reads storage on every call — keeps dropping every event. The caller
+  // uses the result to keep the two in step.
+  function consentWrite(v) {
+    try {
+      localStorage.setItem(CONSENT_KEY, v);
+      return localStorage.getItem(CONSENT_KEY) === v;
+    } catch (e) { return false; }
+  }
+
+  // Drop the identifiers GA4 already wrote. `consent update` to 'denied' stops
+  // new cookies but leaves the existing `_ga` / `_ga_<id>` in place, so the
+  // client_id would survive a withdrawal and rejoin the visitor's history if
+  // consent were granted again later. /privacy/site/ points at the footer
+  // control as THE way to change your mind, so it has to actually forget.
+  //
+  // Cleared on both the exact host and the registrable domain (GA writes to
+  // the latter), each with and without a path, because a cookie can only be
+  // expired by a matching domain/path pair.
+  function clearGaCookies() {
+    var names = document.cookie.split(';').map(function (c) {
+      return c.split('=')[0].trim();
+    }).filter(function (n) {
+      return n === '_ga' || n.indexOf('_ga_') === 0 || n.indexOf('_gid') === 0;
+    });
+    if (!names.length) return;
+    var host = location.hostname;
+    // 'example.com' from 'www.example.com'. An IP literal has no registrable
+    // domain to walk up to — slicing its last two octets would just produce a
+    // '.0.1' the browser rejects — and neither does a single-label host like
+    // 'localhost', so both keep only the exact-host attempt.
+    var domains = ['', host];
+    if (!/^[\d.]+$/.test(host) && host.indexOf(':') === -1) {
+      var parts = host.split('.');
+      if (parts.length > 2) domains.push('.' + parts.slice(-2).join('.'));
+      else if (parts.length === 2) domains.push('.' + host);
+    }
+    var past = '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    for (var i = 0; i < names.length; i++) {
+      for (var j = 0; j < domains.length; j++) {
+        document.cookie = names[i] + '=' + past +
+          (domains[j] ? '; domain=' + domains[j] : '');
+      }
+    }
+  }
+
+  // Send an event, but only once consent is granted. GA4 itself would queue
+  // and drop the hit under denied consent, so this guard is belt-and-braces;
+  // what it really buys is that `track()` is safe to call from anywhere
+  // without each call site restating the condition.
+  function track(name, params) {
+    if (!window.LG_GA4 || typeof window.gtag !== 'function') return;
+    if (consentRead() !== 'granted') return;
+    window.gtag('event', name, params || {});
+  }
+  // Exposed so the demo and auth bundles — separate builds, no shared module
+  // with this file — can report without each reimplementing the guard.
+  window.lgTrack = track;
+
+  var consentEl = document.getElementById('consent');
+  if (consentEl && window.LG_GA4) {
+    var decided = consentRead();
+    // Reveal only for a visitor who has not answered. `hidden` is the
+    // server-rendered default precisely so a returning visitor never sees the
+    // banner flash before this line runs.
+    if (decided !== 'granted' && decided !== 'denied') consentEl.hidden = false;
+
+    consentEl.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-consent]') : null;
+      if (!btn) return;
+      var choice = btn.getAttribute('data-consent');
+      if (choice !== 'granted' && choice !== 'denied') return;
+      var stored = consentWrite(choice);
+      consentEl.hidden = true;
+      if (typeof window.gtag === 'function') {
+        // Storage that refuses to hold 'granted' means every later track()
+        // call reads back null and drops its event. Telling GA 'granted'
+        // anyway would claim a consent the page cannot honour, so an
+        // unpersisted acceptance stays denied for this page load too.
+        var value = (choice === 'granted' && !stored) ? 'denied' : choice;
+        // All four signals move together, matching the returning-visitor
+        // upgrade in build.mjs's inline block. ad_storage is the one Google
+        // Signals actually needs: without it the property setting is on and
+        // inert. Granting a signal here but not there — or vice versa — would
+        // make a visitor's second page behave unlike their first.
+        window.gtag('consent', 'update', {
+          ad_storage: value,
+          ad_user_data: value,
+          ad_personalization: value,
+          analytics_storage: value
+        });
+      }
+      // Withdrawal has to remove the identifier, not just stop writing new
+      // ones. Order matters: the consent update above tells GA to stop first.
+      if (choice === 'denied') clearGaCookies();
+      // No page_view is re-sent here. The denied default does not swallow the
+      // hit — gtag.js still sends it, cookieless, so the landing page is
+      // already counted for this visit. Sending it again on Accept would
+      // report two views for one page load.
+    });
+
+    // Dismissal, for the reopened banner only. A visitor who opens the footer
+    // control to LOOK at the setting must be able to leave without answering
+    // again — the banner is fixed at z-index 60 and covers content, and a
+    // forced re-decision is the pattern the one-click Decline exists to avoid.
+    // Closing changes nothing: the stored choice stands.
+    //
+    // Not offered on the first, undecided view: there, a close box that leaves
+    // consent at the denied default would be a third answer dressed as an
+    // escape, and both real answers are already one click away.
+    function dismiss() {
+      var standing = consentRead();
+      if (standing !== 'granted' && standing !== 'denied') return;
+      consentEl.hidden = true;
+      var reopenBtn = document.querySelector('[data-consent-reopen]');
+      if (reopenBtn) reopenBtn.focus();
+    }
+    consentEl.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-consent-close]') : null;
+      if (btn) dismiss();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !consentEl.hidden) dismiss();
+    });
+
+    // Footer entry point, so a choice is reversible without clearing storage.
+    var reopen = document.querySelector('[data-consent-reopen]');
+    if (reopen) {
+      reopen.addEventListener('click', function () {
+        // Show the standing choice rather than a blank re-ask, and reveal the
+        // close box so this visit can end without answering again.
+        var standing = consentRead();
+        var closeBtn = consentEl.querySelector('[data-consent-close]');
+        if (closeBtn) closeBtn.hidden = (standing !== 'granted' && standing !== 'denied');
+        var buttons = consentEl.querySelectorAll('[data-consent]');
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].setAttribute('aria-pressed',
+            buttons[i].getAttribute('data-consent') === standing ? 'true' : 'false');
+        }
+        consentEl.hidden = false;
+      });
+    }
+  }
+
+  // Store clicks: the one conversion this site has. `edition` is the card or
+  // landing page the visitor chose — youtube, netflix, rezka — and the CTAs
+  // that belong to no edition (hero, final, uninstall banner) report the one
+  // they install rather than a placement name of their own.
+  //
+  // Delegated on document so it covers every store link on every page,
+  // including the ones main.js itself rewrites (welcome reordering).
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var url = a.getAttribute('href') || '';
+    if (url.indexOf('chromewebstore.google.com') === -1
+        && url.indexOf('chrome.google.com/webstore') === -1) return;
+    track('store_click', {
+      // Which edition, per build.mjs's data-store. Not derived from the URL:
+      // the YouTube and Netflix cards share one listing id, so the URL cannot
+      // tell them apart while the attribute can. The site-wide CTAs (hero,
+      // final, uninstall banner) carry no edition of their own and resolve to
+      // the one they install, so they join its value instead of inventing a
+      // `primary` that matches no card.
+      edition: (a.getAttribute('data-store') || 'unknown').slice(0, 64),
+      // Where on the site the click came from — hero, card, final CTA — so
+      // the same listing's clicks can be attributed to a position.
+      placement: (a.getAttribute('data-place') || 'other').slice(0, 64),
+      // These links navigate the SAME tab, so the hit has to outlive the
+      // unload. Nothing here arranges that, and nothing needs to: gtag.js
+      // already sends over fetch+keepalive, which the browser completes after
+      // the page is gone. `transport_type: 'beacon'` was tried and removed —
+      // it changed no transport and only added a custom parameter to every
+      // event (see build.mjs's analytics block).
+      page_locale: (document.documentElement.lang || '').slice(0, 16)
+    });
+  });
+
 })();

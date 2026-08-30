@@ -58,6 +58,14 @@
     "legal": "الشؤون القانونية",
     "privacyPolicy": "سياسة الخصوصية"
   },
+  "consent": {
+    "body": "نستخدم ملفات تعريف الارتباط لتحسين منتجنا.",
+    "accept": "قبول",
+    "decline": "رفض",
+    "more": "كيف نستخدمها",
+    "settings": "ملفات تعريف الارتباط",
+    "close": "إغلاق"
+  },
   "proof": {
     "rating": "في Chrome Web Store",
     "learners": "متعلّم",

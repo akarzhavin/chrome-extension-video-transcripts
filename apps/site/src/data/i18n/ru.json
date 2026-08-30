@@ -56,6 +56,14 @@
     "legal": "Правовая информация",
     "privacyPolicy": "Политика конфиденциальности"
   },
+  "consent": {
+    "body": "Мы используем файлы cookie, чтобы делать продукт лучше.",
+    "accept": "Принять",
+    "decline": "Отклонить",
+    "more": "Как мы их используем",
+    "settings": "Cookie",
+    "close": "Закрыть"
+  },
   "proof": {
     "rating": "в Chrome Web Store",
     "learners": "изучают язык",

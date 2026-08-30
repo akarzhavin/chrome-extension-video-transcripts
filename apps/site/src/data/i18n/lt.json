@@ -55,6 +55,14 @@
     "legal": "Teisinė informacija",
     "privacyPolicy": "Privatumo politika"
   },
+  "consent": {
+    "body": "Naudojame slapukus, kad patobulintume savo produktą.",
+    "accept": "Sutinku",
+    "decline": "Atsisakau",
+    "more": "Kaip juos naudojame",
+    "settings": "Slapukai",
+    "close": "Uždaryti"
+  },
   "proof": {
     "rating": "Chrome Web Store",
     "learners": "besimokančiųjų",

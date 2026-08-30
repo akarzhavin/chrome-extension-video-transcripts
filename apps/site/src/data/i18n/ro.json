@@ -55,6 +55,14 @@
     "legal": "Legal",
     "privacyPolicy": "Politica de confidențialitate"
   },
+  "consent": {
+    "body": "Folosim cookie-uri pentru a ne îmbunătăți produsul.",
+    "accept": "Accept",
+    "decline": "Refuz",
+    "more": "Cum le folosim",
+    "settings": "Cookie-uri",
+    "close": "Închide"
+  },
   "proof": {
     "rating": "pe Chrome Web Store",
     "learners": "cursanți",

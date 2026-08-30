@@ -53,6 +53,14 @@
     "legal": "Pháp lý",
     "privacyPolicy": "Chính sách bảo mật"
   },
+  "consent": {
+    "body": "Chúng tôi sử dụng cookie để cải thiện sản phẩm của mình.",
+    "accept": "Chấp nhận",
+    "decline": "Từ chối",
+    "more": "Cách chúng tôi sử dụng",
+    "settings": "Cookie",
+    "close": "Đóng"
+  },
   "proof": {
     "rating": "trên Chrome Web Store",
     "learners": "người học",

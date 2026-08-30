@@ -54,6 +54,14 @@
     "legal": "Juridisch",
     "privacyPolicy": "Privacybeleid"
   },
+  "consent": {
+    "body": "We gebruiken cookies om ons product te verbeteren.",
+    "accept": "Accepteren",
+    "decline": "Weigeren",
+    "more": "Hoe we ze gebruiken",
+    "settings": "Cookies",
+    "close": "Sluiten"
+  },
   "proof": {
     "rating": "op de Chrome Web Store",
     "learners": "taalleerders",

@@ -53,6 +53,14 @@
     "legal": "Yasal",
     "privacyPolicy": "Gizlilik politikası"
   },
+  "consent": {
+    "body": "Ürünümüzü geliştirmek için çerez kullanıyoruz.",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "more": "Nasıl kullandığımız",
+    "settings": "Çerezler",
+    "close": "Kapat"
+  },
   "proof": {
     "rating": "Chrome Web Store'da",
     "learners": "kişi dil öğreniyor",

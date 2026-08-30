@@ -54,6 +54,14 @@
     "legal": "Νομικά",
     "privacyPolicy": "Πολιτική απορρήτου"
   },
+  "consent": {
+    "body": "Χρησιμοποιούμε cookies για να βελτιώνουμε το προϊόν μας.",
+    "accept": "Αποδοχή",
+    "decline": "Απόρριψη",
+    "more": "Πώς τα χρησιμοποιούμε",
+    "settings": "Cookies",
+    "close": "Κλείσιμο"
+  },
   "proof": {
     "rating": "στο Chrome Web Store",
     "learners": "μαθαίνουν γλώσσες",

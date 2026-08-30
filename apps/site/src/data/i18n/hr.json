@@ -55,6 +55,14 @@
     "legal": "Pravne informacije",
     "privacyPolicy": "Pravila privatnosti"
   },
+  "consent": {
+    "body": "Koristimo kolačiće kako bismo unaprijedili naš proizvod.",
+    "accept": "Prihvati",
+    "decline": "Odbij",
+    "more": "Kako ih koristimo",
+    "settings": "Kolačići",
+    "close": "Zatvori"
+  },
   "proof": {
     "rating": "na Chrome Web Storeu",
     "learners": "korisnika uči",

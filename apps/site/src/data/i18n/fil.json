@@ -53,6 +53,14 @@
     "legal": "Legal",
     "privacyPolicy": "Patakaran sa privacy"
   },
+  "consent": {
+    "body": "Gumagamit kami ng cookies para mapabuti ang aming produkto.",
+    "accept": "Tanggapin",
+    "decline": "Tanggihan",
+    "more": "Paano namin ginagamit ang mga ito",
+    "settings": "Cookies",
+    "close": "Isara"
+  },
   "proof": {
     "rating": "sa Chrome Web Store",
     "learners": "natututo",

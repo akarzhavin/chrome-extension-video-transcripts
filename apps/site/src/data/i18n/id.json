@@ -53,6 +53,14 @@
     "legal": "Legal",
     "privacyPolicy": "Kebijakan privasi"
   },
+  "consent": {
+    "body": "Kami menggunakan cookie untuk menyempurnakan produk kami.",
+    "accept": "Terima",
+    "decline": "Tolak",
+    "more": "Cara kami menggunakannya",
+    "settings": "Cookie",
+    "close": "Tutup"
+  },
   "proof": {
     "rating": "di Chrome Web Store",
     "learners": "pembelajar",
