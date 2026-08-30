@@ -42,10 +42,13 @@ const RETENTION_MILESTONES: ReadonlyArray<{
 // this is a per-wake memo, not a long-lived cache — the storage read it saves
 // is sub-millisecond but happens on every event.
 let cachedClientId: string | null = null;
+// In-flight mint, shared by concurrent getClientId callers. See the comment there.
+let clientIdInFlight: Promise<string | null> | null = null;
 
 /** Test seam: clears module state between cases. */
 export function _resetAnalyticsCacheForTests(): void {
     cachedClientId = null;
+    clientIdInFlight = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +69,22 @@ export function _resetAnalyticsCacheForTests(): void {
  */
 export async function getClientId(): Promise<string | null> {
     if (cachedClientId) return cachedClientId;
+    // Concurrent callers share one attempt. The read-then-mint below is not
+    // atomic, so two overlapping calls would both see empty storage, both mint,
+    // and the second write would silently replace the first — leaving whoever
+    // read earlier holding an id the extension no longer has. That is not
+    // theoretical: install fires markInstalled and the onboarding resolver in
+    // the same tick, and a real browser run produced a welcome URL whose cid
+    // did not match stored state.
+    if (!clientIdInFlight) {
+        clientIdInFlight = mintOrReadClientId().finally(() => {
+            clientIdInFlight = null;
+        });
+    }
+    return clientIdInFlight;
+}
+
+async function mintOrReadClientId(): Promise<string | null> {
     let stored: unknown;
     try {
         const v = await chrome.storage.local.get(ANALYTICS_KEYS.clientId);

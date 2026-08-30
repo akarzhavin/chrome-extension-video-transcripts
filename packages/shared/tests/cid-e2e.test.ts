@@ -73,3 +73,21 @@ test('the shared resolver falls to the placeholder when storage throws', async (
     await expect(onboardingClientId()).resolves.toBe(OPTED_OUT);
     (global as any).chrome.storage.local = broken;
 });
+
+test('concurrent callers agree on one id, and it is the one in storage', async () => {
+    // markInstalled and the onboarding resolver both run in the install tick.
+    // Without a shared in-flight promise each read empty storage, each minted,
+    // and the later write replaced the earlier — so the welcome URL advertised
+    // an id the extension no longer had. Caught in a real browser, not here.
+    const [a, b] = await Promise.all([onboardingClientId(), onboardingClientId()]);
+    expect(a).toBe(b);
+    expect(store['analytics.clientId']).toBe(a);
+});
+
+test('install and the resolver together leave one id', async () => {
+    await Promise.all([markInstalled(Date.now()), onboardingClientId()]);
+    installOnboarding('rezka', { clientId: onboardingClientId });
+    await settle();
+    const url = setUninstallURL.mock.calls.at(-1)![0] as string;
+    expect(url).toContain(`cid=${store['analytics.clientId']}`);
+});
