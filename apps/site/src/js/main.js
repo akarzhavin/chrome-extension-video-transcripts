@@ -381,8 +381,12 @@
         Object.prototype.hasOwnProperty.call(UN.stores, extSlug)) {
       reinstall.href = UN.stores[extSlug];
       // Keep the analytics label in step with the href this just retargeted,
-      // so a rezka re-install is not reported as a click on the primary
+      // so a rezka re-install is not reported as a click on the default
       // listing. Static builds and unknown slugs keep the rendered default.
+      //
+      // ?ext= names the edition that was UNINSTALLED, which is exactly what
+      // this event is about — a netflix uninstall stays `netflix` even though
+      // its re-install link is the shared YouTube listing.
       reinstall.setAttribute('data-store', extSlug);
     }
 
@@ -640,10 +644,10 @@
     }
   }
 
-  // Store clicks: the one conversion this site has. `edition` comes from the
-  // listing URL rather than from the surrounding copy, so a card, a hero
-  // button and the uninstall page's re-install banner all report the same
-  // value for the same extension.
+  // Store clicks: the one conversion this site has. `edition` is the card or
+  // landing page the visitor chose — youtube, netflix, rezka — and the CTAs
+  // that belong to no edition (hero, final, uninstall banner) report the one
+  // they install rather than a placement name of their own.
   //
   // Delegated on document so it covers every store link on every page,
   // including the ones main.js itself rewrites (welcome reordering).
@@ -656,12 +660,25 @@
     track('store_click', {
       // Which edition, per build.mjs's data-store. Not derived from the URL:
       // the YouTube and Netflix cards share one listing id, so the URL cannot
-      // tell them apart while the attribute can.
+      // tell them apart while the attribute can. The site-wide CTAs (hero,
+      // final, uninstall banner) carry no edition of their own and resolve to
+      // the one they install, so they join its value instead of inventing a
+      // `primary` that matches no card.
       edition: (a.getAttribute('data-store') || 'unknown').slice(0, 64),
       // Where on the site the click came from — hero, card, final CTA — so
       // the same listing's clicks can be attributed to a position.
       placement: (a.getAttribute('data-place') || 'other').slice(0, 64),
-      page_locale: (document.documentElement.lang || '').slice(0, 16)
+      page_locale: (document.documentElement.lang || '').slice(0, 16),
+      // These links navigate the SAME tab, and the hit is queued the instant
+      // the click lands — often before the async gtag.js has finished
+      // loading, while the event is still only in the in-memory dataLayer.
+      // Without beacon the unload cancels it and the one conversion this site
+      // measures is lost. Worst on /uninstall/, whose re-install CTA is the
+      // first thing a visitor who regretted it reaches for.
+      //
+      // sendBeacon survives the navigation; browsers without it fall back to
+      // gtag.js's own transport, which is exactly today's behaviour.
+      transport_type: 'beacon'
     });
   });
 

@@ -132,6 +132,26 @@ const storeHref = (url, lang) => {
   return `${url}?hl=${encodeURIComponent(lang)}`;
 };
 
+// The `edition` value the site-wide CTAs report to GA4.
+//
+// Those buttons — the home hero, the home final CTA, the uninstall banner —
+// point at EDITIONS.primary, which is not a fourth extension: it is the
+// default listing to install, and its storeUrl IS the youtube edition's.
+// Labelling them `primary` invented an edition value that matches no card and
+// no landing page, splitting one listing's conversions in two and making the
+// placement breakdown uncomparable.
+//
+// So `primary` resolves to the slug of the edition whose listing it opens.
+// The edition cards and /<slug>/ pages keep their OWN slug and are not routed
+// through here: netflix shares the youtube listing but is a distinct card,
+// page and audience, and collapsing it would destroy a distinction the site
+// deliberately makes — `placement` cannot carry it, since both cards render
+// as `home-card`.
+const primarySlug = (url) => {
+  const ed = url ? EDITIONS.editions.find((e) => e.storeUrl === url) : null;
+  return ed ? ed.slug : 'unknown';
+};
+
 // ---------------------------------------------------------------- i18n
 //
 // UI copy lives in src/data/i18n/<lang>.json (checked-in, not editions.json —
@@ -731,7 +751,7 @@ ${header(t, root)}
            below and the feature cards still carry the proof. -->
       <p class="sub">${esc(t('home.heroLede'))}</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="primary" data-place="home-hero">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="${esc(primarySlug(EDITIONS.primary.storeUrl))}" data-place="home-hero">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="#platforms">${esc(t('home.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
@@ -817,7 +837,7 @@ ${header(t, root)}
       <span class="logo-mark">${CHAMELEON(40)}</span>
       <h2>${esc(t('home.finalH2'))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="primary" data-place="home-final">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="${esc(primarySlug(EDITIONS.primary.storeUrl))}" data-place="home-final">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
       </div>
       <p class="proof">${esc(t('home.finalProof'))}</p>
     </section>
@@ -1634,7 +1654,7 @@ ${header(t, root)}
        themselves. main.js retargets the href from the ?ext= slug. -->
   <div class="uni-banner">
     <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
-    <a class="uni-banner-cta" data-reinstall data-store="primary" data-place="uninstall-banner" rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
+    <a class="uni-banner-cta" data-reinstall data-store="${esc(primarySlug(EDITIONS.primary.storeUrl))}" data-place="uninstall-banner" rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
   </div>
 
   <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
