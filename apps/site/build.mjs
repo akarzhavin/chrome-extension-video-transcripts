@@ -402,6 +402,12 @@ const footer = (t, root) => `
 // is allowed; what is not allowed is making refusal COST more — a hidden
 // decline, an extra "manage preferences" step, or a close box that silently
 // counts as yes. Keep both buttons here if this markup is ever revisited.
+//
+// The close box is rendered `hidden` and stays that way on the first,
+// undecided view: an escape that silently leaves consent at the denied default
+// would be a third answer wearing a dismissal's clothes. main.js reveals it
+// only when the banner is REopened from the footer, where the visitor already
+// has a stored choice and may only have come to look at it.
 const consentBanner = (t) => GA4 ? `
 <div class="consent" id="consent" role="dialog" aria-label="${esc(t('consent.settings'))}" hidden>
   <p class="consent-text">${esc(t('consent.body'))} <a href="/privacy/site/">${esc(t('consent.more'))}</a></p>
@@ -409,6 +415,7 @@ const consentBanner = (t) => GA4 ? `
     <button type="button" class="consent-decline" data-consent="denied">${esc(t('consent.decline'))}</button>
     <button type="button" class="btn btn-primary" data-consent="granted">${esc(t('consent.accept'))}</button>
   </div>
+  <button type="button" class="consent-close" data-consent-close aria-label="${esc(t('consent.close'))}" title="${esc(t('consent.close'))}" hidden>&times;</button>
 </div>` : '';
 
 // Proof strip renders only when the numbers are real (principle: page truth =
@@ -1020,8 +1027,11 @@ const privacySitePage = () => {
       <p>We do not use these cookies for advertising, and advertising, remarketing and
       personalization signals are switched off in the tag.</p>
       <p>You can change your mind at any time with the <b>Cookies</b> link in the footer
-      of every page. Clearing your browser's site data for lingogram.ai also erases both
-      the choice and the cookies, and you will be asked again on your next visit.</p>
+      of every page. Choosing <b>Decline</b> there switches analytics storage back off
+      and deletes the <code>_ga</code> and <code>_ga_*</code> cookies already in your
+      browser, so the identifier they held is gone rather than merely unused. Clearing
+      your browser's site data for lingogram.ai erases both the choice and the cookies
+      too, and you will be asked again on your next visit.</p>
       <p>Data controller for this site: Lingogram, reachable at
       <a href="mailto:${SITE.supportEmail}">${esc(SITE.supportEmail)}</a>. Google Analytics
       data is processed by Google in accordance with

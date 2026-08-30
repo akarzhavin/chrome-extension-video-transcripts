@@ -58,7 +58,8 @@
     "accept": "Chấp nhận",
     "decline": "Từ chối",
     "more": "Cách chúng tôi sử dụng",
-    "settings": "Cookie"
+    "settings": "Cookie",
+    "close": "Đóng"
   },
   "proof": {
     "rating": "trên Chrome Web Store",

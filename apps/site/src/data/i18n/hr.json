@@ -60,7 +60,8 @@
     "accept": "Prihvati",
     "decline": "Odbij",
     "more": "Kako ih koristimo",
-    "settings": "Kolačići"
+    "settings": "Kolačići",
+    "close": "Zatvori"
   },
   "proof": {
     "rating": "na Chrome Web Storeu",

@@ -58,7 +58,8 @@
     "accept": "Terima",
     "decline": "Tolak",
     "more": "Cara kami menggunakannya",
-    "settings": "Cookie"
+    "settings": "Cookie",
+    "close": "Tutup"
   },
   "proof": {
     "rating": "di Chrome Web Store",

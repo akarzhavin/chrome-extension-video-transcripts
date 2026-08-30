@@ -60,7 +60,8 @@
     "accept": "Piekrītu",
     "decline": "Noraidīt",
     "more": "Kā mēs tos izmantojam",
-    "settings": "Sīkfaili"
+    "settings": "Sīkfaili",
+    "close": "Aizvērt"
   },
   "proof": {
     "rating": "Chrome Web Store",

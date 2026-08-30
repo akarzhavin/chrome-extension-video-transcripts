@@ -503,8 +503,52 @@
     // write — so a bare read has to be guarded like a write.
     try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; }
   }
+  // Returns whether the choice actually persisted. Safari's "block all
+  // cookies" throws here, and a silent failure would be the worst of both
+  // worlds: consent is granted to GA for this page load while `track()` — which
+  // re-reads storage on every call — keeps dropping every event. The caller
+  // uses the result to keep the two in step.
   function consentWrite(v) {
-    try { localStorage.setItem(CONSENT_KEY, v); } catch (e) {}
+    try {
+      localStorage.setItem(CONSENT_KEY, v);
+      return localStorage.getItem(CONSENT_KEY) === v;
+    } catch (e) { return false; }
+  }
+
+  // Drop the identifiers GA4 already wrote. `consent update` to 'denied' stops
+  // new cookies but leaves the existing `_ga` / `_ga_<id>` in place, so the
+  // client_id would survive a withdrawal and rejoin the visitor's history if
+  // consent were granted again later. /privacy/site/ points at the footer
+  // control as THE way to change your mind, so it has to actually forget.
+  //
+  // Cleared on both the exact host and the registrable domain (GA writes to
+  // the latter), each with and without a path, because a cookie can only be
+  // expired by a matching domain/path pair.
+  function clearGaCookies() {
+    var names = document.cookie.split(';').map(function (c) {
+      return c.split('=')[0].trim();
+    }).filter(function (n) {
+      return n === '_ga' || n.indexOf('_ga_') === 0 || n.indexOf('_gid') === 0;
+    });
+    if (!names.length) return;
+    var host = location.hostname;
+    // 'example.com' from 'www.example.com'. An IP literal has no registrable
+    // domain to walk up to — slicing its last two octets would just produce a
+    // '.0.1' the browser rejects — and neither does a single-label host like
+    // 'localhost', so both keep only the exact-host attempt.
+    var domains = ['', host];
+    if (!/^[\d.]+$/.test(host) && host.indexOf(':') === -1) {
+      var parts = host.split('.');
+      if (parts.length > 2) domains.push('.' + parts.slice(-2).join('.'));
+      else if (parts.length === 2) domains.push('.' + host);
+    }
+    var past = '; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    for (var i = 0; i < names.length; i++) {
+      for (var j = 0; j < domains.length; j++) {
+        document.cookie = names[i] + '=' + past +
+          (domains[j] ? '; domain=' + domains[j] : '');
+      }
+    }
   }
 
   // Send an event, but only once consent is granted. GA4 itself would queue
@@ -533,22 +577,66 @@
       if (!btn) return;
       var choice = btn.getAttribute('data-consent');
       if (choice !== 'granted' && choice !== 'denied') return;
-      consentWrite(choice);
+      var stored = consentWrite(choice);
       consentEl.hidden = true;
       if (typeof window.gtag === 'function') {
-        window.gtag('consent', 'update', { analytics_storage: choice });
+        // Storage that refuses to hold 'granted' means every later track()
+        // call reads back null and drops its event. Telling GA 'granted'
+        // anyway would claim a consent the page cannot honour, so an
+        // unpersisted acceptance stays denied for this page load too.
+        window.gtag('consent', 'update', {
+          analytics_storage: (choice === 'granted' && !stored) ? 'denied' : choice
+        });
       }
-      // The page_view for THIS page was swallowed by the denied default, so
-      // an accepting visitor would otherwise be invisible until they clicked
-      // through to a second page — and a single-page visit would never be
-      // counted at all. Re-send it explicitly.
-      if (choice === 'granted') track('page_view');
+      // Withdrawal has to remove the identifier, not just stop writing new
+      // ones. Order matters: the consent update above tells GA to stop first.
+      if (choice === 'denied') clearGaCookies();
+      // No page_view is re-sent here. The denied default does not swallow the
+      // hit — gtag.js still sends it, cookieless, so the landing page is
+      // already counted for this visit. Sending it again on Accept would
+      // report two views for one page load.
+    });
+
+    // Dismissal, for the reopened banner only. A visitor who opens the footer
+    // control to LOOK at the setting must be able to leave without answering
+    // again — the banner is fixed at z-index 60 and covers content, and a
+    // forced re-decision is the pattern the one-click Decline exists to avoid.
+    // Closing changes nothing: the stored choice stands.
+    //
+    // Not offered on the first, undecided view: there, a close box that leaves
+    // consent at the denied default would be a third answer dressed as an
+    // escape, and both real answers are already one click away.
+    function dismiss() {
+      var standing = consentRead();
+      if (standing !== 'granted' && standing !== 'denied') return;
+      consentEl.hidden = true;
+      var reopenBtn = document.querySelector('[data-consent-reopen]');
+      if (reopenBtn) reopenBtn.focus();
+    }
+    consentEl.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-consent-close]') : null;
+      if (btn) dismiss();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !consentEl.hidden) dismiss();
     });
 
     // Footer entry point, so a choice is reversible without clearing storage.
     var reopen = document.querySelector('[data-consent-reopen]');
     if (reopen) {
-      reopen.addEventListener('click', function () { consentEl.hidden = false; });
+      reopen.addEventListener('click', function () {
+        // Show the standing choice rather than a blank re-ask, and reveal the
+        // close box so this visit can end without answering again.
+        var standing = consentRead();
+        var closeBtn = consentEl.querySelector('[data-consent-close]');
+        if (closeBtn) closeBtn.hidden = (standing !== 'granted' && standing !== 'denied');
+        var buttons = consentEl.querySelectorAll('[data-consent]');
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].setAttribute('aria-pressed',
+            buttons[i].getAttribute('data-consent') === standing ? 'true' : 'false');
+        }
+        consentEl.hidden = false;
+      });
     }
   }
 

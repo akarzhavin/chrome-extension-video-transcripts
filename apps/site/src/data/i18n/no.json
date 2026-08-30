@@ -59,7 +59,8 @@
     "accept": "Godta",
     "decline": "Avvis",
     "more": "Hvordan vi bruker dem",
-    "settings": "Informasjonskapsler"
+    "settings": "Informasjonskapsler",
+    "close": "Lukk"
   },
   "proof": {
     "rating": "på Chrome Web Store",

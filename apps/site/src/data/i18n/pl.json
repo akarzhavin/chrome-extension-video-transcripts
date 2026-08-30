@@ -61,7 +61,8 @@
     "accept": "Akceptuję",
     "decline": "Odrzuć",
     "more": "Jak ich używamy",
-    "settings": "Pliki cookie"
+    "settings": "Pliki cookie",
+    "close": "Zamknij"
   },
   "proof": {
     "rating": "w Chrome Web Store",

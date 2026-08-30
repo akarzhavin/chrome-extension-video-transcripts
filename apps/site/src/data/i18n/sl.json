@@ -61,7 +61,8 @@
     "accept": "Sprejmi",
     "decline": "Zavrni",
     "more": "Kako jih uporabljamo",
-    "settings": "Piškotki"
+    "settings": "Piškotki",
+    "close": "Zapri"
   },
   "proof": {
     "rating": "na Chrome Web Store",

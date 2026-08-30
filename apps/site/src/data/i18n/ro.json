@@ -60,7 +60,8 @@
     "accept": "Accept",
     "decline": "Refuz",
     "more": "Cum le folosim",
-    "settings": "Cookie-uri"
+    "settings": "Cookie-uri",
+    "close": "Închide"
   },
   "proof": {
     "rating": "pe Chrome Web Store",

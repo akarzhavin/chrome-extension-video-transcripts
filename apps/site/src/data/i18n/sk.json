@@ -61,7 +61,8 @@
     "accept": "Prijať",
     "decline": "Odmietnuť",
     "more": "Ako ich používame",
-    "settings": "Cookies"
+    "settings": "Cookies",
+    "close": "Zavrieť"
   },
   "proof": {
     "rating": "v Chrome Web Store",

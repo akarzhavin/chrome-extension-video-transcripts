@@ -58,7 +58,8 @@
     "accept": "Terima",
     "decline": "Tolak",
     "more": "Cara kami menggunakannya",
-    "settings": "Kuki"
+    "settings": "Kuki",
+    "close": "Tutup"
   },
   "proof": {
     "rating": "di Chrome Web Store",

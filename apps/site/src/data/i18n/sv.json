@@ -59,7 +59,8 @@
     "accept": "Acceptera",
     "decline": "Avvisa",
     "more": "Hur vi använder dem",
-    "settings": "Cookies"
+    "settings": "Cookies",
+    "close": "Stäng"
   },
   "proof": {
     "rating": "på Chrome Web Store",

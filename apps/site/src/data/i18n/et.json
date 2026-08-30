@@ -59,7 +59,8 @@
     "accept": "Nõustu",
     "decline": "Keeldu",
     "more": "Kuidas me neid kasutame",
-    "settings": "Küpsised"
+    "settings": "Küpsised",
+    "close": "Sulge"
   },
   "proof": {
     "rating": "Chrome Web Store'is",

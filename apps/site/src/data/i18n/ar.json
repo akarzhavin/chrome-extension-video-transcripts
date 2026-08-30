@@ -63,7 +63,8 @@
     "accept": "قبول",
     "decline": "رفض",
     "more": "كيف نستخدمها",
-    "settings": "ملفات تعريف الارتباط"
+    "settings": "ملفات تعريف الارتباط",
+    "close": "إغلاق"
   },
   "proof": {
     "rating": "في Chrome Web Store",

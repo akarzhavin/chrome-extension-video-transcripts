@@ -58,7 +58,8 @@
     "accept": "Tanggapin",
     "decline": "Tanggihan",
     "more": "Paano namin ginagamit ang mga ito",
-    "settings": "Cookies"
+    "settings": "Cookies",
+    "close": "Isara"
   },
   "proof": {
     "rating": "sa Chrome Web Store",

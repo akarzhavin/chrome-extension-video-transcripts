@@ -59,7 +59,8 @@
     "accept": "Aceitar",
     "decline": "Recusar",
     "more": "Como os usamos",
-    "settings": "Cookies"
+    "settings": "Cookies",
+    "close": "Fechar"
   },
   "proof": {
     "rating": "na Chrome Web Store",

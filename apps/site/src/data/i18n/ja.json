@@ -58,7 +58,8 @@
     "accept": "同意する",
     "decline": "拒否する",
     "more": "利用方法について",
-    "settings": "Cookie"
+    "settings": "Cookie",
+    "close": "閉じる"
   },
   "proof": {
     "rating": "Chrome ウェブストアでの評価",

@@ -59,7 +59,8 @@
     "accept": "Hyväksy",
     "decline": "Hylkää",
     "more": "Miten käytämme niitä",
-    "settings": "Evästeet"
+    "settings": "Evästeet",
+    "close": "Sulje"
   },
   "proof": {
     "rating": "Chrome-verkkokaupassa",

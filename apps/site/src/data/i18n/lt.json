@@ -60,7 +60,8 @@
     "accept": "Sutinku",
     "decline": "Atsisakau",
     "more": "Kaip juos naudojame",
-    "settings": "Slapukai"
+    "settings": "Slapukai",
+    "close": "Uždaryti"
   },
   "proof": {
     "rating": "Chrome Web Store",

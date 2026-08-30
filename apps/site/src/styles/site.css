@@ -987,6 +987,18 @@ footer.site {
   padding: 10px 12px; border-radius: 12px; cursor: pointer;
 }
 .consent-decline:hover { color: var(--ink); }
+/* Only ever shown on a REopened banner (main.js unhides it), where the visitor
+   already has a stored choice and may have come only to read it. Quiet and
+   corner-placed: it is an exit, not a third answer, and must not compete with
+   Accept/Decline for the eye. */
+.consent-close {
+  position: absolute; top: 6px; inset-inline-end: 8px;
+  border: 0; background: none; color: var(--muted);
+  font-size: 20px; line-height: 1; padding: 4px 8px;
+  border-radius: 8px; cursor: pointer;
+}
+.consent-close:hover { color: var(--ink); }
+.consent-close[hidden] { display: none; }
 @media (max-width: 520px) {
   /* Stack, and let both controls share the row so neither needs hunting for. */
   .consent-actions { width: 100%; margin-inline-start: 0; }

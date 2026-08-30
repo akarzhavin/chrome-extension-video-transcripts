@@ -58,7 +58,8 @@
     "accept": "동의",
     "decline": "거부",
     "more": "쿠키 사용 방법",
-    "settings": "쿠키"
+    "settings": "쿠키",
+    "close": "닫기"
   },
   "proof": {
     "rating": "Chrome 웹 스토어 평점",

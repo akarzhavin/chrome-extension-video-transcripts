@@ -61,7 +61,8 @@
     "accept": "Принять",
     "decline": "Отклонить",
     "more": "Как мы их используем",
-    "settings": "Cookie"
+    "settings": "Cookie",
+    "close": "Закрыть"
   },
   "proof": {
     "rating": "в Chrome Web Store",

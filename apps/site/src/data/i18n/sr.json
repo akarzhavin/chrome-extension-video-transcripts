@@ -60,7 +60,8 @@
     "accept": "Прихвати",
     "decline": "Одбиј",
     "more": "Како их користимо",
-    "settings": "Колачићи"
+    "settings": "Колачићи",
+    "close": "Затвори"
   },
   "proof": {
     "rating": "на Chrome Web Store",
