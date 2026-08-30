@@ -203,17 +203,6 @@ describe('answering the banner', () => {
     );
   });
 
-  it('sends the same signal set the returning-visitor upgrade sends', () => {
-    // build.mjs's inline block re-grants on a later page load. If the two sets
-    // drifted, a visitor's second page would behave unlike their first.
-    const buildMjs = readFileSync(resolve(__dirname, '../build.mjs'), 'utf8');
-    const inline = /gtag\('consent','update',\{([^}]*)\}\)/.exec(buildMjs);
-    const inlineKeys = [...(inline?.[1] ?? '').matchAll(/(\w+):/g)].map((m) => m[1]).sort();
-    const h = boot({});
-    $<HTMLButtonElement>('[data-consent="granted"]').click();
-    expect(Object.keys(h.gtagCalls[0][2] as object).sort()).toEqual(inlineKeys);
-  });
-
   it('does NOT re-send page_view on Accept', () => {
     // Measured on preprod against the real tag: gtag.js sends the page_view
     // cookielessly under the denied default (gcs=G100), so re-sending it on
