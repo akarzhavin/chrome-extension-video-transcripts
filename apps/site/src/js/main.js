@@ -669,11 +669,11 @@
       // the same listing's clicks can be attributed to a position.
       placement: (a.getAttribute('data-place') || 'other').slice(0, 64),
       // These links navigate the SAME tab, so the hit has to outlive the
-      // unload — it is queued the instant the click lands, often before the
-      // async gtag.js has finished loading. The transport that survives that
-      // is configured once, on `config` in build.mjs's inline block: gtag only
-      // honours transport_type there, and passing it here would just add a
-      // custom parameter named transport_type to every store_click.
+      // unload. Nothing here arranges that, and nothing needs to: gtag.js
+      // already sends over fetch+keepalive, which the browser completes after
+      // the page is gone. `transport_type: 'beacon'` was tried and removed —
+      // it changed no transport and only added a custom parameter to every
+      // event (see build.mjs's analytics block).
       page_locale: (document.documentElement.lang || '').slice(0, 16)
     });
   });

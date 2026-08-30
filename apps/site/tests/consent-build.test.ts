@@ -79,14 +79,19 @@ describe('the analytics block, with a measurement id', () => {
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
-  it('configures the beacon transport where gtag actually honours it', () => {
-    // On `config`, not on each event: inside an event's params it is silently
-    // demoted to a custom parameter and the transport never changes. It covers
-    // every event, which is what is wanted — store_click, login and sign_up all
-    // fire immediately before a navigation.
-    expect(tagged['index.html']).toContain("gtag('config','G-TEST123',{transport_type:'beacon'})");
-    expect(readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8'))
-      .not.toMatch(/transport_type:\s*'beacon'/);
+  it('sets no transport_type anywhere', () => {
+    // Measured in a real Chrome against the live property: gtag.js already uses
+    // fetch+keepalive, which survives an unload, and the flag changed nothing
+    // about the transport in either position. It only got forwarded as
+    // ep.transport_type on every event — a custom dimension whose only value is
+    // "beacon". A UA control GA4 no longer honours.
+    expect(tagged['index.html']).toContain("gtag('config','G-TEST123')");
+    expect(tagged['index.html']).not.toContain('transport_type');
+    // Strip comments first: main.js explains in prose WHY the flag is absent,
+    // and a bare substring search would match that explanation.
+    const mainCode = readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8')
+      .replace(/\/\/.*$/gm, '');
+    expect(mainCode).not.toContain('transport_type');
   });
 
   it('denies all four Consent Mode v2 signals by default', () => {
