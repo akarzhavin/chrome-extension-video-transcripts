@@ -1,13 +1,16 @@
-# Privacy Policy — Lingogram: Dual Subtitles & Transcript for YouTube
+# Privacy Policy — Lingogram for YouTube and Netflix
+
+Covers the **Lingogram: Dual Subtitles & Transcript for YouTube** extension, which
+works on both YouTube and Netflix.
 
 **Effective date:** June 22, 2026
-**Last updated:** August 25, 2026
+**Last updated:** August 30, 2026
 
-This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
-Transcript for YouTube** browser extension ("the Extension") collects, how it is
-used, where it is stored, and the choices you have.
+This Privacy Policy explains what information the Extension collects, how it is used,
+where it is stored, and the choices you have. It applies to the Extension on both
+**YouTube** and **Netflix**.
 
-*This English version at https://lingogram.ai/privacy/ is the authoritative one. Translations are provided for convenience; where a translation differs or lags behind, this version governs.*
+*This English version at https://lingogram.ai/privacy/youtube/ is the authoritative one.*
 
 ---
 
@@ -56,7 +59,7 @@ collect and process:
   * the **word or phrase** you selected;
   * a small amount of **subtitle context** — the saved subtitle line plus the line
     immediately before and after it, in the video's primary subtitle language only;
-  * a **source tag** indicating the Extension that saved it;
+  * a **source tag** indicating which edition saved it (YouTube or HDrezka);
   * a **timestamp** and a per-day counter used only to enforce a daily save limit.
 * **Diagnostic reports** — only if subtitles fail to load and you explicitly press
   the **"Reload page"** button on the error banner (which states that a report will
@@ -71,8 +74,8 @@ collect and process:
 We do **not** collect: your browsing history, the videos you watch (beyond the
 subtitle text you explicitly save and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a
-coarse platform label such as `youtube`, never a video or a URL), IP-based location
-tracking, advertising identifiers, or cookies for tracking.
+coarse platform label such as `youtube` or `netflix`, never a video or a URL),
+IP-based location tracking, advertising identifiers, or cookies for tracking.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
 > with the same account, your saved vocabulary syncs together.
@@ -231,12 +234,18 @@ and Google Analytics are used as two separate services and we do not send anythi
 Google Analytics that would let the two be joined together.
 
 To display subtitles, the Extension reads the subtitle (caption) tracks that the
-YouTube player already provides for the video you are watching, **directly within
-your browser**. This subtitle handling:
+**YouTube player** already provides for the video you are watching, **directly within
+your browser**. On **Netflix** it reads the subtitle tracks a title already carries,
+again directly within your browser. This subtitle handling:
 
 * happens entirely in your browser, with no intermediate proxy of ours;
-* sends no account data or saved words to YouTube;
-* is subject to YouTube's own privacy policy and terms.
+* sends no account data or saved words to YouTube or Netflix;
+* is subject to YouTube's and Netflix's own privacy policies and terms.
+
+When one of your two languages has no track on YouTube, the Extension asks the YouTube
+player for that platform's own automatic translation of a track it already serves —
+a request to YouTube, made from your browser, carrying nothing about your account.
+No machine translation is involved on Netflix.
 
 ## 5. Data Sharing and Sale
 
@@ -293,4 +302,4 @@ through the Chrome Web Store support page for the Extension.
 ---
 
 *Lingogram is an independent tool and is not affiliated with, authorized, or endorsed
-by YouTube or any of the video platforms it supports.*
+by YouTube, Netflix, or any of the video platforms it supports.*

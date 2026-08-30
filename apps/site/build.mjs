@@ -7,8 +7,9 @@
 // family — adding a record there creates the card on the home page and the
 // /<slug>/ landing page. No dependencies; plain template literals.
 //
-// The privacy page is rendered from apps/youtube/PRIVACY_POLICY.md at build
-// time (single source of truth until a family-wide policy is written).
+// Privacy policies are authored under src/data/privacy/ and published here in
+// English only: one complete, self-contained document per extension at
+// /privacy/<slug>/, plus a short chooser at /privacy/. See privacyPage below.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -330,7 +331,8 @@ const footer = (t, root) => `
   </div>
   <div class="f-col">
     <b>${esc(t('footer.legal'))}</b>
-    <a href="${root}/privacy/">${esc(t('footer.privacyPolicy'))}</a>
+    <!-- Not ${root}-prefixed: the policy is English-only (see privacyPage). -->
+    <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
   </div>
 </footer>`;
 
@@ -803,10 +805,22 @@ ${footer(t, '')}`,
 // Minimal markdown renderer — enough for the privacy policy (headings, bold,
 // links, bullet lists, horizontal rules, paragraphs).
 const md = (text) => {
-  const inline = (s) => esc(s)
+  // Single-asterisk emphasis, applied LAST and only to the plain-text gaps
+  // between the tags the rules above produced. Ordering alone is not enough:
+  // by this point a URL or a code span is already HTML, and an asterisk inside
+  // one is indistinguishable from an emphasis marker — `a*b*c` came out as
+  // <code>a<em>b</em>c</code>, and a link whose href contained asterisks had
+  // its href rewritten. Both markers must also hug non-space characters, so a
+  // line like "5 * 3 and 2 * 4" does not pair its two lone asterisks.
+  const EM = /\*(\S(?:[^*]*\S)?)\*/g;
+  const emphasize = (html) => html
+    .split(/(<code>[\s\S]*?<\/code>|<a [^>]*>[\s\S]*?<\/a>|<[^>]+>)/)
+    .map((part, i) => (i % 2 ? part : part.replace(EM, '<em>$1</em>')))
+    .join('');
+  const inline = (s) => emphasize(esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>');
+    .replace(/`([^`]+)`/g, '<code>$1</code>'));
   const blocks = [];
   let para = [];
   let list = null;
@@ -827,31 +841,69 @@ const md = (text) => {
   return blocks.join('\n');
 };
 
-// The English body is the LEGAL source of truth, read straight from
-// apps/youtube/PRIVACY_POLICY.md (single source until a family-wide policy
-// is written — see the file header). Other locales are a translated COPY
-// committed under src/data/privacy/<lang>.md: translating a legal document
-// is not something to regenerate casually on every edit of the English
-// original, so these are static files a human updates, not a live mirror.
-// A locale without a translated copy falls back to the English body rather
-// than 404ing or omitting the page.
+// The privacy policies live HERE, in English only, and this site is where they
+// are published — the extensions carry no copy of their own to drift from.
+//
+// One COMPLETE document per extension, not a shared policy plus per-edition
+// appendices: each Chrome Web Store listing must point at a page that answers
+// every question on its own, and a Rezka user must never land on a document
+// describing YouTube's player. The two overlap heavily (same account backend,
+// same Firebase, same analytics) and that duplication is deliberate — a reader
+// of either page needs no second page.
+//
+// English only, deliberately: a legal text retranslated into 41 locales on every
+// edit is 41 chances to ship a translation that says something the English one
+// does not. Each page states which URL is authoritative.
 const PRIVACY_DIR = path.join(SRC, 'data', 'privacy');
-const privacyBody = (lang) => {
-  const translated = path.join(PRIVACY_DIR, `${lang}.md`);
-  if (lang !== 'en' && fs.existsSync(translated)) return fs.readFileSync(translated, 'utf8');
-  return fs.readFileSync(path.join(HERE, '..', 'youtube', 'PRIVACY_POLICY.md'), 'utf8');
-};
+const privacyBody = (name) => fs.readFileSync(path.join(PRIVACY_DIR, `${name}.md`), 'utf8');
 
-const privacyPage = (locale, hrefLang) => {
-  const { code: lang, strings } = locale;
-  const t = makeT(strings);
-  const root = lang === 'en' ? '' : `/${lang}`;
+// Editions with their own policy page. Netflix ships INSIDE the YouTube
+// extension (one install, one Chrome Web Store listing — see editions.json),
+// so the YouTube document covers it rather than a third page describing the
+// same extension a second time.
+const PRIVACY_EDITIONS = [
+  { slug: 'youtube', label: 'Lingogram for YouTube and Netflix' },
+  { slug: 'rezka', label: 'Lingogram for HDrezka' },
+];
+
+// /privacy/ is a chooser, not a policy. It stays because the footer, /welcome/,
+// /help/analytics/, the register form and both published store listings already
+// point at it; sending that traffic to one edition's document would show half
+// the readers the wrong one.
+const privacyPage = () => {
+  const t = makeT(EN_STRINGS);
   return layout({
-    lang, htmlLang: strings.meta.htmlLang, hrefLang,
+    lang: 'en', htmlLang: 'en',
     title: t('privacy.title'),
     description: t('privacy.description'),
-    pathName: `${root}/privacy/`,
-    body: `${header(t, root)}<main><article class="doc">${md(privacyBody(lang))}</article></main>${footer(t, root)}`,
+    pathName: '/privacy/',
+    body: `${header(t, '')}<main><article class="doc">
+      <h1>Privacy policy</h1>
+      <p>Each Lingogram extension has its own privacy policy. Open the one for the
+      extension you installed:</p>
+      <ul>
+${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e.label)}</a></li>`).join('\n')}
+      </ul>
+      <p>The two documents describe the same optional account, the same cloud storage
+      and the same anonymous usage analytics; they differ in how each extension
+      obtains the subtitles it displays.</p>
+    </article></main>${footer(t, '')}`,
+  });
+};
+
+const privacyEditionPage = (slug) => {
+  const t = makeT(EN_STRINGS);
+  // The label from PRIVACY_EDITIONS, not editions.json's `name`: the YouTube
+  // record is named "Lingogram for YouTube" because Netflix has its own landing
+  // card, but ONE policy covers both — a tab titled "for YouTube" would read as
+  // the wrong document to someone who installed it for Netflix.
+  const { label } = PRIVACY_EDITIONS.find((e) => e.slug === slug);
+  return layout({
+    lang: 'en', htmlLang: 'en',
+    title: `Privacy policy — ${label}`,
+    description: `How ${label} obtains subtitles, and what that means for your data.`,
+    pathName: `/privacy/${slug}/`,
+    body: `${header(t, '')}<main><article class="doc">${md(privacyBody(slug))}</article></main>${footer(t, '')}`,
   });
 };
 
@@ -1161,7 +1213,7 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
       })}</p>
       <p>${t('welcome.priv2', { b: `<b>${esc(t('welcome.priv2Bold'))}</b>` })}</p>
       <p>${t('welcome.priv3', { b: `<b>${esc(t('welcome.priv3Bold'))}</b>` })}</p>
-      <p class="wl-priv-more"><a href="${root}/privacy/">${esc(t('welcome.privLink'))}</a></p>
+      <p class="wl-priv-more"><a href="/privacy/">${esc(t('welcome.privLink'))}</a></p>
     </div>
   </details>
 
@@ -1312,7 +1364,7 @@ ${header(t, root)}
       })}</li>
     </ol>
     <p>${t('help.analytics.after', {
-      link: `<a href="${root}/privacy/">${esc(t('help.analytics.afterLink'))}</a>`,
+      link: `<a href="/privacy/">${esc(t('help.analytics.afterLink'))}</a>`,
     })}</p>
   </article>
 </main>
@@ -1584,7 +1636,7 @@ const registerPage = (locale, hrefLang) => {
       <button class="btn btn-primary auth-submit" type="submit" data-busy-text="${esc(t('auth.register.submitBusy'))}">${esc(t('auth.register.submit'))}</button>
     </form>
     <p class="auth-alt">${esc(t('auth.register.altPrefix'))} <a href="${root}/login/">${esc(t('auth.register.altLink'))}</a></p>
-    <p class="auth-fine">${esc(t('auth.register.finePrefix'))} <a href="${root}/privacy/">${esc(t('auth.register.fineLink'))}</a>.</p>`, 'register'),
+    <p class="auth-fine">${esc(t('auth.register.finePrefix'))} <a href="/privacy/">${esc(t('auth.register.fineLink'))}</a>.</p>`, 'register'),
   });
 };
 
@@ -1667,7 +1719,6 @@ function build() {
   const homeHrefLang = hrefLangFor((c) => (c === 'en' ? '/' : `/${c}/`));
   const welcomeHrefLang = hrefLangFor((c) => (c === 'en' ? '/welcome/' : `/${c}/welcome/`));
   const uninstallHrefLang = hrefLangFor((c) => (c === 'en' ? '/uninstall/' : `/${c}/uninstall/`));
-  const privacyHrefLang = hrefLangFor((c) => (c === 'en' ? '/privacy/' : `/${c}/privacy/`));
   const languagesHrefLang = hrefLangFor((c) => (c === 'en' ? '/languages/' : `/${c}/languages/`));
   const helpAnalyticsHrefLang = hrefLangFor((c) => (c === 'en' ? '/help/analytics/' : `/${c}/help/analytics/`));
   const helpAddressesHrefLang = hrefLangFor((c) => (c === 'en' ? '/help/addresses/' : `/${c}/help/addresses/`));
@@ -1679,7 +1730,6 @@ function build() {
     write(path.join(root, 'index.html'), homePage(locale, homeHrefLang));
     write(path.join(root, 'welcome', 'index.html'), welcomePage(locale, welcomeHrefLang));
     write(path.join(root, 'uninstall', 'index.html'), uninstallPage(locale, uninstallHrefLang));
-    write(path.join(root, 'privacy', 'index.html'), privacyPage(locale, privacyHrefLang));
     write(path.join(root, 'languages', 'index.html'), languagesPage(locale, languagesHrefLang));
     write(path.join(root, 'help', 'analytics', 'index.html'), helpAnalyticsPage(locale, helpAnalyticsHrefLang));
     write(path.join(root, 'help', 'addresses', 'index.html'), helpAddressesPage(locale, helpAddressesHrefLang));
@@ -1702,7 +1752,7 @@ function build() {
   // alternates — an empty map, not a fabricated per-locale one.
   const INDEXABLE = [
     homeHrefLang, welcomeHrefLang, uninstallHrefLang,
-    privacyHrefLang, languagesHrefLang, helpAnalyticsHrefLang,
+    languagesHrefLang, helpAnalyticsHrefLang,
     helpAddressesHrefLang,
   ];
   const urlEntry = (loc, alternates) => `  <url>
@@ -1716,6 +1766,9 @@ ${Object.entries(alternates).map(([tag, href]) =>
     ...INDEXABLE.flatMap((alternates) =>
       LOCALES.map(({ code }) => urlEntry(alternates[code], alternates))),
     ...EDITIONS.editions.map((ed) => urlEntry(`/${ed.slug}/`, {})),
+    // Privacy pages are English-only, so they carry no alternates either.
+    urlEntry('/privacy/', {}),
+    ...PRIVACY_EDITIONS.map(({ slug }) => urlEntry(`/privacy/${slug}/`, {})),
   ];
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -1748,6 +1801,11 @@ Sitemap: ${SITE.domain}/sitemap.xml
   // Edition pages (editions.json copy) stay English-only for now — see the
   // i18n rollout note at the top of this file.
   for (const ed of EDITIONS.editions) write(path.join(ed.slug, 'index.html'), editionPage(ed));
+
+  // Privacy is English-only (see privacyPage): one complete document per
+  // extension plus a chooser, rendered once rather than per locale.
+  write(path.join('privacy', 'index.html'), privacyPage());
+  for (const { slug } of PRIVACY_EDITIONS) write(path.join('privacy', slug, 'index.html'), privacyEditionPage(slug));
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));

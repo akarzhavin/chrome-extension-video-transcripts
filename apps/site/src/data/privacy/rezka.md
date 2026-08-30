@@ -7,6 +7,8 @@ This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
 used, where it is stored, and the choices you have.
 
+*This English version at https://lingogram.ai/privacy/rezka/ is the authoritative one.*
+
 ---
 
 ## TL;DR
@@ -54,7 +56,7 @@ collect and process:
   * the **word or phrase** you selected;
   * a small amount of **subtitle context** — the saved subtitle line plus the line
     immediately before and after it, in the video's primary subtitle language only;
-  * a **source tag** indicating the Extension that saved it;
+  * a **source tag** indicating which edition saved it (HDrezka or YouTube);
   * a **timestamp** and a per-day counter used only to enforce a daily save limit.
 * **Diagnostic reports** — only if subtitles fail to load and you explicitly press
   the **"Reload page"** button on the error banner (which states that a report will
