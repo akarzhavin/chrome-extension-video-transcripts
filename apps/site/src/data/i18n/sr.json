@@ -55,6 +55,13 @@
     "legal": "Правно",
     "privacyPolicy": "Политика приватности"
   },
+  "consent": {
+    "body": "Користимо колачиће да побољшамо наш производ.",
+    "accept": "Прихвати",
+    "decline": "Одбиј",
+    "more": "Како их користимо",
+    "settings": "Колачићи"
+  },
   "proof": {
     "rating": "на Chrome Web Store",
     "learners": "корисника учи",

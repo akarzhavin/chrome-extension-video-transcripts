@@ -53,6 +53,13 @@
     "legal": "법적 고지",
     "privacyPolicy": "개인정보 처리방침"
   },
+  "consent": {
+    "body": "더 나은 제품을 위해 쿠키를 사용합니다.",
+    "accept": "동의",
+    "decline": "거부",
+    "more": "쿠키 사용 방법",
+    "settings": "쿠키"
+  },
   "proof": {
     "rating": "Chrome 웹 스토어 평점",
     "learners": "명이 학습 중",

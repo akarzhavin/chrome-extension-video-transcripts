@@ -43,6 +43,56 @@ const BUST = Date.now().toString(36);
 // not stop indexing, since crawlers still follow the links to them.
 const NOINDEX = '<meta name="robots" content="noindex, follow">\n';
 
+// ---------------------------------------------------------------- analytics
+//
+// GA4 via gtag.js, in the VISITOR's browser — unrelated to the extensions'
+// Measurement Protocol transport, which posts server-side from a service
+// worker and carries an api_secret. A web stream needs no secret: the
+// measurement_id is public by design, visible in the page source of every
+// site that runs GA. It is read from the environment all the same, so that a
+// local `node build.mjs` produces pages that send NOTHING. A developer
+// reloading /ru/ forty times while working on a translation would otherwise
+// land in the property as forty Russian sessions.
+//
+// Unset -> analyticsHead() returns '' and no page carries a tag. That is the
+// default, and it is a silent no-op on purpose: failing the build would make
+// every unrelated local edit require credentials.
+const GA4_ID = (process.env.SITE_GA4_MEASUREMENT_ID || '').trim();
+// The placeholder from .env.example is treated as unset. It is a real-looking
+// id that will never appear in any report, so accepting it would ship a tag
+// that looks configured and measures nothing.
+const GA4 = /^G-[A-Z0-9]+$/.test(GA4_ID) && GA4_ID !== 'G-XXXXXXXXXX' ? GA4_ID : '';
+if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is not a G-XXXXXXXXXX id — no tag emitted`);
+
+// Consent Mode v2, denied by default.
+//
+// Order is the whole point and cannot be rearranged: the default consent call
+// has to be queued BEFORE gtag.js is fetched. Google's tag reads the queue on
+// load, and a `default` arriving after it has already initialised is ignored —
+// the page would then set cookies for the very visitor who never answered the
+// banner, which is the exact outcome the banner exists to prevent.
+//
+// So this block is deliberately inline and synchronous, ahead of the async
+// script tag. Everything it does is: seed denied, then re-read the visitor's
+// stored answer and upgrade to granted if they said yes. Storage is wrapped
+// because Safari's "block all cookies" makes even localStorage throw on read.
+//
+// LG_CONSENT / lingogram_consent are shared with src/js/main.js, which owns
+// the banner UI and calls gtag('consent','update',…) on click. Keep the key
+// and the two values ('granted' | 'denied') identical in both files.
+//
+// `anonymize_ip` is not set: GA4 anonymises IPs unconditionally, and the
+// parameter is a Universal Analytics leftover that GA4 ignores.
+const analyticsHead = () => GA4 ? `<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+try{if(localStorage.getItem('lingogram_consent')==='granted')gtag('consent','update',{analytics_storage:'granted'})}catch(e){}
+gtag('js',new Date());gtag('config','${GA4}');
+window.LG_GA4='${GA4}';
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA4)}"></script>
+` : '';
+
 const esc = (s) => String(s)
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;');
@@ -333,8 +383,33 @@ const footer = (t, root) => `
     <b>${esc(t('footer.legal'))}</b>
     <!-- Not ${root}-prefixed: the policy is English-only (see privacyPage). -->
     <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
+    ${GA4 ? `<button type="button" data-consent-reopen>${esc(t('consent.settings'))}</button>` : ''}
   </div>
-</footer>`;
+</footer>${consentBanner(t)}`;
+
+// Cookie banner. Server-rendered but `hidden`: main.js reveals it only when
+// the visitor has made no choice yet, so a returning visitor never sees a
+// flash of it before JS gets around to removing it. Rendered at all only when
+// a tag is actually configured — a build with no SITE_GA4_MEASUREMENT_ID sets
+// no cookies, so asking about them would be theatre.
+//
+// It sits at the END of the DOM, after the footer, and is fixed-positioned by
+// CSS. That keeps it out of the reading order for screen readers until the
+// content is done, while `role="dialog"` + aria-label still announce it.
+//
+// Accept carries the visual accent and Decline is quieter, but both are one
+// click, side by side, in the same banner. That asymmetry is emphasis, which
+// is allowed; what is not allowed is making refusal COST more — a hidden
+// decline, an extra "manage preferences" step, or a close box that silently
+// counts as yes. Keep both buttons here if this markup is ever revisited.
+const consentBanner = (t) => GA4 ? `
+<div class="consent" id="consent" role="dialog" aria-label="${esc(t('consent.settings'))}" hidden>
+  <p class="consent-text">${esc(t('consent.body'))} <a href="/privacy/site/">${esc(t('consent.more'))}</a></p>
+  <div class="consent-actions">
+    <button type="button" class="consent-decline" data-consent="denied">${esc(t('consent.decline'))}</button>
+    <button type="button" class="btn btn-primary" data-consent="granted">${esc(t('consent.accept'))}</button>
+  </div>
+</div>` : '';
 
 // Proof strip renders only when the numbers are real (principle: page truth =
 // product truth — no placeholder ratings on a public page).
@@ -595,7 +670,7 @@ ${Object.entries(hrefLang || {}).map(([tag, href]) => `<link rel="alternate" hre
 <meta property="og:type" content="website">
 <link rel="icon" href="/logo.png" type="image/png">
 <link rel="stylesheet" href="/site.css?v=${BUST}">
-${extraHead || ''}</head>
+${analyticsHead()}${extraHead || ''}</head>
 <body>
 ${body}
 ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
@@ -614,7 +689,7 @@ ${scripts || `<script src="/main.js?v=${BUST}" defer></script>
 // localized (i18n editionsCard.<mark>): it renders on every locale's home
 // page, unlike the full /<slug>/ landing pages which stay English.
 const editionCards = (t, lang) => EDITIONS.editions.map((ed) => `
-  <a class="ed" href="${storeHref(ed.storeUrl, lang)}"${ed.storeUrl ? ' rel="noopener"' : ''}>
+  <a class="ed" href="${storeHref(ed.storeUrl, lang)}" data-store="${esc(ed.slug)}" data-place="home-card"${ed.storeUrl ? ' rel="noopener"' : ''}>
     ${mark(ed.mark)}
     <span class="ed-t"><b>${esc(ed.name)}</b><span>${esc(t(`editionsCard.${ed.mark}`))}</span><span class="go">${esc(t('home.editionGo'))}</span></span>
   </a>`).join('') + `
@@ -649,7 +724,7 @@ ${header(t, root)}
            below and the feature cards still carry the proof. -->
       <p class="sub">${esc(t('home.heroLede'))}</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="primary" data-place="home-hero">${CHROME_ICON}${esc(t('home.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="#platforms">${esc(t('home.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
@@ -735,7 +810,7 @@ ${header(t, root)}
       <span class="logo-mark">${CHAMELEON(40)}</span>
       <h2>${esc(t('home.finalH2'))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
+        <a class="btn btn-primary" href="${storeHref(EDITIONS.primary.storeUrl, lang)}" data-store="primary" data-place="home-final">${CHROME_ICON}${esc(t('home.finalCta'))}</a>
       </div>
       <p class="proof">${esc(t('home.finalProof'))}</p>
     </section>
@@ -766,7 +841,7 @@ ${header(t, '')}
       <h1>${esc(ed.heroLead)}<br><span class="pop">${esc(ed.heroPop)}</span></h1>
       <p class="sub">${esc(ed.sub)}</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}">${CHROME_ICON}${esc(t('edition.ctaPrimary'))}</a>
+        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}" data-store="${esc(ed.slug)}" data-place="edition-hero">${CHROME_ICON}${esc(t('edition.ctaPrimary'))}</a>
         <a class="btn btn-ghost" href="/#platforms">${esc(t('edition.ctaSecondary'))}</a>
       </div>
       ${proof(t)}
@@ -792,7 +867,7 @@ ${header(t, '')}
       <span class="logo-mark">${CHAMELEON(40)}</span>
       <h2>${esc(t('edition.finalH2', { site: ed.site }))}</h2>
       <div class="cta-row" style="margin-top:22px">
-        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}">${CHROME_ICON}${esc(t('edition.finalCta', { name: ed.name }))}</a>
+        <a class="btn btn-primary" href="${storeHref(ed.storeUrl, 'en')}" data-store="${esc(ed.slug)}" data-place="edition-final">${CHROME_ICON}${esc(t('edition.finalCta', { name: ed.name }))}</a>
       </div>
       <p class="proof">${esc(t('edition.finalProof'))}</p>
     </section>
@@ -887,6 +962,71 @@ ${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e
       <p>The two documents describe the same optional account, the same cloud storage
       and the same anonymous usage analytics; they differ in how each extension
       obtains the subtitles it displays.</p>
+${GA4 ? `      <p>Looking for this <b>website</b> rather than an extension?
+      <a href="/privacy/site/">Website privacy and cookies</a> covers the pages you are
+      reading now — what the site itself measures, and the choice in the cookie
+      banner.</p>` : ''}
+    </article></main>${footer(t, '')}`,
+  });
+};
+
+// The WEBSITE's own policy — deliberately not one of PRIVACY_EDITIONS and not
+// part of either extension's document. The extensions and this site collect
+// different things by different means (an extension sends events from a
+// service worker with no cookies at all; the site runs a browser tag that
+// sets them), and the reader arriving from the cookie banner is asking about
+// the site, not about anything they installed.
+//
+// Rendered only when a tag is configured, because with no tag the site sets no
+// cookies and the document would describe something that does not happen.
+// sitemap.xml and the chooser's link are both gated on the same condition.
+const privacySitePage = () => {
+  const t = makeT(EN_STRINGS);
+  return layout({
+    lang: 'en', htmlLang: 'en',
+    title: 'Website privacy and cookies — Lingogram',
+    description: 'What lingogram.ai measures, the cookies it sets, and the choice you have.',
+    pathName: '/privacy/site/',
+    body: `${header(t, '')}<main><article class="doc">
+      <h1>Website privacy and cookies</h1>
+      <p>This page is about <b>lingogram.ai</b> itself — the pages you are reading right
+      now. It is not about the extensions: each of those has its own policy covering what
+      it collects while you watch, listed on the <a href="/privacy/">privacy page</a>.</p>
+      <p>If you accept, this site uses <b>Google Analytics 4</b> to count visits and to
+      see which pages lead to an install. Google Analytics sets cookies in your browser
+      (named <code>_ga</code> and <code>_ga_*</code>) that hold a randomly generated
+      identifier. That identifier is not your name, your email or your account: it only
+      lets us tell a returning visit from a new one.</p>
+      <p><b>No cookie is set until you choose.</b> Until you press <b>Accept</b> in the
+      cookie banner — and permanently, if you press <b>Decline</b> — analytics storage
+      stays switched off (Google Consent Mode v2): no analytics cookie is written, and
+      no identifier for you is stored or reused between visits.</p>
+      <p>To be precise about what does still happen: with analytics storage switched
+      off, Google's tag sends a single signal per page telling Google that consent was
+      refused. It carries no cookie and no stored identifier — a fresh random value is
+      generated for each page load and never kept — so it cannot recognise you, link
+      your visits, or follow you to another site. Google uses these refusal signals only
+      to estimate, statistically, how much traffic it is not measuring. If you would
+      rather not send even that, any content blocker or browser tracking protection
+      stops it, and nothing on this site depends on the tag working.</p>
+      <p>What is recorded, if you accept: the pages you open, the language version you
+      read them in, where you arrived from, an approximate location derived from your IP
+      address (Google discards the address itself and never stores it), your browser and
+      device type, and a small number of actions on the site — clicking through to the
+      Chrome Web Store, trying the demo player on the home page, and signing in or
+      signing up. Sign-in events record only that one happened and by which method; your
+      email address and account identifier are deliberately never attached, so the
+      analytics data and your account cannot be joined.</p>
+      <p>We do not use these cookies for advertising, and advertising, remarketing and
+      personalization signals are switched off in the tag.</p>
+      <p>You can change your mind at any time with the <b>Cookies</b> link in the footer
+      of every page. Clearing your browser's site data for lingogram.ai also erases both
+      the choice and the cookies, and you will be asked again on your next visit.</p>
+      <p>Data controller for this site: Lingogram, reachable at
+      <a href="mailto:${SITE.supportEmail}">${esc(SITE.supportEmail)}</a>. Google Analytics
+      data is processed by Google in accordance with
+      <a href="https://business.safety.google/privacy/" rel="noopener">Google's privacy
+      terms for businesses</a>.</p>
     </article></main>${footer(t, '')}`,
   });
 };
@@ -1484,7 +1624,7 @@ ${header(t, root)}
        themselves. main.js retargets the href from the ?ext= slug. -->
   <div class="uni-banner">
     <p class="uni-banner-q">${esc(t('uninstall.bannerQ'))}</p>
-    <a class="uni-banner-cta" data-reinstall rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
+    <a class="uni-banner-cta" data-reinstall data-store="primary" data-place="uninstall-banner" rel="noopener" href="${storeHref(EDITIONS.primary.storeUrl, lang)}">${CHROME_ICON}${esc(t('uninstall.bannerCta'))}</a>
   </div>
 
   <h1 class="uni-h1">${esc(t('uninstall.h1'))}</h1>
@@ -1769,6 +1909,8 @@ ${Object.entries(alternates).map(([tag, href]) =>
     // Privacy pages are English-only, so they carry no alternates either.
     urlEntry('/privacy/', {}),
     ...PRIVACY_EDITIONS.map(({ slug }) => urlEntry(`/privacy/${slug}/`, {})),
+    // Only exists when a tag is configured — see privacySitePage.
+    ...(GA4 ? [urlEntry('/privacy/site/', {})] : []),
   ];
   fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -1805,6 +1947,7 @@ Sitemap: ${SITE.domain}/sitemap.xml
   // Privacy is English-only (see privacyPage): one complete document per
   // extension plus a chooser, rendered once rather than per locale.
   write(path.join('privacy', 'index.html'), privacyPage());
+  if (GA4) write(path.join('privacy', 'site', 'index.html'), privacySitePage());
   for (const { slug } of PRIVACY_EDITIONS) write(path.join('privacy', slug, 'index.html'), privacyEditionPage(slug));
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));

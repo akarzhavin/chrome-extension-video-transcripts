@@ -53,6 +53,13 @@
     "legal": "法的情報",
     "privacyPolicy": "プライバシーポリシー"
   },
+  "consent": {
+    "body": "製品向上のためにCookieを使用しています。",
+    "accept": "同意する",
+    "decline": "拒否する",
+    "more": "利用方法について",
+    "settings": "Cookie"
+  },
   "proof": {
     "rating": "Chrome ウェブストアでの評価",
     "learners": "人が学習中",

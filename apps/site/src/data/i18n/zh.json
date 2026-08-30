@@ -53,6 +53,13 @@
     "legal": "法律信息",
     "privacyPolicy": "隐私政策"
   },
+  "consent": {
+    "body": "我们使用 Cookie 来改善我们的产品。",
+    "accept": "接受",
+    "decline": "拒绝",
+    "more": "我们如何使用它们",
+    "settings": "Cookie"
+  },
   "proof": {
     "rating": "Chrome 网上应用店评分",
     "learners": "位学习者",

@@ -36,7 +36,22 @@ declare global {
   interface Window {
     LINGOGRAM_AUTH?: RuntimeAuthConfig;
     LINGOGRAM_APP_URL?: string;
+    // Defined by main.js, which owns the consent gate. Optional because this
+    // bundle is a separate build that loads independently of it: on a page
+    // where main.js has not run (or where no tag is configured) the calls
+    // below are simply skipped.
+    lgTrack?: (name: string, params?: Record<string, unknown>) => void;
   }
+}
+
+/**
+ * Report an auth milestone. Only the fact and the method — never the email,
+ * the uid, or anything else that could identify the account; the site tag and
+ * the account data are deliberately unjoinable, the same separation the
+ * extensions' privacy policy describes for their own analytics.
+ */
+function track(name: string, method: string): void {
+  try { window.lgTrack?.(name, { method }); } catch (e) {}
 }
 
 const CFG = window.LINGOGRAM_AUTH;
@@ -190,6 +205,7 @@ function initRegister(): void {
       throw err;
     }
     rememberEmail('');
+    track('sign_up', 'password');
     // Land in the role's dashboard, same as the SPA's routeByRole. The SDK
     // already persisted the session (IndexedDB), so the SPA opens logged-in.
     location.href = dashboardPath(result.user?.roles, APP_URL);
@@ -206,6 +222,7 @@ function initLogin(): void {
     if (!EMAIL_RE.test(email)) { markField(f.elements.namedItem('email') as HTMLInputElement, 'That email address looks invalid.'); throw new Error('Please fix the errors above.'); }
     const { user } = await loginUser(OPS!, CFG!, { email, password: pw });
     rememberEmail('');
+    track('login', 'password');
     // Land in the role's dashboard, same as the SPA's routeByRole. The SDK
     // already persisted the session, so the SPA opens logged-in.
     location.href = dashboardPath(user?.roles, APP_URL);

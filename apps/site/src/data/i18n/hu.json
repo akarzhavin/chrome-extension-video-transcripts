@@ -53,6 +53,13 @@
     "legal": "Jogi információk",
     "privacyPolicy": "Adatvédelmi irányelvek"
   },
+  "consent": {
+    "body": "Sütiket használunk, hogy jobbá tegyük termékünket.",
+    "accept": "Elfogadom",
+    "decline": "Elutasítom",
+    "more": "Hogyan használjuk őket",
+    "settings": "Sütik"
+  },
   "proof": {
     "rating": "a Chrome Webáruházban",
     "learners": "nyelvtanuló",

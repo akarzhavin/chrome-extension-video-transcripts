@@ -117,6 +117,17 @@ function wireButton(btn: HTMLElement, auth: ReturnType<typeof getAuth>) {
       busy.label('Signing you in…');
       busy.labelAfter(2000, 'Waking up the server…');
       await backendMe(CFG!, idToken);
+      // The site's GA4 event (main.js owns the consent gate — see its
+      // window.lgTrack). One button serves both pages, so the path is what
+      // says whether this was a sign-up or a sign-in; Firebase's own
+      // isNewUser flag is not read here because it lives behind an
+      // additionalUserInfo import this bundle does not otherwise need.
+      // The event carries the method only, never the account.
+      try {
+        const name = location.pathname.indexOf('/register') !== -1 ? 'sign_up' : 'login';
+        (window as { lgTrack?: (n: string, p?: Record<string, unknown>) => void })
+          .lgTrack?.(name, { method: 'google' });
+      } catch (e) {}
       // Deliberately left spinning: the redirect below ends this page, and
       // restoring the idle label first would flash "Log in with Google" as
       // though nothing had happened.

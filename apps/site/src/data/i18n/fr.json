@@ -54,6 +54,13 @@
     "legal": "Mentions légales",
     "privacyPolicy": "Politique de confidentialité"
   },
+  "consent": {
+    "body": "Nous utilisons des cookies pour améliorer notre produit.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "more": "Comment nous les utilisons",
+    "settings": "Cookies"
+  },
   "proof": {
     "rating": "sur le Chrome Web Store",
     "learners": "apprenants",

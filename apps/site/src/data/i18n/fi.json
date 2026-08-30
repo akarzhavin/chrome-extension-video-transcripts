@@ -54,6 +54,13 @@
     "legal": "Lakiasiat",
     "privacyPolicy": "Tietosuojakäytäntö"
   },
+  "consent": {
+    "body": "Käytämme evästeitä parantaaksemme tuotettamme.",
+    "accept": "Hyväksy",
+    "decline": "Hylkää",
+    "more": "Miten käytämme niitä",
+    "settings": "Evästeet"
+  },
   "proof": {
     "rating": "Chrome-verkkokaupassa",
     "learners": "oppijaa",

@@ -56,6 +56,13 @@
     "legal": "Právne informácie",
     "privacyPolicy": "Zásady ochrany osobných údajov"
   },
+  "consent": {
+    "body": "Používame cookies na zlepšenie nášho produktu.",
+    "accept": "Prijať",
+    "decline": "Odmietnuť",
+    "more": "Ako ich používame",
+    "settings": "Cookies"
+  },
   "proof": {
     "rating": "v Chrome Web Store",
     "learners": "sa učí jazyk",

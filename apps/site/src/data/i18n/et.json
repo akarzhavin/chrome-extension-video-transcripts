@@ -54,6 +54,13 @@
     "legal": "Õiguslik teave",
     "privacyPolicy": "Privaatsuspoliitika"
   },
+  "consent": {
+    "body": "Kasutame küpsiseid, et oma toodet paremaks muuta.",
+    "accept": "Nõustu",
+    "decline": "Keeldu",
+    "more": "Kuidas me neid kasutame",
+    "settings": "Küpsised"
+  },
   "proof": {
     "rating": "Chrome Web Store'is",
     "learners": "õppijat",

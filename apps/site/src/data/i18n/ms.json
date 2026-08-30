@@ -53,6 +53,13 @@
     "legal": "Perundangan",
     "privacyPolicy": "Dasar privasi"
   },
+  "consent": {
+    "body": "Kami menggunakan kuki untuk menambah baik produk kami.",
+    "accept": "Terima",
+    "decline": "Tolak",
+    "more": "Cara kami menggunakannya",
+    "settings": "Kuki"
+  },
   "proof": {
     "rating": "di Chrome Web Store",
     "learners": "pelajar",

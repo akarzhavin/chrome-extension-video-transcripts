@@ -55,6 +55,13 @@
     "legal": "Juridiskā informācija",
     "privacyPolicy": "Privātuma politika"
   },
+  "consent": {
+    "body": "Mēs izmantojam sīkfailus, lai uzlabotu savu produktu.",
+    "accept": "Piekrītu",
+    "decline": "Noraidīt",
+    "more": "Kā mēs tos izmantojam",
+    "settings": "Sīkfaili"
+  },
   "proof": {
     "rating": "Chrome Web Store",
     "learners": "mācās",

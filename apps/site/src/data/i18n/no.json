@@ -54,6 +54,13 @@
     "legal": "Juridisk",
     "privacyPolicy": "Personvernerklæring"
   },
+  "consent": {
+    "body": "Vi bruker informasjonskapsler for å gjøre produktet vårt bedre.",
+    "accept": "Godta",
+    "decline": "Avvis",
+    "more": "Hvordan vi bruker dem",
+    "settings": "Informasjonskapsler"
+  },
   "proof": {
     "rating": "på Chrome Web Store",
     "learners": "som lærer et språk",
