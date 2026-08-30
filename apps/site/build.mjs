@@ -2044,6 +2044,10 @@ Sitemap: ${SITE.domain}/sitemap.xml
 
 build();
 
+// Pages only. The Vite passes that emit demo.js, auth.js and analytics.js do
+// not run here, so a tree built by `npm run dev` alone serves pages whose
+// /analytics.js and /demo.js 404 — meaning no hero demo and no consent banner.
+// Run the full `npm run build -w apps/site` once to populate them.
 if (process.argv.includes('--watch')) {
   console.log('watching src/ …');
   let timer;
