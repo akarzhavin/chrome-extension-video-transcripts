@@ -1,8 +1,10 @@
-import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+import { OPTED_OUT, installAuthBackground, installOnboarding } from '@video-transcripts/shared';
 // Relative paths, not the barrel, for both of these. analytics-bg carries the
 // GA4 api_secret; devEnvSwitch carries the environment table that prod builds
 // drop. Neither belongs in anything a content script can pull in.
 import {
+    getClientId,
+    isAnalyticsEnabled,
     markInstalled,
     setBackendResolver,
     track,
@@ -20,6 +22,12 @@ setBackendResolver(() => (isLiveProd() ? 'prod' : 'preprod'));
 
 installAuthBackground();
 installOnboarding('youtube', {
+    // The `cid` on /welcome/ and /uninstall/. Honours the analytics switch:
+    // Chrome opens the uninstall page whether or not the visitor consented, so
+    // an opted-out install must hand over the placeholder rather than a real
+    // identity — see OPTED_OUT in onboarding.ts.
+    clientId: async () =>
+        (await isAnalyticsEnabled()) ? ((await getClientId()) ?? OPTED_OUT) : OPTED_OUT,
     onInstall: () => {
         // Stamps the retention clock. Installs that predate analytics have no
         // date and simply never appear in retention — deliberately, since
