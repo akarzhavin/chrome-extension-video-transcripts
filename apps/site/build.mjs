@@ -805,12 +805,22 @@ ${footer(t, '')}`,
 // Minimal markdown renderer — enough for the privacy policy (headings, bold,
 // links, bullet lists, horizontal rules, paragraphs).
 const md = (text) => {
-  const inline = (s) => esc(s)
+  // Single-asterisk emphasis, applied LAST and only to the plain-text gaps
+  // between the tags the rules above produced. Ordering alone is not enough:
+  // by this point a URL or a code span is already HTML, and an asterisk inside
+  // one is indistinguishable from an emphasis marker — `a*b*c` came out as
+  // <code>a<em>b</em>c</code>, and a link whose href contained asterisks had
+  // its href rewritten. Both markers must also hug non-space characters, so a
+  // line like "5 * 3 and 2 * 4" does not pair its two lone asterisks.
+  const EM = /\*(\S(?:[^*]*\S)?)\*/g;
+  const emphasize = (html) => html
+    .split(/(<code>[\s\S]*?<\/code>|<a [^>]*>[\s\S]*?<\/a>|<[^>]+>)/)
+    .map((part, i) => (i % 2 ? part : part.replace(EM, '<em>$1</em>')))
+    .join('');
+  const inline = (s) => emphasize(esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Single-asterisk emphasis, after **bold** so it cannot eat its markers.
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>');
+    .replace(/`([^`]+)`/g, '<code>$1</code>'));
   const blocks = [];
   let para = [];
   let list = null;
