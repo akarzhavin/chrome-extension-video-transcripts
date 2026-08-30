@@ -1,13 +1,20 @@
-# Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
+# Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** August 25, 2026
+**Last updated:** August 30, 2026
 
-This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
-Transcript for HDrezka** browser extension ("the Extension") collects, how it is
-used, where it is stored, and the choices you have.
+This Privacy Policy explains what information the **Lingogram** browser extensions
+("the Extension") collect, how it is used, where it is stored, and the choices you
+have. It covers the whole Lingogram family; everything below applies to every
+edition.
 
----
+One thing differs between editions — how each one obtains the subtitles it displays.
+That is spelled out on the page for your edition:
+
+* [Lingogram for YouTube and Netflix](/privacy/youtube/)
+* [Lingogram for HDrezka](/privacy/rezka/)
+
+*This English version at https://lingogram.ai/privacy/ is the authoritative one.*
 
 ## TL;DR
 
@@ -69,7 +76,7 @@ collect and process:
 We do **not** collect: your browsing history, the videos you watch (beyond the
 subtitle text you explicitly save and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a
-coarse platform label such as `rezka`, never a video or a URL), IP-based location
+coarse platform label such as `youtube` or `rezka`, never a video or a URL), IP-based location
 tracking, advertising identifiers, or cookies for tracking.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
@@ -228,14 +235,15 @@ events for us as our service provider, under the same Google Privacy Policy. Fir
 and Google Analytics are used as two separate services and we do not send anything to
 Google Analytics that would let the two be joined together.
 
-To display subtitles, the Extension fetches subtitle (`.vtt`) files **directly from
-your browser** to the HDrezka / Voidboost content delivery network as you watch.
-These requests:
+To display subtitles, each Extension reads the subtitle tracks for the video you are
+watching **directly within your browser**. How those tracks are obtained differs by
+platform, and is described on the page for your edition ([YouTube and
+Netflix](/privacy/youtube/), [HDrezka](/privacy/rezka/)). In every edition the
+handling:
 
-* are made directly from your browser to the platform, with no intermediate proxy of
-  ours;
-* contain no account data or saved words;
-* are subject to the privacy policies of those platforms.
+* happens entirely in your browser, with no intermediate proxy of ours;
+* sends no account data or saved words to the video platform;
+* is subject to that platform's own privacy policy and terms.
 
 ## 5. Data Sharing and Sale
 
@@ -292,4 +300,4 @@ through the Chrome Web Store support page for the Extension.
 ---
 
 *Lingogram is an independent tool and is not affiliated with, authorized, or endorsed
-by HDrezka, Voidboost, or any of the video platforms it supports.*
+by YouTube, Netflix, HDrezka, Voidboost, or any of the video platforms it supports.*
