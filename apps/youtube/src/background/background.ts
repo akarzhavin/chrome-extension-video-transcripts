@@ -4,6 +4,7 @@ import { installAuthBackground, installOnboarding } from '@video-transcripts/sha
 // drop. Neither belongs in anything a content script can pull in.
 import {
     markInstalled,
+    onboardingClientId,
     setBackendResolver,
     track,
 } from '../../../../packages/shared/src/analytics-bg';
@@ -20,6 +21,10 @@ setBackendResolver(() => (isLiveProd() ? 'prod' : 'preprod'));
 
 installAuthBackground();
 installOnboarding('youtube', {
+    // Shared, not spelled out here: the opted-out placeholder rule is the same
+    // for every edition, and a copy per background script is a copy that can
+    // drift silently.
+    clientId: onboardingClientId,
     onInstall: () => {
         // Stamps the retention clock. Installs that predate analytics have no
         // date and simply never appear in retention — deliberately, since

@@ -10,6 +10,7 @@
 // TRACK_EVENT message handler — never re-check the preference, so there is
 // exactly one gate to audit and no call site that can bypass it.
 
+import { OPTED_OUT } from './onboarding';
 import { PREFS_KEY } from './prefs';
 import { ANALYTICS_KEYS, ANALYTICS_SESSION_KEYS } from './auth/storage';
 import {
@@ -41,10 +42,13 @@ const RETENTION_MILESTONES: ReadonlyArray<{
 // this is a per-wake memo, not a long-lived cache — the storage read it saves
 // is sub-millisecond but happens on every event.
 let cachedClientId: string | null = null;
+// In-flight mint, shared by concurrent getClientId callers. See the comment there.
+let clientIdInFlight: Promise<string | null> | null = null;
 
 /** Test seam: clears module state between cases. */
 export function _resetAnalyticsCacheForTests(): void {
     cachedClientId = null;
+    clientIdInFlight = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,6 +69,22 @@ export function _resetAnalyticsCacheForTests(): void {
  */
 export async function getClientId(): Promise<string | null> {
     if (cachedClientId) return cachedClientId;
+    // Concurrent callers share one attempt. The read-then-mint below is not
+    // atomic, so two overlapping calls would both see empty storage, both mint,
+    // and the second write would silently replace the first — leaving whoever
+    // read earlier holding an id the extension no longer has. That is not
+    // theoretical: install fires markInstalled and the onboarding resolver in
+    // the same tick, and a real browser run produced a welcome URL whose cid
+    // did not match stored state.
+    if (!clientIdInFlight) {
+        clientIdInFlight = mintOrReadClientId().finally(() => {
+            clientIdInFlight = null;
+        });
+    }
+    return clientIdInFlight;
+}
+
+async function mintOrReadClientId(): Promise<string | null> {
     let stored: unknown;
     try {
         const v = await chrome.storage.local.get(ANALYTICS_KEYS.clientId);
@@ -155,10 +175,28 @@ export async function daysSinceInstall(now: number = Date.now()): Promise<number
 }
 
 /**
- * Stamps the install date. Called from the onInstalled INSTALL branch only.
- * Never overwrites: an update must not restart the retention clock.
+ * Stamps the install date and mints the client id. Called from the onInstalled
+ * INSTALL branch only. The date is never overwritten: an update must not
+ * restart the retention clock.
+ *
+ * The id is minted here rather than left to the first hit that needs it, and
+ * unconditionally — the consent gate is NOT consulted. Minting is not
+ * collecting: getClientId only writes a random UUID to this extension's own
+ * storage.local, and `track` still refuses to send anything while analytics is
+ * off, so an opted-out install produces an id that is never read and never
+ * leaves the machine. What this buys is that the id exists from the install
+ * event onward, so it cannot be missed by a first hit that dies with the
+ * worker, fails on a cold network, or arrives while the preference is still
+ * being written — and a visitor who turns analytics back on later keeps the
+ * same identity instead of arriving as a brand-new user.
  */
 export async function markInstalled(now: number = Date.now()): Promise<void> {
+    // Awaited, not fire-and-forget: the worker can be torn down moments after
+    // onInstalled returns, and an unawaited mint would race that teardown —
+    // exactly the case this function exists to close. getClientId swallows its
+    // own storage errors and is independent of the date stamp below, so a
+    // failure on either side cannot cost us the other.
+    await getClientId();
     try {
         const v = await chrome.storage.local.get(ANALYTICS_KEYS.installedAt);
         if (v[ANALYTICS_KEYS.installedAt]) return;
@@ -389,4 +427,31 @@ export async function handleTrackMessage(
     }
     await track(event as AnalyticsEvent, params);
     return { ok: true };
+}
+
+/**
+ * The `cid` resolver every background script hands to installOnboarding.
+ *
+ * Lives here rather than in each extension because the rule it encodes is not
+ * a per-edition choice: an install whose owner switched analytics off must
+ * hand the onboarding pages a placeholder, never its real id. Copied into
+ * three background scripts that rule would eventually be copied wrong, and the
+ * failure is silent — the URL still works, it just quietly carries an identity
+ * it had no permission to carry. A new edition gets the correct behaviour by
+ * passing this function, and nothing else.
+ *
+ * It cannot live in onboarding.ts: that module is reachable from content
+ * bundles and importing this file there would risk pulling the GA4 api_secret
+ * into a page-readable script. Composition happens in the background entry
+ * point, which is the only place both halves are legal.
+ */
+export async function onboardingClientId(): Promise<string> {
+    try {
+        if (!(await isAnalyticsEnabled())) return OPTED_OUT;
+        return (await getClientId()) ?? OPTED_OUT;
+    } catch {
+        // Fails to the placeholder, not to a real id: an unreadable preference
+        // is not permission. Same direction as the consent gate above.
+        return OPTED_OUT;
+    }
 }

@@ -3,6 +3,7 @@ import { installAuthBackground, installOnboarding } from '@video-transcripts/sha
 // must stay out of anything a content script can pull in.
 import {
     markInstalled,
+    onboardingClientId,
     setBackendResolver,
     track,
 } from '../../../../packages/shared/src/analytics-bg';
@@ -54,6 +55,10 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 
 installAuthBackground();
 installOnboarding('rezka', {
+    // Shared, not spelled out here: the opted-out placeholder rule is the same
+    // for every edition, and a copy per background script is a copy that can
+    // drift silently.
+    clientId: onboardingClientId,
     onInstall: () => {
         void markInstalled();
         // See the youtube edition: ext_source already carries this.

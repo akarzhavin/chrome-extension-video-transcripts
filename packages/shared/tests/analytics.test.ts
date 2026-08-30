@@ -465,6 +465,34 @@ describe('daysSinceInstall', () => {
         expect(storage.local._store['analytics.installedAt']).toBe(5 * DAY);
     });
 
+    test('markInstalled mints the client id, so install never lands without one', async () => {
+        await markInstalled(5 * DAY);
+        expect(storage.local._store['analytics.clientId']).toEqual(expect.any(String));
+        expect(storage.local._store['analytics.clientId']).toBeTruthy();
+    });
+
+    test('markInstalled mints the id even with analytics switched off', async () => {
+        // Minting is not collecting: the id stays in this extension's own
+        // storage and `track` still refuses to send while the gate is closed.
+        // What it buys is that someone who opts back in later keeps the same
+        // identity rather than arriving as a brand-new user.
+        storage.local._store[PREFS_KEY] = { analyticsEnabled: false };
+        await markInstalled(5 * DAY);
+        expect(storage.local._store['analytics.clientId']).toBeTruthy();
+    });
+
+    test('markInstalled keeps an id that already exists', async () => {
+        storage.local._store['analytics.clientId'] = 'existing-id';
+        await markInstalled(5 * DAY);
+        expect(storage.local._store['analytics.clientId']).toBe('existing-id');
+    });
+
+    test('markInstalled still stamps the date when the id is already there', async () => {
+        storage.local._store['analytics.clientId'] = 'existing-id';
+        await markInstalled(5 * DAY);
+        expect(storage.local._store['analytics.installedAt']).toBe(5 * DAY);
+    });
+
     test('undefined rather than a negative day when the clock moved backwards', async () => {
         // A user who rolls their system clock back would otherwise produce
         // negative days_since_install and poison the retention cohorts.
