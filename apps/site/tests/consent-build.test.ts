@@ -16,7 +16,7 @@
  * quietly sets cookies for visitors who never answered.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const SITE = resolve(__dirname, '..');
@@ -38,6 +38,13 @@ function runBuild(measurementId?: string): string {
 }
 
 const page = (rel: string) => readFileSync(resolve(OUT, rel), 'utf8');
+
+// Every source analytics.js is built from. Listed rather than globbed so a new
+// file has to be added deliberately — silently escaping the transport_type
+// check below is exactly the kind of drift these tests exist to catch.
+const ANALYTICS_SOURCES = [
+  'index.ts', 'track.ts', 'banner.ts', 'store-click.ts', 'consent.ts', 'constants.cjs',
+];
 
 
 // One tagged build, snapshotted, then string assertions against it.
@@ -87,11 +94,19 @@ describe('the analytics block, with a measurement id', () => {
     // "beacon". A UA control GA4 no longer honours.
     expect(tagged['index.html']).toContain("gtag('config','G-TEST123')");
     expect(tagged['index.html']).not.toContain('transport_type');
-    // Strip comments first: main.js explains in prose WHY the flag is absent,
-    // and a bare substring search would match that explanation.
-    const mainCode = readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8')
+    // Strip comments first: the analytics sources explain in prose WHY the flag
+    // is absent, and a bare substring search would match that explanation.
+    const analyticsCode = ANALYTICS_SOURCES
+      .map((f) => readFileSync(resolve(SITE, 'src/analytics', f), 'utf8'))
+      .join('\n')
       .replace(/\/\/.*$/gm, '');
-    expect(mainCode).not.toContain('transport_type');
+    expect(analyticsCode).not.toContain('transport_type');
+  });
+
+  it('checks every analytics source, so none escapes the list above', () => {
+    // ANALYTICS_SOURCES is hand-maintained; without this a file added to
+    // src/analytics/ would quietly go unchecked by the assertion above.
+    expect(readdirSync(resolve(SITE, 'src/analytics')).sort()).toEqual([...ANALYTICS_SOURCES].sort());
   });
 
   it('denies all four Consent Mode v2 signals by default', () => {
@@ -114,18 +129,50 @@ describe('the analytics block, with a measurement id', () => {
     expect(html.indexOf('googletagmanager.com/gtag/js')).toBeLessThan(html.indexOf('</head>'));
   });
 
-  it('uses the SAME storage key in the page and in main.js', () => {
-    // The key is duplicated by necessity: main.js ships unbundled, so the two
-    // files cannot share a module. If they drift, a visitor who accepted is
-    // silently re-denied on every later page load, forever, with no error.
+  it('serializes the declared storage key into the page', () => {
+    // The key now has one source (src/analytics/constants.cjs), imported both
+    // by build.mjs and by the bundle that owns the banner, so the two halves
+    // can no longer drift by hand. What CAN still go wrong is the serialization
+    // itself: a renamed export or a typo'd interpolation puts `undefined` in
+    // the page, and a visitor who accepted is silently re-denied on every later
+    // page load, forever, with no error. So this reads the constant and asserts
+    // the built page actually carries it.
+    const constants = readFileSync(resolve(SITE, 'src/analytics/constants.cjs'), 'utf8');
+    const declared = /CONSENT_KEY\s*=\s*'([^']+)'/.exec(constants);
     const inPage = /localStorage\.getItem\('([^']+)'\)/.exec(tagged['index.html']);
-    const mainJs = readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8');
-    const inScript = /CONSENT_KEY\s*=\s*'([^']+)'/.exec(mainJs);
-    expect(inPage?.[1]).toBe('lingogram_consent');
-    expect(inScript?.[1]).toBe(inPage?.[1]);
+    expect(declared?.[1]).toBe('lingogram_consent');
+    expect(inPage?.[1]).toBe(declared?.[1]);
     for (const value of ["'granted'", "'denied'"]) {
       expect(tagged['index.html']).toContain(value);
-      expect(mainJs).toContain(value);
+    }
+  });
+
+  it('serializes all four signals into the returning-visitor upgrade', () => {
+    // The inline block re-grants on a later page load; the bundle grants on the
+    // click. If the two sets drifted, a visitor's second page would behave
+    // unlike their first. consent-dom.test.ts pins the click side against the
+    // same four names literally, so asserting the emitted page here closes the
+    // loop without either test deriving its expectation from the other.
+    const update = /gtag\('consent','update',\{([^}]*)\}\)/.exec(tagged['index.html']);
+    const keys = [...(update?.[1] ?? '').matchAll(/(\w+):/g)].map((m) => m[1]).sort();
+    expect(keys).toEqual(
+      ['ad_personalization', 'ad_storage', 'ad_user_data', 'analytics_storage'],
+    );
+  });
+
+  it('loads analytics.js ahead of main.js on every page that has one', () => {
+    // The banner and window.lgTrack ship as analytics.js. Classic deferred
+    // scripts run in document order and all before any type="module" script, so
+    // this ordering is the whole reason lgTrack is in place before main.js, the
+    // demo bundle or the auth modules reach for it. Nothing else would catch a
+    // reordering: the pages would look identical and every demo and auth event
+    // would silently stop.
+    for (const p of PAGES.filter((x) => x.endsWith('.html'))) {
+      const html = tagged[p];
+      const analytics = html.indexOf('src="/analytics.js');
+      const main = html.indexOf('src="/main.js');
+      expect([p, analytics > -1]).toEqual([p, true]);
+      if (main > -1) expect([p, analytics < main]).toEqual([p, true]);
     }
   });
 
@@ -160,7 +207,8 @@ describe('the banner markup', () => {
   });
 
   it('ships the close box hidden', () => {
-    // Revealed by main.js only on a REopened banner. On a first, undecided view
+    // Revealed by the analytics bundle only on a REopened banner. On a first,
+    // undecided view
     // a close box would be a third answer dressed as an escape.
     expect(tagged['index.html']).toMatch(/data-consent-close[^>]*\shidden>/);
   });
@@ -183,7 +231,7 @@ describe('/privacy/site/', () => {
     const doc = tagged['privacy/site/index.html'];
     expect(doc).toContain('_ga');
     expect(doc).toMatch(/deletes the/);
-    expect(readFileSync(resolve(SITE, 'src/js/main.js'), 'utf8')).toContain('clearGaCookies');
+    expect(readFileSync(resolve(SITE, 'src/analytics/consent.ts'), 'utf8')).toContain('clearGaCookies');
   });
 
   it('is linked from the privacy chooser and listed once in the sitemap', () => {

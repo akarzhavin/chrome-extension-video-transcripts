@@ -2,12 +2,15 @@
  * @jest-environment jsdom
  * @jest-environment-options {"url": "https://www.lingogram.ai/"}
  *
- * The cookie consent banner, run against the REAL src/js/main.js.
+ * The cookie consent banner, run against the REAL src/analytics/ modules.
  *
- * That file ships to build/ verbatim with no bundler, so it exports nothing to
- * import: these tests eval it into the page the way a <script defer> tag would
- * (same approach as uninstall-dom.test.ts). Testing a refactored copy would
- * leave the shipped file uncovered.
+ * The banner ships as analytics.js, bundled from those modules, so the tests
+ * import the entry the way the page loads the bundle — re-evaluated per boot
+ * so each case starts from a fresh page. What ships and what is tested are the
+ * same source, which is the rule src/auth/ already follows.
+ *
+ * That the built artifact reaches the page at all, and ahead of main.js, is
+ * pinned separately by consent-build.test.ts against real build output.
  *
  * The contracts pinned here are the ones whose failure is SILENT. A wrong
  * consent state does not throw and does not look different — it just quietly
@@ -19,11 +22,6 @@
  * The jsdom URL is a real two-label host on purpose: clearGaCookies() walks up
  * to the registrable domain, and on `localhost` that branch never runs.
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-const MAIN_JS = readFileSync(resolve(__dirname, '../src/js/main.js'), 'utf8');
-
 type GtagCall = unknown[];
 
 interface Harness {
@@ -117,8 +115,12 @@ function boot(opts: BootOpts = {}): Harness {
   (window as unknown as { gtag: unknown }).gtag = (...args: unknown[]) => { gtagCalls.push(args); };
   if (ga4) (window as unknown as { LG_GA4: string }).LG_GA4 = 'G-TEST123';
 
-  // eslint-disable-next-line no-new-func
-  new Function(MAIN_JS)();
+  // Re-evaluate the whole module graph per boot, the way each new page load
+  // would. A plain import would run the entry once for the file and leave
+  // every later boot without its listeners.
+  jest.isolateModules(() => {
+    require('../src/analytics/index');
+  });
   return { gtagCalls, cookieWrites };
 }
 
@@ -201,17 +203,6 @@ describe('answering the banner', () => {
     expect(Object.keys(update).sort()).toEqual(
       ['ad_personalization', 'ad_storage', 'ad_user_data', 'analytics_storage'],
     );
-  });
-
-  it('sends the same signal set the returning-visitor upgrade sends', () => {
-    // build.mjs's inline block re-grants on a later page load. If the two sets
-    // drifted, a visitor's second page would behave unlike their first.
-    const buildMjs = readFileSync(resolve(__dirname, '../build.mjs'), 'utf8');
-    const inline = /gtag\('consent','update',\{([^}]*)\}\)/.exec(buildMjs);
-    const inlineKeys = [...(inline?.[1] ?? '').matchAll(/(\w+):/g)].map((m) => m[1]).sort();
-    const h = boot({});
-    $<HTMLButtonElement>('[data-consent="granted"]').click();
-    expect(Object.keys(h.gtagCalls[0][2] as object).sort()).toEqual(inlineKeys);
   });
 
   it('does NOT re-send page_view on Accept', () => {

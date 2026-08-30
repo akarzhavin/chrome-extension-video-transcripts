@@ -14,6 +14,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadLingogramLimits, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
+import {
+  CONSENT_KEY, CONSENT_GRANTED, CONSENT_DENIED, CONSENT_SIGNALS, WAIT_FOR_UPDATE_MS,
+} from './src/analytics/constants.cjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, 'src');
@@ -35,6 +38,15 @@ assertSourceAllowed(LIMITS, SITE_FEEDBACK_SOURCE);
 // Cache-buster: python http.server sends no Cache-Control, so browsers may
 // keep serving stale css/js after a rebuild. New value every build.
 const BUST = Date.now().toString(36);
+
+// analytics.js carries the consent banner and window.lgTrack. It goes ahead of
+// main.js on every page that has one: classic deferred scripts run in document
+// order, and all of them before any type="module" script, so this ordering is
+// what guarantees lgTrack exists before main.js, demo.js or the auth modules
+// look for it. Emitted unconditionally — the bundle gates itself on
+// window.LG_GA4, and the global has to exist even on an untagged build so the
+// other bundles' optional calls stay no-ops instead of breaking.
+const analyticsScript = `<script src="/analytics.js?v=${BUST}" defer></script>`;
 
 // Sign-in and sign-up are functional pages, not content: they carry nothing a
 // searcher could want, and 42 localized copies of each would be 84 thin
@@ -77,12 +89,13 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 // stored answer and upgrade to granted if they said yes. Storage is wrapped
 // because Safari's "block all cookies" makes even localStorage throw on read.
 //
-// LG_CONSENT / lingogram_consent are shared with src/js/main.js, which owns
-// the banner UI and calls gtag('consent','update',…) on click. Keep the key
-// and the two values ('granted' | 'denied') identical in both files — and keep
-// the SET OF SIGNALS in the two update calls identical too: the one below runs
-// for a returning visitor, main.js's runs on the click, and a signal granted in
-// only one of them would make a visitor's second page behave unlike their first.
+// The storage key, its two values and the signal set all come from
+// src/analytics/constants.cjs and are serialized into the block below. The
+// bundle that owns the banner UI (analytics.js, built from src/analytics/)
+// imports the same file, so the two halves of the consent contract cannot
+// drift: the update call below runs for a returning visitor, the bundle's runs
+// on the click, and a signal granted in only one of them would make a
+// visitor's second page behave unlike their first.
 //
 // All four signals move together on acceptance. ad_storage is what Google
 // Signals needs to function at all, so granting analytics_storage alone would
@@ -99,10 +112,15 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 // event, including page_view, adding a custom dimension whose only value is the
 // string "beacon". It is a Universal Analytics control that GA4 no longer
 // honours, so setting it costs a dimension and buys nothing.
+// The signal set as source text, e.g. ad_storage:'denied',ad_user_data:'denied'…
+// Emitted on one line with no spaces: this lands inside a <script> tag that
+// ships on every page, and consent-build.test.ts matches the literal shape.
+const consentLiteral = (value) => CONSENT_SIGNALS.map((s) => `${s}:'${value}'`).join(',');
+
 const analyticsHead = () => GA4 ? `<script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
-try{if(localStorage.getItem('lingogram_consent')==='granted')gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted'})}catch(e){}
+gtag('consent','default',{${consentLiteral(CONSENT_DENIED)},wait_for_update:${WAIT_FOR_UPDATE_MS}});
+try{if(localStorage.getItem('${CONSENT_KEY}')==='${CONSENT_GRANTED}')gtag('consent','update',{${consentLiteral(CONSENT_GRANTED)}})}catch(e){}
 gtag('js',new Date());gtag('config','${GA4}');
 window.LG_GA4='${GA4}';
 </script>
@@ -716,7 +734,8 @@ ${Object.entries(hrefLang || {}).map(([tag, href]) => `<link rel="alternate" hre
 ${analyticsHead()}${extraHead || ''}</head>
 <body>
 ${body}
-${scripts || `<script src="/main.js?v=${BUST}" defer></script>
+${scripts || `${analyticsScript}
+<script src="/main.js?v=${BUST}" defer></script>
 <script src="/demo.js?v=${BUST}" defer></script>`}
 </body>
 </html>`;
@@ -1660,6 +1679,7 @@ const uninstallPage = (locale, hrefLang) => {
     // write below reads them. Both are `defer`, so auth-config.js is
     // guaranteed to have run before main.js looks for window.LINGOGRAM_AUTH.
     scripts: `<script src="/auth-config.js?v=${BUST}" defer></script>
+${analyticsScript}
 <script src="/main.js?v=${BUST}" defer></script>`,
     body: `
 ${header(t, root)}
@@ -1750,6 +1770,7 @@ window.__UNINSTALL = ${scriptJSON({
 // window.LINGOGRAM_AUTH is set before the modules read it.
 const authScripts = `<script>window.LINGOGRAM_APP_URL=${scriptJSON(SITE.appUrl)};</script>
 <script src="/auth-config.js?v=${BUST}" defer></script>
+${analyticsScript}
 <script src="/main.js?v=${BUST}" defer></script>
 <script type="module" src="/auth.js?v=${BUST}"></script>
 <script type="module" src="/auth-google.js?v=${BUST}"></script>`;
@@ -2023,6 +2044,10 @@ Sitemap: ${SITE.domain}/sitemap.xml
 
 build();
 
+// Pages only. The Vite passes that emit demo.js, auth.js and analytics.js do
+// not run here, so a tree built by `npm run dev` alone serves pages whose
+// /analytics.js and /demo.js 404 — meaning no hero demo and no consent banner.
+// Run the full `npm run build -w apps/site` once to populate them.
 if (process.argv.includes('--watch')) {
   console.log('watching src/ …');
   let timer;
