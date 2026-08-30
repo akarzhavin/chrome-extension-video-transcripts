@@ -1,6 +1,6 @@
 {
   "name": "@video-transcripts/rezka",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "private": true,
   "scripts": {
     "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor && vite build --mode popup && npm run zip",
