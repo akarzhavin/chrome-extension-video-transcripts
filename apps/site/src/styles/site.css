@@ -965,42 +965,72 @@ footer.site {
    page until answered is the pattern regulators call a dark pattern when the
    accept button is the easy way out of it. This one leaves the page readable
    and both answers cost one click. */
+/* A full-width bar glued to the bottom edge, in a color the site does not
+   own. Deliberately the most recognizable consent pattern there is —
+   recognition is what gets a fast answer, and a bar spanning the whole
+   viewport interrupts by geometry. The electric blue is just as deliberate:
+   every surface of this site is indigo or teal, so the one pure-blue stripe
+   reads as foreign chrome the eye cannot file away as content — on the light
+   page, on the dark demo player, in either theme. The job here is a click.
+   The bar ignores the page theme, so it pins its own button pair: a white
+   Accept on blue is the brightest thing on the screen. */
 .consent {
-  position: fixed; z-index: 60; inset-inline: 16px; bottom: 16px;
-  max-width: 640px; margin-inline: auto;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
-  padding: 16px 20px; border-radius: 16px;
-  background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow);
-  font-size: 14px; color: var(--muted);
+  --accent: #ffffff; --accent-ink: #0f4dab;
+  position: fixed; z-index: 60; inset-inline: 0; bottom: 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+  /* Full-width bar, centered content: on wide screens the side padding grows
+     so text and buttons stay together instead of parking at opposite edges. */
+  padding: 16px max(20px, calc((100vw - 1100px) / 2));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #1565d8; border: 0; border-radius: 0;
+  border-top: 3px solid #0b3d87;
+  box-shadow: 0 -10px 30px rgba(8, 4, 20, 0.35);
+  font-size: 15px; color: #ffffff;
+  animation: consent-in 0.4s ease-out both;
 }
+/* Slides up from the edge it is glued to. No overshoot: a bar bouncing off
+   the viewport edge reads as broken, not lively. */
+@keyframes consent-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .consent { animation: none; } }
 .consent[hidden] { display: none; }
-.consent-text { margin: 0; flex: 1 1 260px; line-height: 1.5; }
-.consent-text a { color: var(--accent); }
-.consent-actions { display: flex; gap: 10px; margin-inline-start: auto; }
-/* Smaller than a page CTA: this is a chore, not the thing the visitor came
-   for. Accept keeps the accent; decline is quiet but sits right beside it at
-   the same size and costs exactly one click — emphasis is fine, making
-   refusal harder than acceptance is not. */
-.consent-actions .btn { padding: 10px 18px; font-size: 14px; }
+.consent-text { margin: 0; flex: 1 1 300px; line-height: 1.5; }
+.consent-text a { color: #cfe6ff; text-decoration: underline; text-underline-offset: 2px; }
+.consent-text a:hover { color: #ffffff; }
+.consent-actions { display: flex; gap: 12px; margin-inline-start: auto; }
+/* Both controls must read as buttons — a visitor decides faster when both
+   answers are visibly pressable. Accept is filled white; decline is a
+   bordered ghost at the same size, one click, right beside it: emphasis is
+   fine, making refusal harder than acceptance is not. */
+.consent-actions .btn { padding: 12px 28px; font-size: 15px; }
+.consent .btn-primary:hover { background: #eaf3ff; filter: none; }
 .consent-decline {
-  border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px;
-  padding: 10px 12px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.55); background: none;
+  color: #ffffff; font: inherit; font-size: 15px; font-weight: 600;
+  padding: 12px 22px; border-radius: 12px; cursor: pointer;
 }
-.consent-decline:hover { color: var(--ink); }
-/* Only ever shown on a REopened banner (main.js unhides it), where the visitor
-   already has a stored choice and may have come only to read it. Quiet and
-   corner-placed: it is an exit, not a third answer, and must not compete with
-   Accept/Decline for the eye. */
+.consent-decline:hover { border-color: #ffffff; background: rgba(255, 255, 255, 0.08); }
+/* On a REopened banner the standing choice gets aria-pressed="true" from the
+   analytics bundle — ring it so "this is your current answer" is visible
+   without re-reading the text. */
+.consent [data-consent][aria-pressed="true"] { box-shadow: 0 0 0 2px #1565d8, 0 0 0 4px #ffffff; }
+/* Only ever shown on a REopened banner (the analytics bundle unhides it),
+   where the visitor already has a stored choice and may have come only to
+   read it. Quiet and corner-placed: it is an exit, not a third answer, and
+   must not compete with Accept/Decline for the eye. */
 .consent-close {
-  position: absolute; top: 6px; inset-inline-end: 8px;
-  border: 0; background: none; color: var(--muted);
+  position: absolute; top: 6px; inset-inline-end: 10px;
+  border: 0; background: none; color: rgba(255, 255, 255, 0.75);
   font-size: 20px; line-height: 1; padding: 4px 8px;
   border-radius: 8px; cursor: pointer;
 }
-.consent-close:hover { color: var(--ink); }
+.consent-close:hover { color: #ffffff; }
 .consent-close[hidden] { display: none; }
 @media (max-width: 520px) {
   /* Stack, and let both controls share the row so neither needs hunting for. */
+  .consent { padding: 14px 16px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
   .consent-actions { width: 100%; margin-inline-start: 0; }
   .consent-actions .btn { flex: 1; }
   .consent-decline { flex: 1; }
