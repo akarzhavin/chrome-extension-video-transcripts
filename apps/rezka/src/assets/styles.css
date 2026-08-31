@@ -2101,10 +2101,22 @@
     /* Rounded on top only, square where it meets the caption — the shared edge
        is what fuses the two into one shape. */
     border-radius: 0.34em 0.34em 0 0;
-    /* Same box colour and opacity as the caption, so the tab is the caption's
-       own material rather than a control laid over it. */
-    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-overlay-bg-opacity, 0.7) * 100%), transparent);
+    /* The caption's own box colour, so the tab reads as the caption's material
+       rather than as a control laid over it — but with a FLOOR under the
+       opacity rather than the caption's value copied outright. The caption's
+       backdrop is the user's to turn off; the grip's is not, because at 'off'
+       (and at 'low' over a bright frame) the tab lost its body entirely and
+       six dots were left floating on raw video with nothing to grab.
+       max() picks the caption's level whenever that is the denser of the two,
+       so a Solid caption still gets a solid tab and the two never disagree. */
+    --vtt-handle-bg-opacity: max(var(--vtt-overlay-bg-opacity, 0.7), 0.55);
+    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-handle-bg-opacity) * 100%), transparent);
     color: var(--vtt-overlay-color, #fff);
+    /* Blur what shows through, so the dots keep their contrast over a bright or
+       busy frame instead of relying on the wash alone. Progressive: browsers
+       without it simply get the flat wash above. */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     /* Overlap the caption's top edge by a hair: at fractional device pixel
        ratios a seam of video shows through between two abutting boxes. */
     margin-bottom: -1px;
