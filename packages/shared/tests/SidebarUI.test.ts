@@ -1288,4 +1288,123 @@ describe('SidebarUI', () => {
     // which is always available. The CC button beside it carries the overlay's
     // on/off and paints itself from an onRefresh hook; that's covered in
     // apps/youtube/tests/player-menu.test.ts.
+
+    // Who owns #vtt-sidebar when one is already on the page. Two cases share
+    // the id and want opposite handling: a rival copy of the extension (yield,
+    // or the two graft into one franken-panel) and our own panel left behind by
+    // the instance a reload just orphaned (reclaim, or the fresh instance never
+    // starts and the page keeps a dead panel forever).
+    describe('sidebar ownership', () => {
+        beforeEach(() => {
+            document.body.innerHTML = '';
+        });
+
+        test('stamps the panel it builds with its own extension id', () => {
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+            expect(document.getElementById('vtt-sidebar')!.dataset.vttOwner).toBe('test-extension-id');
+        });
+
+        // The franken-UI guard: a panel built by a different installed copy is
+        // left strictly alone.
+        test('yields to a sidebar owned by another extension copy', () => {
+            const foreign = document.createElement('div');
+            foreign.id = 'vtt-sidebar';
+            foreign.dataset.vttOwner = 'some-other-extension-id';
+            foreign.dataset.marker = 'untouched';
+            document.body.appendChild(foreign);
+
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(false);
+            // Same element, unmodified — not rebuilt, not adopted.
+            const after = document.getElementById('vtt-sidebar')!;
+            expect(after.dataset.marker).toBe('untouched');
+            expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
+        });
+
+        // An unstamped panel predates this mechanism. Deleting it is the
+        // destructive reading (it could be a live rival's), so the build is
+        // still yielded — but the id is claimed, which is what makes a LATER
+        // reload able to tell the panel apart and reclaim it.
+        test('claims an unstamped sidebar but yields the build', () => {
+            const legacy = document.createElement('div');
+            legacy.id = 'vtt-sidebar';
+            legacy.dataset.marker = 'untouched';
+            document.body.appendChild(legacy);
+
+            expect(new SidebarUI(new AppState(), mockApp).init()).toBe(false);
+
+            const after = document.getElementById('vtt-sidebar')!;
+            expect(after.dataset.marker).toBe('untouched'); // not rebuilt
+            expect(after.dataset.vttOwner).toBe('test-extension-id');
+            expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
+        });
+
+        // The rollout case this whole mechanism exists for: the build being
+        // replaced stamped nothing, so on the auto-update that ships stamping
+        // the leftover panel is unstamped AND dead. Owning it is not required to
+        // explain it — the notice renders into the corpse on screen.
+        test('announces on an unstamped sidebar whose context is gone', () => {
+            const legacy = document.createElement('div');
+            legacy.id = 'vtt-sidebar';
+            const subheader = document.createElement('div');
+            subheader.id = 'vtt-subheader';
+            legacy.appendChild(subheader);
+            document.body.appendChild(legacy);
+
+            const saved = (globalThis as any).chrome;
+            (globalThis as any).chrome = { runtime: {} }; // orphaned: no id
+            try {
+                expect(new SidebarUI(new AppState(), mockApp).init()).toBe(false);
+            } finally {
+                (globalThis as any).chrome = saved;
+            }
+
+            expect(document.getElementById('vtt-orphan-notice')).not.toBeNull();
+        });
+
+        // The reload case: our own orphaned panel is replaced, so the fresh
+        // instance owns the page and its watcher/handlers actually run.
+        test('reclaims its own orphaned sidebar', () => {
+            const stale = document.createElement('div');
+            stale.id = 'vtt-sidebar';
+            stale.dataset.vttOwner = 'test-extension-id';
+            stale.dataset.marker = 'stale';
+            document.body.appendChild(stale);
+            const staleToggle = document.createElement('div');
+            staleToggle.id = 'vtt-toggle-btn';
+            document.body.appendChild(staleToggle);
+
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+
+            const fresh = document.getElementById('vtt-sidebar')!;
+            expect(fresh.dataset.marker).toBeUndefined(); // rebuilt, not reused
+            expect(fresh.dataset.vttOwner).toBe('test-extension-id');
+            // Exactly one of each: the stale toggle button goes with the panel,
+            // or the page keeps a second tab that opens nothing.
+            expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
+            expect(document.querySelectorAll('#vtt-toggle-btn')).toHaveLength(1);
+        });
+
+        // The overlay lives in the PLAYER, not the sidebar subtree, so removing
+        // the panel leaves it standing. updateOverlay() then adopts it by id
+        // along with the dead instance's listeners — the orphaned heap is still
+        // alive, only chrome.* died — so guess-mode clicks would act on stale
+        // state. destroy() drops all three; the reclaim path has to match.
+        test('reclaim clears the stale video overlay too', () => {
+            const stale = document.createElement('div');
+            stale.id = 'vtt-sidebar';
+            stale.dataset.vttOwner = 'test-extension-id';
+            document.body.appendChild(stale);
+            const overlay = document.createElement('div');
+            overlay.id = 'vtt-video-overlay';
+            overlay.dataset.sig = 'stale-signature';
+            document.body.appendChild(overlay);
+
+            expect(new SidebarUI(new AppState(), mockApp).init()).toBe(true);
+
+            expect(document.getElementById('vtt-video-overlay')).toBeNull();
+        });
+    });
 });

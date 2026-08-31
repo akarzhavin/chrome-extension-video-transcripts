@@ -1973,6 +1973,78 @@
     display: none;
 }
 
+/* Orphaned-context notice: the extension was reloaded (a store auto-update, or
+   a rebuild in development) and this content script can no longer reach the
+   worker, so the transcript has stopped following the video.
+
+   Sits in the panel's banner slot (the row after #vtt-subheader) and borrows
+   #vtt-notification's anatomy — same margins, same left rule, same type scale —
+   because it is the same kind of thing: an announcement about the panel rather
+   than content in it. Warning, not critical: nothing is lost, and one reload
+   undoes it. */
+#vtt-orphan-notice {
+    /* flex-shrink:0 — the sidebar is a flex column and #vtt-list grows to fill
+       it, so without this a long transcript squeezes the banner thinner than
+       its own text. */
+    flex: 0 0 auto;
+    padding: 10px 13px 11px;
+    margin: 4px 16px 10px;
+    border-left: 2px solid var(--vtt-warning);
+    border-radius: 4px;
+    background: var(--vtt-warning-quiet);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.vtt-orphan-notice-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vtt-warning);
+}
+
+.vtt-orphan-notice-text {
+    margin-top: 2px;
+    color: var(--vtt-text-soft);
+}
+
+/* Reload is the one action still available to a dead panel, so unlike the
+   emergency red of "Reload page" in #vtt-status this is the ordinary way out of
+   the state — neutral, not alarming. */
+.vtt-orphan-notice-action {
+    margin-top: 9px;
+    padding: 5px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f3f4f6;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.vtt-orphan-notice-action:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.vtt-orphan-notice-action:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, rgba(124, 141, 255, 0.55));
+    outline-offset: 1px;
+}
+
+/* Light theme: the dark rule above is white-on-white here (~1.05:1), and this
+   is the ONE control still working on a dead panel — invisible is the worst
+   place for it to be. Matches the treatment its sibling actions get further
+   down (.vtt-light #vtt-status .vtt-empty-state-action). */
+.vtt-light .vtt-orphan-notice-action {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light .vtt-orphan-notice-action:hover { background: #f0f0ee; }
+
 /* Remote notification: a message published from the backend without a release
    (an upstream site broke, a fix is on the way). Sits in the same slot as the
    partial notice below but reads as a block, not an aside — it carries news the
