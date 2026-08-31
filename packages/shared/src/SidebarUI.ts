@@ -17,9 +17,9 @@ import {
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
 import { applyTheme, stopThemeTracking } from './content/theme';
-import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
+import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
-import { isDownloadable, srtFileName, toSrt } from './srt';
+import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import {
     MAX_FEEDBACK_BYTES,
@@ -595,41 +595,27 @@ export class SidebarUI {
     }
 
     /**
-     * Write the main subtitle track to an .srt file.
+     * The track the download acts on: the main one only — the one the list
+     * renders and the one being learned. The native track is the translation
+     * crutch, not the thing anyone takes away to study, and offering both
+     * turned one action into a choice the user had to make every time.
      *
-     * The main track only — the one the list renders and the one being learned.
-     * The native track is the translation crutch, not the thing anyone takes
-     * away to study, and offering both turned one action into a choice the user
-     * had to make before every download.
-     *
-     * Reads the track at click time rather than closing over it: the dropdowns,
-     * the swap chip and (on Netflix) an on-demand language fetch can all have
-     * moved the indexes since the button was built.
+     * Read at call time rather than closed over: the dropdowns, the swap chip
+     * and (on Netflix) an on-demand language fetch can all have moved the
+     * indexes since the button was built.
      */
+    private downloadableTrack(): Track | undefined {
+        return this.state.tracks[this.state.activeTrackIndex];
+    }
+
+    /** Write the main subtitle track to an .srt file. */
     downloadTrack(): void {
-        const track = this.state.tracks[this.state.activeTrackIndex];
-        if (!isDownloadable(track)) return;
-
-        const url = URL.createObjectURL(new Blob([toSrt(track.subtitles)], { type: 'text/plain;charset=utf-8' }));
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = srtFileName(document.title, track.name);
-        // Firefox-style engines only honour a click on a connected node; Chrome
-        // does not care, and the node is gone before paint either way.
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        // Revoked on the next frame: revoking synchronously races the download
-        // the click just started.
-        setTimeout(() => URL.revokeObjectURL(url), 0);
-
-        trackVia('subs_downloaded', { site: this.scope });
+        downloadTrack(this.downloadableTrack(), document.title, this.scope);
     }
 
     /** Whether there is a main track worth writing to a file. */
     canDownload(): boolean {
-        return isDownloadable(this.state.tracks[this.state.activeTrackIndex]);
+        return isDownloadable(this.downloadableTrack());
     }
 
     /**
@@ -640,18 +626,20 @@ export class SidebarUI {
         const btn = this.elements.downloadBtn;
         if (!btn) return;
 
-        const track = this.state.tracks[this.state.activeTrackIndex];
-        const can = isDownloadable(track);
+        const track = this.downloadableTrack();
+        const label = msg('ytDownloadSubs', 'Download subtitles');
+        btn.setAttribute('aria-label', label);
 
         // Disabled rather than hidden: the header's three slots are fixed, and
         // a glyph appearing and vanishing beside the gear reads as a layout
         // twitch. The tooltip carries the reason either way.
-        btn.disabled = !can;
-        const label = msg('ytDownloadSubs', 'Download subtitles');
-        btn.setAttribute('aria-label', label);
-        btn.title = can
-            ? `${label} — ${track.name} (.srt)`
-            : msg('ytDownloadEmpty', 'Available once subtitles have loaded.');
+        if (isDownloadable(track)) {
+            btn.disabled = false;
+            btn.title = `${label} — ${track.name} (.srt)`;
+        } else {
+            btn.disabled = true;
+            btn.title = msg('ytDownloadEmpty', 'Available once subtitles have loaded.');
+        }
     }
 
     /**

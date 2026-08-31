@@ -4,6 +4,7 @@ export * from './SidebarUI';
 export * from './LanguageUtils';
 export * from './languages';
 export * from './parser';
+export * from './subtitle-download';
 export * from './prefs';
 export * from './types';
 export * from './auth';

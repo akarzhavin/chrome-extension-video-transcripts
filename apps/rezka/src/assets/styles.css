@@ -2997,9 +2997,17 @@
 .vtt-light #vtt-download-btn,
 .vtt-light #vtt-settings-btn { color: #4a4a4a; }
 
+.vtt-light #vtt-download-btn:hover,
 .vtt-light #vtt-settings-btn:hover {
     color: #111111;
     background: rgba(17, 17, 17, 0.06);
+}
+
+/* Disabled stays put on hover in this theme too: the dark sheet's grey would
+   read as the button lighting up on a light panel. */
+.vtt-light #vtt-download-btn:disabled:hover {
+    color: #4a4a4a;
+    background: transparent;
 }
 
 /* Both light panel tokens are already opaque, so the tab needs no blur in
