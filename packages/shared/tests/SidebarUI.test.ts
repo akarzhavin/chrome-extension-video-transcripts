@@ -1506,6 +1506,116 @@ describe('SidebarUI', () => {
             expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
             expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toMatch(/%$/);
         });
+
+        test('one drag moves the captions in both axes', async () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            // A 1000x400 player carrying a 200px (20%) wide caption block, so
+            // there is real room to travel sideways: (100 - 20) / 2 - 4 = 36%.
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            Object.defineProperty(row, 'offsetWidth', { value: 200, configurable: true });
+            Object.defineProperty(overlay, 'offsetHeight', { value: 40, configurable: true });
+
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const fire = (type: string, x: number, y: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: y }));
+
+            // A diagonal pull: 150px right, 40px up. Each axis is measured
+            // against its own dimension — x against the 1000px width, y against
+            // the 400px height.
+            fire('pointerdown', 500, 200);
+            fire('pointermove', 650, 160);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge')))
+                .toBeCloseTo(15, 2);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge')))
+                .toBeCloseTo(10, 2);
+
+            // Both axes are persisted by the one release, not just the one the
+            // pointer moved furthest in.
+            fire('pointerup', 650, 160);
+            await new Promise((r) => setTimeout(r, 0));
+            const saved = await loadPrefs('other');
+            expect(saved.overlayInlineNudge).toBeCloseTo(15, 2);
+            expect(saved.overlayBottomNudge).toBeCloseTo(10, 2);
+        });
+
+        test('a sideways drag cannot push the caption out of the frame', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            // A wide caption: 60% of the width, so only (100 - 60) / 2 - 4 = 16%
+            // of travel exists on either side.
+            Object.defineProperty(row, 'offsetWidth', { value: 600, configurable: true });
+
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const fire = (type: string, x: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: 200 }));
+
+            fire('pointerdown', 500);
+            fire('pointermove', 9000);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(16, 2);
+            fire('pointermove', -9000);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(-16, 2);
+            fire('pointerup', -9000);
+        });
+
+        test('a stored sideways position is pulled back when the caption grows wider', () => {
+            // The horizontal bound moves with the TEXT: a position that fits a
+            // short line is out of frame for a long one, and nothing was
+            // dragged in between.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            Object.defineProperty(row, 'offsetWidth', { value: 900, configurable: true });
+
+            (ui as any).overlayStyle.overlayInlineNudge = 40;
+            (ui as any).reclampNudge();
+
+            // 90% wide leaves (100 - 90) / 2 - 4 = 1%.
+            expect((ui as any).overlayStyle.overlayInlineNudge).toBeCloseTo(1, 2);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge')).toBe('1%');
+        });
+
+        test('left and right arrows move the captions sideways', async () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            Object.defineProperty(row, 'offsetWidth', { value: 200, configurable: true });
+
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            const key = (k: string, shiftKey = false) =>
+                grip.dispatchEvent(new KeyboardEvent('keydown', { key: k, shiftKey, bubbles: true, cancelable: true }));
+
+            key('ArrowRight');
+            // 4px on a 1000px player.
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(0.4, 2);
+            key('ArrowLeft', true);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(-1.6, 2);
+            // No release to batch on, so each keystroke writes.
+            await new Promise((r) => setTimeout(r, 0));
+            expect((await loadPrefs('other')).overlayInlineNudge).toBeCloseTo(-1.6, 2);
+        });
     });
 
     // Who owns #vtt-sidebar when one is already on the page. Two cases share

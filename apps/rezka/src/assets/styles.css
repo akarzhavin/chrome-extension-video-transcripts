@@ -1807,6 +1807,21 @@
     left: 0;
     width: 100%;
 
+    /* ── Horizontal position ──────────────────────────────────────────────
+       The caption is centred by the flex rules below, and this shifts the whole
+       block — grip, caption and translation row together — off that centre.
+       A percentage translate resolves against the ELEMENT's own width, and this
+       element is width: 100% of the player, so the unit is a share of the
+       player's width: the same proportional contract the vertical nudge and the
+       caption size already keep, and for the same reason. Moving it here rather
+       than with `left` keeps `width: 100%` intact, which is what the container
+       query above measures — shifting `left` would either shrink that width or
+       push the box's own right edge past the frame.
+
+       transform on an absolutely positioned box costs no layout and creates no
+       stacking surprises here: the overlay already carries its own z-index. */
+    transform: translateX(var(--vtt-overlay-inline-nudge, 0%));
+
     /* ── Caption size follows the player, not the screen ──────────────────
        The user's size setting is a PERCENTAGE (--vtt-overlay-font-size, a %
        of a 24px base). Applied as a literal px value it made the same

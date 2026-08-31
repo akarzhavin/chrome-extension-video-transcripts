@@ -572,7 +572,7 @@
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Move subtitles up or down",
-    "description": "Tooltip/aria-label for the grip beside the captions that drags them vertically."
+    "message": "Drag to move the subtitles",
+    "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   }
 }

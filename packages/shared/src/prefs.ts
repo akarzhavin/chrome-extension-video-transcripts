@@ -75,6 +75,12 @@ export interface Prefs {
     // 0 means "exactly where the preset puts it", so an install that never
     // drags behaves precisely as before.
     overlayBottomNudge: number;
+    // Horizontal companion to overlayBottomNudge, and a percentage of the
+    // player's WIDTH for the same reason that one is a percentage of its
+    // height: the caption has to sit in the same place on the picture at every
+    // player size. Positive moves it right, negative left; 0 is centred, which
+    // is where every install that never drags sideways stays.
+    overlayInlineNudge: number;
     overlayBgOpacity: OverlayBackdropToken;
     overlayEdgeStyle: OverlayEdgeToken;
     // Panel theme. GLOBAL, not per-site: like displayMode this is how the user
@@ -108,6 +114,7 @@ export type ScopedPrefKey =
     | 'overlayBgColor'
     | 'overlayBottomOffset'
     | 'overlayBottomNudge'
+    | 'overlayInlineNudge'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle';
 
@@ -124,6 +131,7 @@ export const SCOPED_PREF_KEYS: readonly ScopedPrefKey[] = [
     'overlayBgColor',
     'overlayBottomOffset',
     'overlayBottomNudge',
+    'overlayInlineNudge',
     'overlayBgOpacity',
     'overlayEdgeStyle',
 ];
@@ -204,16 +212,17 @@ function coerceUnitInterval(v: unknown, fallback: number): number {
     return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : fallback;
 }
 
-// The position nudge, a percentage of player height. Clamped rather than merely
+// A position nudge — a percentage of the player's height for the vertical one,
+// of its width for the horizontal. Clamped rather than merely
 // type-checked for the same reason coerceSize clamps: `typeof v === 'number'`
 // alone admits NaN, Infinity and absurd magnitudes, and the value goes straight
 // into CSS arithmetic where NaN renders as the literal `NaN%`. ±100 is the whole
 // frame in either direction — anything past it cannot be a position, only a
 // corrupt blob, which must not fling the caption where no control can reach it.
-const MAX_BOTTOM_NUDGE = 100;
+const MAX_NUDGE = 100;
 function coerceNudge(v: unknown, fallback: number): number {
     if (typeof v !== 'number' || !Number.isFinite(v)) return fallback;
-    return Math.min(MAX_BOTTOM_NUDGE, Math.max(-MAX_BOTTOM_NUDGE, Math.round(v * 100) / 100));
+    return Math.min(MAX_NUDGE, Math.max(-MAX_NUDGE, Math.round(v * 100) / 100));
 }
 
 const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
@@ -305,6 +314,10 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         resolved.overlayBottomNudge,
         DEFAULT_PREFS.overlayBottomNudge,
     );
+    resolved.overlayInlineNudge = coerceNudge(
+        resolved.overlayInlineNudge,
+        DEFAULT_PREFS.overlayInlineNudge,
+    );
     if (typeof resolved.overlayEnabled !== 'boolean') {
         resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
@@ -327,6 +340,7 @@ const DEFAULT_PREFS: Prefs = {
     overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
     overlayBottomNudge: 0,
+    overlayInlineNudge: 0,
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.
     overlayEdgeStyle: 'shadow',
