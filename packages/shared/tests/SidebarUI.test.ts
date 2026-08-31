@@ -1347,6 +1347,26 @@ describe('SidebarUI', () => {
             expect(document.querySelector('#vtt-video-overlay .vtt-overlay-handle')).toBe(grip);
         });
 
+        test('the grip is marked visible only while the settings panel is open', () => {
+            // jsdom applies no stylesheet, so the assertion is on the class the
+            // stylesheet keys the reveal off — .vtt-overlay-adjusting on the
+            // overlay, which is display:none/flex for the grip.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            expect(overlay.classList.contains('vtt-overlay-adjusting')).toBe(false);
+            // The grip stays in the DOM either way: it must survive the ~4x/sec
+            // rebuild so a live drag is never torn out from under the pointer.
+            expect(overlay.querySelector('.vtt-overlay-handle')).not.toBeNull();
+
+            ui.setOverlayAdjusting(true);
+            expect(overlay.classList.contains('vtt-overlay-adjusting')).toBe(true);
+            expect(overlay.querySelector('.vtt-overlay-handle')).not.toBeNull();
+
+            ui.setOverlayAdjusting(false);
+            expect(overlay.classList.contains('vtt-overlay-adjusting')).toBe(false);
+        });
+
         test('between cues, the panel borrows the nearest line rather than going blank', () => {
             state.addTrack('English', [
                 { startTime: 0, endTime: 2, text: 'First' },

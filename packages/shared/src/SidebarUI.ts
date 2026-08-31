@@ -2882,13 +2882,16 @@ export class SidebarUI {
 
     // Whether the settings panel is open — while it is, the caption block stays
     // on screen between cues (borrowing the nearest line, or a placeholder) so
-    // the user styles and positions against something visible. The grip itself
-    // is NOT gated on this: it rides with the captions at all times.
+    // the user styles and positions against something visible, and the grip is
+    // shown. It is mirrored onto the overlay as .vtt-overlay-adjusting, which is
+    // what the stylesheet gates the grip's visibility on.
     private overlayAdjusting = false;
 
-    // The grip that drags the captions up and down. Created once and reused:
-    // updateOverlay wipes the overlay's children ~4x/sec, and a control the
-    // user is actively holding cannot be rebuilt under them.
+    // The grip that drags the captions around the player. Created once and kept
+    // in the DOM whether or not it is visible: updateOverlay wipes the overlay's
+    // children ~4x/sec, and a control the user is actively holding cannot be
+    // rebuilt under them. Hiding is the stylesheet's job (display: none, so a
+    // hidden grip cannot take the click that would otherwise reach the video).
     private overlayHandle: HTMLButtonElement | null = null;
 
     private ensureOverlayHandle(): HTMLButtonElement {

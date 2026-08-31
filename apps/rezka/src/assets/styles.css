@@ -2058,9 +2058,16 @@
 }
 
 .vtt-overlay-handle {
-    /* Quiet until wanted: a control that is permanently lit competes with the
-       subtitles, which are the thing being read. It comes up on hover over the
-       caption area and while dragging. */
+    /* Hidden until the user opens the settings panel — see the reveal rule
+       below. Nothing about repositioning is discoverable by hovering a caption,
+       and a control that is permanently lit competes with the subtitles, which
+       are the thing being read. Settings is where every other caption
+       adjustment already lives, so that is where this one appears too.
+
+       display, not just opacity: an invisible button still takes a click, and
+       this one sits over the video. The reveal rule restores `display: flex`,
+       which is what lays the icon out inside the tab. */
+    display: none;
     opacity: 0;
     transition: opacity 0.15s ease, background-color 0.15s ease;
     /* The container sets pointer-events: none so the video stays clickable —
@@ -2073,10 +2080,23 @@
     width: max(2.4em, 40px);
     height: max(1em, 16px);
     flex: none;
-    display: flex;
     align-items: center;
     justify-content: center;
-    border: 0;
+    /* An outline, so the tab reads as a control rather than as a stray notch of
+       caption background — the two share a colour by design, and on a caption
+       whose backdrop is set to 'off' the tab would otherwise have no shape at
+       all. Drawn in the caption's own text colour at low alpha rather than in
+       the accent: it borders the subtitles, and a brand-coloured line there
+       would pull the eye off the text being read. `border`, not `outline`,
+       because it has to follow the rounded top corners; no bottom edge, since
+       that side is the seam the tab shares with the caption. Sized in em so it
+       tracks the caption scale like every other dimension here, with a 1px
+       floor so it never rounds away on a small player. */
+    border: max(1px, 0.055em) solid color-mix(in srgb, var(--vtt-overlay-color, #fff) 55%, transparent);
+    border-bottom: 0;
+    /* The border must eat into the tab, not grow it: the width and height above
+       are the whole target. */
+    box-sizing: border-box;
     padding: 0.12em 0.3em;
     /* Rounded on top only, square where it meets the caption — the shared edge
        is what fuses the two into one shape. */
@@ -2096,15 +2116,20 @@
     touch-action: none;
 }
 
-/* Reveal on hover anywhere over the caption block, not just on the grip itself:
-   a small target you must find before it appears is a target you do not find. */
-#vtt-video-overlay:hover .vtt-overlay-handle,
-.vtt-overlay-handle:focus-visible,
+/* The reveal. .vtt-overlay-adjusting is on the overlay for exactly as long as
+   the settings panel is open (see setOverlayAdjusting), which is also what puts
+   a stand-in caption on screen between cues — so the grip always has a body to
+   sit on while the panel is up, and never appears attached to nothing. */
+#vtt-video-overlay.vtt-overlay-adjusting .vtt-overlay-handle,
 .vtt-overlay-handle.vtt-dragging {
-    opacity: 0.75;
+    display: flex;
+    opacity: 0.8;
 }
 
-#vtt-video-overlay:hover .vtt-overlay-handle:hover,
+/* Full strength under the pointer or while being dragged. A drag survives the
+   panel closing mid-gesture, hence .vtt-dragging standing on its own above. */
+#vtt-video-overlay.vtt-overlay-adjusting .vtt-overlay-handle:hover,
+.vtt-overlay-handle:focus-visible,
 .vtt-overlay-handle.vtt-dragging {
     opacity: 1;
 }
