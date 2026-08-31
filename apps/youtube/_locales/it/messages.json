@@ -23,6 +23,14 @@
     "message": "La mia lingua madre",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Scarica sottotitoli",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Disponibile dopo il caricamento dei sottotitoli.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Seleziona…",
     "description": "Placeholder option in a language dropdown."

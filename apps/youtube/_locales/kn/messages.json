@@ -23,6 +23,14 @@
     "message": "ನನ್ನ ಮಾತೃಭಾಷೆ",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಗಳು ಲೋಡ್ ಆದ ನಂತರ ಲಭ್ಯವಿದೆ.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "ಆಯ್ಕೆಮಾಡಿ…",
     "description": "Placeholder option in a language dropdown."

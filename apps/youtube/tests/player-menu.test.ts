@@ -33,6 +33,8 @@ interface FakeUi {
     isCollapsed: jest.Mock;
     registerExternalElement: jest.Mock;
     onRefresh: jest.Mock;
+    downloadTrack: jest.Mock;
+    canDownload: jest.Mock;
 }
 
 function makeApp(over: Partial<{
@@ -59,6 +61,10 @@ function makeApp(over: Partial<{
         isCollapsed: jest.fn(() => over.collapsed ?? false),
         registerExternalElement: jest.fn(),
         onRefresh: jest.fn(() => jest.fn()),
+        downloadTrack: jest.fn(),
+        // Follows the same fixture as the rest of the menu: with tracks
+        // present there is something to download.
+        canDownload: jest.fn(() => (over.tracks ?? [1, 2]).length > 0),
     };
     const tracks = over.tracks ?? [{ name: 'English' }, { name: 'Russian' }];
     return {

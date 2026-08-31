@@ -19,6 +19,7 @@ import {
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { SidebarElements, AppInterface, Subtitle, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
+import { isDownloadable, srtFileName, toSrt } from './srt';
 import { msg } from './i18n';
 import {
     MAX_FEEDBACK_BYTES,
@@ -184,6 +185,9 @@ export const ICONS = {
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
     feedback: svgIcon('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'),
+    // Arrow into a tray — the download glyph everywhere, so it needs no
+    // label to be understood at 14px.
+    download: svgIcon('<path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'),
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
@@ -353,6 +357,19 @@ export class SidebarUI {
         feedbackBackBtn.addEventListener('click', () => this.closeFeedbackScreen());
         headerTop.appendChild(feedbackBackBtn);
         this.elements = { ...this.elements, feedbackBackBtn };
+
+        // Download, left of the gear: the header is where the actions on THIS
+        // video live, and downloading is one click deep, so it gets a button
+        // rather than a settings row. Icon-only for the same reason the gear
+        // is — the header holds a title and two glyphs, and a word here would
+        // crowd the one thing that names the panel.
+        const downloadBtn = document.createElement('button');
+        downloadBtn.id = 'vtt-download-btn';
+        downloadBtn.type = 'button';
+        downloadBtn.innerHTML = ICONS.download;
+        downloadBtn.addEventListener('click', () => this.downloadTrack());
+        headerTop.appendChild(downloadBtn);
+        this.elements = { ...this.elements, downloadBtn };
 
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'vtt-settings-btn';
@@ -575,6 +592,66 @@ export class SidebarUI {
         head.innerHTML = `${iconSvg}<span>${title}</span><span class="vtt-group-spacer"></span>`;
         group.appendChild(head);
         return group;
+    }
+
+    /**
+     * Write the main subtitle track to an .srt file.
+     *
+     * The main track only — the one the list renders and the one being learned.
+     * The native track is the translation crutch, not the thing anyone takes
+     * away to study, and offering both turned one action into a choice the user
+     * had to make before every download.
+     *
+     * Reads the track at click time rather than closing over it: the dropdowns,
+     * the swap chip and (on Netflix) an on-demand language fetch can all have
+     * moved the indexes since the button was built.
+     */
+    downloadTrack(): void {
+        const track = this.state.tracks[this.state.activeTrackIndex];
+        if (!isDownloadable(track)) return;
+
+        const url = URL.createObjectURL(new Blob([toSrt(track.subtitles)], { type: 'text/plain;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = srtFileName(document.title, track.name);
+        // Firefox-style engines only honour a click on a connected node; Chrome
+        // does not care, and the node is gone before paint either way.
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Revoked on the next frame: revoking synchronously races the download
+        // the click just started.
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+
+        trackVia('subs_downloaded', { site: this.scope });
+    }
+
+    /** Whether there is a main track worth writing to a file. */
+    canDownload(): boolean {
+        return isDownloadable(this.state.tracks[this.state.activeTrackIndex]);
+    }
+
+    /**
+     * Sync the header download button with what is actually loaded. Called from
+     * updateControls, alongside every other track-dependent control.
+     */
+    private updateDownloadButton(): void {
+        const btn = this.elements.downloadBtn;
+        if (!btn) return;
+
+        const track = this.state.tracks[this.state.activeTrackIndex];
+        const can = isDownloadable(track);
+
+        // Disabled rather than hidden: the header's three slots are fixed, and
+        // a glyph appearing and vanishing beside the gear reads as a layout
+        // twitch. The tooltip carries the reason either way.
+        btn.disabled = !can;
+        const label = msg('ytDownloadSubs', 'Download subtitles');
+        btn.setAttribute('aria-label', label);
+        btn.title = can
+            ? `${label} — ${track.name} (.srt)`
+            : msg('ytDownloadEmpty', 'Available once subtitles have loaded.');
     }
 
     /**
@@ -1918,6 +1995,10 @@ export class SidebarUI {
             const activeEl = document.getElementById(activeId);
             if (activeEl) activeEl.focus();
         }
+
+        // After the dropdowns: the button's tooltip names the track the
+        // indexes above were just re-read for.
+        this.updateDownloadButton();
     }
 
     // Fill one dropdown from AppState.languageCatalog: an "available in this

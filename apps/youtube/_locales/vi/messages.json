@@ -23,6 +23,14 @@
     "message": "Tiếng mẹ đẻ của tôi",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Tải phụ đề",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Khả dụng sau khi phụ đề được tải.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Chọn…",
     "description": "Placeholder option in a language dropdown."

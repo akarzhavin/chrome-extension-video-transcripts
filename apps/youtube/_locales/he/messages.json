@@ -23,6 +23,14 @@
     "message": "שפת האם שלי",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "הורדת כתוביות",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "זמין לאחר טעינת הכתוביות.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "בחר…",
     "description": "Placeholder option in a language dropdown."

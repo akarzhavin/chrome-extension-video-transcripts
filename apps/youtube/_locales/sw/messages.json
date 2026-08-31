@@ -23,6 +23,14 @@
     "message": "Lugha yangu ya asili",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Pakua manukuu",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Itapatikana baada ya manukuu kupakiwa.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Chagua…",
     "description": "Placeholder option in a language dropdown."

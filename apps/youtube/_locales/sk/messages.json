@@ -23,6 +23,14 @@
     "message": "Môj rodný jazyk",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Stiahnuť titulky",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "K dispozícii po načítaní titulkov.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Vybrať…",
     "description": "Placeholder option in a language dropdown."

@@ -23,6 +23,14 @@
     "message": "నా మాతృభాష",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "ఉపశీర్షికలను డౌన్‌లోడ్ చేయండి",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "ఉపశీర్షికలు లోడ్ అయిన తర్వాత అందుబాటులో ఉంటుంది.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "ఎంచుకోండి…",
     "description": "Placeholder option in a language dropdown."

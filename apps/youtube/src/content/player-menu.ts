@@ -129,6 +129,7 @@ class PlayerMenu {
     private overlayRow!: HTMLButtonElement;
     private panelRow!: HTMLButtonElement;
     private panelLabel!: HTMLSpanElement;
+    private downloadRow!: HTMLButtonElement;
     private settingsRow!: HTMLButtonElement;
     private modeBtns: Record<ModeKey, HTMLButtonElement>;
     private unsubscribeRefresh: (() => void) | null = null;
@@ -314,6 +315,25 @@ class PlayerMenu {
         });
         page.appendChild(this.panelRow);
 
+        // Downloading the transcript is an action on THIS video, so it sits with
+        // the other video actions rather than under Settings — and it is one
+        // click deep, so it is a row, not a submenu. Main track only, matching
+        // the sidebar's header button: the translation half is the crutch, not
+        // the thing anyone takes away to study.
+        this.downloadRow = row('vtt-ytp-menu-download');
+        const downloadLabel = document.createElement('span');
+        downloadLabel.className = 'vtt-ytp-row-label';
+        downloadLabel.textContent = t('ytDownloadSubs', 'Download subtitles');
+        this.downloadRow.appendChild(downloadLabel);
+        this.downloadRow.addEventListener('click', () => {
+            if (this.downloadRow.disabled) return;
+            this.app.ui.downloadTrack();
+            // Closes, unlike the switches above: the result of this row is a
+            // file in the downloads bar, not something visible behind the menu.
+            this.close();
+        });
+        page.appendChild(this.downloadRow);
+
         this.settingsRow = row('vtt-ytp-menu-settings');
         const settingsLabel = document.createElement('span');
         settingsLabel.className = 'vtt-ytp-row-label';
@@ -465,6 +485,7 @@ class PlayerMenu {
         this.modesRow.hidden = noLangs;
         this.overlayRow.hidden = noLangs;
         this.panelRow.hidden = noLangs;
+        this.downloadRow.hidden = noLangs;
         this.settingsRow.hidden = noLangs;
 
         // With no track, the modes are levers attached to nothing too — but the
@@ -477,6 +498,10 @@ class PlayerMenu {
             'aria-checked',
             String(!noLangs && !noSubs && this.app.state.overlayEnabled),
         );
+
+        // Nothing loaded yet: the row stays put and goes quiet rather than
+        // vanishing, so the menu's shape doesn't shift as tracks arrive.
+        this.downloadRow.disabled = !this.app.ui.canDownload();
 
         this.renderStatus(noLangs, noSubs);
     }

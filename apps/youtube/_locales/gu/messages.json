@@ -23,6 +23,14 @@
     "message": "મારી માતૃભાષા",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "સબટાઈટલ ડાઉનલોડ કરો",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "સબટાઈટલ લોડ થયા પછી ઉપલબ્ધ થશે.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "પસંદ કરો…",
     "description": "Placeholder option in a language dropdown."

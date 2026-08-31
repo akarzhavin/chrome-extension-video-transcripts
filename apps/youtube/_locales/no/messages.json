@@ -23,6 +23,14 @@
     "message": "Morsmålet mitt",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Last ned undertekster",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Tilgjengelig når undertekstene er lastet inn.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Velg…",
     "description": "Placeholder option in a language dropdown."
