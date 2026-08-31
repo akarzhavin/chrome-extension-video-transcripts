@@ -1288,4 +1288,73 @@ describe('SidebarUI', () => {
     // which is always available. The CC button beside it carries the overlay's
     // on/off and paints itself from an onRefresh hook; that's covered in
     // apps/youtube/tests/player-menu.test.ts.
+
+    // Who owns #vtt-sidebar when one is already on the page. Two cases share
+    // the id and want opposite handling: a rival copy of the extension (yield,
+    // or the two graft into one franken-panel) and our own panel left behind by
+    // the instance a reload just orphaned (reclaim, or the fresh instance never
+    // starts and the page keeps a dead panel forever).
+    describe('sidebar ownership', () => {
+        beforeEach(() => {
+            document.body.innerHTML = '';
+        });
+
+        test('stamps the panel it builds with its own extension id', () => {
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+            expect(document.getElementById('vtt-sidebar')!.dataset.vttOwner).toBe('test-extension-id');
+        });
+
+        // The franken-UI guard: a panel built by a different installed copy is
+        // left strictly alone.
+        test('yields to a sidebar owned by another extension copy', () => {
+            const foreign = document.createElement('div');
+            foreign.id = 'vtt-sidebar';
+            foreign.dataset.vttOwner = 'some-other-extension-id';
+            foreign.dataset.marker = 'untouched';
+            document.body.appendChild(foreign);
+
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(false);
+            // Same element, unmodified — not rebuilt, not adopted.
+            const after = document.getElementById('vtt-sidebar')!;
+            expect(after.dataset.marker).toBe('untouched');
+            expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
+        });
+
+        // An unstamped panel predates this mechanism (or belongs to an older
+        // build); treating it as ours and deleting it is the destructive
+        // reading, so it keeps the old yield-and-stay-quiet behaviour.
+        test('yields to an unstamped sidebar', () => {
+            const legacy = document.createElement('div');
+            legacy.id = 'vtt-sidebar';
+            document.body.appendChild(legacy);
+
+            expect(new SidebarUI(new AppState(), mockApp).init()).toBe(false);
+        });
+
+        // The reload case: our own orphaned panel is replaced, so the fresh
+        // instance owns the page and its watcher/handlers actually run.
+        test('reclaims its own orphaned sidebar', () => {
+            const stale = document.createElement('div');
+            stale.id = 'vtt-sidebar';
+            stale.dataset.vttOwner = 'test-extension-id';
+            stale.dataset.marker = 'stale';
+            document.body.appendChild(stale);
+            const staleToggle = document.createElement('div');
+            staleToggle.id = 'vtt-toggle-btn';
+            document.body.appendChild(staleToggle);
+
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+
+            const fresh = document.getElementById('vtt-sidebar')!;
+            expect(fresh.dataset.marker).toBeUndefined(); // rebuilt, not reused
+            expect(fresh.dataset.vttOwner).toBe('test-extension-id');
+            // Exactly one of each: the stale toggle button goes with the panel,
+            // or the page keeps a second tab that opens nothing.
+            expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
+            expect(document.querySelectorAll('#vtt-toggle-btn')).toHaveLength(1);
+        });
+    });
 });

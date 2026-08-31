@@ -21,6 +21,8 @@ import {
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     fetchAndRenderNotification,
+    watchForOrphanedContext,
+    showOrphanNotice,
     type Subtitle,
 } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
@@ -91,6 +93,12 @@ class VttApp implements AppInterface {
         if (this.isTopWindow && this.uiOwned) {
             void fetchAndRenderNotification(platformOf(location.hostname));
         }
+        // The timeupdate handler catches the reload while a video plays, but a
+        // paused tab fires no timeupdate at all — and a paused tab is exactly
+        // where a viewer leaves the page open long enough to be caught by an
+        // auto-update. Same sidebar gate as above: the notice renders into
+        // #vtt-sidebar, which only the owning top window has.
+        if (this.isTopWindow && this.uiOwned) watchForOrphanedContext();
     }
 
     startVideoPolling(): void {
@@ -101,9 +109,21 @@ class VttApp implements AppInterface {
                     console.log("VTT Sidebar: Attached timeupdate to a video element.");
 
                     video.addEventListener('timeupdate', () => {
-                        // Extension reloaded → stale content scripts lose runtime.id.
-                        // Bail silently so we don't spam the console every tick.
-                        if (!chrome?.runtime?.id) return;
+                        // Extension reloaded (a CWS auto-update mid-video, or a
+                        // local rebuild) → stale content scripts lose runtime.id
+                        // and TIME_UPDATE stops reaching the worker, so the
+                        // transcript freezes on whatever line was showing.
+                        //
+                        // This used to return silently, which is how a dead
+                        // panel came to look like a healthy one: the DOM and the
+                        // parsed tracks survive, so the only visible symptom is
+                        // subtitles that no longer match the video. Say so
+                        // instead — showOrphanNotice is idempotent, so calling
+                        // it on every tick costs one getElementById.
+                        if (!chrome?.runtime?.id) {
+                            showOrphanNotice();
+                            return;
+                        }
                         try {
                             chrome.runtime.sendMessage({ action: "TIME_UPDATE", time: video.currentTime });
                         } catch (e: any) {

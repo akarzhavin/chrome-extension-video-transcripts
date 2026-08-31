@@ -13,6 +13,7 @@ import {
     type Platform,
     trackVia,
     fetchAndRenderNotification,
+    watchForOrphanedContext,
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     Subtitle,
@@ -108,6 +109,49 @@ function t(key: string, fallback: string): string {
 // Both the YouTube and Netflix layout overrides splice this in so the two sites
 // share identical panel styling; only the page-reflow rules differ per site.
 export const SIDEBAR_CHROME_CSS = `
+    /* Orphaned-context notice: the extension was reloaded (a store auto-update,
+       or a rebuild in development) and this content script can no longer reach
+       the worker, so the transcript has stopped following the video.
+
+       order:-1 pins it above the header instead of letting it sit in the flow:
+       everything below is stale, and the message has to be the first thing read
+       whichever screen the panel was left on. Amber, not the emergency red of
+       "Reload page" below — nothing is lost, and one reload undoes it. */
+    #vtt-orphan-notice {
+        order: -1;
+        flex: 0 0 auto;
+        margin: 4px 16px 10px;
+        padding: 10px 13px 11px;
+        border-left: 2px solid #ffa257;
+        border-radius: 4px;
+        background: rgba(255, 162, 87, 0.14);
+        font-size: 11px;
+        line-height: 1.45;
+    }
+    .vtt-orphan-notice-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #ffa257;
+    }
+    .vtt-orphan-notice-text {
+        margin-top: 2px;
+        color: rgba(255, 255, 255, 0.72);
+    }
+    .vtt-orphan-notice-action {
+        margin-top: 9px;
+        padding: 5px 11px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #f3f4f6;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+    }
+    .vtt-orphan-notice-action:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
     #vtt-lang-onboarding {
         margin: 16px;
         padding: 16px;
@@ -356,6 +400,16 @@ export abstract class BaseVttApp implements AppInterface {
         // unawaited: the banner appears when it appears, and a failed lookup
         // shows nothing.
         void fetchAndRenderNotification(platformOf(location.hostname));
+        // An extension reload (a store auto-update mid-video, or a rebuild in
+        // development) orphans this content script: the sidebar and its parsed
+        // tracks stay on screen, but nothing can reach the worker any more, so
+        // no new track ever loads and saving a word fails. This edition
+        // highlights from its own timeupdate handler, so the transcript keeps
+        // scrolling and the panel looks entirely healthy — which is exactly why
+        // the state has to be announced rather than left to be inferred.
+        // Reached only past the #vtt-sidebar ownership guard above, so the
+        // notice always has a panel of ours to render into.
+        watchForOrphanedContext();
     }
 
     // ── language prefs ──────────────────────────────────────────────────────

@@ -34,6 +34,27 @@ import {
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
 const NEARBY_SUBTITLE_THRESHOLD = 20;
 
+/**
+ * Who built a #vtt-sidebar, stamped on it as data-vtt-owner.
+ *
+ * The extension id, because that is exactly the axis that matters: two
+ * installed copies (a store build beside an unpacked one) share every #vtt-*
+ * id, so the DOM alone cannot say whether a panel already on the page is a
+ * rival's or our own orphaned leftover — and those want opposite handling. See
+ * the ownership note in init().
+ *
+ * Reading it can throw in an orphaned context, where chrome.runtime is gone.
+ * The fallback keeps that from crashing the guard; it costs nothing, because an
+ * instance with no context cannot build a panel to claim in the first place.
+ */
+function ownerId(): string {
+    try {
+        return chrome?.runtime?.id ?? 'unknown';
+    } catch {
+        return 'unknown';
+    }
+}
+
 // Overlay-style preset tokens → concrete CSS values. These drive the
 // --vtt-overlay-* custom properties set inline on #vtt-video-overlay; the
 // stylesheet reads them with matching fallbacks (apps/rezka/src/assets/styles.css).
@@ -263,10 +284,36 @@ export class SidebarUI {
     }
 
     init(): boolean {
-        if (document.getElementById('vtt-sidebar')) return false;
+        // A #vtt-sidebar already on the page is usually another installed copy
+        // of the extension (the store build alongside an unpacked one — the ids
+        // are shared, so writing into it produces a franken-panel). But it can
+        // equally be OUR OWN panel, left behind by the instance this reload
+        // just orphaned: Chrome tears the old context away and leaves its DOM
+        // standing, then injects us into the same page.
+        //
+        // Those two cases need opposite handling, and the id alone cannot tell
+        // them apart — hence the owner stamp. Yielding to a dead panel of ours
+        // is how the "extension updated" notice came to be missing on YouTube:
+        // the orphaned instance's watcher died with its context, and the fresh
+        // instance returned here before it could start a new one.
+        const existing = document.getElementById('vtt-sidebar');
+        if (existing) {
+            if (existing.dataset.vttOwner === ownerId()) {
+                // Ours, and dead — the live instance would still be answering.
+                // Take the page back: drop the stale panel and build a new one.
+                existing.remove();
+                document.getElementById('vtt-toggle-btn')?.remove();
+            } else {
+                return false;
+            }
+        }
 
         const sidebar = document.createElement('div');
         sidebar.id = 'vtt-sidebar';
+        // Stamped so a later injection can recognise its own leftovers; see the
+        // ownership note above. Falls back to a constant when the context is
+        // already gone, which only affects a panel that could never be built.
+        sidebar.dataset.vttOwner = ownerId();
 
         // Space belongs to the video. A button that was clicked with the mouse
         // keeps focus and then eats every Space that follows — the viewer aims
