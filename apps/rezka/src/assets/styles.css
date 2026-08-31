@@ -1781,7 +1781,29 @@
        the bar is left exactly where it is, since raising it further would be
        motion with no purpose. Defaults to 0, so players whose controls don't
        overlap the video are unaffected. */
-    bottom: max(var(--vtt-overlay-bottom, 80px), var(--vtt-overlay-floor, 0px));
+    /* ── Vertical position follows the player, not the screen ────────────
+       Both terms here are PERCENTAGES of the player's height, never px. The
+       same lesson as caption size (below): a px offset is a different fraction
+       of every frame. Measured on HDrezka, the 80px "medium" preset sat 8% up
+       a fullscreen frame and 22% up the inline one, and a 100px drag made in
+       fullscreen came back inline as HALF the frame — the caption parked on the
+       actor's face. The user tuned ONE position; it has to mean one thing at
+       every player size, so it is stored and applied as a share of the height.
+
+       Percent `bottom` on an absolutely positioned box resolves against the
+       containing block's height, which is the player: #vtt-video-overlay is
+       appended to the positioned player element (and width: 100% below already
+       relies on exactly that).
+
+       --vtt-overlay-bottom is the preset (low/medium/high) and
+       --vtt-overlay-nudge the arrows' fine adjustment, positive lifting. The
+       control-bar floor stays in px because the bar itself is px-tall; max()
+       mixes the units, so a caption pushed down onto YouTube's bar still rests
+       on top of it rather than behind it. */
+    bottom: max(
+        calc(var(--vtt-overlay-bottom, 7.4%) + var(--vtt-overlay-nudge, 0%)),
+        var(--vtt-overlay-floor, 0px)
+    );
     left: 0;
     width: 100%;
 
@@ -1877,24 +1899,37 @@
        fullscreen and on the small inline player (see #vtt-video-overlay).
 
        The reference width is 1920 — a fullscreen 1080p player, which is where
-       the 24px base was tuned. That choice makes the CEILING a no-op for the
-       case that already looked right: at 1920 and above the scale is exactly
-       1, so fullscreen renders the same size it always did and nobody's tuned
-       setting shifts under them. Only the smaller players, the ones that were
-       broken, actually move.
+       the 24px base was tuned.
+
+       NO CEILING. The model to match is YouTube: its captions cover the same
+       fraction of the frame at every size, so going fullscreen makes the text
+       grow with the video rather than staying put. A ceiling of 1 broke exactly
+       that — past 1920 the caption stopped growing while the player kept going,
+       so the same line that held ~1.25% of the width on a 1240px inline player
+       held 0.94% at 2560 and 0.70% on a 3440 ultrawide. It read as "the
+       captions shrank when I went fullscreen", which is the bug: the text was
+       unchanged, the frame around it doubled. Pure proportion is the whole
+       point of a player-relative scale, and a ceiling is a cap on proportion.
+
+       The 0.33 floor is the one bound worth keeping, because proportion has a
+       real limit at the bottom: at 400px wide, proportional type is 5px, which
+       is not small — it is unreadable. But the floor must sit BELOW the players
+       people actually use, or it becomes a second sizing law that fights the
+       first. Measured on a live HDrezka player (640px wide, inline): the old
+       0.45 floor was ENGAGED there while fullscreen at 1728px ran on pure
+       proportion — two different laws in the two modes, which is exactly the
+       "captions jump when I go fullscreen" report. 0.33 engages below ~634px,
+       so a 640px player scales purely and only genuinely tiny embeds are
+       caught. (It was 0.55, then 0.45; both sat inside the ordinary inline
+       range.)
 
        clamp() bounds the SCALE, not the final size, so the user's slider keeps
-       its full 50-400% range at every player width. The 0.55 floor is where
-       readability gives out: a 854px inline player lands on it at ~13px, and
-       pure proportion below that would keep shrinking text nobody can read.
-       The ceiling holds at 1 so a 4K or ultrawide player doesn't inflate the
-       caption past what the user asked for — past 1920 the text simply stops
-       growing, exactly as it did before.
+       its full 50-400% range at every player width.
 
        cqw is 1% of the container width, so `1cqw / 19.2` is width/1920 as a
        ratio; dividing by 1px strips the unit, since a scale must be a plain
        number. The container is #vtt-video-overlay (see there). */
-    --vtt-overlay-scale: clamp(0.55, calc(1cqw / 19.2 / 1px), 1);
+    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-font-size, 24px) * var(--vtt-overlay-scale));
     font-weight: 600;
     /* em, not px: padding and radius have to shrink with the glyphs, or a
@@ -1902,10 +1937,26 @@
     padding: 0.25em 0.67em;
     border-radius: 0.34em;
     margin-bottom: 6px;
-    display: inline-block;
-    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
+    /* NOT inline-block: the overlay is a column flex container, which blockifies
+       every child — `inline-block` here was silently computing to `block`, so the
+       box took its width from the flex line rather than from its own text, and a
+       long caption laid out wider than the background it was supposed to sit in.
+       max-content sizes the box to the text; the max-width below is what actually
+       caps it, and the cap is what makes it wrap. */
+    width: max-content;
     max-width: 80%;
-    word-wrap: break-word;
+    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
+    /* Wrap at spaces first (overflow-wrap only ever breaks a word that cannot fit
+       a line on its own — it is not what wraps a long sentence). Without this the
+       caption relied on the parent's inherited white-space, which on some players
+       is `nowrap`, and then no width cap can contain it. */
+    white-space: normal;
+    overflow-wrap: break-word;
+    /* The host page's line-height is inherited otherwise, and players that set a
+       small unitless value made a wrapped caption's second row ride up into the
+       first. Guess mode overrides this to 1.6 below, where the capsules need the
+       extra leading. */
+    line-height: 1.35;
     /* Container has pointer-events: none so the video stays clickable —
        re-enable just on the text box so the user can drag-select words. */
     pointer-events: auto;
@@ -1934,20 +1985,149 @@
     font-family: var(--vtt-overlay-font-family, inherit);
     font-variant-caps: var(--vtt-overlay-font-variant, normal);
     /* Same player-relative scale as the main line above — the two lines have
-       independent size settings but must shrink together, or a small player
-       would show a scaled main line over a full-size translation. */
-    --vtt-overlay-scale: clamp(0.55, calc(1cqw / 19.2 / 1px), 1);
+       independent size settings but must grow and shrink together, or a small
+       player would show a scaled main line over a full-size translation (and a
+       fullscreen one, a grown main line over a stunted translation). Keep this
+       expression identical to the main line's; see there for why there is no
+       ceiling and why the floor is 0.33. */
+    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * var(--vtt-overlay-scale));
     font-weight: 400;
     padding: 0.22em 0.67em;
     border-radius: 0.33em;
-    display: inline-block;
+    /* Same blockification trap as the main line above: a column flex container
+       turns `inline-block` into `block`, so the box stopped hugging its text and
+       a long translation ran outside its own background. */
+    width: max-content;
+    max-width: 80%;
     /* Its OWN edge, not --vtt-overlay-edge: that value is substituted on the
        parent against the MAIN line's color, so re-pointing a color variable
        here would arrive too late to change it. */
     text-shadow: var(--vtt-overlay-sub-edge, 0.04em 0.04em 0.13em #000);
-    max-width: 80%;
-    word-wrap: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+    /* Translations are the longer of the two lines and wrap the most often, so
+       an inherited line-height was most visible here — this is the row that
+       collided with the one above it. */
+    line-height: 1.35;
+}
+
+/* ── Drag grip: move the captions up or down ────────────────────────────── */
+/* WHERE it sits: fused to the TOP EDGE of the caption box, centred on it — a
+   small tab of the same colour growing out of the box, with no gap between the
+   two. The row below stacks them vertically, so the grip and the caption read
+   as one body rather than as a caption plus a piece of browser chrome.
+
+   Not inside the caption box: that surface already owns pointerdown (guess-mode
+   reveal), click, and text selection for quick-add. A grip sharing it would have
+   to guess "reveal, select, or move?" on every press, and all three would feel
+   unreliable — a revision that tried exactly this is why the grip is a separate
+   body.
+
+   Not a fixed corner of the player: the control moves the captions, so it has to
+   travel WITH them — a handle that stays put while its subject moves stops
+   reading as attached to it.
+
+   Above rather than beside: a grip on the caption's flank sits in the caption's
+   own row, so its width pushes the text off the player's centre line — measured,
+   and the more visible the longer the line. Stacking it on top keeps the caption
+   centred at every width, and the shared edge is what makes it read as part of
+   the subtitles. */
+.vtt-overlay-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* No gap: the tab and the box must touch, or they read as two objects. */
+    gap: 0;
+    max-width: 100%;
+}
+
+.vtt-overlay-handle {
+    /* Quiet until wanted: a control that is permanently lit competes with the
+       subtitles, which are the thing being read. It comes up on hover over the
+       caption area and while dragging. */
+    opacity: 0;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+    /* The container sets pointer-events: none so the video stays clickable —
+       the grip has to opt back in, like the caption boxes do. */
+    pointer-events: auto;
+    cursor: grab;
+    /* Sized in em so it tracks the caption scale: on a small player the grip
+       shrinks with the text instead of dwarfing it. The px floors keep it
+       clickable when the caption is tiny. */
+    width: max(2.4em, 40px);
+    height: max(1em, 16px);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    padding: 0.12em 0.3em;
+    /* Rounded on top only, square where it meets the caption — the shared edge
+       is what fuses the two into one shape. */
+    border-radius: 0.34em 0.34em 0 0;
+    /* Same box colour and opacity as the caption, so the tab is the caption's
+       own material rather than a control laid over it. */
+    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-overlay-bg-opacity, 0.7) * 100%), transparent);
+    color: var(--vtt-overlay-color, #fff);
+    /* Overlap the caption's top edge by a hair: at fractional device pixel
+       ratios a seam of video shows through between two abutting boxes. */
+    margin-bottom: -1px;
+    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
+    line-height: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Never let a drag start a text selection or an image drag. */
+    touch-action: none;
+}
+
+/* Reveal on hover anywhere over the caption block, not just on the grip itself:
+   a small target you must find before it appears is a target you do not find. */
+#vtt-video-overlay:hover .vtt-overlay-handle,
+.vtt-overlay-handle:focus-visible,
+.vtt-overlay-handle.vtt-dragging {
+    opacity: 0.75;
+}
+
+#vtt-video-overlay:hover .vtt-overlay-handle:hover,
+.vtt-overlay-handle.vtt-dragging {
+    opacity: 1;
+}
+
+.vtt-overlay-handle:focus-visible {
+    outline: 2px solid var(--vtt-accent, #7c5cff);
+    outline-offset: 2px;
+}
+
+.vtt-overlay-handle.vtt-dragging {
+    cursor: grabbing;
+}
+
+.vtt-overlay-handle svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* While a drag is live the pointer is captured, but the caption text underneath
+   would still show a text I-beam and could start a selection on a stray move. */
+#vtt-video-overlay.vtt-drag-active .vtt-overlay-main,
+#vtt-video-overlay.vtt-drag-active .vtt-overlay-sub {
+    cursor: grabbing;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* The stand-in shown while the settings panel is open and the video has no
+   caption at this moment — see previewSubtitleFor(). It has to be visibly a
+   sample rather than a real line the user might try to read along with, or
+   repositioning would be calibrated against text that is not there during
+   playback. Italic + reduced fill says "placeholder" without a label competing
+   for the space. */
+.vtt-overlay-main.vtt-overlay-placeholder,
+.vtt-overlay-sub.vtt-overlay-placeholder {
+    font-style: italic;
+    opacity: 0.72;
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */

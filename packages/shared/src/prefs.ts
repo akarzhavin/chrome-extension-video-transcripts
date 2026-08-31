@@ -65,6 +65,16 @@ export interface Prefs {
     overlayTextOpacity: number; // 0-1, glyph fill only — see overlayBgOpacity for the box
     overlayBgColor: string; // hex, the caption box behind both lines
     overlayBottomOffset: OverlayLevelToken;
+    // Fine vertical adjustment ON TOP of the three-step offset above, as a
+    // percentage of the player's height (px would be a different fraction of
+    // every frame — see the bottom rule in styles.css), written by the position
+    // arrows on the caption. Separate from the token rather
+    // than replacing it: the token is a coarse preset the settings panel owns
+    // and validates as an enum, while a drag produces arbitrary pixels that
+    // enum could never hold. Positive lifts the caption, negative lowers it;
+    // 0 means "exactly where the preset puts it", so an install that never
+    // drags behaves precisely as before.
+    overlayBottomNudge: number;
     overlayBgOpacity: OverlayBackdropToken;
     overlayEdgeStyle: OverlayEdgeToken;
     // Panel theme. GLOBAL, not per-site: like displayMode this is how the user
@@ -97,6 +107,7 @@ export type ScopedPrefKey =
     | 'overlayTextOpacity'
     | 'overlayBgColor'
     | 'overlayBottomOffset'
+    | 'overlayBottomNudge'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle';
 
@@ -112,6 +123,7 @@ export const SCOPED_PREF_KEYS: readonly ScopedPrefKey[] = [
     'overlayTextOpacity',
     'overlayBgColor',
     'overlayBottomOffset',
+    'overlayBottomNudge',
     'overlayBgOpacity',
     'overlayEdgeStyle',
 ];
@@ -190,6 +202,18 @@ const TOKEN_PREF_VALUES = {
 // 0-1, and the only non-token numeric that is not a size percentage.
 function coerceUnitInterval(v: unknown, fallback: number): number {
     return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : fallback;
+}
+
+// The position nudge, a percentage of player height. Clamped rather than merely
+// type-checked for the same reason coerceSize clamps: `typeof v === 'number'`
+// alone admits NaN, Infinity and absurd magnitudes, and the value goes straight
+// into CSS arithmetic where NaN renders as the literal `NaN%`. ±100 is the whole
+// frame in either direction — anything past it cannot be a position, only a
+// corrupt blob, which must not fling the caption where no control can reach it.
+const MAX_BOTTOM_NUDGE = 100;
+function coerceNudge(v: unknown, fallback: number): number {
+    if (typeof v !== 'number' || !Number.isFinite(v)) return fallback;
+    return Math.min(MAX_BOTTOM_NUDGE, Math.max(-MAX_BOTTOM_NUDGE, Math.round(v * 100) / 100));
 }
 
 const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
@@ -277,6 +301,10 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         resolved.overlayTextOpacity,
         DEFAULT_PREFS.overlayTextOpacity,
     );
+    resolved.overlayBottomNudge = coerceNudge(
+        resolved.overlayBottomNudge,
+        DEFAULT_PREFS.overlayBottomNudge,
+    );
     if (typeof resolved.overlayEnabled !== 'boolean') {
         resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
@@ -298,6 +326,7 @@ const DEFAULT_PREFS: Prefs = {
     overlayTextOpacity: 1,
     overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
+    overlayBottomNudge: 0,
     overlayBgOpacity: 'medium',
     // 'shadow' matches the pre-existing hard-coded text-shadow.
     overlayEdgeStyle: 'shadow',

@@ -249,22 +249,43 @@ describe('SidebarUI', () => {
             expect(overlay.querySelector('.vtt-next-word')).not.toBe(before);
         });
 
-        test('pointerdown alone reveals — the press must not depend on the click arriving', () => {
+        test('press and release without a click reveals — no dependence on click synthesis', () => {
             // The overlay rebuilds its DOM every ~250ms; when a rebuild lands
-            // mid-press Chrome drops the click entirely (measured: 22 of 40
-            // trusted clicks delivered). The press itself is the reveal.
+            // mid-press Chrome drops the synthesized click entirely (measured:
+            // 22 of 40 trusted clicks delivered). Reveal therefore rides the
+            // raw pointerup on the persistent container, which no rebuild can
+            // lose. Not pointerdown: at press time a reveal and a caption drag
+            // are indistinguishable, and a drag must not spend the puzzle.
             const overlay = buildGuessOverlay();
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+            masked.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
             expect(state.getRevealedCount(0)).toBe(2);
         });
 
-        test('a full press (pointerdown then click) reveals exactly once', () => {
+        test('a full press (pointerdown, pointerup, click) reveals exactly once', () => {
             const overlay = buildGuessOverlay();
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+            masked.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
             masked.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             expect(state.getRevealedCount(0)).toBe(2); // not 3
+        });
+
+        test('a press on a masked word reveals even if the pointer drifts', () => {
+            // Moving the captions is the grip's job, so the text surface has no
+            // axis test to satisfy: a press on a capsule reveals at pointerdown,
+            // exactly as it did before, and stray drift cannot swallow it.
+            const overlay = buildGuessOverlay();
+            const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+            const fire = (type: string, x: number, y: number) =>
+                masked.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: y }));
+            fire('pointerdown', 100, 200);
+            fire('pointermove', 102, 150);
+            fire('pointerup', 102, 150);
+            expect(state.getRevealedCount(0)).toBe(2);
+            // The captions stayed put: the text is not a drag surface.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge') || '0%').toBe('0%');
         });
 
         test('a right-button press does not reveal', () => {
@@ -658,6 +679,7 @@ describe('SidebarUI', () => {
                 over(masked);
                 settleFlip();
                 masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+                masked.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
                 out(masked);
                 settleFlip();
 
@@ -807,7 +829,7 @@ describe('SidebarUI', () => {
             // Defaults: 100%/75% size, medium offset/bg, white/gold color, full opacity.
             expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('24px');
             expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('18px');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('80px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('7.4%');
             expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0.7');
             expect(overlay.style.getPropertyValue('--vtt-overlay-color')).toBe('#ffffff');
             expect(overlay.style.getPropertyValue('--vtt-overlay-sub-color')).toBe('#ffd700');
@@ -870,12 +892,12 @@ describe('SidebarUI', () => {
             expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0.7'); // untouched
         });
 
-        test('an offset preset setter maps low/high tokens to px', () => {
+        test('an offset preset setter maps low/high tokens to a share of player height', () => {
             const overlay = buildOverlay();
             (ui as any).setOverlayBottomOffset('low');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('40px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('3.7%');
             (ui as any).setOverlayBottomOffset('high');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('140px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('13%');
         });
 
         test('edge style maps tokens to em-based text-shadow values', () => {
@@ -1289,6 +1311,203 @@ describe('SidebarUI', () => {
     // on/off and paints itself from an onRefresh hook; that's covered in
     // apps/youtube/tests/player-menu.test.ts.
 
+    // ── Position arrows ──────────────────────────────────────────────────
+    // The arrows only exist while the settings panel is open, and the caption
+    // block has to stay on screen the whole time they do — otherwise the
+    // control vanishes under the pointer that is dragging it.
+    describe('drag grip and caption preview', () => {
+        const mountPlayer = () => {
+            const video = document.createElement('video');
+            const container = document.createElement('div');
+            container.appendChild(video);
+            document.body.appendChild(container);
+        };
+        beforeEach(() => {
+            state.overlayEnabled = true;
+            mountPlayer();
+        });
+
+        test('the grip fuses above the caption and survives the ~4x/sec rebuild', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            expect(row).not.toBeNull();
+            // Grip above the caption: it fuses to the box's top edge, and the
+            // caption keeps the player's centre line to itself.
+            expect(Array.from(row.children).map((c) => c.className))
+                .toEqual(['vtt-overlay-handle', 'vtt-overlay-main']);
+
+            // A control the user may be holding must not be recreated under
+            // them: the same element has to come back after a rebuild.
+            const grip = row.querySelector('.vtt-overlay-handle');
+            state.addTrack('Second', [{ startTime: 0, endTime: 2, text: 'Bonjour' } as Subtitle]);
+            ui.updateOverlay(0);
+            expect(document.querySelector('#vtt-video-overlay .vtt-overlay-handle')).toBe(grip);
+        });
+
+        test('between cues, the panel borrows the nearest line rather than going blank', () => {
+            state.addTrack('English', [
+                { startTime: 0, endTime: 2, text: 'First' },
+                { startTime: 30, endTime: 32, text: 'Far away' },
+            ] as Subtitle[]);
+
+            // Playhead in the gap: no cue is active, so index is -1.
+            ui.highlightSubtitle(3);
+            expect(state.currentIndex).toBe(-1);
+            ui.setOverlayAdjusting(true);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            // 'First' ends at 2s and is 1s away; 'Far away' starts at 30s.
+            expect(overlay.querySelector('.vtt-overlay-main')?.textContent).toBe('First');
+            // A real line, so it is not dimmed as a stand-in.
+            expect(overlay.querySelector('.vtt-overlay-placeholder')).toBeNull();
+        });
+
+        test('the borrowed line follows the playhead instead of freezing', () => {
+            state.addTrack('English', [
+                { startTime: 0, endTime: 2, text: 'First' },
+                { startTime: 30, endTime: 32, text: 'Far away' },
+            ] as Subtitle[]);
+
+            ui.highlightSubtitle(3);
+            ui.setOverlayAdjusting(true);
+            const main = () => document.querySelector('#vtt-video-overlay .vtt-overlay-main')?.textContent;
+            expect(main()).toBe('First');
+
+            // Still between cues, but now nearer the second one. The signature
+            // used to be the constant 'empty' here, which froze this preview.
+            ui.highlightSubtitle(29);
+            expect(state.currentIndex).toBe(-1);
+            expect(main()).toBe('Far away');
+        });
+
+        test('with no track at all, a stand-in keeps the block on screen', () => {
+            ui.setOverlayAdjusting(true);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const main = overlay.querySelector('.vtt-overlay-main');
+            expect(main?.textContent).toBeTruthy();
+            // Marked as a sample, so nobody positions against text they think
+            // will play.
+            expect(main?.classList.contains('vtt-overlay-placeholder')).toBe(true);
+        });
+
+        test('caption clicks never reach the player, but bare video still does', () => {
+            // The overlay is a child of the player, which toggles playback on a
+            // click anywhere inside itself. Clicking a subtitle to select a word
+            // used to pause the video as a side effect.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            const heard: string[] = [];
+            for (const t of ['mousedown', 'mouseup', 'click', 'dblclick']) {
+                player.addEventListener(t, (e) => heard.push(`${t}:${(e.target as Element).className}`));
+            }
+
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            for (const t of ['mousedown', 'mouseup', 'click', 'dblclick']) {
+                main.dispatchEvent(new MouseEvent(t, { bubbles: true }));
+            }
+            expect(heard).toEqual([]);
+
+            // The overlay spans the full player width, so a press on the bare
+            // strip beside a short caption must still reach the player.
+            for (const t of ['mousedown', 'click']) {
+                overlay.dispatchEvent(new MouseEvent(t, { bubbles: true }));
+            }
+            expect(heard).toHaveLength(2);
+        });
+
+        test('blocking the player does not block text selection', () => {
+            // Quick-add selects words out of the caption, which needs the
+            // browser's default mousedown behaviour left intact — so the
+            // isolation above stops propagation only, never the default.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const main = document.querySelector('#vtt-video-overlay .vtt-overlay-main') as HTMLElement;
+            const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+            main.dispatchEvent(down);
+            expect(down.defaultPrevented).toBe(false);
+        });
+
+        test('a drag cannot push the caption off the top of the player', () => {
+            // The bug: the ceiling was measured against the caption's BOTTOM
+            // edge, so the block itself kept going past the top of the frame —
+            // and the grip went with it, leaving no way to drag it back.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            // jsdom reports 0 for every box, so state the geometry outright:
+            // a 400px player carrying an 80px (20%) caption block.
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            Object.defineProperty(overlay, 'offsetHeight', { value: 80, configurable: true });
+
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const fire = (type: string, y: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: 100, clientY: y }));
+
+            // Yank far past the top of the frame.
+            fire('pointerdown', 400);
+            fire('pointermove', -4000);
+            fire('pointerup', -4000);
+
+            // preset 7.4% + nudge + block 20% must leave a margin at the top.
+            const nudge = parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'));
+            expect(7.4 + nudge + 20).toBeLessThanOrEqual(97.5 + 0.01);
+        });
+
+        test('a stored position that no longer fits is pulled back into the frame', () => {
+            // Nothing need be dragged for this: the player can shrink (leaving
+            // fullscreen), or the caption can grow a translation row, and a
+            // value saved when it did fit is suddenly off-screen.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            Object.defineProperty(overlay, 'offsetHeight', { value: 80, configurable: true });
+
+            (ui as any).overlayStyle.overlayBottomNudge = 90; // way past the ceiling
+            (ui as any).reclampNudge();
+
+            const nudge = (ui as any).overlayStyle.overlayBottomNudge;
+            expect(7.4 + nudge + 20).toBeLessThanOrEqual(97.5 + 0.01);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toBe(nudge + '%');
+        });
+
+        test('dragging the grip moves the captions and persists on release', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const nudge = () => parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'));
+            const fire = (type: string, y: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: 100, clientY: y }));
+
+            // Upward 54px. jsdom has no layout, so pxToPct falls back to the
+            // 1080 reference height.
+            fire('pointerdown', 200);
+            fire('pointermove', 146);
+            expect(overlay.classList.contains('vtt-drag-active')).toBe(true);
+            expect(nudge()).toBeCloseTo(54 / 1080 * 100, 2);
+            fire('pointerup', 146);
+            expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toMatch(/%$/);
+        });
+    });
+
     // Who owns #vtt-sidebar when one is already on the page. Two cases share
     // the id and want opposite handling: a rival copy of the extension (yield,
     // or the two graft into one franken-panel) and our own panel left behind by
@@ -1407,4 +1626,5 @@ describe('SidebarUI', () => {
             expect(document.getElementById('vtt-video-overlay')).toBeNull();
         });
     });
+
 });
