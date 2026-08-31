@@ -23,6 +23,14 @@
     "message": "Ana dilim",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Altyazıyı indir",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Altyazı yüklendiğinde kullanılabilir.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Seçin…",
     "description": "Placeholder option in a language dropdown."

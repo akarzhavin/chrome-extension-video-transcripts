@@ -33,6 +33,8 @@ interface FakeUi {
     isCollapsed: jest.Mock;
     registerExternalElement: jest.Mock;
     onRefresh: jest.Mock;
+    downloadTrack: jest.Mock;
+    canDownload: jest.Mock;
 }
 
 function makeApp(over: Partial<{
@@ -48,6 +50,14 @@ function makeApp(over: Partial<{
     cooldownMs: number;
     failure: string;
 }> = {}) {
+    // Cues, not just a name: canDownload's real answer depends on a track
+    // having text in it, so the default fixture carries one and a test that
+    // wants the empty case passes tracks without any.
+    const tracks = (over.tracks ?? [
+        { name: 'English', subtitles: [{ startTime: 1, endTime: 2, text: 'hi' }] },
+        { name: 'Russian', subtitles: [{ startTime: 1, endTime: 2, text: 'привет' }] },
+    ]) as Array<{ name: string; subtitles?: Array<{ text: string }> }>;
+
     const ui: FakeUi = {
         toggleOverlay: jest.fn(),
         toggleDualMode: jest.fn(),
@@ -59,8 +69,12 @@ function makeApp(over: Partial<{
         isCollapsed: jest.fn(() => over.collapsed ?? false),
         registerExternalElement: jest.fn(),
         onRefresh: jest.fn(() => jest.fn()),
+        downloadTrack: jest.fn(),
+        // The real predicate, not "a track object exists": a track is
+        // downloadable only once it carries a cue with text, and the fixtures
+        // below deliberately include tracks that have none.
+        canDownload: jest.fn(() => !!tracks[0]?.subtitles?.some((s) => s.text.trim())),
     };
-    const tracks = over.tracks ?? [{ name: 'English' }, { name: 'Russian' }];
     return {
         uiOwned: true,
         ui,
@@ -355,6 +369,32 @@ describe('rows', () => {
         document.getElementById('vtt-ytp-menu-settings')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(app.ui.openSettings).toHaveBeenCalled();
         expect((menu() as HTMLElement).hidden).toBe(true);
+    });
+
+    test('the download row downloads and closes the menu', () => {
+        const app = makeApp();
+        installPlayerMenu(app);
+        openMenu();
+        const row = document.getElementById('vtt-ytp-menu-download') as HTMLButtonElement;
+        expect(row.disabled).toBe(false);
+        row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(app.ui.downloadTrack).toHaveBeenCalled();
+        // Unlike the toggles above, the result is a file, not something to look
+        // at behind the menu.
+        expect((menu() as HTMLElement).hidden).toBe(true);
+    });
+
+    test('a track with no cues leaves the row present but inert', () => {
+        // The row goes quiet rather than vanishing, so the menu's shape does
+        // not shift as tracks arrive.
+        const app = makeApp({ tracks: [{ name: 'English', subtitles: [] }] });
+        installPlayerMenu(app);
+        openMenu();
+        const row = document.getElementById('vtt-ytp-menu-download') as HTMLButtonElement;
+        expect(row.hidden).toBe(false);
+        expect(row.disabled).toBe(true);
+        row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(app.ui.downloadTrack).not.toHaveBeenCalled();
     });
 
 });

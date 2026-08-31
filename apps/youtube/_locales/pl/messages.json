@@ -23,6 +23,14 @@
     "message": "Mój język ojczysty",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Pobierz napisy",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Dostępne po wczytaniu napisów.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Wybierz…",
     "description": "Placeholder option in a language dropdown."

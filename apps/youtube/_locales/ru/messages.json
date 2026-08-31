@@ -23,6 +23,14 @@
     "message": "Мой родной язык",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Скачать субтитры",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Доступно после загрузки субтитров.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Выберите…",
     "description": "Placeholder option in a language dropdown."

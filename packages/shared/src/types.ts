@@ -93,6 +93,10 @@ export interface SidebarElements {
   // The tab at the screen edge that slides the sidebar in and out; the only
   // part of it still visible while collapsed.
   toggleBtn?: HTMLDivElement;
+  // "Download subtitles": an icon button in the header, left of the gear. Acts
+  // on the main track only; updateControls keeps its tooltip and disabled
+  // state in sync with what has loaded.
+  downloadBtn?: HTMLButtonElement;
 }
 
 export interface AppInterface {

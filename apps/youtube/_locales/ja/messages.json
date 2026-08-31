@@ -23,6 +23,14 @@
     "message": "母国語",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "字幕をダウンロード",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "字幕が読み込まれると利用できます。",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "選択…",
     "description": "Placeholder option in a language dropdown."

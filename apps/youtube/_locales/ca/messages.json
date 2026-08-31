@@ -23,6 +23,14 @@
     "message": "La meva llengua materna",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "Descarrega els subtítols",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "Disponible un cop s'hagin carregat els subtítols.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "Seleccioneu…",
     "description": "Placeholder option in a language dropdown."

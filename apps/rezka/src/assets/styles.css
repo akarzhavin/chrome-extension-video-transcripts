@@ -202,6 +202,19 @@
 /* A real <button> (it opens the settings takeover), so it needs the button
    reset the old <div> never did — and a 32px box so the 20px gear clears the
    24px minimum pointer target. */
+/* Download and the gear share every rule but `right` — grouping them below is
+   what keeps the pair from drifting apart when either is restyled. */
+#vtt-download-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+#vtt-download-btn:disabled:hover {
+    color: #a9adb8;
+    background: transparent;
+}
+
+#vtt-download-btn,
 #vtt-settings-btn {
     position: absolute;
     right: 16px;
@@ -220,11 +233,20 @@
     transition: color 0.2s, background-color 0.2s;
 }
 
+/* One slot left of the gear (16px edge + 32px button + 4px gap). MUST come
+   after the shared block above: same specificity, so the later rule wins —
+   declaring it first left both buttons stacked on top of each other. */
+#vtt-download-btn {
+    right: 52px;
+}
+
+#vtt-download-btn:hover,
 #vtt-settings-btn:hover {
     color: #fff;
     background: rgba(255, 255, 255, 0.08);
 }
 
+#vtt-download-btn svg,
 #vtt-settings-btn svg {
     width: 20px;
     height: 20px;
@@ -258,9 +280,16 @@
     overflow-y: auto;
 }
 
-/* JS keeps an inline display:flex on the gear, so the takeover needs !important. */
+/* JS keeps an inline display:flex on the gear, so the takeover needs !important.
+   Download goes with it: while settings (or feedback) owns the screen, the
+   header belongs to the "‹ Subtitles" back chip, and an action for the video
+   behind the takeover would be reaching past what is on screen. */
 #vtt-sidebar.vtt-settings-open #vtt-settings-btn {
     display: none !important;
+}
+
+#vtt-sidebar.vtt-settings-open #vtt-download-btn {
+    display: none;
 }
 
 /* ---- Feedback screen ---------------------------------------------------
@@ -2656,6 +2685,22 @@
     opacity: 0.5;
 }
 
+/* Leading glyph on an action row. Sized with .vtt-ytp-chev above and held at
+   flex:none so a long label never squeezes it. Dimmer than the label, like
+   every other glyph here — it identifies the row, it isn't the thing you read.
+   Full strength on hover, so the row lights up as one piece. */
+.vtt-ytp-row-icon {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    opacity: 0.55;
+    transition: opacity 0.12s ease;
+}
+
+.vtt-ytp-row:hover:not(:disabled) .vtt-ytp-row-icon {
+    opacity: 1;
+}
+
 /* Account row: an email can easily outrun the menu width. */
 .vtt-ytp-row--account {
     color: #c9cede;
@@ -2949,11 +2994,20 @@
 
 .vtt-light #vtt-sidebar h2 { color: #111111; }
 .vtt-light #vtt-header { border-bottom: 1px solid #e5e5e2; }
+.vtt-light #vtt-download-btn,
 .vtt-light #vtt-settings-btn { color: #4a4a4a; }
 
+.vtt-light #vtt-download-btn:hover,
 .vtt-light #vtt-settings-btn:hover {
     color: #111111;
     background: rgba(17, 17, 17, 0.06);
+}
+
+/* Disabled stays put on hover in this theme too: the dark sheet's grey would
+   read as the button lighting up on a light panel. */
+.vtt-light #vtt-download-btn:disabled:hover {
+    color: #4a4a4a;
+    background: transparent;
 }
 
 /* Both light panel tokens are already opaque, so the tab needs no blur in

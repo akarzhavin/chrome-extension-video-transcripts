@@ -23,6 +23,14 @@
     "message": "لغتي الأم",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "تنزيل الترجمة",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "يتوفر بعد تحميل الترجمة.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "اختر…",
     "description": "Placeholder option in a language dropdown."

@@ -23,6 +23,14 @@
     "message": "எனது தாய்மொழி",
     "description": "Label for the \"my native language\" picker."
   },
+  "ytDownloadSubs": {
+    "message": "வசன வரிகளைப் பதிவிறக்கு",
+    "description": "Label for the action that saves the main subtitle track as an .srt file. Used as the sidebar header button tooltip and as a row in the player menu."
+  },
+  "ytDownloadEmpty": {
+    "message": "வசன வரிகள் ஏற்றப்பட்டதும் கிடைக்கும்.",
+    "description": "Tooltip on the download button while no subtitle track is loaded yet."
+  },
   "ytSelectPlaceholder": {
     "message": "தேர்ந்தெடுக்கவும்…",
     "description": "Placeholder option in a language dropdown."

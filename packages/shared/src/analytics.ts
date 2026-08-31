@@ -39,6 +39,8 @@ export type AnalyticsEvent =
     // fires for the perfectly healthy "this video has no captions" case too, and
     // this one only ever means our own failure.
     | 'subs_missed_with_cc'
+    // The user downloaded a subtitle track as an SRT file from the sidebar.
+    | 'subs_downloaded'
     // Value moment
     | 'word_save_attempt'
     | 'word_saved'
@@ -71,6 +73,7 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'subs_rate_limited',
     'subs_recovered',
     'subs_missed_with_cc',
+    'subs_downloaded',
     'word_save_attempt',
     'word_saved',
     'signin_started',
@@ -98,6 +101,7 @@ export const SITE_BEARING_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<Analytic
     'subs_rate_limited',
     'subs_recovered',
     'subs_missed_with_cc',
+    'subs_downloaded',
     'word_save_attempt',
     'word_saved',
 ]);
