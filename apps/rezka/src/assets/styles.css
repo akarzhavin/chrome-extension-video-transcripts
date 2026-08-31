@@ -2685,6 +2685,22 @@
     opacity: 0.5;
 }
 
+/* Leading glyph on an action row. Sized with .vtt-ytp-chev above and held at
+   flex:none so a long label never squeezes it. Dimmer than the label, like
+   every other glyph here — it identifies the row, it isn't the thing you read.
+   Full strength on hover, so the row lights up as one piece. */
+.vtt-ytp-row-icon {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    opacity: 0.55;
+    transition: opacity 0.12s ease;
+}
+
+.vtt-ytp-row:hover:not(:disabled) .vtt-ytp-row-icon {
+    opacity: 1;
+}
+
 /* Account row: an email can easily outrun the menu width. */
 .vtt-ytp-row--account {
     color: #c9cede;

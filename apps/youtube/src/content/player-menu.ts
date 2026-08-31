@@ -46,6 +46,30 @@ const BACK_ARROW =
     '<svg class="vtt-ytp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
 const CHECK =
     '<svg class="vtt-ytp-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+// Arrow into a tray. The same glyph the sidebar's header button uses, so the
+// two entry points to one action look like one action. It is the only leading
+// glyph on the root page — the rows around it are settings and toggles, which
+// carry their state on the RIGHT (a value, a switch); this row does something
+// instead, and the icon is what says so at a glance.
+const DOWNLOAD_ICON =
+    '<svg class="vtt-ytp-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>';
+
+// Gear, matching the sidebar's own settings glyph (ICONS.gear) so the two
+// doors into the same panel carry the same sign. Redrawn at this stroke weight
+// rather than imported: the shared ICONS live in the sidebar's module and are
+// built for its 20px slot, while these rows run at 15px.
+const SETTINGS_ICON =
+    '<svg class="vtt-ytp-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
+
+// The panel row's label flips between "Show panel" and "Hide panel", so its
+// glyph has to flip with it — a fixed icon would contradict the words half the
+// time. A sidebar plate with an arrow saying which way the panel is about to
+// go: out toward the edge (hide) or in from it (show).
+const PANEL_HIDE_ICON =
+    '<svg class="vtt-ytp-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M15 4v16"></path><path d="M6 12h5m0 0L9 10m2 2l-2 2"></path></svg>';
+const PANEL_SHOW_ICON =
+    '<svg class="vtt-ytp-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M15 4v16"></path><path d="M11 12H6m0 0l2-2m-2 2l2 2"></path></svg>';
+
 // YouTube's caption glyph, path lifted verbatim from .ytp-subtitles-button.
 const CC_PATH =
     'M21.20 3.01L21 3H3L2.79 3.01C2.30 3.06 1.84 3.29 1.51 3.65C1.18 4.02 .99 4.50 1 5V19L1.01 19.20C1.05 19.66 1.26 20.08 1.58 20.41C1.91 20.73 2.33 20.94 2.79 20.99L3 21H21L21.20 20.98C21.66 20.94 22.08 20.73 22.41 20.41C22.73 20.08 22.94 19.66 22.99 19.20L23 19V5C23.00 4.50 22.81 4.02 22.48 3.65C22.15 3.29 21.69 3.06 21.20 3.01ZM3 19V5H21V19H3ZM8 11H6C5.73 11 5.48 11.10 5.29 11.29C5.10 11.48 5 11.73 5 12C5 12.26 5.10 12.51 5.29 12.70C5.48 12.89 5.73 13 6 13H8C8.26 13 8.51 12.89 8.70 12.70C8.89 12.51 9 12.26 9 12C9 11.73 8.89 11.48 8.70 11.29C8.51 11.10 8.26 11 8 11ZM18 11H12C11.73 11 11.48 11.10 11.29 11.29C11.10 11.48 11 11.73 11 12C11 12.26 11.10 12.51 11.29 12.70C11.48 12.89 11.73 13 12 13H18C18.26 13 18.51 12.89 18.70 12.70C18.89 12.51 19 12.26 19 12C19 11.73 18.89 11.48 18.70 11.29C18.51 11.10 18.26 11 18 11ZM18 15H16C15.73 15 15.48 15.10 15.29 15.29C15.10 15.48 15 15.73 15 16C15 16.26 15.10 16.51 15.29 16.70C15.48 16.89 15.73 17 16 17H18C18.26 17 18.51 16.89 18.70 16.70C18.89 16.51 19 16.26 19 16C19 15.73 18.89 15.48 18.70 15.29C18.51 15.10 18.26 15 18 15ZM12 15H6C5.73 15 5.48 15.10 5.29 15.29C5.10 15.48 5 15.73 5 16C5 16.26 5.10 16.51 5.29 16.70C5.48 16.89 5.73 17 6 17H12C12.26 17 12.51 16.89 12.70 16.70C12.89 16.51 13 16.26 13 16C13 15.73 12.89 15.48 12.70 15.29C12.51 15.10 12.26 15 12 15Z';
@@ -306,6 +330,9 @@ class PlayerMenu {
         page.appendChild(this.overlayRow);
 
         this.panelRow = row('vtt-ytp-menu-panel');
+        // Placeholder markup only: render() swaps in the direction that matches
+        // the label, and runs before the menu is ever shown.
+        this.panelRow.insertAdjacentHTML('afterbegin', PANEL_HIDE_ICON);
         this.panelLabel = document.createElement('span');
         this.panelLabel.className = 'vtt-ytp-row-label';
         this.panelRow.appendChild(this.panelLabel);
@@ -321,6 +348,7 @@ class PlayerMenu {
         // the sidebar's header button: the translation half is the crutch, not
         // the thing anyone takes away to study.
         this.downloadRow = row('vtt-ytp-menu-download');
+        this.downloadRow.insertAdjacentHTML('afterbegin', DOWNLOAD_ICON);
         const downloadLabel = document.createElement('span');
         downloadLabel.className = 'vtt-ytp-row-label';
         downloadLabel.textContent = t('ytDownloadSubs', 'Download subtitles');
@@ -335,6 +363,7 @@ class PlayerMenu {
         page.appendChild(this.downloadRow);
 
         this.settingsRow = row('vtt-ytp-menu-settings');
+        this.settingsRow.insertAdjacentHTML('afterbegin', SETTINGS_ICON);
         const settingsLabel = document.createElement('span');
         settingsLabel.className = 'vtt-ytp-row-label';
         settingsLabel.textContent = t('ytMenuSettings', 'Settings');
@@ -471,9 +500,17 @@ class PlayerMenu {
         // Dual needs a second track to have anything to show.
         this.modeBtns.dual.disabled = !this.app.state.hasMultipleTracks();
 
-        this.panelLabel.textContent = this.app.ui.isCollapsed()
+        const collapsed = this.app.ui.isCollapsed();
+        this.panelLabel.textContent = collapsed
             ? t('ytMenuOpenPanel', 'Show panel')
             : t('ytMenuHidePanel', 'Hide panel');
+        // Replace the glyph, not just the label: the arrow points the way the
+        // panel is about to move, so a stale one would contradict the words.
+        this.panelRow.querySelector('.vtt-ytp-row-icon')?.remove();
+        this.panelRow.insertAdjacentHTML(
+            'afterbegin',
+            collapsed ? PANEL_SHOW_ICON : PANEL_HIDE_ICON,
+        );
 
         // Without languages nothing renders at all, so a mode picker would be a
         // lever attached to nothing — hide it and offer the one action that
