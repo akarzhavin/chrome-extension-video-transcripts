@@ -17,6 +17,7 @@ import {
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
 import { applyTheme, stopThemeTracking } from './content/theme';
+import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { downloadTrack, isDownloadable } from './subtitle-download';
@@ -298,14 +299,41 @@ export class SidebarUI {
         // instance returned here before it could start a new one.
         const existing = document.getElementById('vtt-sidebar');
         if (existing) {
-            if (existing.dataset.vttOwner === ownerId()) {
-                // Ours, and dead — the live instance would still be answering.
-                // Take the page back: drop the stale panel and build a new one.
-                existing.remove();
-                document.getElementById('vtt-toggle-btn')?.remove();
-            } else {
+            const owner = existing.dataset.vttOwner;
+            // An UNSTAMPED panel is the release that ships this very mechanism:
+            // the build being replaced stamped nothing, so on the auto-update
+            // that delivers this code the leftover panel carries no owner. Read
+            // strictly, that is "not ours" and we would yield — leaving the
+            // notice missing on exactly the upgrade it was written for, and on
+            // that edition's every user, once.
+            //
+            // Deleting it is the destructive reading and stays off the table: a
+            // rival's live panel must not lose its UI to us. So claim the id
+            // instead — silent and reversible — and yield the build as before.
+            // The claim is what makes the NEXT injection decisive: from here the
+            // panel is stamped, so a later reload takes the reclaim branch above
+            // and the notice appears then.
+            //
+            // What the upgrade itself still needs is the announcement, and that
+            // does not require owning the panel — only a panel to render into,
+            // which the corpse on screen is. When our own context is already
+            // gone there is nothing to own anyway, and the user is looking at
+            // precisely the frozen panel this notice explains.
+            //
+            // One release and this branch is dead code: every build from here
+            // stamps, so an unstamped panel can only be a leftover of the
+            // version that introduced stamping.
+            if (owner === undefined) {
+                existing.dataset.vttOwner = ownerId();
+                if (isContextOrphaned()) showOrphanNotice();
                 return false;
             }
+            if (owner !== ownerId()) return false;
+            // Ours, and dead — the live instance would still be answering.
+            // Take the page back: drop the stale panel and build a new one.
+            existing.remove();
+            document.getElementById('vtt-toggle-btn')?.remove();
+            document.getElementById('vtt-video-overlay')?.remove();
         }
 
         const sidebar = document.createElement('div');

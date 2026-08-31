@@ -22,6 +22,7 @@ import {
     LanguagePrefs,
     fetchAndRenderNotification,
     watchForOrphanedContext,
+    isContextOrphaned,
     showOrphanNotice,
     type Subtitle,
 } from '@video-transcripts/shared';
@@ -32,6 +33,19 @@ import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 function t(key: string, fallback: string): string {
     return i18nMsg(key, fallback);
 }
+
+// Marks a <video> this instance has already bound its timeupdate handler to.
+// The extension id rather than "true": the element outlives an extension
+// reload, so a bare boolean left by the orphaned instance reads as "attached"
+// to the fresh one, which then never binds — see startVideoPolling. Falls back
+// to a constant when the context is gone, where nothing gets bound anyway.
+const attachId = (() => {
+    try {
+        return chrome?.runtime?.id ?? 'unknown';
+    } catch {
+        return 'unknown';
+    }
+})();
 
 // How long to keep "Searching…" before declaring "No subtitles". Auto-search now
 // reads the player's CDN data up front, so tracks usually arrive within a second
@@ -104,8 +118,15 @@ class VttApp implements AppInterface {
     startVideoPolling(): void {
         setInterval(() => {
             document.querySelectorAll('video').forEach(video => {
-                if (!video.dataset.vttAttached) {
-                    video.dataset.vttAttached = "true";
+                // The marker lives on the <video>, which SURVIVES an extension
+                // reload — the element is the page's, not ours. So a rebuilt
+                // instance reads "true" from the corpse's own stamp and attaches
+                // nothing, leaving the only bound handler the orphaned one's:
+                // the reload path this guard exists to serve was never reached.
+                // Stamp with the extension id so each live instance attaches
+                // exactly once, and a fresh one still recognises a foreign mark.
+                if (video.dataset.vttAttached !== attachId) {
+                    video.dataset.vttAttached = attachId;
                     console.log("VTT Sidebar: Attached timeupdate to a video element.");
 
                     video.addEventListener('timeupdate', () => {
@@ -120,7 +141,7 @@ class VttApp implements AppInterface {
                         // subtitles that no longer match the video. Say so
                         // instead — showOrphanNotice is idempotent, so calling
                         // it on every tick costs one getElementById.
-                        if (!chrome?.runtime?.id) {
+                        if (isContextOrphaned()) {
                             showOrphanNotice();
                             return;
                         }

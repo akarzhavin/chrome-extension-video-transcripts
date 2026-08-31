@@ -155,6 +155,23 @@ export const SIDEBAR_CHROME_CSS = `
     .vtt-orphan-notice-action:hover {
         background: rgba(255, 255, 255, 0.12);
     }
+    /* Light theme. This sheet is appended to <head> at RUNTIME, so it wins any
+       tie on order against the editions' stylesheet — the light rules have to
+       live here, beside the dark ones, or white-on-amber paints over the
+       #f7f7f5 panel. Same trap the emergency action documents in rezka's
+       styles.css; the html prefix is there for the same reason. */
+    html.vtt-light #vtt-orphan-notice {
+        border-left-color: #b45309;
+        background: rgba(180, 83, 9, 0.09);
+    }
+    html.vtt-light .vtt-orphan-notice-title { color: #92400e; }
+    html.vtt-light .vtt-orphan-notice-text { color: #44403c; }
+    html.vtt-light .vtt-orphan-notice-action {
+        border: 1px solid #e5e5e2;
+        background: #ffffff;
+        color: #111111;
+    }
+    html.vtt-light .vtt-orphan-notice-action:hover { background: #f0f0ee; }
     #vtt-lang-onboarding {
         margin: 16px;
         padding: 16px;

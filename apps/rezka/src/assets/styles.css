@@ -2033,6 +2033,18 @@
     outline-offset: 1px;
 }
 
+/* Light theme: the dark rule above is white-on-white here (~1.05:1), and this
+   is the ONE control still working on a dead panel — invisible is the worst
+   place for it to be. Matches the treatment its sibling actions get further
+   down (.vtt-light #vtt-status .vtt-empty-state-action). */
+.vtt-light .vtt-orphan-notice-action {
+    border: 1px solid #e5e5e2;
+    background: #ffffff;
+    color: #111111;
+}
+
+.vtt-light .vtt-orphan-notice-action:hover { background: #f0f0ee; }
+
 /* Remote notification: a message published from the backend without a release
    (an upstream site broke, a fix is on the way). Sits in the same slot as the
    partial notice below but reads as a block, not an aside — it carries news the
