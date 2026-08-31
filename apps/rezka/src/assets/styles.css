@@ -1977,12 +1977,15 @@
    a rebuild in development) and this content script can no longer reach the
    worker, so the transcript has stopped following the video.
 
-   Pinned to the very top of the panel via order:-1 rather than dropped into the
-   flow: everything below it is stale, including the header, and the message has
-   to be the first thing read no matter which screen the panel was left on.
-   Warning, not critical — nothing is lost, and one reload undoes it. */
+   Sits in the panel's banner slot (the row after #vtt-subheader) and borrows
+   #vtt-notification's anatomy — same margins, same left rule, same type scale —
+   because it is the same kind of thing: an announcement about the panel rather
+   than content in it. Warning, not critical: nothing is lost, and one reload
+   undoes it. */
 #vtt-orphan-notice {
-    order: -1;
+    /* flex-shrink:0 — the sidebar is a flex column and #vtt-list grows to fill
+       it, so without this a long transcript squeezes the banner thinner than
+       its own text. */
     flex: 0 0 auto;
     padding: 10px 13px 11px;
     margin: 4px 16px 10px;

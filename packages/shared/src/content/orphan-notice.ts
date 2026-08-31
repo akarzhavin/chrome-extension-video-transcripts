@@ -47,17 +47,21 @@ export function isContextOrphaned(): boolean {
 }
 
 /**
- * Renders the notice into `#vtt-sidebar`, once. Pinned to the top of the panel
- * rather than reusing #vtt-status: that banner is built by each edition's app
- * object, is suppressed outright while #vtt-lang-onboarding is up, and sits in
- * the flow before #vtt-list where a scrolled transcript hides it. This message
- * has to be readable in every one of those states, because the panel is dead in
- * all of them.
+ * Renders the notice once, into the panel's banner slot: the row right after
+ * #vtt-subheader, which #vtt-notification and #vtt-partial-notice already
+ * share. Announcements belong in one place, and this is where a reader of this
+ * panel already looks for them.
+ *
+ * Not #vtt-status, the other banner-shaped thing: that one is built by each
+ * edition's app object, is suppressed outright while #vtt-lang-onboarding is
+ * up, and sits before #vtt-list where a scrolled transcript pushes it out of
+ * view. This message has to be readable in every one of those states, because
+ * the panel is dead in all of them.
  */
 export function showOrphanNotice(): void {
     if (document.getElementById(NOTICE_ID)) return;
-    const sidebar = document.getElementById('vtt-sidebar');
-    if (!sidebar) return;
+    const subheader = document.getElementById('vtt-subheader');
+    if (!subheader?.parentElement) return;
 
     const el = document.createElement('div');
     el.id = NOTICE_ID;
@@ -89,9 +93,8 @@ export function showOrphanNotice(): void {
     el.appendChild(text);
     el.appendChild(btn);
 
-    // Above the header, so a collapsed-to-the-top scroll position cannot hide
-    // it and it does not depend on which screen the panel was left on.
-    sidebar.insertBefore(el, sidebar.firstChild);
+    // The banner slot, exactly as the other two announcements mount into it.
+    subheader.insertAdjacentElement('afterend', el);
 }
 
 /**

@@ -113,12 +113,15 @@ export const SIDEBAR_CHROME_CSS = `
        or a rebuild in development) and this content script can no longer reach
        the worker, so the transcript has stopped following the video.
 
-       order:-1 pins it above the header instead of letting it sit in the flow:
-       everything below is stale, and the message has to be the first thing read
-       whichever screen the panel was left on. Amber, not the emergency red of
-       "Reload page" below — nothing is lost, and one reload undoes it. */
+       Sits in the panel's banner slot (the row after #vtt-subheader), the same
+       place remote notifications and the partial-failure notice appear: it is
+       an announcement about the panel, not content in it. Amber, not the
+       emergency red of "Reload page" below — nothing is lost, and one reload
+       undoes it. */
     #vtt-orphan-notice {
-        order: -1;
+        /* flex-shrink:0 — the sidebar is a flex column and #vtt-list grows to
+           fill it, so without this a long transcript squeezes the banner
+           thinner than its own text. */
         flex: 0 0 auto;
         margin: 4px 16px 10px;
         padding: 10px 13px 11px;

@@ -34,8 +34,16 @@ function setOrphanedContext(): void {
     (global as any).chrome = { runtime: {} };
 }
 
+// The panel's real shape, down to the one part that matters here: the notice
+// mounts into the banner slot, the row right after #vtt-subheader, so a fixture
+// without that anchor would pass on markup no build ever produces.
 beforeEach(() => {
-    document.body.innerHTML = '<div id="vtt-sidebar"><div id="vtt-header"></div></div>';
+    document.body.innerHTML =
+        '<div id="vtt-sidebar">' +
+        '<div id="vtt-header"></div>' +
+        '<div id="vtt-subheader"></div>' +
+        '<div id="vtt-list"></div>' +
+        '</div>';
     setLiveContext();
     jest.useFakeTimers();
 });
@@ -99,18 +107,28 @@ describe('showOrphanNotice', () => {
 
     // Frames without a panel of ours (rezka injects into every iframe) must not
     // grow a stray banner.
-    it('does nothing when there is no sidebar', () => {
+    it('does nothing when there is no panel to mount into', () => {
         document.body.innerHTML = '';
         expect(() => showOrphanNotice()).not.toThrow();
         expect(document.getElementById('vtt-orphan-notice')).toBeNull();
     });
 
-    // Pinned above the header, because everything below it is stale — including
-    // whichever screen the panel happened to be left on.
-    it('mounts as the first child of the sidebar', () => {
+    // The banner slot: the row immediately after #vtt-subheader, shared with
+    // #vtt-notification and #vtt-partial-notice.
+    it('mounts into the banner slot, right after the sub-header', () => {
         showOrphanNotice();
-        const sidebar = document.getElementById('vtt-sidebar')!;
-        expect(sidebar.firstElementChild!.id).toBe('vtt-orphan-notice');
+        const subheader = document.getElementById('vtt-subheader')!;
+        expect(subheader.nextElementSibling!.id).toBe('vtt-orphan-notice');
+    });
+
+    // Above the transcript, not inside it: #vtt-list scrolls, and a banner that
+    // scrolls away with the lines it is warning about is no banner at all.
+    it('sits outside the transcript list', () => {
+        showOrphanNotice();
+        const notice = document.getElementById('vtt-orphan-notice')!;
+        expect(document.getElementById('vtt-list')!.contains(notice)).toBe(false);
+        expect(notice.compareDocumentPosition(document.getElementById('vtt-list')!))
+            .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 });
 
