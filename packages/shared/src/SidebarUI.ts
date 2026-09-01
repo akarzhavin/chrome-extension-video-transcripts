@@ -1918,10 +1918,13 @@ export class SidebarUI {
     }
 
     private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
-        if (overlap.length === 0) return null;
+        // A duplicated cue (some tracks repeat a line byte-for-byte) must not
+        // show its text twice on one line.
+        const texts = [...new Set(overlap.map(s => s.text))];
+        if (texts.length === 0) return null;
         const div = document.createElement('div');
         div.className = className;
-        div.textContent = overlap.map(s => s.text).join(' | ');
+        div.textContent = texts.join(' ');
         return div;
     }
 

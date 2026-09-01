@@ -97,6 +97,24 @@ describe('SidebarUI', () => {
         expect(overlay?.textContent).toBe('Hello');
     });
 
+    describe('buildSecondaryTextElement', () => {
+        const build = (texts: string[]) =>
+            (ui as any).buildSecondaryTextElement(texts.map((text) => ({ text }))) as HTMLDivElement | null;
+
+        test('joins paired cues with a space, not a separator character', () => {
+            expect(build(['И если ты клеймишь его выбор,', 'то поддерживаешь'])?.textContent)
+                .toBe('И если ты клеймишь его выбор, то поддерживаешь');
+        });
+
+        test('drops duplicated cue texts', () => {
+            expect(build(['same line', 'same line', 'other'])?.textContent).toBe('same line other');
+        });
+
+        test('returns null when nothing is paired', () => {
+            expect(build([])).toBeNull();
+        });
+    });
+
     test('settings takeover: hides list via class, swaps header title, restores on exit', () => {
         const panel = document.createElement('div');
         const title = document.createElement('h2');
