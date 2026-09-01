@@ -2272,7 +2272,7 @@ export class SidebarUI {
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
             if (!item.querySelector('.vtt-sub-text')) {
-                const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(mainTrack[index]));
+                const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(mainTrack[index]));
                 if (subText) item.appendChild(subText);
             }
         }
@@ -2330,7 +2330,7 @@ export class SidebarUI {
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
-            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
 
@@ -2680,7 +2680,7 @@ export class SidebarUI {
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
-            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
 
@@ -2847,7 +2847,7 @@ export class SidebarUI {
         if (sub ? this.shouldShowOverlayTranslation(index) : this.state.displayMode !== 'single') {
             const subDiv = placeholder
                 ? this.buildPlaceholderSecondary()
-                : this.buildSecondaryTextElement(this.state.getOverlappingSecondary(shown), 'vtt-overlay-sub');
+                : this.buildSecondaryTextElement(this.state.getPairedSecondary(shown), 'vtt-overlay-sub');
             if (subDiv) overlay.appendChild(subDiv);
         }
     }

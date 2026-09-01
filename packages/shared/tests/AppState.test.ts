@@ -192,35 +192,72 @@ describe('AppState', () => {
         expect(state.secondaryTrackIndex).toBe(1); // Second track
     });
 
-    describe('getOverlappingSecondary', () => {
+    describe('getPairedSecondary', () => {
         const mainSub: Subtitle = { text: 'main', startTime: 10, endTime: 15 };
 
         test('returns empty array when no secondary track exists', () => {
             state.addTrack('English', [mainSub]);
-            expect(state.getOverlappingSecondary(mainSub)).toEqual([]);
+            expect(state.getPairedSecondary(mainSub)).toEqual([]);
         });
 
-        test('returns subtitles whose time ranges overlap the main sub', () => {
+        test('a translation cue that drifts across two lines is shown once, under the line it mostly covers', () => {
+            // The Netflix case (70094483): the Russian track is cut by its own
+            // translator and runs a few hundred ms behind the English one. Under
+            // an any-overlap rule each Russian cue was attached to BOTH English
+            // lines it touched, so the sidebar showed "и заменить их…" under the
+            // line before its own and again under its own, joined with " | ".
+            const en = [
+                { text: 'and replace them with bottled water', startTime: 0, endTime: 2 },
+                { text: 'and naturally sweetened fruit juice.', startTime: 2, endTime: 4 },
+                { text: 'Are you talking about diet soda too?', startTime: 4, endTime: 6 },
+            ];
+            const ru = [
+                { text: 'и заменить их минеральной водой', startTime: 0.3, endTime: 2.4 },
+                { text: 'и натуральными фруктовыми соками.', startTime: 2.4, endTime: 4.3 },
+                { text: 'И диетические тоже?', startTime: 4.3, endTime: 6.1 },
+            ];
+            state.addTrack('English', en);
+            state.addTrack('Russian', ru);
+
+            expect(en.map((cue) => state.getPairedSecondary(cue).map((s) => s.text))).toEqual([
+                ['и заменить их минеральной водой'],
+                ['и натуральными фруктовыми соками.'],
+                ['И диетические тоже?'],
+            ]);
+        });
+
+        test('cues inside the main cue are kept in time order; touching edges are not overlap', () => {
             const secondary: Subtitle[] = [
-                { text: 'before', startTime: 0, endTime: 9 },        // ends before main starts
-                { text: 'touching-start', startTime: 5, endTime: 10 }, // ends exactly at main start — not overlap
-                { text: 'partial-left', startTime: 8, endTime: 12 },  // overlaps
-                { text: 'inside', startTime: 11, endTime: 14 },       // fully inside
-                { text: 'partial-right', startTime: 14, endTime: 18 },// overlaps
-                { text: 'touching-end', startTime: 15, endTime: 20 }, // starts exactly at main end — not overlap
-                { text: 'after', startTime: 16, endTime: 20 },        // starts after main ends
+                { text: 'before', startTime: 0, endTime: 9 },
+                { text: 'touching-start', startTime: 5, endTime: 10 },
+                { text: 'inside-late', startTime: 13, endTime: 14 },
+                { text: 'inside-early', startTime: 11, endTime: 12 },
+                { text: 'touching-end', startTime: 15, endTime: 20 },
+                { text: 'after', startTime: 16, endTime: 20 },
             ];
             state.addTrack('English', [mainSub]);
             state.addTrack('Russian', secondary);
 
-            const result = state.getOverlappingSecondary(mainSub).map(s => s.text);
-            expect(result).toEqual(['partial-left', 'inside', 'partial-right']);
+            expect(state.getPairedSecondary(mainSub).map((s) => s.text)).toEqual(['inside-early', 'inside-late']);
         });
 
         test('returns empty array when no secondary sub overlaps', () => {
             state.addTrack('English', [mainSub]);
             state.addTrack('Russian', [{ text: 'far', startTime: 100, endTime: 200 } as Subtitle]);
-            expect(state.getOverlappingSecondary(mainSub)).toEqual([]);
+            expect(state.getPairedSecondary(mainSub)).toEqual([]);
+        });
+
+        test('follows a swap: the pairing is recomputed for the new main track', () => {
+            const en = [{ text: 'EN', startTime: 0, endTime: 2 }];
+            const ru = [{ text: 'RU', startTime: 0.2, endTime: 2.2 }];
+            state.addTrack('English', en);
+            state.addTrack('Russian', ru);
+            expect(state.getPairedSecondary(en[0]).map((s) => s.text)).toEqual(['RU']);
+
+            state.swapTracks();
+            expect(state.getPairedSecondary(ru[0]).map((s) => s.text)).toEqual(['EN']);
+            // The old main cue is no longer a key of anything.
+            expect(state.getPairedSecondary(en[0])).toEqual([]);
         });
     });
 

@@ -1,5 +1,6 @@
 import { LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
+import { pairSecondaryToMain } from './track-pairing';
 
 export class AppState {
     tracks: Track[] = [];
@@ -262,9 +263,31 @@ export class AppState {
         return this.hasMultipleTracks() ? this.tracks[this.secondaryTrackIndex]?.subtitles : null;
     }
 
-    getOverlappingSecondary(sub: Subtitle): Subtitle[] {
+    // The translation cues assigned to each main cue, computed once per pair of
+    // tracks. Keyed on the two subtitle arrays by identity: a track is only
+    // ever replaced whole (addTrack/reset), and a swap changes which array is
+    // which, so identity is exactly the invalidation this needs.
+    private pairing: { main: Subtitle[]; secondary: Subtitle[]; byCue: Map<Subtitle, Subtitle[]> } | null = null;
+
+    /**
+     * The translation cues shown under `sub`, a cue of the main track.
+     *
+     * Each translation cue is given to the ONE main cue it shares the most
+     * time with (see track-pairing.ts), so a translation whose timing drifts
+     * from the original is shown once, under the line it belongs to, instead of
+     * under every line it happens to touch. The lookup is by identity, so pass
+     * the cue object from the track, not a copy.
+     */
+    getPairedSecondary(sub: Subtitle): Subtitle[] {
+        const main = this.getMainTrack();
         const secondary = this.getSecondaryTrack();
-        if (!secondary) return [];
-        return secondary.filter(s => s.startTime < sub.endTime && s.endTime > sub.startTime);
+        if (!main || !secondary) return [];
+        if (!this.pairing || this.pairing.main !== main || this.pairing.secondary !== secondary) {
+            const byCue = new Map<Subtitle, Subtitle[]>();
+            const paired = pairSecondaryToMain(main, secondary);
+            main.forEach((cue, i) => byCue.set(cue, paired[i]));
+            this.pairing = { main, secondary, byCue };
+        }
+        return this.pairing.byCue.get(sub) ?? [];
     }
 }
