@@ -1402,9 +1402,13 @@ export class SidebarUI {
 
     private setOverlayBottomOffset(v: OverlayLevelToken): void {
         this.overlayStyle.overlayBottomOffset = v;
+        // A preset names a fixed spot on the frame. The drag offset is added on
+        // top of the preset at paint time, so left in place it would move the
+        // caption relative to wherever it was dragged — clear it in both axes.
+        this.position.load(0, 0);
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayBottomOffset: v }, this.scope);
+        savePrefs({ overlayBottomOffset: v, overlayBottomNudge: 0, overlayInlineNudge: 0 }, this.scope);
     }
 
     private setOverlayBgOpacity(v: OverlayBackdropToken): void {
