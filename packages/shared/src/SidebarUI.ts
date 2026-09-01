@@ -16,7 +16,7 @@ import {
     ThemeToken,
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
-import { OverlayPosition, OverlayMetrics } from './overlay-position';
+import { OverlayPosition, OverlayMetrics, OVERLAY_BOTTOM_PCT } from './overlay-position';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
@@ -80,16 +80,6 @@ const NUDGE_STEP_BIG_PX = 20;
 // time, and a const would freeze the English fallback for every locale.
 const placeholderCaption = () => msg('ytOverlayPreviewMain', 'Subtitles appear here');
 
-// Share of the PLAYER HEIGHT, not px: the presets were tuned as 40/80/140px on a
-// fullscreen 1080p frame, and these are those same values as a fraction of it —
-// which is what keeps "medium" at the same place on the small inline player
-// instead of climbing to a fifth of the frame. Numbers, not strings, because
-// the clamp below does arithmetic on them; applyOverlayStyle adds the unit.
-const OVERLAY_BOTTOM_PCT: Record<OverlayLevelToken, number> = {
-    low: 3.7,
-    medium: 7.4,
-    high: 13,
-};
 // Fallback player height for the px→% conversions when the overlay is not
 // mounted yet (or offsetHeight is 0, as in jsdom): a 1080p frame, the reference
 // every other overlay unit was tuned at.
@@ -2272,7 +2262,7 @@ export class SidebarUI {
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
             if (!item.querySelector('.vtt-sub-text')) {
-                const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(mainTrack[index]));
+                const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(mainTrack[index]));
                 if (subText) item.appendChild(subText);
             }
         }
@@ -2330,7 +2320,7 @@ export class SidebarUI {
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
-            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
 
@@ -2680,7 +2670,7 @@ export class SidebarUI {
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
-            const subText = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub));
+            const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
 
@@ -2847,7 +2837,7 @@ export class SidebarUI {
         if (sub ? this.shouldShowOverlayTranslation(index) : this.state.displayMode !== 'single') {
             const subDiv = placeholder
                 ? this.buildPlaceholderSecondary()
-                : this.buildSecondaryTextElement(this.state.getOverlappingSecondary(shown), 'vtt-overlay-sub');
+                : this.buildSecondaryTextElement(this.state.getPairedSecondary(shown), 'vtt-overlay-sub');
             if (subDiv) overlay.appendChild(subDiv);
         }
     }

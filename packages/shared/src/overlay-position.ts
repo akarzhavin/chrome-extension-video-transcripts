@@ -10,6 +10,43 @@
 // geometry on every render. A caption pushed to the middle by a wrapped
 // three-line cue rides back out to the edge when the next cue is short.
 
+import type { OverlayLevelToken } from './prefs';
+
+// Share of the PLAYER HEIGHT, not px: the presets were tuned as 40/80/140px on a
+// fullscreen 1080p frame, and these are those same values as a fraction of it —
+// which is what keeps "medium" at the same place on the small inline player
+// instead of climbing to a fifth of the frame. Numbers, not strings, because
+// the clamp below does arithmetic on them; applyOverlayStyle adds the unit.
+export const OVERLAY_BOTTOM_PCT: Record<OverlayLevelToken, number> = {
+    low: 3.7,
+    medium: 7.4,
+    high: 13,
+};
+
+/** Bounds a stored nudge is checked against on the way in — see below. */
+export interface NudgeRange {
+    min: number;
+    max: number;
+}
+
+// The range a nudge can actually be WRITTEN in. Intent only ever changes
+// through set()/nudgeBy(), and both clamp, so a stored value outside these
+// bounds was not produced by a drag or an arrow key — it is a leftover from a
+// build that computed the number differently, or a corrupt blob. prefs.ts
+// treats such a value as absent rather than pulling it to the nearest bound:
+// pulled in, it still paints the caption at the very top of the frame, which
+// is what happened on Netflix when a 108 (written by a pre-clamp dev build)
+// was read back as 108% and clamped to 100.
+//
+// Derived from clampBottom/clampInline with the widest metrics they accept —
+// overlay-position.test.ts checks the formulas never leave these bounds, so a
+// change to a margin or a preset that widens them fails there, not in the
+// field. Vertical: the ceiling is 100 − lowest preset (3.7) − VERTICAL_MARGIN
+// (2.5) − the block, so < 93.8; the floor is −(highest preset (13) − 2.5) =
+// −10.5. Horizontal: |v| < 50 − HORIZONTAL_MARGIN (4) = 46.
+export const BOTTOM_NUDGE_RANGE: NudgeRange = { min: -11, max: 94 };
+export const INLINE_NUDGE_RANGE: NudgeRange = { min: -46, max: 46 };
+
 /** The player geometry a clamp is measured against, sampled at paint time. */
 export interface OverlayMetrics {
     /** Player height in px, or 0 when it cannot be measured (pre-layout, jsdom). */
