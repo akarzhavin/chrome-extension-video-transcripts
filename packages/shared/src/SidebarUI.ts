@@ -3102,14 +3102,19 @@ export class SidebarUI {
     private overlayMetrics(): OverlayMetrics {
         const overlay = document.getElementById('vtt-video-overlay');
         const player = overlay?.parentElement ?? null;
-        // NOT the overlay's own width: it is width: 100% of the player by
-        // design (it has to be, for the container query), so measuring it would
-        // report 100% every time and leave no travel at all. The rows inside it
-        // are the ink.
+        // Measure the INK — the caption boxes themselves — and nothing that is
+        // merely a full-width track they are centred in. Both the overlay and
+        // .vtt-overlay-row are width: 100% of the player (the overlay must be,
+        // for the container query; the row must be, or the caption's
+        // max-width: 80% resolves against its own text and stops binding), so
+        // either one reports 100% and leaves ZERO travel: (100 - 100) / 2 is
+        // negative before the margin is even subtracted, and every sideways
+        // drag collapses to nothing. The row was in this list until it became
+        // full-width, which is exactly how that regression got in.
         let blockWidth = 0;
         if (overlay) {
             for (const child of Array.from(overlay.querySelectorAll<HTMLElement>(
-                '.vtt-overlay-row, .vtt-overlay-main, .vtt-overlay-sub',
+                '.vtt-overlay-main, .vtt-overlay-sub',
             ))) {
                 blockWidth = Math.max(blockWidth, child.offsetWidth);
             }

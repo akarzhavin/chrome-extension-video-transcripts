@@ -1639,8 +1639,14 @@ describe('SidebarUI', () => {
             // there is real room to travel sideways: (100 - 20) / 2 - 4 = 36%.
             Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
             Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            Object.defineProperty(main, 'offsetWidth', { value: 200, configurable: true });
+            // The row is a full-width track, exactly as the stylesheet leaves
+            // it. Pinned here so that measuring it again — which pinned every
+            // sideways drag to zero travel — fails these tests instead of
+            // shipping.
             const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
-            Object.defineProperty(row, 'offsetWidth', { value: 200, configurable: true });
+            Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
             Object.defineProperty(overlay, 'offsetHeight', { value: 40, configurable: true });
 
             const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
@@ -1676,10 +1682,16 @@ describe('SidebarUI', () => {
             const player = overlay.parentElement as HTMLElement;
             Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
             Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
-            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
             // A wide caption: 60% of the width, so only (100 - 60) / 2 - 4 = 16%
             // of travel exists on either side.
-            Object.defineProperty(row, 'offsetWidth', { value: 600, configurable: true });
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            Object.defineProperty(main, 'offsetWidth', { value: 600, configurable: true });
+            // The row is a full-width track, exactly as the stylesheet leaves
+            // it. Pinned here so that measuring it again — which pinned every
+            // sideways drag to zero travel — fails these tests instead of
+            // shipping.
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
 
             const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
             grip.setPointerCapture = jest.fn();
@@ -1705,8 +1717,14 @@ describe('SidebarUI', () => {
             const player = overlay.parentElement as HTMLElement;
             Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
             Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            Object.defineProperty(main, 'offsetWidth', { value: 900, configurable: true });
+            // The row is a full-width track, exactly as the stylesheet leaves
+            // it. Pinned here so that measuring it again — which pinned every
+            // sideways drag to zero travel — fails these tests instead of
+            // shipping.
             const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
-            Object.defineProperty(row, 'offsetWidth', { value: 900, configurable: true });
+            Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
 
             (ui as any).position.load(0, 40);
             (ui as any).applyOverlayStyle();
@@ -1723,8 +1741,14 @@ describe('SidebarUI', () => {
             const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
             const player = overlay.parentElement as HTMLElement;
             Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            Object.defineProperty(main, 'offsetWidth', { value: 200, configurable: true });
+            // The row is a full-width track, exactly as the stylesheet leaves
+            // it. Pinned here so that measuring it again — which pinned every
+            // sideways drag to zero travel — fails these tests instead of
+            // shipping.
             const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
-            Object.defineProperty(row, 'offsetWidth', { value: 200, configurable: true });
+            Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
 
             const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
             const key = (k: string, shiftKey = false) =>
