@@ -1799,10 +1799,19 @@
        --vtt-overlay-nudge the arrows' fine adjustment, positive lifting. The
        control-bar floor stays in px because the bar itself is px-tall; max()
        mixes the units, so a caption pushed down onto YouTube's bar still rests
-       on top of it rather than behind it. */
-    bottom: max(
-        calc(var(--vtt-overlay-bottom, 7.4%) + var(--vtt-overlay-nudge, 0%)),
-        var(--vtt-overlay-floor, 0px)
+       on top of it rather than behind it.
+
+       The floor applies to the PRESET alone, and the user's own nudge is added
+       after it. Folding both into one max() let the floor swallow the whole
+       control: on a normal inline YouTube player (~360px tall) the three presets
+       are 13/27/47px, all under the 61px bar, so low, medium and high all
+       collapsed onto 61px and the Position setting did nothing there — the
+       setting was only alive in fullscreen, where the same percentages clear the
+       bar. Clamping the preset and then adding the nudge keeps the bar covered
+       while leaving every notch above it distinguishable. */
+    bottom: calc(
+        max(var(--vtt-overlay-bottom, 7.4%), var(--vtt-overlay-floor, 0px))
+        + var(--vtt-overlay-nudge, 0%)
     );
     left: 0;
     width: 100%;
@@ -2054,7 +2063,15 @@
     align-items: center;
     /* No gap: the tab and the box must touch, or they read as two objects. */
     gap: 0;
-    max-width: 100%;
+    /* width: 100%, NOT max-width. The caption's own `max-width: 80%` resolves
+       against its parent, and this row became that parent: left to shrink-wrap
+       its content, the row's width IS the caption's width, so the 80% cap
+       resolved against the text it was supposed to be capping and stopped
+       binding — while .vtt-overlay-sub, still a direct child of the overlay,
+       kept the real 80%. A long line then ran wider than its own translation.
+       Full width restores the player as the reference for both; align-items
+       keeps the box itself shrink-wrapped and centred. */
+    width: 100%;
 }
 
 .vtt-overlay-handle {

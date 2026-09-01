@@ -252,10 +252,11 @@ describe('SidebarUI', () => {
         test('press and release without a click reveals — no dependence on click synthesis', () => {
             // The overlay rebuilds its DOM every ~250ms; when a rebuild lands
             // mid-press Chrome drops the synthesized click entirely (measured:
-            // 22 of 40 trusted clicks delivered). Reveal therefore rides the
-            // raw pointerup on the persistent container, which no rebuild can
-            // lose. Not pointerdown: at press time a reveal and a caption drag
-            // are indistinguishable, and a drag must not spend the puzzle.
+            // 22 of 40 trusted clicks delivered). Reveal therefore rides the raw
+            // pointerdown on the persistent container, which fires at press time
+            // — before any rebuild can detach the word. There is no ambiguity to
+            // wait out: the caption text is not a drag surface, since moving the
+            // captions is the separate grip's job.
             const overlay = buildGuessOverlay();
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
@@ -1485,7 +1486,7 @@ describe('SidebarUI', () => {
             expect(7.4 + nudge + 20).toBeLessThanOrEqual(97.5 + 0.01);
         });
 
-        test('a stored position that no longer fits is pulled back into the frame', () => {
+        test('a stored position that no longer fits is painted inside the frame', () => {
             // Nothing need be dragged for this: the player can shrink (leaving
             // fullscreen), or the caption can grow a translation row, and a
             // value saved when it did fit is suddenly off-screen.
@@ -1496,12 +1497,39 @@ describe('SidebarUI', () => {
             Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
             Object.defineProperty(overlay, 'offsetHeight', { value: 80, configurable: true });
 
-            (ui as any).overlayStyle.overlayBottomNudge = 90; // way past the ceiling
-            (ui as any).reclampNudge();
+            (ui as any).position.load(90, 0); // way past the ceiling
+            (ui as any).applyOverlayStyle();
 
-            const nudge = (ui as any).overlayStyle.overlayBottomNudge;
+            const nudge = parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'));
             expect(7.4 + nudge + 20).toBeLessThanOrEqual(97.5 + 0.01);
-            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toBe(nudge + '%');
+        });
+
+        test('a cue too tall to honour the position does not overwrite it', () => {
+            // The bug this guards: the clamp used to be written back over the
+            // stored value on every rebuild, so one long wrapped cue permanently
+            // collapsed the position the user had chosen — and nothing restored
+            // it, so the caption walked to the centre over one film.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+
+            (ui as any).position.load(40, 0);
+
+            // A tall cue: the block cannot sit 40% up, so it is painted lower.
+            Object.defineProperty(overlay, 'offsetHeight', { value: 240, configurable: true });
+            (ui as any).applyOverlayStyle();
+            const squeezed = parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'));
+            expect(squeezed).toBeLessThan(40);
+            // ...but the user's choice is untouched.
+            expect((ui as any).position.bottom).toBe(40);
+
+            // The next line is short again, and the caption goes back where it
+            // was put — the whole point of keeping intent apart from paint.
+            Object.defineProperty(overlay, 'offsetHeight', { value: 40, configurable: true });
+            (ui as any).applyOverlayStyle();
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'))).toBeCloseTo(40, 2);
         });
 
         test('dragging the grip moves the captions and persists on release', () => {
@@ -1525,6 +1553,80 @@ describe('SidebarUI', () => {
             fire('pointerup', 146);
             expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
             expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toMatch(/%$/);
+        });
+
+        test('closing the panel mid-drag ends the gesture and saves', async () => {
+            // The panel closing hides the grip, which kills its pointer capture:
+            // the pointerup never arrives. Left alone, the drag stayed flagged
+            // open, .vtt-drag-active stuck on the overlay, and the release never
+            // wrote — the move the user just made was silently lost.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.setOverlayAdjusting(true);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const fire = (type: string, y: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: 100, clientY: y }));
+
+            fire('pointerdown', 200);
+            fire('pointermove', 146);
+            expect(overlay.classList.contains('vtt-drag-active')).toBe(true);
+
+            ui.setOverlayAdjusting(false);
+
+            expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            expect(grip.classList.contains('vtt-dragging')).toBe(false);
+            await new Promise((r) => setTimeout(r, 0));
+            expect((await loadPrefs('other')).overlayBottomNudge).toBeCloseTo(54 / 1080 * 100, 2);
+        });
+
+        test('a release still saves when the capture is already gone', async () => {
+            // pointercancel can arrive after the capture has been dropped, and
+            // releasePointerCapture then throws NotFoundError. Unguarded, that
+            // threw straight past the savePrefs below it.
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn(() => {
+                throw new Error('NotFoundError');
+            });
+            const fire = (type: string, y: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: 100, clientY: y }));
+
+            fire('pointerdown', 200);
+            fire('pointermove', 146);
+            expect(() => fire('pointercancel', 146)).not.toThrow();
+
+            expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            await new Promise((r) => setTimeout(r, 0));
+            expect((await loadPrefs('other')).overlayBottomNudge).toBeCloseTo(54 / 1080 * 100, 2);
+        });
+
+        test('a preview line is never drawn as a guess puzzle', () => {
+            // The preview borrows the nearest cue while the panel is open, but
+            // it carries no guess state and its index is often -1.
+            // getRevealedCount(-1) answers 1, so a solved line came back
+            // re-masked — and clicking it did nothing, since there is no cue at
+            // that index to reveal.
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 10, endTime: 12, text: 'Hello there friend' } as Subtitle]);
+            ui.setOverlayAdjusting(true);
+            // -1: the playhead sits before the first cue, so there is no line to
+            // show and the preview stands in for one.
+            ui.updateOverlay(-1);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            expect(main).not.toBeNull();
+            expect(main.querySelector('.vtt-masked-word')).toBeNull();
+            // No index either: a click here must not reach a real cue's puzzle.
+            expect(main.dataset.index).toBeUndefined();
         });
 
         test('one drag moves the captions in both axes', async () => {
@@ -1606,12 +1708,13 @@ describe('SidebarUI', () => {
             const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
             Object.defineProperty(row, 'offsetWidth', { value: 900, configurable: true });
 
-            (ui as any).overlayStyle.overlayInlineNudge = 40;
-            (ui as any).reclampNudge();
+            (ui as any).position.load(0, 40);
+            (ui as any).applyOverlayStyle();
 
             // 90% wide leaves (100 - 90) / 2 - 4 = 1%.
-            expect((ui as any).overlayStyle.overlayInlineNudge).toBeCloseTo(1, 2);
-            expect(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge')).toBe('1%');
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(1, 2);
+            // Painted at 1%, but the stored 40% survives for the next short line.
+            expect((ui as any).position.inline).toBe(40);
         });
 
         test('left and right arrows move the captions sideways', async () => {

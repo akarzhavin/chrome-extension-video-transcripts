@@ -16,6 +16,7 @@ import {
     ThemeToken,
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
+import { OverlayPosition, OverlayMetrics } from './overlay-position';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
@@ -190,15 +191,11 @@ const OVERLAY_BOX_DEFAULTS: Pick<
     Prefs,
     | 'overlayBgColor'
     | 'overlayBottomOffset'
-    | 'overlayBottomNudge'
-    | 'overlayInlineNudge'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle'
 > = {
     overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
-    overlayBottomNudge: 0,
-    overlayInlineNudge: 0,
     overlayBgOpacity: 'medium',
     overlayEdgeStyle: 'shadow',
 };
@@ -215,8 +212,6 @@ const OVERLAY_STYLE_DEFAULTS: Pick<
     | 'overlayTextOpacity'
     | 'overlayBgColor'
     | 'overlayBottomOffset'
-    | 'overlayBottomNudge'
-    | 'overlayInlineNudge'
     | 'overlayBgOpacity'
     | 'overlayEdgeStyle'
 > = { ...OVERLAY_TEXT_DEFAULTS, ...OVERLAY_BOX_DEFAULTS };
@@ -1500,11 +1495,12 @@ export class SidebarUI {
             overlayTextOpacity: prefs.overlayTextOpacity,
             overlayBgColor: prefs.overlayBgColor,
             overlayBottomOffset: prefs.overlayBottomOffset,
-            overlayBottomNudge: prefs.overlayBottomNudge,
-            overlayInlineNudge: prefs.overlayInlineNudge,
             overlayBgOpacity: prefs.overlayBgOpacity,
             overlayEdgeStyle: prefs.overlayEdgeStyle,
         };
+        // The position lives apart from the style mirror: it is the one setting
+        // whose stored value and painted value differ (see overlay-position.ts).
+        this.position.load(prefs.overlayBottomNudge, prefs.overlayInlineNudge);
         // Re-applied here too, so a theme change made in another tab (or from
         // a second panel on the same page) lands without a reload.
         if (this.theme !== prefs.theme) {
@@ -2811,7 +2807,13 @@ export class SidebarUI {
         // control disappearing exactly while it is being used.
         overlay.classList.toggle('vtt-overlay-adjusting', this.overlayAdjusting);
         const shown = sub ?? preview?.sub ?? null;
-        if (!shown) return;
+        if (!shown) {
+            // Nothing to hang the grip on, so it stays detached — and a drag
+            // still in flight has just lost the element holding its capture.
+            // End it here rather than leaving it flagged open forever.
+            this.endOverlayDrag?.();
+            return;
+        }
 
         this.applyOverlayStyle();
         // A stand-in must not read as a real line: see .vtt-overlay-placeholder.
@@ -2819,7 +2821,14 @@ export class SidebarUI {
         // text — a real cue that happened to read the same would be dimmed.
         const placeholder = preview?.placeholder ?? false;
 
-        const mainDiv = this.buildOverlayMain(shown, index);
+        // A preview is not the playing line, so it carries no guess state: its
+        // index is whatever the playhead happens to sit at (often -1, before the
+        // first cue), and getRevealedCount(-1) answers 1 — which would redraw an
+        // already-solved line re-masked and unclickable. Preview text is shown
+        // plain; only a real cue is a puzzle.
+        const mainDiv = sub
+            ? this.buildOverlayMain(shown, index)
+            : this.buildPreviewMain(shown);
         if (placeholder) mainDiv.classList.add('vtt-overlay-placeholder');
         // Grip first, caption second: the row stacks vertically, so the grip
         // fuses to the caption's top edge — see .vtt-overlay-row.
@@ -2829,8 +2838,9 @@ export class SidebarUI {
         row.appendChild(mainDiv);
         overlay.appendChild(row);
         // Deferred to after the translation row is appended below, so the
-        // measurement covers the whole block.
-        queueMicrotask(() => this.reclampNudge());
+        // measurement covers the whole block. Repaint only — the stored position
+        // is never touched here; see applyOverlayStyle.
+        queueMicrotask(() => this.applyOverlayStyle());
         // A preview line is not the playing line, so it gets no guess-mode
         // translation gate — the point is to show the block's real shape,
         // which in dual mode means both rows.
@@ -2894,6 +2904,14 @@ export class SidebarUI {
     // hidden grip cannot take the click that would otherwise reach the video).
     private overlayHandle: HTMLButtonElement | null = null;
 
+    // Where the viewer put the captions. Owns the intent-vs-painted distinction
+    // (see overlay-position.ts); overlayStyle no longer carries the two nudges.
+    private position = new OverlayPosition();
+
+    // Ends an in-flight drag from outside the pointer sequence — set by
+    // attachOverlayDrag, called when the grip is hidden mid-gesture.
+    private endOverlayDrag: (() => void) | null = null;
+
     private ensureOverlayHandle(): HTMLButtonElement {
         if (this.overlayHandle) return this.overlayHandle;
         const btn = document.createElement('button');
@@ -2950,8 +2968,8 @@ export class SidebarUI {
             dragging = true;
             startX = e.clientX;
             startY = e.clientY;
-            startNudge = this.overlayStyle.overlayBottomNudge;
-            startInline = this.overlayStyle.overlayInlineNudge;
+            startNudge = this.position.bottom;
+            startInline = this.position.inline;
             btn.setPointerCapture(e.pointerId);
             btn.classList.add('vtt-dragging');
             overlayEl()?.classList.add('vtt-drag-active');
@@ -2970,31 +2988,47 @@ export class SidebarUI {
             // is inverted: drag up, the caption goes up. Screen x and the
             // translate agree in direction, so that one is not. Live feedback
             // without touching prefs — the write happens once, on release.
-            this.overlayStyle.overlayBottomNudge = this.clampNudgeToPlayer(
+            this.position.set(
+                this.overlayMetrics(),
                 startNudge + this.pxToPct(startY - e.clientY),
-            );
-            this.overlayStyle.overlayInlineNudge = this.clampInlineToPlayer(
                 startInline + this.pxToPctX(e.clientX - startX),
             );
             this.applyOverlayStyle();
         });
 
-        const end = (e: PointerEvent) => {
+        // Ends the drag and persists. Tolerates being called with no event (the
+        // grip being torn out mid-gesture, where there is no pointerup to come)
+        // and a capture that is already gone.
+        const end = (e?: PointerEvent) => {
             if (!dragging) return;
             dragging = false;
-            btn.releasePointerCapture?.(e.pointerId);
+            // Guarded: on the pointercancel path the capture may already be
+            // released, and Safari throws NotFoundError for an unknown
+            // pointerId. An exception here would skip the save below and strand
+            // .vtt-drag-active on the overlay.
+            try {
+                if (e) btn.releasePointerCapture?.(e.pointerId);
+            } catch {
+                /* capture already gone — nothing to release */
+            }
             btn.classList.remove('vtt-dragging');
             overlayEl()?.classList.remove('vtt-drag-active');
             savePrefs(
                 {
-                    overlayBottomNudge: this.overlayStyle.overlayBottomNudge,
-                    overlayInlineNudge: this.overlayStyle.overlayInlineNudge,
+                    overlayBottomNudge: this.position.bottom,
+                    overlayInlineNudge: this.position.inline,
                 },
                 this.scope,
             );
         };
         btn.addEventListener('pointerup', end);
         btn.addEventListener('pointercancel', end);
+        // The panel closing mid-drag hides the grip (display: none), which
+        // silently kills the pointer capture and with it the pointerup that
+        // would have ended the gesture — leaving `dragging` stuck true and the
+        // release never saved. Nothing else can end a drag once the grip is
+        // gone, so the teardown owns it.
+        this.endOverlayDrag = () => end();
 
         // Keyboard parity: the control is a real button, so it has to work
         // without a pointer. Arrows nudge, Shift jumps, and the write is
@@ -3004,19 +3038,15 @@ export class SidebarUI {
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 const delta = e.key === 'ArrowUp' ? step : -step;
-                this.overlayStyle.overlayBottomNudge = this.clampNudgeToPlayer(
-                    this.overlayStyle.overlayBottomNudge + this.pxToPct(delta),
-                );
+                this.position.nudgeBy(this.overlayMetrics(), this.pxToPct(delta), 0);
                 this.applyOverlayStyle();
-                savePrefs({ overlayBottomNudge: this.overlayStyle.overlayBottomNudge }, this.scope);
+                savePrefs({ overlayBottomNudge: this.position.bottom }, this.scope);
             } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 e.preventDefault();
                 const delta = e.key === 'ArrowRight' ? step : -step;
-                this.overlayStyle.overlayInlineNudge = this.clampInlineToPlayer(
-                    this.overlayStyle.overlayInlineNudge + this.pxToPctX(delta),
-                );
+                this.position.nudgeBy(this.overlayMetrics(), 0, this.pxToPctX(delta));
                 this.applyOverlayStyle();
-                savePrefs({ overlayInlineNudge: this.overlayStyle.overlayInlineNudge }, this.scope);
+                savePrefs({ overlayInlineNudge: this.position.inline }, this.scope);
             }
         });
     }
@@ -3025,6 +3055,11 @@ export class SidebarUI {
     setOverlayAdjusting(on: boolean): void {
         if (this.overlayAdjusting === on) return;
         this.overlayAdjusting = on;
+        // Closing the panel hides the grip, which kills any capture it held: the
+        // pointerup that would have ended a live drag never arrives. Settle it
+        // here, so the gesture saves where it landed instead of leaving the drag
+        // flagged open and .vtt-drag-active stuck on the overlay.
+        if (!on) this.endOverlayDrag?.();
         // The signature short-circuits identical rebuilds, so a mode change that
         // does not change the LINE would otherwise not repaint — the preview
         // would wait for the next cue to appear or disappear.
@@ -3058,111 +3093,34 @@ export class SidebarUI {
         return (px / this.playerWidth()) * 100;
     }
 
-    // Keep the caption inside the player it belongs to. Without this a drag can
-    // push it off the top of the frame, where there is nothing to grab it by —
-    // the control that moved it has gone with it, and the only way back is the
-    // settings panel. The bound is derived from the live player height rather
-    // than a constant so it holds in fullscreen too, where the frame is several
-    // times taller than inline.
-    private clampNudgeToPlayer(next: number): number {
-        const preset = OVERLAY_BOTTOM_PCT[this.overlayStyle.overlayBottomOffset];
-        const margin = 2.5;
-        // The ceiling has to be measured against the caption's TOP edge, not its
-        // bottom. `bottom` positions the block's lower edge, so a bound that
-        // only looked at that let the block itself keep going: at bottom 77% a
-        // two-line dual caption (~20% of the frame) has its top at 97%, and the
-        // rest is off the top of the player — the state a user could reach by
-        // dragging, and then could not undo, because the grip had gone with it.
-        //
-        // Measured live where possible: the caption's height depends on the
-        // user's font size, on how many lines the text wrapped to, and on
-        // whether the translation row is showing. The fallback covers the tick
-        // before the block is first laid out (and jsdom, which has no layout) —
-        // deliberately generous, since erring large only costs a little reach at
-        // the very top, while erring small is what put the caption off-screen.
-        const blockPct = this.overlayBlockHeightPct() ?? 22;
-        const maxUp = Math.max(0, 100 - preset - blockPct - margin);
-        const maxDown = Math.max(0, preset - margin);
-        // Two decimals: fine enough that a 1px move on a 1080p frame (0.09%)
-        // is not lost, coarse enough that prefs do not fill with float noise.
-        return Math.round(Math.min(maxUp, Math.max(-maxDown, next)) * 100) / 100;
-    }
-
-    /** Height of the whole caption block as a share of the player, or null before layout. */
-    private overlayBlockHeightPct(): number | null {
+    // The live geometry every bound is measured against, sampled fresh. The
+    // player height matters because the bound must hold in fullscreen too, where
+    // the frame is several times taller than inline; the block size matters
+    // because the caption's own height and width depend on the user's font size,
+    // on how many lines the text wrapped to, and on whether the translation row
+    // is showing. Zeroes mean "not measurable yet" — OverlayPosition falls back.
+    private overlayMetrics(): OverlayMetrics {
         const overlay = document.getElementById('vtt-video-overlay');
-        const h = overlay?.offsetHeight ?? 0;
-        const playerH = overlay?.parentElement?.offsetHeight ?? 0;
-        if (!h || !playerH) return null;
-        return (h / playerH) * 100;
-    }
-
-    // Keep the caption inside the frame sideways, the mirror of
-    // clampNudgeToPlayer. The geometry is different, though: the block starts
-    // CENTRED, so the room on either side is half of what the caption does not
-    // already occupy — a caption filling 60% of the width can travel 20% before
-    // its edge reaches the frame's, not 100%. Measured live, because that width
-    // depends on the line's length, the font size and the user's max-width.
-    private clampInlineToPlayer(next: number): number {
-        // 4% of the width, not 1: measured on a 1205px player, a short caption
-        // is narrow enough that a 1% margin let it travel until its edge sat
-        // 20px from the frame's — technically inside the picture, and visibly
-        // wrong. Native captions never touch the edge either.
-        const margin = 4;
-        // Fallback 80%: .vtt-overlay-main's max-width, the widest a caption can
-        // legally get. Erring wide only costs a little travel before layout has
-        // happened; erring narrow is what would let the text leave the frame.
-        const blockPct = this.overlayBlockWidthPct() ?? 80;
-        const room = Math.max(0, (100 - blockPct) / 2 - margin);
-        return Math.round(Math.min(room, Math.max(-room, next)) * 100) / 100;
-    }
-
-    /** Width of the widest caption row as a share of the player, or null before layout. */
-    private overlayBlockWidthPct(): number | null {
-        const overlay = document.getElementById('vtt-video-overlay');
-        const playerW = overlay?.parentElement?.offsetWidth ?? 0;
-        if (!overlay || !playerW) return null;
+        const player = overlay?.parentElement ?? null;
         // NOT the overlay's own width: it is width: 100% of the player by
         // design (it has to be, for the container query), so measuring it would
         // report 100% every time and leave no travel at all. The rows inside it
         // are the ink.
-        let w = 0;
-        for (const child of Array.from(overlay.querySelectorAll<HTMLElement>(
-            '.vtt-overlay-row, .vtt-overlay-main, .vtt-overlay-sub',
-        ))) {
-            w = Math.max(w, child.offsetWidth);
+        let blockWidth = 0;
+        if (overlay) {
+            for (const child of Array.from(overlay.querySelectorAll<HTMLElement>(
+                '.vtt-overlay-row, .vtt-overlay-main, .vtt-overlay-sub',
+            ))) {
+                blockWidth = Math.max(blockWidth, child.offsetWidth);
+            }
         }
-        if (!w) return null;
-        return (w / playerW) * 100;
-    }
-
-    // A stored position can be out of range even though nothing was dragged: the
-    // player can get shorter (window resize, leaving fullscreen), the caption can
-    // grow (a longer line, a bigger font, the translation row appearing), or the
-    // value can predate a change in how it is measured. Any of those can leave
-    // the block off the top of the frame with its own grip out of reach, so the
-    // bound is re-applied on every render rather than only at drag time.
-    private reclampNudge(): void {
-        const patch: Partial<Prefs> = {};
-        const bottom = this.clampNudgeToPlayer(this.overlayStyle.overlayBottomNudge);
-        if (bottom !== this.overlayStyle.overlayBottomNudge) {
-            this.overlayStyle.overlayBottomNudge = bottom;
-            patch.overlayBottomNudge = bottom;
-        }
-        // The horizontal bound moves with the TEXT, not just the player: a
-        // longer line is a wider block, so a position that was in frame for a
-        // short caption can be out of it for the next one. Re-checked on every
-        // render for that reason, exactly like the vertical one.
-        const inline = this.clampInlineToPlayer(this.overlayStyle.overlayInlineNudge);
-        if (inline !== this.overlayStyle.overlayInlineNudge) {
-            this.overlayStyle.overlayInlineNudge = inline;
-            patch.overlayInlineNudge = inline;
-        }
-        if (!Object.keys(patch).length) return;
-        this.applyOverlayStyle();
-        // Persist, or the out-of-range value comes back on the next page load
-        // and the caption is off-screen again.
-        savePrefs(patch, this.scope);
+        return {
+            playerHeight: player?.offsetHeight ?? 0,
+            playerWidth: player?.offsetWidth ?? 0,
+            blockHeight: overlay?.offsetHeight ?? 0,
+            blockWidth,
+            presetPct: OVERLAY_BOTTOM_PCT[this.overlayStyle.overlayBottomOffset],
+        };
     }
 
     private createOverlayElement(): HTMLDivElement | null {
@@ -3261,8 +3219,15 @@ export class SidebarUI {
             el.style.setProperty('--vtt-overlay-text-opacity', String(s.overlayTextOpacity));
             el.style.setProperty('--vtt-overlay-bg-color', s.overlayBgColor);
             el.style.setProperty('--vtt-overlay-bottom', `${OVERLAY_BOTTOM_PCT[s.overlayBottomOffset]}%`);
-            el.style.setProperty('--vtt-overlay-nudge', `${s.overlayBottomNudge}%`);
-            el.style.setProperty('--vtt-overlay-inline-nudge', `${s.overlayInlineNudge}%`);
+            // Resolved, not stored: the position is painted through whatever the
+            // current geometry allows, while the value the user chose stays
+            // untouched in `position`. A cue too tall to honour it pulls the
+            // caption in for that cue only — the next short line puts it back.
+            // Writing the clamp home instead is what used to walk a saved
+            // position to the centre over the course of one film.
+            const pos = this.position.resolve(this.overlayMetrics());
+            el.style.setProperty('--vtt-overlay-nudge', `${pos.bottom}%`);
+            el.style.setProperty('--vtt-overlay-inline-nudge', `${pos.inline}%`);
             el.style.setProperty('--vtt-overlay-bg-opacity', OVERLAY_BG_OPACITY[s.overlayBgOpacity]);
             // The edge keeps glyphs legible where the box is see-through and raw
             // video shows behind them, so it contrasts with the TEXT, not the
@@ -3285,6 +3250,16 @@ export class SidebarUI {
                 edgeValue(s.overlayEdgeStyle, hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff'),
             );
         }
+    }
+
+    /** The caption box for a PREVIEW line — always plain text, never a puzzle.
+     *  No data-index: nothing here is a reveal target, and a stale index would
+     *  send a click at whatever cue the playhead is nearest. */
+    private buildPreviewMain(sub: Subtitle): HTMLDivElement {
+        const mainDiv = document.createElement('div');
+        mainDiv.className = 'vtt-overlay-main';
+        this.fillPlainWordsInto(mainDiv, sub.text);
+        return mainDiv;
     }
 
     private buildOverlayMain(sub: Subtitle, index: number): HTMLDivElement {
