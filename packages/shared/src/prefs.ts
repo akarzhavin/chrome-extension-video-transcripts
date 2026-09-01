@@ -12,6 +12,7 @@
 // same "low" position token lands somewhere else on each. See `byPlatform`.
 
 import { platformOf, type Platform } from './analytics';
+import { BOTTOM_NUDGE_RANGE, INLINE_NUDGE_RANGE, type NudgeRange } from './overlay-position';
 
 // Font size is a percentage (50-400, step 5) rather than a 3-way token: a
 // fixed small/medium/large left the whole 100-150% range — where most people
@@ -213,16 +214,23 @@ function coerceUnitInterval(v: unknown, fallback: number): number {
 }
 
 // A position nudge — a percentage of the player's height for the vertical one,
-// of its width for the horizontal. Clamped rather than merely
-// type-checked for the same reason coerceSize clamps: `typeof v === 'number'`
+// of its width for the horizontal. Range-checked rather than merely
+// type-checked for the same reason coerceSize is: `typeof v === 'number'`
 // alone admits NaN, Infinity and absurd magnitudes, and the value goes straight
-// into CSS arithmetic where NaN renders as the literal `NaN%`. ±100 is the whole
-// frame in either direction — anything past it cannot be a position, only a
-// corrupt blob, which must not fling the caption where no control can reach it.
-const MAX_NUDGE = 100;
-function coerceNudge(v: unknown, fallback: number): number {
+// into CSS arithmetic where NaN renders as the literal `NaN%`.
+//
+// A value outside the range a drag can produce is DROPPED, not pulled to the
+// nearest bound. This used to clamp to ±100 — "the whole frame" — which is
+// not a position anybody chose either: a stray 108 (see overlay-position.ts
+// for where one came from) was read back as 100% and parked the captions at
+// the top of the frame, on a site the user had never dragged them on. The
+// bounds are what set()/nudgeBy() can write; anything past them is a leftover
+// from a different build or a corrupt blob, and "where the preset puts it" is
+// the only honest answer for a position that was never stored.
+function coerceNudge(v: unknown, fallback: number, range: NudgeRange): number {
     if (typeof v !== 'number' || !Number.isFinite(v)) return fallback;
-    return Math.min(MAX_NUDGE, Math.max(-MAX_NUDGE, Math.round(v * 100) / 100));
+    const rounded = Math.round(v * 100) / 100;
+    return rounded < range.min || rounded > range.max ? fallback : rounded;
 }
 
 const LEGACY_SIZE_TOKEN_PCT: Record<string, number> = { small: 75, medium: 100, large: 150 };
@@ -313,10 +321,12 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     resolved.overlayBottomNudge = coerceNudge(
         resolved.overlayBottomNudge,
         DEFAULT_PREFS.overlayBottomNudge,
+        BOTTOM_NUDGE_RANGE,
     );
     resolved.overlayInlineNudge = coerceNudge(
         resolved.overlayInlineNudge,
         DEFAULT_PREFS.overlayInlineNudge,
+        INLINE_NUDGE_RANGE,
     );
     if (typeof resolved.overlayEnabled !== 'boolean') {
         resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;

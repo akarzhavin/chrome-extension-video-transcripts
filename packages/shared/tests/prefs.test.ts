@@ -436,34 +436,62 @@ describe('prefs', () => {
         expect(typeof p.overlayEnabled).toBe('boolean');
     });
 
-    test('the drag nudge rejects garbage and clamps absurd magnitudes', async () => {
+    test('the drag nudge rejects garbage, and a magnitude no drag can produce is treated as unset', async () => {
         // The nudge goes straight into CSS arithmetic (`calc(preset + nudge)`),
         // where a NaN renders as the literal `NaNpx` and takes the whole rule
         // with it — the same failure mode the size percent is clamped against.
-        // A finite bound also means a corrupt blob cannot fling the caption to
-        // a coordinate the user has no control left to drag it back from.
+        //
+        // Out of range is NOT clamped to the bound: the stored 108 below is the
+        // value found on Netflix after a pre-clamp dev build wrote it, and
+        // clamping it to 100 is what painted the captions at the top of the
+        // frame on a site the user had never dragged them on. A position that
+        // no drag could have written is a position that was never chosen.
         (chromeStorage.local as any)._store['prefs.v1'] = {
             byPlatform: {
                 youtube: { overlayBottomNudge: 'up-a-bit' },
-                netflix: { overlayBottomNudge: 999999 },
+                netflix: { overlayBottomNudge: 108 },
+                rezka: { overlayBottomNudge: 999999 },
+                other: { overlayBottomNudge: -50 },
             },
         };
         expect((await loadPrefs('youtube')).overlayBottomNudge).toBe(0);
-        expect((await loadPrefs('netflix')).overlayBottomNudge).toBe(100);
+        expect((await loadPrefs('netflix')).overlayBottomNudge).toBe(0);
+        expect((await loadPrefs('rezka')).overlayBottomNudge).toBe(0);
+        expect((await loadPrefs('other')).overlayBottomNudge).toBe(0);
+    });
+
+    test('a nudge at the far end of what a drag can reach is kept as is', async () => {
+        // The ceiling of clampBottom with a tiny caption on the low preset is
+        // just under 94; the floor on the high preset is −10.5. Both must
+        // survive the read, or a caption dragged to the edge would snap back to
+        // the preset on the next page load.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: {
+                youtube: { overlayBottomNudge: 89.5, overlayInlineNudge: 45.9 },
+                netflix: { overlayBottomNudge: -10.5, overlayInlineNudge: -45.9 },
+            },
+        };
+        expect((await loadPrefs('youtube')).overlayBottomNudge).toBe(89.5);
+        expect((await loadPrefs('youtube')).overlayInlineNudge).toBe(45.9);
+        expect((await loadPrefs('netflix')).overlayBottomNudge).toBe(-10.5);
+        expect((await loadPrefs('netflix')).overlayInlineNudge).toBe(-45.9);
     });
 
     test('the horizontal nudge is validated on the same terms as the vertical one', async () => {
         // Same coercion, same failure mode: it lands in a translateX(), where a
         // NaN kills the transform and an absurd magnitude puts the caption
-        // somewhere off the picture with its own grip out of reach.
+        // somewhere off the picture with its own grip out of reach. The block
+        // starts centred, so the reachable range is under half the width.
         (chromeStorage.local as any)._store['prefs.v1'] = {
             byPlatform: {
                 youtube: { overlayInlineNudge: 'left-a-bit' },
                 netflix: { overlayInlineNudge: -999999 },
+                rezka: { overlayInlineNudge: 60 },
             },
         };
         expect((await loadPrefs('youtube')).overlayInlineNudge).toBe(0);
-        expect((await loadPrefs('netflix')).overlayInlineNudge).toBe(-100);
+        expect((await loadPrefs('netflix')).overlayInlineNudge).toBe(0);
+        expect((await loadPrefs('rezka')).overlayInlineNudge).toBe(0);
     });
 
     test('a dragged nudge round-trips per platform', async () => {
