@@ -562,5 +562,17 @@
   "ytNotificationClose": {
     "message": "Luk",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
+  },
+  "ytOverlayPreviewMain": {
+    "message": "Subtitles appear here",
+    "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
+  },
+  "ytOverlayPreviewSub": {
+    "message": "Translation appears here",
+    "description": "Stand-in translation line shown beneath the placeholder caption."
+  },
+  "ytOverlayDragHandle": {
+    "message": "Drag to move the subtitles",
+    "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   }
 }

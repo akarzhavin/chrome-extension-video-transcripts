@@ -60,6 +60,8 @@ describe('prefs', () => {
             overlayTextOpacity: 1,
             overlayBgColor: '#000000',
             overlayBottomOffset: 'medium',
+            overlayBottomNudge: 0,
+            overlayInlineNudge: 0,
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
@@ -137,6 +139,8 @@ describe('prefs', () => {
             overlayTextOpacity: 1,
             overlayBgColor: '#000000',
             overlayBottomOffset: 'medium',
+            overlayBottomNudge: 0,
+            overlayInlineNudge: 0,
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
@@ -199,6 +203,8 @@ describe('prefs', () => {
             overlayTextOpacity: 1,
             overlayBgColor: '#000000',
             overlayBottomOffset: 'medium',
+            overlayBottomNudge: 0,
+            overlayInlineNudge: 0,
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
         });
@@ -428,6 +434,47 @@ describe('prefs', () => {
         expect(p.overlayBottomOffset).toBe('medium');
         expect(p.overlayBgOpacity).toBe('medium');
         expect(typeof p.overlayEnabled).toBe('boolean');
+    });
+
+    test('the drag nudge rejects garbage and clamps absurd magnitudes', async () => {
+        // The nudge goes straight into CSS arithmetic (`calc(preset + nudge)`),
+        // where a NaN renders as the literal `NaNpx` and takes the whole rule
+        // with it — the same failure mode the size percent is clamped against.
+        // A finite bound also means a corrupt blob cannot fling the caption to
+        // a coordinate the user has no control left to drag it back from.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: {
+                youtube: { overlayBottomNudge: 'up-a-bit' },
+                netflix: { overlayBottomNudge: 999999 },
+            },
+        };
+        expect((await loadPrefs('youtube')).overlayBottomNudge).toBe(0);
+        expect((await loadPrefs('netflix')).overlayBottomNudge).toBe(100);
+    });
+
+    test('the horizontal nudge is validated on the same terms as the vertical one', async () => {
+        // Same coercion, same failure mode: it lands in a translateX(), where a
+        // NaN kills the transform and an absurd magnitude puts the caption
+        // somewhere off the picture with its own grip out of reach.
+        (chromeStorage.local as any)._store['prefs.v1'] = {
+            byPlatform: {
+                youtube: { overlayInlineNudge: 'left-a-bit' },
+                netflix: { overlayInlineNudge: -999999 },
+            },
+        };
+        expect((await loadPrefs('youtube')).overlayInlineNudge).toBe(0);
+        expect((await loadPrefs('netflix')).overlayInlineNudge).toBe(-100);
+    });
+
+    test('a dragged nudge round-trips per platform', async () => {
+        // Where the captions sit is a per-site choice like every other overlay
+        // field: a player whose controls sit high is not a reason to move them
+        // on a different site.
+        await savePrefs({ overlayBottomNudge: -3.7, overlayInlineNudge: 12.5 }, 'youtube');
+        expect((await loadPrefs('youtube')).overlayBottomNudge).toBe(-3.7);
+        expect((await loadPrefs('youtube')).overlayInlineNudge).toBe(12.5);
+        expect((await loadPrefs('netflix')).overlayBottomNudge).toBe(0);
+        expect((await loadPrefs('netflix')).overlayInlineNudge).toBe(0);
     });
 
     test("the backdrop accepts 'off', which Position still rejects", async () => {

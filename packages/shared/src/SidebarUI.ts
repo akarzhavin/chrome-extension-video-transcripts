@@ -16,6 +16,7 @@ import {
     ThemeToken,
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
+import { OverlayPosition, OverlayMetrics } from './overlay-position';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
@@ -66,11 +67,34 @@ const OVERLAY_SIZE_BASE_PX = 24;
 function overlaySizePx(pct: OverlaySizePercent): string {
     return `${(OVERLAY_SIZE_BASE_PX * pct) / 100}px`;
 }
-const OVERLAY_BOTTOM_PX: Record<OverlayLevelToken, string> = {
-    low: '40px',
-    medium: '80px',
-    high: '140px',
+// One arrow-key press on the grip moves the captions this far on screen; Shift
+// multiplies it. Screen px, converted to a share of the player at the moment of
+// the press (see pxToPct), so the felt step is the same in fullscreen and inline
+// while the stored value stays proportional.
+const NUDGE_STEP_PX = 4;
+const NUDGE_STEP_BIG_PX = 20;
+// Shown in the caption box while the settings panel is open and the video has no
+// line at this moment and no track to borrow one from. It must read as a sample
+// of a caption, not as a caption — see .vtt-overlay-placeholder. A function, not
+// a const: msg() reads chrome.i18n, which is not ready at module-evaluation
+// time, and a const would freeze the English fallback for every locale.
+const placeholderCaption = () => msg('ytOverlayPreviewMain', 'Subtitles appear here');
+
+// Share of the PLAYER HEIGHT, not px: the presets were tuned as 40/80/140px on a
+// fullscreen 1080p frame, and these are those same values as a fraction of it —
+// which is what keeps "medium" at the same place on the small inline player
+// instead of climbing to a fifth of the frame. Numbers, not strings, because
+// the clamp below does arithmetic on them; applyOverlayStyle adds the unit.
+const OVERLAY_BOTTOM_PCT: Record<OverlayLevelToken, number> = {
+    low: 3.7,
+    medium: 7.4,
+    high: 13,
 };
+// Fallback player height for the px→% conversions when the overlay is not
+// mounted yet (or offsetHeight is 0, as in jsdom): a 1080p frame, the reference
+// every other overlay unit was tuned at.
+const REFERENCE_PLAYER_H = 1080;
+const REFERENCE_PLAYER_W = 1920;
 const OVERLAY_BG_OPACITY: Record<OverlayBackdropToken, string> = {
     // 'off' is a real transparent box, not a low step: with no box at all the
     // Edge control is the only thing keeping glyphs legible over raw video.
@@ -165,7 +189,10 @@ const OVERLAY_TEXT_DEFAULTS: Pick<
 
 const OVERLAY_BOX_DEFAULTS: Pick<
     Prefs,
-    'overlayBgColor' | 'overlayBottomOffset' | 'overlayBgOpacity' | 'overlayEdgeStyle'
+    | 'overlayBgColor'
+    | 'overlayBottomOffset'
+    | 'overlayBgOpacity'
+    | 'overlayEdgeStyle'
 > = {
     overlayBgColor: '#000000',
     overlayBottomOffset: 'medium',
@@ -1471,6 +1498,9 @@ export class SidebarUI {
             overlayBgOpacity: prefs.overlayBgOpacity,
             overlayEdgeStyle: prefs.overlayEdgeStyle,
         };
+        // The position lives apart from the style mirror: it is the one setting
+        // whose stored value and painted value differ (see overlay-position.ts).
+        this.position.load(prefs.overlayBottomNudge, prefs.overlayInlineNudge);
         // Re-applied here too, so a theme change made in another tab (or from
         // a second panel on the same page) lands without a reload.
         if (this.theme !== prefs.theme) {
@@ -1496,6 +1526,12 @@ export class SidebarUI {
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
+        // Settings is where appearance gets adjusted, so it is also where the
+        // captions grow their position arrows. Tying the two together means the
+        // reading surface carries no controls the rest of the time, and the
+        // arrows never have to be discovered — the user is already in the panel
+        // that owns every other caption setting.
+        this.setOverlayAdjusting(open);
         // Focus follows the takeover: opening hands the keyboard to the back
         // chip (the panel's exit), closing returns it to the gear that opened
         // it — otherwise the hidden trigger strands focus on a display:none
@@ -2735,10 +2771,21 @@ export class SidebarUI {
         // Everything the children are derived from is in the signature: the
         // line, the mode, how much of it is uncovered, and which tracks feed
         // the text and the translation.
+        // The adjusting flag is part of the signature because it changes what is
+        // rendered (arrows, and a stand-in line where there would be nothing).
+        // Between cues while adjusting, the PREVIEW's own identity has to be in
+        // there too: 'empty' is a constant, so the preview would paint once and
+        // then freeze, still showing the line nearest to wherever playback
+        // happened to be when the panel opened.
+        const preview = !sub && this.overlayAdjusting ? this.previewSubtitleFor(index) : null;
         const sig = sub
             ? [index, this.state.displayMode, this.state.getRevealedCount(index),
-               this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped].join('|')
-            : 'empty';
+               this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped,
+               this.overlayAdjusting].join('|')
+            : preview
+                ? ['preview', preview.sub.startTime, preview.sub.text.length,
+                   this.state.displayMode, this.state.secondaryTrackIndex, this.state.swapped].join('|')
+                : `empty|${this.overlayAdjusting}`;
         if (overlay.dataset.sig === sig) return;
         overlay.dataset.sig = sig;
 
@@ -2746,15 +2793,339 @@ export class SidebarUI {
         // children; drop the reference so peekOff never touches an orphan, and
         // cancel any half-finished flip along with it.
         this.dropPeek();
+        // The grip must SURVIVE this wipe: it is a long-lived control the user
+        // may be holding right now, and innerHTML = '' runs ~4x/sec, so a grip
+        // rebuilt with the text would be torn out from under the pointer
+        // mid-drag (losing its capture). Detached first, re-appended after.
+        this.overlayHandle?.remove();
         overlay.innerHTML = '';
-        if (!sub) return;
+
+        // With the settings panel open the caption block has a second job: it is
+        // the thing being positioned, so it must stay on screen even at a moment
+        // the video has no line to show. Otherwise the arrows the user is
+        // dragging would vanish under their own pointer between cues — the
+        // control disappearing exactly while it is being used.
+        overlay.classList.toggle('vtt-overlay-adjusting', this.overlayAdjusting);
+        const shown = sub ?? preview?.sub ?? null;
+        if (!shown) {
+            // Nothing to hang the grip on, so it stays detached — and a drag
+            // still in flight has just lost the element holding its capture.
+            // End it here rather than leaving it flagged open forever.
+            this.endOverlayDrag?.();
+            return;
+        }
 
         this.applyOverlayStyle();
-        overlay.appendChild(this.buildOverlayMain(sub, index));
-        if (this.shouldShowOverlayTranslation(index)) {
-            const subDiv = this.buildSecondaryTextElement(this.state.getOverlappingSecondary(sub), 'vtt-overlay-sub');
+        // A stand-in must not read as a real line: see .vtt-overlay-placeholder.
+        // Taken from the lookup that produced it, never inferred by comparing
+        // text — a real cue that happened to read the same would be dimmed.
+        const placeholder = preview?.placeholder ?? false;
+
+        // A preview is not the playing line, so it carries no guess state: its
+        // index is whatever the playhead happens to sit at (often -1, before the
+        // first cue), and getRevealedCount(-1) answers 1 — which would redraw an
+        // already-solved line re-masked and unclickable. Preview text is shown
+        // plain; only a real cue is a puzzle.
+        const mainDiv = sub
+            ? this.buildOverlayMain(shown, index)
+            : this.buildPreviewMain(shown);
+        if (placeholder) mainDiv.classList.add('vtt-overlay-placeholder');
+        // Grip first, caption second: the row stacks vertically, so the grip
+        // fuses to the caption's top edge — see .vtt-overlay-row.
+        const row = document.createElement('div');
+        row.className = 'vtt-overlay-row';
+        row.appendChild(this.ensureOverlayHandle());
+        row.appendChild(mainDiv);
+        overlay.appendChild(row);
+        // Deferred to after the translation row is appended below, so the
+        // measurement covers the whole block. Repaint only — the stored position
+        // is never touched here; see applyOverlayStyle.
+        queueMicrotask(() => this.applyOverlayStyle());
+        // A preview line is not the playing line, so it gets no guess-mode
+        // translation gate — the point is to show the block's real shape,
+        // which in dual mode means both rows.
+        if (sub ? this.shouldShowOverlayTranslation(index) : this.state.displayMode !== 'single') {
+            const subDiv = placeholder
+                ? this.buildPlaceholderSecondary()
+                : this.buildSecondaryTextElement(this.state.getOverlappingSecondary(shown), 'vtt-overlay-sub');
             if (subDiv) overlay.appendChild(subDiv);
         }
+    }
+
+    // What to show in the caption block while the settings panel is open and the
+    // video is between cues (or has no track at all). Two fallbacks, in order:
+    // the nearest real line to the current time, so the user positions against
+    // text of a realistic length in their own languages; failing that a neutral
+    // stand-in, so there is still a block to aim the arrows at.
+    private previewSubtitleFor(index: number): { sub: Subtitle; placeholder: boolean } {
+        const track = this.state.getMainTrack();
+        if (track && track.length) {
+            const near = index >= 0 && index < track.length ? track[index] : this.nearestSubtitle(track);
+            if (near) return { sub: near, placeholder: false };
+        }
+        return { sub: { startTime: 0, endTime: 0, text: placeholderCaption() }, placeholder: true };
+    }
+
+    // Closest cue to the playhead by gap, so a pause between lines shows the one
+    // just finished or about to start rather than always the first in the file.
+    private nearestSubtitle(track: Subtitle[]): Subtitle | null {
+        let best: Subtitle | null = null;
+        let bestGap = Infinity;
+        for (const s of track) {
+            const gap = this.playbackTime < s.startTime
+                ? s.startTime - this.playbackTime
+                : this.playbackTime > s.endTime
+                    ? this.playbackTime - s.endTime
+                    : 0;
+            if (gap < bestGap) { bestGap = gap; best = s; }
+            if (gap === 0) break;
+        }
+        return best;
+    }
+
+    private buildPlaceholderSecondary(): HTMLDivElement {
+        const div = document.createElement('div');
+        div.className = 'vtt-overlay-sub vtt-overlay-placeholder';
+        div.textContent = msg('ytOverlayPreviewSub', 'Translation appears here');
+        return div;
+    }
+
+    // Whether the settings panel is open — while it is, the caption block stays
+    // on screen between cues (borrowing the nearest line, or a placeholder) so
+    // the user styles and positions against something visible, and the grip is
+    // shown. It is mirrored onto the overlay as .vtt-overlay-adjusting, which is
+    // what the stylesheet gates the grip's visibility on.
+    private overlayAdjusting = false;
+
+    // The grip that drags the captions around the player. Created once and kept
+    // in the DOM whether or not it is visible: updateOverlay wipes the overlay's
+    // children ~4x/sec, and a control the user is actively holding cannot be
+    // rebuilt under them. Hiding is the stylesheet's job (display: none, so a
+    // hidden grip cannot take the click that would otherwise reach the video).
+    private overlayHandle: HTMLButtonElement | null = null;
+
+    // Where the viewer put the captions. Owns the intent-vs-painted distinction
+    // (see overlay-position.ts); overlayStyle no longer carries the two nudges.
+    private position = new OverlayPosition();
+
+    // Ends an in-flight drag from outside the pointer sequence — set by
+    // attachOverlayDrag, called when the grip is hidden mid-gesture.
+    private endOverlayDrag: (() => void) | null = null;
+
+    private ensureOverlayHandle(): HTMLButtonElement {
+        if (this.overlayHandle) return this.overlayHandle;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'vtt-overlay-handle';
+        // A real button, so the control is reachable by keyboard and announced.
+        // Six dots, the standing sign for "this is a handle, drag it" — and a
+        // wide tab is the shape that reads as grippable. Dots rather than any
+        // arrow precisely because the grip gives in BOTH axes now: an arrow
+        // glyph would promise one direction and quietly deny the other.
+        btn.innerHTML =
+            '<svg viewBox="0 0 15 8" width="100%" height="100%" fill="currentColor" ' +
+            'aria-hidden="true">' +
+            '<circle cx="2" cy="2" r="1.2"/><circle cx="7.5" cy="2" r="1.2"/><circle cx="13" cy="2" r="1.2"/>' +
+            '<circle cx="2" cy="6" r="1.2"/><circle cx="7.5" cy="6" r="1.2"/><circle cx="13" cy="6" r="1.2"/>' +
+            '</svg>';
+        const label = msg('ytOverlayDragHandle', 'Drag to move the subtitles');
+        btn.title = label;
+        btn.setAttribute('aria-label', label);
+        this.attachOverlayDrag(btn);
+        // The grip lives INSIDE the player element, and the player toggles
+        // playback on a click anywhere on itself. Stopping pointerdown alone is
+        // not enough: preventDefault there cancels the compatibility
+        // mousedown/mouseup, but `click` is dispatched regardless, and a drag's
+        // pointerup is followed by one too — so every drag also paused or
+        // resumed the video. The whole pointer→mouse→click chain stops here.
+        for (const type of ['click', 'dblclick', 'mousedown', 'mouseup', 'pointerup', 'touchstart', 'touchend'] as const) {
+            btn.addEventListener(type, (e) => e.stopPropagation());
+        }
+        this.overlayHandle = btn;
+        return btn;
+    }
+
+    // Dragging the grip moves the captions in both axes and persists where they
+    // landed. Pointer events, not mouse: one code path covers mouse, touch and
+    // pen, and setPointerCapture keeps the drag alive when the pointer leaves
+    // the small grip — which it immediately does, since the caption moves out
+    // from under it.
+    private attachOverlayDrag(btn: HTMLButtonElement): void {
+        let startX = 0;
+        let startY = 0;
+        let startNudge = 0;
+        let startInline = 0;
+        let dragging = false;
+
+        const overlayEl = () => document.getElementById('vtt-video-overlay');
+
+        btn.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            // Without this the press also reaches the player and toggles
+            // playback, so every drag would pause the video.
+            e.preventDefault();
+            e.stopPropagation();
+            dragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startNudge = this.position.bottom;
+            startInline = this.position.inline;
+            btn.setPointerCapture(e.pointerId);
+            btn.classList.add('vtt-dragging');
+            overlayEl()?.classList.add('vtt-drag-active');
+        });
+
+        btn.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            e.preventDefault();
+            // Both axes move on one drag: the grip is a position control, not a
+            // vertical slider, so a diagonal pull has to land where the pointer
+            // went. Each axis is measured against its own dimension — vertical
+            // against the player's height, horizontal against its width — since
+            // that is the unit each one is stored in.
+            //
+            // Screen y grows downward while `bottom` grows upward, so that delta
+            // is inverted: drag up, the caption goes up. Screen x and the
+            // translate agree in direction, so that one is not. Live feedback
+            // without touching prefs — the write happens once, on release.
+            this.position.set(
+                this.overlayMetrics(),
+                startNudge + this.pxToPct(startY - e.clientY),
+                startInline + this.pxToPctX(e.clientX - startX),
+            );
+            this.applyOverlayStyle();
+        });
+
+        // Ends the drag and persists. Tolerates being called with no event (the
+        // grip being torn out mid-gesture, where there is no pointerup to come)
+        // and a capture that is already gone.
+        const end = (e?: PointerEvent) => {
+            if (!dragging) return;
+            dragging = false;
+            // Guarded: on the pointercancel path the capture may already be
+            // released, and Safari throws NotFoundError for an unknown
+            // pointerId. An exception here would skip the save below and strand
+            // .vtt-drag-active on the overlay.
+            try {
+                if (e) btn.releasePointerCapture?.(e.pointerId);
+            } catch {
+                /* capture already gone — nothing to release */
+            }
+            btn.classList.remove('vtt-dragging');
+            overlayEl()?.classList.remove('vtt-drag-active');
+            savePrefs(
+                {
+                    overlayBottomNudge: this.position.bottom,
+                    overlayInlineNudge: this.position.inline,
+                },
+                this.scope,
+            );
+        };
+        btn.addEventListener('pointerup', end);
+        btn.addEventListener('pointercancel', end);
+        // The panel closing mid-drag hides the grip (display: none), which
+        // silently kills the pointer capture and with it the pointerup that
+        // would have ended the gesture — leaving `dragging` stuck true and the
+        // release never saved. Nothing else can end a drag once the grip is
+        // gone, so the teardown owns it.
+        this.endOverlayDrag = () => end();
+
+        // Keyboard parity: the control is a real button, so it has to work
+        // without a pointer. Arrows nudge, Shift jumps, and the write is
+        // per-keystroke since there is no release to batch on.
+        btn.addEventListener('keydown', (e) => {
+            const step = e.shiftKey ? NUDGE_STEP_BIG_PX : NUDGE_STEP_PX;
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const delta = e.key === 'ArrowUp' ? step : -step;
+                this.position.nudgeBy(this.overlayMetrics(), this.pxToPct(delta), 0);
+                this.applyOverlayStyle();
+                savePrefs({ overlayBottomNudge: this.position.bottom }, this.scope);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                const delta = e.key === 'ArrowRight' ? step : -step;
+                this.position.nudgeBy(this.overlayMetrics(), 0, this.pxToPctX(delta));
+                this.applyOverlayStyle();
+                savePrefs({ overlayInlineNudge: this.position.inline }, this.scope);
+            }
+        });
+    }
+
+    /** Mirror of the settings panel's open state. Drives the caption preview. */
+    setOverlayAdjusting(on: boolean): void {
+        if (this.overlayAdjusting === on) return;
+        this.overlayAdjusting = on;
+        // Closing the panel hides the grip, which kills any capture it held: the
+        // pointerup that would have ended a live drag never arrives. Settle it
+        // here, so the gesture saves where it landed instead of leaving the drag
+        // flagged open and .vtt-drag-active stuck on the overlay.
+        if (!on) this.endOverlayDrag?.();
+        // The signature short-circuits identical rebuilds, so a mode change that
+        // does not change the LINE would otherwise not repaint — the preview
+        // would wait for the next cue to appear or disappear.
+        const overlay = document.getElementById('vtt-video-overlay');
+        if (overlay) delete overlay.dataset.sig;
+        this.updateOverlay(this.state.currentIndex);
+    }
+
+    private playerHeight(): number {
+        const overlay = document.getElementById('vtt-video-overlay');
+        return overlay?.parentElement?.offsetHeight || REFERENCE_PLAYER_H;
+    }
+
+    // Screen pixels → share of the current player's height. The nudge is STORED
+    // as that share, so a drag made in fullscreen lands at the same place on
+    // the inline player instead of at the same number of px up a frame a third
+    // the size.
+    private pxToPct(px: number): number {
+        return (px / this.playerHeight()) * 100;
+    }
+
+    private playerWidth(): number {
+        const overlay = document.getElementById('vtt-video-overlay');
+        return overlay?.parentElement?.offsetWidth || REFERENCE_PLAYER_W;
+    }
+
+    // The horizontal twin of pxToPct, against the player's WIDTH — which is what
+    // a percentage translateX on the overlay resolves against, so the number
+    // stored here and the number CSS applies are the same quantity.
+    private pxToPctX(px: number): number {
+        return (px / this.playerWidth()) * 100;
+    }
+
+    // The live geometry every bound is measured against, sampled fresh. The
+    // player height matters because the bound must hold in fullscreen too, where
+    // the frame is several times taller than inline; the block size matters
+    // because the caption's own height and width depend on the user's font size,
+    // on how many lines the text wrapped to, and on whether the translation row
+    // is showing. Zeroes mean "not measurable yet" — OverlayPosition falls back.
+    private overlayMetrics(): OverlayMetrics {
+        const overlay = document.getElementById('vtt-video-overlay');
+        const player = overlay?.parentElement ?? null;
+        // Measure the INK — the caption boxes themselves — and nothing that is
+        // merely a full-width track they are centred in. Both the overlay and
+        // .vtt-overlay-row are width: 100% of the player (the overlay must be,
+        // for the container query; the row must be, or the caption's
+        // max-width: 80% resolves against its own text and stops binding), so
+        // either one reports 100% and leaves ZERO travel: (100 - 100) / 2 is
+        // negative before the margin is even subtracted, and every sideways
+        // drag collapses to nothing. The row was in this list until it became
+        // full-width, which is exactly how that regression got in.
+        let blockWidth = 0;
+        if (overlay) {
+            for (const child of Array.from(overlay.querySelectorAll<HTMLElement>(
+                '.vtt-overlay-main, .vtt-overlay-sub',
+            ))) {
+                blockWidth = Math.max(blockWidth, child.offsetWidth);
+            }
+        }
+        return {
+            playerHeight: player?.offsetHeight ?? 0,
+            playerWidth: player?.offsetWidth ?? 0,
+            blockHeight: overlay?.offsetHeight ?? 0,
+            blockWidth,
+            presetPct: OVERLAY_BOTTOM_PCT[this.overlayStyle.overlayBottomOffset],
+        };
     }
 
     private createOverlayElement(): HTMLDivElement | null {
@@ -2784,6 +3155,11 @@ export class SidebarUI {
         // clicks. pointerdown fires at press time, before any rebuild can
         // detach the word. Clicks elsewhere on the caption stay click-based so
         // drag-selecting revealed words keeps working.
+        //
+        // The caption text is NOT a drag surface: moving the captions is the
+        // grip's job (see ensureOverlayHandle). A press here that also had to
+        // decide "reveal, select, or move?" made all three feel unreliable —
+        // which is why the grip is a separate body beside the text.
         overlay.addEventListener('pointerdown', (e) => {
             this.pointerRevealed = false;
             if (this.state.displayMode !== 'guess' || e.button !== 0) return;
@@ -2804,6 +3180,27 @@ export class SidebarUI {
             if (!sub) return;
             this.revealAndSeek(index, sub);
         });
+        // Keep the caption's own clicks off the player. The overlay is a CHILD of
+        // the player element, and the player toggles playback on a click
+        // anywhere inside itself — so every press on a subtitle (selecting a
+        // word for the dictionary, revealing one in guess mode) also paused or
+        // resumed the video.
+        //
+        // Scoped to the text boxes via .closest, not the whole overlay: the
+        // overlay spans the full player width, and swallowing clicks across all
+        // of it would break play/pause on the bare video beside a short caption.
+        //
+        // preventDefault is deliberately NOT called: it would kill the text
+        // selection that quick-add depends on. Only propagation stops, which is
+        // all the player's own listener needs to miss. mousedown/mouseup go too
+        // — a player that toggles on either would otherwise still fire.
+        for (const type of ['mousedown', 'mouseup', 'click', 'dblclick'] as const) {
+            overlay.addEventListener(type, (e) => {
+                if ((e.target as Element | null)?.closest?.('.vtt-overlay-main, .vtt-overlay-sub')) {
+                    e.stopPropagation();
+                }
+            });
+        }
         this.attachPeek(overlay);
         parent.appendChild(overlay);
         this.applyOverlayStyle();
@@ -2826,7 +3223,16 @@ export class SidebarUI {
             el.style.setProperty('--vtt-overlay-sub-color', s.overlaySubColor);
             el.style.setProperty('--vtt-overlay-text-opacity', String(s.overlayTextOpacity));
             el.style.setProperty('--vtt-overlay-bg-color', s.overlayBgColor);
-            el.style.setProperty('--vtt-overlay-bottom', OVERLAY_BOTTOM_PX[s.overlayBottomOffset]);
+            el.style.setProperty('--vtt-overlay-bottom', `${OVERLAY_BOTTOM_PCT[s.overlayBottomOffset]}%`);
+            // Resolved, not stored: the position is painted through whatever the
+            // current geometry allows, while the value the user chose stays
+            // untouched in `position`. A cue too tall to honour it pulls the
+            // caption in for that cue only — the next short line puts it back.
+            // Writing the clamp home instead is what used to walk a saved
+            // position to the centre over the course of one film.
+            const pos = this.position.resolve(this.overlayMetrics());
+            el.style.setProperty('--vtt-overlay-nudge', `${pos.bottom}%`);
+            el.style.setProperty('--vtt-overlay-inline-nudge', `${pos.inline}%`);
             el.style.setProperty('--vtt-overlay-bg-opacity', OVERLAY_BG_OPACITY[s.overlayBgOpacity]);
             // The edge keeps glyphs legible where the box is see-through and raw
             // video shows behind them, so it contrasts with the TEXT, not the
@@ -2849,6 +3255,16 @@ export class SidebarUI {
                 edgeValue(s.overlayEdgeStyle, hexLuminance(s.overlaySubColor) > 0.5 ? '#000' : '#fff'),
             );
         }
+    }
+
+    /** The caption box for a PREVIEW line — always plain text, never a puzzle.
+     *  No data-index: nothing here is a reveal target, and a stale index would
+     *  send a click at whatever cue the playhead is nearest. */
+    private buildPreviewMain(sub: Subtitle): HTMLDivElement {
+        const mainDiv = document.createElement('div');
+        mainDiv.className = 'vtt-overlay-main';
+        this.fillPlainWordsInto(mainDiv, sub.text);
+        return mainDiv;
     }
 
     private buildOverlayMain(sub: Subtitle, index: number): HTMLDivElement {
