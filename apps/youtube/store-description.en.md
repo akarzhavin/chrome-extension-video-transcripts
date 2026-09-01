@@ -48,7 +48,16 @@ Tap a word or phrase to save it — together with the lines around it, so you
 remember where it came from. Sign in free, and your words follow you across
 devices.
 
+⬇️ DOWNLOAD SUBTITLES AS .SRT
+Grab the transcript and keep it. One click on the download button saves the
+subtitles of the video you're watching as a clean .srt file — a subtitle
+downloader built into the player, on YouTube and on Netflix. Open it in VLC,
+feed it to Anki or subs2srs, paste it into a translator, or just read the
+script on the train. Auto-generated captions save the same way, so you can
+keep the dual subs from almost any video.
+
 🧰 MORE TOOLS
+• Download subtitles as an .srt file — one click
 • Overlay mode — subtitles in a floating panel over the video
 • Swap your two languages with one key
 • Choose your caption tracks

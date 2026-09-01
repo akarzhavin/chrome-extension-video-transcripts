@@ -68,6 +68,14 @@ your saved words sync to a free Lingogram account so you can review them on any
 device.
 
 
+DOWNLOAD SUBTITLES AS .SRT
+Take the transcript with you. One click on the download button saves the
+subtitles of the movie or episode you're watching as a clean .srt file — a
+subtitle downloader built into the player. Open it in VLC, feed it to Anki or
+subs2srs, paste a scene into a translator, or read the script away from the
+screen. Keep the dual subs from any HDrezka title that has a subtitle track.
+
+
 RELIABLE, AND PRIVATE BY DEFAULT
 • Works on any HDrezka title that has a subtitle track, including in fullscreen —
   the floating overlay keeps your subtitles on screen.
@@ -78,6 +86,7 @@ RELIABLE, AND PRIVATE BY DEFAULT
 
 
 ALSO BUILT FOR FOCUSED STUDY
+• Download subtitles — save the subtitle track as an .srt file in one click.
 • Overlay mode — pop the subtitles into a small panel on top of the video so you
   can focus on the words (Shift + O).
 • Instant language switch — when a title has two tracks, flip primary and
