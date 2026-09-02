@@ -2,9 +2,8 @@ import { platformOf } from '../analytics';
 import { msg as i18nMsg } from '../i18n';
 import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feedback';
 
-const PILL_ID = 'lingogram-quick-add-pill';
 const TOAST_ID = 'lingogram-quick-add-toast';
-const MAX_TERM_LEN = 256;
+export const MAX_TERM_LEN = 256;
 // Set on #vtt-list while a two-cue phrase is being dragged out.
 const PHRASE_SELECT_CLASS = 'vtt-phrase-selecting';
 
@@ -12,13 +11,13 @@ const PHRASE_SELECT_CLASS = 'vtt-phrase-selecting';
 // containers — never the translation row (.vtt-sub-text) or unrelated page DOM.
 const SELECTION_SCOPE_SELECTOR = '.vtt-main-text, .vtt-overlay-main';
 
-interface SelectionPayload {
+export interface SelectionPayload {
     term: string;
     rect: DOMRect;
     context: string;
 }
 
-function getSelectionPayload(): SelectionPayload | null {
+export function getSelectionPayload(): SelectionPayload | null {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
     const range = sel.getRangeAt(0);
@@ -147,8 +146,10 @@ function buildContextFromScope(scope: Element): string {
 /**
  * The saved word's neighbourhood: the line before, the line itself, the line
  * after. Keyed by subtitle index rather than by a selection scope.
+ * Exported for the lookup strip, which anchors on a hovered word and reaches
+ * the same cue index by the same data-index attributes.
  */
-function buildContextForIndex(index: number): string {
+export function buildContextForIndex(index: number): string {
     const list = document.getElementById('vtt-list');
     if (!list) return '';
 
@@ -180,10 +181,6 @@ function readMainText(list: HTMLElement, index: number): string {
         if (w) words.push(w);
     });
     return words.join(' ');
-}
-
-function removePill(): void {
-    document.getElementById(PILL_ID)?.remove();
 }
 
 // While a selection spans two cues, the translation row caught between them
@@ -254,7 +251,7 @@ function injectSavedWordStyles(): void {
     (document.head ?? document.documentElement).appendChild(style);
 }
 
-function selectionWordSpans(): HTMLElement[] {
+export function selectionWordSpans(): HTMLElement[] {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return [];
     const range = sel.getRangeAt(0);
@@ -606,71 +603,6 @@ function showRatePrompt(): void {
     (document.fullscreenElement ?? document.body).appendChild(card);
 }
 
-// Half the pill's own width, used to centre it over the selection before
-// clamping. The pill is sized by its content, so this is an estimate that only
-// has to be close — the clamp below is what guarantees it stays on screen.
-const PILL_HALF_WIDTH = 50;
-const PILL_MARGIN = 8;
-
-function showPill(rect: DOMRect, term: string, context: string): void {
-    removePill();
-    const pill = document.createElement('button');
-    pill.id = PILL_ID;
-    pill.type = 'button';
-    pill.textContent = i18nMsg('ytQuickAddPill', '+ Lingogram');
-
-    // Clamp to the viewport on both axes. Selecting the first word of a line
-    // near the left edge used to push the pill off-screen (centre − 50 goes
-    // negative), and selecting in the on-screen overlay near the top of the
-    // video put it above y=0 — in both cases the only way to save the word
-    // vanished. Below the selection is the fallback when there's no room above.
-    const left = Math.min(
-        Math.max(PILL_MARGIN, Math.round(rect.left + rect.width / 2 - PILL_HALF_WIDTH)),
-        window.innerWidth - PILL_HALF_WIDTH * 2 - PILL_MARGIN,
-    );
-    const above = Math.round(rect.top - 32);
-    const top = above >= PILL_MARGIN ? above : Math.round(rect.bottom + 8);
-
-    Object.assign(pill.style, {
-        position: 'fixed',
-        left: `${left}px`,
-        top: `${top}px`,
-        zIndex: '2147483647',
-        padding: '6px 12px',
-        borderRadius: '999px',
-        border: '1px solid var(--vtt-accent-border-strong, rgba(124,141,255,0.55))',
-        background: 'var(--vtt-accent, #7c8dff)',
-        color: '#0a1129',
-        fontSize: '12px',
-        fontWeight: '600',
-        fontFamily: 'var(--vtt-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)',
-        cursor: 'pointer',
-        boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
-    } as CSSStyleDeclaration);
-
-    pill.addEventListener('mousedown', (e) => {
-        // Prevent selection collapse before click fires.
-        e.preventDefault();
-    });
-
-    pill.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        // Snapshot the selected spans now — the click may clear the selection.
-        const savedSpans = selectionWordSpans();
-        pill.disabled = true;
-        pill.textContent = '…';
-        const ok = await saveTerm(term, context, savedSpans);
-        if (ok) {
-            // Drop the range so the overlay's selection-guard releases and
-            // resumes timeupdate rebuilds.
-            window.getSelection()?.removeAllRanges();
-        }
-        removePill();
-    });
-
-    (document.fullscreenElement ?? document.body).appendChild(pill);
-}
-
 /**
  * Save one term to the dictionary and report it to the user. Extracted from the
  * pill's click handler so guess mode can reach it too: there the word is
@@ -680,7 +612,7 @@ function showPill(rect: DOMRect, term: string, context: string): void {
  * `spans` are the word elements to tag "saved" on success; pass an empty array
  * when there is nothing on screen to mark. Returns whether the save succeeded.
  */
-async function saveTerm(
+export async function saveTerm(
     term: string,
     context: string,
     spans: HTMLElement[] = [],
@@ -716,7 +648,7 @@ async function saveTerm(
     }
 }
 
-function sendMessage<T>(msg: object): Promise<T> {
+export function sendMessage<T>(msg: object): Promise<T> {
     return new Promise((resolve, reject) => {
         // Stale content scripts left over from an extension reload still have
         // a `chrome` global, but `chrome.runtime.id` flips to undefined.
@@ -752,34 +684,23 @@ function applyDevRatePromptOverride(): void {
 }
 
 /**
+ * Selection-time housekeeping around saving words: the "saved" markers' styles
+ * and hiding the translation row from a cross-cue drag.
+ *
+ * It offers nothing itself. Selecting a phrase used to pop a "+ Lingogram"
+ * pill — a second offer over the same subtitles as the lookup card, able only
+ * to save, never to translate. The card took the selection trigger over
+ * (installLookupStrip's onSelectionMouseUp) and saves through the same
+ * saveTerm exported below. The pill lives on only in the marketing embed,
+ * which has no backend for the card to talk to; see packages/embed/src/pill.ts.
+ *
  * Returns a teardown. The extensions live for the page's lifetime and can
- * ignore it, but an embed (packages/embed) may remount — and without unbinding,
- * a second install leaves two `mouseup` handlers, so one selection shows the
- * pill twice and the two `mousedown` handlers race to remove it.
+ * ignore it, but an embed (packages/embed) may remount — and without
+ * unbinding, a second install leaves two `selectionchange` handlers.
  */
 export function installQuickAddOverlay(): () => void {
     injectSavedWordStyles();
     applyDevRatePromptOverride();
-    const onMouseUp = (): void => {
-        // Defer so that selection is finalized after click on existing pill clearing it.
-        setTimeout(() => {
-            const payload = getSelectionPayload();
-            if (!payload || payload.term.length > MAX_TERM_LEN) {
-                removePill();
-                return;
-            }
-            showPill(payload.rect, payload.term.toLowerCase(), payload.context);
-        }, 0);
-    };
-    document.addEventListener('mouseup', onMouseUp);
-
-    const onMouseDown = (e: MouseEvent): void => {
-        const pill = document.getElementById(PILL_ID);
-        if (pill && !pill.contains(e.target as Node)) {
-            removePill();
-        }
-    };
-    document.addEventListener('mousedown', onMouseDown);
 
     // Runs while the drag is still in flight — mouseup is too late, the stray
     // highlight has to be gone as the cursor crosses the translation.
@@ -787,9 +708,8 @@ export function installQuickAddOverlay(): () => void {
     document.addEventListener('selectionchange', onSelectionChange);
 
     return () => {
-        document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('mousedown', onMouseDown);
         document.removeEventListener('selectionchange', onSelectionChange);
         document.getElementById('vtt-list')?.classList.remove(PHRASE_SELECT_CLASS);
     };
 }
+

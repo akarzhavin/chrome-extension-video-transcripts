@@ -23,6 +23,7 @@ import {
 } from '@video-transcripts/shared';
 import type { AppInterface } from '@video-transcripts/shared';
 import { installChromeShim } from './chrome-shim';
+import { installQuickAddPill } from './pill';
 import { EMBED_CSS } from './embed-css';
 // The extension's real stylesheet, inlined at build time (see vite.config.ts).
 import { EXTENSION_CSS } from 'virtual:extension-css';
@@ -180,12 +181,16 @@ export function mount(options: EmbedOptions): EmbedInstance {
     };
     document.addEventListener('fullscreenchange', onFullscreen);
 
-    // The extension's own content modules, unmodified: selection → save pill
-    // with its toast, and the account/word-count badge. Both bind document-level
+    // The extension's own content modules: selection → save pill with its
+    // toast, and the account/word-count badge. Both bind document-level
     // listeners, so their teardowns are collected — a remount (the YouTube→file
     // fallback) would otherwise stack a second set and fire each twice.
     const pageTeardown: Array<() => void> = [
         installQuickAddOverlay(),
+        // Embed-only: the extensions dropped the pill for the lookup card,
+        // which sits out this surface (no backend behind the chrome shim), so
+        // here it is still the only way to save a word. See ./pill.ts.
+        installQuickAddPill(),
         installAuthStatusBadge(),
     ];
     refreshAuthStatusBadge();

@@ -10,5 +10,5 @@
     "outDir": "dist",
     "types": ["chrome"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "../shared/src/auth/globals.d.ts"]
 }

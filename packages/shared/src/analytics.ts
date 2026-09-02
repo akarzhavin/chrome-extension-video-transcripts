@@ -44,6 +44,9 @@ export type AnalyticsEvent =
     // Value moment
     | 'word_save_attempt'
     | 'word_saved'
+    // The hover strip / word screen asked the dictionary service. Carries only
+    // shape (source, level, latency bucket) — the word itself is denied.
+    | 'word_lookup'
     | 'signin_started'
     // Consent
     | 'analytics_opt_out'
@@ -76,6 +79,7 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'subs_downloaded',
     'word_save_attempt',
     'word_saved',
+    'word_lookup',
     'signin_started',
     'analytics_opt_out',
     'notification_fetch_failed',
@@ -104,6 +108,7 @@ export const SITE_BEARING_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<Analytic
     'subs_downloaded',
     'word_save_attempt',
     'word_saved',
+    'word_lookup',
 ]);
 
 export type AnalyticsParamValue = string | number | boolean;

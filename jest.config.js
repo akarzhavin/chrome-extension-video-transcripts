@@ -1,5 +1,10 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
+    // Git worktrees under .claude/worktrees are parallel checkouts (other
+    // sessions' work). Scanning them makes every package name ambiguous in the
+    // Haste map and runs someone else's suites; ignore the whole tree.
+    testPathIgnorePatterns: ['/node_modules/', '/\\.claude/'],
+    modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   moduleNameMapper: {

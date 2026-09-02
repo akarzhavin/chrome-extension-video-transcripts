@@ -36,6 +36,12 @@ export default defineConfig({
     __EXT_ALT_PROJECT_ID__: JSON.stringify(''),
     __EXT_ALT_API_KEY__: JSON.stringify(''),
     __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(''),
+    // Empty = word lookup off, which is what the embed wants: the chrome shim
+    // has no worker to route LOOKUP_WORD through, and installLookupStrip sits
+    // this surface out anyway (isEmbed). Unset they would survive the bundle
+    // as bare identifiers and throw on first read.
+    __EXT_API_BASE_URL__: JSON.stringify(''),
+    __EXT_ALT_API_BASE_URL__: JSON.stringify(''),
     ...limitDefines(loadLingogramLimits()),
   },
   build: {

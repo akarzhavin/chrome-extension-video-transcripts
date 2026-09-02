@@ -193,6 +193,16 @@ const ALLOWED_INFRA_HOSTS = [
     'https://firestore.googleapis.com/*',
 ];
 
+// Infra origins a release MAY carry but does not have to. The lookup API's
+// production origin appears only when EXT_API_BASE_URL was set at build time;
+// a build pointed at preprod carries a run.app origin instead and still fails
+// the gate, which is exactly right — preprod must never reach the store.
+// Separate from ALLOWED_INFRA_HOSTS because that list is also REQUIRED
+// (infraMissing below), and a release without the lookup feature is shippable.
+const OPTIONAL_INFRA_HOSTS = [
+    'https://api.lingogram.ai/*',
+];
+
 // Content sites the extension reads subtitles on. Rezka ships ~250 entries, but
 // they are only a handful of NAMES across many TLDs (hdrezka.ag, hdrezka.to,
 // rezka.ru, …), so the second-level name is pinned and only the zone is free.
@@ -252,7 +262,9 @@ function manifestProblems(dir) {
 
     const hosts = manifest.host_permissions ?? [];
     const infraUnexpected = hosts.filter(
-        (o) => !isContentSiteOrigin(o) && !ALLOWED_INFRA_HOSTS.includes(o),
+        (o) => !isContentSiteOrigin(o)
+            && !ALLOWED_INFRA_HOSTS.includes(o)
+            && !OPTIONAL_INFRA_HOSTS.includes(o),
     );
     if (infraUnexpected.length) {
         problems.push(

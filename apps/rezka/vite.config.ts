@@ -30,6 +30,19 @@ const originMatch = (baseUrl: string, varName: string): string => {
 };
 
 const FRONTEND_ORIGIN_MATCH = originMatch(FRONTEND_BASE_URL, 'EXT_FRONTEND_BASE_URL');
+// Our own API (POST /dictionary/lookup). Empty = the feature is off and no
+// origin is added anywhere. The worker's fetch needs host_permissions to
+// bypass CORS (the edge's allow-list has no chrome-extension:// origin), so
+// the origin goes into the manifest below, not only into the define.
+const API_BASE_URL = process.env.EXT_API_BASE_URL ?? '';
+const API_ORIGIN_MATCH = (() => {
+  if (!API_BASE_URL) return '';
+  try {
+    return `${new URL(API_BASE_URL).origin}/*`;
+  } catch {
+    throw new Error(`EXT_API_BASE_URL is not a valid URL: ${API_BASE_URL}`);
+  }
+})();
 // Second origin for the dev-only backend switch, when a build is given one.
 const ALT_ORIGIN_MATCH = originMatch(
   process.env.EXT_ALT_FRONTEND_BASE_URL ?? '',
@@ -85,6 +98,9 @@ const buildDefines = {
   __EXT_ALT_PROJECT_ID__: JSON.stringify(process.env.EXT_ALT_PROJECT_ID ?? ''),
   __EXT_ALT_API_KEY__: JSON.stringify(process.env.EXT_ALT_API_KEY ?? ''),
   __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_ALT_FRONTEND_BASE_URL ?? ''),
+  // Lookup API for this side and (dev switch) the other one. Empty = off.
+  __EXT_API_BASE_URL__: JSON.stringify(API_BASE_URL),
+  __EXT_ALT_API_BASE_URL__: JSON.stringify(process.env.EXT_ALT_API_BASE_URL ?? ''),
   // GA4 Measurement Protocol. The api_secret is a WRITE-ONLY credential: it can
   // send events to our property, not read from it. It ships inside the service
   // worker bundle, so treat a leak as a data-poisoning risk (rotate it in the
@@ -182,6 +198,13 @@ export default defineConfig(({ command, mode }) => {
                 // manifest is static, so a build that cannot name both origins
                 // up front can move its data plane but never complete a
                 // sign-in on the other side.
+                // API_ORIGIN_MATCH goes into host_permissions only — unlike
+                // the frontend origins it never talks TO the extension, so it
+                // has no business in externally_connectable.
+                if (API_ORIGIN_MATCH && Array.isArray(manifest.host_permissions)
+                    && !manifest.host_permissions.includes(API_ORIGIN_MATCH)) {
+                  manifest.host_permissions = [...manifest.host_permissions, API_ORIGIN_MATCH];
+                }
                 for (const origin of [FRONTEND_ORIGIN_MATCH, ALT_ORIGIN_MATCH]) {
                   if (!origin) continue;
                   const add = (list) =>
