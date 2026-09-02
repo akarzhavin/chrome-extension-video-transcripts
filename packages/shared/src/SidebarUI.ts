@@ -23,7 +23,8 @@ import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowEle
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
-import { LookupResult, hasLookupContent, isContextual, oxfordLookupUrl, posTags, showsLemma } from './lookup';
+import { LookupResult, hasLookupContent } from './lookup';
+import { isContextual, oxfordLookupUrl, posTags, showsLemma } from './lookup/shape';
 import { posLabel } from './content/lookup-strip';
 import { saveTerm, sendMessage } from './content/quick-add-overlay';
 import {

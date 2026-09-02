@@ -52,14 +52,19 @@ import {
     latencyBucket,
     lookupCached,
     clearLookupCache,
+    LookupResult,
+} from '../src/lookup';
+// The presentation helpers are internal to the module — deliberately absent
+// from its façade — so they are imported by path, the same way this file
+// already reaches auth/background.
+import {
     stripDefinition,
     showsLemma,
     isContextual,
     oxfordLookupUrl,
     posTags,
     stripTranslations,
-    LookupResult,
-} from '../src/lookup';
+} from '../src/lookup/shape';
 import { installLookupStrip } from '../src/content/lookup-strip';
 import { handleAuthMessage } from '../src/auth/background';
 import { config } from '../src/auth/config';

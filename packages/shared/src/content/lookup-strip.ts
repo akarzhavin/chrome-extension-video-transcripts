@@ -28,15 +28,15 @@
 import { isEmbed, platformOf } from '../analytics';
 import { msg } from '../i18n';
 import { loadLanguagePrefs } from '../languages';
-import type { LookupResult } from '../lookup';
+import type { LookupResult } from '../lookup/types';
+import { MAX_LOOKUP_TERM_LEN } from '../lookup/types';
 import {
-    MAX_LOOKUP_TERM_LEN,
     hasLookupContent,
     posTags,
     showsLemma,
     stripDefinition,
     stripTranslations,
-} from '../lookup';
+} from '../lookup/shape';
 import type { SelectionPayload } from './quick-add-overlay';
 import {
     buildContextForIndex,
