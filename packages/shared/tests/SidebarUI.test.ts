@@ -1954,6 +1954,20 @@ describe('SidebarUI', () => {
             expect(ui.isCollapsed()).toBe(true);
         });
 
+        // The word screen is reached from the transcript, not from settings, so
+        // the gear can be pressed while it is up. Both takeovers would then be
+        // open at once and their back chips, which share a position, overlap —
+        // clicking the visible one becomes a coin flip on z-order.
+        it('opening settings closes the word screen — takeovers never stack', () => {
+            ui.elements.settingsPanel = document.createElement('div') as HTMLDivElement;
+            ui.elements.titleEl = document.createElement('h2') as HTMLHeadingElement;
+            ui.openLookupScreen('main', 'the main sail');
+            ui.toggleSettingsPanel();
+            expect(ui.elements.sidebar!.classList.contains('vtt-settings-open')).toBe(true);
+            expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
+            expect(ui.elements.titleEl!.textContent).toBe('Settings');
+        });
+
         it('a second word must not forget how the FIRST one found the panel', () => {
             ui.elements.sidebar!.classList.add('collapsed');
             ui.openLookupScreen('main', 'the main sail');

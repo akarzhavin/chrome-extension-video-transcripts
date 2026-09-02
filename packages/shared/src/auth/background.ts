@@ -8,7 +8,7 @@ import { config } from './config';
 import { handleDevAction, restoreEnv, switchableFrontendBaseUrls } from './devEnvSwitch';
 // Relative for the same reason as analytics-bg: the worker imports by path,
 // and lookup.ts is deliberately absent from the package barrel.
-import { hasLookupContent, latencyBucket, lookupCached } from '../lookup';
+import { MAX_LOOKUP_TERM_LEN, hasLookupContent, latencyBucket, lookupCached } from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
 import { loadLanguagePrefs } from '../languages';
@@ -319,6 +319,11 @@ export async function handleAuthMessage(
             const term = String(request.term ?? '').trim();
             const targetLang = String(request.targetLang ?? '').trim();
             if (!term || !targetLang) return { ok: false, error: 'term and targetLang required' };
+            // The selection path caps length before it calls, but the hover
+            // path reads span.dataset.word straight off the page — and a
+            // third-party subtitle track sets that. Refuse here too, where
+            // every caller passes, rather than trusting each call site.
+            if (term.length > MAX_LOOKUP_TERM_LEN) return { ok: false, error: 'term too long' };
             if (!config.apiBaseUrl) return { ok: false, error: 'lookup not configured' };
             const context = typeof request.context === 'string' ? request.context : '';
             // Two sizes: the strip wants one sense (~2 KB, not the 41 KB a

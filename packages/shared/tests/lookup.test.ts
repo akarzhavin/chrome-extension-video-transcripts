@@ -321,6 +321,31 @@ describe('lookupCached', () => {
         await lookupCached('https://api.test', { term: 'anchor', targetLang: 'de' }, false);
         expect(global.fetch).toHaveBeenCalledTimes(2);
     });
+
+    // An empty answer is not always the stable fact it looks like: a degraded
+    // model answers 200 with nothing in it. Cached forever, that word stays
+    // blank for the life of the worker — long after the service recovered.
+    it('re-asks an empty answer once it goes stale, and keeps a real one', async () => {
+        const empty = { ...dictAnswer, translations: [], parts_of_speech: [] };
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse(empty));
+        await lookupCached('https://api.test', { term: 'sloppily', targetLang: 'ru' }, false);
+        const again = await lookupCached('https://api.test', { term: 'sloppily', targetLang: 'ru' }, false);
+        expect(again.cached).toBe(true);
+
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 61_000);
+        try {
+            (global.fetch as jest.Mock).mockResolvedValue(jsonResponse(dictAnswer));
+            const recovered = await lookupCached('https://api.test', { term: 'sloppily', targetLang: 'ru' }, false);
+            expect(recovered.cached).toBe(false);
+            expect(recovered.result.translations.length).toBeGreaterThan(0);
+
+            // A real answer has no expiry — only the empty one was provisional.
+            const kept = await lookupCached('https://api.test', { term: 'sloppily', targetLang: 'ru' }, false);
+            expect(kept.cached).toBe(true);
+        } finally {
+            (Date.now as jest.Mock).mockRestore();
+        }
+    });
 });
 
 describe('LOOKUP_WORD route', () => {
@@ -363,6 +388,18 @@ describe('LOOKUP_WORD route', () => {
             action: 'LOOKUP_WORD', term: 'anchor', targetLang: 'ru',
         })) as { ok: boolean };
         expect(res.ok).toBe(false);
+    });
+
+    // The selection path caps length before it calls, but the hover path reads
+    // span.dataset.word straight off the page — and on Rezka the subtitle
+    // track comes from a third-party host. The service refuses past 200 runes,
+    // so a longer term is a round-trip that can only 400.
+    it('refuses an oversized term before any network', async () => {
+        const res = await handleAuthMessage({
+            action: 'LOOKUP_WORD', term: 'x'.repeat(201), targetLang: 'ru',
+        });
+        expect(res).toEqual({ ok: false, error: 'term too long' });
+        expect(global.fetch).not.toHaveBeenCalled();
     });
 });
 

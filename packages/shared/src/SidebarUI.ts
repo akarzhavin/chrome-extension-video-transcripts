@@ -1547,6 +1547,11 @@ export class SidebarUI {
         // down first — otherwise its class survives and the next visit to
         // settings opens straight into a stale feedback screen.
         if (sidebar?.classList.contains('vtt-feedback-open')) this.closeFeedbackScreen(false);
+        // The word screen is a takeover too, and it is reached from the
+        // transcript rather than from settings — so the gear can be pressed
+        // with it open. Both classes would then be set at once and their back
+        // chips, which share a position, would overlap.
+        if (sidebar?.classList.contains('vtt-lookup-open')) this.closeLookupScreen();
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));

@@ -11,6 +11,13 @@
 // here, but the barrel is the embed's surface too, and the embed has no
 // backend to call — keeping this out makes "lookup exists" an extension fact.
 
+/**
+ * Longest term worth sending. The service refuses past 200 runes, so anything
+ * longer is a round-trip that can only 400 — and the hover path's term comes
+ * from a subtitle track we did not write.
+ */
+export const MAX_LOOKUP_TERM_LEN = 200;
+
 export interface LookupExample {
     text: string;
     translation: string;
@@ -258,8 +265,24 @@ export function latencyBucket(ms: number): string {
 // first answer's sense order is reused for later sightings of the same word,
 // which trades a little precision for not re-spending the 30/min budget every
 // time a common word recurs. The server keeps its own context-aware cache.
-const cache = new Map<string, LookupResult>();
+/** A cached answer, with the moment it stops counting (Infinity = never). */
+interface CacheEntry {
+    result: LookupResult;
+    until: number;
+}
+
+const cache = new Map<string, CacheEntry>();
 const CACHE_MAX = 200;
+
+/**
+ * How long an empty answer is trusted. Long enough that scrubbing back over
+ * the same line does not re-ask for a word that genuinely has no entry, short
+ * enough that a service that was briefly degraded answers properly on the next
+ * hover rather than at the end of the session.
+ */
+const EMPTY_TTL_MS = 60_000;
+
+const expired = (e: CacheEntry): boolean => Date.now() >= e.until;
 
 export function cacheKey(detail: boolean, targetLang: string, term: string): string {
     return `${detail ? 'd' : 's'}|${targetLang.toLowerCase()}|${term.toLowerCase().trim()}`;
@@ -273,15 +296,20 @@ export async function lookupCached(
 ): Promise<{ result: LookupResult; cached: boolean }> {
     const key = cacheKey(detail, req.targetLang, req.term);
     const hit = cache.get(key);
-    if (hit) return { result: hit, cached: true };
+    if (hit && !expired(hit)) return { result: hit.result, cached: true };
     const result = await fetchLookup(baseUrl, req);
-    // An empty answer is cached too: the service treats "no entry" as a stable
-    // fact, and re-asking on every hover would burn the rate limit on typos.
+    // An empty answer is cached too — re-asking on every hover would burn the
+    // rate limit on typos — but only briefly. The service does NOT store one
+    // (its own cache treats "no content" as a miss), because empty is not
+    // always the stable fact it looks like: a degraded model answers 200 with
+    // nothing in it. Keeping that forever would leave a word permanently
+    // blank for the life of the worker, long after the service recovered.
+    const until = hasLookupContent(result) ? Infinity : Date.now() + EMPTY_TTL_MS;
     if (cache.size >= CACHE_MAX) {
         const oldest = cache.keys().next().value;
         if (oldest !== undefined) cache.delete(oldest);
     }
-    cache.set(key, result);
+    cache.set(key, { result, until });
     return { result, cached: false };
 }
 

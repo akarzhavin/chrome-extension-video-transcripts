@@ -21,6 +21,7 @@
  * complete on the other side; without it the data plane switches but the auth
  * handoff silently never connects.
  */
+import { clearLookupCache } from '../lookup';
 import { config } from './config';
 import { clearAuthState } from './storage';
 
@@ -163,12 +164,18 @@ export async function restoreEnv(): Promise<void> {
  * inside the project that issued them. Carrying a session across would either
  * fail confusingly or, worse, write words under a uid that means something
  * different on the other side.
+ *
+ * The lookup cache goes for the same reason, one level down: it is keyed by
+ * term and language but not by backend, so answers fetched from one side would
+ * be served after the switch — and switching sides is usually how you check a
+ * dictionary change reached the other one.
  */
 export async function switchEnv(side: ExtEnvName): Promise<void> {
     if (__EXT_ENV__ !== 'dev') return;
     if (side === 'away' && !AWAY) return;
     applySide(side);
     await chrome.storage.local.set({ [STORAGE_KEY]: side });
+    clearLookupCache();
     await clearAuthState();
 }
 

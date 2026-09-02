@@ -29,10 +29,16 @@ import { isEmbed, platformOf } from '../analytics';
 import { msg } from '../i18n';
 import { loadLanguagePrefs } from '../languages';
 import type { LookupResult } from '../lookup';
-import { hasLookupContent, posTags, showsLemma, stripDefinition, stripTranslations } from '../lookup';
+import {
+    MAX_LOOKUP_TERM_LEN,
+    hasLookupContent,
+    posTags,
+    showsLemma,
+    stripDefinition,
+    stripTranslations,
+} from '../lookup';
 import type { SelectionPayload } from './quick-add-overlay';
 import {
-    MAX_TERM_LEN as MAX_LOOKUP_TERM_LEN,
     buildContextForIndex,
     getSelectionPayload,
     saveTerm,
