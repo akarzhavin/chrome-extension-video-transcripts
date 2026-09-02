@@ -1942,6 +1942,11 @@ export class SidebarUI {
      */
     destroy(): void {
         for (const off of this.teardown.splice(0)) off();
+        // Advance the word screen's request sequence before the elements go,
+        // so an answer still in flight is dropped rather than rendered into a
+        // panel that is being dismantled. The renderers already guard on a
+        // missing panel; this drops it one step earlier.
+        this.closeLookupScreen();
         this.elements.sidebar?.remove();
         // The toggle tab is BORN inside the sidebar but a host may re-parent it
         // (packages/embed moves it onto its own tab slot, and fullscreen moves
