@@ -5,7 +5,7 @@
 import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
-import { loadPrefs } from '../src/prefs';
+import { loadPrefs, savePrefs } from '../src/prefs';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -95,6 +95,24 @@ describe('SidebarUI', () => {
         const overlay = document.getElementById('vtt-video-overlay');
         expect(overlay).not.toBeNull();
         expect(overlay?.textContent).toBe('Hello');
+    });
+
+    describe('buildSecondaryTextElement', () => {
+        const build = (texts: string[]) =>
+            (ui as any).buildSecondaryTextElement(texts.map((text) => ({ text }))) as HTMLDivElement | null;
+
+        test('joins paired cues with a space, not a separator character', () => {
+            expect(build(['И если ты клеймишь его выбор,', 'то поддерживаешь'])?.textContent)
+                .toBe('И если ты клеймишь его выбор, то поддерживаешь');
+        });
+
+        test('drops duplicated cue texts', () => {
+            expect(build(['same line', 'same line', 'other'])?.textContent).toBe('same line other');
+        });
+
+        test('returns null when nothing is paired', () => {
+            expect(build([])).toBeNull();
+        });
     });
 
     test('settings takeover: hides list via class, swaps header title, restores on exit', () => {
@@ -899,6 +917,28 @@ describe('SidebarUI', () => {
             expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('3.7%');
             (ui as any).setOverlayBottomOffset('high');
             expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('13%');
+        });
+
+        test('an offset preset lands at its fixed spot: the drag offset is cleared, not stacked', async () => {
+            const overlay = buildOverlay();
+            // The viewer dragged the caption away from center before clicking.
+            await savePrefs({ overlayBottomNudge: 20, overlayInlineNudge: 5 }, 'other');
+            (ui as any).position.load(20, 5);
+
+            // 'medium' is the default, i.e. the ALREADY-ACTIVE segment: even a
+            // re-click of the current preset must recenter the caption — the
+            // buttons are also the way back after a drag.
+            (ui as any).setOverlayBottomOffset('medium');
+
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bottom')).toBe('7.4%');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toBe('0%');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge')).toBe('0%');
+            // The cleared offset is persisted too, or the old drag comes back
+            // from prefs on the next load.
+            await new Promise((r) => setTimeout(r, 0));
+            const prefs = await loadPrefs('other');
+            expect(prefs.overlayBottomNudge).toBe(0);
+            expect(prefs.overlayInlineNudge).toBe(0);
         });
 
         test('edge style maps tokens to em-based text-shadow values', () => {

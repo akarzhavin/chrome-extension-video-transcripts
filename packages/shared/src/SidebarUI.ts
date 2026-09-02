@@ -1432,9 +1432,13 @@ export class SidebarUI {
 
     private setOverlayBottomOffset(v: OverlayLevelToken): void {
         this.overlayStyle.overlayBottomOffset = v;
+        // A preset names a fixed spot on the frame. The drag offset is added on
+        // top of the preset at paint time, so left in place it would move the
+        // caption relative to wherever it was dragged — clear it in both axes.
+        this.position.load(0, 0);
         this.applyOverlayStyle();
         this.markActiveStyleButtons();
-        savePrefs({ overlayBottomOffset: v }, this.scope);
+        savePrefs({ overlayBottomOffset: v, overlayBottomNudge: 0, overlayInlineNudge: 0 }, this.scope);
     }
 
     private setOverlayBgOpacity(v: OverlayBackdropToken): void {
@@ -2234,10 +2238,13 @@ export class SidebarUI {
     }
 
     private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
-        if (overlap.length === 0) return null;
+        // A duplicated cue (some tracks repeat a line byte-for-byte) must not
+        // show its text twice on one line.
+        const texts = [...new Set(overlap.map(s => s.text))];
+        if (texts.length === 0) return null;
         const div = document.createElement('div');
         div.className = className;
-        div.textContent = overlap.map(s => s.text).join(' | ');
+        div.textContent = texts.join(' ');
         return div;
     }
 

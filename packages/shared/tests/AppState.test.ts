@@ -372,13 +372,13 @@ describe('AppState language-pair preferences', () => {
         expect(state.activeTrackIndex).toBe(1); // Spanish, not English
     });
 
-    test('falls back to the native track when the learning track is absent', () => {
+    test('the native track never takes the learning slot when the learning track is absent', () => {
         state.setLanguagePreferences('English', 'Russian');
         state.addTrack('German', [{ text: 'de' } as Subtitle]);
         state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
 
-        expect(state.activeTrackIndex).toBe(1); // Russian (native) becomes main
-        expect(state.secondaryTrackIndex).toBe(0); // German filler
+        expect(state.activeTrackIndex).toBe(0); // German filler carries the main pane
+        expect(state.secondaryTrackIndex).toBe(1); // Russian stays the translation
     });
 
     test('falls back to first/second track when neither label matches', () => {
@@ -393,7 +393,10 @@ describe('AppState language-pair preferences', () => {
     test('is order-independent (primary arrives after secondary)', () => {
         state.setLanguagePreferences('English', 'Russian');
         state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
-        expect(state.activeTrackIndex).toBe(0); // only track so far
+        // The translation alone must NOT masquerade as the learning language
+        // while the original is still loading (or failed): the main pane
+        // stays empty until a track that can carry it arrives.
+        expect(state.getMainTrack()).toBeNull();
 
         state.addTrack('English', [{ text: 'en' } as Subtitle]);
         expect(state.activeTrackIndex).toBe(1); // English takes over as main

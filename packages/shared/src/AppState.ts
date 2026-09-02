@@ -106,10 +106,17 @@ export class AppState {
                     this.secondaryTrackIndex = (primIndex === 0) ? 1 : 0;
                 }
             } else if (secIndex !== -1) {
-                this.activeTrackIndex = secIndex;
-                if (this.tracks.length > 1) {
-                    this.secondaryTrackIndex = (secIndex === 0) ? 1 : 0;
-                }
+                // The translation loaded first (or the learning track failed).
+                // It must not take the learning slot: the main pane is the
+                // language being studied — guess masks, word lookup, the big
+                // overlay line — and until the original arrives the
+                // translation used to sit there dressed as it. Keep the
+                // translation in its own slot; the main index goes to any
+                // other loaded track, or to -1 (no main track, empty pane —
+                // the partial-failure notice explains why) when the
+                // translation is all we have.
+                this.secondaryTrackIndex = secIndex;
+                this.activeTrackIndex = this.tracks.findIndex((_, i) => i !== secIndex);
             } else {
                 this.activeTrackIndex = 0;
                 if (this.tracks.length > 1) this.secondaryTrackIndex = 1;
