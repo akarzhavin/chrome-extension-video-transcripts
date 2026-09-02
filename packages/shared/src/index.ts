@@ -12,7 +12,7 @@ export * from './content';
 // Word lookup: one name, not `export *`. A wildcard would put the dictionary
 // client and its cache on the barrel, and the barrel is the embed's surface —
 // the embed has no worker to route LOOKUP_WORD through. See src/lookup/index.
-export { installLookupStrip } from './lookup';
+export { installLookupStrip, WordScreen } from './lookup';
 export * from './popup';
 export * from './onboarding';
 // Content-safe half only. analytics-bg.ts is deliberately NOT re-exported: it

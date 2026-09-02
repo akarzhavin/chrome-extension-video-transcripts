@@ -6,6 +6,7 @@ import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
+import { WordScreen } from '../src/lookup/word-screen';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -44,7 +45,9 @@ describe('SidebarUI', () => {
         document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
         state = new AppState();
         mockApp = { seekVideo: jest.fn(), updateHighlight: jest.fn() };
-        ui = new SidebarUI(state, mockApp);
+        // With a word screen — the extension configuration. The suite below
+        // covers a sidebar built without one.
+        ui = new SidebarUI(state, mockApp, (host) => new WordScreen(host));
         ui.elements = {
             list: document.getElementById('vtt-list') as HTMLDivElement,
             sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
@@ -2066,4 +2069,62 @@ describe('SidebarUI', () => {
         });
     });
 
+});
+
+/**
+ * A sidebar built WITHOUT a word screen.
+ *
+ * The marketing-site embed reuses this class but has no service worker to
+ * route LOOKUP_WORD through, so it constructs one with no word-screen factory
+ * and the feature's code never enters its bundle.
+ *
+ * These tests exist because that configuration has a failure mode nothing else
+ * can see: the embed re-parents #vtt-toggle-btn onto its own tab slot, and the
+ * tab's handler is onToggleTab — whose first branch is word-screen logic. If
+ * that branch does not degrade, the demo's panel silently stops collapsing on
+ * a public page, and every extension test still passes because the extensions
+ * always have the screen.
+ */
+describe('SidebarUI without a word screen (the embed configuration)', () => {
+    let ui: SidebarUI;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        // No third argument — exactly how packages/embed constructs it.
+        ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
+        };
+    });
+
+    it('the collapse tab still collapses and expands the panel', () => {
+        expect(ui.isCollapsed()).toBe(false);
+        ui.onToggleTab();
+        expect(ui.isCollapsed()).toBe(true);
+        ui.onToggleTab();
+        expect(ui.isCollapsed()).toBe(false);
+    });
+
+    it('opening the word screen is a silent no-op, not a throw', () => {
+        expect(() => ui.openLookupScreen('anchor', 'drop the anchor')).not.toThrow();
+        expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
+    });
+
+    it('closing one is a no-op too, from any entry point', () => {
+        expect(() => ui.closeLookupScreen()).not.toThrow();
+        expect(() => ui.destroy()).not.toThrow();
+    });
+
+    it('builds neither the word-screen panel nor its back chip', () => {
+        document.body.innerHTML = '';
+        const bare = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        bare.init();
+        expect(document.getElementById('vtt-lookup-panel')).toBeNull();
+        expect(document.getElementById('vtt-lookup-back-btn')).toBeNull();
+        // The chassis itself is unaffected.
+        expect(document.getElementById('vtt-sidebar')).not.toBeNull();
+        expect(document.getElementById('vtt-toggle-btn')).not.toBeNull();
+        bare.destroy();
+    });
 });

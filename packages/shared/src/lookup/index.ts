@@ -30,6 +30,8 @@ export { hasLookupContent, latencyBucket } from './shape';
 // ── UI surfaces ────────────────────────────────────────────────────────────
 export { installLookupStrip } from './strip';
 export type { LookupStripOptions } from './strip';
+export { WordScreen } from './word-screen';
+export type { WordScreenHost } from './word-screen';
 
 // Everything else — stripTranslations, showsLemma, posTags, oxfordLookupUrl,
 // isContextual, stripDefinition, posLabel, the icons, cacheKey — is internal

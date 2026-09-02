@@ -297,10 +297,18 @@ export class SidebarUI {
     private teardown: Array<() => void> = [];
 
     /**
-     * `wordScreen` is a seam: pass a factory to supply the screen, or let it
-     * default. Every caller currently defaults, so behaviour is unchanged —
-     * the parameter exists so a host that cannot run the feature can later
-     * omit the screen entirely instead of shipping it inert.
+     * `wordScreen` is a factory, and omitting it is a supported configuration.
+     *
+     * The extensions pass one. packages/embed does not: it reuses this sidebar
+     * on the marketing site, where there is no service worker to route
+     * LOOKUP_WORD through, so the feature could never work. Omitting the
+     * factory keeps the whole word screen out of that bundle instead of
+     * shipping it inert — and the panel and back chip below are not built
+     * either, since nothing would ever open them.
+     *
+     * A constructor parameter rather than a settable property because
+     * createSidebar() has to know, while building the header, whether those
+     * two elements are wanted at all.
      */
     constructor(
         state: AppState,
@@ -310,7 +318,7 @@ export class SidebarUI {
         this.state = state;
         this.app = app;
         this.elements = {};
-        this.wordScreen = (wordScreen ?? ((h) => new WordScreen(h)))(this.wordScreenHost());
+        this.wordScreen = wordScreen?.(this.wordScreenHost());
     }
 
     /**
@@ -503,14 +511,18 @@ export class SidebarUI {
         // Third back chip, for the word screen: "‹ Subtitles" again — same
         // destination as the settings chip, but its own element because the
         // two takeovers show at different times and the ids drive visibility.
-        const lookupBackBtn = document.createElement('button');
-        lookupBackBtn.id = 'vtt-lookup-back-btn';
-        lookupBackBtn.className = 'vtt-back-chip';
-        lookupBackBtn.type = 'button';
-        lookupBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSidebarTitle', 'Subtitles')}</span>`;
-        lookupBackBtn.addEventListener('click', () => this.closeLookupScreen());
-        headerTop.appendChild(lookupBackBtn);
-        this.elements = { ...this.elements, lookupBackBtn };
+        // Only where a word screen exists — otherwise there is nothing for
+        // this chip to walk back from.
+        if (this.wordScreen) {
+            const lookupBackBtn = document.createElement('button');
+            lookupBackBtn.id = 'vtt-lookup-back-btn';
+            lookupBackBtn.className = 'vtt-back-chip';
+            lookupBackBtn.type = 'button';
+            lookupBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSidebarTitle', 'Subtitles')}</span>`;
+            lookupBackBtn.addEventListener('click', () => this.closeLookupScreen());
+            headerTop.appendChild(lookupBackBtn);
+            this.elements = { ...this.elements, lookupBackBtn };
+        }
 
         // Download, left of the gear: the header is where the actions on THIS
         // video live, and downloading is one click deep, so it gets a button
@@ -700,10 +712,12 @@ export class SidebarUI {
         // here but the shell. Lives in the header exactly like the settings
         // panel: .vtt-lookup-open gives the header flex:1 and this panel the
         // scroll, which is the takeover mechanic settings already proved out.
-        const lookupPanel = document.createElement('div');
-        lookupPanel.id = 'vtt-lookup-panel';
-        header.appendChild(lookupPanel);
-        this.elements = { ...this.elements, lookupPanel };
+        if (this.wordScreen) {
+            const lookupPanel = document.createElement('div');
+            lookupPanel.id = 'vtt-lookup-panel';
+            header.appendChild(lookupPanel);
+            this.elements = { ...this.elements, lookupPanel };
+        }
 
         sidebar.appendChild(header);
 
@@ -1663,14 +1677,14 @@ export class SidebarUI {
     // The screen itself lives in lookup/word-screen.ts. What stays here is the
     // port it reaches this sidebar through, plus three delegating entry points
     // that keep their old names because two apps and the hover strip call them.
-    private readonly wordScreen: WordScreen;
+    private readonly wordScreen?: WordScreen;
 
     openLookupScreen(term: string, context: string): void {
-        this.wordScreen.open(term, context);
+        this.wordScreen?.open(term, context);
     }
 
     closeLookupScreen(): void {
-        this.wordScreen.close();
+        this.wordScreen?.close();
     }
 
     /**
@@ -1680,6 +1694,13 @@ export class SidebarUI {
      * is what the embed's tab has always been.
      */
     onToggleTab(): void {
+        // Without a screen the tab has only one meaning. The embed re-parents
+        // this very button onto its own tab slot, so a missing fallback here
+        // is a panel that stops collapsing on a public page.
+        if (!this.wordScreen) {
+            this.toggleCollapsed();
+            return;
+        }
         this.wordScreen.onToggleTab();
     }
 
