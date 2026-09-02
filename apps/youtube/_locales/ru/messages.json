@@ -574,5 +574,81 @@
   "ytOverlayDragHandle": {
     "message": "Drag to move the subtitles",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
+  },
+  "ytLookupLoading": {
+    "message": "Ищем…",
+    "description": "Hover strip / word screen: shown while the dictionary lookup is in flight."
+  },
+  "ytLookupNone": {
+    "message": "Нет перевода",
+    "description": "Hover strip / word screen: the dictionary had nothing for this word (a name, a typo)."
+  },
+  "ytLookupError": {
+    "message": "Не удалось загрузить",
+    "description": "Hover strip / word screen: the lookup request failed (network/timeout)."
+  },
+  "ytLookupSave": {
+    "message": "Сохранить",
+    "description": "Heart button label: save the looked-up word to the dictionary."
+  },
+  "ytLookupSaved": {
+    "message": "Сохранено",
+    "description": "Heart button label after a successful save."
+  },
+  "ytLookupMore": {
+    "message": "Разбор",
+    "description": "Hover strip button that opens the sidebar word screen with the full entry."
+  },
+  "ytLookupMoreSenses": {
+    "message": "Ещё значения",
+    "description": "Word screen link that re-requests the entry with more senses per part of speech."
+  },
+  "ytLookupSrcDict": {
+    "message": "словарь",
+    "description": "Word screen source badge: the answer came from the Wiktionary-based dictionary."
+  },
+  "ytLookupSrcAi": {
+    "message": "ИИ",
+    "description": "Word screen source badge: the answer came from the language model."
+  },
+  "ytPosNoun": {
+    "message": "сущ.",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "глаг.",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "прил.",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "нареч.",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "предл.",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "союз",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "мест.",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "межд.",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "числ.",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "фраза",
+    "description": "Short part-of-speech label: phrase."
   }
 }

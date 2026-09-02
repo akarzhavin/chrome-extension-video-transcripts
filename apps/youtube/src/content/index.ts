@@ -9,12 +9,18 @@ import {
     setI18nOverride,
     Subtitle,
 } from '@video-transcripts/shared';
+import { installLookupStrip } from '@video-transcripts/shared';
 import { BaseVttApp, ReprocessOptions, SIDEBAR_CHROME_CSS } from './app-base';
 import { parseJson3 } from './json3';
 import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
 import type { YtVttResultMessage } from './timedtext-fetch';
 import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
+
+// How often to re-poke the player's control bar while a lookup card is open.
+// The bar autohides after ~3s idle and one wake only restarts that single
+// timeout, so the hold has to keep poking. Matches player-menu.ts's WAKE_MS.
+const LOOKUP_WAKE_MS = 2000;
 import { bootstrapNetflix } from './netflix/app';
 import { watchControlsFloor } from './controlsFloor';
 import { installPlayerMenu } from './player-menu';
@@ -804,6 +810,24 @@ function bootstrap(): void {
         return;
     }
     installQuickAddOverlay();
+    // Hover strip: point at a word (or drag a phrase), see its translations;
+    // "More" opens the sidebar's word screen.
+    installLookupStrip({
+        openDetail: (term, ctx) => app.ui.openLookupScreen(term, ctx),
+        // Keep YouTube's control bar up while a card is open. The overlay is
+        // floored above that bar (controlsFloor.ts), so letting it autohide
+        // drops the captions ~41px out from under the card the user is reading
+        // — see LookupStripOptions.holdLayout. Same mechanism the player menu
+        // uses: the player's own wakeUpControls(), relayed through page-script
+        // because the API lives in the MAIN world, re-poked because one wake
+        // only buys a single timeout.
+        holdLayout: () => {
+            const wake = (): void => window.postMessage({ type: 'YT_WAKE_CONTROLS' }, '*');
+            wake();
+            const timer = window.setInterval(wake, LOOKUP_WAKE_MS);
+            return () => clearInterval(timer);
+        },
+    });
     // The badge self-attaches to any #vtt-header-top (with an observer retry),
     // so gate it on owning the sidebar — otherwise it grafts into a sidebar
     // built by another installed copy of the extension.

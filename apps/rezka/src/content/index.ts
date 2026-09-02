@@ -26,6 +26,7 @@ import {
     showOrphanNotice,
     type Subtitle,
 } from '@video-transcripts/shared';
+import { installLookupStrip } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
@@ -1053,6 +1054,10 @@ function bootstrap(): void {
     void initTheme();
     const app = new VttApp();
     installQuickAddOverlay();
+    // Hover strip: point at a word, see its translations; "More" opens the
+    // sidebar's word screen. Selection saving above stays — it is still the
+    // only way to grab a multi-word phrase.
+    installLookupStrip({ openDetail: (term, ctx) => app.ui.openLookupScreen(term, ctx) });
     // The badge self-attaches to any #vtt-header-top (with an observer retry),
     // so gate it on owning the sidebar — otherwise it grafts into a sidebar
     // built by another installed copy of the extension.

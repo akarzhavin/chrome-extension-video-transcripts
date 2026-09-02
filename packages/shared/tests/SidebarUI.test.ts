@@ -1884,4 +1884,52 @@ describe('SidebarUI', () => {
         });
     });
 
+
+    describe('word screen ↔ the collapse tab', () => {
+        // While the word screen is up the tab's glyph is a cross, and pressing
+        // it undoes the whole detour: the screen closes, and the panel
+        // collapses only if opening the screen is what expanded it.
+        beforeEach(() => {
+            ui.elements = {
+                ...ui.elements,
+                lookupPanel: document.createElement('div') as HTMLDivElement,
+            };
+        });
+
+        it('panel was open: the tab closes the word screen and keeps the panel', () => {
+            ui.openLookupScreen('main', 'the main sail');
+            expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(true);
+            ui.onToggleTab();
+            expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
+            expect(ui.isCollapsed()).toBe(false);
+        });
+
+        it('panel was collapsed: the screen expanded it, so the tab collapses it back', () => {
+            ui.elements.sidebar!.classList.add('collapsed');
+            ui.openLookupScreen('main', 'the main sail');
+            expect(ui.isCollapsed()).toBe(false); // the screen auto-expands…
+            ui.onToggleTab();
+            // …and its cross puts everything back the way it was.
+            expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
+            expect(ui.isCollapsed()).toBe(true);
+        });
+
+        it('a second word must not forget how the FIRST one found the panel', () => {
+            ui.elements.sidebar!.classList.add('collapsed');
+            ui.openLookupScreen('main', 'the main sail');
+            // Hovering the overlay still works over the open screen — a second
+            // word re-enters openLookupScreen with the panel already expanded.
+            ui.openLookupScreen('sail', 'the main sail');
+            ui.onToggleTab();
+            expect(ui.isCollapsed()).toBe(true);
+        });
+
+        it('without the word screen the tab is still a plain toggle', () => {
+            ui.onToggleTab();
+            expect(ui.isCollapsed()).toBe(true);
+            ui.onToggleTab();
+            expect(ui.isCollapsed()).toBe(false);
+        });
+    });
+
 });

@@ -36,6 +36,10 @@ interface EnvTarget {
     projectId: string;
     apiKey: string;
     frontendBaseUrl: string;
+    // The lookup API moves with the environment: switching Firebase to preprod
+    // while lookups keep hitting prod is exactly the class of bug this file's
+    // header warns about. Empty when that side has no API configured.
+    apiBaseUrl: string;
 }
 
 /**
@@ -59,6 +63,7 @@ const HOME: EnvTarget = {
     projectId: config.projectId,
     apiKey: config.apiKey,
     frontendBaseUrl: config.frontendBaseUrl,
+    apiBaseUrl: config.apiBaseUrl,
 };
 
 const AWAY: EnvTarget | null =
@@ -67,6 +72,7 @@ const AWAY: EnvTarget | null =
             projectId: __EXT_ALT_PROJECT_ID__,
             apiKey: __EXT_ALT_API_KEY__,
             frontendBaseUrl: __EXT_ALT_FRONTEND_BASE_URL__,
+            apiBaseUrl: __EXT_ALT_API_BASE_URL__,
         }
         : null;
 
@@ -136,6 +142,7 @@ export function applySide(side: ExtEnvName): void {
     config.projectId = t.projectId;
     config.apiKey = t.apiKey;
     config.frontendBaseUrl = t.frontendBaseUrl;
+    config.apiBaseUrl = t.apiBaseUrl;
 }
 
 /**

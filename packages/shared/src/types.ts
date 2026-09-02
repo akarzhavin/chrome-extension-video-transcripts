@@ -82,6 +82,11 @@ export interface SidebarElements {
   feedbackLink?: HTMLButtonElement;
   // Rebuilt on each open; openFeedbackScreen focuses it once the panel shows.
   feedbackTextarea?: HTMLTextAreaElement;
+  // Word screen: a takeover in the settings mould, opened from the hover
+  // strip's "More". Content is rebuilt per word; the back chip walks back to
+  // the transcript.
+  lookupPanel?: HTMLDivElement;
+  lookupBackBtn?: HTMLButtonElement;
   // Quick-mode bar in the sub-header: Single/Dual/Guess as a segmented radio
   // (the active segment expands into a labeled pill) plus the labeled
   // On-screen switch. Swap lives on the language-pair chip.

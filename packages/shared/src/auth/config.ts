@@ -6,6 +6,12 @@ export interface AuthConfig {
     secureTokenUrl: string;
     firestoreUrl: string;
     frontendBaseUrl: string;
+    /**
+     * Our own API behind the edge gateway (POST /dictionary/lookup). Empty in
+     * builds not given EXT_API_BASE_URL, which switches the lookup feature off
+     * — the same silent-no-op posture as an absent GA4 secret.
+     */
+    apiBaseUrl: string;
     source: string;
 }
 
@@ -21,6 +27,7 @@ export const config: AuthConfig = {
     secureTokenUrl: __SECURE_TOKEN_URL__,
     firestoreUrl: __FIRESTORE_URL__,
     frontendBaseUrl: __FRONTEND_BASE_URL__,
+    apiBaseUrl: __EXT_API_BASE_URL__,
     source: __EXT_SOURCE__,
 };
 

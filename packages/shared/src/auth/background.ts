@@ -6,6 +6,9 @@ import { config } from './config';
 // that an MV3 service worker cannot load. Static keeps one file, and the
 // __EXT_ENV__ literal guards below still drop this module from prod bundles.
 import { handleDevAction, restoreEnv, switchableFrontendBaseUrls } from './devEnvSwitch';
+// Relative for the same reason as analytics-bg: the worker imports by path,
+// and lookup.ts is deliberately absent from the package barrel.
+import { hasLookupContent, latencyBucket, lookupCached } from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport } from './firestoreRest';
 import { loadLanguagePrefs } from '../languages';
@@ -39,6 +42,7 @@ export type AuthAction =
     | 'TRACK_EVENT'
     | 'GET_NOTIFICATION'
     | 'DISMISS_NOTIFICATION'
+    | 'LOOKUP_WORD'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
@@ -59,6 +63,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'TRACK_EVENT',
     'GET_NOTIFICATION',
     'DISMISS_NOTIFICATION',
+    'LOOKUP_WORD',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -299,6 +304,59 @@ export async function handleAuthMessage(
             } catch (err) {
                 console.debug('[Lingogram] notification lookup failed:', err);
                 return { ok: true, notification: null };
+            }
+        }
+        case 'LOOKUP_WORD': {
+            // Anonymous word lookup for the hover strip and the sidebar's word
+            // screen. Runs here rather than in the content script because the
+            // edge's CORS allow-list has no chrome-extension:// origin — a page
+            // fetch dies on the preflight, while the worker (host-permitted,
+            // no Origin) goes straight through.
+            //
+            // No auth, no retry, no badge: the route is public, and a miss is
+            // answered by the next hover. An unconfigured build (no
+            // EXT_API_BASE_URL) reports ok:false once per call and stays quiet.
+            const term = String(request.term ?? '').trim();
+            const targetLang = String(request.targetLang ?? '').trim();
+            if (!term || !targetLang) return { ok: false, error: 'term and targetLang required' };
+            if (!config.apiBaseUrl) return { ok: false, error: 'lookup not configured' };
+            const context = typeof request.context === 'string' ? request.context : '';
+            // Three sizes: the strip wants one sense (~2 KB, not the 41 KB a
+            // full "running" entry weighs), the word screen wants a readable
+            // article, and its "more senses" button raises to the server cap.
+            const level = request.detail === true ? (request.more === true ? 'more' : 'detail') : 'strip';
+            const limits = level === 'strip'
+                ? { maxPartsOfSpeech: 3, maxSenses: 1, maxExamples: 0 }
+                : level === 'detail'
+                    ? { maxPartsOfSpeech: 3, maxSenses: 3, maxExamples: 1 }
+                    : { maxPartsOfSpeech: 10, maxSenses: 10, maxExamples: 1 };
+            const site = String(request.site ?? '');
+            const started = Date.now();
+            try {
+                const { result, cached } = await lookupCached(
+                    config.apiBaseUrl,
+                    { term, targetLang, context, ...limits },
+                    level !== 'strip',
+                );
+                // Shape only — the deny-list in analytics.ts would strip the
+                // word anyway, so it is never offered. `source` is what drives
+                // the dictionary/model/cache mix decision on the server side.
+                void track('word_lookup', {
+                    site,
+                    level,
+                    source: cached ? 'cache' : (result.source || 'empty'),
+                    empty: !hasLookupContent(result),
+                    latency_bucket: latencyBucket(Date.now() - started),
+                });
+                return { ok: true, result };
+            } catch (err) {
+                void track('word_lookup', {
+                    site,
+                    level,
+                    source: 'error',
+                    latency_bucket: latencyBucket(Date.now() - started),
+                });
+                return { ok: false, error: String(err instanceof Error ? err.message : err) };
             }
         }
         case 'DISMISS_NOTIFICATION': {

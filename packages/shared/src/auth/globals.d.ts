@@ -11,6 +11,10 @@ declare const __EXT_SOURCE__: string;
 declare const __EXT_ALT_PROJECT_ID__: string;
 declare const __EXT_ALT_API_KEY__: string;
 declare const __EXT_ALT_FRONTEND_BASE_URL__: string;
+// Our own API (edge gateway) for POST /dictionary/lookup. Empty = feature off.
+// Named __EXT_*__ so assert-shippable's unsubstituted-define rule covers it.
+declare const __EXT_API_BASE_URL__: string;
+declare const __EXT_ALT_API_BASE_URL__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;

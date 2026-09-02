@@ -118,9 +118,9 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
     });
 
-    test('the registry holds exactly the ten non-dev actions', () => {
+    test('the registry holds exactly the eleven non-dev actions', () => {
         // Fails loudly when an action is added to the union but not the Set.
-        expect(AUTH_ACTIONS.size).toBe(10);
+        expect(AUTH_ACTIONS.size).toBe(11);
     });
 
     test('an unknown analytics event is rejected at the boundary', async () => {

@@ -15,7 +15,6 @@ import { installQuickAddOverlay } from '../src/content/quick-add-overlay';
     i18n: { getMessage: jest.fn(() => '') },
 };
 
-const PILL_ID = 'lingogram-quick-add-pill';
 const PHRASE_CLASS = 'vtt-phrase-selecting';
 
 // jsdom gives every range a zero rect; the payload drops those, so hand back a
@@ -123,7 +122,11 @@ function selectAcross(list: HTMLElement, fromCue: number, toCue: number): void {
     document.dispatchEvent(new Event('selectionchange'));
 }
 
-describe('quick-add selection across subtitles', () => {
+// The pill these once exercised is gone — selection now opens the lookup card
+// (see "selection — dragging a phrase opens the same card" in lookup.test.ts).
+// What stays here is the part that was never the pill's: while a drag straddles
+// two cues, the translation row caught between them must not be highlighted.
+describe('translation highlight suppression during a phrase drag', () => {
     let teardown: () => void;
 
     beforeEach(() => {
@@ -165,137 +168,4 @@ describe('quick-add selection across subtitles', () => {
         expect(list.classList.contains(PHRASE_CLASS)).toBe(false);
     });
 
-    it('does not double a word when the second cue contributes no spans', async () => {
-        // Releasing in the next cue's whitespace leaves that scope with no
-        // intersecting span. extractTerm's fallback is range.toString(), which
-        // is the WHOLE selection — so the word came back twice ("b0 b0").
-        const list = buildList(4);
-        const from = wordSpans(list, 0)[1];
-        const secondCueMain = list.querySelectorAll('.vtt-main-text')[1];
-
-        const range = document.createRange();
-        range.setStart(from.firstChild!, 0);
-        range.setEnd(secondCueMain, 0); // before any word of cue 1
-        const sel = window.getSelection()!;
-        sel.removeAllRanges();
-        sel.addRange(range);
-
-        document.dispatchEvent(new Event('mouseup'));
-        await new Promise((r) => setTimeout(r, 0));
-        const pill = document.getElementById(PILL_ID);
-        if (!pill) return; // no offer at all is also acceptable here
-
-        const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
-        send.mockClear();
-        send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
-            cb?.({ ok: true, wordId: 'w1' });
-            return Promise.resolve({ ok: true, wordId: 'w1' });
-        });
-        pill.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 0));
-
-        const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
-        const term: string = (sent![0] as any).term;
-        const words = term.split(/\s+/);
-        expect(new Set(words).size).toBe(words.length); // no repeats
-    });
-
-    it('saves a term joining both cues, without the translation', async () => {
-        const list = buildList(4);
-        selectAcross(list, 0, 1);
-        document.dispatchEvent(new Event('mouseup'));
-        await new Promise((r) => setTimeout(r, 0));
-
-        const pill = document.getElementById(PILL_ID);
-        expect(pill).not.toBeNull();
-
-        const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
-        send.mockClear();
-        send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
-            cb?.({ ok: true, wordId: 'w1' });
-            return Promise.resolve({ ok: true, wordId: 'w1' });
-        });
-
-        pill!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 0));
-
-        const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
-        expect(sent).toBeDefined();
-        expect((sent![0] as any).term).toBe('a0 b0 a1 b1');
-        expect((sent![0] as any).term).not.toContain('translation');
-    });
-
-    it('offers no pill for a three-cue selection', async () => {
-        const list = buildList(4);
-        selectAcross(list, 0, 2);
-        document.dispatchEvent(new Event('mouseup'));
-        await new Promise((r) => setTimeout(r, 0));
-
-        expect(document.getElementById(PILL_ID)).toBeNull();
-    });
-
-    // In the browser, `user-select: none` keeps masked words out of the range
-    // entirely. jsdom has no CSS layout, so these exercise the code-level rule
-    // instead — which is exactly why that rule exists and is not left to CSS.
-    describe('guess mode: hidden words are not dictionary candidates', () => {
-        it('offers no pill when only masked words are selected', async () => {
-            const list = buildGuessList(['alpha', 'beta', 'gamma'], 1);
-            const spans = list.querySelectorAll<HTMLElement>('.vtt-masked-word');
-            selectSpans(spans[0], spans[1]);
-            document.dispatchEvent(new Event('mouseup'));
-            await new Promise((r) => setTimeout(r, 0));
-
-            expect(document.getElementById(PILL_ID)).toBeNull();
-        });
-
-        it('saves only the revealed words from a mixed selection', async () => {
-            const list = buildGuessList(['alpha', 'beta', 'gamma'], 2);
-            const all = list.querySelectorAll<HTMLElement>('.vtt-revealed-word, .vtt-masked-word');
-            selectSpans(all[0], all[2]); // spans revealed + revealed + masked
-            document.dispatchEvent(new Event('mouseup'));
-            await new Promise((r) => setTimeout(r, 0));
-
-            const pill = document.getElementById(PILL_ID);
-            expect(pill).not.toBeNull();
-
-            const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
-            send.mockClear();
-            send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
-                cb?.({ ok: true, wordId: 'w1' });
-                return Promise.resolve({ ok: true, wordId: 'w1' });
-            });
-
-            pill!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            await new Promise((r) => setTimeout(r, 0));
-
-            const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
-            expect(sent).toBeDefined();
-            expect((sent![0] as any).term).toBe('alpha beta');
-            expect((sent![0] as any).term).not.toContain('gamma');
-            expect((sent![0] as any).term).not.toContain('*');
-        });
-
-        it('keeps the whole sentence as saved context', async () => {
-            const list = buildGuessList(['alpha', 'beta', 'gamma'], 1);
-            const revealed = list.querySelector<HTMLElement>('.vtt-revealed-word')!;
-            selectSpans(revealed, revealed);
-            document.dispatchEvent(new Event('mouseup'));
-            await new Promise((r) => setTimeout(r, 0));
-
-            const send = (global as any).chrome.runtime.sendMessage as jest.Mock;
-            send.mockClear();
-            send.mockImplementation((_m: unknown, cb?: (r: unknown) => void) => {
-                cb?.({ ok: true, wordId: 'w1' });
-                return Promise.resolve({ ok: true, wordId: 'w1' });
-            });
-
-            document.getElementById(PILL_ID)!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            await new Promise((r) => setTimeout(r, 0));
-
-            const sent = send.mock.calls.find((c) => (c[0] as any)?.action === 'ADD_WORD');
-            // Context is stored, never painted onto the masked line, so it may
-            // hold words the user has not uncovered yet.
-            expect((sent![0] as any).context).toContain('alpha beta gamma');
-        });
-    });
 });

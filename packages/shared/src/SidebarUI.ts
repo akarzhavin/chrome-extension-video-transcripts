@@ -23,6 +23,9 @@ import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowEle
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
+import { LookupResult, hasLookupContent, isContextual, posTags, showsLemma } from './lookup';
+import { posLabel } from './content/lookup-strip';
+import { saveTerm, sendMessage } from './content/quick-add-overlay';
 import {
     MAX_FEEDBACK_BYTES,
     clampToBytes,
@@ -375,13 +378,19 @@ export class SidebarUI {
         // unreachable by keyboard and anonymous to a screen reader.
         const toggleBtn = document.createElement('div');
         toggleBtn.id = 'vtt-toggle-btn';
-        toggleBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+        // Two glyphs, CSS-switched (.vtt-lookup-open): the chevron collapses
+        // the panel; on the word screen the tab means "close this word" and a
+        // cross-in-circle says so. One element either way — the tab's size,
+        // position and handlers never change.
+        toggleBtn.innerHTML =
+            `<svg class="vtt-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>` +
+            `<svg class="vtt-toggle-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-6 6M9 9l6 6"></path></svg>`;
         toggleBtn.setAttribute('role', 'button');
         toggleBtn.setAttribute('tabindex', '0');
         toggleBtn.setAttribute('aria-label', msg('ytTogglePanel', 'Toggle panel'));
         toggleBtn.setAttribute('aria-controls', 'vtt-sidebar');
         toggleBtn.addEventListener('click', () => {
-            this.toggleCollapsed();
+            this.onToggleTab();
             // Hand focus back after a mouse click. Otherwise the tab keeps it
             // and swallows every following Space — the key the viewer means for
             // the video's play/pause, not for us.
@@ -390,7 +399,7 @@ export class SidebarUI {
         toggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault(); // Space would scroll the page
-                this.toggleCollapsed();
+                this.onToggleTab();
             }
         });
         sidebar.appendChild(toggleBtn);
@@ -449,6 +458,18 @@ export class SidebarUI {
         feedbackBackBtn.addEventListener('click', () => this.closeFeedbackScreen());
         headerTop.appendChild(feedbackBackBtn);
         this.elements = { ...this.elements, feedbackBackBtn };
+
+        // Third back chip, for the word screen: "‹ Subtitles" again — same
+        // destination as the settings chip, but its own element because the
+        // two takeovers show at different times and the ids drive visibility.
+        const lookupBackBtn = document.createElement('button');
+        lookupBackBtn.id = 'vtt-lookup-back-btn';
+        lookupBackBtn.className = 'vtt-back-chip';
+        lookupBackBtn.type = 'button';
+        lookupBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSidebarTitle', 'Subtitles')}</span>`;
+        lookupBackBtn.addEventListener('click', () => this.closeLookupScreen());
+        headerTop.appendChild(lookupBackBtn);
+        this.elements = { ...this.elements, lookupBackBtn };
 
         // Download, left of the gear: the header is where the actions on THIS
         // video live, and downloading is one click deep, so it gets a button
@@ -633,6 +654,15 @@ export class SidebarUI {
         const feedbackPanel = document.createElement('div');
         feedbackPanel.id = 'vtt-feedback-panel';
         header.appendChild(feedbackPanel);
+
+        // Word screen panel — content is rebuilt per word on open, so nothing
+        // here but the shell. Lives in the header exactly like the settings
+        // panel: .vtt-lookup-open gives the header flex:1 and this panel the
+        // scroll, which is the takeover mechanic settings already proved out.
+        const lookupPanel = document.createElement('div');
+        lookupPanel.id = 'vtt-lookup-panel';
+        header.appendChild(lookupPanel);
+        this.elements = { ...this.elements, lookupPanel };
 
         sidebar.appendChild(header);
 
@@ -1576,6 +1606,276 @@ export class SidebarUI {
         this.elements = { ...this.elements, feedbackTextarea: undefined };
         if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Settings');
         if (restoreFocus) this.elements.feedbackLink?.focus();
+    }
+
+    // ── Word screen ────────────────────────────────────────────────────────
+    // A takeover in the settings mould (.vtt-lookup-open hides the transcript,
+    // the title becomes the word, "‹ Subtitles" walks back). Chosen over an
+    // inline expansion because the list auto-scrolls with playback — the video
+    // keeps playing — so an in-flow card rides out of view within two cues,
+    // and freezing the scroll would break the sync the transcript exists for.
+
+    private lookupSeq = 0;
+    private lookupSavedTerms = new Set<string>();
+    // Whether opening the word screen is what expanded the sidebar. The tab's
+    // cross closes the word screen either way; this decides whether it also
+    // collapses the panel — closing must put things back the way they were.
+    private lookupOpenedPanel = false;
+
+    openLookupScreen(term: string, context: string): void {
+        const { lookupPanel, sidebar, titleEl } = this.elements;
+        if (!lookupPanel || !sidebar) return;
+        // Remember what opening is about to change — but only on entry. A
+        // second word opened from the overlay while the screen is already up
+        // must not overwrite how the FIRST one found the panel.
+        if (!sidebar.classList.contains('vtt-lookup-open')) {
+            this.lookupOpenedPanel = this.isCollapsed();
+        }
+        this.openPanel();
+        // Takeovers do not stack: all three back chips sit absolute at the
+        // same spot, so whichever screen is open leaves before this one shows.
+        if (sidebar.classList.contains('vtt-feedback-open')) this.closeFeedbackScreen(false);
+        this.closeSettingsPanel();
+        sidebar.classList.add('vtt-lookup-open');
+        if (titleEl) titleEl.textContent = term;
+        this.renderLookupPending(lookupPanel);
+        this.elements.lookupBackBtn?.focus();
+        void this.fetchLookupArticle(term, context, false);
+    }
+
+    /**
+     * The collapse tab while the word screen is up. Its glyph is a cross
+     * there, and a cross means "close the word screen" — after which the
+     * panel returns to how the word screen found it: it stays open when the
+     * user was reading the transcript, and collapses again when the screen
+     * had auto-expanded a collapsed sidebar (the pill's "More" over the
+     * video). One tap always undoes the whole detour.
+     */
+    onToggleTab(): void {
+        const sidebar = this.elements.sidebar;
+        if (sidebar?.classList.contains('vtt-lookup-open') && !this.isCollapsed()) {
+            const collapse = this.lookupOpenedPanel;
+            this.closeLookupScreen();
+            if (collapse) this.setCollapsed(true);
+            return;
+        }
+        this.toggleCollapsed();
+    }
+
+    closeLookupScreen(): void {
+        const { lookupPanel, sidebar, titleEl } = this.elements;
+        if (!sidebar?.classList.contains('vtt-lookup-open')) return;
+        this.lookupOpenedPanel = false;
+        sidebar.classList.remove('vtt-lookup-open');
+        this.lookupSeq++;
+        lookupPanel?.replaceChildren();
+        if (titleEl) titleEl.textContent = msg('ytSidebarTitle', 'Subtitles');
+        // The video kept playing while the screen was up; catch the list up.
+        this.scrollActiveIntoView('instant');
+    }
+
+    private async fetchLookupArticle(term: string, context: string, more: boolean): Promise<void> {
+        const seq = ++this.lookupSeq;
+        const targetLang = this.app.langPrefs?.native ?? '';
+        if (!targetLang) {
+            this.renderLookupError();
+            return;
+        }
+        try {
+            const res = await sendMessage<{ ok: boolean; result?: LookupResult }>({
+                action: 'LOOKUP_WORD',
+                term,
+                context,
+                targetLang,
+                detail: true,
+                more,
+                site: platformOf(location.hostname),
+            });
+            if (seq !== this.lookupSeq) return;
+            if (res?.ok && res.result) this.renderLookupArticle(term, context, res.result, more);
+            else this.renderLookupError();
+        } catch {
+            if (seq === this.lookupSeq) this.renderLookupError();
+        }
+    }
+
+    private renderLookupPending(panel: HTMLDivElement): void {
+        panel.replaceChildren();
+        const line = document.createElement('div');
+        line.className = 'vtt-lookup-article-pending';
+        line.textContent = msg('ytLookupLoading', 'Looking up…');
+        panel.appendChild(line);
+    }
+
+    private renderLookupError(): void {
+        const panel = this.elements.lookupPanel;
+        if (!panel) return;
+        panel.replaceChildren();
+        const line = document.createElement('div');
+        line.className = 'vtt-lookup-article-pending';
+        line.setAttribute('role', 'alert');
+        line.textContent = msg('ytLookupError', "Couldn't load");
+        panel.appendChild(line);
+    }
+
+    // The article layout: headword + lemma + source badge, the word-level
+    // translations, the cue it came from, then parts of speech in server order
+    // (the first tag is the one this cue uses) with numbered senses. The save
+    // button lives in a pinned footer so it never depends on article length.
+    private renderLookupArticle(term: string, context: string, r: LookupResult, more: boolean): void {
+        const panel = this.elements.lookupPanel;
+        if (!panel) return;
+        panel.replaceChildren();
+
+        const scroll = document.createElement('div');
+        scroll.className = 'vtt-lookup-scroll';
+
+        const head = document.createElement('div');
+        head.className = 'vtt-lookup-article-head';
+        const headword = document.createElement('span');
+        headword.className = 'vtt-lookup-headword';
+        headword.textContent = r.term || term;
+        head.appendChild(headword);
+        if (showsLemma(r)) {
+            const lemma = document.createElement('span');
+            lemma.className = 'vtt-lookup-lemma';
+            lemma.textContent = r.lemma;
+            head.appendChild(lemma);
+        }
+        if (r.source) {
+            const badge = document.createElement('span');
+            const isDict = r.source === 'wiktionary' || r.source === 'cache';
+            badge.className = `vtt-lookup-src ${isDict ? 'dict' : 'llm'}`;
+            badge.textContent = isDict
+                ? msg('ytLookupSrcDict', 'dictionary')
+                : msg('ytLookupSrcAi', 'AI');
+            head.appendChild(badge);
+        }
+        scroll.appendChild(head);
+
+        if (r.translations.length) {
+            const tr = document.createElement('div');
+            tr.className = 'vtt-lookup-article-tr';
+            tr.textContent = r.translations.join(' · ');
+            scroll.appendChild(tr);
+        }
+
+        // The cue the word was selected from — shown so the reader can weigh
+        // the senses against it. Only a model answer is actually ordered by
+        // it; the dictionary's order is the word's dominant reading.
+        const cueLine = pickCueLine(context, term);
+        if (cueLine) {
+            const ctx = document.createElement('blockquote');
+            ctx.className = 'vtt-lookup-ctx';
+            appendWithHighlight(ctx, cueLine, term);
+            scroll.appendChild(ctx);
+        }
+
+        // The lead highlight is a CLAIM — "this is the sense the phrase uses" —
+        // and only a context-aware answer (per-sense translations, i.e. the
+        // model) can back it. Dictionary answers are ordered by dominance, not
+        // by the sentence, so they get no highlight; when the AI answer lands
+        // for signed-in users, the highlight returns and is finally true.
+        const contextual = isContextual(r);
+        r.parts_of_speech.forEach((p, pi) => {
+            if (!p.senses.length) return;
+            const group = document.createElement('div');
+            group.className = 'vtt-lookup-group';
+            const gh = document.createElement('div');
+            gh.className = 'vtt-lookup-group-head';
+            const tag = document.createElement('span');
+            tag.className = `vtt-lookup-pos-tag${pi === 0 && contextual ? ' lead' : ''}`;
+            tag.textContent = posLabel(p.tag);
+            gh.appendChild(tag);
+            if (p.label) {
+                const label = document.createElement('span');
+                label.className = 'vtt-lookup-pos-label';
+                label.textContent = p.label;
+                gh.appendChild(label);
+            }
+            group.appendChild(gh);
+            p.senses.forEach((sense, si) => {
+                const row = document.createElement('div');
+                row.className = 'vtt-lookup-sense';
+                const num = document.createElement('span');
+                num.className = 'vtt-lookup-sense-num';
+                num.textContent = String(si + 1);
+                row.appendChild(num);
+                const body = document.createElement('div');
+                if (sense.translations.length) {
+                    const str = document.createElement('div');
+                    str.className = 'vtt-lookup-sense-tr';
+                    str.textContent = sense.translations.join(' · ');
+                    body.appendChild(str);
+                }
+                if (sense.definition) {
+                    const def = document.createElement('div');
+                    def.className = 'vtt-lookup-sense-def';
+                    def.textContent = sense.definition;
+                    body.appendChild(def);
+                }
+                const ex = sense.examples[0];
+                if (ex?.text) {
+                    const exEl = document.createElement('div');
+                    exEl.className = 'vtt-lookup-sense-ex';
+                    appendWithHighlight(exEl, ex.text, ex.highlight || term);
+                    if (ex.translation) {
+                        const ext = document.createElement('div');
+                        ext.className = 'vtt-lookup-sense-ext';
+                        ext.textContent = ex.translation;
+                        exEl.appendChild(ext);
+                    }
+                    body.appendChild(exEl);
+                }
+                row.appendChild(body);
+                group.appendChild(row);
+            });
+            scroll.appendChild(group);
+        });
+
+        if (!hasLookupContent(r)) {
+            const none = document.createElement('div');
+            none.className = 'vtt-lookup-article-pending';
+            none.textContent = msg('ytLookupNone', 'No translation');
+            scroll.appendChild(none);
+        } else if (!more) {
+            // The default request trims to 3 parts × 3 senses. Whether more
+            // exists is not knowable from a trimmed answer, so the button is
+            // offered once and the raised request (server ceiling: 10) answers.
+            const moreBtn = document.createElement('button');
+            moreBtn.type = 'button';
+            moreBtn.className = 'vtt-lookup-more';
+            moreBtn.textContent = msg('ytLookupMoreSenses', 'More senses');
+            moreBtn.addEventListener('click', () => {
+                moreBtn.disabled = true;
+                void this.fetchLookupArticle(term, context, true);
+            });
+            scroll.appendChild(moreBtn);
+        }
+
+        panel.appendChild(scroll);
+
+        const foot = document.createElement('div');
+        foot.className = 'vtt-lookup-foot';
+        const save = document.createElement('button');
+        save.type = 'button';
+        const already = this.lookupSavedTerms.has(term.toLowerCase());
+        save.className = `vtt-lookup-save${already ? ' saved' : ''}`;
+        save.innerHTML = `${ICONS_LOOKUP_HEART}<span>${
+            already ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save')}</span>`;
+        save.addEventListener('click', async () => {
+            if (this.lookupSavedTerms.has(term.toLowerCase())) return;
+            save.disabled = true;
+            const ok = await saveTerm(term.toLowerCase(), context, []);
+            save.disabled = false;
+            if (!ok) return;
+            this.lookupSavedTerms.add(term.toLowerCase());
+            save.classList.add('saved');
+            const label = save.querySelector('span');
+            if (label) label.textContent = msg('ytLookupSaved', 'Saved');
+        });
+        foot.appendChild(save);
+        panel.appendChild(foot);
     }
 
     // Populated per-open. Signed-in users are identified by the uid the
@@ -3274,4 +3574,43 @@ export class SidebarUI {
         if (this.state.displayMode === 'guess') return this.state.isFullyRevealed(index);
         return false;
     }
+}
+
+// ── Word-screen helpers (module scope — no instance state) ─────────────────
+
+// The heart, drawn inline for the pinned save button. Same path as the hover
+// strip's heart so the two read as one control.
+const ICONS_LOOKUP_HEART =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+    '<path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>';
+
+/**
+ * The context is up to three subtitle lines (previous / holding / next). The
+ * article quotes only the line that actually holds the word — that is the cue
+ * the server sorted the senses by.
+ */
+function pickCueLine(context: string, term: string): string {
+    const lines = context.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return '';
+    const needle = term.toLowerCase();
+    return lines.find((l) => l.toLowerCase().includes(needle)) ?? lines[Math.min(1, lines.length - 1)];
+}
+
+/**
+ * Appends `text` with the first occurrence of `highlight` wrapped in <b> —
+ * built from text nodes, never innerHTML: both strings are subtitle/model
+ * content and must stay inert.
+ */
+function appendWithHighlight(el: HTMLElement, text: string, highlight: string): void {
+    const needle = highlight.trim();
+    const at = needle ? text.toLowerCase().indexOf(needle.toLowerCase()) : -1;
+    if (at === -1) {
+        el.appendChild(document.createTextNode(text));
+        return;
+    }
+    el.appendChild(document.createTextNode(text.slice(0, at)));
+    const b = document.createElement('b');
+    b.textContent = text.slice(at, at + needle.length);
+    el.appendChild(b);
+    el.appendChild(document.createTextNode(text.slice(at + needle.length)));
 }
