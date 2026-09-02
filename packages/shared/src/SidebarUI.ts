@@ -25,7 +25,7 @@ import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { LookupResult, hasLookupContent } from './lookup';
 import { isContextual, oxfordLookupUrl, posTags, showsLemma } from './lookup/shape';
-import { posLabel } from './content/lookup-strip';
+import { posLabel } from './lookup/icons';
 import { saveTerm, sendMessage } from './content/quick-add-overlay';
 import {
     MAX_FEEDBACK_BYTES,

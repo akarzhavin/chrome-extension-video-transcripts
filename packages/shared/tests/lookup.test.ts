@@ -65,7 +65,7 @@ import {
     posTags,
     stripTranslations,
 } from '../src/lookup/shape';
-import { installLookupStrip } from '../src/content/lookup-strip';
+import { installLookupStrip } from '../src/lookup/strip';
 import { handleAuthMessage } from '../src/auth/background';
 import { config } from '../src/auth/config';
 import { track } from '../src/analytics-bg';

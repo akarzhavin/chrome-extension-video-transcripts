@@ -28,8 +28,8 @@ export { fetchLookup, lookupCached, clearLookupCache } from './client';
 export { hasLookupContent, latencyBucket } from './shape';
 
 // ── UI surfaces ────────────────────────────────────────────────────────────
-// The hover strip and the word screen join this façade in the steps that move
-// them in; until then they are reached at their current homes.
+export { installLookupStrip } from './strip';
+export type { LookupStripOptions } from './strip';
 
 // Everything else — stripTranslations, showsLemma, posTags, oxfordLookupUrl,
 // isContextual, stripDefinition, posLabel, the icons, cacheKey — is internal
