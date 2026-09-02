@@ -260,11 +260,22 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
     const strip = (): HTMLElement | null => document.getElementById(STRIP_ID);
 
+    // The word(s) the open card belongs to, underlined for as long as it is
+    // up — the card floats at a distance, and the mark is what ties the two
+    // together (the approved mock had it; the first build lost it).
+    let markedSpans: HTMLElement[] = [];
+    function markAnchor(anchor: Anchor | null): void {
+        for (const el of markedSpans) el.classList.remove('vtt-lookup-hit');
+        markedSpans = anchor ? anchor.spans().filter((el) => el.isConnected) : [];
+        for (const el of markedSpans) el.classList.add('vtt-lookup-hit');
+    }
+
     function removeStrip(): void {
         clearTimeout(spinTimer);
         clearTimeout(errorTimer);
         token++;
         current = null;
+        markAnchor(null);
         releaseLayout?.();
         releaseLayout = null;
         strip()?.remove();
@@ -382,8 +393,12 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             }
             const translations = stripTranslations(r);
             if (translations.length) {
+                // Real spaces around the dots, not just margins: margins
+                // create visual gaps but no break opportunities, so three long
+                // translations used to render as ONE unbreakable line that
+                // ignored the card's max-width and ran through its border.
                 body += `<span class="vtt-lookup-tr">${
-                    translations.map(escapeHtml).join('<span class="vtt-lookup-sep">·</span>')
+                    translations.map(escapeHtml).join(' <span class="vtt-lookup-sep">·</span> ')
                 }</span>`;
             } else {
                 // The dictionary defines the word but carries no equivalents
@@ -453,6 +468,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         if (!prefs?.native) return;
 
         current = anchor;
+        markAnchor(anchor);
         // Freeze the page's layout for as long as the card is up — see
         // LookupStripOptions.holdLayout.
         if (!releaseLayout) releaseLayout = opts.holdLayout?.() ?? null;

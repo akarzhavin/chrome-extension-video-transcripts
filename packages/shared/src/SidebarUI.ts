@@ -23,7 +23,7 @@ import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowEle
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
-import { LookupResult, hasLookupContent, isContextual, posTags, showsLemma } from './lookup';
+import { LookupResult, hasLookupContent, isContextual, oxfordLookupUrl, posTags, showsLemma } from './lookup';
 import { posLabel } from './content/lookup-strip';
 import { saveTerm, sendMessage } from './content/quick-add-overlay';
 import {
@@ -1640,7 +1640,7 @@ export class SidebarUI {
         if (titleEl) titleEl.textContent = term;
         this.renderLookupPending(lookupPanel);
         this.elements.lookupBackBtn?.focus();
-        void this.fetchLookupArticle(term, context, false);
+        void this.fetchLookupArticle(term, context);
     }
 
     /**
@@ -1674,7 +1674,7 @@ export class SidebarUI {
         this.scrollActiveIntoView('instant');
     }
 
-    private async fetchLookupArticle(term: string, context: string, more: boolean): Promise<void> {
+    private async fetchLookupArticle(term: string, context: string): Promise<void> {
         const seq = ++this.lookupSeq;
         const targetLang = this.app.langPrefs?.native ?? '';
         if (!targetLang) {
@@ -1688,11 +1688,10 @@ export class SidebarUI {
                 context,
                 targetLang,
                 detail: true,
-                more,
                 site: platformOf(location.hostname),
             });
             if (seq !== this.lookupSeq) return;
-            if (res?.ok && res.result) this.renderLookupArticle(term, context, res.result, more);
+            if (res?.ok && res.result) this.renderLookupArticle(term, context, res.result);
             else this.renderLookupError();
         } catch {
             if (seq === this.lookupSeq) this.renderLookupError();
@@ -1722,7 +1721,7 @@ export class SidebarUI {
     // translations, the cue it came from, then parts of speech in server order
     // (the first tag is the one this cue uses) with numbered senses. The save
     // button lives in a pinned footer so it never depends on article length.
-    private renderLookupArticle(term: string, context: string, r: LookupResult, more: boolean): void {
+    private renderLookupArticle(term: string, context: string, r: LookupResult): void {
         const panel = this.elements.lookupPanel;
         if (!panel) return;
         panel.replaceChildren();
@@ -1742,6 +1741,18 @@ export class SidebarUI {
             lemma.textContent = r.lemma;
             head.appendChild(lemma);
         }
+        // Heart at the word itself — the save action where the eye already
+        // is. The labeled footer button stays; both run the same handler
+        // (wired below, once both exist) so they can never disagree.
+        const termKey = term.toLowerCase();
+        const alreadySaved = this.lookupSavedTerms.has(termKey);
+        const headHeart = document.createElement('button');
+        headHeart.type = 'button';
+        headHeart.className = `vtt-lookup-head-heart${alreadySaved ? ' saved' : ''}`;
+        headHeart.innerHTML = ICONS_LOOKUP_HEART;
+        headHeart.setAttribute('aria-label',
+            alreadySaved ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save'));
+        head.appendChild(headHeart);
         if (r.source) {
             const badge = document.createElement('span');
             const isDict = r.source === 'wiktionary' || r.source === 'cache';
@@ -1838,19 +1849,6 @@ export class SidebarUI {
             none.className = 'vtt-lookup-article-pending';
             none.textContent = msg('ytLookupNone', 'No translation');
             scroll.appendChild(none);
-        } else if (!more) {
-            // The default request trims to 3 parts × 3 senses. Whether more
-            // exists is not knowable from a trimmed answer, so the button is
-            // offered once and the raised request (server ceiling: 10) answers.
-            const moreBtn = document.createElement('button');
-            moreBtn.type = 'button';
-            moreBtn.className = 'vtt-lookup-more';
-            moreBtn.textContent = msg('ytLookupMoreSenses', 'More senses');
-            moreBtn.addEventListener('click', () => {
-                moreBtn.disabled = true;
-                void this.fetchLookupArticle(term, context, true);
-            });
-            scroll.appendChild(moreBtn);
         }
 
         panel.appendChild(scroll);
@@ -1859,22 +1857,40 @@ export class SidebarUI {
         foot.className = 'vtt-lookup-foot';
         const save = document.createElement('button');
         save.type = 'button';
-        const already = this.lookupSavedTerms.has(term.toLowerCase());
-        save.className = `vtt-lookup-save${already ? ' saved' : ''}`;
+        save.className = `vtt-lookup-save${alreadySaved ? ' saved' : ''}`;
         save.innerHTML = `${ICONS_LOOKUP_HEART}<span>${
-            already ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save')}</span>`;
-        save.addEventListener('click', async () => {
-            if (this.lookupSavedTerms.has(term.toLowerCase())) return;
-            save.disabled = true;
-            const ok = await saveTerm(term.toLowerCase(), context, []);
-            save.disabled = false;
+            alreadySaved ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save')}</span>`;
+        // One save, two faces. Saving again is not un-saving (removal lives in
+        // the site's word list), so a second tap on either control is a no-op.
+        const doSave = async (pressed: HTMLButtonElement): Promise<void> => {
+            if (this.lookupSavedTerms.has(termKey)) return;
+            pressed.disabled = true;
+            const ok = await saveTerm(termKey, context, []);
+            pressed.disabled = false;
             if (!ok) return;
-            this.lookupSavedTerms.add(term.toLowerCase());
+            this.lookupSavedTerms.add(termKey);
+            headHeart.classList.add('saved');
+            headHeart.setAttribute('aria-label', msg('ytLookupSaved', 'Saved'));
             save.classList.add('saved');
             const label = save.querySelector('span');
             if (label) label.textContent = msg('ytLookupSaved', 'Saved');
-        });
+        };
+        headHeart.addEventListener('click', () => void doSave(headHeart));
+        save.addEventListener('click', () => void doSave(save));
         foot.appendChild(save);
+        // A second opinion, one click away — but only when Oxford can give
+        // one: the site is a dictionary OF English, so the link exists only
+        // for an English learning language (see oxfordLookupUrl).
+        const oxford = oxfordLookupUrl(term, this.app.langPrefs?.learning ?? '');
+        if (oxford) {
+            const link = document.createElement('a');
+            link.className = 'vtt-lookup-oxford';
+            link.href = oxford;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.innerHTML = `<span>Oxford</span>${ICON_EXTERNAL}`;
+            foot.appendChild(link);
+        }
         panel.appendChild(foot);
     }
 
@@ -3580,6 +3596,11 @@ export class SidebarUI {
 
 // The heart, drawn inline for the pinned save button. Same path as the hover
 // strip's heart so the two read as one control.
+// Arrow-out for links that leave the extension (the Oxford button).
+const ICON_EXTERNAL =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M7 17L17 7M9 7h8v8"/></svg>';
+
 const ICONS_LOOKUP_HEART =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
     '<path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>';

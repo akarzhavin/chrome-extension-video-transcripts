@@ -321,15 +321,13 @@ export async function handleAuthMessage(
             if (!term || !targetLang) return { ok: false, error: 'term and targetLang required' };
             if (!config.apiBaseUrl) return { ok: false, error: 'lookup not configured' };
             const context = typeof request.context === 'string' ? request.context : '';
-            // Three sizes: the strip wants one sense (~2 KB, not the 41 KB a
+            // Two sizes: the strip wants one sense (~2 KB, not the 41 KB a
             // full "running" entry weighs), the word screen wants a readable
-            // article, and its "more senses" button raises to the server cap.
-            const level = request.detail === true ? (request.more === true ? 'more' : 'detail') : 'strip';
+            // article.
+            const level = request.detail === true ? 'detail' : 'strip';
             const limits = level === 'strip'
                 ? { maxPartsOfSpeech: 3, maxSenses: 1, maxExamples: 0 }
-                : level === 'detail'
-                    ? { maxPartsOfSpeech: 3, maxSenses: 3, maxExamples: 1 }
-                    : { maxPartsOfSpeech: 10, maxSenses: 10, maxExamples: 1 };
+                : { maxPartsOfSpeech: 3, maxSenses: 3, maxExamples: 1 };
             const site = String(request.site ?? '');
             const started = Date.now();
             try {

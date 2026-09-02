@@ -599,10 +599,6 @@
     "message": "Details",
     "description": "Hover strip button that opens the sidebar word screen with the full entry."
   },
-  "ytLookupMoreSenses": {
-    "message": "More senses",
-    "description": "Word screen link that re-requests the entry with more senses per part of speech."
-  },
   "ytLookupSrcDict": {
     "message": "dictionary",
     "description": "Word screen source badge: the answer came from the Wiktionary-based dictionary."

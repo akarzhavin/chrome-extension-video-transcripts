@@ -183,6 +183,30 @@ export function showsLemma(r: LookupResult): boolean {
  * context-aware answer, and the UI may only claim "this is the sense used in
  * the phrase" when this returns true.
  */
+/**
+ * Deep link into Oxford Learner's Dictionaries for the word screen's footer.
+ *
+ * The scheme is /definition/<lang>/<word>, but <lang> is not a free slot:
+ * the site's own picker offers exactly two — `english` and
+ * `american_english` — and probing confirms everything else 404s (german,
+ * french, spanish), because it is a monolingual dictionary OF English. So
+ * the link exists only when the LEARNING language is English — that is the
+ * language the looked-up word is in — and an American track (en-US) gets
+ * the American edition.
+ *
+ * The term goes in as typed, lowercased with spaces hyphenated: Oxford
+ * redirects bare forms to its numbered entries (going -> going_1) and
+ * resolves irregular inflections (went) and hyphenated phrases (look-at).
+ */
+export function oxfordLookupUrl(term: string, learningLang: string): string | null {
+    const tag = learningLang.trim();
+    if (!/^en(-|_|$)/i.test(tag)) return null;
+    const edition = /^en[-_]us$/i.test(tag) ? 'american_english' : 'english';
+    const word = term.trim().toLowerCase().replace(/\s+/g, '-');
+    if (!word) return null;
+    return `https://www.oxfordlearnersdictionaries.com/definition/${edition}/${encodeURIComponent(word)}`;
+}
+
 export function isContextual(r: LookupResult): boolean {
     return r.parts_of_speech.some((p) => p.senses.some((s) => s.translations.length > 0));
 }

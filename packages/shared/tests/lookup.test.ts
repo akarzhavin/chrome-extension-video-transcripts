@@ -55,6 +55,7 @@ import {
     stripDefinition,
     showsLemma,
     isContextual,
+    oxfordLookupUrl,
     posTags,
     stripTranslations,
     LookupResult,
@@ -201,6 +202,31 @@ describe('isContextual — who may claim "the sense this phrase uses"', () => {
     });
     it('model answers attach translations to senses: the claim is backed', () => {
         expect(isContextual(llmAnswer)).toBe(true);
+    });
+});
+
+describe('oxfordLookupUrl — English only, verified against the live site', () => {
+    it('links an English learning language', () => {
+        expect(oxfordLookupUrl('going', 'en'))
+            .toBe('https://www.oxfordlearnersdictionaries.com/definition/english/going');
+    });
+    it('routes an American track to the American edition — the site offers exactly two', () => {
+        expect(oxfordLookupUrl('going', 'en-US')).toContain('/american_english/going');
+        expect(oxfordLookupUrl('going', 'en_US')).toContain('/american_english/going');
+        expect(oxfordLookupUrl('going', 'en_GB')).toContain('/english/going');
+        expect(oxfordLookupUrl('going', 'en')).toContain('/english/going');
+    });
+    it('offers nothing for other learning languages — their paths 404', () => {
+        expect(oxfordLookupUrl('gehen', 'de')).toBeNull();
+        expect(oxfordLookupUrl('aller', 'fr')).toBeNull();
+        // "es" must not ride in on a prefix check written too loosely.
+        expect(oxfordLookupUrl('ir', 'es')).toBeNull();
+    });
+    it('hyphenates phrases the way Oxford spells its entries', () => {
+        expect(oxfordLookupUrl('Look  At', 'en')).toContain('/english/look-at');
+    });
+    it('offers nothing for an empty term', () => {
+        expect(oxfordLookupUrl('   ', 'en')).toBeNull();
     });
 });
 
@@ -791,6 +817,15 @@ describe('selection — dragging a phrase opens the same card', () => {
         expect(msg.term).not.toContain('translation');
     });
 
+    it('underlines every word of the dragged phrase while its card is up', async () => {
+        const list = buildList(4);
+        selectAcross(list, 0, 1);
+        await release();
+        expect(card()).not.toBeNull();
+        const hits = list.querySelectorAll('.vtt-lookup-hit');
+        expect(hits.length).toBe(4); // a0 b0 a1 b1
+    });
+
     it('saves the dragged phrase, not just the word under the cursor', async () => {
         const list = buildList(4);
         selectAcross(list, 0, 1);
@@ -1015,6 +1050,51 @@ describe('holdLayout — nothing moves while a card is open', () => {
         const card = document.getElementById(CARD)!;
         expect(card.querySelectorAll('.vtt-lookup-pos-tag').length).toBe(1);
         expect(card.querySelector('.vtt-lookup-pos-tag.lead')).toBeNull();
+        teardown();
+        jest.useRealTimers();
+    });
+
+    it('joins translations with breakable separators — margins alone cannot wrap', async () => {
+        // Three long Russian translations once rendered as ONE unbreakable
+        // string (the dot was joined in with no spaces), running through the
+        // card's border past its max-width.
+        jest.useFakeTimers();
+        const teardown = installLookupStrip();
+        hover(overlayWord('anchor'));
+        await jest.advanceTimersByTimeAsync(300);
+        const tr = document.querySelector('.vtt-lookup-tr')!;
+        expect(tr.textContent).toContain(' · ');
+        teardown();
+        jest.useRealTimers();
+    });
+
+    it('underlines the word its card belongs to, and only while the card is up', async () => {
+        jest.useFakeTimers();
+        const teardown = installLookupStrip();
+        const span = overlayWord('anchor');
+        hover(span);
+        await jest.advanceTimersByTimeAsync(300);
+        expect(span.classList.contains('vtt-lookup-hit')).toBe(true);
+
+        span.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+        await jest.advanceTimersByTimeAsync(400);
+        expect(document.getElementById(CARD)).toBeNull();
+        expect(span.classList.contains('vtt-lookup-hit')).toBe(false);
+        teardown();
+        jest.useRealTimers();
+    });
+
+    it('moves the underline when the card re-targets to another word', async () => {
+        jest.useFakeTimers();
+        const teardown = installLookupStrip();
+        const a = overlayWord('table');
+        const b = overlayWord('chair');
+        hover(a);
+        await jest.advanceTimersByTimeAsync(300);
+        hover(b);
+        await jest.advanceTimersByTimeAsync(300);
+        expect(a.classList.contains('vtt-lookup-hit')).toBe(false);
+        expect(b.classList.contains('vtt-lookup-hit')).toBe(true);
         teardown();
         jest.useRealTimers();
     });

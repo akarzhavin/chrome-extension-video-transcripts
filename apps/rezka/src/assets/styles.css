@@ -3799,6 +3799,9 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     flex-direction: column;
     gap: 4px;
     padding: 8px 11px 7px;
+    /* Last resort for a single word wider than the card (German compounds):
+       better hyphen-less broken than through the border. */
+    overflow-wrap: anywhere;
 }
 
 .vtt-lookup-pending {
@@ -3812,6 +3815,13 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 .vtt-lookup-error {
     color: var(--vtt-danger);
     font-size: 12.5px;
+}
+
+/* The word the open card belongs to. Same inset-underline technique as the
+   saved-word marker, in the accent so the two never read as the same state. */
+.vtt-lookup-hit {
+    box-shadow: inset 0 -2px 0 var(--vtt-accent);
+    border-radius: 2px;
 }
 
 .vtt-lookup-muted {
@@ -3872,7 +3882,9 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 
 .vtt-lookup-sep {
     color: var(--vtt-text-dim);
-    margin: 0 5px;
+    /* The literal spaces around the dot carry the break opportunities and
+       some of the width; margins only top them up. */
+    margin: 0 2px;
     font-weight: 400;
 }
 
@@ -4030,6 +4042,43 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     font-size: 11.5px;
 }
 
+.vtt-lookup-head-heart {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* The head row aligns to baselines for the word/lemma; a box has no
+       baseline worth using, so it centers itself instead. */
+    align-self: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--vtt-text-dim);
+    cursor: pointer;
+    flex: none;
+}
+
+.vtt-lookup-head-heart svg {
+    width: 17px;
+    height: 17px;
+}
+
+.vtt-lookup-head-heart:hover {
+    color: var(--vtt-heart);
+    background: var(--vtt-chip-quiet);
+}
+
+.vtt-lookup-head-heart.saved {
+    color: var(--vtt-heart);
+}
+
+.vtt-lookup-head-heart.saved svg {
+    fill: var(--vtt-heart);
+    stroke: var(--vtt-heart);
+}
+
 .vtt-lookup-src {
     margin-left: auto;
     font-size: 9.5px;
@@ -4131,27 +4180,8 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     opacity: 0.85;
 }
 
-.vtt-lookup-more {
-    margin-top: 10px;
-    border: 0;
-    background: transparent;
-    color: var(--vtt-accent);
-    font-family: var(--vtt-font);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0;
-}
 
-.vtt-lookup-more:hover {
-    text-decoration: underline;
-}
 
-.vtt-lookup-more:disabled {
-    opacity: 0.5;
-    cursor: default;
-    text-decoration: none;
-}
 
 /* Pinned footer: saving must not depend on how long the article ran. */
 .vtt-lookup-foot {
@@ -4159,6 +4189,37 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     padding: 10px 16px 12px;
     border-top: 1px solid var(--lk-hair);
     display: flex;
+    gap: 8px;
+}
+
+/* Secondary next to Save's primary: hairline, no fill — a way out, not the
+   action the screen is for. */
+.vtt-lookup-oxford {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--vtt-hairline-strong);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--vtt-text-soft);
+    font-family: var(--vtt-font);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.vtt-lookup-oxford svg {
+    width: 13px;
+    height: 13px;
+}
+
+.vtt-lookup-oxford:hover {
+    color: var(--vtt-text);
+    background: var(--vtt-chip-quiet);
 }
 
 .vtt-lookup-save {
