@@ -41,7 +41,7 @@
     {
       "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"],
       "js": ["src/content/index.js"],
-      "css": ["src/assets/styles.css"],
+      "css": ["src/assets/styles.css", "src/assets/lookup.css"],
       "run_at": "document_idle",
       "all_frames": false
     }

@@ -224,6 +224,13 @@ export default defineConfig(({ command, mode }) => {
               rename: { stripBase: true }
             },
             {
+              // Loaded after styles.css (see the manifest) — it consumes that
+              // file's tokens and defines none of its own.
+              src: 'src/assets/lookup.css',
+              dest: 'src/assets',
+              rename: { stripBase: true }
+            },
+            {
               src: 'src/assets/icons/*.png',
               dest: 'src/assets/icons',
               rename: { stripBase: true }
