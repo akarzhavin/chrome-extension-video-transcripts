@@ -1,4 +1,5 @@
 import { msg as i18nMsg } from '../i18n';
+import { sendMessage } from '../messaging';
 
 const BADGE_ID = 'lingogram-auth-badge';
 const PANEL_ID = 'lingogram-auth-panel';
@@ -8,22 +9,6 @@ interface AuthStatus {
     email?: string;
     uid?: string;
     inboxCount?: number;
-}
-
-function sendMessage<T>(msg: object): Promise<T> {
-    return new Promise((resolve, reject) => {
-        try {
-            chrome.runtime.sendMessage(msg, (res) => {
-                if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                    return;
-                }
-                resolve(res as T);
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props?: Partial<HTMLElementTagNameMap[K]>, style?: Partial<CSSStyleDeclaration>): HTMLElementTagNameMap[K] {

@@ -7,6 +7,7 @@
 // docs and finds Russian feedback cut in half.
 
 import { msg as i18nMsg } from './i18n';
+import { sendMessage } from './messaging';
 
 // Firestore counts UTF-8 BYTES, while a textarea's maxLength counts UTF-16
 // code units — so a 2000-char Russian message is 4000 bytes and would be
@@ -35,22 +36,6 @@ export function clampToBytes(s: string, maxBytes: number): string {
         else break;
     }
     return s.slice(0, lo);
-}
-
-function sendMessage<T>(message: object): Promise<T> {
-    return new Promise((resolve, reject) => {
-        try {
-            chrome.runtime.sendMessage(message, (res) => {
-                if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                    return;
-                }
-                resolve(res as T);
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
 }
 
 // A reply address typed by a signed-out user. Firestore's rules pin the

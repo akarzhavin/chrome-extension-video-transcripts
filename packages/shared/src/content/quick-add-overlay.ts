@@ -1,6 +1,7 @@
 import { platformOf } from '../analytics';
 import { msg as i18nMsg } from '../i18n';
 import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feedback';
+import { sendMessageGuarded as sendMessage } from '../messaging';
 
 const TOAST_ID = 'lingogram-quick-add-toast';
 export const MAX_TERM_LEN = 256;
@@ -648,27 +649,14 @@ export async function saveTerm(
     }
 }
 
-export function sendMessage<T>(msg: object): Promise<T> {
-    return new Promise((resolve, reject) => {
-        // Stale content scripts left over from an extension reload still have
-        // a `chrome` global, but `chrome.runtime.id` flips to undefined.
-        if (!chrome?.runtime?.id) {
-            reject(new Error('Extension was reloaded — refresh this page to use Lingogram again.'));
-            return;
-        }
-        try {
-            chrome.runtime.sendMessage(msg, (res) => {
-                if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                    return;
-                }
-                resolve(res as T);
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
-}
+// Re-exported under this name because lookup/word-screen.ts imports it from
+// here. The guarded form is the one this module has always used: quick-add runs
+// in a content script that outlives extension reloads.
+//
+// Imported at the top of the file and re-exported here, rather than written as
+// `export { sendMessageGuarded as sendMessage } from '../messaging'`: that form
+// creates no local binding, and saveTerm above calls sendMessage directly.
+export { sendMessage };
 
 // The rating prompt normally fires once per install, after 30 saved words — so
 // there is no way to look at it again without wiping chrome.storage. Append
