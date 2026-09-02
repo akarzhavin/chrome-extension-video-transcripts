@@ -47,13 +47,15 @@ jest.mock('../src/analytics-bg', () => ({
 }));
 
 import {
-    fetchLookup,
     hasLookupContent,
     latencyBucket,
     lookupCached,
     clearLookupCache,
     LookupResult,
 } from '../src/lookup';
+// fetchLookup stays off the façade — everything outside the module goes
+// through the cache — so the unit test for it reaches the file directly.
+import { fetchLookup } from '../src/lookup/client';
 // The presentation helpers are internal to the module — deliberately absent
 // from its façade — so they are imported by path, the same way this file
 // already reaches auth/background.

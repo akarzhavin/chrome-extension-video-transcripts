@@ -19,10 +19,15 @@ export type {
     LookupSense,
     LookupPartOfSpeech,
 } from './types';
-export { LOOKUP_WORD_ACTION, MAX_LOOKUP_TERM_LEN, LOOKUP_TIMEOUT_MS } from './types';
+// Only the term cap crosses the boundary: the message handler enforces it,
+// because the hover path's term comes off a subtitle track we did not write.
+// LOOKUP_WORD_ACTION and LOOKUP_TIMEOUT_MS have no caller outside the module.
+export { MAX_LOOKUP_TERM_LEN } from './types';
 
 // ── Network + cache (service worker only) ──────────────────────────────────
-export { fetchLookup, lookupCached, clearLookupCache } from './client';
+// fetchLookup is not here on purpose: everything outside goes through the
+// cache, and exposing the uncached call invites spending the rate limit.
+export { lookupCached, clearLookupCache } from './client';
 
 // ── Answer inspection (the message handler reports on both) ────────────────
 export { hasLookupContent, latencyBucket } from './shape';
