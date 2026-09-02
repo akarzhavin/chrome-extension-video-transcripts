@@ -26,7 +26,7 @@ import {
     showOrphanNotice,
     type Subtitle,
 } from '@video-transcripts/shared';
-import { installLookupStrip } from '@video-transcripts/shared';
+import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
@@ -86,7 +86,7 @@ class VttApp implements AppInterface {
     constructor() {
         this.isTopWindow = window === window.top;
         this.state = new AppState();
-        this.ui = new SidebarUI(this.state, this);
+        this.ui = new SidebarUI(this.state, this, (host) => new WordScreen(host));
         this.detector = new VttDetector(this);
 
         console.log("VTT Sidebar: Running in " + (this.isTopWindow ? "top window." : "iframe."));

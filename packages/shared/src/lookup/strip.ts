@@ -27,24 +27,25 @@
 //    leaves the card on its way to the button.
 import { isEmbed, platformOf } from '../analytics';
 import { msg } from '../i18n';
+import { HEART_SVG, MORE_SVG, posLabel } from './icons';
 import { loadLanguagePrefs } from '../languages';
-import type { LookupResult } from '../lookup';
+import type { LookupResult } from './types';
+import { MAX_LOOKUP_TERM_LEN } from './types';
 import {
-    MAX_LOOKUP_TERM_LEN,
     hasLookupContent,
     posTags,
     showsLemma,
     stripDefinition,
     stripTranslations,
-} from '../lookup';
-import type { SelectionPayload } from './quick-add-overlay';
+} from './shape';
+import type { SelectionPayload } from '../content/quick-add-overlay';
 import {
     buildContextForIndex,
     getSelectionPayload,
     saveTerm,
     selectionWordSpans,
     sendMessage,
-} from './quick-add-overlay';
+} from '../content/quick-add-overlay';
 
 const STRIP_ID = 'lingogram-lookup-strip';
 
@@ -64,38 +65,6 @@ const HIDE_DELAY_MS = 140;    // long enough to travel word → card
 const ERROR_HIDE_MS = 2000;
 const GAP_PX = 6;
 const MARGIN_PX = 8;
-
-// The localized short label for a part-of-speech tag the server sends. The
-// fallback is the tag itself, so an unknown tag renders as-is instead of
-// vanishing. These label the word's ROLES; they never label individual
-// translations — wiktionary's translations are one flat list with no per-tag
-// split, and pinning tags onto them would be a guess.
-const POS_KEYS: Record<string, string> = {
-    'n.': 'ytPosNoun',
-    'v.': 'ytPosVerb',
-    'adj.': 'ytPosAdj',
-    'adv.': 'ytPosAdv',
-    'prep.': 'ytPosPrep',
-    'conj.': 'ytPosConj',
-    'pron.': 'ytPosPron',
-    'intj.': 'ytPosIntj',
-    'num.': 'ytPosNum',
-    'phr.': 'ytPosPhrase',
-};
-
-export function posLabel(tag: string): string {
-    const key = POS_KEYS[tag];
-    return key ? msg(key, tag) : tag;
-}
-
-// Arrow-out: "this opens a bigger view" — the word screen in the sidebar.
-const MORE_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-    '<path d="M7 17L17 7M9 7h8v8"/></svg>';
-
-const HEART_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-    '<path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>';
 
 export interface LookupStripOptions {
     /** Open the sidebar's word screen — wired by each app to its SidebarUI. */

@@ -812,7 +812,8 @@
         "src/content/index.js"
       ],
       "css": [
-        "src/assets/styles.css"
+        "src/assets/styles.css",
+        "src/assets/lookup.css"
       ]
     }
   ],

@@ -1,6 +1,7 @@
 import {
     AppState,
     SidebarUI,
+    WordScreen,
     AppInterface,
     loadLanguagePrefs,
     saveLanguagePrefs,
@@ -376,7 +377,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     constructor() {
         this.state = new AppState();
-        this.ui = new SidebarUI(this.state, this);
+        this.ui = new SidebarUI(this.state, this, (host) => new WordScreen(host));
     }
 
     // ── site hooks (subclass provides) ──────────────────────────────────────

@@ -6,6 +6,7 @@ import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
+import { WordScreen } from '../src/lookup/word-screen';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -44,7 +45,9 @@ describe('SidebarUI', () => {
         document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
         state = new AppState();
         mockApp = { seekVideo: jest.fn(), updateHighlight: jest.fn() };
-        ui = new SidebarUI(state, mockApp);
+        // With a word screen — the extension configuration. The suite below
+        // covers a sidebar built without one.
+        ui = new SidebarUI(state, mockApp, (host) => new WordScreen(host));
         ui.elements = {
             list: document.getElementById('vtt-list') as HTMLDivElement,
             sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
@@ -1925,10 +1928,13 @@ describe('SidebarUI', () => {
     });
 
 
-    describe('word screen ↔ the collapse tab', () => {
-        // While the word screen is up the tab's glyph is a cross, and pressing
-        // it undoes the whole detour: the screen closes, and the panel
-        // collapses only if opening the screen is what expanded it.
+    // ── Word-screen WIRING ─────────────────────────────────────────────────
+    // The screen's own behaviour is tested in word-screen.test.ts against a
+    // fake port. These two stay here because a fake port cannot catch a
+    // mis-wired delegator: they are the only tests that run the real chain
+    // from a SidebarUI entry point, through the host object built in this
+    // class, into the screen.
+    describe('word screen wiring', () => {
         beforeEach(() => {
             ui.elements = {
                 ...ui.elements,
@@ -1936,22 +1942,12 @@ describe('SidebarUI', () => {
             };
         });
 
-        it('panel was open: the tab closes the word screen and keeps the panel', () => {
+        it('the collapse tab reaches the screen, which closes instead of collapsing', () => {
             ui.openLookupScreen('main', 'the main sail');
             expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(true);
             ui.onToggleTab();
             expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
             expect(ui.isCollapsed()).toBe(false);
-        });
-
-        it('panel was collapsed: the screen expanded it, so the tab collapses it back', () => {
-            ui.elements.sidebar!.classList.add('collapsed');
-            ui.openLookupScreen('main', 'the main sail');
-            expect(ui.isCollapsed()).toBe(false); // the screen auto-expands…
-            ui.onToggleTab();
-            // …and its cross puts everything back the way it was.
-            expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
-            expect(ui.isCollapsed()).toBe(true);
         });
 
         // The word screen is reached from the transcript, not from settings, so
@@ -1967,103 +1963,64 @@ describe('SidebarUI', () => {
             expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
             expect(ui.elements.titleEl!.textContent).toBe('Settings');
         });
-
-        it('a second word must not forget how the FIRST one found the panel', () => {
-            ui.elements.sidebar!.classList.add('collapsed');
-            ui.openLookupScreen('main', 'the main sail');
-            // Hovering the overlay still works over the open screen — a second
-            // word re-enters openLookupScreen with the panel already expanded.
-            ui.openLookupScreen('sail', 'the main sail');
-            ui.onToggleTab();
-            expect(ui.isCollapsed()).toBe(true);
-        });
-
-        it('without the word screen the tab is still a plain toggle', () => {
-            ui.onToggleTab();
-            expect(ui.isCollapsed()).toBe(true);
-            ui.onToggleTab();
-            expect(ui.isCollapsed()).toBe(false);
-        });
     });
 
+});
 
-    describe('word screen: the heart at the headword', () => {
-        // The article gets a second save control, next to the word. Both faces
-        // run one handler, so pressing either must flip the other too.
-        const dictResult = {
-            term: 'going', lemma: 'go',
-            translations: ['ходить'],
-            parts_of_speech: [{ tag: 'v.', label: 'Verb',
-                senses: [{ translations: [], definition: 'To move.', examples: [] }] }],
-            source: 'wiktionary',
+/**
+ * A sidebar built WITHOUT a word screen.
+ *
+ * The marketing-site embed reuses this class but has no service worker to
+ * route LOOKUP_WORD through, so it constructs one with no word-screen factory
+ * and the feature's code never enters its bundle.
+ *
+ * These tests exist because that configuration has a failure mode nothing else
+ * can see: the embed re-parents #vtt-toggle-btn onto its own tab slot, and the
+ * tab's handler is onToggleTab — whose first branch is word-screen logic. If
+ * that branch does not degrade, the demo's panel silently stops collapsing on
+ * a public page, and every extension test still passes because the extensions
+ * always have the screen.
+ */
+describe('SidebarUI without a word screen (the embed configuration)', () => {
+    let ui: SidebarUI;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        // No third argument — exactly how packages/embed constructs it.
+        ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
         };
-
-        const flush = async () => { await Promise.resolve(); await Promise.resolve();
-            await new Promise((r) => setTimeout(r, 0)); };
-
-        beforeEach(() => {
-            ui.elements = {
-                ...ui.elements,
-                lookupPanel: document.createElement('div') as HTMLDivElement,
-            };
-            (mockApp as any).langPrefs = { learning: 'en', native: 'ru' };
-            (chrome.runtime.sendMessage as jest.Mock).mockImplementation(
-                (msg: any, cb?: (r: unknown) => void) => {
-                    const res = msg?.action === 'LOOKUP_WORD'
-                        ? { ok: true, result: dictResult }
-                        : { ok: true, wordId: 'w1' };
-                    cb?.(res);
-                });
-        });
-
-        it('renders the heart beside the word and saving fills BOTH controls', async () => {
-            ui.openLookupScreen('going', 'we are going home');
-            await flush();
-            const panel = ui.elements.lookupPanel!;
-            const heart = panel.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!;
-            const foot = panel.querySelector<HTMLButtonElement>('.vtt-lookup-save')!;
-            expect(heart).not.toBeNull();
-            expect(heart.classList.contains('saved')).toBe(false);
-
-            heart.click();
-            await flush();
-            const sent = (chrome.runtime.sendMessage as jest.Mock).mock.calls
-                .map((c) => c[0]).find((m: any) => m?.action === 'ADD_WORD');
-            expect(sent?.term).toBe('going');
-            expect(heart.classList.contains('saved')).toBe(true);
-            // The one that was NOT pressed follows — one handler, two faces.
-            expect(foot.classList.contains('saved')).toBe(true);
-            expect(foot.querySelector('span')?.textContent).toBe('Saved');
-        });
-
-        it('offers the Oxford link for an English word, and its URL is the entry', async () => {
-            ui.openLookupScreen('going', 'we are going home');
-            await flush();
-            const link = ui.elements.lookupPanel!.querySelector<HTMLAnchorElement>('.vtt-lookup-oxford')!;
-            expect(link).not.toBeNull();
-            expect(link.href).toBe('https://www.oxfordlearnersdictionaries.com/definition/english/going');
-            expect(link.target).toBe('_blank');
-        });
-
-        it('offers no Oxford link when the learning language is not English', async () => {
-            (mockApp as any).langPrefs = { learning: 'de', native: 'ru' };
-            ui.openLookupScreen('gehen', 'wir gehen');
-            await flush();
-            expect(ui.elements.lookupPanel!.querySelector('.vtt-lookup-oxford')).toBeNull();
-        });
-
-        it('a re-opened saved word renders the heart already filled', async () => {
-            ui.openLookupScreen('going', 'we are going home');
-            await flush();
-            ui.elements.lookupPanel!.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!.click();
-            await flush();
-            ui.closeLookupScreen();
-
-            ui.openLookupScreen('going', 'we are going home');
-            await flush();
-            const heart = ui.elements.lookupPanel!.querySelector('.vtt-lookup-head-heart')!;
-            expect(heart.classList.contains('saved')).toBe(true);
-        });
     });
 
+    it('the collapse tab still collapses and expands the panel', () => {
+        expect(ui.isCollapsed()).toBe(false);
+        ui.onToggleTab();
+        expect(ui.isCollapsed()).toBe(true);
+        ui.onToggleTab();
+        expect(ui.isCollapsed()).toBe(false);
+    });
+
+    it('opening the word screen is a silent no-op, not a throw', () => {
+        expect(() => ui.openLookupScreen('anchor', 'drop the anchor')).not.toThrow();
+        expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
+    });
+
+    it('closing one is a no-op too, from any entry point', () => {
+        expect(() => ui.closeLookupScreen()).not.toThrow();
+        expect(() => ui.destroy()).not.toThrow();
+    });
+
+    it('builds neither the word-screen panel nor its back chip', () => {
+        document.body.innerHTML = '';
+        const bare = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        bare.init();
+        expect(document.getElementById('vtt-lookup-panel')).toBeNull();
+        expect(document.getElementById('vtt-lookup-back-btn')).toBeNull();
+        // The chassis itself is unaffected.
+        expect(document.getElementById('vtt-sidebar')).not.toBeNull();
+        expect(document.getElementById('vtt-toggle-btn')).not.toBeNull();
+        bare.destroy();
+    });
 });

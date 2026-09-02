@@ -10,9 +10,19 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-// rezka owns the stylesheet; the YouTube build copies it verbatim.
-const CSS = readFileSync(
-    join(__dirname, '../../../apps/rezka/src/assets/styles.css'), 'utf8');
+// rezka owns the stylesheets; the YouTube build copies them verbatim.
+//
+// Two files since the lookup rules moved out, and this fixture joins them in
+// the SAME ORDER the manifest loads them. All three groups below need that
+// join for different reasons: the token checks need the lookup rules from one
+// file and the tokens they resolve against from the other, while the takeover
+// and collapse-tab checks read chassis rules that deliberately stayed behind.
+const asset = (file: string): string =>
+    readFileSync(join(__dirname, '../../../apps/rezka/src/assets/', file), 'utf8');
+
+const BASE_CSS = asset('styles.css');
+const LOOKUP_CSS = asset('lookup.css');
+const CSS = `${BASE_CSS}\n${LOOKUP_CSS}`;
 
 /** The declaration blocks belonging to the lookup UI. */
 function lookupRules(): Array<{ selector: string; body: string }> {
@@ -114,5 +124,36 @@ describe('the collapse tab on the word screen', () => {
     it('swaps the chevron for the close glyph, but only while expanded', () => {
         expect(CSS).toMatch(/\.vtt-lookup-open:not\(\.collapsed\) #vtt-toggle-btn \.vtt-toggle-close\s*\{\s*display:\s*block/);
         expect(CSS).toMatch(/\.vtt-lookup-open:not\(\.collapsed\) #vtt-toggle-btn \.vtt-toggle-chevron\s*\{\s*display:\s*none/);
+    });
+});
+
+/**
+ * The split is only safe while one file owns the palette.
+ *
+ * lookup.css consumes --vtt-* tokens and defines none. If it ever defined
+ * one, the two sheets would carry independent values for the same name and
+ * drift apart silently — a light-theme colour fixed in one file and stale in
+ * the other, with nothing failing. The feature's OWN locals (--lk-*) are
+ * fine: they are namespaced to it and defined nowhere else.
+ */
+describe('the lookup stylesheet does not fork the palette', () => {
+    // Declarations only. A --vtt-* inside var(...) is a READ, which is the
+    // whole point of the file; and prose in a comment is neither.
+    const withoutComments = LOOKUP_CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    it('defines no --vtt-* token', () => {
+        const declared = [...withoutComments.matchAll(/(^|[{;])\s*(--vtt-[a-z0-9-]+)\s*:/gi)]
+            .map((m) => m[2]);
+        expect(declared).toEqual([]);
+    });
+
+    it('carries no :root block', () => {
+        expect(withoutComments).not.toMatch(/:root\s*[,{]/);
+    });
+
+    it('still reads the shared palette, so the check above means something', () => {
+        // Guards the guard: if lookup.css stopped using --vtt-* entirely, the
+        // two assertions above would pass vacuously.
+        expect(withoutComments).toMatch(/var\(--vtt-/);
     });
 });

@@ -47,20 +47,27 @@ jest.mock('../src/analytics-bg', () => ({
 }));
 
 import {
-    fetchLookup,
     hasLookupContent,
     latencyBucket,
     lookupCached,
     clearLookupCache,
+    LookupResult,
+} from '../src/lookup';
+// fetchLookup stays off the façade — everything outside the module goes
+// through the cache — so the unit test for it reaches the file directly.
+import { fetchLookup } from '../src/lookup/client';
+// The presentation helpers are internal to the module — deliberately absent
+// from its façade — so they are imported by path, the same way this file
+// already reaches auth/background.
+import {
     stripDefinition,
     showsLemma,
     isContextual,
     oxfordLookupUrl,
     posTags,
     stripTranslations,
-    LookupResult,
-} from '../src/lookup';
-import { installLookupStrip } from '../src/content/lookup-strip';
+} from '../src/lookup/shape';
+import { installLookupStrip } from '../src/lookup/strip';
 import { handleAuthMessage } from '../src/auth/background';
 import { config } from '../src/auth/config';
 import { track } from '../src/analytics-bg';
