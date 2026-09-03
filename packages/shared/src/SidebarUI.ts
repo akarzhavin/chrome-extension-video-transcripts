@@ -7,7 +7,6 @@ import {
     onPrefsChanged,
     savePrefs,
     Prefs,
-    OverlaySizePercent,
     OverlayLevelToken,
     OverlayBackdropToken,
     OverlayEdgeToken,
@@ -17,21 +16,36 @@ import {
     PLATFORM_SIZE_DEFAULTS,
 } from './prefs';
 import { OverlayPosition, OverlayMetrics, OVERLAY_BOTTOM_PCT } from './overlay-position';
+import {
+    overlaySizePx,
+    NUDGE_STEP_PX,
+    NUDGE_STEP_BIG_PX,
+    placeholderCaption,
+    REFERENCE_PLAYER_H,
+    REFERENCE_PLAYER_W,
+    OVERLAY_BG_OPACITY,
+    edgeValue,
+    hexLuminance,
+    OVERLAY_FONT_STACK,
+    OVERLAY_FONT_VARIANT,
+    OVERLAY_COLORS,
+    OVERLAY_BG_COLORS,
+    OVERLAY_TEXT_DEFAULTS,
+    OVERLAY_BOX_DEFAULTS,
+    OVERLAY_STYLE_DEFAULTS,
+} from './overlay-style';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
+import { buildFeedbackScreen, FeedbackScreenHost } from './content/feedback-screen';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
-import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
+import { PeekController } from './transcript/peek';
+import {
+    fillMaskedWordsInto,
+    fillPlainWordsInto,
+} from './transcript/word-markup';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
-import {
-    MAX_FEEDBACK_BYTES,
-    clampToBytes,
-    composeFeedbackText,
-    feedbackCopy,
-    sendFeedback,
-    utf8Len,
-} from './feedback';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -58,154 +72,6 @@ function ownerId(): string {
     }
 }
 
-// Overlay-style preset tokens → concrete CSS values. These drive the
-// --vtt-overlay-* custom properties set inline on #vtt-video-overlay; the
-// stylesheet reads them with matching fallbacks (apps/rezka/src/assets/styles.css).
-// Font size is a percentage of a 24px base, not a token — the sidebar drives
-// it with a slider (50-400, step 5) rather than a fixed set of presets, since
-// a 3-way token left the 100-150% range most people want unreachable.
-const OVERLAY_SIZE_BASE_PX = 24;
-function overlaySizePx(pct: OverlaySizePercent): string {
-    return `${(OVERLAY_SIZE_BASE_PX * pct) / 100}px`;
-}
-// One arrow-key press on the grip moves the captions this far on screen; Shift
-// multiplies it. Screen px, converted to a share of the player at the moment of
-// the press (see pxToPct), so the felt step is the same in fullscreen and inline
-// while the stored value stays proportional.
-const NUDGE_STEP_PX = 4;
-const NUDGE_STEP_BIG_PX = 20;
-// Shown in the caption box while the settings panel is open and the video has no
-// line at this moment and no track to borrow one from. It must read as a sample
-// of a caption, not as a caption — see .vtt-overlay-placeholder. A function, not
-// a const: msg() reads chrome.i18n, which is not ready at module-evaluation
-// time, and a const would freeze the English fallback for every locale.
-const placeholderCaption = () => msg('ytOverlayPreviewMain', 'Subtitles appear here');
-
-// Fallback player height for the px→% conversions when the overlay is not
-// mounted yet (or offsetHeight is 0, as in jsdom): a 1080p frame, the reference
-// every other overlay unit was tuned at.
-const REFERENCE_PLAYER_H = 1080;
-const REFERENCE_PLAYER_W = 1920;
-const OVERLAY_BG_OPACITY: Record<OverlayBackdropToken, string> = {
-    // 'off' is a real transparent box, not a low step: with no box at all the
-    // Edge control is the only thing keeping glyphs legible over raw video.
-    off: '0',
-    low: '0.4',
-    medium: '0.7',
-    high: '0.9',
-};
-
-// Em-based, not px: a 1px shadow reads fine at the 24px base but disappears
-// at 400% (96px). Scaling with the glyph keeps the edge visible at every size.
-// The edge color is resolved per line in applyOverlayStyle, not hardcoded.
-// Black-on-black was invisible: the caption box defaults to black, so a black
-// shadow behind the glyphs landed on a black backdrop and the Edge control
-// looked broken. applyOverlayStyle derives the color from the CURRENT
-// background color, so the edge stays visible whatever box the user picks.
-// Built per line against an ALREADY-RESOLVED color rather than left as a var()
-// for the stylesheet to substitute -- see the note in applyOverlayStyle.
-// Offsets are em so the edge tracks the 50-400% size range.
-function edgeValue(style: OverlayEdgeToken, color: string): string {
-    switch (style) {
-        case 'none':
-            return 'none';
-        case 'shadow':
-            return `0.04em 0.04em 0.13em ${color}`;
-        // Faux outline via 4-direction shadows (text-stroke isn't reliable cross-site).
-        case 'outline':
-            return [
-                `-0.045em -0.045em 0 ${color}`,
-                `0.045em -0.045em 0 ${color}`,
-                `-0.045em 0.045em 0 ${color}`,
-                `0.045em 0.045em 0 ${color}`,
-            ].join(', ');
-    }
-}
-
-// Relative luminance of a #rrggbb hex, sRGB coefficients. Used to decide
-// whether the edge should be drawn dark or light against the caption box.
-function hexLuminance(hex: string): number {
-    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-    if (!m) return 0;
-    const n = parseInt(m[1], 16);
-    return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
-}
-
-// The seven CEA-708 font classes, each resolved to a system stack — nothing
-// is bundled (the BBC's own guidance: a platform font beats a shipped one for
-// on-screen legibility). 'smallCaps' has no reliable cross-platform typeface,
-// so it is font-variant-caps on the proportional-sans stack instead.
-const OVERLAY_FONT_STACK: Record<OverlayFontFamily, string> = {
-    monoSerif: "'Courier New', Courier, 'Nimbus Mono PS', 'Liberation Mono', monospace",
-    propSerif: "Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, 'Times New Roman', serif",
-    monoSans: "ui-monospace, Menlo, Consolas, 'Cascadia Code', 'DejaVu Sans Mono', 'Liberation Mono', monospace",
-    propSans: "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
-    casual: "ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, 'Arial Rounded MT Bold', 'Segoe Print', sans-serif",
-    cursive: "'Segoe Script', 'Brush Script MT', 'Snell Roundhand', 'Apple Chancery', cursive",
-    smallCaps: "Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
-};
-const OVERLAY_FONT_VARIANT: Record<OverlayFontFamily, string> = {
-    monoSerif: 'normal',
-    propSerif: 'normal',
-    monoSans: 'normal',
-    propSans: 'normal',
-    casual: 'normal',
-    cursive: 'normal',
-    smallCaps: 'small-caps',
-};
-
-// Fixed color palette offered as swatches in the settings panel. Shared by
-// both text swatch rows (main line, translation line) — a custom color well
-// alongside each covers anything the five presets don't.
-const OVERLAY_COLORS: string[] = ['#ffffff', '#ffd700', '#00e5ff', '#7CFC00', '#ff9800'];
-// The caption box sits behind text, so its useful range is neutral, not the
-// accent hues offered for the text itself.
-const OVERLAY_BG_COLORS: string[] = ['#000000', '#3a3a3a', '#7a7a7a', '#ffffff', '#0a1a3c'];
-
-// The two Reset buttons' payloads — one per panel group, each resetting only
-// the fields in its own group. Neither includes overlayEnabled: Reset
-// restores DEFAULT appearance, not the on/off state; a user who turned the
-// overlay off and then reset styling would not expect it to switch back on.
-const OVERLAY_TEXT_DEFAULTS: Pick<
-    Prefs,
-    'overlayFontFamily' | 'overlayFontSize' | 'overlayColor' | 'overlaySubFontSize' | 'overlaySubColor' | 'overlayTextOpacity'
-> = {
-    overlayFontFamily: 'propSans',
-    overlayFontSize: 100,
-    overlayColor: '#ffffff',
-    overlaySubFontSize: 75,
-    overlaySubColor: '#ffd700',
-    overlayTextOpacity: 1,
-};
-
-const OVERLAY_BOX_DEFAULTS: Pick<
-    Prefs,
-    | 'overlayBgColor'
-    | 'overlayBottomOffset'
-    | 'overlayBgOpacity'
-    | 'overlayEdgeStyle'
-> = {
-    overlayBgColor: '#000000',
-    overlayBottomOffset: 'medium',
-    overlayBgOpacity: 'medium',
-    overlayEdgeStyle: 'shadow',
-};
-
-// Union of both — the initial value of the local overlayStyle mirror, before
-// prefs are hydrated.
-const OVERLAY_STYLE_DEFAULTS: Pick<
-    Prefs,
-    | 'overlayFontFamily'
-    | 'overlayFontSize'
-    | 'overlayColor'
-    | 'overlaySubFontSize'
-    | 'overlaySubColor'
-    | 'overlayTextOpacity'
-    | 'overlayBgColor'
-    | 'overlayBottomOffset'
-    | 'overlayBgOpacity'
-    | 'overlayEdgeStyle'
-> = { ...OVERLAY_TEXT_DEFAULTS, ...OVERLAY_BOX_DEFAULTS };
 
 // All panel iconography is inline stroke SVG so it inherits currentColor and
 // needs no bundled assets.
@@ -295,6 +161,13 @@ export class SidebarUI {
     // an embed (packages/embed) can remount, and a stale instance still
     // listening for `fullscreenchange` would resurrect its own sidebar.
     private teardown: Array<() => void> = [];
+
+    // The peek animation and its timers. A collaborator rather than a mixin of
+    // methods: it owns mutable state (the peeked span, two timer maps) that
+    // nothing else on this class touches.
+    private readonly peek = new PeekController({
+        isGuessMode: () => this.state.displayMode === 'guess',
+    });
 
     /**
      * `wordScreen` is a factory, and omitting it is a supported configuration.
@@ -1646,7 +1519,7 @@ export class SidebarUI {
     openFeedbackScreen(): void {
         const { feedbackPanel, sidebar, titleEl } = this.elements;
         if (!feedbackPanel) return;
-        this.buildFeedbackScreen(feedbackPanel);
+        buildFeedbackScreen(feedbackPanel, this.feedbackScreenHost());
         sidebar?.classList.add('vtt-feedback-open');
         if (titleEl) titleEl.textContent = msg('ytFeedbackTitle', 'Send feedback');
         // Focus the message box, and only after the class above makes the
@@ -1704,154 +1577,21 @@ export class SidebarUI {
         this.wordScreen.onToggleTab();
     }
 
-    // Populated per-open. Signed-in users are identified by the uid the
-    // background stamps from their own token, so the form only asks for an
-    // email when there is no account to tie the message back to.
-    private buildFeedbackScreen(panel: HTMLDivElement): void {
-        const intro = document.createElement('p');
-        intro.className = 'vtt-feedback-intro';
-        intro.textContent = msg(
-            'ytFeedbackIntro',
-            'Tell us what broke or what you would change. We read every message.',
-        );
 
-        const textarea = document.createElement('textarea');
-        textarea.id = 'vtt-feedback-text';
-        textarea.className = 'vtt-feedback-text';
-        textarea.rows = 6;
-        textarea.placeholder = feedbackCopy.hint();
-        textarea.setAttribute('aria-label', feedbackCopy.hint());
-
-        // Only appears near the byte ceiling — an always-on counter reads as a
-        // limit to hit rather than one to ignore.
-        const counter = document.createElement('div');
-        counter.className = 'vtt-feedback-counter';
-        counter.hidden = true;
-        counter.setAttribute('aria-live', 'polite');
-
-        const status = document.createElement('div');
-        status.className = 'vtt-feedback-status';
-        status.hidden = true;
-
-        const send = document.createElement('button');
-        send.type = 'button';
-        send.className = 'vtt-feedback-send';
-        send.textContent = feedbackCopy.send();
-        send.disabled = true;
-
-        // Optional reply address, signed-out users only. Rendered async because
-        // the auth check is a round trip to the background; the textarea is
-        // usable the whole time, so nothing blocks on it.
-        const emailRow = document.createElement('div');
-        emailRow.className = 'vtt-feedback-email-row';
-        emailRow.hidden = true;
-        const emailInput = document.createElement('input');
-        emailInput.type = 'email';
-        emailInput.id = 'vtt-feedback-email';
-        emailInput.className = 'vtt-feedback-email';
-        emailInput.placeholder = msg('ytFeedbackEmailHint', 'Email (optional, if you want a reply)');
-        emailInput.setAttribute('aria-label', msg('ytFeedbackEmailHint', 'Email (optional, if you want a reply)'));
-        const emailLabel = document.createElement('label');
-        emailLabel.className = 'vtt-feedback-email-label';
-        emailLabel.htmlFor = emailInput.id;
-        emailLabel.textContent = msg('ytFeedbackEmailLabel', 'Reply address');
-        emailRow.append(emailLabel, emailInput);
-
-        void this.isSignedIn().then((signedIn) => {
-            // Guard against a close-then-reopen racing this resolve: only touch
-            // the row if it is still the one in the live panel.
-            if (!signedIn && emailRow.isConnected) emailRow.hidden = false;
-        });
-
-        const budget = () => MAX_FEEDBACK_BYTES - utf8Len(composeFeedbackText(textarea.value, emailInput.value));
-
-        // Clamp the field being typed in, never the other one. The email rides
-        // inside the same byte budget, so typing an address can push the total
-        // over — but taking the overflow out of the MESSAGE would delete text
-        // the user wrote earlier, from a field they aren't even looking at.
-        // Whoever is typing is the one who gets stopped.
-        const clampField = (field: HTMLTextAreaElement | HTMLInputElement) => {
-            const over = -budget();
-            if (over <= 0) return;
-            // selectionStart/setSelectionRange throw on input[type=email] —
-            // the selection API is only defined for text-like inputs — so the
-            // caret is restored on a best-effort basis.
-            let caret: number | null = null;
-            try {
-                caret = field.selectionStart;
-            } catch {
-                caret = null;
-            }
-            const clamped = clampToBytes(field.value, Math.max(0, utf8Len(field.value) - over));
-            const dropped = field.value.length - clamped.length;
-            if (!dropped) return;
-            field.value = clamped;
-            if (caret === null) return;
-            const next = Math.max(0, caret - dropped);
-            try {
-                field.setSelectionRange(next, next);
-            } catch {
-                // Field doesn't support a caret; the clamp still applied.
-            }
+    /**
+     * The feedback form's view of this sidebar — see FeedbackScreenHost.
+     *
+     * Closures, not a captured element map: `this.elements` is reassigned
+     * wholesale on every registration and emptied on teardown.
+     */
+    private feedbackScreenHost(): FeedbackScreenHost {
+        return {
+            registerTextarea: (textarea) => {
+                this.elements = { ...this.elements, feedbackTextarea: textarea };
+            },
+            close: () => this.closeFeedbackScreen(),
+            isSignedIn: () => this.isSignedIn(),
         };
-
-        const syncLimits = (typed?: HTMLTextAreaElement | HTMLInputElement) => {
-            // Hard-clamp on the real budget: typing past the cap stops adding
-            // characters instead of letting the send path silently truncate.
-            if (typed) clampField(typed);
-            const left = budget();
-            counter.hidden = left > 200;
-            // A bare number announces as "0" and says nothing about what ran
-            // out; the visible text carries its unit, and the label spells it
-            // out for a screen reader.
-            counter.textContent = feedbackCopy.charsLeft(left);
-            counter.setAttribute('aria-label', feedbackCopy.charsLeft(left));
-            send.disabled = textarea.value.trim().length === 0;
-        };
-        textarea.addEventListener('input', () => syncLimits(textarea));
-        emailInput.addEventListener('input', () => syncLimits(emailInput));
-
-        send.addEventListener('click', async () => {
-            const text = textarea.value.trim();
-            if (!text) return;
-            send.disabled = true;
-            send.textContent = feedbackCopy.sending();
-            status.hidden = true;
-            const ok = await sendFeedback(text, emailRow.hidden ? '' : emailInput.value);
-            if (ok) {
-                // The panel stays open (unlike the rating card, which removes
-                // itself), so the success state has to be a real screen: the
-                // form is replaced by a thank-you and the only move is back.
-                const done = document.createElement('div');
-                done.className = 'vtt-feedback-done';
-                done.setAttribute('role', 'status');
-                done.textContent = feedbackCopy.sent();
-                const back = document.createElement('button');
-                back.type = 'button';
-                back.className = 'vtt-feedback-send';
-                back.textContent = msg('ytFeedbackBackToSettings', 'Back to settings');
-                back.addEventListener('click', () => this.closeFeedbackScreen());
-                panel.replaceChildren(done, back);
-                back.focus();
-                return;
-            }
-            // Don't make the user retype: keep the text, let them try again.
-            send.disabled = false;
-            send.textContent = feedbackCopy.send();
-            status.hidden = false;
-            status.textContent = feedbackCopy.failed();
-            status.setAttribute('role', 'alert');
-        });
-
-        const actions = document.createElement('div');
-        actions.className = 'vtt-feedback-actions';
-        actions.append(counter, send);
-
-        panel.replaceChildren(intro, textarea, emailRow, status, actions);
-        this.elements = { ...this.elements, feedbackTextarea: textarea };
-        // NOT focused here: the panel is still hidden at this point, and
-        // focusing a display:none element is a no-op that leaves focus on the
-        // body. openFeedbackScreen focuses it once the screen is shown.
     }
 
     private async isSignedIn(): Promise<boolean> {
@@ -2251,102 +1991,10 @@ export class SidebarUI {
     buildMaskedContent(text: string, revealedCount: number): HTMLElement {
         const container = document.createElement('div');
         container.className = 'vtt-main-text';
-        this.fillMaskedWordsInto(container, text, revealedCount);
+        fillMaskedWordsInto(container, text, revealedCount);
         return container;
     }
 
-    // What sits under the frosted pane: the word itself, painted transparent.
-    // Its only job is to give the pane a width, and the word is the one string
-    // guaranteed to give it the RIGHT width — the pane and the peeked word are
-    // the same box, so opening one no longer moves the line around it.
-    //
-    // This replaced a run of repeated 'n' glyphs, half the word's length. That
-    // filler was always a guess at the word's width and always wrong: peek had
-    // to animate the capsule from filler width to word width, and the line
-    // visibly re-flowed every time the cursor crossed a word. Halving was
-    // itself a patch — one 'n' per letter ran WIDER than real text, which broke
-    // lines onto two rows — so the width was wrong in both directions and only
-    // roughly wrong in between.
-    //
-    // The word being really in the node means it can be selected or copied out.
-    // That is deliberate: guess mode is a puzzle the user sets for themselves,
-    // and someone who reaches for the clipboard to beat it has simply chosen to
-    // look. The blur is the puzzle, not a lock. translate="no" on the capsule
-    // stops the one reader that would expose it WITHOUT being asked — a page
-    // translator rewriting the node in place.
-    private maskGlyphs(token: string, _spaced: boolean): string {
-        return token;
-    }
-
-    // Both sidebar and on-screen overlay share this layout so the quick-add
-    // selection extractor can recover the real word from data-word — even when
-    // the visible glyphs are masked.
-    private fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
-        const { tokens, sep } = tokenizeForGuess(text);
-        const spaced = sep === ' ';
-        // The reveal index walks maskable tokens only. Punctuation and sound
-        // cues ("-", "♪", a stray bracket) render as plain text: a capsule over
-        // them is nothing anyone can guess, and counting them let the "free"
-        // first word come up as a lone symbol.
-        let m = 0;
-        tokens.forEach((word, i) => {
-            if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
-            if (!isMaskableToken(word)) {
-                const plain = document.createElement('span');
-                plain.className = 'vtt-guess-filler';
-                plain.textContent = word;
-                container.appendChild(plain);
-                return;
-            }
-            const span = this.makeMaskedSpan(word, m < revealedCount, this.maskGlyphs(word, spaced));
-            // Only the word that opens next is lit. Dressing every hidden word
-            // as a target implied you could pick one, but reveal always runs in
-            // order — the lit word is the honest version of that.
-            if (m === revealedCount) span.classList.add('vtt-next-word');
-            container.appendChild(span);
-            m++;
-        });
-    }
-
-    // data-word is what the quick-add selection reads, so it carries the real
-    // word only while that word is on screen. A word still masked is parked in
-    // data-hidden instead: offering to save a word the user has not been shown
-    // is the confusing half of the reveal/quick-add collision, and dropping the
-    // attribute is also what makes quick-add's `span[data-word]` queries skip
-    // masked words without any change on their side.
-    private makeMaskedSpan(word: string, revealed: boolean, maskText: string): HTMLSpanElement {
-        const span = document.createElement('span');
-        span.dataset.mask = maskText;
-        if (revealed) {
-            span.dataset.word = word;
-            span.className = 'vtt-revealed-word';
-            span.textContent = word;
-        } else {
-            span.dataset.hidden = word;
-            span.className = 'vtt-masked-word';
-            // The masked node holds the real word (see maskGlyphs), so this is
-            // what keeps a page translator from rewriting it into a legible
-            // one: a user reaching for the clipboard chose to look, a browser
-            // translating the page did not ask.
-            span.translate = false;
-            span.textContent = maskText;
-        }
-        return span;
-    }
-
-    // Non-guess subtitles still wrap each word in a span carrying data-word
-    // so the quick-add selection can snap to whole-word boundaries. Inline
-    // spans without a class read identically to the previous text node.
-    private fillPlainWordsInto(container: HTMLElement, text: string): void {
-        const { tokens, sep } = tokenizeForGuess(text);
-        tokens.forEach((word, i) => {
-            if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
-            const span = document.createElement('span');
-            span.dataset.word = word;
-            span.textContent = word;
-            container.appendChild(span);
-        });
-    }
 
     updateGuessItem(index: number): void {
         if (!this.elements.list) return;
@@ -2484,249 +2132,7 @@ export class SidebarUI {
     // press delivers afterwards; that click must not reveal a second one.
     private pointerRevealed = false;
 
-    // The masked word the cursor is currently holding open. Guess mode trades
-    // on the tension of not knowing, but a hidden word you cannot glance at is
-    // a wall rather than a puzzle: hovering lifts the pane for exactly as long
-    // as the cursor stays on it, then drops it back. Nothing about the reveal
-    // state changes — a peek is looking, not answering, so the word is masked
-    // again the moment the cursor leaves and the line is still unsolved.
-    private peekedSpan: HTMLSpanElement | null = null;
 
-    // The peek turns the capsule over on its horizontal axis: frosted pane on
-    // the front, the word on the back. Done as ONE face rotating rather than
-    // two stacked ones: the text is swapped at the halfway point, where the
-    // face is edge on to the viewer and a hundred percent invisible, so the
-    // swap lands in the one frame nobody can see. That is what the timer below
-    // is for, and why it must stay in step with the CSS duration.
-    //
-    // Both sides now measure the same — the mask holds the real word (see
-    // maskGlyphs) — so the swap is a repaint of identical geometry. It was not
-    // always so: the filler used to be half the word's length, and hiding that
-    // width change is the reason the halfway swap exists at all.
-    //
-    // What rotates is an INNER layer, never the span itself. Rotating the span
-    // turned it into an endless flip loop: at 90deg the box leaves the cursor's
-    // hit area, Chrome fires mouseout, the capsule flops back under the cursor,
-    // mouseover fires again — measured with a dead-still mouse, OVER/OUT
-    // repeating forever and the word never once showing. The span stays flat
-    // and keeps the hit area; only its contents turn.
-    // Two halves of 180ms. The stylesheet's `transition: width 0.36s` on
-    // .vtt-masked-word is this doubled — the pane eases across the whole turn
-    // while the face rotates in halves — so the two must move together.
-    private static readonly PEEK_FLIP_MS = 180;
-    // Keyed by span, NOT one shared timer: sliding the cursor from one capsule
-    // to the next closes the first and opens the second in the same breath, and
-    // a single timer meant the opening cancelled the closing — the word left
-    // behind stayed face-up and mid-flip forever.
-    private peekFlips = new Map<HTMLSpanElement, ReturnType<typeof setTimeout>>();
-
-    // The rotating layer, added for the length of a peek and unwrapped once the
-    // capsule is frosted and flat again. Absent at rest so a masked span in its
-    // resting state is exactly the markup everything else expects — and
-    // span.textContent still reads through it either way.
-    private faceOf(span: HTMLSpanElement): HTMLElement {
-        const existing = span.firstElementChild as HTMLElement | null;
-        if (existing?.classList.contains('vtt-peek-face')) return existing;
-        const face = document.createElement('span');
-        face.className = 'vtt-peek-face';
-        face.textContent = span.textContent ?? '';
-        span.textContent = '';
-        span.appendChild(face);
-        return face;
-    }
-
-    // Drop the layer, folding its text back into the span. Called where the
-    // span's plain form matters — a reveal is about to rewrite it — rather than
-    // on a timer chasing the end of the closing turn.
-    private unwrapFace(span: HTMLSpanElement): void {
-        const face = span.firstElementChild as HTMLElement | null;
-        if (face?.classList.contains('vtt-peek-face')) span.textContent = face.textContent;
-    }
-
-    // Turn a capsule over. `word` is the text the far side carries: the real
-    // word when opening, the filler when closing.
-    private flipSpan(span: HTMLSpanElement, word: string, peeked: boolean): void {
-        this.cancelFlip(span);
-
-        // Asked for less motion: swap now, no turn, no wait. The stylesheet
-        // already drops the rotation, but the 180ms timer is JS — left in, it
-        // gave reduced-motion users a dead zone with no feedback at all, which
-        // is worse than the animation they turned off.
-        if (SidebarUI.prefersReducedMotion()) {
-            span.classList.remove('vtt-flipping');
-            if (!span.isConnected || !span.classList.contains('vtt-masked-word')) return;
-            this.faceOf(span).textContent = word;
-            span.classList.toggle('vtt-peeked-word', peeked);
-            span.style.removeProperty('width');
-            if (!peeked) this.unwrapFace(span);
-            return;
-        }
-
-        // Carry the pane's width across the turn. With the mask holding the
-        // real word this measures from and to the same number and animates
-        // nothing — kept as the safety net for any font where the transparent
-        // and painted states do not measure alike, so such a gap eases across
-        // the full 2×PEEK_FLIP_MS instead of jumping in the frame of the swap.
-        // That jump is what this was written for, back when the filler was half
-        // the word's length.
-        this.setFlipWidth(span, word);
-
-        // First half: rotate the face we are leaving out of sight.
-        // The face may have just been created, in which case flat is its very
-        // first computed style and the browser has nothing to transition FROM —
-        // it snapped straight to 90deg and sat there for the whole first half,
-        // so the turn had no opening move at all, just a pause and a return.
-        // Flushing layout commits the flat pose as the start state.
-        const face = this.faceOf(span);
-        void face.offsetWidth;
-        span.classList.add('vtt-flipping');
-        const timer = setTimeout(() => {
-            this.peekFlips.delete(span);
-            // Edge on to the viewer — swap the content and let the second half
-            // of the turn bring the new face round. A span that stopped being
-            // masked mid-flip (revealed, or repainted) is left alone: its text
-            // is no longer ours to write.
-            if (!span.isConnected || !span.classList.contains('vtt-masked-word')) {
-                span.classList.remove('vtt-flipping');
-                span.style.removeProperty('width');
-                return;
-            }
-            this.faceOf(span).textContent = word;
-            span.classList.toggle('vtt-peeked-word', peeked);
-            span.classList.remove('vtt-flipping');
-            // Hand the width back to the content once the turn is over: a
-            // pinned px width would survive into the next repaint and fight
-            // whatever text lands in the span then. Same moment the closing
-            // turn earns its unwrap — the capsule is frosted and flat again, so
-            // the rotating layer has nothing left to do and a span at rest is
-            // once more exactly the markup the rest of the code expects.
-            const release = setTimeout(() => {
-                this.peekWidthReleases.delete(span);
-                span.style.removeProperty('width');
-                if (!peeked) this.unwrapFace(span);
-            }, SidebarUI.PEEK_FLIP_MS);
-            this.peekWidthReleases.set(span, release);
-        }, SidebarUI.PEEK_FLIP_MS);
-        this.peekFlips.set(span, timer);
-    }
-
-    // Measure what the far side will need and start the pane moving there.
-    // Measured off a detached clone rather than by writing the word into the
-    // live span: the span is on screen mid-turn, and a one-frame flash of the
-    // real word inside a capsule that has not opened yet would give away the
-    // very thing being hidden.
-    private setFlipWidth(span: HTMLSpanElement, word: string): void {
-        const from = span.getBoundingClientRect().width;
-        // jsdom has no layout, so every box measures 0. Nothing to animate.
-        if (!from) return;
-        const probe = span.cloneNode(false) as HTMLSpanElement;
-        probe.textContent = word;
-        probe.style.position = 'absolute';
-        probe.style.visibility = 'hidden';
-        probe.style.width = 'auto';
-        probe.style.left = '-9999px';
-        span.parentElement?.appendChild(probe);
-        const to = probe.getBoundingClientRect().width;
-        probe.remove();
-        if (!to) return;
-        span.style.width = `${from}px`;
-        // Force the pinned width to take before the target overwrites it,
-        // otherwise the browser coalesces both into one style and never
-        // transitions.
-        void span.offsetWidth;
-        span.style.width = `${to}px`;
-    }
-
-    // Width releases are tracked so a repaint can drop a pinned px width that
-    // would otherwise outlive the span's turn.
-    private peekWidthReleases = new Map<HTMLSpanElement, ReturnType<typeof setTimeout>>();
-
-    // Read fresh each time rather than cached: the OS setting can change while
-    // the page is open, and a peek is cheap enough to ask on.
-    private static prefersReducedMotion(): boolean {
-        return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
-    }
-
-    private cancelFlip(span: HTMLSpanElement): void {
-        const release = this.peekWidthReleases.get(span);
-        if (release !== undefined) {
-            clearTimeout(release);
-            this.peekWidthReleases.delete(span);
-        }
-        const timer = this.peekFlips.get(span);
-        if (timer === undefined) return;
-        clearTimeout(timer);
-        this.peekFlips.delete(span);
-    }
-
-    private cancelAllFlips(): void {
-        this.peekFlips.forEach((timer) => clearTimeout(timer));
-        this.peekFlips.clear();
-        this.peekWidthReleases.forEach((timer, span) => {
-            clearTimeout(timer);
-            span.style.removeProperty('width');
-        });
-        this.peekWidthReleases.clear();
-    }
-
-    // Let go of the peek without touching the span — for the paths where the
-    // spans are going away (or already gone from view) and so must not be
-    // written to. peekOff is the opposite: it closes the capsule on screen.
-    private dropPeek(): void {
-        this.peekedSpan = null;
-        this.cancelAllFlips();
-    }
-
-    private peekOn(span: HTMLSpanElement): void {
-        if (this.peekedSpan === span) return;
-        this.peekOff();
-        const word = span.dataset.hidden;
-        if (!word) return;
-        // data-word stays absent: quick-add's contract is that only words the
-        // user has actually revealed can be saved, and a peek does not reveal.
-        this.peekedSpan = span;
-        this.flipSpan(span, word, true);
-    }
-
-    private peekOff(): void {
-        const span = this.peekedSpan;
-        this.peekedSpan = null;
-        if (!span) return;
-        // Only put the filler back if this span is still masked. A reveal (or
-        // a repaint that promoted it) already owns its text, and restoring the
-        // mask here would cover a word that is now legitimately out.
-        if (!span.classList.contains('vtt-masked-word')) {
-            this.cancelFlip(span);
-            span.classList.remove('vtt-flipping', 'vtt-peeked-word');
-            span.style.removeProperty('width');
-            this.unwrapFace(span);
-            return;
-        }
-        this.flipSpan(span, span.dataset.mask ?? '', false);
-    }
-
-    // Delegated hover for the peek. The overlay only: peeking is for the line
-    // you are watching, and the sidebar is a transcript you scroll — sweeping
-    // the cursor down it would flip capsules the whole way.
-    // Attached to the container rather than each span because the overlay
-    // rebuilds its children ~4x/sec and per-span listeners would die with them.
-    // mouseover / mouseout (not mouseenter/leave) so the events bubble up.
-    private attachPeek(container: HTMLElement): void {
-        container.addEventListener('mouseover', (e) => {
-            if (this.state.displayMode !== 'guess') return;
-            const span = (e.target as Element | null)?.closest?.('.vtt-masked-word');
-            if (!span) return;
-            this.peekOn(span as HTMLSpanElement);
-        });
-        container.addEventListener('mouseout', (e) => {
-            const span = (e.target as Element | null)?.closest?.('.vtt-masked-word');
-            if (!span || span !== this.peekedSpan) return;
-            // Ignore moves that stay inside the same capsule.
-            const to = (e as MouseEvent).relatedTarget as Node | null;
-            if (to && span.contains(to)) return;
-            this.peekOff();
-        });
-    }
 
     // Reveal one word and follow the line, the single action guess mode is made
     // of. Shared by the sidebar item and the overlay so the two cannot drift.
@@ -2779,7 +2185,7 @@ export class SidebarUI {
         // A peek is transient paint on a span the repaint below is about to
         // rewrite; let go of it first so peekOff can never restore the mask
         // over a word the reveal has just uncovered.
-        this.peekOff();
+        this.peek.peekOff();
         this.state.revealNextWord(index);
         // Drop any leftover highlight: the user has moved on to revealing, and
         // updateOverlay refuses to repaint while a selection is inside (it would
@@ -2800,7 +2206,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        this.fillPlainWordsInto(mainText, sub.text);
+        fillPlainWordsInto(mainText, sub.text);
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
@@ -2867,7 +2273,7 @@ export class SidebarUI {
                 // peeked word is masked the moment the cursor leaves.
                 delete existing.dataset.sig;
             }
-            this.dropPeek();
+            this.peek.dropPeek();
             return;
         }
 
@@ -2916,7 +2322,7 @@ export class SidebarUI {
         // The peeked span is about to be detached with the rest of the
         // children; drop the reference so peekOff never touches an orphan, and
         // cancel any half-finished flip along with it.
-        this.dropPeek();
+        this.peek.dropPeek();
         // The grip must SURVIVE this wipe: it is a long-lived control the user
         // may be holding right now, and innerHTML = '' runs ~4x/sec, so a grip
         // rebuilt with the text would be torn out from under the pointer
@@ -3325,7 +2731,7 @@ export class SidebarUI {
                 }
             });
         }
-        this.attachPeek(overlay);
+        this.peek.attachPeek(overlay);
         parent.appendChild(overlay);
         this.applyOverlayStyle();
         return overlay;
@@ -3387,7 +2793,7 @@ export class SidebarUI {
     private buildPreviewMain(sub: Subtitle): HTMLDivElement {
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
-        this.fillPlainWordsInto(mainDiv, sub.text);
+        fillPlainWordsInto(mainDiv, sub.text);
         return mainDiv;
     }
 
@@ -3396,9 +2802,9 @@ export class SidebarUI {
         mainDiv.className = 'vtt-overlay-main';
         mainDiv.dataset.index = String(index);
         if (this.state.displayMode === 'guess') {
-            this.fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index));
+            fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index));
         } else {
-            this.fillPlainWordsInto(mainDiv, sub.text);
+            fillPlainWordsInto(mainDiv, sub.text);
         }
         return mainDiv;
     }

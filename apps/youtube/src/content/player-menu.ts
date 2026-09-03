@@ -1,4 +1,8 @@
 import { msg as i18nMsg } from '@video-transcripts/shared';
+// By relative path, not through the package barrel: messaging.ts is kept off
+// src/index.ts so it cannot reach the embed's bundle. The background scripts
+// import analytics-bg the same way, for the same reason.
+import { sendMessage } from '../../../../packages/shared/src/messaging';
 import { BaseVttApp } from './app-base';
 
 // Localized UI string; see the identical helper in index.ts for why this
@@ -23,22 +27,6 @@ interface AuthStatus {
     signedIn: boolean;
     email?: string;
     inboxCount?: number;
-}
-
-function sendMessage<T>(message: object): Promise<T> {
-    return new Promise((resolve, reject) => {
-        try {
-            chrome.runtime.sendMessage(message, (res) => {
-                if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                    return;
-                }
-                resolve(res as T);
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
 }
 
 // Back arrow (submenu only — forward chevrons on rows read as clutter).
