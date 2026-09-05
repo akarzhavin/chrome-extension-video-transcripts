@@ -120,5 +120,5 @@ not *provoke sparingly*.
 |---|---|
 | ~~T5.14 second half~~ | **done 2026-09-05**: the gate lifted into `nav-guards.ts`, pinned in `index-guards.test.ts` |
 | Merge the five branches | measured: phases 4 and 6 clean; 3 and 5 conflict in `packages/shared/tests/word-screen.test.ts` only, where three branches appended different `describe` blocks — keep all |
-| ~~Measure coverage on the merged tree~~ | **done: 71.0%** — see `coverage-measured.md`. SC-001's 82% is not met, and no honest denominator reaches it |
+| ~~Measure coverage on the merged tree~~ | **done: 71.0%** — see `coverage-on-merged-tree.md`. SC-001's 82% is not met, and no honest denominator reaches it |
 | The thirteen false-green checks | named, addressed, awaiting a decision |
