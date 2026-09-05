@@ -266,19 +266,28 @@ test.describe('the page holds still while the transcript moves', () => {
 
                 for (const t of [60, 120, 180]) {
                     await playFrom(page, t);
-                    // Wait for the scroll to settle at this line before
-                    // measuring — the animation is 'smooth' for a nearby line.
                     await expect
                         .poll(offset, { timeout: 45_000 })
                         .not.toBeNull();
-                    await page.waitForTimeout(1500);
 
-                    const off = await offset();
-                    expect(off, `no active line at ${t}s`).not.toBeNull();
-                    expect(
-                        off!,
-                        `at ${t}s the current line sits ${(off! * 100).toFixed(0)}% of the list's height from its middle`,
-                    ).toBeLessThan(0.25);
+                    // Poll for the settled value rather than sampling after a
+                    // fixed wait. Measured on this video: a seek to 120s reads
+                    // 0.27 for the first second and settles to 0.13 — the
+                    // 1500ms sample landed on that slope and reported 0.68-0.80
+                    // against a working product. The smooth scroll's duration
+                    // is the browser's, not ours, so no constant is the right
+                    // one; the condition is.
+                    //
+                    // A gap between cues makes `offset()` null, and this must
+                    // not accept that as a pass: `.toBeLessThan` on null would
+                    // throw inside the poll and keep retrying until a cue is
+                    // active again, which is the wait we want.
+                    await expect
+                        .poll(offset, {
+                            timeout: 30_000,
+                            message: `at ${t}s the current line never came within 25% of the list's middle`,
+                        })
+                        .toBeLessThan(0.25);
                 }
             } finally {
                 await page.close().catch(() => {});
