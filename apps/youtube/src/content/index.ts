@@ -26,7 +26,7 @@ import { watchControlsFloor } from './controlsFloor';
 import { installPlayerMenu } from './player-menu';
 import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
-import { isStaleResult, shouldDeferSearch } from './nav-guards';
+import { decideCaptionSearch, isStaleResult } from './nav-guards';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -671,7 +671,12 @@ class YouTubeCaptionDetector {
         // was ever issued and the sidebar said "No subtitles available" for a
         // video whose captions were perfectly fine. Non-deterministic by
         // nature: it only bites when the message wins the race against storage.
-        if (!this.app.langPrefs) {
+        const decision = decideCaptionSearch(
+            !!this.app.langPrefs,
+            this.isShortsPage(),
+            this.app.isSidebarCollapsed(),
+        );
+        if (decision === 'setup') {
             this.app.showLanguageOnboarding();
             return;
         }
@@ -690,7 +695,7 @@ class YouTubeCaptionDetector {
         //
         // Not claiming captionsLoadedForVideo: nothing was loaded, so expanding
         // the panel must still be able to run a real search for this video.
-        if (shouldDeferSearch(this.isShortsPage(), this.app.isSidebarCollapsed())) {
+        if (decision === 'defer') {
             console.log('[YT-VTT] shorts + collapsed panel — deferring the search');
             this.app.offerDeferredSearch();
             return;

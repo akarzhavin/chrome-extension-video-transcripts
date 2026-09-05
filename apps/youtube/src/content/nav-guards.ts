@@ -49,3 +49,33 @@ export function isStaleResult(
 export function shouldDeferSearch(isShorts: boolean, sidebarCollapsed: boolean): boolean {
     return isShorts && sidebarCollapsed;
 }
+
+/**
+ * Which way the caption path goes once a video's track catalogue is in hand.
+ *
+ * Three outcomes, in a fixed order that is itself behaviour:
+ *
+ *   'setup' — no language pair is stored. Nothing is searched for: the panel
+ *             raises the first-run picker instead, and the user's choice
+ *             re-processes the video. This wins over everything below — a
+ *             short with the panel closed and no pair still gets the picker,
+ *             not a deferred search, because a deferred search would later
+ *             run against a pair that does not exist.
+ *   'defer' — a short with the panel closed (see shouldDeferSearch).
+ *   'load'  — plan the requests and fetch.
+ *
+ * The first arm used to be an `if` at the top of handleCaptionTracks, and the
+ * one claim about it — that no request is planned before the pair is chosen
+ * (§1.7) — could not be asserted without booting the content script.
+ */
+export type CaptionSearchDecision = 'setup' | 'defer' | 'load';
+
+export function decideCaptionSearch(
+    hasLanguagePair: boolean,
+    isShorts: boolean,
+    sidebarCollapsed: boolean,
+): CaptionSearchDecision {
+    if (!hasLanguagePair) return 'setup';
+    if (shouldDeferSearch(isShorts, sidebarCollapsed)) return 'defer';
+    return 'load';
+}
