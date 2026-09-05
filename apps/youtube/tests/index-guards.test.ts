@@ -10,7 +10,7 @@
  * They lived inside index.ts, which runs bootstrap() at import; the preceding
  * commit made them importable without moving any behaviour.
  */
-import { isStaleResult, shouldDeferSearch } from '../src/content/nav-guards';
+import { decideCaptionSearch, isStaleResult, shouldDeferSearch } from '../src/content/nav-guards';
 
 describe('a track for a video already left is discarded', () => {
     // §26.2, T5.21. Results arrive asynchronously. One issued for the video the
@@ -69,5 +69,30 @@ describe('watch pages always search, even with the panel closed', () => {
 
     test('a short with the panel open searches — the user is looking at it', () => {
         expect(shouldDeferSearch(true, false)).toBe(false);
+    });
+});
+
+describe('no subtitle search is planned before a language pair is chosen', () => {
+    // §1.7, T5.14's second half. Until the pair is stored the panel raises the
+    // first-run picker and nothing is fetched. The chip half of the claim is
+    // pinned in app-base-status.test.ts; this is the planner half — the
+    // decision the caption path takes before anything is planned. The four
+    // combinations are listed rather than one, because the picker has to win
+    // over the shorts deferral too: a deferred search would later run against
+    // a pair that does not exist.
+    test.each([
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+    ])('with no pair (shorts=%s, collapsed=%s) the answer is setup — never a load, never a deferral', (isShorts, collapsed) => {
+        expect(decideCaptionSearch(false, isShorts, collapsed)).toBe('setup');
+    });
+
+    test('with a pair, the shorts decision stands exactly as before', () => {
+        expect(decideCaptionSearch(true, false, false)).toBe('load');
+        expect(decideCaptionSearch(true, false, true)).toBe('load');
+        expect(decideCaptionSearch(true, true, false)).toBe('load');
+        expect(decideCaptionSearch(true, true, true)).toBe('defer');
     });
 });
