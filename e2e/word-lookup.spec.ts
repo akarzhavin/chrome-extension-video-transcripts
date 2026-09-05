@@ -7,6 +7,7 @@
 import { test, expect } from './fixtures/extension';
 import { waitForLines, playFrom } from './fixtures/subtitles';
 import { withPrefs } from './fixtures/prefs';
+import { preservingUiPrefs } from './fixtures/uiprefs';
 
 const STRIP = '#lingogram-lookup-strip';
 
@@ -92,41 +93,58 @@ test.describe('selecting and copying', () => {
      * replaced and which now exists only in the marketing embed. That check
      * would have passed without ever exercising anything.
      */
-    test('a selection inside the translation opens no card', async ({ page }) => {
+    test('a selection inside the translation opens no card', async ({ ext, page }) => {
         await waitForLines(page);
 
-        const hasTranslation = await page.evaluate(() => !!document.querySelector('#vtt-list .vtt-sub-text'));
-        test.skip(!hasTranslation, 'this video loaded one language only, so there is no translation row');
+        // The translation row exists only in the two-language mode, and the
+        // mode is whichever one the person left the panel in. This check used
+        // to READ that state and skip when it found the one-language mode —
+        // which it always did, so the check never once ran while the suite
+        // reported it as present.
+        await preservingUiPrefs(ext, async () => {
+            await page.evaluate(() => document.getElementById('vtt-qm-dual')?.click());
 
-        await page.evaluate((s) => document.querySelector(s)?.remove(), STRIP);
+            // Two languages have to have actually arrived: the mode refuses
+            // itself with a single track, and there would again be no row to
+            // select in. Asserted, so a video that loaded one language fails
+            // the check rather than quietly excusing it.
+            await expect
+                .poll(() => page.evaluate(() => document.querySelectorAll('#vtt-list .vtt-sub-text').length), {
+                    timeout: 45_000,
+                    message: 'the two-language mode never produced a translation row to select in',
+                })
+                .toBeGreaterThan(0);
 
-        const selectIn = (selector: string) =>
-            page.evaluate((sel) => {
-                const node = document.querySelector(sel);
-                if (!node) return false;
-                const r = document.createRange();
-                r.selectNodeContents(node);
-                const s = window.getSelection();
-                s?.removeAllRanges();
-                s?.addRange(r);
-                node.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                return true;
-            }, selector);
+            await page.evaluate((s) => document.querySelector(s)?.remove(), STRIP);
 
-        expect(await selectIn('#vtt-list .vtt-sub-text')).toBe(true);
-        await page.waitForTimeout(1500);
-        expect(
-            await page.evaluate((s) => !!document.querySelector(s), STRIP),
-            'a phrase selected in the translation must not be offered for lookup',
-        ).toBe(false);
+            const selectIn = (selector: string) =>
+                page.evaluate((sel) => {
+                    const node = document.querySelector(sel);
+                    if (!node) return false;
+                    const r = document.createRange();
+                    r.selectNodeContents(node);
+                    const s = window.getSelection();
+                    s?.removeAllRanges();
+                    s?.addRange(r);
+                    node.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                    return true;
+                }, selector);
 
-        // The control half: the same gesture inside the learning language DOES
-        // open the card. Without this the check above would also pass if
-        // selection were broken everywhere.
-        expect(await selectIn('#vtt-list .vtt-main-text')).toBe(true);
-        await expect
-            .poll(() => page.evaluate((s) => !!document.querySelector(s), STRIP), { timeout: 30_000 })
-            .toBe(true);
+            expect(await selectIn('#vtt-list .vtt-sub-text')).toBe(true);
+            await page.waitForTimeout(1500);
+            expect(
+                await page.evaluate((s) => !!document.querySelector(s), STRIP),
+                'a phrase selected in the translation must not be offered for lookup',
+            ).toBe(false);
+
+            // The control half: the same gesture inside the learning language
+            // DOES open the card. Without this the check above would also pass
+            // if selection were broken everywhere.
+            expect(await selectIn('#vtt-list .vtt-main-text')).toBe(true);
+            await expect
+                .poll(() => page.evaluate((s) => !!document.querySelector(s), STRIP), { timeout: 30_000 })
+                .toBe(true);
+        });
     });
 });
 
