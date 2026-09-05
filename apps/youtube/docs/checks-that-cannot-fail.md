@@ -4,9 +4,24 @@ Found during Phase 5's claim-by-claim coverage measurement (2026-09-04), by four
 independent audits reading the suites against one question: *would anything go
 red if this specific behaviour broke?*
 
-**None of these are Phase 5's own checks, and none were touched** — they are
-outside that phase's task list, and each is recorded here with its address so
-the decision to fix them is someone's to make deliberately.
+**ALL THIRTEEN ARE NOW REPAIRED (2026-09-05), on `test/coverage-tails`.** Each
+was rewritten so that breaking the behaviour it names makes it fail, and each
+was then seen red against that break and green after the restore — seven unit
+checks in `b9649d2`, six live ones in `b5d903a`, plus §12's reparenting, which
+had no runnable check at all and is now pinned in `SidebarUI.test.ts`.
+
+The entries below are kept as written, in the past tense of their discovery:
+they are the record of what the defect was in each case, which is what makes
+the class recognisable next time. What follows each address is the state at
+discovery, not today's.
+
+Two things are worth carrying forward more than the list itself. First, a
+fourteenth of the same family was found later and only by RUNNING the suite:
+`accessibility.spec.ts` sampled the scroll offset after a fixed 1500 ms and
+failed against a working product (`centring-check-at-120s.md`). Four audits
+reading the code had passed it as covered, because it looks correct on the
+page. Second, that is the limit of the method: reading tells you what a check
+names, running tells you what it does.
 
 They matter more than any coverage percentage. A green check that can never be
 red is worse than no check: it occupies the place where a real one would go, and

@@ -12,7 +12,12 @@ the price of closing it.
 
 ## T5.14 (§1.7) — "no subtitle search is attempted before setup"
 
-**Status:** half covered.
+**Status: CLOSED 2026-09-05.** The second half is covered. `decideCaptionSearch`
+was lifted into `nav-guards.ts` beside the two guards this phase had already
+extracted, and `index-guards.test.ts` pins that a null language pair plans no
+requests at all. What follows is the record of why it was deferred, kept because
+the reasoning — one product edit per phase, and saying so rather than widening
+scope quietly — is what the deferral was for.
 
 The claim has two halves, and the map states them as two bullets under *What
 stays unavailable until this is done*:
