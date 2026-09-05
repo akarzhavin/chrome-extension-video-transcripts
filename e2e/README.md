@@ -74,6 +74,13 @@ language. Each tests for its condition and reports itself **skipped** rather tha
 passing without it. A run reporting skips is working correctly — a run reporting
 none of them, on a machine that cannot give a gesture, would be the surprise.
 
+**Nine more skip without a stand account.** With `LINGOGRAM_STAND_ACCOUNT`
+unset, the whole of `saving.spec.ts` (7) and two checks in `signing-in.spec.ts`
+skip — 12% of the suite, and the only checks that exercise a save against a real
+backend. So the expected skip count is three on a stand and **twelve** without
+one; anything else is worth reading. See
+`apps/youtube/docs/stand-dependent-checks.md`.
+
 Never run in CI. A CI job that cannot reach a signed-in browser would report
 green having run nothing.
 
