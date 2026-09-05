@@ -35,6 +35,8 @@ import {
     type ReprocessOptions,
 } from '../src/content/app-base';
 import type { Subtitle } from '@video-transcripts/shared';
+// The worker's runtime allow-list, for the funnel-set check at the end.
+import { ALL_ANALYTICS_EVENTS } from '@video-transcripts/shared';
 
 class TestApp extends BaseVttApp {
     videoId: string | null = 'vid1';
@@ -441,14 +443,27 @@ describe('no_subtitles', () => {
             expect(eventsNamed('no_subtitles')[0].params.failure).toBe('not-attempted');
         });
 
-        test('requests still in flight → timeout', () => {
-            // A wedged page-script is a reply that never came, not a video
-            // nobody asked about — schedulePendingTrackCheck only covers the
-            // half-loaded case, so this is the all-empty watchdog.
+        test('requests still in flight → nothing is concluded yet', () => {
+            // The grace period used to call this "timeout" at 7s. It cannot:
+            // a request that is still retrying against a Retry-After has not
+            // said anything, and reporting a verdict from silence produced a
+            // measured 7-second window in which the reader was told a captioned
+            // video had no captions.
             const app = makeApp();
             app.pendingRequests.set('k1', 'English');
             app.scheduleNoSubtitlesCheck(7_000);
             jest.advanceTimersByTime(7_000);
+            expect(eventsNamed('no_subtitles')).toHaveLength(0);
+        });
+
+        test('a reply that never comes is still reported, just later', () => {
+            // The watchdog is kept, not removed: a wedged page-script must not
+            // leave the panel searching for ever. It waits long enough for the
+            // fetch layer's own retry schedule to finish first.
+            const app = makeApp();
+            app.pendingRequests.set('k1', 'English');
+            app.scheduleNoSubtitlesCheck(7_000);
+            jest.advanceTimersByTime(7_000 + 30_000);
             expect(eventsNamed('no_subtitles')[0].params.failure).toBe('timeout');
         });
     });
@@ -740,5 +755,75 @@ describe('subs_missed_with_cc', () => {
         await flush();
 
         expect(eventsNamed('subs_missed_with_cc')).toHaveLength(2);
+    });
+});
+
+/**
+ * §33.2, T5.30 — the setup funnel is a pinned set.
+ *
+ * The funnel is read as a ratio: how many of the people shown the picker went
+ * on to configure a pair. Both halves of that ratio are event names, and a
+ * rename breaks the report silently — GA4 accepts the new name with a 204 and
+ * simply starts a second, empty series while the first flatlines. Nobody is
+ * told; the funnel just reads as a cliff.
+ *
+ * So the SET is pinned, not the presence of each name: an event added to the
+ * run is as much a change to the ratio as one removed.
+ */
+describe('the setup funnel is a pinned set', () => {
+    /** Every analytics event name emitted, in order, with no de-duplication. */
+    const namesSent = (): string[] => sent().map((m) => m.event);
+
+    test('a full first run emits exactly the two funnel events', async () => {
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        document.body.innerHTML = '';
+        const app = new TestApp();
+        app.langPrefs = null;
+
+        // The picker is shown: step one.
+        const sidebar = document.getElementById('vtt-sidebar') ?? document.createElement('div');
+        sidebar.id = 'vtt-sidebar';
+        if (!sidebar.parentElement) document.body.appendChild(sidebar);
+        app.showLanguageOnboarding();
+
+        // The user picks both languages: step two. Driven through the real
+        // selects, so a picker that stops persisting fails here too.
+        const selects = document.querySelectorAll('#vtt-lang-onboarding select');
+        expect(selects).toHaveLength(2);
+        const pick = (select: Element, code: string): void => {
+            (select as HTMLSelectElement).value = code;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        pick(selects[0], 'en');
+        pick(selects[1], 'ru');
+        await flush();
+
+        expect(namesSent()).toEqual(['onboarding_shown', 'languages_configured']);
+    });
+
+    // Order is part of the claim: shown before configured. A funnel whose steps
+    // arrive out of order is a funnel with a negative conversion rate.
+    test('the picker is reported before the pair is', async () => {
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        document.body.innerHTML = '';
+        const app = new TestApp();
+        app.langPrefs = null;
+        const sidebar = document.createElement('div');
+        sidebar.id = 'vtt-sidebar';
+        document.body.appendChild(sidebar);
+        app.showLanguageOnboarding();
+        await flush();
+
+        const names = namesSent();
+        expect(names.indexOf('onboarding_shown')).toBeGreaterThanOrEqual(0);
+        expect(names.indexOf('languages_configured')).toBe(-1);
+    });
+
+    // Both names are in the runtime allow-list the worker checks at the message
+    // boundary. A name the product sends but the list does not carry is dropped
+    // there — the same silent hole, one hop later.
+    test('both names are ones the worker will accept', () => {
+        expect(ALL_ANALYTICS_EVENTS).toContain('onboarding_shown');
+        expect(ALL_ANALYTICS_EVENTS).toContain('languages_configured');
     });
 });

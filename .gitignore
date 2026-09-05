@@ -94,3 +94,7 @@ releases/*.zip
 # the next question wants a new probe rather than a rerun of an old one. The
 # reusable CDP helpers live in scripts/lib/ and stay tracked.
 scripts/lingogram-*.mjs
+
+# Playwright run artifacts (traces, screenshots) from the live e2e suite.
+test-results/
+playwright-report/

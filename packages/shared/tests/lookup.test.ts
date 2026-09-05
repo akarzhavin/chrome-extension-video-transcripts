@@ -1153,3 +1153,184 @@ describe('holdLayout — nothing moves while a card is open', () => {
         jest.useRealTimers();
     });
 });
+
+/**
+ * Behaviour map §42.5, §13.4, §13.5, §48 — the card's three answers.
+ *
+ * The service answers three ways and the card must say which: a translation, a
+ * successful answer that simply has nothing (an honest "no translation", not a
+ * failure), and a failure. The middle one is the one that goes wrong: routing
+ * it to the error renderer turns "this word has no entry" into "something
+ * broke", and the reader retries a lookup that will always answer the same.
+ */
+describe('the card tells an empty answer apart from a failed one', () => {
+    const CARD = 'lingogram-lookup-strip';
+    const card = () => document.getElementById(CARD);
+    const emptyAnswer: LookupResult = {
+        term: 'zzxq', lemma: 'zzxq', translations: [], parts_of_speech: [], source: 'wiktionary',
+    };
+
+    function overlayWord(word: string): HTMLElement {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        const span = document.createElement('span');
+        span.dataset.word = word;
+        span.textContent = word;
+        box.appendChild(span);
+        document.body.appendChild(box);
+        const rect = { top: 400, bottom: 420, left: 100, right: 160,
+            width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}) } as DOMRect;
+        span.getBoundingClientRect = () => rect;
+        return span;
+    }
+
+    const hover = (el: Element): void => {
+        el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    };
+
+    /** Hover a word and let the debounce, the request and the render run. */
+    async function show(
+        reply: object,
+        opts: Parameters<typeof installLookupStrip>[0] = {},
+    ): Promise<() => void> {
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_m, cb) => cb(reply));
+        const teardown = installLookupStrip(opts);
+        hover(overlayWord('zzxq'));
+        await jest.advanceTimersByTimeAsync(300);
+        return teardown;
+    }
+
+    beforeEach(async () => {
+        document.body.innerHTML = '';
+        await chromeStorage.local.set({ 'lang.v1': { learning: 'en', native: 'ru' } });
+        jest.useFakeTimers();
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it('an empty but successful answer reads "No translation", never an error', async () => {
+        const teardown = await show({ ok: true, result: emptyAnswer });
+
+        expect(card()?.textContent).toContain('No translation');
+        // The distinction the whole state exists for: nothing broke.
+        expect(card()?.querySelector('.vtt-lookup-error')).toBeNull();
+        expect(card()?.textContent).not.toContain("Couldn't load");
+        teardown();
+    });
+
+    it('a failure renders the error, and announces it as an alert', async () => {
+        const teardown = await show({ ok: false });
+
+        const err = card()?.querySelector('.vtt-lookup-error');
+        expect(err).not.toBeNull();
+        expect(err?.getAttribute('role')).toBe('alert');
+        expect(err?.textContent).toContain("Couldn't load");
+        teardown();
+    });
+
+    it('the two answers are never the same element', async () => {
+        // Each check above passes if BOTH states render the error markup: the
+        // empty one would still contain its own text somewhere. This is the
+        // assertion that they are told apart.
+        let teardown = await show({ ok: true, result: emptyAnswer });
+        const emptyHtml = card()!.innerHTML;
+        const emptyIsAlert = card()!.querySelector('[role="alert"]') !== null;
+        teardown();
+
+        document.body.innerHTML = '';
+        teardown = await show({ ok: false });
+        const errorHtml = card()!.innerHTML;
+
+        expect(emptyHtml).not.toBe(errorHtml);
+        expect(emptyIsAlert).toBe(false); // "no entry" does not interrupt
+        expect(card()!.querySelector('[role="alert"]')).not.toBeNull();
+        teardown();
+    });
+
+    it('an empty answer offers no Details — there is nothing to expand', async () => {
+        const openDetail = jest.fn();
+        const teardown = await show({ ok: true, result: emptyAnswer }, { openDetail });
+        expect(card()?.querySelector('[data-act="more"]')).toBeNull();
+        teardown();
+    });
+});
+
+/**
+ * §13.4 — Details is the way from the hover card to the full screen.
+ */
+describe('the Details action opens the word screen', () => {
+    const CARD = 'lingogram-lookup-strip';
+
+    function overlayWord(word: string): HTMLElement {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        const span = document.createElement('span');
+        span.dataset.word = word;
+        span.textContent = word;
+        box.appendChild(span);
+        document.body.appendChild(box);
+        const rect = { top: 400, bottom: 420, left: 100, right: 160,
+            width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}) } as DOMRect;
+        span.getBoundingClientRect = () => rect;
+        return span;
+    }
+
+    beforeEach(async () => {
+        document.body.innerHTML = '';
+        await chromeStorage.local.set({ 'lang.v1': { learning: 'en', native: 'ru' } });
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_m, cb) =>
+            cb({ ok: true, result: dictAnswer }));
+        jest.useFakeTimers();
+    });
+    afterEach(() => jest.useRealTimers());
+
+    async function open(openDetail?: (t: string, c: string) => void): Promise<() => void> {
+        const teardown = installLookupStrip(openDetail ? { openDetail } : {});
+        overlayWord('anchor').dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        await jest.advanceTimersByTimeAsync(300);
+        return teardown;
+    }
+
+    it('the card carries a Details button labelled as such', async () => {
+        const teardown = await open(jest.fn());
+        const more = document.getElementById(CARD)!.querySelector('[data-act="more"]');
+        expect(more).not.toBeNull();
+        expect(more?.textContent).toContain('Details');
+        teardown();
+    });
+
+    it('pressing it hands the word screen the term and its cue', async () => {
+        const openDetail = jest.fn();
+        const teardown = await open(openDetail);
+        document
+            .getElementById(CARD)!
+            .querySelector<HTMLElement>('[data-act="more"]')!
+            .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+        // Two arguments, not one: the screen re-runs the lookup and needs the
+        // cue to order the senses by (Art. D — the task sheet says "the term").
+        expect(openDetail).toHaveBeenCalledTimes(1);
+        expect(openDetail.mock.calls[0][0]).toBe('anchor');
+        expect(openDetail.mock.calls[0]).toHaveLength(2);
+        teardown();
+    });
+
+    it('the card closes behind it — one word screen, no card left over it', async () => {
+        const teardown = await open(jest.fn());
+        document
+            .getElementById(CARD)!
+            .querySelector<HTMLElement>('[data-act="more"]')!
+            .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(document.getElementById(CARD)).toBeNull();
+        teardown();
+    });
+
+    it('no Details at all when the host wired none', async () => {
+        // The counter-half: the button is the host's to offer. A card that
+        // always rendered it would open nothing on a site with no word screen.
+        const teardown = await open(undefined);
+        expect(document.getElementById(CARD)!.querySelector('[data-act="more"]')).toBeNull();
+        teardown();
+    });
+});

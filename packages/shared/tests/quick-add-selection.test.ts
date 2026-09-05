@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { installQuickAddOverlay } from '../src/content/quick-add-overlay';
+import { buildContextForIndex, installQuickAddOverlay } from '../src/content/quick-add-overlay';
 
 (global as any).chrome = {
     runtime: { id: 'test-extension-id', sendMessage: jest.fn() },
@@ -168,4 +168,75 @@ describe('translation highlight suppression during a phrase drag', () => {
         expect(list.classList.contains(PHRASE_CLASS)).toBe(false);
     });
 
+});
+
+/**
+ * §14.2, T5.24 — the context saved with a word.
+ *
+ * Three lines: the one the word is on, and its two neighbours. That window is
+ * the difference between a saved word and a saved word you can still place a
+ * week later.
+ *
+ * The translation row must stay out of it. It sits inside the same .vtt-item,
+ * so anything reading the item's text sweeps it up — and a context carrying the
+ * answer in the native language turns every review card into a giveaway.
+ */
+describe('the saved context is the three-line window, learning language only', () => {
+    const line = (index: number, text: string, translation?: string): string =>
+        `<div class="vtt-item" data-index="${index}">` +
+        `<div class="vtt-main-text">${text}</div>` +
+        (translation ? `<div class="vtt-sub-text">${translation}</div>` : '') +
+        '</div>';
+
+    beforeEach(() => {
+        document.body.innerHTML =
+            '<div id="vtt-list">' +
+            line(0, 'first line', 'первая строка') +
+            line(1, 'second line', 'вторая строка') +
+            line(2, 'third line', 'третья строка') +
+            line(3, 'fourth line', 'четвёртая строка') +
+            '</div>';
+    });
+
+    it('a line in the middle brings its neighbour on each side', () => {
+        expect(buildContextForIndex(1)).toBe('first line\nsecond line\nthird line');
+    });
+
+    it('the first line has only the one after it', () => {
+        expect(buildContextForIndex(0)).toBe('first line\nsecond line');
+    });
+
+    it('the last line has only the one before it', () => {
+        expect(buildContextForIndex(3)).toBe('third line\nfourth line');
+    });
+
+    // The claim's teeth: not one translation reaches the saved context, on any
+    // of the three lines it spans.
+    it('no translation row reaches the context', () => {
+        const context = buildContextForIndex(1);
+        expect(context).not.toMatch(/первая|вторая|третья/);
+    });
+
+    it('nor at the ends, where the window is shorter', () => {
+        expect(buildContextForIndex(0)).not.toMatch(/строка/);
+        expect(buildContextForIndex(3)).not.toMatch(/строка/);
+    });
+
+    // A masked line still contributes its whole sentence: the context is stored
+    // with the entry and never painted back onto the puzzle, so reading through
+    // the mask reveals nothing while a half-sentence would be useless later.
+    it('a still-masked line contributes its real words', () => {
+        document.body.innerHTML =
+            '<div id="vtt-list">' +
+            '<div class="vtt-item" data-index="0"><div class="vtt-main-text">' +
+            '<span data-word="alpha">alpha</span>' +
+            '<span data-hidden="beta" class="vtt-masked-word">•••</span>' +
+            '</div></div>' +
+            '</div>';
+        expect(buildContextForIndex(0)).toBe('alpha beta');
+    });
+
+    it('an index with no line at all yields nothing', () => {
+        expect(buildContextForIndex(99)).toBe('');
+    });
 });

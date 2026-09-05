@@ -805,3 +805,58 @@ describe('keyboard and ARIA', () => {
         expect(document.activeElement!.id).toBe('vtt-ytp-menu-modes');
     });
 });
+
+// Where the control sits in YouTube's own bar — behaviour map §9.2. The
+// existing checks confirm it lands somewhere inside .ytp-right-controls; the
+// claim is narrower than that, and the reason is discoverability. Beside the
+// captions button it reads as "the other subtitle control". Pushed to the end
+// of the bar it sits past fullscreen, where nobody looking for subtitles goes.
+describe('where the control sits in the player bar', () => {
+    const anchor = () => document.querySelector<HTMLElement>('.vtt-ytp-anchor')!;
+    const cc = () => document.querySelector<HTMLElement>('.ytp-subtitles-button')!;
+
+    test('it is the captions button\'s immediate left-hand sibling', () => {
+        installPlayerMenu(makeApp());
+        expect(anchor().nextElementSibling).toBe(cc());
+        expect(cc().previousElementSibling).toBe(anchor());
+    });
+
+    // YouTube nests the row a level deeper in some layouts, so the captions
+    // button is not always a direct child of .ytp-right-controls. Inserting
+    // against the wrapper instead of the button's own parent puts the control
+    // outside the group it belongs to.
+    test('it follows the captions button into a nested layout', () => {
+        document.body.innerHTML = `
+            <div id="movie_player">
+                <div class="ytp-right-controls">
+                    <div class="ytp-right-controls-left">
+                        <button class="ytp-subtitles-button"></button>
+                    </div>
+                    <button class="ytp-fullscreen-button"></button>
+                </div>
+            </div>`;
+        installPlayerMenu(makeApp());
+
+        expect(anchor().parentElement).toBe(cc().parentElement);
+        expect(anchor().nextElementSibling).toBe(cc());
+    });
+
+    // No captions button this session: the control still has to appear. Being
+    // in the wrong place beats not being there at all.
+    test('with no captions button it still reaches the bar', () => {
+        document.body.innerHTML = `
+            <div id="movie_player">
+                <div class="ytp-right-controls"><button class="ytp-fullscreen-button"></button></div>
+            </div>`;
+        installPlayerMenu(makeApp());
+
+        const controls = document.querySelector('.ytp-right-controls')!;
+        expect(controls.contains(anchor())).toBe(true);
+    });
+
+    test('with no control bar at all, nothing is inserted and nothing throws', () => {
+        document.body.innerHTML = '<div id="movie_player"></div>';
+        expect(() => installPlayerMenu(makeApp())).not.toThrow();
+        expect(document.querySelector('.vtt-ytp-anchor')).toBeNull();
+    });
+});

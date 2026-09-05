@@ -87,6 +87,15 @@ export interface ReprocessOptions {
  * throttle without a click, few enough to stay polite when the limit is real
  * and long.
  */
+// How long a request that has not answered may go on being called "searching"
+// before it is treated as never coming. It has to outlast the fetch layer's own
+// retry schedule — four attempts, each waiting out a Retry-After that YouTube
+// sets — or the watchdog fires while a perfectly live retry is still in flight,
+// which is the bug this exists alongside. Long enough to let that finish,
+// short enough that a genuinely wedged script does not leave the panel
+// searching for ever.
+const STALLED_REQUEST_MS = 30_000;
+
 export const AUTO_PROBE_LIMIT = 2;
 
 /**
@@ -627,13 +636,43 @@ export abstract class BaseVttApp implements AppInterface {
             this.noSubsTimer = null;
             if (!this.langPrefs) return;
             if (this.getVideoId() === null) return;
-            if (this.state.tracks.length === 0) {
-                // Requests still in flight mean attempts WERE made — that is a
-                // reply that never came, not a video nobody asked about.
-                this.declareNoSubtitles(
-                    this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted',
-                );
+            if (this.state.tracks.length !== 0) return;
+
+            // Nothing was even asked: there is nothing to wait for.
+            if (this.pendingRequests.size === 0) {
+                this.declareNoSubtitles('not-attempted');
+                return;
             }
+
+            // A request that is still out has not said anything yet. Concluding
+            // "this video doesn't have subtitles" from silence is a guess
+            // presented as a fact, and under throttling it is the wrong one:
+            // the captions exist and YouTube is refusing to serve them.
+            // Measured — the reader was shown "No subtitles available" at 7s
+            // and told to go find another video, and only at 16s did the
+            // correct "YouTube is limiting requests" replace it.
+            //
+            // So keep saying "Searching…" while a retry schedule is genuinely
+            // still running. A verdict that arrives meanwhile goes through
+            // declareNoSubtitles() as before, immediately.
+            //
+            // But a reply that NEVER comes (a wedged page-script, a dropped
+            // message) must not leave the panel searching for ever, so the
+            // watchdog stays — moved out to a longer wait rather than removed.
+            // Without that, this branch would trade a wrong answer for no
+            // answer at all.
+            this.showStatusBanner(
+                t('ytSearchingTitle', 'Searching for subtitles…'),
+                t('ytSearchingText', 'Looking for captions for this video.'),
+            );
+            this.noSubsTimer = window.setTimeout(() => {
+                this.noSubsTimer = null;
+                if (!this.langPrefs) return;
+                if (this.getVideoId() === null) return;
+                if (this.state.tracks.length !== 0) return;
+                // Still nothing after the whole retry budget could have run.
+                this.declareNoSubtitles(this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted');
+            }, STALLED_REQUEST_MS);
         }, graceMs);
     }
 

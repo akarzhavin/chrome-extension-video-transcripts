@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { applyTheme, stopThemeTracking } from '../src/content/theme';
+import { applyTheme, stopThemeTracking, themeAvailable } from '../src/content/theme';
 
 // A controllable prefers-color-scheme, so a test can flip the OS mid-run.
 function installMatchMedia(dark: boolean) {

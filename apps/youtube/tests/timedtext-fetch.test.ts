@@ -153,6 +153,26 @@ describe('RateLimitBreaker', () => {
         expect(b.remainingMs()).toBe(60_000);
     });
 
+    /**
+     * The ladder to its last rung, and the fact that it stops there.
+     *
+     * The check above walks two rungs, which leaves the other two and the cap
+     * free to change. These windows are how long the product waits before
+     * asking YouTube again after being refused, and a ladder that kept
+     * doubling would hold a reader's subtitles hostage for an hour.
+     */
+    test('the ladder widens to five minutes and stops', () => {
+        const b = new RateLimitBreaker(now);
+        for (const expected of [30_000, 60_000, 120_000, 300_000]) {
+            b.trip();
+            expect(b.remainingMs()).toBe(expected);
+            clock += expected;
+        }
+        // Capped: a fifth refusal waits the same as the fourth, not longer.
+        b.trip();
+        expect(b.remainingMs()).toBe(300_000);
+    });
+
     test('honours a Retry-After longer than its own step', () => {
         const b = new RateLimitBreaker(now);
         b.trip(90_000);
@@ -375,5 +395,31 @@ describe('fetchTimedText', () => {
         expect(out).toMatchObject({ ok: true, attempts: 1 });
         breaker.trip(); // a later throttle starts a fresh episode…
         expect(breaker.remainingMs()).toBe(30_000); // …not the escalated 60s step
+    });
+});
+
+/**
+ * The politeness budgets, pinned to their values.
+ *
+ * The checks elsewhere in this file compare a count against the same constant
+ * that produced it — `expect(attempts).toBe(MAX_ATTEMPTS)` holds for any value
+ * of MAX_ATTEMPTS, including forty. Those checks are worth keeping: they prove
+ * the wiring. These prove the numbers.
+ *
+ * Every one of them is a limit on how hard the product leans on YouTube.
+ * Raising one silently is how a client earns a refusal that lasts hours and
+ * takes every other reader's subtitles down with it.
+ */
+describe('the budgets themselves', () => {
+    test('four attempts per track', () => {
+        expect(MAX_ATTEMPTS).toBe(4);
+    });
+
+    test('two re-asks when the answer comes back empty', () => {
+        expect(EMPTY_RETRIES).toBe(2);
+    });
+
+    test('seven tenths of a second between those re-asks', () => {
+        expect(EMPTY_RETRY_DELAY_MS).toBe(700);
     });
 });
