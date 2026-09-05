@@ -322,9 +322,24 @@ export const test = base.extend<{ page: Page; loadAudit: void }, { ext: Extensio
             // connection (playwright-core coreBundle.js:62352), so anything we
             // left open stays in the person's window.
             await handle.shared.invalidate();
-            if (uiPrefsAtStart !== undefined) await writeUiPrefs(handle, uiPrefsAtStart).catch(() => {});
             // Restore the human's browser, whether or not the check passed.
             for (const o of others) await setEnabled(o.id, true).catch(() => {});
+
+            // Preferences BEFORE the extensions page is closed, because writing
+            // them opens a popup tab of its own — and after everything that
+            // must happen regardless, because this is the step most likely to
+            // hang. Teardown shares the check's timeout, so one slow step here
+            // used to leave chrome://extensions tabs standing in the person's
+            // browser: three of them had accumulated by the end of a day's
+            // work. Wrapped in its own deadline so it can fail without taking
+            // the rest of the cleanup with it.
+            if (uiPrefsAtStart !== undefined) {
+                await Promise.race([
+                    writeUiPrefs(handle, uiPrefsAtStart),
+                    new Promise((r) => setTimeout(r, 15_000)),
+                ]).catch(() => {});
+            }
+
             await extPage.close().catch(() => {});
             // Only close ours if something else is left standing — closing the
             // last window puts the browser back in the state that broke the

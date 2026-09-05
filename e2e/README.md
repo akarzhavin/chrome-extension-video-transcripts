@@ -56,7 +56,13 @@ npx playwright test e2e/reading-modes.spec.ts e2e/settings-and-export.spec.ts \
     e2e/fixture-selftest.spec.ts
 ```
 
-Expect roughly six minutes for the first half and eighteen for the second.
+Expect roughly six minutes for the first half and **thirty-five** for the
+second — measured 2026-09-05 at 33.5 minutes for 44 checks. The "eighteen" this
+line used to say predated several files being added.
+
+**Do not pass `--reporter=list` on the command line.** It REPLACES the config's
+reporter list rather than adding to it, and the load counter below goes silent.
+A thirty-three-minute run was spent that way and produced no load figure.
 Between them the two commands name every spec file; adding a file without adding
 it here means it silently stops being run.
 
@@ -66,6 +72,27 @@ tests" where the file list calls for 40, and four checks went unrun while the
 run reported success. Read the count in the log's first line against the count
 you expect, every time: a half that runs fewer tests than its file list is the
 only symptom this failure has.
+
+## How many pages a run loads
+
+Every run prints what it cost:
+
+```
+youtube loads   3  settings-detail.spec.ts
+youtube loads   2  accessibility.spec.ts
+youtube loads   5  TOTAL (retries included)
+```
+
+That number is the suite's cost against a real person's signed-in account, so it
+is measured on every run rather than reasoned about. Retries are included: a
+retried check loaded the page again, and YouTube served it again.
+
+**Counting the calls in the source does not work.** It cannot see a navigation
+inside a page, a reload, or a retry. Measured against counted: `subtitles.spec.ts`
+counts 9 and measures 10; the second half counts 39 and measures **47**.
+
+A rise with no failures means a converted check is closing the shared page, or
+is discarding it when it need not. See `apps/youtube/docs/shared-page-e2e.md`.
 
 ## Checks that can decide not to run
 
