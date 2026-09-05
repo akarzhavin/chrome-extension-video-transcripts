@@ -90,8 +90,16 @@ test.describe('throttling by YouTube', () => {
                 );
 
                 // Something loaded, so the takeover notice must not be up.
+                // Asserted unconditionally: `if (banner?.title)` also passed
+                // when no banner rendered at all, including because the banner
+                // system itself broke — the check could not tell the two apart.
+                // The absence of a banner IS the expected state here, so it is
+                // what the assertion has to name.
                 const banner = await currentBanner(page);
-                if (banner?.title) expect(banner.title).not.toBe('No subtitles available');
+                expect(
+                    banner?.title ?? null,
+                    'lines loaded, so the full-screen takeover must not be up',
+                ).not.toBe('No subtitles available');
             } finally {
                 await page.close().catch(() => {});
             }

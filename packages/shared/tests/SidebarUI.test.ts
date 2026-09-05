@@ -1356,6 +1356,36 @@ describe('SidebarUI', () => {
             for (const k of Object.keys(prefsStore)) delete prefsStore[k];
         });
 
+        // §12: the panel must MOVE INTO the fullscreen element. Anything left
+        // outside it is simply not on screen, so the class alone is not the
+        // behaviour — the reparenting is. The live check for this can never
+        // run (`e2e/player-modes.spec.ts` skips: the browser's fullscreen API
+        // needs a real gesture in a focused window, which a background tab
+        // cannot give), so it is asserted here instead.
+        test('the sidebar moves inside the fullscreen element and comes home after', async () => {
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+
+            // A home that is NOT <body>. On the sites this runs on the panel
+            // hangs off a wrapper, and the exit path restores `homeParent`
+            // rather than defaulting to <body> — with <body> as the home the
+            // two are indistinguishable and the return half asserts nothing.
+            const home = document.createElement('div');
+            document.body.appendChild(home);
+            home.appendChild(sidebar);
+
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+
+            fireFullscreen(fsEl);
+            expect(sidebar.parentElement).toBe(fsEl);
+
+            fireFullscreen(null);
+            await flush();
+            expect(sidebar.parentElement).toBe(home);
+        });
+
         // Regression: leaving fullscreen used to unconditionally remove 'collapsed',
         // re-opening a sidebar the user had deliberately collapsed.
         test('exiting fullscreen keeps the sidebar collapsed when the pref says so', async () => {

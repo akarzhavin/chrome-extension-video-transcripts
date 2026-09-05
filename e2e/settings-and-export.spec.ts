@@ -5,6 +5,7 @@
  * run inside the guard that puts their own preferences back.
  */
 import { test, expect } from './fixtures/extension';
+import { OVERLAY_TEXT_DEFAULTS } from '../packages/shared/src/overlay-style';
 import { waitForLines } from './fixtures/subtitles';
 import { preservingUiPrefs } from './fixtures/uiprefs';
 
@@ -90,11 +91,23 @@ test.describe('the settings screen', () => {
                     reset?.click();
                 });
 
-                // Back to the product's default — which is not necessarily what
-                // the person had set, so assert that it MOVED off the changed
-                // value rather than that it equals the original.
-                await expect.poll(font, { timeout: 20_000 }).not.toBe(changedTo);
-                void original;
+                // Back to the product's DEFAULT — which is not necessarily what
+                // the person had set, so `original` is deliberately not the
+                // expected value. Naming the default is what makes this a
+                // check: "moved off the changed value" was satisfied by any
+                // other font, including a reset that picked one at random.
+                await expect
+                    .poll(font, { timeout: 20_000 })
+                    .toBe(OVERLAY_TEXT_DEFAULTS.overlayFontFamily);
+
+                // The person's own setting was NOT restored, and saying so is
+                // the point of having read it: a reset that quietly put the
+                // original back would be a different behaviour from the one
+                // the map describes.
+                expect(await font()).not.toBe(changedTo);
+                if (original !== OVERLAY_TEXT_DEFAULTS.overlayFontFamily) {
+                    expect(await font()).not.toBe(original);
+                }
             } finally {
                 await page.close().catch(() => {});
             }

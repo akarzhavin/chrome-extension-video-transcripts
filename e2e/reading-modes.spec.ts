@@ -8,7 +8,7 @@
  */
 import { test, expect } from './fixtures/extension';
 import { waitForLines, playFrom } from './fixtures/subtitles';
-import { preservingUiPrefs } from './fixtures/uiprefs';
+import { preservingUiPrefs, readUiPrefs, writeUiPrefs } from './fixtures/uiprefs';
 
 const VIDEO = 'https://www.youtube.com/watch?v=aircAruvnKk';
 
@@ -114,6 +114,12 @@ test.describe('the side panel', () => {
      */
     test('collapsing the panel changes both what is seen and what is announced', async ({ ext }) => {
         await preservingUiPrefs(ext, async () => {
+            // Start from a KNOWN state. Reading `collapsed: false` as a given
+            // made the outcome depend on whose profile ran it: expanded and it
+            // passed, collapsed and it failed, and neither said anything about
+            // the product.
+            await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+
             const page = await ext.open(VIDEO);
             try {
                 await waitForLines(page);
@@ -141,9 +147,23 @@ test.describe('the side panel', () => {
     /** The choice is remembered — closing the panel is not undone by a reload. */
     test('the collapsed choice survives a reload', async ({ ext }) => {
         await preservingUiPrefs(ext, async () => {
+            // The single click below only collapses the panel if it started
+            // expanded. Without setting that, the check asserted `collapsed`
+            // after a click that may have EXPANDED an already-collapsed panel.
+            await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+
             const page = await ext.open(VIDEO);
             try {
                 await waitForLines(page);
+
+                // The starting state the click depends on, named rather than assumed.
+                expect(
+                    await page.evaluate(
+                        () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
+                    ),
+                    'the panel must start expanded for one click to collapse it',
+                ).toBe(false);
+
                 await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
                 await expect
                     .poll(

@@ -9,7 +9,7 @@
  */
 import { test, expect } from './fixtures/extension';
 import { waitForLines, playFrom } from './fixtures/subtitles';
-import { preservingUiPrefs } from './fixtures/uiprefs';
+import { preservingUiPrefs, readUiPrefs, writeUiPrefs } from './fixtures/uiprefs';
 
 const VIDEO = 'https://www.youtube.com/watch?v=aircAruvnKk';
 
@@ -78,6 +78,11 @@ test.describe('what screen readers are told', () => {
      */
     test('an announcement carries an urgency, and the panel announces its state', async ({ ext }) => {
         await preservingUiPrefs(ext, async () => {
+            // `aria-expanded` is asserted to be 'true' below, so the panel has
+            // to START expanded. Reading it without setting it made the result
+            // a property of whoever's profile ran the suite.
+            await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+
             const page = await ext.open(VIDEO);
             try {
                 await waitForLines(page);
