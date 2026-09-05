@@ -936,7 +936,11 @@ describe('selection — dragging a phrase opens the same card', () => {
 
         const msg = (chrome.runtime.sendMessage as jest.Mock).mock.calls
             .map((c) => c[0]).find((m: any) => m?.action === 'LOOKUP_WORD');
-        if (!msg) return; // no offer at all is also acceptable here
+        // The offer must exist: a selection reaching into the next cue is
+        // still a lookup. "No offer at all" used to be accepted here, which
+        // let a regression that stops offering anything for cross-cue
+        // selections pass — measured: the offer IS made, so the guard was dead.
+        expect(msg).toBeTruthy();
         const words = msg.term.split(/\s+/);
         expect(new Set(words).size).toBe(words.length); // no repeats
     });

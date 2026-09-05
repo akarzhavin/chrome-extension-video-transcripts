@@ -672,11 +672,15 @@ describe('the language pair chip', () => {
         // stray savePrefs here would make a swapped order outlive the video
         // that prompted it.
         const app = withHeader();
-        const set = (global as any).chrome?.storage?.local?.set as jest.Mock | undefined;
-        set?.mockClear();
+        const set = (global as any).chrome.storage.local.set as jest.Mock;
+        // The stub must exist for the claim to be checkable at all: behind an
+        // `if (set)` the whole assertion silently stopped running the moment
+        // the stub was refactored away, and the check stayed green.
+        expect(jest.isMockFunction(set)).toBe(true);
+        set.mockClear();
         chip()!.click();
         expect(app.state.swapped).toBe(true);
-        if (set) expect(set).not.toHaveBeenCalled();
+        expect(set).not.toHaveBeenCalled();
     });
 
     test('with one language loaded the chip stays, and a press does nothing', () => {

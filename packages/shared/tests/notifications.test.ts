@@ -401,6 +401,11 @@ describe('getNotification', () => {
         const fetchMock = jest.fn().mockResolvedValue(jsonResponse(oneDoc));
         (global as any).fetch = fetchMock;
         await getNotification(QUERY);
+        // Aged to one second short of the TTL (15 min), so this second read is
+        // the OLDEST cache that must still be served. Two reads in the same
+        // tick were satisfied by any TTL at all — shortening it to nothing
+        // stayed green; only the refetch test below noticed a lengthening.
+        chromeStorage.local._store['notif.cachedAt'] = Date.now() - (15 * 60 * 1000 - 1000);
         await getNotification(QUERY);
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });

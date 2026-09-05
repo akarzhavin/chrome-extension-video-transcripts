@@ -603,9 +603,12 @@ describe('REPORT_NO_SUBS carries the cause', () => {
     // silently disables diagnostics — the failure mode is an empty collection,
     // not an error anyone would notice.
     test('the send is given long enough for a cold service worker', () => {
-        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeGreaterThanOrEqual(2000);
-        // Still bounded: the user pressed a button that promises a reload.
-        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBeLessThanOrEqual(3000);
+        // Pinned to the literal the map states (2.5 s), not to a range: the
+        // range this used to accept (2000..3000) let a drift to 2.9 s pass,
+        // and a drift is exactly what this exists to notice. Still bounded by
+        // the same reasoning — the user pressed a button that promises a
+        // reload — the bound is just no longer loose.
+        expect(REPORT_NO_SUBS_TIMEOUT_MS).toBe(2500);
     });
 
     test('a worker that never answers still lets the page reload', async () => {

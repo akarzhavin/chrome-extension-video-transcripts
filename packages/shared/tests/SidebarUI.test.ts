@@ -306,12 +306,22 @@ describe('SidebarUI', () => {
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             const fire = (type: string, x: number, y: number) =>
                 masked.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: y }));
+            // Read BEFORE the gesture, from the element, so "stayed put" is a
+            // comparison of two observations. The previous form,
+            // `getPropertyValue(...) || '0%'` against '0%', was satisfied by the
+            // property never having been written at all — which is exactly what
+            // it could not tell apart from a reset.
+            const nudgeBefore = overlay.style.getPropertyValue('--vtt-overlay-nudge');
+            const positionWrites = jest.spyOn((ui as any).position, 'set');
             fire('pointerdown', 100, 200);
             fire('pointermove', 102, 150);
             fire('pointerup', 102, 150);
             expect(state.getRevealedCount(0)).toBe(2);
-            // The captions stayed put: the text is not a drag surface.
-            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge') || '0%').toBe('0%');
+            // The captions stayed put: the text is not a drag surface, so the
+            // drift neither moved the stored position nor repainted the nudge.
+            expect(positionWrites).not.toHaveBeenCalled();
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toBe(nudgeBefore);
+            positionWrites.mockRestore();
         });
 
         test('a right-button press does not reveal', () => {

@@ -98,6 +98,8 @@ describe('word-card translation coverage', () => {
         const all = localeNames();
         expect(all.length).toBe(54);
         expect(all.length - COMPLETE.length).toBe(51);
-        expect(WORD_CARD_KEYS.length).toBe(18);
+        // The list itself is this file's literal, so its length compared
+        // with 18 proved nothing (Principle VII); the three checks above are
+        // where the 18 keys are load-bearing.
     });
 });
