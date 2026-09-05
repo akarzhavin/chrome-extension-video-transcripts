@@ -17,12 +17,18 @@ export default defineConfig({
     // consecutive runs produced three different outcomes with no code change.
     // One retry separates flake from breakage.
     retries: 1,
-    // A check that has not finished in three minutes is not slow, it is wedged:
-    // the longest genuine one takes about ninety seconds. Observed once — the
-    // browser stopped answering mid-run and a single check sat for half an hour
-    // while the other forty-four never started. Failing that one is far cheaper
-    // than losing the run.
-    timeout: 180_000,
+    // A check that has not finished in four minutes is not slow, it is wedged.
+    // Observed once — the browser stopped answering mid-run and a single check
+    // sat for half an hour while the other forty-four never started. Failing
+    // that one is far cheaper than losing the run.
+    //
+    // Was 180s while every check opened its own page. Raised on a measurement:
+    // getting the shared page ready for the first time costs 105s (open, wait
+    // for subtitles, hold the pause against autoplay, leave theatre view), and
+    // a check that also does its own work then has only 75s left. Cleaning an
+    // already-clean page costs 0.0s, so this is a one-off toll per worker, not
+    // a per-check one.
+    timeout: 240_000,
     expect: { timeout: 30_000 },
     // The second reporter prints how many video pages the run loaded. That
     // number is the cost this suite imposes on a real person's account, so it

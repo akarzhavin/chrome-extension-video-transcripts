@@ -15,6 +15,8 @@ import { join } from 'node:path';
 // Reused as-is: it owns background-tab creation and muting, and the ops doc
 // requires every tab-opening script to go through it.
 import { openInBackground, mute } from '../../scripts/lib/cdp-background-tab.mjs';
+import { acquireClean, WATCH_URL, VIDEO_WITH_CAPTIONS } from './watch-page';
+import { readUiPrefs, writeUiPrefs } from './uiprefs';
 
 export const CDP_URL = 'http://127.0.0.1:9333';
 
@@ -132,6 +134,19 @@ export interface LoadCounter {
     total: number;
 }
 
+/**
+ * The one video page a run keeps, rather than a page per check.
+ *
+ * A check that navigates away, reloads the extension, or otherwise stops the
+ * page being the page must say so via `invalidate()`. `acquireClean` also
+ * checks the address as a backstop, but the explicit call states it where it
+ * happens.
+ */
+export interface SharedWatch {
+    acquire(): Promise<Page>;
+    invalidate(): Promise<void>;
+}
+
 export interface ExtensionHandle {
     ctx: BrowserContext;
     id: string;
@@ -141,13 +156,26 @@ export interface ExtensionHandle {
     reload(): Promise<void>;
     /** Video pages loaded so far. Read by the loadAudit fixture, not by checks. */
     loads: LoadCounter;
+    /** The page shared across checks that do not care how it loaded. */
+    shared: SharedWatch;
 }
 
 const isYouTube = (url: string): boolean => /^https?:\/\/(www\.)?youtube\.com/.test(url);
 
-export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: void }, {}>({
+export const test = base.extend<{ page: Page; loadAudit: void }, { ext: ExtensionHandle }>({
+    /**
+     * Worker-scoped, not per-check — and that is a precondition for sharing a
+     * page rather than a tidiness gain. This fixture reloads the extension, and
+     * a reload orphans the content script in every open tab (which is what
+     * failure-states.spec.ts asserts). Per-check, it would hand the next check a
+     * dead page every time.
+     *
+     * Isolation between checks is not lost by this: Playwright discards a worker
+     * after any failure and starts a fresh one, so a failing check cannot leak
+     * into the next.
+     */
     // eslint-disable-next-line no-empty-pattern
-    ext: async ({}, use) => {
+    ext: [async ({}, use) => {
         assertBuildIsFresh();
 
         const browser = await chromium.connectOverCDP(CDP_URL).catch(() => {
@@ -229,6 +257,7 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: v
         }
 
         const loads: LoadCounter = { total: 0 };
+        let sharedPage: Page | null = null;
 
         const handle: ExtensionHandle = {
             ctx,
@@ -264,12 +293,36 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: v
                         ),
                     unpacked.id,
                 );
+                // Every open page is now orphaned, the shared one included.
+                await handle.shared.invalidate();
+            },
+            shared: {
+                async acquire() {
+                    if (sharedPage && !sharedPage.isClosed()) return sharedPage;
+                    sharedPage = await handle.open(WATCH_URL);
+                    return sharedPage;
+                },
+                async invalidate() {
+                    const p = sharedPage;
+                    sharedPage = null;
+                    await p?.close().catch(() => {});
+                },
             },
         };
+
+        // The cleanup expands a collapsed panel, and expanding writes the
+        // preference (SidebarUI.ts:1655). That write happens outside any check's
+        // preservingUiPrefs guard, so the run has to put it back itself.
+        const uiPrefsAtStart = await readUiPrefs(handle).catch(() => undefined);
 
         try {
             await use(handle);
         } finally {
+            // Our own tab first: closing the browser handle only closes the CDP
+            // connection (playwright-core coreBundle.js:62352), so anything we
+            // left open stays in the person's window.
+            await handle.shared.invalidate();
+            if (uiPrefsAtStart !== undefined) await writeUiPrefs(handle, uiPrefsAtStart).catch(() => {});
             // Restore the human's browser, whether or not the check passed.
             for (const o of others) await setEnabled(o.id, true).catch(() => {});
             await extPage.close().catch(() => {});
@@ -279,7 +332,14 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: v
             if (scaffold && ctx.pages().length > 1) await scaffold.close().catch(() => {});
             await browser.close().catch(() => {});
         }
-    },
+    }, {
+        scope: 'worker',
+        // Its own budget, separate from a check's. Setting up this fixture
+        // reloads the extension and waits for its service worker; the check
+        // that triggers it then still has its full 180s. Sharing one budget
+        // meant setup and check competed for it, and setup lost.
+        timeout: 120_000,
+    }],
 
     /**
      * Attribute the run's page loads to the check that caused them.
@@ -299,21 +359,34 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: v
         { auto: true },
     ],
 
-    page: async ({ ext }, use) => {
-        const p = await ext.open('https://www.youtube.com/watch?v=' + VIDEO_WITH_CAPTIONS);
-        try {
-            await use(p);
-        } finally {
-            await p.close().catch(() => {});
-        }
-    },
+    /**
+     * The shared page, cleaned and verified.
+     *
+     * It is NOT closed here: it belongs to the run, and closing it would cost
+     * the next check a fresh load — the whole thing this exists to avoid.
+     */
+    page: [
+        async ({ ext }, use) => {
+            await use(await acquireClean(ext));
+        },
+        {
+            // Explicit, though it is also the default: this overrides a built-in
+            // fixture, and the tuple form of an override without a scope is not
+            // something to leave to inference when the sibling fixture in this
+            // same file is worker-scoped.
+            scope: 'test',
+            // Cleaning waits for subtitles, and a previous check's
+            // language-pair restore makes the page re-fetch them from scratch —
+            // up to 90 seconds on a slow answer. That budget belongs to getting
+            // the page ready, not to the check that asked for it.
+            timeout: 150_000,
+        },
+    ],
 });
 
-/**
- * A video whose captions are checked at the moment of use, never trusted from a
- * documented id: a video documented in this repo as reliably caption-free had
- * gained captions by the time it was checked.
- */
-export const VIDEO_WITH_CAPTIONS = 'aircAruvnKk';
+// Re-exported for the checks that already import it from here. It is DECLARED
+// in ./watch-page: these two modules import each other, and a value read across
+// that cycle at load time comes back undefined.
+export { VIDEO_WITH_CAPTIONS };
 
 export { expect };
