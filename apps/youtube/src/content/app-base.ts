@@ -87,14 +87,23 @@ export interface ReprocessOptions {
  * throttle without a click, few enough to stay polite when the limit is real
  * and long.
  */
-// How long a request that has not answered may go on being called "searching"
-// before it is treated as never coming. It has to outlast the fetch layer's own
-// retry schedule — four attempts, each waiting out a Retry-After that YouTube
-// sets — or the watchdog fires while a perfectly live retry is still in flight,
-// which is the bug this exists alongside. Long enough to let that finish,
-// short enough that a genuinely wedged script does not leave the panel
-// searching for ever.
-const STALLED_REQUEST_MS = 30_000;
+/**
+ * How long a request that has not answered may go on being called "searching"
+ * before it is treated as never coming.
+ *
+ * Measured against the reader, NOT against the retry schedule: outlasting the
+ * schedule is not achievable at any tolerable wait. Four attempts each wait out
+ * a Retry-After that YouTube sets, clamped at MAX_RETRY_AFTER_MS (60s), so the
+ * worst case runs to about three minutes — and nobody watches "Searching…" for
+ * three minutes. An earlier draft of this said 30s "outlasts the retry
+ * schedule"; that was simply wrong, and the number was picked by eye.
+ *
+ * So this is a limit on how long the panel may say nothing useful, and a long
+ * throttle can still outlive it. That is acceptable because of WHAT is said
+ * when it fires: 'timeout' — a reply that did not come — never the false
+ * "this video has no subtitles" verdict this whole branch exists to remove.
+ */
+export const STALLED_REQUEST_MS = 12_000;
 
 export const AUTO_PROBE_LIMIT = 2;
 

@@ -32,6 +32,7 @@
 import {
     BaseVttApp,
     REPORT_NO_SUBS_TIMEOUT_MS,
+    STALLED_REQUEST_MS,
     type ReprocessOptions,
 } from '../src/content/app-base';
 import type { Subtitle } from '@video-transcripts/shared';
@@ -458,13 +459,32 @@ describe('no_subtitles', () => {
 
         test('a reply that never comes is still reported, just later', () => {
             // The watchdog is kept, not removed: a wedged page-script must not
-            // leave the panel searching for ever. It waits long enough for the
-            // fetch layer's own retry schedule to finish first.
+            // leave the panel searching for ever.
+            //
+            // Driven by the imported constant rather than a copy of its value:
+            // pinning 30_000 here meant changing the wait made this check red
+            // for the wrong reason, and editing the literal back made it green
+            // again without checking anything.
             const app = makeApp();
             app.pendingRequests.set('k1', 'English');
             app.scheduleNoSubtitlesCheck(7_000);
-            jest.advanceTimersByTime(7_000 + 30_000);
+
+            // The half that was missing: JUST short of the deadline nothing has
+            // been concluded yet. Without this, a watchdog that fired instantly
+            // would still pass the assertion below.
+            jest.advanceTimersByTime(7_000 + STALLED_REQUEST_MS - 1);
+            expect(eventsNamed('no_subtitles')).toHaveLength(0);
+
+            jest.advanceTimersByTime(1);
             expect(eventsNamed('no_subtitles')[0].params.failure).toBe('timeout');
+        });
+
+        test('the wait is short enough that a reader is not left staring at it', () => {
+            // The number is a promise to the reader, not an implementation
+            // detail: it was 30s, chosen by eye and justified by a claim about
+            // the retry schedule that does not hold. Stated as a bound so a
+            // future "just a bit longer" has to be a deliberate decision.
+            expect(STALLED_REQUEST_MS).toBeLessThanOrEqual(12_000);
         });
     });
 });
