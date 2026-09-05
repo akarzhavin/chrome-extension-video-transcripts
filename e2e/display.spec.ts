@@ -6,44 +6,37 @@ import { test, expect } from './fixtures/extension';
 import { waitForLines, playFrom } from './fixtures/subtitles';
 import { preservingUiPrefs } from './fixtures/uiprefs';
 
-const VIDEO = 'https://www.youtube.com/watch?v=aircAruvnKk';
-
 test.describe('swapping the two languages', () => {
     /**
      * The swap is expressed as a state on the panel, which the styling reads to
      * flip the visual order. Asserting the state rather than measuring pixel
      * positions: geometry has already produced one false failure in this work.
      */
-    test('the shortcut swaps the reading order, and swaps it back', async ({ ext }) => {
+    test('the shortcut swaps the reading order, and swaps it back', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
+            await waitForLines(page);
 
-                const swapped = () =>
-                    page.evaluate(
-                        () => document.getElementById('vtt-sidebar')?.classList.contains('vtt-swapped') ?? null,
-                    );
+            const swapped = () =>
+                page.evaluate(
+                    () => document.getElementById('vtt-sidebar')?.classList.contains('vtt-swapped') ?? null,
+                );
 
-                // Do not assume the starting order: the swap resets per video,
-                // but reading it before the panel has settled made this flaky.
-                await expect.poll(swapped, { timeout: 30_000 }).toBe(false);
+            // Do not assume the starting order: the swap resets per video,
+            // but reading it before the panel has settled made this flaky.
+            await expect.poll(swapped, { timeout: 30_000 }).toBe(false);
 
-                const pressSwap = async () => {
-                    await page.evaluate(() => document.body.focus());
-                    await page.keyboard.down('Shift');
-                    await page.keyboard.press('KeyS');
-                    await page.keyboard.up('Shift');
-                };
+            const pressSwap = async () => {
+                await page.evaluate(() => document.body.focus());
+                await page.keyboard.down('Shift');
+                await page.keyboard.press('KeyS');
+                await page.keyboard.up('Shift');
+            };
 
-                await pressSwap();
-                await expect.poll(swapped, { timeout: 20_000 }).toBe(true);
+            await pressSwap();
+            await expect.poll(swapped, { timeout: 20_000 }).toBe(true);
 
-                await pressSwap();
-                await expect.poll(swapped, { timeout: 20_000 }).toBe(false);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await pressSwap();
+            await expect.poll(swapped, { timeout: 20_000 }).toBe(false);
         });
     });
 });
@@ -55,38 +48,33 @@ test.describe('the on-screen captions toggle', () => {
      * captions, and a check on the control alone would pass against a toggle
      * that does nothing.
      */
-    test('turning captions off removes them from the video, and back on restores them', async ({ ext }) => {
+    test('turning captions off removes them from the video, and back on restores them', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await playFrom(page, 30);
+            await waitForLines(page);
+            await playFrom(page, 30);
 
-                const captionText = () =>
-                    page.evaluate(
-                        () => document.getElementById('vtt-video-overlay')?.textContent?.trim() ?? '',
-                    );
+            const captionText = () =>
+                page.evaluate(
+                    () => document.getElementById('vtt-video-overlay')?.textContent?.trim() ?? '',
+                );
 
-                await expect.poll(captionText, { timeout: 45_000 }).not.toBe('');
+            await expect.poll(captionText, { timeout: 45_000 }).not.toBe('');
 
-                await page.evaluate(() => document.getElementById('vtt-qm-overlay')?.click());
-                await expect
-                    .poll(
-                        () =>
-                            page.evaluate(() => {
-                                const o = document.getElementById('vtt-video-overlay');
-                                if (!o) return true; // gone entirely counts as off
-                                return o.getClientRects().length === 0 || (o.textContent ?? '').trim() === '';
-                            }),
-                        { timeout: 30_000 },
-                    )
-                    .toBe(true);
+            await page.evaluate(() => document.getElementById('vtt-qm-overlay')?.click());
+            await expect
+                .poll(
+                    () =>
+                        page.evaluate(() => {
+                            const o = document.getElementById('vtt-video-overlay');
+                            if (!o) return true; // gone entirely counts as off
+                            return o.getClientRects().length === 0 || (o.textContent ?? '').trim() === '';
+                        }),
+                    { timeout: 30_000 },
+                )
+                .toBe(true);
 
-                await page.evaluate(() => document.getElementById('vtt-qm-overlay')?.click());
-                await expect.poll(captionText, { timeout: 45_000 }).not.toBe('');
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await page.evaluate(() => document.getElementById('vtt-qm-overlay')?.click());
+            await expect.poll(captionText, { timeout: 45_000 }).not.toBe('');
         });
     });
 });
@@ -140,61 +128,56 @@ test.describe('collapsing the panel', () => {
      * Its source twin (apps/youtube/tests/rendered-pins.test.ts) pins the
      * stylesheet rule this observes.
      */
-    test('the panel keeps its width and moves instead', async ({ ext }) => {
+    test('the panel keeps its width and moves instead', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
+            await waitForLines(page);
 
-                const panel = () =>
-                    page.evaluate(() => {
-                        const sb = document.getElementById('vtt-sidebar');
-                        if (!sb) return null;
-                        const cs = getComputedStyle(sb);
-                        return {
-                            collapsed: sb.classList.contains('collapsed'),
-                            width: cs.width,
-                            display: cs.display,
-                            transform: cs.transform,
-                        };
-                    });
-
-                // Start from a known state rather than clicking blindly: the
-                // collapsed flag is remembered globally, so a blind toggle
-                // expands a panel that was already collapsed.
-                await page.evaluate(() => {
+            const panel = () =>
+                page.evaluate(() => {
                     const sb = document.getElementById('vtt-sidebar');
-                    if (sb?.classList.contains('collapsed')) document.getElementById('vtt-toggle-btn')?.click();
+                    if (!sb) return null;
+                    const cs = getComputedStyle(sb);
+                    return {
+                        collapsed: sb.classList.contains('collapsed'),
+                        width: cs.width,
+                        display: cs.display,
+                        transform: cs.transform,
+                    };
                 });
-                await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(false);
-                // The slide is a 0.4s transition, so the transform is still
-                // mid-flight for a moment after the class comes off. Reading
-                // it too early captured the collapsed transform as the OPEN
-                // one, and the two then compared equal.
-                await page.waitForTimeout(1200);
 
-                const open = (await panel())!;
-                expect(open.transform, 'the open panel is still mid-slide').toBe('none');
+            // Start from a known state rather than clicking blindly: the
+            // collapsed flag is remembered globally, so a blind toggle
+            // expands a panel that was already collapsed.
+            await page.evaluate(() => {
+                const sb = document.getElementById('vtt-sidebar');
+                if (sb?.classList.contains('collapsed')) document.getElementById('vtt-toggle-btn')?.click();
+            });
+            await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(false);
+            // The slide is a 0.4s transition, so the transform is still
+            // mid-flight for a moment after the class comes off. Reading
+            // it too early captured the collapsed transform as the OPEN
+            // one, and the two then compared equal.
+            await page.waitForTimeout(1200);
 
-                await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
-                await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(true);
-                // The slide is animated, so read after it has settled.
-                await page.waitForTimeout(1200);
+            const open = (await panel())!;
+            expect(open.transform, 'the open panel is still mid-slide').toBe('none');
 
-                const shut = (await panel())!;
+            await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
+            await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(true);
+            // The slide is animated, so read after it has settled.
+            await page.waitForTimeout(1200);
 
-                expect(shut.width, 'a collapsed panel that changed width folded instead of sliding').toBe(open.width);
-                expect(shut.display, 'the contents must stay laid out, merely off-screen').toBe(open.display);
-                // And it genuinely moved: the transform is what took it away.
-                expect(shut.transform).not.toBe(open.transform);
-                expect(shut.transform).not.toBe('none');
+            const shut = (await panel())!;
 
-                // Put it back the way it was found.
-                await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
-                await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(false);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            expect(shut.width, 'a collapsed panel that changed width folded instead of sliding').toBe(open.width);
+            expect(shut.display, 'the contents must stay laid out, merely off-screen').toBe(open.display);
+            // And it genuinely moved: the transform is what took it away.
+            expect(shut.transform).not.toBe(open.transform);
+            expect(shut.transform).not.toBe('none');
+
+            // Put it back the way it was found.
+            await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
+            await expect.poll(async () => (await panel())?.collapsed, { timeout: 20_000 }).toBe(false);
         });
     });
 });

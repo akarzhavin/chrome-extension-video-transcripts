@@ -129,27 +129,35 @@ test.describe('moving between videos', () => {
      * arrives for a video the viewer has already left must be discarded, or the
      * previous video's lines appear under the new one with no error at all.
      */
-    test('switching videos clears the previous one and does not leak its lines', async ({ page }) => {
-        await waitForLines(page);
-        const before = await page.evaluate(
-            () => [...document.querySelectorAll('#vtt-list .vtt-item')].slice(0, 5).map((i) => i.textContent?.trim()),
-        );
+    test('switching videos clears the previous one and does not leak its lines', async ({ ext, page }) => {
+        // This check navigates the shared page to a DIFFERENT video, so the
+        // page stops being the page. Declared here rather than left to the
+        // fixture's address backstop, and in a `finally` so that a failure
+        // part-way through does not hand the next check the wrong video.
+        try {
+            await waitForLines(page);
+            const before = await page.evaluate(
+                () => [...document.querySelectorAll('#vtt-list .vtt-item')].slice(0, 5).map((i) => i.textContent?.trim()),
+            );
 
-        // Navigate the way the site does, without a page load.
-        await page.evaluate(() => {
-            const link = document.createElement('a');
-            link.href = '/watch?v=dQw4w9WgXcQ';
-            document.body.appendChild(link);
-            link.click();
-        });
+            // Navigate the way the site does, without a page load.
+            await page.evaluate(() => {
+                const link = document.createElement('a');
+                link.href = '/watch?v=dQw4w9WgXcQ';
+                document.body.appendChild(link);
+                link.click();
+            });
 
-        await page.waitForFunction(() => location.search.includes('dQw4w9WgXcQ'), null, { timeout: 60_000 });
-        await waitForLines(page);
+            await page.waitForFunction(() => location.search.includes('dQw4w9WgXcQ'), null, { timeout: 60_000 });
+            await waitForLines(page);
 
-        const after = await page.evaluate(
-            () => [...document.querySelectorAll('#vtt-list .vtt-item')].slice(0, 5).map((i) => i.textContent?.trim()),
-        );
-        expect(after).not.toEqual(before);
+            const after = await page.evaluate(
+                () => [...document.querySelectorAll('#vtt-list .vtt-item')].slice(0, 5).map((i) => i.textContent?.trim()),
+            );
+            expect(after).not.toEqual(before);
+        } finally {
+            await ext.shared.invalidate();
+        }
     });
 });
 

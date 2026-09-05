@@ -22,48 +22,43 @@ test.describe('moving the captions', () => {
      * cannot be rebuilt under them. So its presence proves nothing and this
      * asserts what the stylesheet actually gates on.
      */
-    test('the drag grip is only offered while the settings screen is open', async ({ ext }) => {
+    test('the drag grip is only offered while the settings screen is open', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await playFrom(page, 30);
-                await expect
-                    .poll(
-                        () =>
-                            page.evaluate(
-                                () => (document.getElementById('vtt-video-overlay')?.textContent ?? '').trim(),
-                            ),
-                        { timeout: 45_000 },
-                    )
-                    .not.toBe('');
+            await waitForLines(page);
+            await playFrom(page, 30);
+            await expect
+                .poll(
+                    () =>
+                        page.evaluate(
+                            () => (document.getElementById('vtt-video-overlay')?.textContent ?? '').trim(),
+                        ),
+                    { timeout: 45_000 },
+                )
+                .not.toBe('');
 
-                const adjusting = () =>
-                    page.evaluate(
-                        () =>
-                            document
-                                .getElementById('vtt-video-overlay')
-                                ?.classList.contains('vtt-overlay-adjusting') ?? null,
-                    );
+            const adjusting = () =>
+                page.evaluate(
+                    () =>
+                        document
+                            .getElementById('vtt-video-overlay')
+                            ?.classList.contains('vtt-overlay-adjusting') ?? null,
+                );
 
-                expect(await adjusting(), 'captions must not be draggable during ordinary watching').toBe(false);
+            expect(await adjusting(), 'captions must not be draggable during ordinary watching').toBe(false);
 
-                await openSettings(page);
-                await expect.poll(adjusting, { timeout: 30_000 }).toBe(true);
+            await openSettings(page);
+            await expect.poll(adjusting, { timeout: 30_000 }).toBe(true);
 
-                // And the grip itself is genuinely reachable in that state,
-                // rather than merely present-but-invisible.
-                const usable = await page.evaluate(() => {
-                    const g = document.querySelector('.vtt-overlay-handle');
-                    return !!g && g.getClientRects().length > 0;
-                });
-                expect(usable).toBe(true);
+            // And the grip itself is genuinely reachable in that state,
+            // rather than merely present-but-invisible.
+            const usable = await page.evaluate(() => {
+                const g = document.querySelector('.vtt-overlay-handle');
+                return !!g && g.getClientRects().length > 0;
+            });
+            expect(usable).toBe(true);
 
-                await openSettings(page);
-                await expect.poll(adjusting, { timeout: 30_000 }).toBe(false);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await openSettings(page);
+            await expect.poll(adjusting, { timeout: 30_000 }).toBe(false);
         });
     });
 });
@@ -76,79 +71,69 @@ test.describe('usage statistics', () => {
      * The person's own choice is read, flipped, and put back — and the guard
      * restores their whole preference blob afterwards regardless.
      */
-    test('the choice is offered and is remembered', async ({ ext }) => {
+    test('the choice is offered and is remembered', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await openSettings(page);
+            await waitForLines(page);
+            await openSettings(page);
 
-                await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
+            await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
+                timeout: 30_000,
+                polling: 250,
+            });
 
-                const value = () =>
-                    page.evaluate(
-                        () => (document.getElementById('vtt-analytics-toggle') as HTMLInputElement | null)?.checked ?? null,
-                    );
+            const value = () =>
+                page.evaluate(
+                    () => (document.getElementById('vtt-analytics-toggle') as HTMLInputElement | null)?.checked ?? null,
+                );
 
-                const before = await value();
-                expect(before).not.toBeNull();
+            const before = await value();
+            expect(before).not.toBeNull();
 
-                await page.evaluate(() => {
-                    const box = document.getElementById('vtt-analytics-toggle') as HTMLInputElement;
-                    box.click();
-                });
-                await expect.poll(value, { timeout: 20_000 }).toBe(!before);
+            await page.evaluate(() => {
+                const box = document.getElementById('vtt-analytics-toggle') as HTMLInputElement;
+                box.click();
+            });
+            await expect.poll(value, { timeout: 20_000 }).toBe(!before);
 
-                // It survives a reload, which is what makes it a choice rather
-                // than a switch that forgets.
-                await page.reload({ waitUntil: 'domcontentloaded' });
-                await waitForLines(page);
-                await openSettings(page);
-                await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
-                expect(await value()).toBe(!before);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            // It survives a reload, which is what makes it a choice rather
+            // than a switch that forgets.
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await waitForLines(page);
+            await openSettings(page);
+            await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
+                timeout: 30_000,
+                polling: 250,
+            });
+            expect(await value()).toBe(!before);
         });
     });
 });
 
 test.describe('reporting a problem', () => {
     /** Behaviour map §21. The form opens over the settings screen and comes back. */
-    test('the form opens from settings and can be left again', async ({ ext }) => {
+    test('the form opens from settings and can be left again', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await openSettings(page);
+            await waitForLines(page);
+            await openSettings(page);
 
-                await page.waitForFunction(() => !!document.getElementById('vtt-feedback-link'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
+            await page.waitForFunction(() => !!document.getElementById('vtt-feedback-link'), null, {
+                timeout: 30_000,
+                polling: 250,
+            });
 
-                const formVisible = () =>
-                    page.evaluate(
-                        () => (document.getElementById('vtt-feedback-panel')?.getClientRects().length ?? 0) > 0,
-                    );
+            const formVisible = () =>
+                page.evaluate(
+                    () => (document.getElementById('vtt-feedback-panel')?.getClientRects().length ?? 0) > 0,
+                );
 
-                expect(await formVisible()).toBe(false);
+            expect(await formVisible()).toBe(false);
 
-                await page.evaluate(() => document.getElementById('vtt-feedback-link')?.click());
-                await expect.poll(formVisible, { timeout: 30_000 }).toBe(true);
+            await page.evaluate(() => document.getElementById('vtt-feedback-link')?.click());
+            await expect.poll(formVisible, { timeout: 30_000 }).toBe(true);
 
-                // There is a way back — a screen with no exit is a trap.
-                await page.evaluate(() => document.getElementById('vtt-feedback-back-btn')?.click());
-                await expect.poll(formVisible, { timeout: 30_000 }).toBe(false);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            // There is a way back — a screen with no exit is a trap.
+            await page.evaluate(() => document.getElementById('vtt-feedback-back-btn')?.click());
+            await expect.poll(formVisible, { timeout: 30_000 }).toBe(false);
         });
     });
 });
@@ -259,28 +244,23 @@ test.describe('the style rows and what they offer', () => {
      * whose value is not a key renders in whatever font the browser defaults
      * to, silently.
      */
-    test('the typeface list offers the seven CEA-708 classes', async ({ ext }) => {
+    test('the typeface list offers the seven CEA-708 classes', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await ensureSettingsOpen(page);
 
-                const values = await page.evaluate(() => {
-                    const sel = document.getElementById('vtt-style-font-select') as HTMLSelectElement | null;
-                    return sel ? [...sel.options].map((o) => o.value) : null;
-                });
+            const values = await page.evaluate(() => {
+                const sel = document.getElementById('vtt-style-font-select') as HTMLSelectElement | null;
+                return sel ? [...sel.options].map((o) => o.value) : null;
+            });
 
-                expect(values).not.toBeNull();
-                expect(values).toHaveLength(7);
-                expect([...values!].sort()).toEqual(
-                    ['casual', 'cursive', 'monoSans', 'monoSerif', 'propSans', 'propSerif', 'smallCaps'].sort(),
-                );
+            expect(values).not.toBeNull();
+            expect(values).toHaveLength(7);
+            expect([...values!].sort()).toEqual(
+                ['casual', 'cursive', 'monoSans', 'monoSerif', 'propSans', 'propSerif', 'smallCaps'].sort(),
+            );
 
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await ensureSettingsClosed(page);
         });
     });
 
@@ -296,50 +276,45 @@ test.describe('the style rows and what they offer', () => {
      * and 3 — but they are located by carrying swatches rather than by index,
      * which survives a row being added above them.
      */
-    test('both text colour rows carry five swatches and a custom well', async ({ ext }) => {
+    test('both text colour rows carry five swatches and a custom well', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await ensureSettingsOpen(page);
 
-                const rows = await page.evaluate((sel) => {
-                    const visible = (el: Element) => el.getClientRects().length > 0;
-                    return [...document.querySelectorAll(sel)]
-                        .filter((row) => row.querySelector('.vtt-swatch'))
-                        .map((row) => ({
-                            presets: [...row.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].length,
-                            presetsVisible: [...row.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].filter(
-                                visible,
-                            ).length,
-                            wells: [...row.querySelectorAll('.vtt-swatch-custom')].length,
-                            wellsVisible: [...row.querySelectorAll('.vtt-swatch-custom')].filter(visible).length,
-                        }));
-                }, TEXT_ROWS);
+            const rows = await page.evaluate((sel) => {
+                const visible = (el: Element) => el.getClientRects().length > 0;
+                return [...document.querySelectorAll(sel)]
+                    .filter((row) => row.querySelector('.vtt-swatch'))
+                    .map((row) => ({
+                        presets: [...row.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].length,
+                        presetsVisible: [...row.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].filter(
+                            visible,
+                        ).length,
+                        wells: [...row.querySelectorAll('.vtt-swatch-custom')].length,
+                        wellsVisible: [...row.querySelectorAll('.vtt-swatch-custom')].filter(visible).length,
+                    }));
+            }, TEXT_ROWS);
 
-                // Two rows: the main line's colour and the translation's.
-                expect(rows).toHaveLength(2);
-                for (const row of rows) {
-                    expect(row.presets).toBe(5);
-                    expect(row.presetsVisible).toBe(5);
-                    expect(row.wells).toBe(1);
-                    expect(row.wellsVisible).toBe(1);
-                }
-
-                // And they are genuinely distinct elements — one row queried
-                // twice would satisfy every count above.
-                const distinct = await page.evaluate((sel) => {
-                    const swatchRows = [...document.querySelectorAll(sel)].filter((r) =>
-                        r.querySelector('.vtt-swatch'),
-                    );
-                    return swatchRows.length === 2 && swatchRows[0] !== swatchRows[1];
-                }, TEXT_ROWS);
-                expect(distinct).toBe(true);
-
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
+            // Two rows: the main line's colour and the translation's.
+            expect(rows).toHaveLength(2);
+            for (const row of rows) {
+                expect(row.presets).toBe(5);
+                expect(row.presetsVisible).toBe(5);
+                expect(row.wells).toBe(1);
+                expect(row.wellsVisible).toBe(1);
             }
+
+            // And they are genuinely distinct elements — one row queried
+            // twice would satisfy every count above.
+            const distinct = await page.evaluate((sel) => {
+                const swatchRows = [...document.querySelectorAll(sel)].filter((r) =>
+                    r.querySelector('.vtt-swatch'),
+                );
+                return swatchRows.length === 2 && swatchRows[0] !== swatchRows[1];
+            }, TEXT_ROWS);
+            expect(distinct).toBe(true);
+
+            await ensureSettingsClosed(page);
         });
     });
 
@@ -348,32 +323,27 @@ test.describe('the style rows and what they offer', () => {
      * control's whole legend, so a row of four unlabelled buttons would be
      * unusable and would pass a count-only check.
      */
-    test('the opacity row offers exactly four labelled steps', async ({ ext }) => {
+    test('the opacity row offers exactly four labelled steps', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await ensureSettingsOpen(page);
 
-                const steps = await page.evaluate((sel) => {
-                    const row = [...document.querySelectorAll(sel)].find((r) =>
-                        [...r.querySelectorAll('.vtt-seg-btn')].some((b) => /%$/.test(b.textContent ?? '')),
-                    );
-                    if (!row) return null;
-                    return [...row.querySelectorAll('.vtt-seg-btn')].map((b) => ({
-                        value: (b as HTMLElement).dataset.value ?? null,
-                        text: (b.textContent ?? '').trim(),
-                    }));
-                }, TEXT_ROWS);
+            const steps = await page.evaluate((sel) => {
+                const row = [...document.querySelectorAll(sel)].find((r) =>
+                    [...r.querySelectorAll('.vtt-seg-btn')].some((b) => /%$/.test(b.textContent ?? '')),
+                );
+                if (!row) return null;
+                return [...row.querySelectorAll('.vtt-seg-btn')].map((b) => ({
+                    value: (b as HTMLElement).dataset.value ?? null,
+                    text: (b.textContent ?? '').trim(),
+                }));
+            }, TEXT_ROWS);
 
-                expect(steps).not.toBeNull();
-                expect(steps!.map((s) => s.value)).toEqual(['25', '50', '75', '100']);
-                expect(steps!.map((s) => s.text)).toEqual(['25%', '50%', '75%', '100%']);
+            expect(steps).not.toBeNull();
+            expect(steps!.map((s) => s.value)).toEqual(['25', '50', '75', '100']);
+            expect(steps!.map((s) => s.text)).toEqual(['25%', '50%', '75%', '100%']);
 
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await ensureSettingsClosed(page);
         });
     });
 
@@ -386,54 +356,50 @@ test.describe('the style rows and what they offer', () => {
      */
     test('the box rows offer five colours, three positions and three edges, each showing its current value', async ({
         ext,
+        page,
     }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await ensureSettingsOpen(page);
 
-                const shape = await page.evaluate((sel) => {
-                    const rows = [...document.querySelectorAll(sel)];
-                    const swatchRow = rows.find((r) => r.querySelector('.vtt-swatch'));
-                    const segRows = rows.filter((r) => r.querySelector('.vtt-seg-btn'));
-                    return {
-                        colours: swatchRow
-                            ? [...swatchRow.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].length
-                            : null,
-                        // Backdrop / position / edge, in build order.
-                        segs: segRows.map((r) => ({
-                            options: [...r.querySelectorAll('.vtt-seg-btn')].length,
-                            active: [...r.querySelectorAll('.vtt-seg-btn.active')].length,
-                            values: [...r.querySelectorAll('.vtt-seg-btn')].map(
-                                (b) => (b as HTMLElement).dataset.value ?? '',
-                            ),
-                        })),
-                        colourActive: swatchRow
-                            ? [...swatchRow.querySelectorAll('.vtt-swatch.active')].length
-                            : null,
-                    };
-                }, BOX_ROWS);
+            const shape = await page.evaluate((sel) => {
+                const rows = [...document.querySelectorAll(sel)];
+                const swatchRow = rows.find((r) => r.querySelector('.vtt-swatch'));
+                const segRows = rows.filter((r) => r.querySelector('.vtt-seg-btn'));
+                return {
+                    colours: swatchRow
+                        ? [...swatchRow.querySelectorAll('.vtt-swatch:not(.vtt-swatch-custom)')].length
+                        : null,
+                    // Backdrop / position / edge, in build order.
+                    segs: segRows.map((r) => ({
+                        options: [...r.querySelectorAll('.vtt-seg-btn')].length,
+                        active: [...r.querySelectorAll('.vtt-seg-btn.active')].length,
+                        values: [...r.querySelectorAll('.vtt-seg-btn')].map(
+                            (b) => (b as HTMLElement).dataset.value ?? '',
+                        ),
+                    })),
+                    colourActive: swatchRow
+                        ? [...swatchRow.querySelectorAll('.vtt-swatch.active')].length
+                        : null,
+                };
+            }, BOX_ROWS);
 
-                expect(shape.colours).toBe(5);
+            expect(shape.colours).toBe(5);
 
-                // Backdrop is four (Off is a real transparent box, not a step),
-                // then position and edge at three each.
-                expect(shape.segs.map((s) => s.options)).toEqual([4, 3, 3]);
-                expect(shape.segs[0].values).toEqual(['off', 'low', 'medium', 'high']);
-                expect(shape.segs[1].values).toEqual(['low', 'medium', 'high']);
-                expect(shape.segs[2].values).toEqual(['none', 'shadow', 'outline']);
+            // Backdrop is four (Off is a real transparent box, not a step),
+            // then position and edge at three each.
+            expect(shape.segs.map((s) => s.options)).toEqual([4, 3, 3]);
+            expect(shape.segs[0].values).toEqual(['off', 'low', 'medium', 'high']);
+            expect(shape.segs[1].values).toEqual(['low', 'medium', 'high']);
+            expect(shape.segs[2].values).toEqual(['none', 'shadow', 'outline']);
 
-                // Exactly one current value per row — including the colour row,
-                // where the custom well counts as the active one when the
-                // chosen colour is outside the five presets.
-                for (const seg of shape.segs) expect(seg.active).toBe(1);
-                expect(shape.colourActive).toBe(1);
+            // Exactly one current value per row — including the colour row,
+            // where the custom well counts as the active one when the
+            // chosen colour is outside the five presets.
+            for (const seg of shape.segs) expect(seg.active).toBe(1);
+            expect(shape.colourActive).toBe(1);
 
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await ensureSettingsClosed(page);
         });
     });
 
@@ -445,42 +411,37 @@ test.describe('the style rows and what they offer', () => {
      * Asserted while settings are open, which is the only state the grip is
      * usable in (see the check at the top of this file).
      */
-    test('the drag grip carries a name', async ({ ext }) => {
+    test('the drag grip carries a name', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await playFrom(page, 30);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await playFrom(page, 30);
+            await ensureSettingsOpen(page);
 
-                await page.waitForFunction(() => !!document.querySelector('.vtt-overlay-handle'), null, {
-                    timeout: 45_000,
-                    polling: 250,
-                });
+            await page.waitForFunction(() => !!document.querySelector('.vtt-overlay-handle'), null, {
+                timeout: 45_000,
+                polling: 250,
+            });
 
-                const name = await page.evaluate(() => {
-                    const g = document.querySelector('.vtt-overlay-handle');
-                    if (!g) return null;
-                    return {
-                        aria: g.getAttribute('aria-label'),
-                        title: g.getAttribute('title'),
-                        text: (g.textContent ?? '').trim(),
-                    };
-                });
+            const name = await page.evaluate(() => {
+                const g = document.querySelector('.vtt-overlay-handle');
+                if (!g) return null;
+                return {
+                    aria: g.getAttribute('aria-label'),
+                    title: g.getAttribute('title'),
+                    text: (g.textContent ?? '').trim(),
+                };
+            });
 
-                expect(name).not.toBeNull();
-                // The label is localised, so the assertion is that a name
-                // exists and that the two ways of carrying one agree — not
-                // that it reads any particular English words.
-                expect((name!.aria ?? '').length).toBeGreaterThan(0);
-                expect(name!.title).toBe(name!.aria);
-                // It is a name, not visible text: an icon button.
-                expect(name!.text).toBe('');
+            expect(name).not.toBeNull();
+            // The label is localised, so the assertion is that a name
+            // exists and that the two ways of carrying one agree — not
+            // that it reads any particular English words.
+            expect((name!.aria ?? '').length).toBeGreaterThan(0);
+            expect(name!.title).toBe(name!.aria);
+            // It is a name, not visible text: an icon button.
+            expect(name!.text).toBe('');
 
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await ensureSettingsClosed(page);
         });
     });
 });
@@ -580,77 +541,72 @@ test.describe('resetting the text appearance', () => {
      * read — a stored value nobody rendered would still leave the panel
      * showing 90%.
      */
-    test('reset restores the site\'s larger starting sizes, not the generic ones', async ({ ext }) => {
+    test('reset restores the site\'s larger starting sizes, not the generic ones', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await ensureSettingsOpen(page);
+            await waitForLines(page);
+            await ensureSettingsOpen(page);
 
-                await page.waitForFunction(() => !!document.getElementById('vtt-slider-size'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
+            await page.waitForFunction(() => !!document.getElementById('vtt-slider-size'), null, {
+                timeout: 30_000,
+                polling: 250,
+            });
 
-                const sizes = () =>
-                    page.evaluate(() => ({
-                        main: (document.getElementById('vtt-slider-size') as HTMLInputElement | null)?.value ?? null,
-                        sub:
-                            (document.getElementById('vtt-slider-sub-size') as HTMLInputElement | null)?.value ??
-                            null,
-                    }));
+            const sizes = () =>
+                page.evaluate(() => ({
+                    main: (document.getElementById('vtt-slider-size') as HTMLInputElement | null)?.value ?? null,
+                    sub:
+                        (document.getElementById('vtt-slider-sub-size') as HTMLInputElement | null)?.value ??
+                        null,
+                }));
 
-                // Let hydration finish first. loadPrefs is async and
-                // markActiveStyleButtons rewrites the slider from storage when
-                // it lands — a value set before that arrives is overwritten,
-                // and the check then compares the person's own size against 90
-                // (measured: it read back 165).
-                await expect
-                    .poll(
-                        async () => {
-                            const a = await sizes();
-                            await page.waitForTimeout(700);
-                            const b = await sizes();
-                            return a.main === b.main && a.sub === b.sub && a.main !== null;
-                        },
-                        { timeout: 30_000 },
-                    )
-                    .toBe(true);
+            // Let hydration finish first. loadPrefs is async and
+            // markActiveStyleButtons rewrites the slider from storage when
+            // it lands — a value set before that arrives is overwritten,
+            // and the check then compares the person's own size against 90
+            // (measured: it read back 165).
+            await expect
+                .poll(
+                    async () => {
+                        const a = await sizes();
+                        await page.waitForTimeout(700);
+                        const b = await sizes();
+                        return a.main === b.main && a.sub === b.sub && a.main !== null;
+                    },
+                    { timeout: 30_000 },
+                )
+                .toBe(true);
 
-                // Move both away from wherever the person had them, through the
-                // control itself rather than storage — this is the path a reset
-                // has to undo.
-                await page.evaluate(() => {
-                    for (const [id, v] of [
-                        ['vtt-slider-size', '90'],
-                        ['vtt-slider-sub-size', '90'],
-                    ] as const) {
-                        const el = document.getElementById(id) as HTMLInputElement;
-                        el.value = v;
-                        el.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                });
-                await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '90', sub: '90' });
+            // Move both away from wherever the person had them, through the
+            // control itself rather than storage — this is the path a reset
+            // has to undo.
+            await page.evaluate(() => {
+                for (const [id, v] of [
+                    ['vtt-slider-size', '90'],
+                    ['vtt-slider-sub-size', '90'],
+                ] as const) {
+                    const el = document.getElementById(id) as HTMLInputElement;
+                    el.value = v;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+            await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '90', sub: '90' });
 
-                // The Text group's own Reset — located by the group that holds
-                // the text controls, since both groups' buttons share a class.
-                const pressed = await page.evaluate(() => {
-                    const group = document
-                        .getElementById('vtt-style-controls-text')
-                        ?.closest('.vtt-group');
-                    const btn = group?.querySelector('.vtt-reset') as HTMLButtonElement | null;
-                    if (!btn) return false;
-                    btn.click();
-                    return true;
-                });
-                expect(pressed, 'no Reset button in the Text group').toBe(true);
+            // The Text group's own Reset — located by the group that holds
+            // the text controls, since both groups' buttons share a class.
+            const pressed = await page.evaluate(() => {
+                const group = document
+                    .getElementById('vtt-style-controls-text')
+                    ?.closest('.vtt-group');
+                const btn = group?.querySelector('.vtt-reset') as HTMLButtonElement | null;
+                if (!btn) return false;
+                btn.click();
+                return true;
+            });
+            expect(pressed, 'no Reset button in the Text group').toBe(true);
 
-                await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '160', sub: '110' });
+            await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '160', sub: '110' });
 
-                await ensureSettingsClosed(page);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await ensureSettingsClosed(page);
         });
     });
 });

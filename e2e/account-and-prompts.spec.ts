@@ -53,51 +53,46 @@ test.describe('the account row', () => {
      * Behaviour map §25. Read-only: this asserts what the row says about the
      * state the browser is already in, and changes nothing.
      */
-    test('the row states the account state and can be opened', async ({ ext }) => {
+    test('the row states the account state and can be opened', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await page.waitForFunction(() => !!document.querySelector('#lingogram-auth-badge .lingogram-auth-row'), null, {
-                    timeout: 60_000,
-                    polling: 250,
+            await page.waitForFunction(() => !!document.querySelector('#lingogram-auth-badge .lingogram-auth-row'), null, {
+                timeout: 60_000,
+                polling: 250,
+            });
+
+            const row = () =>
+                page.evaluate(() => {
+                    const r = document.querySelector('#lingogram-auth-badge .lingogram-auth-row');
+                    return r
+                        ? { text: r.textContent?.trim() ?? '', expanded: r.getAttribute('aria-expanded') }
+                        : null;
                 });
 
-                const row = () =>
-                    page.evaluate(() => {
-                        const r = document.querySelector('#lingogram-auth-badge .lingogram-auth-row');
-                        return r
-                            ? { text: r.textContent?.trim() ?? '', expanded: r.getAttribute('aria-expanded') }
-                            : null;
-                    });
+            const before = await row();
+            expect(before!.text.length).toBeGreaterThan(0);
+            expect(before!.expanded).toBe('false');
 
-                const before = await row();
-                expect(before!.text.length).toBeGreaterThan(0);
-                expect(before!.expanded).toBe('false');
+            // The panel is REMOVED when closed rather than hidden, so its
+            // presence is the state — asking whether it exists is the check.
+            await page.evaluate(() =>
+                (document.querySelector('#lingogram-auth-badge .lingogram-auth-row') as HTMLElement)?.click(),
+            );
+            await expect
+                .poll(() => page.evaluate(() => !!document.getElementById('lingogram-auth-panel')), {
+                    timeout: 20_000,
+                })
+                .toBe(true);
+            await expect.poll(async () => (await row())!.expanded, { timeout: 20_000 }).toBe('true');
 
-                // The panel is REMOVED when closed rather than hidden, so its
-                // presence is the state — asking whether it exists is the check.
-                await page.evaluate(() =>
-                    (document.querySelector('#lingogram-auth-badge .lingogram-auth-row') as HTMLElement)?.click(),
-                );
-                await expect
-                    .poll(() => page.evaluate(() => !!document.getElementById('lingogram-auth-panel')), {
-                        timeout: 20_000,
-                    })
-                    .toBe(true);
-                await expect.poll(async () => (await row())!.expanded, { timeout: 20_000 }).toBe('true');
-
-                // Pressing again closes it: the row is a toggle.
-                await page.evaluate(() =>
-                    (document.querySelector('#lingogram-auth-badge .lingogram-auth-row') as HTMLElement)?.click(),
-                );
-                await expect
-                    .poll(() => page.evaluate(() => !!document.getElementById('lingogram-auth-panel')), {
-                        timeout: 20_000,
-                    })
-                    .toBe(false);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            // Pressing again closes it: the row is a toggle.
+            await page.evaluate(() =>
+                (document.querySelector('#lingogram-auth-badge .lingogram-auth-row') as HTMLElement)?.click(),
+            );
+            await expect
+                .poll(() => page.evaluate(() => !!document.getElementById('lingogram-auth-panel')), {
+                    timeout: 20_000,
+                })
+                .toBe(false);
         });
     });
 });

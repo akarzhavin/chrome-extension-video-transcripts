@@ -12,8 +12,6 @@ import { test, expect } from './fixtures/extension';
 import { waitForLines, playFrom } from './fixtures/subtitles';
 import { preservingUiPrefs } from './fixtures/uiprefs';
 
-const VIDEO = 'https://www.youtube.com/watch?v=aircAruvnKk';
-
 test.describe('fullscreen', () => {
     /**
      * Behaviour map §12. Entering fullscreen genuinely requires a gesture in a
@@ -25,44 +23,39 @@ test.describe('fullscreen', () => {
      * not on screen. This drives the browser's own fullscreen API on the player
      * and checks the panel followed.
      */
-    test('the panel moves inside the fullscreen element, rather than being left behind', async ({ ext }) => {
+    test('the panel moves inside the fullscreen element, rather than being left behind', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
+            await waitForLines(page);
 
-                const entered = await page.evaluate(async () => {
-                    const player = document.getElementById('movie_player');
-                    if (!player) return false;
-                    try {
-                        await player.requestFullscreen();
-                        return !!document.fullscreenElement;
-                    } catch {
-                        return false; // no gesture — expected in a background tab
-                    }
-                });
+            const entered = await page.evaluate(async () => {
+                const player = document.getElementById('movie_player');
+                if (!player) return false;
+                try {
+                    await player.requestFullscreen();
+                    return !!document.fullscreenElement;
+                } catch {
+                    return false; // no gesture — expected in a background tab
+                }
+            });
 
-                test.skip(
-                    !entered,
-                    'fullscreen needs a real gesture in a focused window; a background tab cannot give one',
-                );
+            test.skip(
+                !entered,
+                'fullscreen needs a real gesture in a focused window; a background tab cannot give one',
+            );
 
-                await expect
-                    .poll(
-                        () =>
-                            page.evaluate(() => {
-                                const sb = document.getElementById('vtt-sidebar');
-                                const fs = document.fullscreenElement;
-                                return !!sb && !!fs && fs.contains(sb);
-                            }),
-                        { timeout: 20_000 },
-                    )
-                    .toBe(true);
+            await expect
+                .poll(
+                    () =>
+                        page.evaluate(() => {
+                            const sb = document.getElementById('vtt-sidebar');
+                            const fs = document.fullscreenElement;
+                            return !!sb && !!fs && fs.contains(sb);
+                        }),
+                    { timeout: 20_000 },
+                )
+                .toBe(true);
 
-                await page.evaluate(() => document.exitFullscreen?.());
-            } finally {
-                await page.close().catch(() => {});
-            }
+            await page.evaluate(() => document.exitFullscreen?.());
         });
     });
 });
@@ -78,39 +71,34 @@ test.describe('while an advert plays', () => {
      * advert's clock. Without this, the transcript races ahead during the break
      * and lands somewhere wrong when the video resumes.
      */
-    test('the highlight does not follow the advert clock', async ({ ext }) => {
+    test('the highlight does not follow the advert clock', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                await waitForLines(page);
-                await playFrom(page, 30);
+            await waitForLines(page);
+            await playFrom(page, 30);
 
-                const activeIndex = () =>
-                    page.evaluate(
-                        () => document.querySelector('.vtt-item.active-sub')?.getAttribute('data-index') ?? null,
-                    );
+            const activeIndex = () =>
+                page.evaluate(
+                    () => document.querySelector('.vtt-item.active-sub')?.getAttribute('data-index') ?? null,
+                );
 
-                await expect.poll(activeIndex, { timeout: 45_000 }).not.toBeNull();
+            await expect.poll(activeIndex, { timeout: 45_000 }).not.toBeNull();
 
-                // Tell the page an advert is running, exactly as the site does.
-                await page.evaluate(() => document.getElementById('movie_player')?.classList.add('ad-showing'));
-                const frozen = await activeIndex();
+            // Tell the page an advert is running, exactly as the site does.
+            await page.evaluate(() => document.getElementById('movie_player')?.classList.add('ad-showing'));
+            const frozen = await activeIndex();
 
-                // Move the clock a long way, as an advert's playback would.
-                await playFrom(page, 400);
-                await page.waitForTimeout(4000);
+            // Move the clock a long way, as an advert's playback would.
+            await playFrom(page, 400);
+            await page.waitForTimeout(4000);
 
-                expect(
-                    await activeIndex(),
-                    'the transcript must not race ahead on an advert clock',
-                ).toBe(frozen);
+            expect(
+                await activeIndex(),
+                'the transcript must not race ahead on an advert clock',
+            ).toBe(frozen);
 
-                // ...and it picks up again once the advert is over.
-                await page.evaluate(() => document.getElementById('movie_player')?.classList.remove('ad-showing'));
-                await expect.poll(activeIndex, { timeout: 45_000 }).not.toBe(frozen);
-            } finally {
-                await page.close().catch(() => {});
-            }
+            // ...and it picks up again once the advert is over.
+            await page.evaluate(() => document.getElementById('movie_player')?.classList.remove('ad-showing'));
+            await expect.poll(activeIndex, { timeout: 45_000 }).not.toBe(frozen);
         });
     });
 });
@@ -124,38 +112,33 @@ test.describe('other player layouts', () => {
      * Picture-in-picture is NOT covered: it needs a real window the browser
      * composites itself, which automation cannot verify.
      */
-    test('theatre mode leaves the panel and the transcript working', async ({ ext }) => {
+    test('theatre mode leaves the panel and the transcript working', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
-            const page = await ext.open(VIDEO);
-            try {
-                const before = await waitForLines(page);
+            const before = await waitForLines(page);
 
-                const switched = await page.evaluate(() => {
-                    const btn = document.querySelector('.ytp-size-button') as HTMLElement | null;
-                    if (!btn) return false;
-                    btn.click();
-                    return true;
-                });
-                test.skip(!switched, "this page does not offer YouTube's own size control");
+            const switched = await page.evaluate(() => {
+                const btn = document.querySelector('.ytp-size-button') as HTMLElement | null;
+                if (!btn) return false;
+                btn.click();
+                return true;
+            });
+            test.skip(!switched, "this page does not offer YouTube's own size control");
 
-                await page.waitForTimeout(3000);
+            await page.waitForTimeout(3000);
 
-                const after = await page.evaluate(() => ({
-                    panel: !!document.getElementById('vtt-sidebar'),
-                    visible:
-                        (document.getElementById('vtt-sidebar')?.getClientRects().length ?? 0) > 0,
-                    lines: document.querySelectorAll('#vtt-list .vtt-item').length,
-                }));
+            const after = await page.evaluate(() => ({
+                panel: !!document.getElementById('vtt-sidebar'),
+                visible:
+                    (document.getElementById('vtt-sidebar')?.getClientRects().length ?? 0) > 0,
+                lines: document.querySelectorAll('#vtt-list .vtt-item').length,
+            }));
 
-                expect(after.panel).toBe(true);
-                expect(after.visible).toBe(true);
-                expect(after.lines).toBe(before);
+            expect(after.panel).toBe(true);
+            expect(after.visible).toBe(true);
+            expect(after.lines).toBe(before);
 
-                // Put the layout back the way it was found.
-                await page.evaluate(() => (document.querySelector('.ytp-size-button') as HTMLElement | null)?.click());
-            } finally {
-                await page.close().catch(() => {});
-            }
+            // Put the layout back the way it was found.
+            await page.evaluate(() => (document.querySelector('.ytp-size-button') as HTMLElement | null)?.click());
         });
     });
 });
