@@ -11,6 +11,14 @@ packages/*/dist/
 .claude/
 graphify-out/
 
+# Speckit: шаблоны, скрипты и спеки задач. Инструмент проектный, но в истории
+# репозитория его не видно — спеки живут ровно столько, сколько задача.
+# .specify/memory/constitution.md тоже локальный: в новый worktree его надо
+# копировать руками (cp -R .specify ../lingogram-<slug>/), иначе speckit его
+# не увидит. См. docs/ops/worktree-speckit.md.
+.specify/
+specs/
+
 # Vendored unpacked extensions for screenshot capture (AdBlock Plus, etc.)
 apps/*/screenshots/vendor/
 
