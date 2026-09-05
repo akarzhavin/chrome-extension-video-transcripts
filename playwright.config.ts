@@ -24,6 +24,9 @@ export default defineConfig({
     // than losing the run.
     timeout: 180_000,
     expect: { timeout: 30_000 },
-    reporter: [['list']],
+    // The second reporter prints how many video pages the run loaded. That
+    // number is the cost this suite imposes on a real person's account, so it
+    // is measured on every run rather than reasoned about.
+    reporter: [['list'], ['./e2e/reporters/youtube-loads.ts']],
     use: { trace: 'on-first-retry' },
 });

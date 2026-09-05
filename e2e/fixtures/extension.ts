@@ -120,6 +120,18 @@ function assertBuildIsFresh(): void {
     }
 }
 
+/**
+ * How many video pages this run has loaded.
+ *
+ * The suite's cost to YouTube is the thing being managed, so it is counted as
+ * it happens rather than estimated from the source. A count of `ext.open` calls
+ * in the source cannot see a call inside a branch, a check that skipped, or a
+ * retry — and every one of those is a page YouTube actually served.
+ */
+export interface LoadCounter {
+    total: number;
+}
+
 export interface ExtensionHandle {
     ctx: BrowserContext;
     id: string;
@@ -127,9 +139,13 @@ export interface ExtensionHandle {
     open(url: string): Promise<Page>;
     /** Reload the extension under any open pages — used by the update-notice check. */
     reload(): Promise<void>;
+    /** Video pages loaded so far. Read by the loadAudit fixture, not by checks. */
+    loads: LoadCounter;
 }
 
-export const test = base.extend<{ ext: ExtensionHandle; page: Page }>({
+const isYouTube = (url: string): boolean => /^https?:\/\/(www\.)?youtube\.com/.test(url);
+
+export const test = base.extend<{ ext: ExtensionHandle; page: Page; loadAudit: void }, {}>({
     // eslint-disable-next-line no-empty-pattern
     ext: async ({}, use) => {
         assertBuildIsFresh();
@@ -212,11 +228,31 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page }>({
             );
         }
 
+        const loads: LoadCounter = { total: 0 };
+
         const handle: ExtensionHandle = {
             ctx,
             id: unpacked.id,
+            loads,
             async open(url) {
                 const p = await openInBackground(ctx, url);
+                if (isYouTube(url)) {
+                    loads.total++;
+                    // A reload or a same-tab navigation is another page YouTube
+                    // served, and neither goes through open(). Counted from the
+                    // main frame's navigations rather than from 'load', because
+                    // whether the first 'load' has already fired by the time a
+                    // listener is attached is a race; a navigation to a
+                    // DIFFERENT document is unambiguous either way.
+                    //
+                    // Same-document navigations (the History API, which YouTube
+                    // uses to move between videos without a fetch) do not count:
+                    // no page was served. subtitles.spec.ts:132 is exactly that
+                    // case, and it discards the shared page instead.
+                    p.on('framenavigated', (frame) => {
+                        if (frame === p.mainFrame() && isYouTube(frame.url())) loads.total++;
+                    });
+                }
                 await mute(p);
                 return p;
             },
@@ -244,6 +280,24 @@ export const test = base.extend<{ ext: ExtensionHandle; page: Page }>({
             await browser.close().catch(() => {});
         }
     },
+
+    /**
+     * Attribute the run's page loads to the check that caused them.
+     *
+     * Runs for every check whether or not it asks for it (`auto`), and records
+     * the delta as an annotation the reporter sums up. Annotations belong to a
+     * RESULT, not to a check, so a retried check contributes its own — which is
+     * what makes the reported total include retries.
+     */
+    loadAudit: [
+        async ({ ext }, use, testInfo) => {
+            const before = ext.loads.total;
+            await use();
+            const spent = ext.loads.total - before;
+            testInfo.annotations.push({ type: 'youtube-loads', description: String(spent) });
+        },
+        { auto: true },
+    ],
 
     page: async ({ ext }, use) => {
         const p = await ext.open('https://www.youtube.com/watch?v=' + VIDEO_WITH_CAPTIONS);
