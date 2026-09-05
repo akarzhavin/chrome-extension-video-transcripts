@@ -178,12 +178,20 @@ test.describe('being offline', () => {
                     await page.waitForTimeout(5000);
 
                     // Offline is not called out anywhere: the product folds it
-                    // into its ordinary failure handling.
-                    const mentionsOffline = await page.evaluate(() =>
-                        /offline|no internet|not connected/i.test(document.getElementById('vtt-status')?.textContent ?? ''),
+                    // into its ordinary failure handling. Two things have to be
+                    // true for that to mean anything, and the second was
+                    // missing: `?? ''` made a MISSING status element satisfy
+                    // the regex test, so this passed on a page where the panel
+                    // never rendered at all — including a wholly broken build.
+                    const status = await page.evaluate(
+                        () => document.getElementById('vtt-status')?.textContent ?? null,
                     );
                     expect(
-                        mentionsOffline,
+                        status,
+                        'the panel must still render its status area while offline',
+                    ).not.toBeNull();
+                    expect(
+                        /offline|no internet|not connected/i.test(status!),
                         'today nothing distinguishes being offline — if this now says so, the gap was closed and this check should be updated deliberately',
                     ).toBe(false);
                 } finally {

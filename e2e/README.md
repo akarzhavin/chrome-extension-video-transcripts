@@ -59,6 +59,13 @@ Expect roughly six minutes for the first half and eighteen for the second.
 Between them the two commands name every spec file; adding a file without adding
 it here means it silently stops being run.
 
+**That failure has already happened once.** On 2026-09-05 the first half was run
+with `word-lookup.spec.ts` missing from the command — the log said "Running 36
+tests" where the file list calls for 40, and four checks went unrun while the
+run reported success. Read the count in the log's first line against the count
+you expect, every time: a half that runs fewer tests than its file list is the
+only symptom this failure has.
+
 ## Checks that can decide not to run
 
 Three checks need a condition the run cannot force: a real fullscreen gesture, a
