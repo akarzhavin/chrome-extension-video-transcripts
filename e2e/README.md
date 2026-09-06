@@ -73,6 +73,29 @@ run reported success. Read the count in the log's first line against the count
 you expect, every time: a half that runs fewer tests than its file list is the
 only symptom this failure has.
 
+## Netflix
+
+`e2e/netflix.spec.ts` runs only with `LINGOGRAM_NETFLIX=1`:
+
+```bash
+LINGOGRAM_NETFLIX=1 npx playwright test e2e/netflix.spec.ts
+```
+
+It plays a few seconds of video on a real personal account and leaves a trace in
+that profile's viewing history, so it is opt-in rather than part of a plain run
+— which is also why it is not in either half command above. Roughly 40 seconds
+for three checks.
+
+**No credentials are involved**: it uses the browser's existing Netflix session
+the way the YouTube checks use its YouTube one, picks the first profile by
+position, and takes whichever title the home page offers first. Nothing about
+the account appears in the file.
+
+What it covers that the unit checks structurally cannot: that Netflix's own
+manifest shape, page markup and player API are still the ones this edition reads.
+The units stand all three up themselves, so they stay green through any change
+Netflix makes.
+
 ## How many pages a run loads
 
 Every run prints what it cost:
