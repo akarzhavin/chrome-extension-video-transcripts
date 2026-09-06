@@ -413,7 +413,12 @@ describe('subtitle health status', () => {
         installPlayerMenu(app);
         openMenu();
         expect(status().hidden).toBe(false);
-        expect(status().textContent).toContain('No subtitles');
+        // The WHOLE line, not the prefix. 'No subtitles' is shared with
+        // ytMenuNoTranslation ("No subtitles in your language — original
+        // only"), so the old prefix match stayed green when this arm rendered
+        // the other message — the exact confusion the check below exists for.
+        expect(status().textContent).toContain('No subtitles for this video');
+        expect(status().textContent).not.toContain('original only');
         expect(status().disabled).toBe(false);
 
         status().dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -509,6 +514,13 @@ describe('first run (no languages picked)', () => {
         expect((document.getElementById('vtt-ytp-menu-overlay') as HTMLElement).hidden).toBe(true);
         // "No subtitles" would be noise before anything is configured.
         expect((document.getElementById('vtt-ytp-menu-status') as HTMLElement).hidden).toBe(true);
+        // The other two rows of the same block (player-menu.ts:510-515). Keep
+        // them HERE, in the langPrefs:null fixture: the neighbouring check at
+        // 'a track with no cues leaves the row present but inert' asserts
+        // hidden === false on this same element for the canDownload() path, so
+        // merging the two would quietly delete the noLangs half.
+        expect((document.getElementById('vtt-ytp-menu-download') as HTMLElement).hidden).toBe(true);
+        expect((document.getElementById('vtt-ytp-menu-settings') as HTMLElement).hidden).toBe(true);
     });
 
     test('the onboarding button opens the sidebar, which owns the language pickers', () => {

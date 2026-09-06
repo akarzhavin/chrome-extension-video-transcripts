@@ -613,7 +613,35 @@ describe('REPORT_NO_SUBS carries the cause', () => {
             status: 429,
             attempts: 4,
             tracksLoaded: 1,
+            // WHICH languages were wanted: triage cannot tell an unavailable
+            // pair from a broken fetch without them.
+            learning: 'en',
+            native: 'ru',
         });
+    });
+
+    /**
+     * The `?? ''` arm. toMatchObject is a subset matcher and treats an absent
+     * key and an undefined one alike, so the check above would survive the
+     * fallbacks being dropped — and an undefined field vanishes entirely once
+     * the message is serialised, leaving triage with no way to tell "no pair
+     * stored" from "the field was never sent".
+     */
+    test('a report with no pair stored still carries both fields, empty', async () => {
+        const app = makeApp();
+        app.langPrefs = null;
+        app.addParsedTrack('English', [sub('a')]);
+        app.noteTrackFailure('Russian', { failure: 'rate-limited', status: 429, attempts: 4 });
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+
+        await app.reportNoSubsAndReload();
+
+        const report = (chrome.runtime.sendMessage as jest.Mock).mock.calls
+            .map((c) => c[0])
+            .find((m) => m && m.action === 'REPORT_NO_SUBS');
+        expect(Object.keys(report)).toEqual(expect.arrayContaining(['learning', 'native']));
+        expect(report.learning).toBe('');
+        expect(report.native).toBe('');
     });
 
     // The budget IS the feature. It was 400ms, and a live run showed the report
