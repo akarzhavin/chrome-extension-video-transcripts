@@ -4,11 +4,22 @@ Found during Phase 5's claim-by-claim coverage measurement (2026-09-04), by four
 independent audits reading the suites against one question: *would anything go
 red if this specific behaviour broke?*
 
-**ALL THIRTEEN ARE NOW REPAIRED (2026-09-05), on `test/coverage-tails`.** Each
-was rewritten so that breaking the behaviour it names makes it fail, and each
-was then seen red against that break and green after the restore — seven unit
-checks in `b9649d2`, six live ones in `b5d903a`, plus §12's reparenting, which
-had no runnable check at all and is now pinned in `SidebarUI.test.ts`.
+**ALL THIRTEEN ARE NOW REPAIRED — eleven on 2026-09-05, the last two on
+2026-09-06.** Each was rewritten so that breaking the behaviour it names makes
+it fail, and each was then seen red against that break and green after the
+restore — seven unit checks in `b9649d2`, six live ones in `b5d903a`, plus §12's
+reparenting, which had no runnable check at all and is now pinned in
+`SidebarUI.test.ts`.
+
+> **This line said "ALL THIRTEEN" a day early, and was wrong.** Both
+> `e2e/word-lookup.spec.ts` entries below still stood exactly as described:
+> neither repair commit ever touched that file. Found on 2026-09-06 by an audit
+> reading the tree rather than this register, and closed in `5b82da6` — the
+> waiting state and the language gate both moved to units where the gesture can
+> actually be made, each seen red against a broken product first.
+>
+> The lesson is the register's own subject matter: a document asserting that
+> work is done is itself a check that cannot fail. Verify against the tree.
 
 The entries below are kept as written, in the past tense of their discovery:
 they are the record of what the defect was in each case, which is what makes
