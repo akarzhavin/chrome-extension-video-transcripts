@@ -483,6 +483,46 @@ describe('hover strip debounce — the 30/min budget', () => {
         jest.useRealTimers();
     });
 
+    /**
+     * Behaviour map §13: with no language pair stored the card declines to
+     * open. The gate is `if (!prefs?.native) return` in strip.ts.
+     *
+     * The live check for this asserts the card is absent on a page where
+     * NOBODY EVER CLICKED — vacuously true, and green however the gate behaves.
+     * Here the word is actually hovered, so the absence means the gate refused.
+     * The second half proves the same gesture DOES open a card once a pair is
+     * stored, which is what stops this passing on a broken harness.
+     */
+    it('declines to open when no language pair is stored', async () => {
+        await chromeStorage.local.remove('lang.v1');
+        delete (chromeStorage.local as any)._store['lang.v1'];
+        jest.useFakeTimers();
+        const teardown = installLookupStrip();
+        const main = buildLine(['ungated']);
+
+        hover(main.querySelector('span[data-word]')!);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        teardown();
+        jest.useRealTimers();
+    });
+
+    it('opens for the same gesture once a pair is stored', async () => {
+        await chromeStorage.local.set({ 'lang.v1': { learning: 'en', native: 'ru' } });
+        jest.useFakeTimers();
+        const teardown = installLookupStrip();
+        const main = buildLine(['gated']);
+
+        hover(main.querySelector('span[data-word]')!);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+        teardown();
+        jest.useRealTimers();
+    });
+
     it('ignores hover in the sidebar — the cursor crosses it on the way anywhere', async () => {
         jest.useFakeTimers();
         const teardown = installLookupStrip();
@@ -1255,6 +1295,67 @@ describe('the card tells an empty answer apart from a failed one', () => {
         const openDetail = jest.fn();
         const teardown = await show({ ok: true, result: emptyAnswer }, { openDetail });
         expect(card()?.querySelector('[data-act="more"]')).toBeNull();
+        teardown();
+    });
+
+    /**
+     * The waiting state, both halves.
+     *
+     * Behaviour map §13: "The card has a waiting state while the answer is
+     * fetched". The live check reads the OPPOSITE — it waits for
+     * `.vtt-lookup-pending` to be ABSENT before reading the card — which is
+     * satisfied instantly by a waiting state that never renders at all. So the
+     * claim survived being deleted, and this is where it is actually pinned.
+     *
+     * Both halves are needed. The spinner is deliberately delayed by
+     * SPINNER_AFTER_MS (400ms) because warm answers land in ~270ms and a
+     * spinner for those is a flicker; asserting only that it appears would pass
+     * an implementation that shows it immediately.
+     */
+    it('a slow answer raises the waiting state', async () => {
+        // A reply that never comes: the callback is captured, never called.
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(() => {});
+        const teardown = installLookupStrip();
+        hover(overlayWord('zzxq'));
+
+        // Past the hover debounce, before the spinner is due: nothing is drawn
+        // yet at all — measured, the card element itself is absent here.
+        await jest.advanceTimersByTimeAsync(300);
+        expect(card()?.querySelector('.vtt-lookup-pending') ?? null).toBeNull();
+
+        // Past the spinner threshold.
+        await jest.advanceTimersByTimeAsync(400);
+        const pending = card()?.querySelector('.vtt-lookup-pending');
+        expect(pending).not.toBeNull();
+        expect(pending?.textContent).toContain('Looking up');
+        teardown();
+    });
+
+    it('an answer that beats the threshold never shows it', async () => {
+        // Watch for the spinner THROUGHOUT the wait, not after it. Reading the
+        // card once the answer has landed proves nothing: the answer overwrites
+        // the spinner, so a spinner that did flash is invisible by then —
+        // measured, that version stayed green against SPINNER_AFTER_MS = 0.
+        let everPending = false;
+        const watch = new MutationObserver(() => {
+            if (document.querySelector('.vtt-lookup-pending')) everPending = true;
+        });
+        watch.observe(document.body, { childList: true, subtree: true });
+
+        // The reply lands 100ms after the request — inside the 400ms grace.
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_m, cb) => {
+            setTimeout(() => cb({ ok: true, result: dictAnswer }), 100);
+        });
+        const teardown = installLookupStrip();
+        hover(overlayWord('zzxq'));
+
+        await jest.advanceTimersByTimeAsync(2000);
+        watch.disconnect();
+
+        // The answer is up...
+        expect(card()?.textContent?.length ?? 0).toBeGreaterThan(0);
+        // ...and the spinner never stood in front of it, at any point.
+        expect(everPending).toBe(false);
         teardown();
     });
 });

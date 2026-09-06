@@ -56,24 +56,34 @@ test.describe('looking a word up', () => {
     });
 
     /**
-     * Behaviour map §13's silent guard: with no languages stored the card must
-     * decline to open rather than open empty. Restored afterwards regardless.
+     * Behaviour map §1: with no pair stored the panel shows the setup gate
+     * instead of a transcript, so there is no word to click at all.
+     *
+     * That, and ONLY that, is what this check observes. An earlier version also
+     * asserted `card is absent` — on a page where nothing had been clicked,
+     * which is vacuously true and stayed green however the guard behaved. The
+     * guard itself (`if (!prefs?.native) return` in strip.ts) is pinned in
+     * packages/shared/tests/lookup.test.ts, where a word can be built and
+     * genuinely hovered; both halves are asserted there.
      */
-    test('with no languages set, the card declines to open', async ({ ext, page }) => {
+    test('with no languages set, there is no transcript to look a word up in', async ({ ext, page }) => {
         await waitForLines(page);
 
         await withPrefs(ext, null, async () => {
             const fresh = await ext.open('https://www.youtube.com/watch?v=aircAruvnKk');
             try {
-                // The setup gate stands in for the transcript when no pair is set.
                 await expect
                     .poll(() => fresh.evaluate(() => !!document.getElementById('vtt-lang-onboarding')), {
                         timeout: 60_000,
                     })
                     .toBe(true);
 
-                const opened = await fresh.evaluate((s) => !!document.querySelector(s), STRIP);
-                expect(opened, 'the word card must not open before languages are chosen').toBe(false);
+                // The gate stands where the transcript would be: no clickable
+                // word exists, which is the observable consequence §1 states.
+                const words = await fresh.evaluate(
+                    () => document.querySelectorAll('.vtt-main-text span[data-word]').length,
+                );
+                expect(words, 'the setup gate must replace the transcript, not sit beside it').toBe(0);
             } finally {
                 await fresh.close().catch(() => {});
             }
