@@ -62,7 +62,26 @@ export async function mute(page) {
         }
 
         // Остальные площадки (rezka, netflix) — обычный <video>.
-        await page.waitForFunction(() => document.querySelector('video'), null, { timeout: 15000 });
+        //
+        // Ожидание плеера обходится только тем страницам, где он ЕЩЁ может
+        // появиться: медиа заводится не сразу, поэтому на странице просмотра
+        // ждать по-прежнему обязательно. Но popup.html, главная, страница
+        // поиска и about:blank видео не несут никогда, а прежнее безусловное
+        // ожидание выбирало на них весь бюджет в 15 с.
+        //
+        // Замерено: чтение и восстановление настроек открывают popup.html
+        // дважды на проверку — 30 с впустую на каждой. При 59 таких обёртках
+        // это ~29 минут прогона из 41.
+        const state = await page.evaluate(() => ({
+            has: !!document.querySelector('video,audio'),
+            watch: /\/watch|\/shorts\/|netflix\.com\/watch|rezka/.test(location.href),
+        })).catch(() => ({ has: false, watch: false }));
+
+        if (!state.has && !state.watch) return 'звук выключать нечего — страница без медиа';
+
+        if (!state.has) {
+            await page.waitForFunction(() => document.querySelector('video'), null, { timeout: 15000 });
+        }
         return await page.evaluate(() => {
             const keep = () => document.querySelectorAll('video,audio')
                 .forEach((v) => { v.muted = true; });
