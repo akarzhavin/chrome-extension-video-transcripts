@@ -1,148 +1,158 @@
-# Хвосты claim-level coverage — отчёт
+# The tails of claim-level coverage — report
 
-Ветка `test/coverage-tails`, 5 сентября 2026. Числа по каждой задаче, всё
-несделанное поимённо, и два решения, которые остаются за пользователем.
+Branch `test/coverage-tails`, 5 September 2026. The numbers per task, everything
+left undone by name, and two decisions that remain the user's.
 
-## Числа
+## The numbers
 
 | | |
 |---|---|
-| Задач плана | 38, из них закрыто 37 |
-| Коммитов | 12 поверх `test/claim-level-coverage` |
-| Jest | 69 сюит / **1648** тестов, зелёные (было 69 / 1641) |
-| `npm run type-check` | чист |
-| E2E, живой прогон | **60 зелёных, 10 пропущено с причиной, 0 красных** |
-| Покрытие карты | **314 / 445 = 70,6%** |
-| Правок продукта в этой ветке | 1 (`nav-guards.ts`, T5.14) |
+| Plan tasks | 38, of which 37 closed |
+| Commits | 12 on top of `test/claim-level-coverage` |
+| Jest | 69 suites / **1648** tests, green (was 69 / 1641) |
+| `npm run type-check` | clean |
+| E2E, live run | **60 green, 10 skipped with a reason, 0 red** |
+| Map coverage | **314 / 445 = 70.6%** |
+| Product edits on this branch | 1 (`nav-guards.ts`, T5.14) |
 
-## Задача 1 — прогнать e2e на слитом дереве
+## Task 1 — run e2e on the merged tree
 
-Прогнаны обе половины. Первый прогон дал 59 зелёных, 10 пропусков и одно
-падение; после разбора и правки — 60 зелёных, 0 красных.
+Both halves were run. The first run gave 59 green, 10 skips and one failure;
+after the analysis and the fix — 60 green, 0 red.
 
-**Падение было дефектом ПРОВЕРКИ, не продукта.** `accessibility.spec.ts`
-сэмплировал смещение прокрутки через фиксированные 1500 мс — на склоне плавной
-анимации. Измерено: после перемотки на 120 с смещение читается 0.27 первую
-секунду и оседает до 0.13, а проверка требовала < 0.25. Заменено на опрос до
-осевшего значения. Разбор целиком — `apps/youtube/docs/centring-check-at-120s.md`.
+**The failure was a defect of the CHECK, not of the product.**
+`accessibility.spec.ts` sampled the scroll offset after a fixed 1500 ms — on the
+slope of a smooth animation. Measured: after seeking to 120 s the offset reads
+0.27 for the first second and settles to 0.13, while the check demanded < 0.25.
+Replaced with a poll to the settled value. The full analysis is in
+`apps/youtube/docs/centring-check-at-120s.md`.
 
-**Десять пропусков честные:** девять требуют аккаунта стенда
-(`LINGOGRAM_STAND_ACCOUNT`), стенд фазы 6 разобран; один — полноэкранный режим,
-где браузеру нужен жест, а фоновая вкладка его не даёт.
+**The ten skips are honest:** nine require the stand account
+(`LINGOGRAM_STAND_ACCOUNT`), and the Phase 6 stand is torn down; one is
+fullscreen mode, where the browser needs a gesture and a background tab cannot
+supply one.
 
-## Задача 2 — измерить покрытие
+## Task 2 — measure coverage
 
-Четыре независимых аудитора, непересекающиеся диапазоны секций карты.
-**314 из 445 претензий = 70,6%.** SC-001 требует 82% — **не достигнуто**,
-разрыв 11,4 пункта, 51 претензия.
+Four independent auditors, non-overlapping ranges of the map's sections.
+**314 of 445 claims = 70.6%.** SC-001 requires 82% — **not reached**, a gap of
+11.4 points, 51 claims.
 
-Знаменатель — все 445 претензий; три способа получить цифру покрасивее
-отвергнуты и записаны в `coverage-on-merged-tree.md` вместе с причинами. Даже
-самый благосклонный честный вариант (без непроверяемых) даёт 74,4% — ниже 82%.
+The denominator is all 445 claims; three ways of arriving at a prettier figure
+were rejected and are recorded in `coverage-on-merged-tree.md` along with the
+reasons. Even the most generous honest variant (excluding the unverifiable ones)
+gives 74.4% — below 82%.
 
-Самая дорогая дыра: **§1, первое включение и языковая пара, 9 непокрытых
-претензий**. Это видит каждый новый пользователь.
+The most expensive hole: **§1, first turn-on and the language pair, 9 uncovered
+claims**. Every new user sees this.
 
-## Задача 3 — T5.14
+## Task 3 — T5.14
 
-Закрыта. `decideCaptionSearch` вынесен в `nav-guards.ts` рядом с двумя гардами,
-которые фаза 5 извлекла раньше; `index-guards.test.ts` пришпиливает, что при
-пустой языковой паре запросы не планируются вообще. Правка продукта — отдельным
-коммитом, тесты в нём не тронуты.
+Closed. `decideCaptionSearch` was lifted into `nav-guards.ts` alongside the two
+guards Phase 5 extracted earlier; `index-guards.test.ts` pins that with an empty
+language pair no requests are scheduled at all. The product edit is a separate
+commit, with no tests touched in it.
 
-## Задача 4 — тринадцать ложнозелёных
+## Task 4 — the thirteen false greens
 
-Все тринадцать починены, каждая увидена красной против той поломки, которую
-ловит. Плюс §12 (перенос панели в полноэкранный элемент) не имел ни одной
-работающей проверки — живая пропускается всегда — и закрыт юнитом.
+All thirteen are repaired, each seen red against the break it is meant to catch.
+On top of that §12 (reparenting the panel into the fullscreen element) had no
+working check at all — the live one always skips — and is now closed by a unit.
 
-**Проверено мутациями ПРОДУКТА (T416):** четыре поломки внесены в исходники,
-пересобраны, положены туда, откуда Chrome грузит расширение. Четыре из четырёх
-пойманы. Сборка восстановлена побайтно, сверка по трём sha256 и блоку
-конфигурации.
+**Verified by PRODUCT mutations (T416):** four breaks were introduced into the
+sources, rebuilt, and placed where Chrome loads the extension from. Four of four
+were caught. The build was restored byte-for-byte, checked against three sha256
+values and the config block.
 
-## Что найдено сверх плана
+## Found beyond the plan
 
-**Четыре проверки не запускались вообще.** `word-lookup.spec.ts` назначен в
-первую половину прогона, но в команду не попал: лог сказал «Running 36 tests»
-при списке из 40. Отчёт «все 76 прогнаны» был неверен. Прогнано отдельно,
-симптом записан в `e2e/README.md` — других у такого отказа нет.
+**Four checks were not running at all.** `word-lookup.spec.ts` is assigned to
+the first half of the run, but it never made it into the command: the log said
+"Running 36 tests" against a list of 40. The report "all 76 were run" was wrong.
+Run separately, and the symptom is recorded in `e2e/README.md` — there is no
+other sign of this kind of failure.
 
-**Ещё одна пустая проверка.** §50.1 «being offline»:
-`/offline/i.test(el?.textContent ?? '')` даёт `false`, когда элемента нет вовсе,
-так что проверка зеленела на странице, где панель не отрисовалась. Найдена
-перепроверкой вердиктов (T206), исправлена, краснота проверена.
+**One more empty check.** §50.1 "being offline":
+`/offline/i.test(el?.textContent ?? '')` yields `false` when the element is
+absent entirely, so the check went green on a page where the panel had not
+rendered. Found by re-checking the verdicts (T206), fixed, redness verified.
 
-**Предел метода.** Четырнадцатая проверка того же класса нашлась **только
-запуском** — четыре аудита читали её и признали покрывающей, потому что в коде
-она выглядит правильной. Чтение говорит, что проверка называет; запуск говорит,
-что она делает. 70,6% измерены чтением, значит это **верхняя** оценка.
+**The limit of the method.** A fourteenth check of the same class was found
+**only by running it** — four audits read it and pronounced it covering, because
+in the code it looks correct. Reading tells you what a check names; running
+tells you what it does. The 70.6% was measured by reading, which makes it an
+**upper** bound.
 
-## Пятнадцатая пустая проверка — и три неверных диагноза к ней
+## A fifteenth empty check — and three wrong diagnoses of it
 
-**T413, `word-lookup.spec.ts` §40.** Формулировка задачи («убрать пустую
-половину») кода не описывает: контрольная половина в проверке есть. Настоящий
-дефект — проверка пропускалась целиком, на каждом запуске, и суммарный отчёт
-считал её присутствующей.
+**T413, `word-lookup.spec.ts` §40.** The task's wording ("remove the empty
+half") does not describe the code: the control half is present in the check. The
+real defect is that the check was skipping entirely, on every run, and the
+summary report counted it as present.
 
-Причину я назвал неверно дважды, и оба раза записал как факт: «языковая пара не
-задана» (задана: `en → ru`) и «у видео одна дорожка» (дорожек две). Верная
-причина третья и найдена только замером живой страницы: панель стояла в
-**одиночном** режиме, а строка перевода рисуется только в двойном. Проверка
-читала состояние, которое сама не устанавливала, — тот же класс дефекта, что
-и у остальных четырнадцати.
+I named the cause wrongly twice, and both times wrote it down as fact: "the
+language pair is not set" (it is: `en → ru`) and "the video has a single track"
+(there are two). The correct cause is a third one, and it was found only by
+measuring the live page: the panel was in **single** mode, and the translation
+line is drawn only in dual. The check was reading a state it did not itself
+establish — the same class of defect as the other fourteen.
 
-Исправлено: проверка сама включает двойной режим и **утверждает**, что строка
-перевода появилась, вместо того чтобы пропускать себя, когда её нет.
+Fixed: the check now turns dual mode on itself and **asserts** that the
+translation line appeared, instead of skipping itself when it is absent.
 
-**Краснота потребовала трёх мутаций, а не одной.** Запрет на поиск по переводу
-держат три независимых механизма, и поломка любого одного ничего не меняет:
+**Redness took three mutations, not one.** The ban on looking up words in the
+translation is held by three independent mechanisms, and breaking any single one
+changes nothing:
 
-1. `SELECTION_SCOPE_SELECTOR` не включает `.vtt-sub-text`;
-2. строка перевода не размечена `span[data-word]` (замер: `subWords: 0` против
-   `mainWords: 4`);
-3. `selectionAnchor.alive()` требует `spans.length > 0`, иначе карточке негде
-   отрисоваться.
+1. `SELECTION_SCOPE_SELECTOR` does not include `.vtt-sub-text`;
+2. the translation line is not marked up with `span[data-word]` (measured:
+   `subWords: 0` against `mainWords: 4`);
+3. `selectionAnchor.alive()` requires `spans.length > 0`, or the card has
+   nowhere to render.
 
-Первая мутация оставила проверку зелёной, и это чуть не было записано как «не
-ловит». Красноту дала пара 1+3. Вывод для будущих мутаций: зелень после одной
-мутации — свидетельство и о проверке, и о том, что правило держат несколько
-барьеров; различает их только чтение всех путей.
+The first mutation left the check green, and that was very nearly written down
+as "it does not catch anything". Redness came from the pair 1+3. The lesson for
+future mutations: green after a single mutation is evidence about the check
+*and* about the rule being held by several barriers at once; only reading every
+path tells the two apart.
 
-## Два решения — приняты 2026-09-05
+## Two decisions — taken 2026-09-05
 
-1. **`pot.ts` / `page-script.ts` — оставлено, проверено живьём.** Рутина
-   минтинга вынесена из замыкания MAIN-world; поведение не меняется, на правке
-   держатся 17 проверок `pot-mint.test.ts`, которые без выноса написать нельзя.
-   Юнит-проверки не подтверждают работу с живым плеером, поэтому каскад прогнан
-   в браузере на вынесенном коде:
+1. **`pot.ts` / `page-script.ts` — kept, verified live.** The minting routine was
+   lifted out of the MAIN-world closure; behaviour does not change, and the edit
+   carries the 17 checks of `pot-mint.test.ts`, which cannot be written without
+   the extraction. Unit checks do not confirm work against a live player, so the
+   cascade was run in the browser against the extracted code:
 
    ```
    no pot — briefly enabling native captions to mint one
    captured pot (xhr)
    native captions -> Off (restored)
    retrying with a freshly captured pot for aircAruvnKk:{English,Russian}
-   fetched 42707 / 46010 bytes — 286 строк
+   fetched 42707 / 46010 bytes — 286 lines
    ```
 
-   Отдельно проверено восстановление: `.ytp-subtitles-button` возвращается в
-   `aria-pressed=false`, вспышка родных субтитров не остаётся включённой.
+   Restoration was verified separately: `.ytp-subtitles-button` returns to
+   `aria-pressed=false`, and the flash of native captions does not stay on.
 
-2. **`app-base.ts` — оставлено, срок сокращён с 30 с до 12 с.** Ложный вердикт
-   «нет субтитров» через 7 секунд убран; сторож отодвинут, а не удалён.
+2. **`app-base.ts` — kept, the deadline cut from 30 s to 12 s.** The false "no
+   subtitles" verdict after 7 seconds is gone; the watchdog was moved out, not
+   deleted.
 
-   Прежнее обоснование («30 с переживают расписание повторов») **ложно**:
-   4 попытки, каждая ждёт `Retry-After` с потолком 60 с, худший случай — около
-   трёх минут. Пережить расписание нельзя ни при каком терпимом ожидании.
-   Поэтому срок меряется по читателю: 12 с — предел того, сколько панель может
-   молчать. Долгий троттлинг его переживёт, и это допустимо из-за того, ЧТО
-   тогда говорится: `timeout` — ответ не пришёл, а не ложное «субтитров нет».
+   The previous justification ("30 s outlasts the retry schedule") is **false**:
+   four attempts, each waiting out a `Retry-After` clamped at 60 s, worst case
+   about three minutes. No tolerable wait can outlast the schedule. So the
+   deadline is measured against the reader instead: 12 s is the limit of how long
+   the panel may stay silent. A long throttle will outlast it, and that is
+   acceptable because of WHAT is then said: `timeout` — the answer did not
+   arrive, rather than a false "there are no subtitles".
 
-   Проверка держала `30_000` литералом, то есть краснела бы от смены константы
-   и зеленела бы от правки литерала. Переведена на импорт константы, добавлена
-   недостающая половина (за миг до срока вердикта ещё нет) и утверждение о
-   границе. Обе показаны красными.
+   The check held `30_000` as a literal, meaning it would go red on a change to
+   the constant and green on an edit to the literal. It was moved to importing
+   the constant, the missing half was added (a moment before the deadline there
+   is still no verdict) and an assertion about the boundary. Both were seen red.
 
-## Не сделано и не входило в план
+## Not done, and not in the plan
 
-Ветки не в `main`: пуша и PR не было. Двенадцать комметов живут только локально.
+The branch is not in `main`: there was no push and no PR. The twelve commits
+live only locally.

@@ -11,11 +11,11 @@ packages/*/dist/
 .claude/
 graphify-out/
 
-# Speckit: шаблоны, скрипты и спеки задач. Инструмент проектный, но в истории
-# репозитория его не видно — спеки живут ровно столько, сколько задача.
-# .specify/memory/constitution.md тоже локальный: в новый worktree его надо
-# копировать руками (cp -R .specify ../lingogram-<slug>/), иначе speckit его
-# не увидит. См. docs/ops/worktree-speckit.md.
+# Speckit: task templates, scripts and specs. The tool is used on this project,
+# but it leaves no trace in the repository history — a spec lives exactly as
+# long as the task does. .specify/memory/constitution.md is local too: a new
+# worktree needs it copied by hand (cp -R .specify ../lingogram-<slug>/), or
+# speckit will not find it. See docs/ops/worktree-speckit.md.
 .specify/
 specs/
 

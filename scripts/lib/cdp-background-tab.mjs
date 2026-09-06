@@ -1,28 +1,31 @@
-// Открытие вкладок в фоне и глушение звука для прогонов по CDP.
+// Opening tabs in the background, and muting them, for CDP runs.
 //
-// Зачем: эти скрипты подключаются к Chrome, за которым в этот момент работает
-// человек (иначе YouTube не отдаёт субтитры — см. docs/ops/live-debug-cdp.md).
-// Значит, прогон обязан быть незаметным: ctx.newPage() создаёт вкладку активной,
-// Chrome поднимает окно на передний план и на macOS отбирает фокус, а видео
-// начинает играть со звуком поверх того, что человек слушает.
+// Why: these scripts attach to a Chrome that someone is working in at that
+// moment (otherwise YouTube does not serve subtitles — see
+// docs/ops/live-debug-cdp.md). So a run has to stay unobtrusive: ctx.newPage()
+// creates the tab active, Chrome raises the window to the front and on macOS
+// takes the focus, and the video starts playing out loud over whatever that
+// person is listening to.
 //
-// Окно при этом НЕ прячется — оно остаётся видимым, просто не всплывает.
+// The window is NOT hidden by this — it stays visible, it just does not jump
+// to the front.
 
 /**
- * Открывает вкладку, не забирая фокус и не поднимая окно браузера.
- * Возвращает playwright-Page.
+ * Opens a tab without taking the focus or raising the browser window.
+ * Returns a Playwright Page.
  */
 export async function openInBackground(ctx, url) {
     const anchor = ctx.pages()[0];
-    if (!anchor) throw new Error('У браузера нет ни одной вкладки — открыто ли окно?');
+    if (!anchor) throw new Error('The browser has no tabs at all — is a window open?');
 
     const browserCdp = await ctx.newCDPSession(anchor);
     const { targetId } = await browserCdp.send('Target.createTarget', { url, background: true });
     await browserCdp.detach().catch(() => {});
 
-    // Сопоставляем строго по targetId, а не по URL: одинаковых вкладок в живом
-    // браузере может быть несколько (в т.ч. от прошлых прогонов), и по URL легко
-    // взять чужую — тогда в finally закроется не та, а своя останется висеть.
+    // Match strictly on targetId, never on URL: a live browser can hold several
+    // identical tabs (left over from earlier runs among them), and matching by
+    // URL easily picks somebody else's — then finally closes the wrong one and
+    // ours is left hanging.
     for (let i = 0; i < 60; i++) {
         for (const page of ctx.pages()) {
             const session = await ctx.newCDPSession(page).catch(() => null);
@@ -33,16 +36,16 @@ export async function openInBackground(ctx, url) {
         }
         await anchor.waitForTimeout(250);
     }
-    throw new Error(`вкладка ${url} не появилась в контексте за 15 с`);
+    throw new Error(`the tab ${url} did not appear in the context within 15s`);
 }
 
 /**
- * Глушит видео на странице. Не бросает: прогон проверяет субтитры, а не звук.
+ * Mutes the video on a page. Never throws: a run checks subtitles, not sound.
  *
- * Через плеер площадки, а не video.muted: YouTube держит громкость в своём
- * состоянии и восстанавливает её поверх правки DOM — проверено, muted
- * откатывается обратно. Интервал добивает случаи, когда плеер сбрасывает mute
- * сам (смена качества, следующее видео в очереди).
+ * Through the site's own player rather than video.muted: YouTube keeps the
+ * volume in its own state and restores it over a DOM edit — measured, muted
+ * rolls straight back. The interval covers the cases where the player drops
+ * the mute by itself (a quality change, the next video in the queue).
  */
 export async function mute(page) {
     try {
@@ -57,27 +60,27 @@ export async function mute(page) {
                 const p = document.getElementById('movie_player');
                 p.mute();
                 setInterval(() => { if (!p.isMuted?.()) p.mute(); }, 1000);
-                return 'звук выключен';
+                return 'muted';
             });
         }
 
-        // Остальные площадки (rezka, netflix) — обычный <video>.
+        // Every other site (rezka, netflix) — a plain <video>.
         //
-        // Ожидание плеера обходится только тем страницам, где он ЕЩЁ может
-        // появиться: медиа заводится не сразу, поэтому на странице просмотра
-        // ждать по-прежнему обязательно. Но popup.html, главная, страница
-        // поиска и about:blank видео не несут никогда, а прежнее безусловное
-        // ожидание выбирало на них весь бюджет в 15 с.
+        // Waiting for the player is spent only on pages where one may STILL
+        // appear: media does not start immediately, so on a watch page the wait
+        // is still required. But popup.html, the home page, the search page and
+        // about:blank never carry video, and the unconditional wait used to
+        // burn the whole 15s budget on them.
         //
-        // Замерено: чтение и восстановление настроек открывают popup.html
-        // дважды на проверку — 30 с впустую на каждой. При 59 таких обёртках
-        // это ~29 минут прогона из 41.
+        // Measured: reading and restoring settings opens popup.html twice per
+        // check — 30s wasted on each. Across 59 such wrappers that is ~29
+        // minutes of a 41-minute run.
         const state = await page.evaluate(() => ({
             has: !!document.querySelector('video,audio'),
             watch: /\/watch|\/shorts\/|netflix\.com\/watch|rezka/.test(location.href),
         })).catch(() => ({ has: false, watch: false }));
 
-        if (!state.has && !state.watch) return 'звук выключать нечего — страница без медиа';
+        if (!state.has && !state.watch) return 'nothing to mute — the page carries no media';
 
         if (!state.has) {
             await page.waitForFunction(() => document.querySelector('video'), null, { timeout: 15000 });
@@ -87,9 +90,9 @@ export async function mute(page) {
                 .forEach((v) => { v.muted = true; });
             keep();
             setInterval(keep, 1000);
-            return 'звук выключен';
+            return 'muted';
         });
     } catch {
-        return 'звук выключить не удалось (плеер не появился) — проверка продолжается';
+        return 'could not mute (the player never appeared) — the check carries on';
     }
 }

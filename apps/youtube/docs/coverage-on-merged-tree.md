@@ -1,157 +1,158 @@
-# Покрытие на слитом дереве — измерено
+# Coverage on the merged tree — measured
 
-Задача T205. Четыре независимых аудитора прочитали карту поведения
-(`apps/youtube/docs/behaviour-map.md`) по непересекающимся диапазонам секций и
-судили каждую претензию одним вопросом: **покраснеет ли именованная проверка,
-если это конкретное поведение сломается?** Ни один не видел работы остальных до
-того, как вынес свои вердикты.
+Task T205. Four independent auditors read the behaviour map
+(`apps/youtube/docs/behaviour-map.md`) across non-overlapping ranges of sections
+and judged every claim by a single question: **would the named check go red if
+this specific behaviour broke?** None of them saw the others' work before
+returning their verdicts.
 
-Дерево: `test/coverage-tails` (три коммита поверх `test/claim-level-coverage`).
+Tree: `test/coverage-tails` (three commits on top of `test/claim-level-coverage`).
 
-## Счёт
+## The count
 
-| аудит | секции | размеченных строк | претензий | покрыто | частично | не покрыто | непроверяемо |
+| audit | sections | marked lines | claims | covered | partial | not covered | unverifiable |
 |---|---|---|---|---|---|---|---|
 | 1 | 1–9 | 72 | 140 | 96 | 20 | 19 | 5 |
 | 2 | 10–19 | 85 | 136 | 97 | 24 | 8 | 7 |
 | 3 | 20–37 | 42 | 91 | 63 | 9 | 13 | 6 |
-| 4 | 38–52 + хвост | 55 | 78 | 60 | 10 | 4 | 4 |
-| **всего** | | **254** | **445** | **316** | **63** | **44** | **22** |
+| 4 | 38–52 + tail | 55 | 78 | 60 | 10 | 4 | 4 |
+| **total** | | **254** | **445** | **316** | **63** | **44** | **22** |
 
-## Знаменатель и почему именно он
+## The denominator, and why this one
 
-**445 претензий — все, что карта утверждает.** Отношение: **316/445 = 71,0%**
-до перепроверки, **314/445 = 70,6%** после неё (см. раздел T206 ниже).
+**445 claims — everything the map asserts.** The ratio: **316/445 = 71.0%**
+before the re-check, **314/445 = 70.6%** after it (see the T206 section below).
 
-Знаменатель выбран так, а не иначе, по одной причине: любое сужение делает
-число красивее, ничего не меняя в продукте. Три варианта, которые напрашивались
-и отвергнуты:
+The denominator was chosen this way and not another for one reason: any
+narrowing makes the number prettier while changing nothing in the product. Three
+variants that suggested themselves and were rejected:
 
-- **без непроверяемых (423)** даёт 74,7%. Соблазнительно и защитимо — 22
-  претензии действительно нельзя проверить (историческое утверждение, поведение
-  третьей стороны, отрицание по всему интерфейсу). Но «непроверяемо» — это
-  суждение аудитора, и делать его рычагом, поднимающим процент, значит
-  вознаграждать за расширение этой категории.
-- **покрыто + частично (379/445)** даёт 85,2%. Это подгонка: «частично» ровно
-  и означает, что претензия **переживает** свою поломку. Считать её покрытой —
-  утверждать обратное измеренному.
-- **процент Jest по строкам** не отвечает на заданный вопрос вообще. Строка
-  может исполняться каждым тестом и не быть ни разу утверждённой.
+- **excluding the unverifiable ones (423)** gives 74.7%. Tempting and
+  defensible — 22 claims genuinely cannot be checked (a historical statement,
+  third-party behaviour, a negation across the whole interface). But
+  "unverifiable" is an auditor's judgement, and making it a lever that raises the
+  percentage means rewarding the expansion of that category.
+- **covered + partial (379/445)** gives 85.2%. That is fitting to the answer:
+  "partial" means precisely that the claim **survives** its own break. Counting
+  it as covered is asserting the opposite of what was measured.
+- **Jest's line percentage** does not answer the question asked at all. A line
+  can be executed by every test and never once be asserted.
 
-## Отношение к целям
+## Against the goals
 
-**SC-001 (82%): не достигнуто.** 71,0% против 82% — разрыв 11 пунктов,
-49 претензий.
+**SC-001 (82%): not reached.** 71.0% against 82% — a gap of 11 points,
+49 claims.
 
-**Цель фазы 6 (88%): не достигнуто.** Разрыв 17 пунктов, 76 претензий.
+**Phase 6's goal (88%): not reached.** A gap of 17 points, 76 claims.
 
-Ни одну из двух цифр нельзя объявить достигнутой сменой знаменателя, и это
-проверено: даже самый благосклонный честный вариант (без непроверяемых) даёт
-74,7%, что ниже 82%.
+Neither figure can be declared reached by swapping the denominator, and that was
+checked: even the most generous honest variant (excluding the unverifiable ones)
+gives 74.7%, which is below 82%.
 
-## Почему прежние цифры были другими
+## Why the earlier numbers were different
 
-Три числа ходили по отчётам, и все три верны для того, что мерили:
+Three numbers have travelled through the reports, and all three are correct for
+what they measured:
 
-- **69,8%** (фаза 5) — на ветке, где не было работы фаз 2, 3, 4. Названо
-  автором нижней границей, и оно ею и было.
-- **84,6%** (фаза 6) — на знаменателе 273, унаследованном от первого разбиения
-  карты, и с зачётом претензий, которые эта фаза не проверяла.
-- **71,0%** (здесь) — впервые на дереве, где лежит вся работа, и на
-  знаменателе, полученном перечитыванием карты заново.
+- **69.8%** (Phase 5) — on a branch that did not have the work of Phases 2, 3
+  and 4. Its author called it a lower bound, and a lower bound is what it was.
+- **84.6%** (Phase 6) — on a denominator of 273, inherited from the first
+  partition of the map, and crediting claims that phase did not check.
+- **71.0%** (here) — for the first time on a tree that holds all the work, and
+  on a denominator obtained by re-reading the map from scratch.
 
-Знаменатель за время работы дважды переразмечался: 273 → 321 → 445. Одни и те
-же 254 размеченные строки давали разное число претензий, потому что «претензия»
-— единица суждения, а не строка файла. **Сравнимо только отношение**, и
-сравнивать 71,0% с 82% законно лишь потому, что 82% — тоже отношение.
+The denominator was re-marked twice over the course of the work: 273 → 321 →
+445. The same 254 marked lines yielded different claim counts, because a "claim"
+is a unit of judgement, not a line of a file. **Only the ratio is comparable**,
+and comparing 71.0% with 82% is legitimate only because 82% is a ratio too.
 
-## Где не хватает
+## Where it falls short
 
-44 непокрытые претензии, по секциям:
+44 uncovered claims, by section:
 
-| секция | штук |
+| section | count |
 |---|---|
-| §1 первое включение и языковая пара | 9 |
-| §25 счётчик сохранённых слов | 4 |
-| §2 вход в аккаунт | 3 |
-| §7 экспорт | 3 |
-| §15 словарь | 3 |
-| остальные (§6, §9, §13, §16, §23, §35 и др.) | 22 |
+| §1 first turn-on and the language pair | 9 |
+| §25 saved-word counter | 4 |
+| §2 signing in | 3 |
+| §7 export | 3 |
+| §15 dictionary | 3 |
+| the rest (§6, §9, §13, §16, §23, §35 and others) | 22 |
 
-§1 — самая дорогая: девять непокрытых претензий в поведении, которое видит
-каждый новый пользователь.
+§1 is the most expensive: nine uncovered claims in behaviour every new user
+sees.
 
-## Выборочная перепроверка (T206)
+## The sampled re-check (T206)
 
-План требует перечитать не меньше 10% вердиктов «покрыто» — 32 из 316. Взяты
-все 49 «щедрых вызовов», которые аудиторы назвали сами, плюс проверка того, что
-каждый названный файл действительно прогонялся.
+The plan requires re-reading at least 10% of the "covered" verdicts — 32 of 316.
+What was taken instead: all 49 "generous calls" the auditors named themselves,
+plus a check that every named file actually ran.
 
-**Найдено три расхождения. Два меняют вердикт, одно — счёт прогона.**
+**Three discrepancies found. Two change a verdict, one changes the run count.**
 
-**1. §50.1 «being offline» — вердикт неверен, проверка была пустой.**
-`/offline/i.test(el?.textContent ?? '')` даёт `false`, когда элемента нет
-вообще: пустая строка не совпадает с регуляркой. Проверка зеленела на странице,
-где панель не отрисовалась, включая полностью сломанную сборку. Исправлено:
-сначала утверждается, что статус существует, потом — что он не называет
-отсутствие сети. Красноту видели (подмена id роняет с «the panel must still
-render its status area while offline»).
+**1. §50.1 "being offline" — the verdict is wrong, the check was empty.**
+`/offline/i.test(el?.textContent ?? '')` yields `false` when the element is
+absent entirely: an empty string does not match the regex. The check went green
+on a page where the panel had not rendered, including on a completely broken
+build. Fixed: first it asserts the status exists, then that it does not name a
+missing network. Redness was seen (substituting the id fails it with "the panel
+must still render its status area while offline").
 
-**2. §40.2 — вердикт неверен, проверка пропускается.**
-`word-lookup.spec.ts:99` пропускается, когда у видео одна дорожка. На фикстурном
-видео так и происходит: прогон дал 3 зелёных и 1 пропуск. Претензию эта проверка
-не покрывает.
+**2. §40.2 — the verdict is wrong, the check skips.**
+`word-lookup.spec.ts:99` skips when the video has a single track. On the fixture
+video that is exactly what happens: the run gave 3 green and 1 skip. This check
+does not cover the claim.
 
-**3. Четыре проверки не запускались вообще.** `word-lookup.spec.ts` назначен в
-первую половину прогона (`e2e/README.md`), но в команде его не оказалось: лог
-говорит «Running 36 tests», а не 40. Прогнан отдельно — 3 зелёных, 1 пропуск.
-Это то самое, о чём предупреждает README: файл, не попавший в обе команды
-половин, молча перестаёт запускаться.
+**3. Four checks were not running at all.** `word-lookup.spec.ts` is assigned to
+the first half of the run (`e2e/README.md`), but it was not in the command: the
+log says "Running 36 tests", not 40. Run separately — 3 green, 1 skip. This is
+exactly what the README warns about: a file that lands in neither half's command
+silently stops running.
 
-**Подтверждено верным** из проверенных: §39.1 (гард `lines < 30` не срабатывает
-— на фикстурном видео 286 строк) и §12.4 (перенос панели покрыт юнитом, живая
-проверка честно пропускается).
+**Confirmed correct** among those checked: §39.1 (the `lines < 30` guard does
+not fire — the fixture video has 286 lines) and §12.4 (reparenting the panel is
+covered by a unit, and the live check honestly skips).
 
-**Что это делает с числом.** Два вердикта из проверенных переходят из «покрыто»
-в «не покрыто»: **314 из 445 = 70,6%** вместо 71,0%. Направление ожидаемое:
-перепроверка выборки может только понизить, потому что проверялись именно те
-строки, где аудитор сомневался.
+**What this does to the number.** Two of the checked verdicts move from
+"covered" to "not covered": **314 of 445 = 70.6%** instead of 71.0%. The
+direction is expected: re-checking a sample can only lower it, because the lines
+checked were precisely the ones the auditor doubted.
 
-**Чего перепроверка не даёт.** Проверено 49 из 316 «покрыто» — те, что аудиторы
-сами пометили сомнительными. Об остальных 267 она не говорит ничего. Найденные
-два случая — из выборки, отобранной по признаку сомнения, так что переносить их
-долю на весь массив нельзя.
+**What the re-check does not give.** 49 of the 316 "covered" were checked — the
+ones the auditors themselves marked as doubtful. It says nothing about the other
+267. The two cases found came from a sample selected on the basis of doubt, so
+their proportion cannot be carried over to the whole set.
 
-## Оговорка о методе
+## A caveat about the method
 
-Каждый аудитор перечислил свои «щедрые вызовы» — строки, где он колебался между
-«покрыто» и «частично». Их стоит перепроверить первыми: если часть из них
-окажется «частично», 71,0% сдвинется вниз, а не вверх.
+Every auditor listed their own "generous calls" — the lines where they wavered
+between "covered" and "partial". Those are worth re-checking first: if some of
+them turn out to be "partial", 71.0% moves down, not up.
 
-## Проверка мутациями продукта (T416)
+## Verification by product mutations (T416)
 
-Перепроверка красноты — самая дорогая её форма: поломать не тест, а **продукт**,
-пересобрать, положить сборку туда, откуда Chrome её грузит, и посмотреть, падает
-ли проверка. Мутация теста показывает, что проверка вообще способна упасть;
-мутация продукта — что она ловит то, что называет.
+Re-checking redness in its most expensive form: break not the test but the
+**product**, rebuild, put the build where Chrome loads it from, and see whether
+the check fails. Mutating the test shows that the check is capable of failing at
+all; mutating the product shows that it catches what it names.
 
-| мутация в продукте | проверка | итог |
+| mutation in the product | check | result |
 |---|---|---|
-| `scrollActiveIntoView`: дельта без центрирования (выравнивание по верху) | `accessibility` › активная строка у середины | **красная**, «never came within 25% of the list's middle» |
-| `applyCollapsed`: `aria-expanded` всегда `'true'` | `reading-modes` › сворачивание меняет и вид, и объявление | **красная** |
-| `STALLED_REQUEST_MS` 30 000 → 3 000 (возврат прежнего дефекта) | `throttling` › ложное «нет субтитров» не появляется, пока идут повторы | **красная** |
-| `setupFullscreenHandling`: перенос в полноэкранный элемент удалён | `SidebarUI` › панель переезжает и возвращается | **красная** |
+| `scrollActiveIntoView`: delta without centring (align to the top) | `accessibility` › the active line sits near the middle | **red**, "never came within 25% of the list's middle" |
+| `applyCollapsed`: `aria-expanded` always `'true'` | `reading-modes` › collapsing changes both what is seen and what is announced | **red** |
+| `STALLED_REQUEST_MS` 30 000 → 3 000 (restoring the old defect) | `throttling` › no false "no subtitles" while retries are still running | **red** |
+| `setupFullscreenHandling`: reparenting into the fullscreen element removed | `SidebarUI` › the panel moves across and comes back | **red** |
 
-Четыре из четырёх. Ни одна не потребовала правки проверки — они уже ловили то,
-что должны.
+Four of four. Not one required an edit to the check — they already caught what
+they should.
 
-**Ловушка, которая сработала по дороге.** Первая пересборка шла без
-`EXT_API_BASE_URL`, и проверка упала — но по совсем другой причине: гард
-фикстуры отказался работать со сборкой без адреса словаря. Красное было
-получено, вывод «мутация поймана» напрашивался и был бы неверен. Судить о
-падении по его сообщению, а не по цвету.
+**A trap that fired along the way.** The first rebuild ran without
+`EXT_API_BASE_URL`, and the check failed — but for an entirely different reason:
+the fixture's guard refused to work with a build that has no dictionary address.
+Red was obtained, the conclusion "the mutation was caught" suggested itself, and
+it would have been wrong. Judge a failure by its message, not by its colour.
 
-**Возврат сборки.** Оригинал снят до мутаций (sha256 `6b017a5b…`, `8ebb8d3e…`,
-`516c3275…`), восстановлен после и сверен по всем трём файлам и по блоку
-конфигурации: `env: "dev"`, `projectId: "demo-lingogram"`, эмуляторы на
-localhost. Совпадение побайтное.
+**Restoring the build.** The original was taken before the mutations (sha256
+`6b017a5b…`, `8ebb8d3e…`, `516c3275…`), restored afterwards and checked against
+all three files and against the config block: `env: "dev"`,
+`projectId: "demo-lingogram"`, emulators on localhost. A byte-for-byte match.

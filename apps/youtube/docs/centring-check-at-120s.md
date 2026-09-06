@@ -1,85 +1,89 @@
-# Единственное падение живого прогона: центрирование на 120-й секунде
+# The live run's only failure: centring at the 120th second
 
 `e2e/accessibility.spec.ts` › *"the active line sits near the middle of the
-list, not merely inside it"*. Упало в прогоне 5 сентября и упало снова на
-ретрае — то есть не флак. **Закрыто: дефект был в проверке.** Она сэмплировала после фиксированной
-паузы, попадая на склон плавной прокрутки. Ниже — как это измерено и почему
-две первые версии оказались неверны.
+list, not merely inside it"*. Failed in the 5 September run and failed again on
+the retry — so not a flake. **Closed: the defect was in the check.** It sampled
+after a fixed pause, landing on the slope of a smooth scroll. Below: how that
+was measured, and why the first two explanations were wrong.
 
-## Что проверка требует
+## What the check demands
 
-На трёх моментах видео (60, 120, 180 с) активная строка должна отстоять от
-середины списка не больше чем на 25% его высоты. Между установкой времени и
-замером — фиксированные `waitForTimeout(1500)`.
+At three points in the video (60, 120, 180 s) the active line must sit no
+further from the middle of the list than 25% of its height. Between setting the
+time and taking the sample sits a fixed `waitForTimeout(1500)`.
 
-## Что измерено
+## What was measured
 
-| момент | смещение (5 замеров подряд) |
+| moment | offset (5 consecutive samples) |
 |---|---|
-| 60 с | 0 0 0 0 0 |
-| 120 с | **пусто пусто пусто** — активной строки НЕТ |
-| 180 с | 0 0 0 0 0 |
+| 60 s | 0 0 0 0 0 |
+| 120 s | **empty empty empty** — there IS no active line |
+| 180 s | 0 0 0 0 0 |
 
-Прокрутка на 60 с: 950 из 22918. На 180 с: 3845 из 22918. Строка 15 и 50 из
-286 — далеко от обоих краёв списка, так что упереться в предел прокрутки
-проверка не могла.
+Scroll at 60 s: 950 of 22918. At 180 s: 3845 of 22918. Lines 15 and 50 of 286 —
+far from either end of the list, so the check could not have been running into
+the scroll limit.
 
-**Центрирование работает идеально** — ровно 0 на обоих моментах, где активная
-строка есть. Логика в `SidebarUI.scrollActiveIntoView` считает дельту до
-середины и прокручивает список; читается корректно.
+**Centring works perfectly** — exactly 0 at both moments where an active line
+exists. The logic in `SidebarUI.scrollActiveIntoView` computes the delta to the
+middle and scrolls the list; it reads correctly.
 
-## Две отвергнутые версии
+## Two rejected explanations
 
-Обе были мои, обе не выдержали замера — записаны, чтобы никто не начал с них
-заново.
+Both were mine, both failed against measurement — recorded so that nobody starts
+from them again.
 
-1. **«Сломано центрирование».** Опровергнуто: 0 там, где мерить есть что.
-2. **«Прокрутка не осела за 1500 мс».** Опровергнуто: смещение не сходится к
-   нулю со временем, потому что мерить нечего — строки нет вовсе.
+1. **"Centring is broken."** Refuted: 0 wherever there is anything to measure.
+2. **"The scroll had not settled within 1500 ms."** Refuted: the offset does not
+   converge to zero over time, because there is nothing to measure — the line is
+   absent entirely.
 
-Обе версии объясняли бы наблюдаемое «68% и 80%», и обе были бы приняты, если
-бы замер ограничился одним снимком. Это тот же класс, что описан в
-`live-stand-teardown.md`: механизм, который МОГ БЫ дать симптом, — кандидат, а
-не находка, пока не проверено, что должно быть верно для его срабатывания.
+Both would have explained the observed "68% and 80%", and both would have been
+accepted had the measurement stopped at a single sample. This is the same class
+described in `live-stand-teardown.md`: a mechanism that COULD produce the
+symptom is a candidate, not a finding, until what must be true for it to fire
+has been checked.
 
-## Что оказалось на самом деле
+## What it actually was
 
-Замер после перемотки на 120 с, снимок каждые 500 мс:
+Sampled after seeking to 120 s, one snapshot every 500 ms:
 
 ```
-0.27@120.5  0.27@121  0.13@121.5  0.13@122  0.13@122.5  0.13@123  НЕТ  НЕТ  НЕТ
+0.27@120.5  0.27@121  0.13@121.5  0.13@122  0.13@122.5  0.13@123  NONE  NONE  NONE
 ```
 
-Смещение **0.27 первую секунду, потом оседает до 0.13**. Проверка мерила ровно
-на 1500 мс — на склоне. Воспроизведено трижды подряд ровно так, как это делает
-тест: `0.69`, `0.69`, `0.69` при пороге `0.25`.
+The offset is **0.27 for the first second, then settles to 0.13**. The check
+measured at exactly 1500 ms — on the slope. Reproduced three times in a row
+exactly the way the test does it: `0.69`, `0.69`, `0.69` against a threshold of
+`0.25`.
 
-Длительность плавной прокрутки задаёт браузер, не мы, поэтому **никакая
-константа не была бы правильной**. Правильно ждать условия.
+The duration of a smooth scroll is set by the browser, not by us, so **no
+constant would have been correct**. The right thing is to wait on a condition.
 
-## Разрыв между репликами тоже есть, и он важен по другой причине
+## The gap between cues is real too, and it matters for a different reason
 
-С 123.3 до 124.7 с активной строки действительно нет — реплики 33 и 34
-разделены паузой. На исход падения это не влияло (тест меряет на 121.5 с), но
-влияет на правку: `offset()` в разрыве возвращает `null`, и проверка не должна
-принимать это за успех. `.toBeLessThan` на `null` бросает внутри опроса, опрос
-продолжается — то есть ждёт следующей реплики, чего мы и хотим.
+From 123.3 to 124.7 s there genuinely is no active line — cues 33 and 34 are
+separated by a pause. This did not affect the failure (the test measures at
+121.5 s), but it does affect the fix: `offset()` returns `null` inside the gap,
+and the check must not take that for success. `.toBeLessThan` on `null` throws
+inside the poll, the poll continues — that is, it waits for the next cue, which
+is what we want.
 
-## Правка
+## The fix
 
-`await page.waitForTimeout(1500)` + одиночный замер заменены на опрос до
-осевшего значения (`expect.poll(...).toBeLessThan(0.25)`).
+`await page.waitForTimeout(1500)` plus a single sample were replaced with a poll
+to the settled value (`expect.poll(...).toBeLessThan(0.25)`).
 
-**Проверено красным:** порог `0.0001` роняет проверку с сообщением
-«at 60s the current line never came within 25% of the list's middle».
-Порог `0.05` проходит — на всех трёх моментах смещение оседает практически в
-ноль, так что запас у продукта пятикратный.
+**Seen red:** a threshold of `0.0001` fails the check with the message
+"at 60s the current line never came within 25% of the list's middle".
+A threshold of `0.05` passes — at all three moments the offset settles to
+practically zero, so the product has fivefold headroom.
 
-Живой прогон после правки: зелёная, 43.7 с.
+Live run after the fix: green, 43.7 s.
 
-## Чему это учит
+## What this teaches
 
-Фиксированное ожидание вместо ожидания условия — первая же ошибка, записанная
-в плане этой работы («use auto-retrying expect() throughout; never a sample
-after a sleep»). Она пережила весь план и была найдена только живым прогоном
-на слитом дереве — тем самым, который до этого ни разу не запускался.
+A fixed wait in place of waiting on a condition is the very first mistake
+written down in this work's plan ("use auto-retrying expect() throughout; never
+a sample after a sleep"). It survived the entire plan and was found only by a
+live run on the merged tree — the very run that had never been made before.
