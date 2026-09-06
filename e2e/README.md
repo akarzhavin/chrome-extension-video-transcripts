@@ -73,13 +73,71 @@ run reported success. Read the count in the log's first line against the count
 you expect, every time: a half that runs fewer tests than its file list is the
 only symptom this failure has.
 
-## Netflix
+## Netflix, and the checks that run on both platforms
 
-`e2e/netflix.spec.ts` runs only with `LINGOGRAM_NETFLIX=1`:
+Twenty-nine checks are written once and run on EVERY platform. They are not
+copies: the describe block is wrapped in `for (const site of SITES)`, and the
+check takes its page from `pageFor(site)` instead of the `page` fixture. One
+body, one set of assertions, one place to fix a bug in them.
+
+That works because the assertions were never platform-specific — `#vtt-sidebar`,
+`#vtt-list`, `#vtt-qm-guess` are this extension's own markup and read the same
+on every host. Only three things differ, and all three live in
+`e2e/fixtures/sites.ts`: how to reach a playing page, how to put the HOST's own
+chrome back (fullscreen, theatre, the advert flag), and which element goes
+fullscreen.
+
+**Adding a platform** means adding one entry to `SITES`. Every parameterised
+check then runs on it without being edited.
+
+**What deliberately stays YouTube-only**, and why each one is not laziness:
+
+| Check | Why it does not travel |
+|---|---|
+| `resetting the text appearance` | Asserts the sizes a fresh install sees ON THIS SITE (160%/110%). Per-site by design. |
+| `being offline`, `the caption stand-in` | Drive `#lingogram_http=`, read once per load from a YouTube URL. |
+| `while an advert plays`, `other player layouts` | Netflix has no advert clock and no theatre mode. |
+| the home and search pages | "Every page of the site" is a claim about YouTube's shape. |
+| `five line changes ... leave the page where it was` | Needs a document that scrolls. Netflix's player fills the window and `scrollY` stays 0, so the claim would pass against any behaviour. |
+| `throttling`, `saving`, the popup checks | Host behaviour, or no page at all. |
+
+### Two Netflix facts the fixtures encode
+
+Both were measured against the live site after a first migration attempt came
+back almost entirely red — and neither is a defect in this extension.
+
+**Writing `video.currentTime` destroys Netflix's player.** Forward or back, the
+element is removed and never returns (`videos: 1 -> 0`, permanently); `pause()`
+is fine. Netflix's own player API seeks without harm. So "play from here" is
+`Site.playFrom` — YouTube writes `currentTime`, Netflix calls its player — and
+rewinding between checks is gated on `Site.canRewind`, which is false there.
+
+This was hard to read from the outside: the cleanup destroyed the page, then
+saw no player, called the page unusable and re-opened it. Every check reported
+"the panel stayed empty", which looks exactly like a broken extension.
+
+**One stream per account.** A second concurrent Netflix tab gets "Pardon the
+interruption" (M7375) instead of a player. That is why the Netflix checks take
+the shared page rather than opening their own — a correctness requirement, not
+a saving. `Site.refusal` recognises that page by its error CODE (the wording is
+localised, the code is not) and fails with the reason spelled out.
+
+`e2e/netflix.spec.ts` plus every parameterised check runs only with
+`LINGOGRAM_NETFLIX=1`:
 
 ```bash
+# the Netflix-only checks
 LINGOGRAM_NETFLIX=1 npx playwright test e2e/netflix.spec.ts
+
+# every check that runs on both, on Netflix
+LINGOGRAM_NETFLIX=1 npx playwright test --grep Netflix
 ```
+
+Without the variable the Netflix half reports itself SKIPPED, which is the
+difference between "not checked" and "broken". **A Netflix line that says
+`passed` with the variable unset is a bug in the check, not good news** — it has
+happened once, when a multi-line `async ({ ext, page })` escaped the migration
+and kept the YouTube fixture under a Netflix name.
 
 It plays a few seconds of video on a real personal account and leaves a trace in
 that profile's viewing history, so it is opt-in rather than part of a plain run

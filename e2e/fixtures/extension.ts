@@ -16,6 +16,7 @@ import { join } from 'node:path';
 // requires every tab-opening script to go through it.
 import { openInBackground, mute } from '../../scripts/lib/cdp-background-tab.mjs';
 import { acquireClean, WATCH_URL, VIDEO_WITH_CAPTIONS } from './watch-page';
+import { DEFAULT_SITE, SITES, type Site } from './sites';
 import { readUiPrefs, writeUiPrefs } from './uiprefs';
 
 export const CDP_URL = 'http://127.0.0.1:9333';
@@ -156,13 +157,22 @@ export interface ExtensionHandle {
     reload(): Promise<void>;
     /** Video pages loaded so far. Read by the loadAudit fixture, not by checks. */
     loads: LoadCounter;
-    /** The page shared across checks that do not care how it loaded. */
+    /**
+     * The page shared across checks that do not care how it loaded, one per
+     * platform. Two platforms cannot share a tab, so they get one each; a run
+     * that never touches Netflix never opens a Netflix page.
+     */
+    sharedFor(site: Site): SharedWatch;
+    /** The YouTube page, for the checks that are not parameterised. */
     shared: SharedWatch;
 }
 
 const isYouTube = (url: string): boolean => /^https?:\/\/(www\.)?youtube\.com/.test(url);
 
-export const test = base.extend<{ page: Page; loadAudit: void }, { ext: ExtensionHandle }>({
+/** Hand a check the cleaned shared page of whichever platform it names. */
+export type PageFor = (site: Site) => Promise<Page>;
+
+export const test = base.extend<{ page: Page; pageFor: PageFor; loadAudit: void }, { ext: ExtensionHandle }>({
     /**
      * Worker-scoped, not per-check — and that is a precondition for sharing a
      * page rather than a tidiness gain. This fixture reloads the extension, and
@@ -257,7 +267,9 @@ export const test = base.extend<{ page: Page; loadAudit: void }, { ext: Extensio
         }
 
         const loads: LoadCounter = { total: 0 };
-        let sharedPage: Page | null = null;
+        // One shared page per platform, keyed by name. A run that never asks
+        // for Netflix never opens a Netflix page — the map stays empty for it.
+        const sharedPages = new Map<string, Page>();
 
         const handle: ExtensionHandle = {
             ctx,
@@ -293,20 +305,27 @@ export const test = base.extend<{ page: Page; loadAudit: void }, { ext: Extensio
                         ),
                     unpacked.id,
                 );
-                // Every open page is now orphaned, the shared one included.
-                await handle.shared.invalidate();
+                // Every open page is now orphaned, every shared one included.
+                for (const site of SITES) await handle.sharedFor(site).invalidate();
             },
-            shared: {
-                async acquire() {
-                    if (sharedPage && !sharedPage.isClosed()) return sharedPage;
-                    sharedPage = await handle.open(WATCH_URL);
-                    return sharedPage;
-                },
-                async invalidate() {
-                    const p = sharedPage;
-                    sharedPage = null;
-                    await p?.close().catch(() => {});
-                },
+            sharedFor(site) {
+                return {
+                    async acquire() {
+                        const existing = sharedPages.get(site.name);
+                        if (existing && !existing.isClosed()) return existing;
+                        const page = await site.open(handle);
+                        sharedPages.set(site.name, page);
+                        return page;
+                    },
+                    async invalidate() {
+                        const page = sharedPages.get(site.name);
+                        sharedPages.delete(site.name);
+                        await page?.close().catch(() => {});
+                    },
+                };
+            },
+            get shared() {
+                return handle.sharedFor(DEFAULT_SITE);
             },
         };
 
@@ -321,7 +340,7 @@ export const test = base.extend<{ page: Page; loadAudit: void }, { ext: Extensio
             // Our own tab first: closing the browser handle only closes the CDP
             // connection (playwright-core coreBundle.js:62352), so anything we
             // left open stays in the person's window.
-            await handle.shared.invalidate();
+            for (const site of SITES) await handle.sharedFor(site).invalidate();
             // Restore the human's browser, whether or not the check passed.
             for (const o of others) await setEnabled(o.id, true).catch(() => {});
 
@@ -380,9 +399,27 @@ export const test = base.extend<{ page: Page; loadAudit: void }, { ext: Extensio
      * It is NOT closed here: it belongs to the run, and closing it would cost
      * the next check a fresh load — the whole thing this exists to avoid.
      */
+    /**
+     * The platform-parameterised form: one check, `for (const site of SITES)`,
+     * asking here for that site's page. This is what keeps a cross-platform
+     * check ONE check rather than a copy per platform — the assertions never
+     * needed a platform, only the page did.
+     */
+    pageFor: [
+        async ({ ext }, use) => {
+            await use((site: Site) => acquireClean(ext, site));
+        },
+        {
+            scope: 'test',
+            // Same reasoning as `page` below, and the same budget: this is the
+            // same work, asked for by platform.
+            timeout: 150_000,
+        },
+    ],
+
     page: [
         async ({ ext }, use) => {
-            await use(await acquireClean(ext));
+            await use(await acquireClean(ext, DEFAULT_SITE));
         },
         {
             // Explicit, though it is also the default: this overrides a built-in

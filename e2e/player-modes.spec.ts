@@ -9,56 +9,75 @@
  * than faked and reported as if observed.
  */
 import { test, expect } from './fixtures/extension';
+import { SITES } from './fixtures/sites';
 import { waitForLines, playFrom } from './fixtures/subtitles';
 import { preservingUiPrefs } from './fixtures/uiprefs';
 
-test.describe('fullscreen', () => {
-    /**
-     * Behaviour map §12. Entering fullscreen genuinely requires a gesture in a
-     * focused window, which a background tab cannot supply — so the ENTRY is
-     * not covered here and is recorded as such.
-     *
-     * What is covered is the consequence that matters: the panel has to move
-     * inside the fullscreen element, because anything left outside it is simply
-     * not on screen. This drives the browser's own fullscreen API on the player
-     * and checks the panel followed.
-     */
-    test('the panel moves inside the fullscreen element, rather than being left behind', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            await waitForLines(page);
+/**
+ * Only fullscreen runs on every platform, and it names the host's player
+ * through `site.playerSelector` rather than writing `#movie_player` in.
+ *
+ * The other two stay YouTube-only and are meant to: the advert clock is a
+ * YouTube behaviour with no Netflix equivalent, and theatre mode is a YouTube
+ * view that Netflix does not have. Those are different products, not one
+ * product on two sites.
+ */
 
-            const entered = await page.evaluate(async () => {
-                const player = document.getElementById('movie_player');
-                if (!player) return false;
-                try {
-                    await player.requestFullscreen();
-                    return !!document.fullscreenElement;
-                } catch {
-                    return false; // no gesture — expected in a background tab
-                }
+for (const site of SITES) {
+    test.describe(`${site.name}: fullscreen`, () => {
+        /**
+         * Behaviour map §12. Entering fullscreen genuinely requires a gesture in a
+         * focused window, which a background tab cannot supply — so the ENTRY is
+         * not covered here and is recorded as such.
+         *
+         * What is covered is the consequence that matters: the panel has to move
+         * inside the fullscreen element, because anything left outside it is simply
+         * not on screen. This drives the browser's own fullscreen API on the player
+         * and checks the panel followed.
+         */
+        test('the panel moves inside the fullscreen element, rather than being left behind', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
+
+            await preservingUiPrefs(ext, async () => {
+                await waitForLines(page);
+
+                // The player container is the ONE thing here that belongs to the
+                // host, so it is named by the site rather than written in.
+                const entered = await page.evaluate(async (selector) => {
+                    const player = document.querySelector(selector);
+                    if (!player) return false;
+                    try {
+                        await player.requestFullscreen();
+                        return !!document.fullscreenElement;
+                    } catch {
+                        return false; // no gesture — expected in a background tab
+                    }
+                }, site.playerSelector);
+
+                test.skip(
+                    !entered,
+                    'fullscreen needs a real gesture in a focused window; a background tab cannot give one',
+                );
+
+                await expect
+                    .poll(
+                        () =>
+                            page.evaluate(() => {
+                                const sb = document.getElementById('vtt-sidebar');
+                                const fs = document.fullscreenElement;
+                                return !!sb && !!fs && fs.contains(sb);
+                            }),
+                        { timeout: 20_000 },
+                    )
+                    .toBe(true);
+
+                await page.evaluate(() => document.exitFullscreen?.());
             });
-
-            test.skip(
-                !entered,
-                'fullscreen needs a real gesture in a focused window; a background tab cannot give one',
-            );
-
-            await expect
-                .poll(
-                    () =>
-                        page.evaluate(() => {
-                            const sb = document.getElementById('vtt-sidebar');
-                            const fs = document.fullscreenElement;
-                            return !!sb && !!fs && fs.contains(sb);
-                        }),
-                    { timeout: 20_000 },
-                )
-                .toBe(true);
-
-            await page.evaluate(() => document.exitFullscreen?.());
         });
     });
-});
+}
 
 test.describe('while an advert plays', () => {
     /**

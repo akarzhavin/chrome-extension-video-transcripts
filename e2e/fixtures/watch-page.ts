@@ -1,5 +1,6 @@
 /**
- * One video page, shared across the checks that do not care how it loaded.
+ * One video page per platform, shared across the checks that do not care how it
+ * loaded.
  *
  * The suite used to open a page per check — around 66 loads per run against a
  * real person's account. Most of them re-loaded the same video to look at a
@@ -16,25 +17,21 @@
  *    `normalise` puts the page back to one canonical state, and `acquireClean`
  *    then ASSERTS that state before handing the page over. A cleanup nobody
  *    verifies is indistinguishable from no cleanup at all.
+ *
+ * ## What is platform-specific here, and what is not
+ *
+ * Almost nothing. The panel, its screens, the transcript and the reading
+ * surface are this extension's own markup and are cleaned identically on every
+ * host. Only the HOST's chrome differs — theatre mode and the advert flag exist
+ * on YouTube and not on Netflix — and that lives behind `Site` rather than in
+ * this file. See fixtures/sites.ts.
  */
 import { expect, type Page } from '@playwright/test';
 import type { ExtensionHandle } from './extension';
 import { waitForLines } from './subtitles';
+import { DEFAULT_SITE, VIDEO_WITH_CAPTIONS, WATCH_URL, type Site } from './sites';
 
-/**
- * A video whose captions are checked at the moment of use, never trusted from a
- * documented id: a video documented in this repo as reliably caption-free had
- * gained captions by the time it was checked.
- *
- * Declared HERE rather than in extension.ts, which re-exports it. The two
- * modules import each other, and a value read at module-evaluation time from
- * the far side of a cycle is `undefined` — which produced a shared page at
- * `?v=undefined` that then failed every usability check. Nothing in this file
- * reads a value from extension.ts at load time any more; only a type.
- */
-export const VIDEO_WITH_CAPTIONS = 'aircAruvnKk';
-
-export const WATCH_URL = `https://www.youtube.com/watch?v=${VIDEO_WITH_CAPTIONS}`;
+export { VIDEO_WITH_CAPTIONS, WATCH_URL };
 
 /**
  * The state a check may assume, written out as a literal.
@@ -50,10 +47,16 @@ export const WATCH_URL = `https://www.youtube.com/watch?v=${VIDEO_WITH_CAPTIONS}
  *  - the reading mode, which belongs to whoever is running the suite and is not
  *    normalised (a check needing a specific mode establishes it);
  *  - the transcript's own scroll position, which releasing the freeze moves on
- *    purpose.
+ *    purpose;
+ *  - the playback POSITION, which only some hosts allow resetting. Netflix
+ *    destroys its player when seeked to 0, so `atStart` is contributed by
+ *    `Site.cleanExtras` where it is achievable rather than demanded of every
+ *    host. See `canRewind` in sites.ts.
+ *
+ * `watch` is not here either — whether the address is still the right one is
+ * the host's own question, answered by `Site.isOurPage` before this is read.
  */
 export const CLEAN = {
-    watch: true,
     sidebar: true,
     collapsed: false,
     settingsOpen: false,
@@ -65,26 +68,23 @@ export const CLEAN = {
     onboarding: false,
     hasLines: true,
     fullscreen: false,
-    adShowing: false,
-    theatre: false,
     adjusting: false,
     scrollY: 0,
     paused: true,
-    atStart: true,
     selection: 0,
 } as const;
 
-export type PageState = { [K in keyof typeof CLEAN]: (typeof CLEAN)[K] | unknown };
+export type PageState = Record<string, unknown>;
+
+/** The clean state for one platform: the shared literal plus its own fields. */
+export const cleanFor = (site: Site): PageState => ({ ...CLEAN, ...site.cleanExtras() });
 
 /** Read the same shape off the live page. */
-export async function pageState(page: Page): Promise<PageState> {
-    return page.evaluate((video) => {
+export async function pageState(page: Page, site: Site = DEFAULT_SITE): Promise<PageState> {
+    const shared = await page.evaluate(() => {
         const sidebar = document.getElementById('vtt-sidebar');
         const v = document.querySelector('video');
-        const player = document.getElementById('movie_player');
-        const flexy = document.querySelector('ytd-watch-flexy');
         return {
-            watch: location.pathname === '/watch' && location.search.includes(`v=${video}`),
             sidebar: !!sidebar,
             collapsed: sidebar?.classList.contains('collapsed') ?? null,
             settingsOpen: document.getElementById('vtt-settings-panel')?.classList.contains('open') ?? false,
@@ -96,15 +96,14 @@ export async function pageState(page: Page): Promise<PageState> {
             onboarding: !!document.getElementById('vtt-lang-onboarding'),
             hasLines: document.querySelectorAll('#vtt-list .vtt-item').length > 0,
             fullscreen: !!document.fullscreenElement,
-            adShowing: player?.classList.contains('ad-showing') ?? false,
-            theatre: flexy?.hasAttribute('theater') ?? false,
-            adjusting: document.getElementById('vtt-video-overlay')?.classList.contains('vtt-overlay-adjusting') ?? false,
+            adjusting:
+                document.getElementById('vtt-video-overlay')?.classList.contains('vtt-overlay-adjusting') ?? false,
             scrollY: Math.round(window.scrollY),
             paused: v?.paused ?? null,
-            atStart: (v?.currentTime ?? 0) < 1,
             selection: window.getSelection()?.rangeCount ?? 0,
         };
-    }, VIDEO_WITH_CAPTIONS);
+    });
+    return { ...shared, ...(await site.readExtras(page)) };
 }
 
 /**
@@ -128,13 +127,15 @@ export async function pageState(page: Page): Promise<PageState> {
  * resumes a video the card paused (strip.ts:248), and none of that happens if
  * the element is simply removed.
  */
-export async function normalise(page: Page): Promise<void> {
-    // 1-3: player chrome. Fullscreen and theatre are the person's own view,
-    // and two checks leave them behind when they fail part-way.
+export async function normalise(page: Page, site: Site = DEFAULT_SITE): Promise<void> {
+    // 1-3: the HOST's chrome — fullscreen everywhere, theatre and the advert
+    // flag only where they exist. Two checks leave them behind when they fail
+    // part-way. The theatre half runs LAST inside resetPlayerChrome for
+    // YouTube's own reason; see sites.ts.
     await page.evaluate(() => {
         if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
-        document.getElementById('movie_player')?.classList.remove('ad-showing');
     });
+
     // 4-5: the lookup card and the account panel. One press dismisses both —
     // they listen for the same outside mousedown.
     await page.evaluate(() => {
@@ -172,59 +173,61 @@ export async function normalise(page: Page): Promise<void> {
         .toBe(true);
     await waitForLines(page);
 
-    // Theatre and playback go LAST, once the page has settled.
+    // The host's player view and playback go LAST, once the page has settled.
     //
     // Both were originally done first and both failed there, for the same
     // reason: the page had not finished applying its own state yet. Theatre is
     // a preference YouTube restores a moment after load, so a check for it on
     // arrival finds nothing and the click never happens; playback is started by
-    // autoplay, so a pause on arrival is undone seconds later. Measured: the
-    // page reports `theater` present at 8s, and clicking `.ytp-size-button`
-    // clears it within 2.5s.
-    if (await page.evaluate(() => document.querySelector('ytd-watch-flexy')?.hasAttribute('theater') ?? false)) {
-        await page.evaluate(() => (document.querySelector('.ytp-size-button') as HTMLElement | null)?.click());
-        await expect
-            .poll(() => page.evaluate(() => document.querySelector('ytd-watch-flexy')?.hasAttribute('theater')), {
-                timeout: 15_000,
-                message: 'the player stayed in theatre view',
-            })
-            .toBe(false);
-    }
+    // autoplay, so a pause on arrival is undone seconds later.
+    await site.resetPlayerChrome(page);
 
-    // Pause and rewind, then hold it: autoplay restarts the video, so this
-    // polls until the pause sticks rather than issuing it once.
+    // Pause, and hold it: autoplay restarts the video, so this polls until the
+    // pause sticks rather than issuing it once.
+    //
+    // Rewinding is asked of the host rather than done unconditionally. On
+    // Netflix `currentTime = 0` tears the <video> element out of the page for
+    // good — measured, videos: 1 -> 0 and never back — so the cleanup meant to
+    // tidy the page was destroying it, and every later check on that page then
+    // failed reading a player that no longer existed.
     await expect
         .poll(
             async () => {
-                await page.evaluate(() => {
+                await page.evaluate((rewind) => {
                     const v = document.querySelector('video');
                     if (!v) return;
                     v.pause();
-                    if (v.currentTime >= 1) v.currentTime = 0;
-                });
-                return page.evaluate(() => {
-                    const v = document.querySelector('video');
-                    return { paused: v?.paused ?? null, atStart: (v?.currentTime ?? 0) < 1 };
-                });
+                    if (rewind && v.currentTime >= 1) v.currentTime = 0;
+                }, site.canRewind);
+                return page.evaluate(
+                    (rewind) => {
+                        const v = document.querySelector('video');
+                        return {
+                            paused: v?.paused ?? null,
+                            ...(rewind ? { atStart: (v?.currentTime ?? 0) < 1 } : {}),
+                        };
+                    },
+                    site.canRewind,
+                );
             },
-            { timeout: 20_000, message: 'the video would not stay paused at the start' },
+            { timeout: 20_000, message: 'the video would not stay paused' },
         )
-        .toEqual({ paused: true, atStart: true });
+        .toEqual(site.canRewind ? { paused: true, atStart: true } : { paused: true });
 }
 
 /**
- * The shared page, cleaned and verified, or a fresh one.
+ * The shared page for one platform, cleaned and verified, or a fresh one.
  *
  * Polls rather than samples: a previous check's preference restore reaches the
  * page through chrome.storage.onChanged and lands asynchronously, so a single
  * reading can catch the page mid-flight. Sampling after a fixed wait is the
  * mistake this suite has made twice already.
  */
-export async function acquireClean(ext: ExtensionHandle): Promise<Page> {
+export async function acquireClean(ext: ExtensionHandle, site: Site = DEFAULT_SITE): Promise<Page> {
     let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= 2; attempt++) {
-        const page = await ext.shared.acquire();
+        const page = await ext.sharedFor(site).acquire();
 
         // Still the page we think it is? A check that navigated elsewhere, or a
         // reload of the extension that orphaned the content script, both land
@@ -234,31 +237,28 @@ export async function acquireClean(ext: ExtensionHandle): Promise<Page> {
         // moment ago has not been injected into yet, and reading once would
         // call a perfectly good page unusable, throw it away, open another, and
         // read that one too early as well — the failure this cost a run to
-        // find. Both branches out of the wait are meaningful: the panel arrives
-        // (usable), or it does not within the budget (genuinely orphaned).
-        const usable = await page
-            .waitForFunction(
-                (video) =>
-                    location.search.includes(`v=${video}`) && !!document.getElementById('vtt-sidebar'),
-                VIDEO_WITH_CAPTIONS,
-                { timeout: 60_000, polling: 250 },
-            )
-            .then(() => true)
-            .catch(() => false);
-        if (!usable) {
-            await ext.shared.invalidate();
+        // find.
+        if (!(await site.isOurPage(page))) {
+            // Before calling this a bad page: did the HOST say why? Netflix
+            // answers a second concurrent stream with an error page rather
+            // than a player, and re-opening cannot fix that — it causes it.
+            // Fail with the host's own reason instead of retrying into it.
+            const refusal = await site.refusal(page);
+            if (refusal) throw new Error(refusal);
+
+            await ext.sharedFor(site).invalidate();
             continue;
         }
 
         try {
-            await normalise(page);
+            await normalise(page, site);
             await expect
-                .poll(() => pageState(page), { timeout: 20_000 })
-                .toEqual(CLEAN);
+                .poll(() => pageState(page, site), { timeout: 20_000 })
+                .toEqual(cleanFor(site));
             return page;
         } catch (error) {
             lastError = error;
-            await ext.shared.invalidate();
+            await ext.sharedFor(site).invalidate();
         }
     }
 
@@ -266,7 +266,7 @@ export async function acquireClean(ext: ExtensionHandle): Promise<Page> {
     // broken cleanup, a broken product, or a browser that stopped answering —
     // and saying which fields differ is what makes that answerable.
     throw new Error(
-        `The shared watch page could not be normalised, twice running.\n` +
+        `The shared ${site.name} page could not be normalised, twice running.\n` +
             `This is not a check's leftovers: a fresh page was loaded and failed the same way.\n\n${String(lastError)}`,
     );
 }

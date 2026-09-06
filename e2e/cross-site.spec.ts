@@ -27,12 +27,15 @@ for (const site of SITES) {
         // transcript rendering.
         test.setTimeout(240_000);
 
-        test('the panel opens and fills with subtitles', async ({ ext }) => {
+        test('the panel opens and fills with subtitles', async ({ pageFor }) => {
             const reason = site.skipReason();
             test.skip(reason !== null, reason ?? '');
 
-            const page = await site.open(ext);
-            try {
+            // The shared page for THIS platform, cleaned and verified. It is
+            // not closed afterwards: it belongs to the run, and closing it
+            // would cost the next check on this platform a fresh load.
+            const page = await pageFor(site);
+            {
                 await expect
                     .poll(() => page.evaluate(() => !!document.getElementById('vtt-sidebar')), {
                         timeout: 90_000,
@@ -63,8 +66,6 @@ for (const site of SITES) {
                             .filter((t) => t.length > 0).length,
                 );
                 expect(withText, `${site.name}: every line was empty`).toBeGreaterThan(0);
-            } finally {
-                await page.close().catch(() => {});
             }
         });
     });

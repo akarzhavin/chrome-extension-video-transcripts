@@ -4,6 +4,7 @@
  * working code, so it is banned here rather than discouraged.
  */
 import type { Page } from '@playwright/test';
+import { DEFAULT_SITE, type Site } from './sites';
 
 /** Lines are present in the transcript. */
 export async function waitForLines(page: Page, timeout = 90_000): Promise<number> {
@@ -20,15 +21,15 @@ export async function waitForLines(page: Page, timeout = 90_000): Promise<number
  * A background tab does not autoplay, so a check that merely waits for a
  * highlight reads zero against a perfectly working product. Measured: with
  * playback driven explicitly, exactly one line is highlighted.
+ *
+ * HOW to seek belongs to the host, not here. Writing `video.currentTime` works
+ * on YouTube and destroys the player on Netflix — measured, the element is
+ * removed and never comes back — so the gesture is delegated to `Site`. The
+ * default keeps the YouTube behaviour for the checks that are not
+ * parameterised over platforms.
  */
-export async function playFrom(page: Page, seconds: number): Promise<void> {
-    await page.evaluate((t) => {
-        const v = document.querySelector('video') as HTMLVideoElement | null;
-        if (!v) throw new Error('no video element on the page');
-        v.muted = true;
-        v.currentTime = t;
-        void v.play();
-    }, seconds);
+export async function playFrom(page: Page, seconds: number, site: Site = DEFAULT_SITE): Promise<void> {
+    await site.playFrom(page, seconds);
 }
 
 /** The banner's terminal state — never its mere existence. */

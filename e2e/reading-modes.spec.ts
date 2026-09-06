@@ -7,8 +7,21 @@
  * their own preferences back, including when the check fails.
  */
 import { test, expect } from './fixtures/extension';
+import { SITES } from './fixtures/sites';
 import { waitForLines, playFrom } from './fixtures/subtitles';
 import { preservingUiPrefs, readUiPrefs, writeUiPrefs } from './fixtures/uiprefs';
+
+/**
+ * Most of this file is about the panel, not about the host, so it runs on every
+ * platform rather than only on YouTube. One check, parameterised — NOT a copy
+ * per site: the assertions are against `#vtt-qm-*` and `.vtt-masked-word`,
+ * which are this extension's own markup and identical everywhere. See
+ * fixtures/sites.ts.
+ *
+ * The one check that stays YouTube-only is the single-language one below: it
+ * needs a specific video known to carry one caption track, which is a fact
+ * about YouTube's catalogue rather than about us.
+ */
 
 const modeState = () => ({
     single: document.getElementById('vtt-qm-single')?.classList.contains('active') ?? null,
@@ -99,227 +112,253 @@ test.describe('reading modes', () => {
     });
 });
 
-test.describe('the side panel', () => {
-    /**
-     * Behaviour map §5. The class and the state announced to assistive
-     * technology must move together — one changing without the other is a real
-     * defect, and asserting only the visible half would miss it.
-     */
-    test('collapsing the panel changes both what is seen and what is announced', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            // Start from a KNOWN state. Reading `collapsed: false` as a given
-            // made the outcome depend on whose profile ran it: expanded and it
-            // passed, collapsed and it failed, and neither said anything about
-            // the product.
-            await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+for (const site of SITES) {
+    test.describe(`${site.name}: the side panel`, () => {
+        /**
+         * Behaviour map §5. The class and the state announced to assistive
+         * technology must move together — one changing without the other is a real
+         * defect, and asserting only the visible half would miss it.
+         */
+        test('collapsing the panel changes both what is seen and what is announced', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
 
-            await waitForLines(page);
+            await preservingUiPrefs(ext, async () => {
+                // Start from a KNOWN state. Reading `collapsed: false` as a given
+                // made the outcome depend on whose profile ran it: expanded and it
+                // passed, collapsed and it failed, and neither said anything about
+                // the product.
+                await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
 
-            const read = () =>
-                page.evaluate(() => ({
-                    collapsed: document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
-                    announced: document.getElementById('vtt-toggle-btn')?.getAttribute('aria-expanded'),
-                }));
+                await waitForLines(page);
 
-            // The write above now lands on an already-open page and reaches the
-            // panel through chrome.storage.onChanged, so the starting state is
-            // reached asynchronously rather than at load. Same assertion, given
-            // the moment it needs.
-            await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: false, announced: 'true' });
+                const read = () =>
+                    page.evaluate(() => ({
+                        collapsed: document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
+                        announced: document.getElementById('vtt-toggle-btn')?.getAttribute('aria-expanded'),
+                    }));
 
-            await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
-            await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: true, announced: 'false' });
+                // The write above now lands on an already-open page and reaches the
+                // panel through chrome.storage.onChanged, so the starting state is
+                // reached asynchronously rather than at load. Same assertion, given
+                // the moment it needs.
+                await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: false, announced: 'true' });
 
-            await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
-            await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: false, announced: 'true' });
+                await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
+                await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: true, announced: 'false' });
+
+                await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
+                await expect.poll(read, { timeout: 20_000 }).toEqual({ collapsed: false, announced: 'true' });
+            });
+        });
+
+        /** The choice is remembered — closing the panel is not undone by a reload. */
+        test('the collapsed choice survives a reload', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
+
+            await preservingUiPrefs(ext, async () => {
+                // The single click below only collapses the panel if it started
+                // expanded. Without setting that, the check asserted `collapsed`
+                // after a click that may have EXPANDED an already-collapsed panel.
+                await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+
+                await waitForLines(page);
+
+                // The starting state the click depends on, named rather than assumed.
+                // The write above reaches an already-open panel through
+                // chrome.storage.onChanged, so it is waited for rather than read once.
+                await expect
+                    .poll(
+                        () =>
+                            page.evaluate(
+                                () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
+                            ),
+                        { timeout: 20_000, message: 'the panel must start expanded for one click to collapse it' },
+                    )
+                    .toBe(false);
+
+                await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
+                await expect
+                    .poll(
+                        () =>
+                            page.evaluate(
+                                () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
+                            ),
+                        { timeout: 20_000 },
+                    )
+                    .toBe(true);
+
+                await page.reload({ waitUntil: 'domcontentloaded' });
+
+                await expect
+                    .poll(
+                        () =>
+                            page.evaluate(
+                                () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
+                            ),
+                        { timeout: 60_000 },
+                    )
+                    .toBe(true);
+            });
         });
     });
+}
 
-    /** The choice is remembered — closing the panel is not undone by a reload. */
-    test('the collapsed choice survives a reload', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            // The single click below only collapses the panel if it started
-            // expanded. Without setting that, the check asserted `collapsed`
-            // after a click that may have EXPANDED an already-collapsed panel.
-            await writeUiPrefs(ext, { ...((await readUiPrefs(ext)) as object | null), sidebarCollapsed: false });
+for (const site of SITES) {
+    test.describe(`${site.name}: keyboard shortcuts`, () => {
+        /**
+         * Behaviour map §8. A shortcut that stops working says nothing — the button
+         * still works, so nobody reports it. The assertion is that the key produces
+         * the same state the button does.
+         */
+        test('the practice-mode shortcut does what its button does', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
 
-            await waitForLines(page);
+            await preservingUiPrefs(ext, async () => {
+                await waitForLines(page);
 
-            // The starting state the click depends on, named rather than assumed.
-            // The write above reaches an already-open panel through
-            // chrome.storage.onChanged, so it is waited for rather than read once.
-            await expect
-                .poll(
-                    () =>
-                        page.evaluate(
-                            () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
-                        ),
-                    { timeout: 20_000, message: 'the panel must start expanded for one click to collapse it' },
-                )
-                .toBe(false);
+                // Establish what the BUTTON produces, and read the effect —
+                // hidden words — rather than the control's own styling. The
+                // effect is what a reader experiences; the styling is one
+                // implementation of showing it.
+                await page.evaluate(() => document.getElementById('vtt-qm-guess')?.click());
+                await expect
+                    .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
+                        timeout: 30_000,
+                    })
+                    .toBeGreaterThan(0);
 
-            await page.evaluate(() => document.getElementById('vtt-toggle-btn')?.click());
-            await expect
-                .poll(
-                    () =>
-                        page.evaluate(
-                            () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
-                        ),
-                    { timeout: 20_000 },
-                )
-                .toBe(true);
+                // Leave practice mode the same way, and wait for it to be gone
+                // before pressing the key. An earlier draft asserted on the
+                // button's active class instead and was flaky, because the
+                // class and the rendered words settle at different moments.
+                await page.evaluate(() => document.getElementById('vtt-qm-dual')?.click());
+                await expect
+                    .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
+                        timeout: 30_000,
+                    })
+                    .toBe(0);
 
-            await page.reload({ waitUntil: 'domcontentloaded' });
-
-            await expect
-                .poll(
-                    () =>
-                        page.evaluate(
-                            () => document.getElementById('vtt-sidebar')?.classList.contains('collapsed') ?? null,
-                        ),
-                    { timeout: 60_000 },
-                )
-                .toBe(true);
-        });
-    });
-});
-
-test.describe('keyboard shortcuts', () => {
-    /**
-     * Behaviour map §8. A shortcut that stops working says nothing — the button
-     * still works, so nobody reports it. The assertion is that the key produces
-     * the same state the button does.
-     */
-    test('the practice-mode shortcut does what its button does', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            await waitForLines(page);
-
-            // Establish what the BUTTON produces, and read the effect —
-            // hidden words — rather than the control's own styling. The
-            // effect is what a reader experiences; the styling is one
-            // implementation of showing it.
-            await page.evaluate(() => document.getElementById('vtt-qm-guess')?.click());
-            await expect
-                .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
-                    timeout: 30_000,
-                })
-                .toBeGreaterThan(0);
-
-            // Leave practice mode the same way, and wait for it to be gone
-            // before pressing the key. An earlier draft asserted on the
-            // button's active class instead and was flaky, because the
-            // class and the rendered words settle at different moments.
-            await page.evaluate(() => document.getElementById('vtt-qm-dual')?.click());
-            await expect
-                .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
-                    timeout: 30_000,
-                })
-                .toBe(0);
-
-            // The same effect, reached by the key.
-            await page.evaluate(() => document.body.focus());
-            await page.keyboard.down('Shift');
-            await page.keyboard.press('KeyG');
-            await page.keyboard.up('Shift');
-
-            await expect
-                .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
-                    timeout: 30_000,
-                })
-                .toBeGreaterThan(0);
-        });
-    });
-});
-
-test.describe('the other two shortcuts', () => {
-    /**
-     * Behaviour map §8.3. Shift+D and Shift+O are advertised in the tooltips
-     * of their buttons and nowhere else, so one that stopped working would go
-     * unreported: the button still does the job, and nobody who never presses
-     * the key would notice.
-     *
-     * Follows the pattern of the practice-mode check above — the key must
-     * produce the same state the button produces, and produce it back again.
-     */
-    test('the two-language shortcut does what its button does', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            await waitForLines(page);
-
-            const dual = () =>
-                page.evaluate(
-                    () => document.getElementById('vtt-qm-dual')?.classList.contains('active') ?? null,
-                );
-
-            const pressDual = async () => {
+                // The same effect, reached by the key.
                 await page.evaluate(() => document.body.focus());
                 await page.keyboard.down('Shift');
-                await page.keyboard.press('KeyD');
+                await page.keyboard.press('KeyG');
                 await page.keyboard.up('Shift');
-            };
 
-            // Establish what the BUTTON produces, from a known start: dual
-            // is a toggle, so a blind press would assert against whichever
-            // mode the person left the panel in.
-            await page.evaluate(() => {
-                const btn = document.getElementById('vtt-qm-dual');
-                if (btn?.classList.contains('active')) document.getElementById('vtt-qm-single')?.click();
+                await expect
+                    .poll(() => page.evaluate(() => document.querySelectorAll('.vtt-masked-word').length), {
+                        timeout: 30_000,
+                    })
+                    .toBeGreaterThan(0);
             });
-            await expect.poll(dual, { timeout: 30_000 }).toBe(false);
-
-            await page.evaluate(() => document.getElementById('vtt-qm-dual')?.click());
-            await expect.poll(dual, { timeout: 30_000 }).toBe(true);
-
-            // Leave it again, and reach the same state with the key.
-            await page.evaluate(() => document.getElementById('vtt-qm-single')?.click());
-            await expect.poll(dual, { timeout: 30_000 }).toBe(false);
-
-            await pressDual();
-            await expect.poll(dual, { timeout: 30_000 }).toBe(true);
-
-            // And back — a shortcut that only switches one way is half a
-            // shortcut, and §8 says both of these toggle.
-            await pressDual();
-            await expect.poll(dual, { timeout: 30_000 }).toBe(false);
         });
     });
+}
 
-    /**
-     * §8.3 again, for the on-screen captions. Read through the captions
-     * themselves rather than the switch's styling: the control exists for the
-     * captions, and a check on the class alone would pass against a toggle
-     * that flips its own appearance and nothing else.
-     */
-    test('the on-screen shortcut does what its button does', async ({ ext, page }) => {
-        await preservingUiPrefs(ext, async () => {
-            await waitForLines(page);
-            await playFrom(page, 30);
+for (const site of SITES) {
+    test.describe(`${site.name}: the other two shortcuts`, () => {
+        /**
+         * Behaviour map §8.3. Shift+D and Shift+O are advertised in the tooltips
+         * of their buttons and nowhere else, so one that stopped working would go
+         * unreported: the button still does the job, and nobody who never presses
+         * the key would notice.
+         *
+         * Follows the pattern of the practice-mode check above — the key must
+         * produce the same state the button produces, and produce it back again.
+         */
+        test('the two-language shortcut does what its button does', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
 
-            const captions = () =>
-                page.evaluate(() => {
-                    const o = document.getElementById('vtt-video-overlay');
-                    if (!o) return false;
-                    return o.getClientRects().length > 0 && (o.textContent ?? '').trim().length > 0;
+            await preservingUiPrefs(ext, async () => {
+                await waitForLines(page);
+
+                const dual = () =>
+                    page.evaluate(
+                        () => document.getElementById('vtt-qm-dual')?.classList.contains('active') ?? null,
+                    );
+
+                const pressDual = async () => {
+                    await page.evaluate(() => document.body.focus());
+                    await page.keyboard.down('Shift');
+                    await page.keyboard.press('KeyD');
+                    await page.keyboard.up('Shift');
+                };
+
+                // Establish what the BUTTON produces, from a known start: dual
+                // is a toggle, so a blind press would assert against whichever
+                // mode the person left the panel in.
+                await page.evaluate(() => {
+                    const btn = document.getElementById('vtt-qm-dual');
+                    if (btn?.classList.contains('active')) document.getElementById('vtt-qm-single')?.click();
                 });
+                await expect.poll(dual, { timeout: 30_000 }).toBe(false);
 
-            // Start from captions on, whatever the person had.
-            await page.evaluate(() => {
-                const btn = document.getElementById('vtt-qm-overlay');
-                if (btn && !btn.classList.contains('active')) btn.click();
+                await page.evaluate(() => document.getElementById('vtt-qm-dual')?.click());
+                await expect.poll(dual, { timeout: 30_000 }).toBe(true);
+
+                // Leave it again, and reach the same state with the key.
+                await page.evaluate(() => document.getElementById('vtt-qm-single')?.click());
+                await expect.poll(dual, { timeout: 30_000 }).toBe(false);
+
+                await pressDual();
+                await expect.poll(dual, { timeout: 30_000 }).toBe(true);
+
+                // And back — a shortcut that only switches one way is half a
+                // shortcut, and §8 says both of these toggle.
+                await pressDual();
+                await expect.poll(dual, { timeout: 30_000 }).toBe(false);
             });
-            await expect.poll(captions, { timeout: 60_000 }).toBe(true);
+        });
 
-            const pressOverlay = async () => {
-                await page.evaluate(() => document.body.focus());
-                await page.keyboard.down('Shift');
-                await page.keyboard.press('KeyO');
-                await page.keyboard.up('Shift');
-            };
+        /**
+         * §8.3 again, for the on-screen captions. Read through the captions
+         * themselves rather than the switch's styling: the control exists for the
+         * captions, and a check on the class alone would pass against a toggle
+         * that flips its own appearance and nothing else.
+         */
+        test('the on-screen shortcut does what its button does', async ({ ext, pageFor }) => {
+            const reason = site.skipReason();
+            test.skip(reason !== null, reason ?? '');
+            const page = await pageFor(site);
 
-            await pressOverlay();
-            await expect.poll(captions, { timeout: 45_000 }).toBe(false);
+            await preservingUiPrefs(ext, async () => {
+                await waitForLines(page);
+                await playFrom(page, 30, site);
 
-            await pressOverlay();
-            await expect.poll(captions, { timeout: 45_000 }).toBe(true);
+                const captions = () =>
+                    page.evaluate(() => {
+                        const o = document.getElementById('vtt-video-overlay');
+                        if (!o) return false;
+                        return o.getClientRects().length > 0 && (o.textContent ?? '').trim().length > 0;
+                    });
+
+                // Start from captions on, whatever the person had.
+                await page.evaluate(() => {
+                    const btn = document.getElementById('vtt-qm-overlay');
+                    if (btn && !btn.classList.contains('active')) btn.click();
+                });
+                await expect.poll(captions, { timeout: 60_000 }).toBe(true);
+
+                const pressOverlay = async () => {
+                    await page.evaluate(() => document.body.focus());
+                    await page.keyboard.down('Shift');
+                    await page.keyboard.press('KeyO');
+                    await page.keyboard.up('Shift');
+                };
+
+                await pressOverlay();
+                await expect.poll(captions, { timeout: 45_000 }).toBe(false);
+
+                await pressOverlay();
+                await expect.poll(captions, { timeout: 45_000 }).toBe(true);
+            });
         });
     });
-});
+}

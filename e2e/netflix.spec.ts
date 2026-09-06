@@ -9,11 +9,21 @@
  *
  * ## Nothing about the account is in this file
  *
- * No credentials, no profile name, no title id. The run uses the browser's
- * existing Netflix session (the same way the YouTube checks use its YouTube
- * one), picks the FIRST profile by position, and takes whatever title the home
- * page happens to offer first. So this file is safe in a public repository and
- * stays correct for anyone else's account.
+ * No credentials, no profile name, no title id. Reaching a playing page is
+ * `SITES`' job (see fixtures/sites.ts): it uses the browser's existing Netflix
+ * session the way the YouTube checks use its YouTube one, picks the FIRST
+ * profile by position, and takes whatever title the home page offers first. So
+ * this file is safe in a public repository and stays correct for anyone else's
+ * account.
+ *
+ * ## One tab, not one per check
+ *
+ * These take the SHARED Netflix page rather than opening their own, and that
+ * is a correctness requirement rather than a saving. Netflix allows one stream
+ * per account at a time: a second concurrent tab is answered with "Pardon the
+ * interruption" (M7375) instead of a player, and every check on it then fails
+ * saying the panel stayed empty. `Site.refusal` recognises that page and says
+ * so plainly, but the fix is not to open the second tab at all.
  *
  * ## Why it is opt-in
  *
@@ -23,59 +33,10 @@
  * itself skipped otherwise.
  */
 import { test, expect } from './fixtures/extension';
+import { SITES } from './fixtures/sites';
 
-const OPTED_IN = process.env.LINGOGRAM_NETFLIX === '1';
-
-/** Netflix's home page, past the profile chooser. */
-async function netflixHome(ext: Parameters<typeof openTitle>[0]) {
-    const page = await ext.open('https://www.netflix.com/browse');
-
-    // The profile gate stands in front of the home page. Pick the first entry
-    // BY POSITION: naming one would put a personal profile in a public repo,
-    // and position is what the site itself defaults to.
-    await page.waitForTimeout(4_000);
-    await page.evaluate(() => {
-        const el = document.querySelector(
-            '.profile-link, [data-uia="profile-link"], a[href*="switchProfile"]',
-        );
-        (el instanceof HTMLElement ? el : (el?.querySelector('a,div') as HTMLElement | null))?.click();
-    });
-
-    // Cards carry their id in a browse link (`/browse?jbv=<id>`); the /watch
-    // href only appears on hover, so the id is read from the card instead.
-    await expect
-        .poll(
-            () =>
-                page.evaluate(
-                    () =>
-                        [...document.querySelectorAll('a[href]')].filter((a) =>
-                            /jbv=\d{6,}/.test(a.getAttribute('href') ?? ''),
-                        ).length,
-                ),
-            { timeout: 60_000, message: 'the Netflix home page never listed a title' },
-        )
-        .toBeGreaterThan(0);
-
-    return page;
-}
-
-type Ext = Parameters<typeof netflixHome>[0];
-
-/** Open the first title the account is offered. Its id is never written down. */
-async function openTitle(ext: Ext) {
-    const home = await netflixHome(ext);
-    const id = await home.evaluate(
-        () =>
-            [...document.querySelectorAll('a[href]')]
-                .map((a) => (a.getAttribute('href') ?? '').match(/jbv=(\d{6,})/)?.[1])
-                .find(Boolean) ?? null,
-    );
-    await home.close().catch(() => {});
-    expect(id, 'no title id on the Netflix home page').toBeTruthy();
-
-    const page = await ext.open(`https://www.netflix.com/watch/${id}`);
-    return page;
-}
+const NETFLIX = SITES.find((s) => s.name === 'Netflix')!;
+const OPTED_IN = NETFLIX.skipReason() === null;
 
 test.describe('Netflix, against the real site', () => {
     test.skip(!OPTED_IN, 'set LINGOGRAM_NETFLIX=1 to run — it plays video on a personal account');
@@ -90,9 +51,9 @@ test.describe('Netflix, against the real site', () => {
      * the tracks, every unit check stays green — they parse a manifest this
      * repo wrote — and this is the only thing that goes red.
      */
-    test('subtitles load from the real playback manifest', async ({ ext }) => {
-        const page = await openTitle(ext);
-        try {
+    test('subtitles load from the real playback manifest', async ({ pageFor }) => {
+        const page = await pageFor(NETFLIX);
+        {
             await expect
                 .poll(
                     () => page.evaluate(() => document.querySelectorAll('#vtt-list .vtt-item').length),
@@ -112,8 +73,6 @@ test.describe('Netflix, against the real site', () => {
                     .filter((t) => t.length > 0),
             );
             expect(sample.length).toBeGreaterThan(0);
-        } finally {
-            await page.close().catch(() => {});
         }
     });
 
@@ -123,9 +82,9 @@ test.describe('Netflix, against the real site', () => {
      * applies to the page Netflix builds, whose class names are theirs to
      * change.
      */
-    test('the panel narrows the real player instead of covering it', async ({ ext }) => {
-        const page = await openTitle(ext);
-        try {
+    test('the panel narrows the real player instead of covering it', async ({ pageFor }) => {
+        const page = await pageFor(NETFLIX);
+        {
             await expect
                 .poll(() => page.evaluate(() => !!document.getElementById('vtt-sidebar')), {
                     timeout: 120_000,
@@ -151,8 +110,6 @@ test.describe('Netflix, against the real site', () => {
             const width = parseFloat(layout.playerWidth ?? '0');
             expect(width).toBeGreaterThan(0);
             expect(width).toBeLessThan(layout.viewport);
-        } finally {
-            await page.close().catch(() => {});
         }
     });
 
@@ -161,9 +118,9 @@ test.describe('Netflix, against the real site', () => {
      * stack behind ours. The unit check drives a fake player API; this one
      * reaches the real one, which is the part that can be renamed.
      */
-    test("Netflix's own player API is still reachable, and its captions go off", async ({ ext }) => {
-        const page = await openTitle(ext);
-        try {
+    test("Netflix's own player API is still reachable, and its captions go off", async ({ pageFor }) => {
+        const page = await pageFor(NETFLIX);
+        {
             await expect
                 .poll(() => page.evaluate(() => document.querySelectorAll('#vtt-list .vtt-item').length), {
                     timeout: 120_000,
@@ -191,8 +148,6 @@ test.describe('Netflix, against the real site', () => {
             expect(player.reachable, "Netflix's player session is no longer reachable").toBe(true);
             expect(player.canSet, 'setTimedTextTrack is gone from the player API').toBe(true);
             expect(player.hasOffTrack, 'the track list no longer carries an Off entry').toBe(true);
-        } finally {
-            await page.close().catch(() => {});
         }
     });
 });
