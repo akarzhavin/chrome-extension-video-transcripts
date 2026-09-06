@@ -1,25 +1,30 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** August 25, 2026
+**Last updated:** September 6, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
 both editions published on the Chrome Web Store:
 
 * **Lingogram: Dual Subtitles & Transcript for HDrezka**
-* **Lingogram: Dual Subtitles & Transcript for YouTube**
+* **Lingogram: Dual Subtitles & Transcript for YouTube** — which also works on
+  **Netflix**, as its store listing says
 
 Both editions are made by the same developer and share the same optional account
-backend, so this single policy covers both ("the Extension").
+backend, so this single policy covers both ("the Extension"). Where this policy
+describes what differs by platform, Netflix is covered by the YouTube edition.
 
 ---
 
 ## TL;DR
 
-* **Without an account, the Extension collects nothing about you.** The interactive
+* **Without an account, the Extension stores nothing about you.** The interactive
   transcript, listening challenge, dual subtitles, and local word saving all run
-  entirely inside your browser, and no personal data is sent to us.
+  entirely inside your browser. Two things do leave it, with or without an
+  account: **looking a word up** sends that word and its subtitle line to our
+  dictionary service (Section 1e), and the anonymous usage counting described
+  below, which you can turn off. Neither is tied to your identity.
 * **Signing in is optional.** It exists only to sync your saved vocabulary across
   devices. If you choose to sign in, we collect your **email address** and store the
   **words you explicitly save** (with the surrounding subtitle lines) in our cloud
@@ -43,11 +48,20 @@ backend, so this single policy covers both ("the Extension").
 ## 1. Information We Collect
 
 ### a. If you do **not** sign in
-Apart from the anonymous usage analytics described in Section 1c (which you can turn
-off in one click), the Extension does **not** collect, transmit, or store any
-personal data on our servers. Your language and layout preferences and a local
+The Extension does **not** collect or store any personal data about you on our
+servers, and creates no account. Your language and layout preferences and a local
 "words saved" counter are kept only in your browser (see Section 3). No account,
 email, or saved word ever leaves your device.
+
+Three things are sent even without an account, none of them tied to your identity:
+
+* the **anonymous usage analytics** of Section 1c, which you can turn off in one
+  click;
+* a **word you look up**, with the subtitle line it came from — Section 1e. This
+  is the feature working, not measurement, so the analytics switch does not stop
+  it; not looking words up does;
+* the **welcome and farewell pages** of Section 1f, which are ordinary visits to
+  our website.
 
 ### b. If you choose to sign in (optional account)
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
@@ -60,7 +74,8 @@ collect and process:
   * the **word or phrase** you selected;
   * a small amount of **subtitle context** — the saved subtitle line plus the line
     immediately before and after it, in the video's primary subtitle language only;
-  * a **source tag** indicating which edition saved it (HDrezka or YouTube);
+  * a **source tag** indicating where it was saved (`rezka`, `youtube`, or
+    `netflix`);
   * a **timestamp** and a per-day counter used only to enforce a daily save limit.
 * **Diagnostic reports** — only if subtitles fail to load and you explicitly press
   the **"Reload page"** button on the error banner (which states that a report will
@@ -73,7 +88,8 @@ collect and process:
   are used solely to investigate the failure.
 
 We do **not** collect: your browsing history, the videos you watch (beyond the
-subtitle text you explicitly save and the single video address included in a
+subtitle text you explicitly save, the subtitle line accompanying a word you look
+up as described in Section 1e, and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a
 coarse platform label such as `youtube` or `rezka`, never a video or a URL),
 IP-based location tracking, advertising identifiers, or cookies for tracking.
@@ -171,6 +187,48 @@ anonymous `notification_fetch_failed` event tells us that our messages are
 unreachable, so we can fix it. It is sent only on failure, only if analytics is on,
 and carries only the reason for the failure.
 
+### e. Word lookup (the dictionary service)
+
+When you hover or click a word in the subtitles to see what it means, the Extension
+asks our dictionary service for that meaning. The request contains:
+
+* the **word or phrase** you pointed at;
+* the **language you want it in** (your native language, as configured);
+* the **subtitle line it came from**, so the service can pick the sense that fits
+  the sentence rather than the most common one.
+
+**This happens whether or not you are signed in**, and the request carries no
+account identifier, no email, no analytics identifier, and nothing that ties one
+lookup to another or to you. We use it to answer that lookup, and we do not build
+a history of your lookups against any identity.
+
+It is a feature rather than measurement, so the **"Share anonymous usage stats"**
+switch does not stop it — that switch governs Section 1c. The way to send no
+lookups is not to look words up: the transcript, dual subtitles, listening
+challenge and local word saving all work without it. If the Extension was built
+without a dictionary endpoint configured, the feature is off entirely.
+
+Answers are cached briefly on your device so the same word is not asked twice.
+
+### f. The welcome and farewell pages
+
+**When you install the Extension**, it opens a tab on our website — a short
+welcome page explaining how to start.
+
+**When you uninstall it**, your browser opens a farewell page on the same website.
+This is registered with the browser in advance, so the browser opens it on its own;
+the Extension is already gone at that point and cannot decide otherwise.
+
+Both addresses carry the **anonymous analytics identifier** of Section 1c, so that
+a visit can be counted against the install it belongs to rather than as an
+unrelated stranger. If you have turned analytics off, the fixed placeholder
+`opted-out` is sent in place of the identifier — the same value for everyone who
+opted out, which identifies no one. The farewell page is opened by the browser
+regardless of that setting; what changes is that it carries no identifier of yours.
+
+Both are ordinary visits to our website, and like any web request they reach our
+site with your IP address, which we do not store.
+
 ## 2. How We Use Your Information
 
 We use the information above **only** to:
@@ -209,7 +267,9 @@ your device only:
 
 This local data never leaves your browser except where Section 4 describes (saved
 words synced to the cloud). Signing out removes the authentication tokens, email, and
-user ID from your device.
+user ID from your device. What the Extension sends while you use it is listed in
+Sections 1c, 1e and 1f; none of it is read from the storage described here, apart
+from the analytics identifier those sections name.
 
 ## 4. Cloud Storage and Third-Party Services
 
@@ -231,9 +291,14 @@ events for us as our service provider, under the same Google Privacy Policy. Fir
 and Google Analytics are used as two separate services and we do not send anything to
 Google Analytics that would let the two be joined together.
 
+The word lookups described in Section 1e are sent to **our own dictionary
+service**, which we operate on Google Cloud infrastructure. It receives the word,
+the target language and the subtitle line, and no identifier of yours.
+
 To display subtitles, the Extension fetches subtitle (`.vtt`) files **directly from
 your browser** to the relevant video platform's content delivery network — HDrezka /
-Voidboost for the HDrezka edition, YouTube for the YouTube edition. These requests:
+Voidboost for the HDrezka edition, YouTube or Netflix for the YouTube edition. These
+requests:
 
 * are made directly from your browser to the platform, with no intermediate proxy of
   ours;
@@ -244,8 +309,9 @@ Voidboost for the HDrezka edition, YouTube for the YouTube edition. These reques
 
 We do **not** sell, rent, or trade your personal data. We do not share it with any
 third party except Google Firebase and Google Analytics as the infrastructure and
-analytics providers described in Section 4, or where required by law. We do not use
-your data for advertising.
+analytics providers described in Section 4, or where required by law. The dictionary
+service of Section 1e is our own, not a third party. We do not use your data for
+advertising.
 
 ## 6. Data Retention and Deletion
 
@@ -253,6 +319,10 @@ your data for advertising.
   account deletion.
 * **Diagnostic reports** are kept only for troubleshooting and are covered by
   account deletion requests (they are keyed to your user ID).
+* **Word lookups** (Section 1e) are answered and not kept as a history against any
+  identity; there is no account or identifier attached to one, so there is nothing
+  to look up or delete per person. Operational logs, where they exist, are
+  short-lived and serve to keep the service running.
 * **Anonymous usage events** are retained by Google Analytics for **2 months**, then
   deleted. Because these events carry no account identifier, **we cannot look up or
   delete the events belonging to a specific person — and neither can you.** There is

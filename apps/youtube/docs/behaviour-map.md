@@ -1247,15 +1247,11 @@ target language and a snippet of the surrounding subtitle line are sent to the
 product's dictionary service. This happens for **signed-out users too**, and is
 **not** governed by the usage-statistics switch. **[derived]**
 
-> **Gap between the product and its own privacy policy.** The policy's summary
-> states: **"Without an account, the Extension collects nothing about you."**
-> The policy never mentions the dictionary or word lookup at all — the words do
-> not appear in it once. Yet hovering a word sends that word, and a line of
-> dialogue around it, to a server without any account. **[derived]**
->
-> Verified directly against the policy text rather than taken second-hand.
-> Whether this counts as "about you" is a judgement for the product owner, but
-> the mechanism is currently undisclosed either way.
+**Disclosed since 2026-09-06.** The policy documents this in Section 1e: what
+the request carries, that it happens signed out too, that the analytics switch
+does not govern it, and that no identifier is attached. The summary line, which
+used to read "collects nothing about you", now names the lookup as one of the
+things that does leave the browser. **[observed]**
 
 ## 31. Installing and uninstalling both open a web page
 
@@ -1269,7 +1265,8 @@ settings, so it happens **even for a user who turned usage statistics off** — 
 that case a fixed placeholder is sent in place of the real identifier.
 **[derived]**
 
-Neither page is mentioned in the privacy policy. **[derived]**
+**Disclosed since 2026-09-06** in the policy's Section 1f, including the
+placeholder sent in place of the identifier when analytics is off. **[observed]**
 
 ## 32. What the usage-statistics switch does not stop
 
@@ -1304,9 +1301,10 @@ so plainly: **"we cannot look up or delete the events belonging to a specific
 person — and neither can you."** The only available lever is stopping future
 collection. **[derived]**
 
-A product owner should expect to defend this if asked about erasure requests.
+This follows from the design: there is no key to search by. It is the stated
+trade for events that cannot be traced to a person in the first place.
 
-## 35. Diagnostic reports are narrower than the store promises
+## 35. When a diagnostic report is actually sent
 
 The store listing says: **"When something breaks, one click on the video reports
 it — and we fix it fast."**
@@ -1314,29 +1312,21 @@ it — and we fix it fast."**
 The published policy states these reports **"are sent only while you are signed
 in, are capped at one per account per day."** **[derived]**
 
-So a signed-out user pressing that button sends nothing, and a signed-in user
-who already reported that day is silently capped. The promise and the mechanism
-do not match. **[derived]**
+So a signed-out user pressing that button sends nothing, and a signed-in user who
+already reported that day is capped without being told. The listing's "one click
+reports it" describes the button, not the two conditions behind it. **[derived]**
 
-> Checked in both directions before writing: the policy clause was read in full
-> rather than relied on second-hand, because an earlier reading of it was wrong.
+## 36. How Netflix differs from YouTube
 
-## 36. Netflix — named on the storefront, missing from the privacy policy
+Netflix is named in the store listing's title and description, and the same
+installed extension activates there as well as on YouTube, with no separate
+explanation once installed. **[observed]**
 
-**Corrected 2026-09-04.** An earlier version of this section said the extension
-works on Netflix "without saying so". The storefront says so clearly: Netflix is
-named in both the listing's title and its description. **[observed]**
-
-The same installed extension does activate on Netflix as well as YouTube, with no
-separate explanation once installed. **[derived]**
-
-The real gap is narrower and sits in the privacy policy, which introduces itself
-as covering **two** editions — HDrezka and YouTube — and describes a saved word's
-source tag as "HDrezka or YouTube", while this same extension runs on Netflix and
-labels data `netflix`. Someone checking whether the policy covers the Netflix
-they were promised on the storefront finds the platform named once, as one value
-in a list of labels, and nowhere in the description of what the product is.
-**[observed]**
+The privacy policy used to introduce itself as covering two editions, HDrezka and
+YouTube, and to describe a saved word's source tag as "HDrezka or YouTube" — so a
+reader checking whether Netflix was covered found it only as one value in a list
+of labels. **Since 2026-09-06** the policy names Netflix in its list of editions
+and in the source tag. **[observed]**
 
 Netflix differs in ways a user would notice: **[derived]**
 

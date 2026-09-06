@@ -82,23 +82,29 @@ describe('installing and uninstalling both open a web page', () => {
 
 describe('the privacy policy and what the product actually does', () => {
     /**
-     * Behaviour map §30. The policy says that without an account the extension
-     * collects nothing about you. Looking a word up sends that word, and the
-     * sentence it came from, whether or not anyone is signed in.
+     * Behaviour map §30. Looking a word up sends that word, and the sentence it
+     * came from, whether or not anyone is signed in — so the policy has to say
+     * so. It did not until 2026-09-06, when the summary still read "collects
+     * nothing about you" and the words "dictionary" and "lookup" appeared in it
+     * nowhere.
      *
-     * Pinned as a documentation gap: the check fails the day the policy starts
-     * describing word lookup, which is exactly when someone should notice.
+     * The check was inverted rather than deleted when the policy was fixed: it
+     * now fails if that disclosure is ever removed or the old absolute claim
+     * comes back.
      */
-    test('the policy still does not mention word lookup', () => {
+    test('the policy describes word lookup, and no longer claims to collect nothing', () => {
         const policy = readFileSync(
             join(__dirname, '..', '..', '..', 'PRIVACY_POLICY.md'),
             'utf8',
         ).toLowerCase();
 
-        expect(policy).toContain('collects nothing about you');
-        // If this starts failing, the policy was updated — update this check
-        // with it rather than deleting it.
-        expect(policy.includes('dictionary') || policy.includes('lookup')).toBe(false);
+        expect(policy).toContain('dictionary');
+        expect(policy).toContain('lookup');
+        // The lookup runs signed out, so the policy must not promise otherwise.
+        expect(policy).not.toContain('collects nothing about you');
+        // And it must say that the analytics switch does NOT govern it. Matched
+        // across whitespace: the sentence wraps in the source.
+        expect(policy.replace(/\s+/g, ' ')).toMatch(/switch does not stop it/);
     });
 });
 
@@ -293,7 +299,7 @@ describe('Netflix support and what the documents say about it', () => {
      * promised on the storefront finds the platform named once, in a list of
      * label values, and nowhere in the description of what the product is.
      */
-    test('the storefront names Netflix but the policy introduces only two editions', () => {
+    test('the policy names Netflix where the storefront promises it', () => {
         const listing = JSON.parse(
             readFileSync(join(__dirname, '..', '_locales', 'en', 'messages.json'), 'utf8'),
         );
@@ -303,13 +309,12 @@ describe('Netflix support and what the documents say about it', () => {
         expect(listing.appName.message).toMatch(/Netflix/);
         expect(listing.appDesc.message).toMatch(/Netflix/);
 
-        // The policy is not: it names the editions it covers, and Netflix is
-        // not among them.
-        const editions = policy.split('\n').filter((l) => /^\* \*\*Lingogram/.test(l.trim()));
-        expect(editions.length).toBeGreaterThan(0);
-        expect(editions.join(' ')).not.toMatch(/Netflix/i);
+        // So the policy must be too, where it introduces what it covers — not
+        // only as one value in a list of platform labels.
+        const editionsBlock = policy.slice(0, policy.indexOf('## TL;DR'));
+        expect(editionsBlock).toMatch(/Netflix/i);
 
-        // Netflix appears only as one possible value of a platform label.
+        // And in the source tag a saved word carries.
         expect(policy).toMatch(/`netflix`/);
     });
 
