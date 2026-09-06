@@ -173,7 +173,7 @@ inside a page, a reload, or a retry. Measured against counted: `subtitles.spec.t
 counts 9 and measures 10; the second half counts 39 and measures **47**.
 
 A rise with no failures means a converted check is closing the shared page, or
-is discarding it when it need not. See `apps/youtube/docs/shared-page-e2e.md`.
+is discarding it when it need not.
 
 ## Checks that can decide not to run
 
@@ -187,8 +187,7 @@ none of them, on a machine that cannot give a gesture, would be the surprise.
 unset, the whole of `saving.spec.ts` (7) and two checks in `signing-in.spec.ts`
 skip — 12% of the suite, and the only checks that exercise a save against a real
 backend. So the expected skip count is three on a stand and **twelve** without
-one; anything else is worth reading. See
-`apps/youtube/docs/stand-dependent-checks.md`.
+one; anything else is worth reading.
 
 Never run in CI. A CI job that cannot reach a signed-in browser would report
 green having run nothing.
