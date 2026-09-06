@@ -3048,3 +3048,91 @@ describe('reduced motion drops the reveal animation', () => {
         expect(blocks.some((b) => b.includes('.vtt-next-word'))).toBe(true);
     });
 });
+
+/**
+ * Behaviour map §36: on Netflix the dropdowns are LANGUAGE pickers, not track
+ * pickers. The title's own languages are selectable; the rest of the supported
+ * catalogue is listed too, greyed out, so a person can see that a language
+ * exists but this film does not carry it.
+ *
+ * The data half is well covered in netflix-subtitles.test.ts — which languages
+ * end up marked available. The rendering half was not covered at all:
+ * `languageCatalog` appeared in no test in the tree, so removing
+ * `opt.disabled = disabled` would have made every unavailable language look
+ * selectable, and picking one would silently do nothing.
+ *
+ * No Netflix account: the catalogue is state, and the dropdown is built from it.
+ */
+describe('the language picker on a site that loads languages on demand', () => {
+    const CATALOG = [
+        { code: 'en', label: 'English', available: true },
+        { code: 'ru', label: 'Russian', available: true },
+        { code: 'de', label: 'German', available: false },
+        { code: 'ja', label: 'Japanese', available: false },
+    ];
+
+    /** A panel in language-picker mode: a catalogue AND a way to fetch a pick. */
+    function pickerPanel(): { ui: SidebarUI; select: HTMLSelectElement } {
+        document.body.innerHTML = '';
+        const state = new AppState();
+        state.languageCatalog = CATALOG;
+        const app = {
+            seekVideo: jest.fn(),
+            updateHighlight: jest.fn(),
+            requestLanguageTrack: jest.fn(),
+        } as unknown as AppInterface;
+        const ui = new SidebarUI(state, app);
+        expect(ui.init()).toBe(true);
+        state.addTrack('English', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        ui.updateControls();
+        return { ui, select: document.getElementById('vtt-main-select') as HTMLSelectElement };
+    }
+
+    it('separates what this title offers from what it does not', () => {
+        const { select } = pickerPanel();
+        const groups = [...select.querySelectorAll('optgroup')];
+
+        expect(groups.map((g) => g.label)).toEqual([
+            'Available in this video',
+            'Other languages',
+        ]);
+        expect([...groups[0].querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
+        expect([...groups[1].querySelectorAll('option')].map((o) => o.value)).toEqual(['de', 'ja']);
+    });
+
+    /**
+     * The claim that matters to a person using it: an unavailable language must
+     * be visible AND unpickable. Listing it selectable would offer a subtitle
+     * track the title does not have.
+     */
+    it('offers the ones it has, and greys out the ones it does not', () => {
+        const { select } = pickerPanel();
+        const state = (code: string) =>
+            ([...select.querySelectorAll('option')].find((o) => o.value === code) as HTMLOptionElement)
+                .disabled;
+
+        expect(state('en')).toBe(false);
+        expect(state('ru')).toBe(false);
+        expect(state('de')).toBe(true);
+        expect(state('ja')).toBe(true);
+    });
+
+    /**
+     * The other side of the same switch: on YouTube and Rezka the same
+     * dropdowns pick between tracks that are ALREADY loaded, so there is no
+     * catalogue and no grouping. Without this, a picker that always grouped
+     * would pass the checks above.
+     */
+    it('stays a plain track list on a site with no catalogue', () => {
+        document.body.innerHTML = '';
+        const state = new AppState();
+        const ui = new SidebarUI(state, { seekVideo: jest.fn(), updateHighlight: jest.fn() } as unknown as AppInterface);
+        expect(ui.init()).toBe(true);
+        state.addTrack('English', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        ui.updateControls();
+
+        const select = document.getElementById('vtt-main-select') as HTMLSelectElement;
+        expect(select.querySelectorAll('optgroup')).toHaveLength(0);
+        expect([...select.querySelectorAll('option')].every((o) => !o.disabled)).toBe(true);
+    });
+});
