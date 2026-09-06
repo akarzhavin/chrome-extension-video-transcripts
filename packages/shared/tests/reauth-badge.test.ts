@@ -52,7 +52,7 @@ jest.mock('@video-transcripts/shared/src/analytics-bg', () => ({
     handleTrackMessage: jest.fn().mockResolvedValue({ ok: true }),
 }));
 
-import { setAuthState } from '@video-transcripts/shared/src/auth/storage';
+import { getAuthState, setAuthState } from '@video-transcripts/shared/src/auth/storage';
 import { handleAuthMessage, migrateLegacyAuthState } from '@video-transcripts/shared/src/auth/background';
 
 const CONFIG = {
@@ -175,6 +175,70 @@ describe('a session left behind by an older version', () => {
     it('no session at all is left alone at startup', async () => {
         await migrateLegacyAuthState();
 
+        expect(setBadgeText).not.toHaveBeenCalled();
+    });
+});
+
+/**
+ * WHICH failures count as a dead session (auth/background.ts:102).
+ *
+ * Nine message substrings decide it, and getting the set wrong is costly in
+ * both directions: too narrow and a revoked session keeps failing silently
+ * forever; too wide and a flaky network signs the person out and demands they
+ * re-authorize for nothing.
+ *
+ * isAuthFailure is private, so this drives its two observable consequences —
+ * the session is wiped and the badge goes up — which is what a person actually
+ * experiences.
+ */
+describe('which failures are treated as a dead session', () => {
+    const REVOKED = [
+        'Not signed in',
+        'Firebase REST 400: bad request',
+        'Firebase REST 401: unauthorized',
+        'Firebase REST 403: forbidden',
+        'Firestore commit 401: expired',
+        'Firestore commit 403: denied',
+        'Firestore sentinel 401: expired',
+        'INVALID_REFRESH_TOKEN',
+        'TOKEN_EXPIRED',
+    ];
+
+    it.each(REVOKED)('%s wipes the session and raises the badge', async (message) => {
+        await signedIn();
+        addInboxWord.mockRejectedValue(new Error(message));
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        expect(await getAuthState()).toBeNull();
+        expect(badge()).toBe('!');
+    });
+
+    /**
+     * The other direction, and the more expensive mistake: an outage, a
+     * timeout, a 500 or a rejected value that is not an Error at all must leave
+     * the person signed in. Being signed out by a flaky connection means losing
+     * every save until they notice the icon.
+     */
+    const TRANSIENT: Array<[string, unknown]> = [
+        ['a server error', new Error('Firestore commit 500: backend unavailable')],
+        ['an offline network', new Error('Failed to fetch')],
+        ['a timeout', new Error('The operation timed out')],
+        ['a rate limit', new Error('Firestore commit 429: too many requests')],
+        ['something that is not an Error', 'plain string rejection'],
+    ];
+
+    it.each(TRANSIENT)('%s leaves the session alone', async (_name, thrown) => {
+        await signedIn();
+        addInboxWord.mockRejectedValue(thrown);
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        expect(await getAuthState()).not.toBeNull();
         expect(setBadgeText).not.toHaveBeenCalled();
     });
 });
