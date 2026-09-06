@@ -89,6 +89,12 @@ describe('the grace period vs a throttle still in flight', () => {
 
         jest.advanceTimersByTime(7000);
 
+        // Assert the banner that SHOULD be there, not only the absence of the
+        // wrong one: bannerText() is '' when there is no banner at all, so a
+        // bare not.toContain() is equally green on an empty panel — including
+        // one left empty by a bug that never rendered anything.
+        expect(bannerText()).toContain('Searching');
+
         // Nothing has come back, so nothing is known about WHY. Claiming the
         // video has no subtitles is a guess presented as a fact.
         expect(bannerText()).not.toContain("doesn't have subtitles");

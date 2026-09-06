@@ -81,13 +81,6 @@ export interface ReprocessOptions {
 }
 
 /**
- * How many times an expired throttle cooldown may auto-retry unattended before
- * recovery goes back to being manual-only. Two probes ride the breaker's
- * escalating windows (~30s, then ~60s) — enough to pick up the common short
- * throttle without a click, few enough to stay polite when the limit is real
- * and long.
- */
-/**
  * How long a request that has not answered may go on being called "searching"
  * before it is treated as never coming.
  *
@@ -105,6 +98,13 @@ export interface ReprocessOptions {
  */
 export const STALLED_REQUEST_MS = 12_000;
 
+/**
+ * How many times an expired throttle cooldown may auto-retry unattended before
+ * recovery goes back to being manual-only. Two probes ride the breaker's
+ * escalating windows (~30s, then ~60s) — enough to pick up the common short
+ * throttle without a click, few enough to stay polite when the limit is real
+ * and long.
+ */
 export const AUTO_PROBE_LIMIT = 2;
 
 /**
