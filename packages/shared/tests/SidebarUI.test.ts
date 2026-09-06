@@ -168,6 +168,35 @@ describe('SidebarUI', () => {
         expect(panel.classList.contains('open')).toBe(false);
     });
 
+    /**
+     * Behaviour map §6: the mode controls are hidden entirely until subtitles
+     * have loaded — there is nothing to switch between yet.
+     *
+     * Built against a REAL panel (freshUi.init()) rather than the suite's
+     * hand-stubbed `ui.elements`: that stub carries no quickModesBar at all, so
+     * `if (quickModesBar)` at SidebarUI.ts:1891 short-circuits and a check
+     * written against it would pass having asserted nothing.
+     *
+     * Both arms are asserted. "Hidden while empty" alone also passes for a bar
+     * hidden unconditionally — which would be the worse bug, since the controls
+     * would then never appear at all.
+     */
+    test('the mode controls stay hidden until subtitles are loaded', () => {
+        document.body.innerHTML = '';
+        const freshState = new AppState();
+        const freshUi = new SidebarUI(freshState, mockApp);
+        expect(freshUi.init()).toBe(true);
+
+        freshUi.updateControls();
+        const bar = (freshUi as any).elements.quickModesBar as HTMLElement;
+        expect(bar).toBeTruthy();
+        expect(bar.style.display).toBe('none');
+
+        freshState.addTrack('A', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        freshUi.updateControls();
+        expect(bar.style.display).toBe('');
+    });
+
     test('the mode segment is three radios with exactly one checked', () => {
         document.body.innerHTML = '';
         const freshState = new AppState();

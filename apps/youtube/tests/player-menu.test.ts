@@ -20,6 +20,8 @@ let messageReply: any = { signedIn: false };
     },
 };
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { installPlayerMenu } from '../src/content/player-menu';
 
 interface FakeUi {
@@ -110,6 +112,27 @@ function setupBar(): void {
         </div>`;
 }
 
+/**
+ * The shipped English strings, read from the file the browser reads.
+ *
+ * The suite stubs chrome.i18n.getMessage to '' so t() falls through to the
+ * source literal — which means an assertion made under that stub pins the
+ * FALLBACK, and messages.json could say something else forever. Tests that care
+ * what the user reads install this instead.
+ */
+const EN_MESSAGES: Record<string, { message: string }> = JSON.parse(
+    readFileSync(join(__dirname, '..', '_locales', 'en', 'messages.json'), 'utf8'),
+);
+const withShippedStrings = (body: () => void): void => {
+    const original = chrome.i18n.getMessage;
+    (chrome.i18n as any).getMessage = (key: string) => EN_MESSAGES[key]?.message ?? '';
+    try {
+        body();
+    } finally {
+        (chrome.i18n as any).getMessage = original;
+    }
+};
+
 const menu = () => document.getElementById('vtt-ytp-menu')!;
 const btn = () => document.getElementById('vtt-ytp-overlay-btn')!;
 const openMenu = () => btn().dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -140,6 +163,38 @@ describe('installPlayerMenu', () => {
         expect(menu().parentElement!.id).toBe('movie_player');
         expect(document.querySelector('.vtt-ytp-anchor')!.contains(menu())).toBe(false);
         expect(document.getElementById('movie_player')!.contains(menu())).toBe(true);
+    });
+
+    /**
+     * The two controls the product puts in YouTube's own bar say what they are.
+     * Nothing read either title before: the only assertion in the tree carrying
+     * "(Shift+O)" is app-base-status.test.ts's 'On-screen (Shift+O)', which is
+     * the SIDEBAR chip — a different element, a different key, different text.
+     * Do not delete these as duplicates of it.
+     *
+     * Asserted against the SHIPPED strings, not the source fallbacks: t()
+     * returns the fallback under this suite's i18n stub, so a check made under
+     * the stub would stay green while messages.json drifted. Reading the file
+     * the browser reads makes either side drifting go red.
+     */
+    test('the bar button names the product in its tooltip', () => {
+        withShippedStrings(() => {
+            installPlayerMenu(makeApp());
+            expect(btn().title).toBe('Lingogram menu');
+            // One key, two attributes (player-menu.ts:177 and :798). Asserting
+            // one leaves the claim half-true if the other is dropped.
+            expect(menu().getAttribute('aria-label')).toBe('Lingogram menu');
+        });
+    });
+
+    test('the captions button says what it does and which key reaches it', () => {
+        withShippedStrings(() => {
+            installPlayerMenu(makeApp());
+            const cc = document.getElementById('vtt-ytp-cc-btn') as HTMLElement;
+            // The shortcut suffix is composed in code and governed by no locale
+            // file, so it is the half most able to drift unnoticed.
+            expect(cc.title).toBe('Subtitles on video (Shift+O)');
+        });
     });
 
     test('a bar rebuild does not leave the old menu behind', () => {
@@ -476,6 +531,48 @@ describe('subtitle health status', () => {
         openMenu();
         expect(status().textContent).not.toContain('original only');
         expect(status().disabled).toBe(false);
+    });
+
+    /**
+     * The countdown is LIVE — the number falls while the menu stays open.
+     * Its neighbour below renders one frame and reads '12s', which a product
+     * with no interval at all also produces; the ticking itself was unpinned.
+     *
+     * makeApp's cooldownRemainingMs is a constant closure, so the remaining
+     * time is overridden here with a mutable one — advancing a fake clock alone
+     * would re-render the same number forever and prove nothing.
+     */
+    test('the countdown ticks while the menu is open, and stops when it closes', () => {
+        jest.useFakeTimers();
+        try {
+            const app = makeApp({
+                tracks: [{ name: 'English' }],
+                learningTrack: true,
+                nativeTrack: false,
+                cooldownMs: 12_000,
+            });
+            let remaining = 12_000;
+            app.cooldownRemainingMs = () => remaining;
+            installPlayerMenu(app);
+            openMenu();
+            expect(status().textContent).toContain('12s');
+
+            // Never step to 0: the tick is conditional on remaining > 0, so a
+            // countdown that reached zero would stop re-rendering and leave the
+            // last number up — passing for the wrong reason.
+            remaining = 9_000;
+            jest.advanceTimersByTime(3_000);
+            expect(status().textContent).toContain('9s');
+            expect(status().textContent).not.toContain('12s');
+
+            // Closing must stop it — nobody can read a countdown they cannot
+            // see, and a live interval on a closed menu is a leak. Asserted
+            // after close(), not while open: open() also runs a wake timer.
+            btn().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(jest.getTimerCount()).toBe(0);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('while the cooldown runs the row counts down and cannot be clicked', () => {
