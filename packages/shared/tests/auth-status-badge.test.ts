@@ -146,3 +146,141 @@ test('an unreachable background renders the signed-out row', async () => {
     await mount();
     expect(row()!.textContent).toMatch(/sign in to save words/i);
 });
+
+/**
+ * Behaviour map §2.6 / §25.1-25.3 — the signed-IN half of the row.
+ *
+ * Everything above drives the signed-out branch. The signed-in one was named
+ * only by e2e/signing-in.spec.ts:372, which sits behind LINGOGRAM_STAND_ACCOUNT
+ * and never runs without a live account — so these claims were, in practice,
+ * unchecked. Nothing here needs an account: the row renders from whatever
+ * AUTH_STATUS answers.
+ */
+const signedInAs = (email: string, inboxCount = 0): void => {
+    sendMessage.mockImplementation((m: any) =>
+        m?.action === 'AUTH_STATUS' ? { signedIn: true, email, inboxCount } : { ok: true });
+};
+
+describe('the row when someone is signed in', () => {
+    test('shows the address, with a dot instead of the invitation', async () => {
+        signedInAs('reader@example.com', 7);
+        await mount();
+
+        expect(row()!.textContent).toContain('reader@example.com');
+        // The invitation must be GONE, not merely joined: a row showing both
+        // would be telling the person to sign in while signed in.
+        expect(row()!.textContent).not.toMatch(/sign in to save words/i);
+    });
+
+    test('says who is signed in and how many words are saved, without opening it', async () => {
+        signedInAs('reader@example.com', 7);
+        await mount();
+
+        // The hover title carries the same three facts as the panel, so the
+        // count is readable without a click — and screen readers get it too.
+        expect(row()!.title).toContain('reader@example.com');
+        expect(row()!.title).toContain('7 words saved');
+        expect(row()!.getAttribute('aria-label')).toBe(row()!.title);
+    });
+});
+
+describe('the panel when someone is signed in', () => {
+    test('offers the address, the count and the way out', async () => {
+        signedInAs('reader@example.com', 7);
+        await mount();
+        row()!.click();
+
+        const text = panel()!.textContent ?? '';
+        expect(text).toContain('Signed in as');
+        expect(text).toContain('reader@example.com');
+        expect(text).toContain('7 words saved');
+        expect([...panel()!.querySelectorAll('button')].map((b) => b.textContent)).toContain(
+            'Sign out',
+        );
+    });
+
+    test('zero saved words is a number, not a blank', async () => {
+        signedInAs('reader@example.com', 0);
+        await mount();
+        row()!.click();
+
+        expect(panel()!.textContent).toContain('0 words saved');
+    });
+
+    test('signing out from the panel closes it and returns the invitation', async () => {
+        signedInAs('reader@example.com', 3);
+        await mount();
+        row()!.click();
+
+        const signOut = [...panel()!.querySelectorAll('button')].find(
+            (b) => b.textContent === 'Sign out',
+        )!;
+        // The next status read must answer as a signed-out person.
+        sendMessage.mockImplementation((m: any) =>
+            m?.action === 'AUTH_STATUS' ? { signedIn: false } : { ok: true });
+        signOut.click();
+        await flush();
+
+        expect(panel()).toBeNull();
+        expect(row()!.textContent).toMatch(/sign in to save words/i);
+    });
+});
+
+/**
+ * §25.3: the row updates live. A word saved from the toolbar popup changes the
+ * count in the panel, and the reverse — the two surfaces must not drift.
+ *
+ * No test in the tree had ever FIRED chrome.storage.onChanged: every suite
+ * mocks addListener as a bare jest.fn(), so the whole listener could be deleted
+ * and nothing would notice. Here the registered callback is pulled back off the
+ * mock and invoked, which is what the browser does.
+ */
+describe('the row follows changes made elsewhere', () => {
+    /** The listener the badge registered, as the browser would call it. */
+    const fireStorageChange = async (
+        changes: Record<string, unknown>,
+        area = 'local',
+    ): Promise<void> => {
+        const calls = (chrome.storage.onChanged.addListener as jest.Mock).mock.calls;
+        expect(calls.length).toBeGreaterThan(0);
+        for (const [listener] of calls) listener(changes, area);
+        await flush();
+    };
+
+    test('a word saved on another surface updates the count here', async () => {
+        signedInAs('reader@example.com', 7);
+        await mount();
+        expect(row()!.title).toContain('7 words saved');
+
+        signedInAs('reader@example.com', 8);
+        await fireStorageChange({ 'inbox.count': { newValue: 8 } });
+
+        expect(row()!.title).toContain('8 words saved');
+    });
+
+    test('signing in elsewhere replaces the invitation', async () => {
+        await mount();
+        expect(row()!.textContent).toMatch(/sign in to save words/i);
+
+        signedInAs('reader@example.com', 1);
+        await fireStorageChange({ 'auth.idToken': { newValue: 'tok' } });
+
+        expect(row()!.textContent).toContain('reader@example.com');
+    });
+
+    /**
+     * The half that stops "re-render on anything" passing. Unrelated keys — and
+     * a different storage area — change constantly; re-rendering on each would
+     * make the row flicker and cost a message round-trip every time.
+     */
+    test('an unrelated change leaves it alone', async () => {
+        signedInAs('reader@example.com', 7);
+        await mount();
+        sendMessage.mockClear();
+
+        await fireStorageChange({ 'prefs.v1': { newValue: {} } });
+        await fireStorageChange({ 'inbox.count': { newValue: 9 } }, 'sync');
+
+        expect(sendMessage).not.toHaveBeenCalled();
+    });
+});
