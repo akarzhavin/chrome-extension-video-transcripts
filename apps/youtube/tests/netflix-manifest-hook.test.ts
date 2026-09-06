@@ -265,3 +265,166 @@ describe('netflix manifest hook cache', () => {
         });
     });
 });
+
+/**
+ * Behaviour map §36: the product turns Netflix's OWN captions off, and never
+ * turns them back on.
+ *
+ * Both halves are user-visible and neither was checked. If the off-switch
+ * breaks, every Netflix video shows two sets of subtitles stacked — the worst
+ * first impression the product can make. If it ever switched them back on, it
+ * would be overriding a choice that belongs to the person.
+ *
+ * No Netflix account and no network: the hook reaches the player through
+ * window.netflix, which is stood up here the way the site does.
+ */
+describe("turning Netflix's own captions off", () => {
+    type FakeTrack = { isNoneTrack?: boolean; displayName?: string };
+
+    let selected: FakeTrack[] = [];
+    let realParse: typeof JSON.parse;
+    let realStringify: typeof JSON.stringify;
+    let uninstall: (() => void) | null = null;
+
+    /** Netflix's player API, as much of it as the hook reaches for. */
+    function installFakePlayer(tracks: FakeTrack[] | null): void {
+        const player = {
+            getTimedTextTrackList: () => tracks,
+            setTimedTextTrack: (t: FakeTrack) => selected.push(t),
+        };
+        (window as any).netflix = {
+            appContext: {
+                state: {
+                    playerApp: {
+                        getAPI: () => ({
+                            videoPlayer: {
+                                getAllPlayerSessionIds: () => ['s1'],
+                                getVideoPlayerBySessionId: () => player,
+                            },
+                        }),
+                    },
+                },
+            },
+        };
+    }
+
+    /** The message the content script sends. `enabled: false` means "turn off". */
+    const setNativeSubs = (enabled: boolean): void => {
+        window.dispatchEvent(
+            new MessageEvent('message', {
+                data: { type: 'NFLX_SET_NATIVE_SUBS', enabled },
+                source: window,
+            }),
+        );
+    };
+
+    const installHook = (): void => {
+        realParse = JSON.parse;
+        realStringify = JSON.stringify;
+        (window as unknown as { fetch: unknown }).fetch = jest.fn();
+        delete (window as unknown as { __lingogramNflxHook?: boolean }).__lingogramNflxHook;
+        const realAdd = window.addEventListener.bind(window);
+        const realRemove = window.removeEventListener.bind(window);
+        const addSpy = jest
+            .spyOn(window, 'addEventListener')
+            .mockImplementation((
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+                opts?: boolean | AddEventListenerOptions,
+            ) => {
+                if (type === 'message') uninstall = () => realRemove(type, listener, opts);
+                realAdd(type, listener, opts);
+            });
+        jest.isolateModules(() => {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            require('../src/content/netflix/manifest-hook').installNetflixHook();
+        });
+        addSpy.mockRestore();
+    };
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        selected = [];
+        installHook();
+    });
+
+    afterEach(() => {
+        uninstall?.();
+        uninstall = null;
+        delete (window as any).netflix;
+        JSON.parse = realParse;
+        JSON.stringify = realStringify;
+        jest.useRealTimers();
+    });
+
+    it("selects Netflix's own Off track", () => {
+        installFakePlayer([
+            { displayName: 'English', isNoneTrack: false },
+            { displayName: 'Off', isNoneTrack: true },
+        ]);
+
+        setNativeSubs(false);
+
+        expect(selected).toHaveLength(1);
+        expect(selected[0].isNoneTrack).toBe(true);
+    });
+
+    /**
+     * The half that makes this a rule rather than a habit. §36 says the user's
+     * own caption choice is theirs to restore from Netflix's menu — so the
+     * "turn them on" message must do NOTHING, not select a language track.
+     */
+    it('never turns them back on', () => {
+        installFakePlayer([
+            { displayName: 'English', isNoneTrack: false },
+            { displayName: 'Off', isNoneTrack: true },
+        ]);
+
+        setNativeSubs(true);
+        jest.advanceTimersByTime(10_000);
+
+        expect(selected).toHaveLength(0);
+    });
+
+    /**
+     * The player session does not exist the moment a page loads, or on a fresh
+     * episode. Giving up on the first look would leave both subtitle sets
+     * stacked for the whole video — so the request retries.
+     */
+    it('waits for a player that is not ready yet', () => {
+        (window as any).netflix = undefined;
+
+        setNativeSubs(false);
+        expect(selected).toHaveLength(0);
+
+        installFakePlayer([{ displayName: 'Off', isNoneTrack: true }]);
+        jest.advanceTimersByTime(600);
+
+        expect(selected).toHaveLength(1);
+    });
+
+    /**
+     * ...but not forever. A page that never produces a player must not leave a
+     * timer running for the life of the tab.
+     */
+    it('gives up rather than retrying for ever', () => {
+        (window as any).netflix = undefined;
+
+        setNativeSubs(false);
+        jest.advanceTimersByTime(60_000);
+
+        expect(selected).toHaveLength(0);
+        expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('does nothing when the track list carries no Off entry', () => {
+        installFakePlayer([{ displayName: 'English', isNoneTrack: false }]);
+
+        setNativeSubs(false);
+        jest.advanceTimersByTime(10_000);
+
+        // Never guess: selecting some other track would change what the person
+        // is reading rather than clearing it.
+        expect(selected).toHaveLength(0);
+    });
+});

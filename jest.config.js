@@ -3,7 +3,10 @@ module.exports = {
     // Git worktrees under .claude/worktrees are parallel checkouts (other
     // sessions' work). Scanning them makes every package name ambiguous in the
     // Haste map and runs someone else's suites; ignore the whole tree.
-    testPathIgnorePatterns: ['/node_modules/', '/\\.claude/'],
+    // /e2e/ is a second runner (Playwright) driving a live browser; Jest can
+    // neither run nor typecheck it, and a suite count that moves is
+    // indistinguishable from a group silently dying.
+    testPathIgnorePatterns: ['/node_modules/', '/\\.claude/', '/e2e/'],
     modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   preset: 'ts-jest',
   testEnvironment: 'jsdom',

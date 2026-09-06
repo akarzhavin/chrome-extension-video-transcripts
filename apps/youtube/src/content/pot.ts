@@ -158,3 +158,96 @@ export class SharedOnce<T> {
         return this.done.has(key);
     }
 }
+
+/**
+ * How long to give the player to mint a token AFTER our own request already
+ * came back empty, which is also how long the CC flash may last.
+ *
+ * Short by design, for two reasons that point the same way: the viewer is
+ * staring at an empty panel, and during the wait they are seeing YouTube's own
+ * captions on a video they never asked to have captions on. This is an
+ * optimisation on a retry, never a precondition for one.
+ */
+export const POT_TOGGLE_TIMEOUT_MS = 4000;
+export const POT_POLL_MS = 150;
+
+/** What the minting routine needs from the page it runs on. */
+export interface MintDeps {
+    /** The CC control to click, or null if the player chrome has not rendered. */
+    ccToggle: () => HTMLElement | null;
+    /** The token already held for this video, if any. */
+    knownPot: (videoId: string) => string | null;
+    /** The video the address currently points at — not necessarily the one asked for. */
+    currentUrlVideoId: () => string | null;
+    sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
+    /** Diagnostics only; nothing here reaches the viewer. */
+    log?: (message: string) => void;
+    now?: () => number;
+}
+
+/**
+ * Briefly turn the site's own captions on so the player signs a request we can
+ * read the token out of, then turn them back off.
+ *
+ * Extracted from page-script.ts so it can be tested: it runs in the MAIN world
+ * at document_start, inside a closure a test cannot reach. Everything it used
+ * to read from that closure now arrives in `deps`, so the routine itself makes
+ * no assumption about the page — which is also what lets a test drive it with
+ * a plain button and a fake clock.
+ */
+export async function doMintPotViaCcToggle(
+    videoId: string,
+    signal: AbortSignal,
+    once: SharedOnce<string | null>,
+    deps: MintDeps,
+): Promise<string | null> {
+    const now = deps.now ?? (() => Date.now());
+    // NOT the "is it offerable" helper: that one skips a control whose
+    // aria-label says captions are "unavailable", which is right for its job
+    // (don't offer a toggle that does nothing) and wrong here. Measured live:
+    // on a watch page YouTube labels the button "Subtitles/closed captions
+    // unavailable" while the player response DOES list caption tracks, and
+    // clicking it anyway flips aria-pressed and produces a pot-signed request.
+    // The label describes the track not being loaded yet, not the video
+    // lacking captions.
+    const btn = deps.ccToggle();
+    // No control yet — the player chrome renders late and this runs seconds
+    // into the page. Claiming the attempt HERE would burn the one mint this
+    // video gets on a button that had not appeared, and every later track and
+    // every "Search again" would then return null without ever clicking the
+    // control that exists by then. Leave the video unclaimed so the next
+    // attempt can try again.
+    if (!btn) return null;
+    // Already on: the player has fetched its track and we simply missed the
+    // sniff, so a toggle would turn captions OFF and mint nothing.
+    if (btn.getAttribute('aria-pressed') === 'true') return deps.knownPot(videoId);
+
+    // Claimed only now that a real toggle is about to happen — an attempt that
+    // bailed above (no control rendered yet) stays retryable.
+    once.complete(videoId);
+
+    deps.log?.('no pot — briefly enabling native captions to mint one');
+    btn.click();
+    try {
+        const deadline = now() + POT_TOGGLE_TIMEOUT_MS;
+        while (now() < deadline) {
+            if (signal.aborted) break;
+            const found = deps.knownPot(videoId);
+            if (found) return found;
+            await deps.sleep(POT_POLL_MS, signal);
+        }
+        return deps.knownPot(videoId);
+    } finally {
+        // Restore the control WE clicked, and only while it is still that
+        // video's control. Re-querying the DOM here would, after a navigation,
+        // hand back the NEW video's button — and YouTube persists the CC
+        // preference across videos, so if that one is on we would switch the
+        // viewer's captions off on a video we never touched.
+        if (deps.currentUrlVideoId() === videoId
+            && btn.isConnected
+            && btn.getAttribute('aria-pressed') === 'true') {
+            btn.click();
+            deps.log?.('native captions -> Off (restored)');
+        }
+    }
+}

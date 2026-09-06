@@ -113,10 +113,19 @@ describe('renderNotificationBanner', () => {
         );
     });
 
-    it('gives the close button an accessible name', () => {
+    // T5.28 (§22.4). This asserted only toBeTruthy(), which the visible glyph
+    // '\u00d7' satisfies — so the check passed on a control whose accessible name
+    // was the multiplication sign, the exact thing an aria-label is here to
+    // replace. Pinned to the word instead.
+    it('names the close button "Dismiss", not its glyph', () => {
         renderNotificationBanner(n({ dismissible: true }));
         const btn = document.querySelector('.vtt-notification-close')!;
-        expect(btn.getAttribute('aria-label')).toBeTruthy();
+        expect(btn.getAttribute('aria-label')).toBe('Dismiss');
+        // The tooltip is the pointer user's copy of the same name; a divergence
+        // means one of the two audiences is reading a different control.
+        expect(btn.getAttribute('title')).toBe('Dismiss');
+        // And the label is not merely the glyph repeated.
+        expect(btn.getAttribute('aria-label')).not.toBe(btn.textContent);
     });
 
     it('does nothing when there is no sidebar to attach to', () => {

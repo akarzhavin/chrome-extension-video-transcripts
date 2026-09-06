@@ -175,3 +175,69 @@ describe('watchForOrphanedContext', () => {
         expect(document.getElementById('vtt-orphan-notice')).toBeNull();
     });
 });
+
+// Phase 5 (T5.2, T5.23): the two facts the checks above leave open.
+//
+// The poll interval was asserted by advancing 5000ms against a POLL_MS of 2000
+// — a window any value from 1 to 5000 passes, so the constant was never pinned.
+// And nothing said what the transcript looks like once the notice is up, which
+// is the whole reason the feature exists: the lines are stale but they are the
+// user's last known good state, and clearing them would destroy the evidence
+// the message is explaining.
+describe('the poll interval is two seconds', () => {
+    // Straddles POLL_MS from both sides. A single "advance well past it" check
+    // cannot tell 2000 from 400 or from 4000; these two can.
+    it('has not fired one millisecond before the first interval', () => {
+        watchForOrphanedContext();
+        setOrphanedContext();
+        jest.advanceTimersByTime(1999);
+        expect(document.getElementById('vtt-orphan-notice')).toBeNull();
+    });
+
+    it('has fired one millisecond after it', () => {
+        watchForOrphanedContext();
+        setOrphanedContext();
+        jest.advanceTimersByTime(2001);
+        expect(document.getElementById('vtt-orphan-notice')).not.toBeNull();
+    });
+
+    // The interval is what schedules it: pinning the argument as well means a
+    // future rewrite to a different timer primitive still has to answer for the
+    // number.
+    it('schedules its poll at that interval', () => {
+        const spy = jest.spyOn(global, 'setInterval');
+        watchForOrphanedContext();
+        expect(spy).toHaveBeenCalledWith(expect.any(Function), 2000);
+        spy.mockRestore();
+    });
+});
+
+describe('the transcript survives the notice', () => {
+    // The symptom the user arrives with is a panel showing lines that no longer
+    // follow the video. Those lines are the last correct state there is; the
+    // notice explains them, it does not replace them.
+    it('leaves the transcript items in place', () => {
+        document.getElementById('vtt-list')!.innerHTML =
+            '<div class="vtt-item" data-index="0">alpha</div>' +
+            '<div class="vtt-item" data-index="1">beta</div>';
+
+        showOrphanNotice();
+
+        const items = document.querySelectorAll('#vtt-list .vtt-item');
+        expect(items).toHaveLength(2);
+        expect(items[0].textContent).toBe('alpha');
+        expect(items[1].textContent).toBe('beta');
+    });
+
+    it('leaves them in place when the poll is what raised the notice', () => {
+        document.getElementById('vtt-list')!.innerHTML =
+            '<div class="vtt-item" data-index="0">alpha</div>';
+
+        watchForOrphanedContext();
+        setOrphanedContext();
+        jest.advanceTimersByTime(2001);
+
+        expect(document.getElementById('vtt-orphan-notice')).not.toBeNull();
+        expect(document.querySelectorAll('#vtt-list .vtt-item')).toHaveLength(1);
+    });
+});

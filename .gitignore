@@ -11,6 +11,14 @@ packages/*/dist/
 .claude/
 graphify-out/
 
+# Speckit: task templates, scripts and specs. The tool is used on this project,
+# but it leaves no trace in the repository history — a spec lives exactly as
+# long as the task does. .specify/memory/constitution.md is local too: a new
+# worktree needs it copied by hand (cp -R .specify ../lingogram-<slug>/), or
+# speckit will not find it. See docs/ops/worktree-speckit.md.
+.specify/
+specs/
+
 # Vendored unpacked extensions for screenshot capture (AdBlock Plus, etc.)
 apps/*/screenshots/vendor/
 
@@ -94,3 +102,7 @@ releases/*.zip
 # the next question wants a new probe rather than a rerun of an old one. The
 # reusable CDP helpers live in scripts/lib/ and stay tracked.
 scripts/lingogram-*.mjs
+
+# Playwright run artifacts (traces, screenshots) from the live e2e suite.
+test-results/
+playwright-report/

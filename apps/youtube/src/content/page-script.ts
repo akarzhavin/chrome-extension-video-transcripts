@@ -7,12 +7,16 @@ import {
     type YtVttResultMessage,
 } from './timedtext-fetch';
 import {
+    POT_POLL_MS,
+    POT_TOGGLE_TIMEOUT_MS,
     PotStore,
     SharedOnce,
     buildTimedTextUrl,
+    doMintPotViaCcToggle,
     isEmptyish,
     potFromResourceTiming,
     shouldRetryWithPot,
+    type MintDeps,
 } from './pot';
 
 interface RawCaptionTrack {
@@ -329,14 +333,6 @@ function installYouTubeHook() {
     // and the token only ever improves a retry.
     const pots = new PotStore();
 
-    // How long to give the player to mint a token AFTER our own request already
-    // came back empty. Short by design: the user is staring at an empty panel,
-    // and this is an optimisation on a retry, never a precondition for one.
-    // How long the CC flash may last while waiting for the player to sign a
-    // request. Bounded because the user sees YouTube's own captions during it.
-    const POT_TOGGLE_TIMEOUT_MS = 4000;
-    const POT_POLL_MS = 150;
-
     // Sniff both transports the player might use. These wrappers only observe:
     // they must never change what the page sends, or we would break playback to
     // fix subtitles.
@@ -502,64 +498,21 @@ function installYouTubeHook() {
     function mintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
         return potMint.run(
             videoId,
-            () => doMintPotViaCcToggle(videoId, signal),
+            () => doMintPotViaCcToggle(videoId, signal, potMint, mintDeps()),
             () => knownPot(videoId),
         );
     }
 
-    async function doMintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
-        // NOT findCcButton(): that helper skips a control whose aria-label says
-        // captions are "unavailable", which is right for its job (don't offer a
-        // toggle that does nothing) and wrong here. Measured live: on a watch
-        // page YouTube labels the button "Subtitles/closed captions
-        // unavailable" while the player response DOES list caption tracks, and
-        // clicking it anyway flips aria-pressed and produces a pot-signed
-        // request. The label describes the track not being loaded yet, not the
-        // video lacking captions.
-        //
-        // Both surfaces, in findCcButton()'s order: on Shorts the standard
-        // control is the dead one and .ytmClosedCaptioningButtonButton is what
-        // works, so trying only the standard button minted nothing there.
-        const btn = ccToggleForMinting();
-        // No control yet — the player chrome renders late and this runs seconds
-        // into the page. Claiming the attempt HERE would burn the one mint this
-        // video gets on a button that had not appeared, and every later track
-        // and every "Search again" would then return null without ever clicking
-        // the control that exists by then. Leave the video unclaimed so the next
-        // attempt can try again.
-        if (!btn) return null;
-        // Already on: the player has fetched its track and we simply missed the
-        // sniff, so a toggle would turn captions OFF and mint nothing.
-        if (btn.getAttribute('aria-pressed') === 'true') return knownPot(videoId);
-
-        // Claimed only now that a real toggle is about to happen — an attempt
-        // that bailed above (no control rendered yet) stays retryable.
-        potMint.complete(videoId);
-
-        console.log(TAG, 'no pot — briefly enabling native captions to mint one');
-        btn.click();
-        try {
-            const deadline = Date.now() + POT_TOGGLE_TIMEOUT_MS;
-            while (Date.now() < deadline) {
-                if (signal.aborted) break;
-                const now = knownPot(videoId);
-                if (now) return now;
-                await sleep(POT_POLL_MS, signal);
-            }
-            return knownPot(videoId);
-        } finally {
-            // Restore the control WE clicked, and only while it is still that
-            // video's control. Re-querying the DOM here would, after a
-            // navigation, hand back the NEW video's button — and YouTube
-            // persists the CC preference across videos, so if that one is on we
-            // would switch the user's captions off on a video we never touched.
-            if (currentUrlVideoId() === videoId
-                && btn.isConnected
-                && btn.getAttribute('aria-pressed') === 'true') {
-                btn.click();
-                console.log(TAG, 'native captions -> Off (restored)');
-            }
-        }
+    // The routine itself lives in ./pot so it can be tested: everything it
+    // needs from this closure is handed over here.
+    function mintDeps(): MintDeps {
+        return {
+            ccToggle: ccToggleForMinting,
+            knownPot,
+            currentUrlVideoId,
+            sleep,
+            log: (m) => console.log(TAG, m),
+        };
     }
 
     async function fetchVtt(

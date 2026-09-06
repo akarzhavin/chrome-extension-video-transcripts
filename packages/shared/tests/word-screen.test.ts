@@ -267,3 +267,298 @@ describe('an answer that arrives too late', () => {
         expect(h.panel.childElementCount).toBe(0);
     });
 });
+
+// Pressing save twice. The card has two controls for one action, so a double
+// press is not a mistake a user has to avoid — it is what happens when the
+// first press looks like it did nothing. Every extra press is a duplicate row
+// in someone's dictionary.
+describe('pressing save more than once', () => {
+    const addWordCalls = () =>
+        (chrome.runtime.sendMessage as jest.Mock).mock.calls
+            .filter(([m]) => m?.action === 'ADD_WORD');
+
+    it('a second press on the same control sends nothing', async () => {
+        const h = harness();
+        h.screen.open('going', 'we are going home');
+        await flush();
+
+        const heart = h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!;
+        heart.click();
+        await flush();
+        expect(addWordCalls()).toHaveLength(1);
+
+        heart.click();
+        await flush();
+        expect(addWordCalls()).toHaveLength(1);
+    });
+
+    it('the other control does not get a second go at it either', async () => {
+        const h = harness();
+        h.screen.open('going', 'we are going home');
+        await flush();
+
+        h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!.click();
+        await flush();
+        h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-save')!.click();
+        await flush();
+
+        expect(addWordCalls()).toHaveLength(1);
+    });
+
+    it('reopening the same word does not let it be saved again', async () => {
+        const h = harness();
+        h.screen.open('going', 'we are going home');
+        await flush();
+        h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-save')!.click();
+        await flush();
+
+        h.screen.close();
+        h.screen.open('going', 'we are going home');
+        await flush();
+        h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-save')!.click();
+        await flush();
+
+        expect(addWordCalls()).toHaveLength(1);
+    });
+
+    // The guard is deliberately not "one press per card": a save that FAILED
+    // left nothing behind, so the retry is the whole recovery path. Locking it
+    // out would strand the word with no way to save it but reopening the card.
+    it('a failed save can be retried', async () => {
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(
+            (msgObj: any, cb?: (r: unknown) => void) => {
+                cb?.(msgObj?.action === 'LOOKUP_WORD'
+                    ? { ok: true, result: answer }
+                    : { ok: false });
+            });
+
+        const h = harness();
+        h.screen.open('going', 'we are going home');
+        await flush();
+
+        const save = h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-save')!;
+        save.click();
+        await flush();
+        save.click();
+        await flush();
+
+        expect(addWordCalls()).toHaveLength(2);
+        expect(save.classList.contains('saved')).toBe(false);
+    });
+});
+
+/**
+ * Behaviour map §42.3 — what the full screen says about the answer it got.
+ *
+ * The screen renders two very different things through one layout: a
+ * dictionary entry, ordered by the word's dominant reading and blind to the
+ * sentence, and a model answer, ordered by the very cue on screen. Three
+ * markers tell the reader which they are looking at and what to weigh it
+ * against — the source badge, the quoted cue with the word picked out, and the
+ * sense numbers. None of the three had a check, so any of them could have
+ * rendered one label for both sources, or lost its highlight, silently.
+ */
+describe('the article marks where the answer came from', () => {
+    const dictionary: LookupResult = {
+        term: 'anchor',
+        lemma: 'anchor',
+        translations: ['якорь', 'ведущий'],
+        parts_of_speech: [{
+            tag: 'n.', label: 'Noun',
+            senses: [{ translations: [], definition: 'A tool used to moor a vessel.', examples: [] }],
+        }],
+        source: 'wiktionary',
+    };
+    const generated: LookupResult = {
+        ...dictionary,
+        translations: [],
+        parts_of_speech: [{
+            tag: 'v.', label: 'Verb',
+            senses: [{
+                translations: ['подкатывать'],
+                definition: 'To charm someone.',
+                examples: [],
+            }],
+        }],
+        source: 'llm',
+    };
+
+    /** Open the screen on `r` and hand back the rendered panel. */
+    async function article(r: LookupResult, context = 'we dropped anchor here'): Promise<HTMLDivElement> {
+        const h = harness();
+        stubMessaging(r);
+        h.screen.open(r.term, context);
+        await flush();
+        return h.panel;
+    }
+
+    const badge = (panel: HTMLElement) => panel.querySelector('.vtt-lookup-src');
+
+    it('a dictionary answer is labelled a dictionary answer', async () => {
+        const panel = await article(dictionary);
+        expect(badge(panel)).not.toBeNull();
+        expect(badge(panel)!.textContent).toBe('dictionary');
+        expect(badge(panel)!.classList.contains('dict')).toBe(true);
+    });
+
+    it('a generated answer is labelled as AI', async () => {
+        const panel = await article(generated);
+        expect(badge(panel)).not.toBeNull();
+        expect(badge(panel)!.textContent).toBe('AI');
+        expect(badge(panel)!.classList.contains('llm')).toBe(true);
+    });
+
+    it('the two labels are different labels', async () => {
+        // The assertion neither check above makes alone: one label rendered
+        // for both sources satisfies whichever of the two it happens to be.
+        const dict = badge(await article(dictionary))!.textContent;
+        const llm = badge(await article(generated))!.textContent;
+        expect(dict).not.toBe(llm);
+    });
+
+    it('a cached answer is still a dictionary answer, not a third kind', async () => {
+        // 'cache' is the dictionary's own answer served from the store; a
+        // reader must not be shown a source they cannot interpret.
+        const panel = await article({ ...dictionary, source: 'cache' });
+        expect(badge(panel)!.textContent).toBe('dictionary');
+    });
+});
+
+describe('the article quotes the cue and picks the word out of it', () => {
+    const answer: LookupResult = {
+        term: 'anchor',
+        lemma: 'anchor',
+        translations: ['якорь'],
+        parts_of_speech: [{
+            tag: 'n.', label: 'Noun',
+            senses: [
+                { translations: [], definition: 'A mooring tool.', examples: [] },
+                { translations: [], definition: 'A news presenter.', examples: [] },
+            ],
+        }],
+        source: 'wiktionary',
+    };
+
+    async function article(context: string, r: LookupResult = answer): Promise<HTMLDivElement> {
+        const h = harness();
+        stubMessaging(r);
+        h.screen.open(r.term, context);
+        await flush();
+        return h.panel;
+    }
+
+    it('the source sentence is quoted with the word in bold', async () => {
+        const panel = await article('we dropped anchor here');
+        const ctx = panel.querySelector('.vtt-lookup-ctx');
+        expect(ctx).not.toBeNull();
+        expect(ctx!.textContent).toBe('we dropped anchor here');
+        const b = ctx!.querySelector('b');
+        expect(b).not.toBeNull();
+        expect(b!.textContent).toBe('anchor');
+    });
+
+    it('of three cue lines it quotes the one that holds the word', async () => {
+        const panel = await article('nothing here\nwe dropped anchor here\nnor here');
+        const ctx = panel.querySelector('.vtt-lookup-ctx')!;
+        expect(ctx.textContent).toBe('we dropped anchor here');
+        expect(ctx.querySelector('b')!.textContent).toBe('anchor');
+    });
+
+    it('the senses are numbered from one', async () => {
+        const panel = await article('we dropped anchor here');
+        const nums = [...panel.querySelectorAll('.vtt-lookup-sense-num')].map((n) => n.textContent);
+        expect(nums).toEqual(['1', '2']);
+    });
+
+    it('a cue the word is missing from is quoted plainly, not falsely bolded', async () => {
+        // The counter-half: the bold is a claim about where the word is. A
+        // renderer that always wrapped something would put it on the wrong text.
+        const panel = await article('a line without it');
+        const ctx = panel.querySelector('.vtt-lookup-ctx')!;
+        expect(ctx.textContent).toBe('a line without it');
+        expect(ctx.querySelector('b')).toBeNull();
+    });
+});
+
+describe('the lemma is shown only when it differs from the word', () => {
+    const base: LookupResult = {
+        term: 'running',
+        lemma: 'run',
+        translations: ['бежать'],
+        parts_of_speech: [{
+            tag: 'v.', label: 'Verb',
+            senses: [{ translations: [], definition: 'To move quickly on foot.', examples: [] }],
+        }],
+        source: 'wiktionary',
+    };
+
+    async function article(r: LookupResult): Promise<HTMLDivElement> {
+        const h = harness();
+        stubMessaging(r);
+        h.screen.open(r.term, `he was ${r.term} home`);
+        await flush();
+        return h.panel;
+    }
+
+    it('an inflected word carries its base form', async () => {
+        const panel = await article(base);
+        const lemma = panel.querySelector('.vtt-lookup-lemma');
+        expect(lemma).not.toBeNull();
+        expect(lemma!.textContent).toBe('run');
+    });
+
+    it('a word that is already its own base form carries none', async () => {
+        const panel = await article({ ...base, term: 'run', lemma: 'run' });
+        expect(panel.querySelector('.vtt-lookup-lemma')).toBeNull();
+        // ...and the headword is still there — the absence is the lemma's,
+        // not a blank article.
+        expect(panel.querySelector('.vtt-lookup-headword')!.textContent).toBe('run');
+    });
+
+    it('the same base form in another case is still the same word', async () => {
+        const panel = await article({ ...base, term: 'Run', lemma: 'run' });
+        expect(panel.querySelector('.vtt-lookup-lemma')).toBeNull();
+    });
+});
+
+/**
+ * §42.7, T5.18 — the saved marker is per-session, never restored.
+ *
+ * A word saved on the site (or in an earlier session) does NOT come back marked
+ * here, and that is deliberate: the screen has no way to ask which words the
+ * account holds, so a marker seeded from anything local would be a guess. A
+ * wrong "Saved" is worse than none — it tells the user a word is in their list
+ * when it is not, and the control refuses a second save on the strength of it.
+ */
+describe('the saved marker is not restored from storage', () => {
+    it('a fresh screen holds no saved terms', () => {
+        const h = harness();
+        expect((h.screen as any).savedTerms.size).toBe(0);
+    });
+
+    it('a fresh screen reads nothing from storage while opening a word', () => {
+        (chrome.storage.local.get as jest.Mock).mockClear();
+        const h = harness();
+        h.screen.open('main', 'the main sail');
+        expect(chrome.storage.local.get).not.toHaveBeenCalled();
+    });
+
+    // The other side, and the reason the set exists at all: within one session
+    // a save IS remembered, so a second tap on the same word is a no-op rather
+    // than a duplicate write.
+    it('a term saved in this session is remembered', () => {
+        const h = harness();
+        (h.screen as any).savedTerms.add('main');
+        expect((h.screen as any).savedTerms.has('main')).toBe(true);
+    });
+
+    // And a second screen does not inherit the first one's set: the marker is
+    // per-instance, which is what makes it per-session.
+    it('a second screen starts empty even after the first saved something', () => {
+        const first = harness();
+        (first.screen as any).savedTerms.add('main');
+
+        const second = harness();
+        expect((second.screen as any).savedTerms.size).toBe(0);
+    });
+});

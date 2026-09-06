@@ -20,6 +20,8 @@ let messageReply: any = { signedIn: false };
     },
 };
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { installPlayerMenu } from '../src/content/player-menu';
 
 interface FakeUi {
@@ -110,6 +112,27 @@ function setupBar(): void {
         </div>`;
 }
 
+/**
+ * The shipped English strings, read from the file the browser reads.
+ *
+ * The suite stubs chrome.i18n.getMessage to '' so t() falls through to the
+ * source literal — which means an assertion made under that stub pins the
+ * FALLBACK, and messages.json could say something else forever. Tests that care
+ * what the user reads install this instead.
+ */
+const EN_MESSAGES: Record<string, { message: string }> = JSON.parse(
+    readFileSync(join(__dirname, '..', '_locales', 'en', 'messages.json'), 'utf8'),
+);
+const withShippedStrings = (body: () => void): void => {
+    const original = chrome.i18n.getMessage;
+    (chrome.i18n as any).getMessage = (key: string) => EN_MESSAGES[key]?.message ?? '';
+    try {
+        body();
+    } finally {
+        (chrome.i18n as any).getMessage = original;
+    }
+};
+
 const menu = () => document.getElementById('vtt-ytp-menu')!;
 const btn = () => document.getElementById('vtt-ytp-overlay-btn')!;
 const openMenu = () => btn().dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -140,6 +163,38 @@ describe('installPlayerMenu', () => {
         expect(menu().parentElement!.id).toBe('movie_player');
         expect(document.querySelector('.vtt-ytp-anchor')!.contains(menu())).toBe(false);
         expect(document.getElementById('movie_player')!.contains(menu())).toBe(true);
+    });
+
+    /**
+     * The two controls the product puts in YouTube's own bar say what they are.
+     * Nothing read either title before: the only assertion in the tree carrying
+     * "(Shift+O)" is app-base-status.test.ts's 'On-screen (Shift+O)', which is
+     * the SIDEBAR chip — a different element, a different key, different text.
+     * Do not delete these as duplicates of it.
+     *
+     * Asserted against the SHIPPED strings, not the source fallbacks: t()
+     * returns the fallback under this suite's i18n stub, so a check made under
+     * the stub would stay green while messages.json drifted. Reading the file
+     * the browser reads makes either side drifting go red.
+     */
+    test('the bar button names the product in its tooltip', () => {
+        withShippedStrings(() => {
+            installPlayerMenu(makeApp());
+            expect(btn().title).toBe('Lingogram menu');
+            // One key, two attributes (player-menu.ts:177 and :798). Asserting
+            // one leaves the claim half-true if the other is dropped.
+            expect(menu().getAttribute('aria-label')).toBe('Lingogram menu');
+        });
+    });
+
+    test('the captions button says what it does and which key reaches it', () => {
+        withShippedStrings(() => {
+            installPlayerMenu(makeApp());
+            const cc = document.getElementById('vtt-ytp-cc-btn') as HTMLElement;
+            // The shortcut suffix is composed in code and governed by no locale
+            // file, so it is the half most able to drift unnoticed.
+            expect(cc.title).toBe('Subtitles on video (Shift+O)');
+        });
     });
 
     test('a bar rebuild does not leave the old menu behind', () => {
@@ -413,7 +468,12 @@ describe('subtitle health status', () => {
         installPlayerMenu(app);
         openMenu();
         expect(status().hidden).toBe(false);
-        expect(status().textContent).toContain('No subtitles');
+        // The WHOLE line, not the prefix. 'No subtitles' is shared with
+        // ytMenuNoTranslation ("No subtitles in your language — original
+        // only"), so the old prefix match stayed green when this arm rendered
+        // the other message — the exact confusion the check below exists for.
+        expect(status().textContent).toContain('No subtitles for this video');
+        expect(status().textContent).not.toContain('original only');
         expect(status().disabled).toBe(false);
 
         status().dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -473,6 +533,48 @@ describe('subtitle health status', () => {
         expect(status().disabled).toBe(false);
     });
 
+    /**
+     * The countdown is LIVE — the number falls while the menu stays open.
+     * Its neighbour below renders one frame and reads '12s', which a product
+     * with no interval at all also produces; the ticking itself was unpinned.
+     *
+     * makeApp's cooldownRemainingMs is a constant closure, so the remaining
+     * time is overridden here with a mutable one — advancing a fake clock alone
+     * would re-render the same number forever and prove nothing.
+     */
+    test('the countdown ticks while the menu is open, and stops when it closes', () => {
+        jest.useFakeTimers();
+        try {
+            const app = makeApp({
+                tracks: [{ name: 'English' }],
+                learningTrack: true,
+                nativeTrack: false,
+                cooldownMs: 12_000,
+            });
+            let remaining = 12_000;
+            app.cooldownRemainingMs = () => remaining;
+            installPlayerMenu(app);
+            openMenu();
+            expect(status().textContent).toContain('12s');
+
+            // Never step to 0: the tick is conditional on remaining > 0, so a
+            // countdown that reached zero would stop re-rendering and leave the
+            // last number up — passing for the wrong reason.
+            remaining = 9_000;
+            jest.advanceTimersByTime(3_000);
+            expect(status().textContent).toContain('9s');
+            expect(status().textContent).not.toContain('12s');
+
+            // Closing must stop it — nobody can read a countdown they cannot
+            // see, and a live interval on a closed menu is a leak. Asserted
+            // after close(), not while open: open() also runs a wake timer.
+            btn().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(jest.getTimerCount()).toBe(0);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     test('while the cooldown runs the row counts down and cannot be clicked', () => {
         const app = makeApp({
             tracks: [{ name: 'English' }],
@@ -509,6 +611,13 @@ describe('first run (no languages picked)', () => {
         expect((document.getElementById('vtt-ytp-menu-overlay') as HTMLElement).hidden).toBe(true);
         // "No subtitles" would be noise before anything is configured.
         expect((document.getElementById('vtt-ytp-menu-status') as HTMLElement).hidden).toBe(true);
+        // The other two rows of the same block (player-menu.ts:510-515). Keep
+        // them HERE, in the langPrefs:null fixture: the neighbouring check at
+        // 'a track with no cues leaves the row present but inert' asserts
+        // hidden === false on this same element for the canDownload() path, so
+        // merging the two would quietly delete the noLangs half.
+        expect((document.getElementById('vtt-ytp-menu-download') as HTMLElement).hidden).toBe(true);
+        expect((document.getElementById('vtt-ytp-menu-settings') as HTMLElement).hidden).toBe(true);
     });
 
     test('the onboarding button opens the sidebar, which owns the language pickers', () => {
@@ -803,5 +912,60 @@ describe('keyboard and ARIA', () => {
 
         key('Escape');   // stepwise: back to root, focus returns to its row
         expect(document.activeElement!.id).toBe('vtt-ytp-menu-modes');
+    });
+});
+
+// Where the control sits in YouTube's own bar — behaviour map §9.2. The
+// existing checks confirm it lands somewhere inside .ytp-right-controls; the
+// claim is narrower than that, and the reason is discoverability. Beside the
+// captions button it reads as "the other subtitle control". Pushed to the end
+// of the bar it sits past fullscreen, where nobody looking for subtitles goes.
+describe('where the control sits in the player bar', () => {
+    const anchor = () => document.querySelector<HTMLElement>('.vtt-ytp-anchor')!;
+    const cc = () => document.querySelector<HTMLElement>('.ytp-subtitles-button')!;
+
+    test('it is the captions button\'s immediate left-hand sibling', () => {
+        installPlayerMenu(makeApp());
+        expect(anchor().nextElementSibling).toBe(cc());
+        expect(cc().previousElementSibling).toBe(anchor());
+    });
+
+    // YouTube nests the row a level deeper in some layouts, so the captions
+    // button is not always a direct child of .ytp-right-controls. Inserting
+    // against the wrapper instead of the button's own parent puts the control
+    // outside the group it belongs to.
+    test('it follows the captions button into a nested layout', () => {
+        document.body.innerHTML = `
+            <div id="movie_player">
+                <div class="ytp-right-controls">
+                    <div class="ytp-right-controls-left">
+                        <button class="ytp-subtitles-button"></button>
+                    </div>
+                    <button class="ytp-fullscreen-button"></button>
+                </div>
+            </div>`;
+        installPlayerMenu(makeApp());
+
+        expect(anchor().parentElement).toBe(cc().parentElement);
+        expect(anchor().nextElementSibling).toBe(cc());
+    });
+
+    // No captions button this session: the control still has to appear. Being
+    // in the wrong place beats not being there at all.
+    test('with no captions button it still reaches the bar', () => {
+        document.body.innerHTML = `
+            <div id="movie_player">
+                <div class="ytp-right-controls"><button class="ytp-fullscreen-button"></button></div>
+            </div>`;
+        installPlayerMenu(makeApp());
+
+        const controls = document.querySelector('.ytp-right-controls')!;
+        expect(controls.contains(anchor())).toBe(true);
+    });
+
+    test('with no control bar at all, nothing is inserted and nothing throws', () => {
+        document.body.innerHTML = '<div id="movie_player"></div>';
+        expect(() => installPlayerMenu(makeApp())).not.toThrow();
+        expect(document.querySelector('.vtt-ytp-anchor')).toBeNull();
     });
 });

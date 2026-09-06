@@ -26,6 +26,7 @@ import { watchControlsFloor } from './controlsFloor';
 import { installPlayerMenu } from './player-menu';
 import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
+import { decideCaptionSearch, isStaleResult } from './nav-guards';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -205,8 +206,7 @@ class YouTubeVttApp extends BaseVttApp {
 
     handleVttResult(m: YtVttResultMessage): void {
         // A result for a video the user already left is noise, not a failure.
-        const current = this.getVideoId();
-        if (m.videoId && current && m.videoId !== current) return;
+        if (isStaleResult(m.videoId, this.getVideoId())) return;
 
         const name = this.takePending(m.url);
         console.log('[YT-VTT] VTT_RESULT <-', name, m.ok ? `bytes: ${m.text.length}` : `failed: ${m.failure}`);
@@ -671,7 +671,12 @@ class YouTubeCaptionDetector {
         // was ever issued and the sidebar said "No subtitles available" for a
         // video whose captions were perfectly fine. Non-deterministic by
         // nature: it only bites when the message wins the race against storage.
-        if (!this.app.langPrefs) {
+        const decision = decideCaptionSearch(
+            !!this.app.langPrefs,
+            this.isShortsPage(),
+            this.app.isSidebarCollapsed(),
+        );
+        if (decision === 'setup') {
             this.app.showLanguageOnboarding();
             return;
         }
@@ -690,7 +695,7 @@ class YouTubeCaptionDetector {
         //
         // Not claiming captionsLoadedForVideo: nothing was loaded, so expanding
         // the panel must still be able to run a real search for this video.
-        if (this.isShortsPage() && this.app.isSidebarCollapsed()) {
+        if (decision === 'defer') {
             console.log('[YT-VTT] shorts + collapsed panel — deferring the search');
             this.app.offerDeferredSearch();
             return;

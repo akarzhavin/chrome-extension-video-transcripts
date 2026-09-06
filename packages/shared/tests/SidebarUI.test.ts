@@ -7,6 +7,10 @@ import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
 import { WordScreen } from '../src/lookup/word-screen';
+// The stylesheet is read directly for the one claim whose product half lives
+// in CSS rather than in the module under test (the collapse chevron).
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 // Mock chrome API. Includes a minimal storage.local so prefs.loadPrefs (used by
 // the fullscreen-exit restore path) reads from this backing store.
@@ -164,6 +168,35 @@ describe('SidebarUI', () => {
         expect(panel.classList.contains('open')).toBe(false);
     });
 
+    /**
+     * Behaviour map §6: the mode controls are hidden entirely until subtitles
+     * have loaded — there is nothing to switch between yet.
+     *
+     * Built against a REAL panel (freshUi.init()) rather than the suite's
+     * hand-stubbed `ui.elements`: that stub carries no quickModesBar at all, so
+     * `if (quickModesBar)` at SidebarUI.ts:1891 short-circuits and a check
+     * written against it would pass having asserted nothing.
+     *
+     * Both arms are asserted. "Hidden while empty" alone also passes for a bar
+     * hidden unconditionally — which would be the worse bug, since the controls
+     * would then never appear at all.
+     */
+    test('the mode controls stay hidden until subtitles are loaded', () => {
+        document.body.innerHTML = '';
+        const freshState = new AppState();
+        const freshUi = new SidebarUI(freshState, mockApp);
+        expect(freshUi.init()).toBe(true);
+
+        freshUi.updateControls();
+        const bar = (freshUi as any).elements.quickModesBar as HTMLElement;
+        expect(bar).toBeTruthy();
+        expect(bar.style.display).toBe('none');
+
+        freshState.addTrack('A', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        freshUi.updateControls();
+        expect(bar.style.display).toBe('');
+    });
+
     test('the mode segment is three radios with exactly one checked', () => {
         document.body.innerHTML = '';
         const freshState = new AppState();
@@ -302,12 +335,22 @@ describe('SidebarUI', () => {
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             const fire = (type: string, x: number, y: number) =>
                 masked.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: y }));
+            // Read BEFORE the gesture, from the element, so "stayed put" is a
+            // comparison of two observations. The previous form,
+            // `getPropertyValue(...) || '0%'` against '0%', was satisfied by the
+            // property never having been written at all — which is exactly what
+            // it could not tell apart from a reset.
+            const nudgeBefore = overlay.style.getPropertyValue('--vtt-overlay-nudge');
+            const positionWrites = jest.spyOn((ui as any).position, 'set');
             fire('pointerdown', 100, 200);
             fire('pointermove', 102, 150);
             fire('pointerup', 102, 150);
             expect(state.getRevealedCount(0)).toBe(2);
-            // The captions stayed put: the text is not a drag surface.
-            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge') || '0%').toBe('0%');
+            // The captions stayed put: the text is not a drag surface, so the
+            // drift neither moved the stored position nor repainted the nudge.
+            expect(positionWrites).not.toHaveBeenCalled();
+            expect(overlay.style.getPropertyValue('--vtt-overlay-nudge')).toBe(nudgeBefore);
+            positionWrites.mockRestore();
         });
 
         test('a right-button press does not reveal', () => {
@@ -1035,12 +1078,112 @@ describe('SidebarUI', () => {
             expect(overlay.style.getPropertyValue('--vtt-overlay-edge')).toBe('0.04em 0.04em 0.13em #000');
         });
 
+        /**
+         * The counter-half of the tested preset rule (§10.28, §11.6).
+         *
+         * Choosing a position preset deliberately clears a manual drag — that
+         * has a check. Reset deliberately does NOT, and that had none: a
+         * viewer who dragged the captions somewhere and then pressed Reset to
+         * fix a colour keeps the position they chose.
+         */
+        test('the text reset leaves a dragged position where the viewer put it', async () => {
+            (ui as any).position = { bottom: 20, inline: 5 };
+            (ui as any).setOverlayFontSize(150);
+            await new Promise((r) => setTimeout(r, 0));
+            savePrefs({ overlayBottomNudge: 20, overlayInlineNudge: 5 }, 'other');
+            await new Promise((r) => setTimeout(r, 0));
+
+            (ui as any).resetTextStyle();
+            await new Promise((r) => setTimeout(r, 0));
+
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
+            expect(stored.overlayBottomNudge).toBe(20);
+            expect(stored.overlayInlineNudge).toBe(5);
+        });
+
+        test('the box reset leaves it too — the likelier place to lose it', async () => {
+            // A nudge reads as "box-ish", so a tidy-up that folds it into the
+            // box defaults is the plausible regression.
+            savePrefs({ overlayBottomNudge: 20, overlayInlineNudge: 5 }, 'other');
+            await new Promise((r) => setTimeout(r, 0));
+
+            (ui as any).resetBoxStyle();
+            await new Promise((r) => setTimeout(r, 0));
+
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
+            expect(stored.overlayBottomNudge).toBe(20);
+            expect(stored.overlayInlineNudge).toBe(5);
+        });
+
+        test('choosing a position preset does clear it — the half that was tested', async () => {
+            savePrefs({ overlayBottomNudge: 20, overlayInlineNudge: 5 }, 'other');
+            await new Promise((r) => setTimeout(r, 0));
+
+            (ui as any).setOverlayBottomOffset('high');
+            await new Promise((r) => setTimeout(r, 0));
+
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.other;
+            expect(stored.overlayBottomNudge).toBe(0);
+            expect(stored.overlayInlineNudge).toBe(0);
+        });
+
+        test('backdrop "off" is genuinely transparent, not merely faint', async () => {
+            // §10.23. "Off" that resolved to a low opacity would look almost
+            // right and quietly deny the one setting that makes the Edge
+            // control the only thing keeping text legible over pale video.
+            const overlay = buildOverlay();
+            (ui as any).setOverlayBgOpacity('off');
+            await new Promise((r) => setTimeout(r, 0));
+            expect(overlay.style.getPropertyValue('--vtt-overlay-bg-opacity')).toBe('0');
+        });
+
         test('neither reset touches overlayEnabled', async () => {
             state.overlayEnabled = false;
             (ui as any).resetTextStyle();
             (ui as any).resetBoxStyle();
             await new Promise((r) => setTimeout(r, 0));
             expect((await loadPrefs('other')).overlayEnabled).toBe(true); // default — never written by reset
+        });
+
+        /**
+         * §10.26. Reset restores the site's OWN starting sizes, not the
+         * generic ones — and every check above runs in the 'other' scope,
+         * where those two are the same number. On YouTube and rezka they are
+         * not: a fresh install starts at 160/110 there, because captions sized
+         * for a web page read too small over a video player.
+         *
+         * So the whole point of the rule — the `PLATFORM_SIZE_DEFAULTS` merge
+         * in resetTextStyle — sits outside what jsdom's host reaches, and an
+         * audit reading only these tests reported a reset defect that does not
+         * exist. The scope is a readonly field derived from location.hostname;
+         * overriding it on the instance is the only way in without a second
+         * jsdom environment for one behaviour.
+         */
+        test('on YouTube the text reset restores that site\'s larger sizes, not the generic ones', async () => {
+            Object.defineProperty(ui, 'scope', { value: 'youtube', configurable: true });
+            const overlay = buildOverlay();
+            (ui as any).setOverlayFontSize(90);
+            (ui as any).setOverlaySubFontSize(90);
+            await new Promise((r) => setTimeout(r, 0));
+
+            (ui as any).resetTextStyle();
+            await new Promise((r) => setTimeout(r, 0));
+
+            const stored = (prefsStore['prefs.v1'] as any).byPlatform.youtube;
+            expect(stored.overlayFontSize).toBe(160);
+            expect(stored.overlaySubFontSize).toBe(110);
+            // Everything else still comes from the generic text defaults: the
+            // site override is two sizes, not a second palette.
+            expect(stored).toMatchObject({
+                overlayFontFamily: 'propSans',
+                overlayColor: '#ffffff',
+                overlaySubColor: '#ffd700',
+                overlayTextOpacity: 1,
+            });
+            // And the captions on screen actually move: 160% and 110% of the
+            // 24px base. A write nobody applied would leave them at 90%.
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('38.4px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('26.4px');
         });
     });
 
@@ -1242,6 +1385,36 @@ describe('SidebarUI', () => {
             for (const k of Object.keys(prefsStore)) delete prefsStore[k];
         });
 
+        // §12: the panel must MOVE INTO the fullscreen element. Anything left
+        // outside it is simply not on screen, so the class alone is not the
+        // behaviour — the reparenting is. The live check for this can never
+        // run (`e2e/player-modes.spec.ts` skips: the browser's fullscreen API
+        // needs a real gesture in a focused window, which a background tab
+        // cannot give), so it is asserted here instead.
+        test('the sidebar moves inside the fullscreen element and comes home after', async () => {
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+
+            // A home that is NOT <body>. On the sites this runs on the panel
+            // hangs off a wrapper, and the exit path restores `homeParent`
+            // rather than defaulting to <body> — with <body> as the home the
+            // two are indistinguishable and the return half asserts nothing.
+            const home = document.createElement('div');
+            document.body.appendChild(home);
+            home.appendChild(sidebar);
+
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+
+            fireFullscreen(fsEl);
+            expect(sidebar.parentElement).toBe(fsEl);
+
+            fireFullscreen(null);
+            await flush();
+            expect(sidebar.parentElement).toBe(home);
+        });
+
         // Regression: leaving fullscreen used to unconditionally remove 'collapsed',
         // re-opening a sidebar the user had deliberately collapsed.
         test('exiting fullscreen keeps the sidebar collapsed when the pref says so', async () => {
@@ -1277,6 +1450,46 @@ describe('SidebarUI', () => {
             await flush();
             expect(sidebar.classList.contains('collapsed')).toBe(false);
         });
+
+        // The class is cosmetic; the move is what makes the panel visible at
+        // all. Anything left under <body> is painted behind the fullscreen
+        // element, so a panel that only gained the class is a panel nobody can
+        // see — while every existing check here would still pass.
+        test('entering fullscreen moves the panel inside the fullscreen element', () => {
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+            document.body.appendChild(sidebar);
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+            expect(fsEl.contains(sidebar)).toBe(false); // the premise, stated
+
+            fireFullscreen(fsEl);
+            expect(fsEl.contains(sidebar)).toBe(true);
+            expect(sidebar.parentElement).toBe(fsEl);
+        });
+
+        // Back to where it came from, which is not always <body>: embedded in a
+        // page the panel belongs to a layout column, and returning it to <body>
+        // there leaves it fixed against the whole document.
+        test('leaving fullscreen returns the panel to the parent it came from', async () => {
+            const home = document.createElement('div');
+            home.id = 'its-own-column';
+            document.body.appendChild(home);
+            const sidebar = ui.elements.sidebar as HTMLDivElement;
+            home.appendChild(sidebar);
+            ui.setupFullscreenHandling();
+
+            const fsEl = document.createElement('div');
+            document.body.appendChild(fsEl);
+
+            fireFullscreen(fsEl);
+            expect(sidebar.parentElement).toBe(fsEl);
+
+            fireFullscreen(null);
+            await flush();
+            expect(sidebar.parentElement).toBe(home);
+        });
     });
 
     // The player menu needs "open", not "flip": both toggleCollapsed() and
@@ -1291,11 +1504,16 @@ describe('SidebarUI', () => {
             sidebar = document.getElementById('vtt-sidebar')!;
         });
 
-        test('openPanel expands a collapsed sidebar and persists it', () => {
+        // savePrefs is read-modify-write: two awaited gets stand between the
+        // call and the set. This used to read prefsStore synchronously and pass
+        // on a write left behind by an earlier test, which is why adding an
+        // awaited test above it broke this one.
+        test('openPanel expands a collapsed sidebar and persists it', async () => {
             ui.toggleCollapsed();
             expect(ui.isCollapsed()).toBe(true);
             ui.openPanel();
             expect(ui.isCollapsed()).toBe(false);
+            for (let i = 0; i < 20; i++) await Promise.resolve();
             expect(prefsStore['prefs.v1']).toMatchObject({ sidebarCollapsed: false });
         });
 
@@ -2022,5 +2240,899 @@ describe('SidebarUI without a word screen (the embed configuration)', () => {
         expect(document.getElementById('vtt-sidebar')).not.toBeNull();
         expect(document.getElementById('vtt-toggle-btn')).not.toBeNull();
         bare.destroy();
+    });
+});
+
+/**
+ * Native-caption suppression — behaviour map §4.3 and §4.5.
+ *
+ * The site's own captions are turned off ONCE per video so the two subtitle
+ * layers don't overlap. Deliberately not a permanent hide: a viewer who turns
+ * them back on is left alone until the next video.
+ *
+ * Three separate decisions live in that sentence — once, per video, and only
+ * while our overlay is on — and none of them had a check. Flattening them into
+ * "always off" is a plausible refactor that would make the product argue with
+ * every viewer who wants the site's captions.
+ */
+describe('native captions', () => {
+    let state: AppState, ui: SidebarUI, app: AppInterface, setNative: jest.Mock;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        state = new AppState();
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+        setNative = jest.fn();
+        app = { seekVideo: jest.fn(), updateHighlight: jest.fn(), setNativeSubtitlesEnabled: setNative };
+        ui = new SidebarUI(state, app);
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
+            overlayBtn: { classList: { toggle: jest.fn() } } as any,
+            dualBtn: { classList: { toggle: jest.fn() } } as any,
+            settingsBtn: document.createElement('button'),
+            mainSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+            subSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+        };
+    });
+
+    test('the first refresh turns the site\'s captions off', () => {
+        state.overlayEnabled = true;
+        ui.refresh();
+        expect(setNative).toHaveBeenCalledTimes(1);
+        expect(setNative).toHaveBeenCalledWith(false);
+    });
+
+    test('a second refresh does not turn them off again', () => {
+        state.overlayEnabled = true;
+        ui.refresh();
+        ui.refresh();
+        ui.refresh();
+        // Once per video, not once per repaint — the sidebar refreshes several
+        // times a second while a video plays.
+        expect(setNative).toHaveBeenCalledTimes(1);
+    });
+
+    test('a new video re-arms the suppression', () => {
+        state.overlayEnabled = true;
+        ui.refresh();
+        ui.resetNativeSubsGuard();
+        ui.refresh();
+        expect(setNative).toHaveBeenCalledTimes(2);
+    });
+
+    test('turning our overlay off and on again re-arms it', () => {
+        state.overlayEnabled = true;
+        ui.refresh();
+        state.overlayEnabled = false;
+        ui.refresh(); // re-arms
+        state.overlayEnabled = true;
+        ui.refresh(); // suppresses again
+        expect(setNative).toHaveBeenCalledTimes(2);
+    });
+
+    test('with our overlay off, the site\'s captions are never touched', () => {
+        state.overlayEnabled = false;
+        ui.refresh();
+        ui.refresh();
+        ui.refresh();
+        expect(setNative).not.toHaveBeenCalled();
+    });
+
+    test('the site\'s captions are never turned back on for the viewer', () => {
+        // Turning them on is the viewer's business. The product only ever
+        // steps out of the way; it does not restore what it did not choose.
+        state.overlayEnabled = true;
+        ui.refresh();
+        state.overlayEnabled = false;
+        ui.refresh();
+        state.overlayEnabled = true;
+        ui.refresh();
+        ui.resetNativeSubsGuard();
+        ui.refresh();
+        expect(setNative.mock.calls.every(([enabled]) => enabled === false)).toBe(true);
+    });
+});
+
+// Three decisions the settings screen makes whose other half is already
+// covered: what it refuses to remember, what it tears down on the way out,
+// and what it refuses to offer before there is anything to apply it to.
+describe('the settings screen', () => {
+    let ui: SidebarUI, state: AppState;
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+        (chrome.storage.local.set as jest.Mock).mockClear();
+        for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+        state = new AppState();
+        ui = new SidebarUI(state, { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        expect(ui.init()).toBe(true);
+    });
+
+    // Being open is a place in the UI, not a preference. Persisting it would
+    // reopen the panel over the transcript on the next video, and the reading
+    // surface is what the user came for.
+    test('opening settings writes nothing to storage', async () => {
+        ui.toggleSettingsPanel();
+        expect(document.getElementById('vtt-settings-panel')?.classList.contains('open')).toBe(true);
+        // savePrefs is read-modify-write: two awaited gets stand between the
+        // call and the set, so a single microtask turn would let a real write
+        // through unseen. Drain the queue until it is empty.
+        for (let i = 0; i < 20; i++) await Promise.resolve();
+        // Not "no settings-open field" — nothing at all. A toggle that saves
+        // any pref here is already the defect, whatever it chose to call it.
+        expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    test('a fresh panel starts closed even after settings were left open', () => {
+        ui.toggleSettingsPanel();
+        ui.destroy();
+        document.body.innerHTML = '';
+        const second = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        expect(second.init()).toBe(true);
+        expect(document.getElementById('vtt-settings-panel')?.classList.contains('open')).toBe(false);
+    });
+
+    // The report form sits on top of settings. Leaving settings has to tear it
+    // down, or its class survives and the next visit opens straight into a
+    // stale form carrying someone's half-typed message.
+    test('toggling settings dismisses an open report form', () => {
+        ui.toggleSettingsPanel();
+        ui.openFeedbackScreen();
+        const sidebar = document.getElementById('vtt-sidebar')!;
+        expect(sidebar.classList.contains('vtt-feedback-open')).toBe(true);
+        expect(document.getElementById('vtt-feedback-text')).not.toBeNull();
+
+        ui.toggleSettingsPanel();
+
+        expect(sidebar.classList.contains('vtt-feedback-open')).toBe(false);
+        expect(document.getElementById('vtt-feedback-text')).toBeNull();
+    });
+
+    // The mode bar switches between single, dual and guess. With no track
+    // loaded every one of them is a no-op, so the bar is hidden rather than
+    // offered dead.
+    test('the mode bar is hidden until a track exists, and appears with one', () => {
+        ui.updateControls();
+        const bar = document.getElementById('vtt-quickmodes')!;
+        expect(bar.style.display).toBe('none');
+
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+        ui.updateControls();
+        expect(bar.style.display).toBe('');
+    });
+});
+
+/**
+ * Phase 5 — the claims sections 3, 5, 10, 19, 20 and 38 left half-pinned.
+ *
+ * A new suite rather than additions inside the blocks above: these are their
+ * own fixtures, and several need the real panel `init()` builds rather than the
+ * hand-assembled `elements` the first suite uses.
+ */
+describe('the five-second reach is five seconds', () => {
+    // §38.2. The existing checks put the far line 30s away and the long cue at
+    // 7s inside an 8s cue. Both are true of REVEAL_REACH_S = 5, and equally
+    // true of 8, of 20, of 29 — the constant was never pinned, only bracketed.
+    // These two sit 4.9s and 5.1s from the line under the playhead, so the only
+    // value that satisfies both is 5.
+    let state: AppState, ui: SidebarUI, mockApp: AppInterface;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        state = new AppState();
+        mockApp = { seekVideo: jest.fn(), updateHighlight: jest.fn() };
+        ui = new SidebarUI(state, mockApp, (host) => new WordScreen(host));
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
+            overlayBtn: { classList: { toggle: jest.fn() } } as any,
+            dualBtn: { classList: { toggle: jest.fn() } } as any,
+            settingsBtn: document.createElement('button'),
+            mainSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+            subSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+        };
+    });
+
+    /**
+     * Two cues: one under the playhead at 0, and a second whose START is `gap`
+     * seconds later. The distance the rule measures is to the nearest point of
+     * the cue, so a cue starting at `gap` is exactly `gap` away.
+     */
+    const buildAtGap = (gap: number): HTMLElement => {
+        state.displayMode = 'guess';
+        state.addTrack('English', [
+            { startTime: 0, endTime: 0.5, text: 'alpha beta gamma' },
+            { startTime: gap, endTime: gap + 2, text: 'delta epsilon zeta' },
+        ] as Subtitle[]);
+        ui.renderSubtitles();
+        ui.highlightSubtitle(0);
+        return ui.elements.list!.querySelector('.vtt-item[data-index="1"]') as HTMLElement;
+    };
+
+    test('a line 4.9s away is still the line you are on — it reveals', () => {
+        buildAtGap(4.9).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(state.getRevealedCount(1)).toBe(2);
+    });
+
+    test('a line 5.1s away is navigation — it seeks without revealing', () => {
+        buildAtGap(5.1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(mockApp.seekVideo).toHaveBeenCalledWith(5.1);
+        expect(state.getRevealedCount(1)).toBe(1);
+    });
+
+    // The reach is inclusive of its own value: exactly 5s away is "> 5" false,
+    // so it reveals. Without this the constant could equally be read as 4.95.
+    test('a line exactly 5s away reveals — the comparison is strictly greater', () => {
+        buildAtGap(5).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(state.getRevealedCount(1)).toBe(2);
+    });
+});
+
+describe('a dialogue-free stretch shows an empty caption', () => {
+    // §3.3, T5.32. Between two cues there is no line, and the overlay must say
+    // so by showing nothing — not by holding the last line up, which would read
+    // as dialogue that is not being spoken.
+    let state: AppState, ui: SidebarUI;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        const video = document.createElement('video');
+        const container = document.createElement('div');
+        container.appendChild(video);
+        document.body.appendChild(container);
+        state = new AppState();
+        ui = new SidebarUI(state, { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
+        };
+        state.overlayEnabled = true;
+        state.addTrack('English', [
+            { startTime: 0, endTime: 2, text: 'first line' },
+            { startTime: 10, endTime: 12, text: 'second line' },
+        ] as Subtitle[]);
+    });
+
+    // highlightSubtitle is what turns a time into the index the overlay is
+    // given, so the gap is expressed the way the product experiences it.
+    test('the gap between two cues resolves to no line at all', () => {
+        ui.highlightSubtitle(6);
+        expect(state.currentIndex).toBe(-1);
+    });
+
+    test('the overlay carries no text over the gap', () => {
+        ui.updateOverlay(0);
+        expect(document.getElementById('vtt-video-overlay')!.textContent).toBe('first line');
+
+        ui.updateOverlay(-1);
+        expect(document.getElementById('vtt-video-overlay')!.textContent).toBe('');
+    });
+
+    // The nearest cue is the tempting wrong answer, so name it: neither
+    // neighbour's text may survive into the gap.
+    test('it shows neither neighbour', () => {
+        ui.updateOverlay(0);
+        ui.updateOverlay(-1);
+        const text = document.getElementById('vtt-video-overlay')!.textContent!;
+        expect(text).not.toMatch(/first line/);
+        expect(text).not.toMatch(/second line/);
+    });
+});
+
+/**
+ * The panel's own controls, against the panel `init()` actually builds. The
+ * suite at the top hand-assembles `elements` from stubs, which cannot answer
+ * questions about markup nobody wrote there.
+ */
+describe('the panel as it is built', () => {
+    let ui: SidebarUI, state: AppState, app: AppInterface;
+
+    const build = (extra: Partial<AppInterface> = {}): void => {
+        document.body.innerHTML = '';
+        for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+        state = new AppState();
+        app = { seekVideo: jest.fn(), updateHighlight: jest.fn(), ...extra };
+        ui = new SidebarUI(state, app);
+        expect(ui.init()).toBe(true);
+    };
+
+    beforeEach(() => build());
+
+    // §10.17, T5.3. The slider replaced a three-way small/medium/large preset
+    // precisely because 100-150% — where most people land — was unreachable.
+    // The three numbers are that decision; a value asserted only as "a number"
+    // would let the range collapse back without a word.
+    describe('the size slider steps by five across 50-400%', () => {
+        test('the main size slider', () => {
+            const slider = document.getElementById('vtt-slider-size') as HTMLInputElement;
+            expect(slider).not.toBeNull();
+            expect(slider.type).toBe('range');
+            expect(slider.min).toBe('50');
+            expect(slider.max).toBe('400');
+            expect(slider.step).toBe('5');
+        });
+
+        // The translation line gets the same control; a divergence here would
+        // mean one line can reach a size the other cannot.
+        test('the translation size slider matches it', () => {
+            const slider = document.getElementById('vtt-slider-sub-size') as HTMLInputElement;
+            expect(slider.min).toBe('50');
+            expect(slider.max).toBe('400');
+            expect(slider.step).toBe('5');
+        });
+    });
+
+    // §19.3, §19.5, §19.7 and §19 as corrected by T0.4 — the download control.
+    describe('the download control', () => {
+        const btn = (): HTMLButtonElement =>
+            document.getElementById('vtt-download-btn') as HTMLButtonElement;
+
+        // §19.3: what gets written is the LEADING track, the one the panel is
+        // showing as the main line — not track zero, and not the translation.
+        test('offers the leading track, not the first one loaded', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+            state.addTrack('Русский', [{ startTime: 0, endTime: 2, text: 'привет' }]);
+            state.activeTrackIndex = 1;
+            state.secondaryTrackIndex = 0;
+            ui.updateControls();
+
+            expect(btn().title).toContain('Русский');
+            expect(btn().title).not.toContain('English');
+        });
+
+        // §19.5: after a swap the leading track is the other one, and the offer
+        // has to say so. Computing the label once at build time would leave the
+        // control promising a file it no longer writes.
+        test('names the other language after a swap', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+            state.addTrack('Русский', [{ startTime: 0, endTime: 2, text: 'привет' }]);
+            ui.updateControls();
+            expect(btn().title).toContain('English');
+
+            expect(state.swapTracks()).toBe(true);
+            ui.updateControls();
+            expect(btn().title).toContain('Русский');
+            expect(btn().title).not.toContain('English');
+        });
+
+        // §19.7: disabled is only half an answer. The tooltip is the whole
+        // reason the button is disabled rather than hidden, so an empty or
+        // generic title makes the disabled state unexplainable.
+        test('carries its reason while there is nothing to write', () => {
+            ui.updateControls();
+            expect(btn().disabled).toBe(true);
+            expect(btn().title).toBe('Available once subtitles have loaded.');
+        });
+
+        // A track of blank cues is not something worth writing to a file, and
+        // the disabled state has to reach that case too.
+        test('stays disabled for a track with no text in it', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: '   ' }]);
+            ui.updateControls();
+            expect(btn().disabled).toBe(true);
+            expect(btn().title).toBe('Available once subtitles have loaded.');
+        });
+
+        // §19 as corrected by T0.4: the gate reads tracks, never the pair. The
+        // map said export needed a language pair; it does not, and a check
+        // written from the map would have pinned a rule the code never had.
+        test('needs only a track — a missing language pair does not disable it', () => {
+            build({ langPrefs: null });
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+            ui.updateControls();
+
+            expect(app.langPrefs ?? null).toBeNull();
+            expect(btn().disabled).toBe(false);
+            expect(btn().title).toContain('English');
+        });
+    });
+
+    // §20.2, T5.7. Article D: the map places the explanation in the row's text;
+    // the code puts it in the row's tooltip, deliberately — the footer is a
+    // one-line-per-row band. Pinned where it actually lives.
+    describe('the analytics consent row', () => {
+        const row = (): HTMLElement =>
+            document.getElementById('vtt-analytics-toggle')!.closest('.vtt-panel-row') as HTMLElement;
+
+        test('names itself in the row text', () => {
+            expect(row().textContent).toContain('Share anonymous usage stats');
+        });
+
+        // The sentence is the consent: it is what tells the user that the
+        // count is a count and not their viewing history. Asserted whole, not
+        // as "some tooltip exists".
+        test('carries what is never collected, in full', () => {
+            expect(row().title).toBe(
+                'Counts like "subtitles loaded" and "word saved". ' +
+                'Never your account, the videos you watch, or the words you save.',
+            );
+        });
+
+        // A native checkbox, not a styled div: this is the one control in the
+        // panel where being operable matters legally rather than aesthetically.
+        test('is a real checkbox', () => {
+            const box = document.getElementById('vtt-analytics-toggle') as HTMLInputElement;
+            expect(box.tagName).toBe('INPUT');
+            expect(box.type).toBe('checkbox');
+        });
+    });
+
+    // Corrections, T5.10. The two dropdowns choose which LOADED TRACK feeds
+    // each line. They are not the language pair: writing lang.v1 from here
+    // would re-point the user's whole account at whatever this one video
+    // happened to offer.
+    describe('the track dropdowns pick tracks, never the pair', () => {
+        const change = (id: string, value: string): void => {
+            const sel = document.getElementById(id) as HTMLSelectElement;
+            sel.value = value;
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        beforeEach(() => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'hello' }]);
+            state.addTrack('Русский', [{ startTime: 0, endTime: 2, text: 'привет' }]);
+            ui.updateControls();
+            (chrome.storage.local.set as jest.Mock).mockClear();
+        });
+
+        test('the learning dropdown moves the leading track', () => {
+            change('vtt-main-select', '1');
+            expect(state.activeTrackIndex).toBe(1);
+        });
+
+        test('the native dropdown moves the translation track', () => {
+            change('vtt-sub-select', '0');
+            expect(state.secondaryTrackIndex).toBe(0);
+        });
+
+        test('neither writes the language pair', async () => {
+            change('vtt-main-select', '1');
+            change('vtt-sub-select', '0');
+            for (let i = 0; i < 20; i++) await Promise.resolve();
+
+            for (const [written] of (chrome.storage.local.set as jest.Mock).mock.calls) {
+                expect(Object.keys(written)).not.toContain('lang.v1');
+            }
+        });
+    });
+
+    // §5.4, T5.26. The flip is CSS: the JS side sets `.collapsed` on the panel
+    // and the stylesheet rotates the chevron. Pinning only the class would let
+    // the rotation rule be deleted; pinning only the rule would let the class
+    // stop being written. Both halves, or the arrow can freeze either way.
+    describe("the tab's arrow flips with the panel", () => {
+        test('the panel carries the collapsed class on both sides of a toggle', () => {
+            const sidebar = document.getElementById('vtt-sidebar')!;
+            expect(sidebar.classList.contains('collapsed')).toBe(false);
+
+            ui.toggleCollapsed();
+            expect(ui.isCollapsed()).toBe(true);
+            expect(sidebar.classList.contains('collapsed')).toBe(true);
+
+            ui.toggleCollapsed();
+            expect(ui.isCollapsed()).toBe(false);
+            expect(sidebar.classList.contains('collapsed')).toBe(false);
+        });
+
+        test('the tab holds one chevron, whichever way it points', () => {
+            const tab = document.getElementById('vtt-toggle-btn')!;
+            expect(tab.querySelectorAll('.vtt-toggle-chevron')).toHaveLength(1);
+        });
+
+        // The stylesheet half. rezka owns the file; the YouTube build copies it
+        // verbatim, so this is the shipped rule for both editions.
+        test('the stylesheet turns the chevron around under that class', () => {
+            const css = readFileSync(
+                join(__dirname, '../../../apps/rezka/src/assets/styles.css'),
+                'utf8',
+            );
+            const rule = /#vtt-sidebar\.collapsed\s+#vtt-toggle-btn\s+svg\s*\{([^}]*)\}/.exec(css);
+            expect(rule).not.toBeNull();
+            expect(rule![1]).toMatch(/transform:\s*rotate\(180deg\)/);
+        });
+    });
+});
+
+/**
+ * The transcript's own behaviour — §6.15, §11.3, §39.3, §40.1, §40.4, §43.1.
+ */
+describe('the transcript list', () => {
+    let state: AppState, ui: SidebarUI, mockApp: AppInterface;
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+        for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+        state = new AppState();
+        mockApp = { seekVideo: jest.fn(), updateHighlight: jest.fn() };
+        ui = new SidebarUI(state, mockApp, (host) => new WordScreen(host));
+        expect(ui.init()).toBe(true);
+    });
+
+    const list = (): HTMLElement => document.getElementById('vtt-list')!;
+    const itemAt = (i: number): HTMLElement =>
+        list().querySelector(`.vtt-item[data-index="${i}"]`) as HTMLElement;
+
+    // §6.15, T5.13. The translation is the answer to the puzzle. Showing it
+    // while words are still masked hands over the meaning the user is working
+    // to reconstruct — the mode stops being a puzzle at all.
+    describe('the translation appears only when the line is complete', () => {
+        beforeEach(() => {
+            state.displayMode = 'guess';
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' }]);
+            state.addTrack('Русский', [{ startTime: 0, endTime: 2, text: 'альфа бета гамма' }]);
+            ui.renderSubtitles();
+        });
+
+        test('nothing is shown while a single word is still masked', () => {
+            // The first word of a line starts revealed, so one more call
+            // leaves exactly one of the three still covered.
+            state.revealNextWord(0);
+            ui.updateGuessItem(0);
+            expect(state.getRevealedCount(0)).toBe(2);
+
+            expect(state.isFullyRevealed(0)).toBe(false);
+            expect(itemAt(0).querySelector('.vtt-sub-text')).toBeNull();
+        });
+
+        test('revealing the last word brings it out', () => {
+            state.revealNextWord(0);
+            state.revealNextWord(0);
+            ui.updateGuessItem(0);
+
+            expect(state.isFullyRevealed(0)).toBe(true);
+            const translation = itemAt(0).querySelector('.vtt-sub-text');
+            expect(translation).not.toBeNull();
+            expect(translation!.textContent).toBe('альфа бета гамма');
+        });
+
+        // A line rendered from scratch in an already-complete state takes the
+        // other branch (buildGuessItem, not updateGuessItem), and it has to
+        // reach the same answer.
+        test('a re-render of a finished line still carries it', () => {
+            state.revealNextWord(0);
+            state.revealNextWord(0);
+            ui.renderSubtitles();
+
+            expect(itemAt(0).querySelector('.vtt-sub-text')!.textContent)
+                .toBe('альфа бета гамма');
+        });
+    });
+
+    // §11.3, T5.12 — the mirror of the horizontal case tested above. Arrows
+    // nudge, Shift jumps, and each keystroke writes because there is no
+    // release to batch on. The vertical axis is the one people actually use:
+    // it moves the caption clear of the player's control bar.
+    describe('the arrow keys nudge the caption vertically', () => {
+        const grip = (): HTMLElement => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' }]);
+            const video = document.createElement('video');
+            const container = document.createElement('div');
+            container.appendChild(video);
+            document.body.appendChild(container);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            return overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+        };
+        const nudge = (): number =>
+            parseFloat(
+                (document.getElementById('vtt-video-overlay') as HTMLElement).style
+                    .getPropertyValue('--vtt-overlay-nudge'),
+            );
+        const key = (el: HTMLElement, k: string, shiftKey = false): boolean =>
+            el.dispatchEvent(
+                new KeyboardEvent('keydown', { key: k, shiftKey, bubbles: true, cancelable: true }),
+            );
+
+        test('ArrowUp lifts it by the small step', () => {
+            // 4px on a 400px player.
+            key(grip(), 'ArrowUp');
+            expect(nudge()).toBeCloseTo(1, 2);
+        });
+
+        // Not "up then down returns to zero": with the vertical branch removed
+        // entirely that is also true, so the round trip accepts the very
+        // failure it is written against. Each direction is checked from a
+        // starting point it has to move away from.
+        test('ArrowDown lowers it by the same step', () => {
+            const g = grip();
+            key(g, 'ArrowUp', true); // start clear of the floor: +5%
+            expect(nudge()).toBeCloseTo(5, 2);
+            key(g, 'ArrowDown');
+            expect(nudge()).toBeCloseTo(4, 2);
+        });
+
+        test('Shift takes the big step, and it is bigger', () => {
+            const g = grip();
+            key(g, 'ArrowUp', true);
+            const big = nudge();
+            expect(big).toBeGreaterThan(1);
+            // 20px on 400px. Pinned to the value, not merely "more than small":
+            // a step of 1.0001 would satisfy the comparison alone.
+            expect(big).toBeCloseTo(5, 2);
+        });
+
+        test('each keystroke is written, with no release to batch on', async () => {
+            key(grip(), 'ArrowUp');
+            await new Promise((r) => setTimeout(r, 0));
+            expect((await loadPrefs('other')).overlayBottomNudge).toBeCloseTo(1, 2);
+        });
+
+        // The page must not scroll under the viewer while they aim the caption.
+        test('the key press is consumed', () => {
+            expect(key(grip(), 'ArrowUp')).toBe(false);
+            expect(key(grip(), 'ArrowDown')).toBe(false);
+        });
+    });
+
+    // §39.3, T5.16. Only the stop was tested. The resume is the half that
+    // strands a reader: a follow that never comes back leaves the transcript
+    // frozen on the line the pointer happened to pass over, and nothing on
+    // screen says why.
+    //
+    // Article D: the map places the listeners on #vtt-list; they are on
+    // #vtt-sidebar, which is the honest boundary — the pointer is "in the
+    // panel", not "in the list".
+    describe('the follow stops on pointer enter and resumes on leave', () => {
+        const sidebar = (): HTMLElement => document.getElementById('vtt-sidebar')!;
+        const enter = (): boolean =>
+            sidebar().dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+        const leave = (): boolean =>
+            sidebar().dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+
+        beforeEach(() => {
+            state.addTrack('English', [
+                { startTime: 0, endTime: 2, text: 'first' },
+                { startTime: 3, endTime: 5, text: 'second' },
+            ]);
+            ui.renderSubtitles();
+        });
+
+        test('entering the panel stops the follow', () => {
+            enter();
+            expect(state.isHovering).toBe(true);
+        });
+
+        test('leaving it resumes the follow', () => {
+            enter();
+            leave();
+            expect(state.isHovering).toBe(false);
+        });
+
+        // The behaviour, not just the flag: while hovering the active class
+        // still moves (the reader can see where playback is) but the list is
+        // not scrolled out from under the pointer.
+        test('the active line still moves while hovering, without scrolling', () => {
+            const scrollTo = jest.spyOn(list(), 'scrollTo');
+            enter();
+            scrollTo.mockClear();
+
+            ui.highlightSubtitle(4);
+
+            expect(state.currentIndex).toBe(1);
+            expect(itemAt(1).classList.contains('active-sub')).toBe(true);
+            expect(scrollTo).not.toHaveBeenCalled();
+            scrollTo.mockRestore();
+        });
+
+        // And on the way out it catches up to wherever playback got to.
+        test('leaving catches the list up to the playing line', () => {
+            enter();
+            ui.highlightSubtitle(4);
+            const scrollTo = jest.spyOn(list(), 'scrollTo');
+
+            leave();
+
+            expect(scrollTo).toHaveBeenCalled();
+            scrollTo.mockRestore();
+        });
+    });
+
+    // §40.4, T5.17. A rapid replay-click would otherwise trip the browser's
+    // double-click-selects-word behaviour, and the resulting selection blocks
+    // the click→seek handler outright: the line stops responding.
+    describe('a double-click on a line selects nothing', () => {
+        beforeEach(() => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' }]);
+            ui.renderSubtitles();
+        });
+
+        const mousedown = (detail: number): MouseEvent => {
+            const e = new MouseEvent('mousedown', { detail, bubbles: true, cancelable: true });
+            itemAt(0).dispatchEvent(e);
+            return e;
+        };
+
+        test('the second click of a pair is prevented', () => {
+            expect(mousedown(2).defaultPrevented).toBe(true);
+        });
+
+        test('a triple click is prevented too', () => {
+            expect(mousedown(3).defaultPrevented).toBe(true);
+        });
+
+        // The other side, and the reason the guard reads detail rather than
+        // blocking mousedown outright: a drag-select fires with detail === 1,
+        // and selecting a phrase to look up is a thing the user does here.
+        test('a single click is left alone, so a drag-select still works', () => {
+            expect(mousedown(1).defaultPrevented).toBe(false);
+        });
+    });
+
+    // §40.1, T5.19. The transcript is a reading surface. A search box, a
+    // timestamp column or a per-line copy button each turn it into a tool with
+    // chrome, and the decision to have none of them is invisible in the code —
+    // it looks like nothing at all.
+    describe('the transcript carries no search, timestamps or per-line copy', () => {
+        beforeEach(() => {
+            state.addTrack('English', [
+                { startTime: 61.5, endTime: 64, text: 'alpha beta' },
+                { startTime: 70, endTime: 72, text: 'gamma delta' },
+            ]);
+            ui.renderSubtitles();
+        });
+
+        test('there is no input anywhere in the list', () => {
+            expect(list().querySelector('input')).toBeNull();
+        });
+
+        test('no line carries a timestamp', () => {
+            expect(list().querySelector('.vtt-time')).toBeNull();
+            // And the times are not smuggled in as text either: 61.5s would
+            // read as "1:01" and 70s as "1:10".
+            expect(list().textContent).not.toMatch(/\d+:\d\d/);
+        });
+
+        test('no line carries a button of its own', () => {
+            expect(list().querySelector('button')).toBeNull();
+        });
+
+        // The lines themselves are there — otherwise an empty list would pass
+        // every check above.
+        test('the lines it does carry are the subtitles', () => {
+            expect(list().querySelectorAll('.vtt-item')).toHaveLength(2);
+            expect(itemAt(0).textContent).toContain('alpha beta');
+        });
+    });
+});
+
+// §43.1, T5.27. The reveal's flash is dropped for reduced motion by the
+// stylesheet, not by a media query in JS: the class is written unconditionally
+// and the rule under @media (prefers-reduced-motion: reduce) cancels the
+// animation. Pinned there, where the behaviour actually is.
+describe('reduced motion drops the reveal animation', () => {
+    const CSS = readFileSync(
+        join(__dirname, '../../../apps/rezka/src/assets/styles.css'),
+        'utf8',
+    );
+
+    /** The body of the @media (prefers-reduced-motion: reduce) blocks. */
+    const reducedMotionBlocks = (): string[] => {
+        const out: string[] = [];
+        const marker = '@media (prefers-reduced-motion: reduce) {';
+        let from = 0;
+        for (;;) {
+            const start = CSS.indexOf(marker, from);
+            if (start === -1) return out;
+            let depth = 0;
+            let i = start + marker.length - 1;
+            for (; i < CSS.length; i++) {
+                if (CSS[i] === '{') depth++;
+                else if (CSS[i] === '}' && --depth === 0) break;
+            }
+            out.push(CSS.slice(start, i + 1));
+            from = i + 1;
+        }
+    };
+
+    test('the reveal really is an animation, so there is something to drop', () => {
+        const rule = /\.vtt-revealed-word\.vtt-just-revealed\s*\{([^}]*)\}/.exec(CSS);
+        expect(rule).not.toBeNull();
+        expect(rule![1]).toMatch(/animation:\s*vtt-word-focus/);
+    });
+
+    test('a reduced-motion block cancels animation on the revealed word', () => {
+        const covering = reducedMotionBlocks().filter((b) => b.includes('.vtt-revealed-word'));
+        expect(covering.length).toBeGreaterThan(0);
+        expect(covering.some((b) => /animation:\s*none/.test(b))).toBe(true);
+    });
+
+    // The peek is the covered half; naming it here keeps the pair readable and
+    // catches a rewrite that drops one selector while keeping the other.
+    test('the masked and next-word states are cancelled alongside it', () => {
+        const blocks = reducedMotionBlocks();
+        expect(blocks.some((b) => b.includes('.vtt-masked-word'))).toBe(true);
+        expect(blocks.some((b) => b.includes('.vtt-next-word'))).toBe(true);
+    });
+});
+
+/**
+ * Behaviour map §36: on Netflix the dropdowns are LANGUAGE pickers, not track
+ * pickers. The title's own languages are selectable; the rest of the supported
+ * catalogue is listed too, greyed out, so a person can see that a language
+ * exists but this film does not carry it.
+ *
+ * The data half is well covered in netflix-subtitles.test.ts — which languages
+ * end up marked available. The rendering half was not covered at all:
+ * `languageCatalog` appeared in no test in the tree, so removing
+ * `opt.disabled = disabled` would have made every unavailable language look
+ * selectable, and picking one would silently do nothing.
+ *
+ * No Netflix account: the catalogue is state, and the dropdown is built from it.
+ */
+describe('the language picker on a site that loads languages on demand', () => {
+    const CATALOG = [
+        { code: 'en', label: 'English', available: true },
+        { code: 'ru', label: 'Russian', available: true },
+        { code: 'de', label: 'German', available: false },
+        { code: 'ja', label: 'Japanese', available: false },
+    ];
+
+    /** A panel in language-picker mode: a catalogue AND a way to fetch a pick. */
+    function pickerPanel(): { ui: SidebarUI; select: HTMLSelectElement } {
+        document.body.innerHTML = '';
+        const state = new AppState();
+        state.languageCatalog = CATALOG;
+        const app = {
+            seekVideo: jest.fn(),
+            updateHighlight: jest.fn(),
+            requestLanguageTrack: jest.fn(),
+        } as unknown as AppInterface;
+        const ui = new SidebarUI(state, app);
+        expect(ui.init()).toBe(true);
+        state.addTrack('English', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        ui.updateControls();
+        return { ui, select: document.getElementById('vtt-main-select') as HTMLSelectElement };
+    }
+
+    it('separates what this title offers from what it does not', () => {
+        const { select } = pickerPanel();
+        const groups = [...select.querySelectorAll('optgroup')];
+
+        expect(groups.map((g) => g.label)).toEqual([
+            'Available in this video',
+            'Other languages',
+        ]);
+        expect([...groups[0].querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
+        expect([...groups[1].querySelectorAll('option')].map((o) => o.value)).toEqual(['de', 'ja']);
+    });
+
+    /**
+     * The claim that matters to a person using it: an unavailable language must
+     * be visible AND unpickable. Listing it selectable would offer a subtitle
+     * track the title does not have.
+     */
+    it('offers the ones it has, and greys out the ones it does not', () => {
+        const { select } = pickerPanel();
+        const state = (code: string) =>
+            ([...select.querySelectorAll('option')].find((o) => o.value === code) as HTMLOptionElement)
+                .disabled;
+
+        expect(state('en')).toBe(false);
+        expect(state('ru')).toBe(false);
+        expect(state('de')).toBe(true);
+        expect(state('ja')).toBe(true);
+    });
+
+    /**
+     * The other side of the same switch: on YouTube and Rezka the same
+     * dropdowns pick between tracks that are ALREADY loaded, so there is no
+     * catalogue and no grouping. Without this, a picker that always grouped
+     * would pass the checks above.
+     */
+    it('stays a plain track list on a site with no catalogue', () => {
+        document.body.innerHTML = '';
+        const state = new AppState();
+        const ui = new SidebarUI(state, { seekVideo: jest.fn(), updateHighlight: jest.fn() } as unknown as AppInterface);
+        expect(ui.init()).toBe(true);
+        state.addTrack('English', [{ text: 'one', startTime: 0, endTime: 1 } as Subtitle]);
+        ui.updateControls();
+
+        const select = document.getElementById('vtt-main-select') as HTMLSelectElement;
+        expect(select.querySelectorAll('optgroup')).toHaveLength(0);
+        expect([...select.querySelectorAll('option')].every((o) => !o.disabled)).toBe(true);
     });
 });

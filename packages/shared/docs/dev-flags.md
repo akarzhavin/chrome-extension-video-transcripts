@@ -17,9 +17,9 @@ https://rezka.ag/…/12345-….html#t:238-s:1&lingogram_rate=1
 ```
 
 Forces the rating prompt (P1.8) — the "Enjoying Lingogram?" card in the bottom
-right corner. Normally it appears **once per install**, after the 30th saved
-word, so without this flag the only way to see it again is clearing
-`chrome.storage`.
+right corner. Normally it appears **once per install**, after the 5th saved
+word (`RATE_PROMPT_WORD_THRESHOLD` in `packages/shared/src/auth/storage.ts`), so
+without this flag the only way to see it again is clearing `chrome.storage`.
 
 The flag does not touch state: `rate.savedWordCount` is not incremented and the
 `rate.promptShown` one-shot is not burned. No sign-in required.
