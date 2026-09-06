@@ -500,6 +500,34 @@ describe('retry preserves loaded tracks', () => {
         expect(app.noSubsRetries).toBe(1);
     });
 
+    /**
+     * The discriminating claim, and the regression the product's own comment
+     * warns about (app-base.ts:1592): the counter must survive a retry and
+     * clear on a video change. Two methods run back-to-back at both real call
+     * sites (index.ts:637 and :652), so a check that only reads 0 afterwards
+     * cannot say which one did it — and would stay green if the line moved into
+     * the wrong method, which is exactly the bug.
+     *
+     * Hence the ORDER: retry first, assert survival, then the video-change
+     * reset, then assert zero.
+     */
+    test('a retry keeps the escalation counter; only a video change clears it', () => {
+        const app = makeApp();
+        app.declareNoSubtitles();
+        app.retrySubtitleSearch();
+        expect(app.noSubsRetries).toBe(1);
+
+        // What a retry round runs. The counter must NOT move: the "Reload page"
+        // escalation is offered after one retry, and a counter cleared here
+        // would offer it forever.
+        app.resetForNewVideo();
+        expect(app.noSubsRetries).toBe(1);
+
+        // What a genuine video change runs, additionally.
+        app.resetNoSubsRetries();
+        expect(app.noSubsRetries).toBe(0);
+    });
+
     test('a genuine video change still starts from scratch', () => {
         const app = makeApp();
         app.addParsedTrack('English', [sub('hello')]);
