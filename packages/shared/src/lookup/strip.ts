@@ -28,6 +28,8 @@
 import { isEmbed, platformOf } from '../analytics';
 import { msg } from '../i18n';
 import { HEART_SVG, MORE_SVG, posLabel } from './icons';
+import { createSavedWords } from './saved-words';
+import { loadMirror, onMirrorChanged } from '../word-mirror';
 import { loadLanguagePrefs } from '../languages';
 import type { LookupResult } from './types';
 import { MAX_LOOKUP_TERM_LEN } from './types';
@@ -42,6 +44,7 @@ import type { SelectionPayload } from '../content/quick-add-overlay';
 import {
     buildContextForIndex,
     getSelectionPayload,
+    removeTerm,
     saveTerm,
     selectionWordSpans,
     sendMessage,
@@ -194,9 +197,19 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     let token = 0;
     let current: Anchor | null = null;
     let dragging = false;
-    // Terms saved from this page, so a re-hover shows the filled heart. The
-    // durable record lives in Firestore; this only has to survive the session.
-    const savedTerms = new Set<string>();
+    // Which words read as saved in this tab. Shared with the word screen
+    // through one object rather than a Set each, which is what makes the
+    // strip's heart and the screen's controls agree about the same word.
+    const savedWords = createSavedWords();
+    // Seeded from the mirror and kept in step with it, so a word saved on a
+    // previous page — or in another tab, right now — shows its filled heart
+    // the first time the cursor rests on it. `seeded` is awaited before the
+    // card paints; without that wait a hover in the first moments after install
+    // would render an empty heart and never repaint.
+    const seeded = loadMirror().then((m) => {
+        savedWords.reset(m.words);
+    });
+    const unsubscribeMirror = onMirrorChanged((m) => savedWords.reset(m.words));
     // The video we paused when the strip opened over it, so hiding can resume
     // exactly that element. Null whenever we did not pause: the sidebar path
     // never touches playback, and a video the user had already paused is left
@@ -349,7 +362,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     function renderResult(anchor: Anchor, word: string, context: string, r: LookupResult): void {
         const el = ensureStrip();
         const empty = !hasLookupContent(r);
-        const saved = savedTerms.has(word.toLowerCase());
+        const saved = savedWords.has(word);
 
         let body = '<div class="vtt-lookup-body">';
         if (empty) {
@@ -389,7 +402,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         }
         body += '</div>';
 
-        const saveLabel = saved ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save');
+        const saveLabel = saved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save');
         let acts = '<div class="vtt-lookup-acts">' +
             `<button type="button" class="vtt-lookup-btn vtt-lookup-heart${saved ? ' saved' : ''}" data-act="save">` +
             `${HEART_SVG}<span>${escapeHtml(saveLabel)}</span></button>`;
@@ -421,23 +434,40 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
     async function handleSave(btn: HTMLElement, word: string, context: string, anchor: Anchor): Promise<void> {
         const term = word.toLowerCase();
-        // Saving again is not un-saving: removal lives in the site's word
-        // list, and a second tap on a heart must never silently delete.
-        if (savedTerms.has(term)) return;
+        // A TOGGLE since US2. The guard that used to stand here — "saving again
+        // is not un-saving" — held while removal lived only in the site's word
+        // list; the second tap now takes the word off it.
+        //
+        // Dispatch on the word's current state rather than on whether it has
+        // ever been saved: a word the mirror calls `removed` reads as unsaved
+        // and is saved again as an ordinary save.
+        const wasSaved = savedWords.has(term);
         (btn as HTMLButtonElement).disabled = true;
-        const ok = await saveTerm(term, context, anchor.spans());
+        const ok = wasSaved
+            ? await removeTerm(term, anchor.spans())
+            : await saveTerm(term, context, anchor.spans());
         (btn as HTMLButtonElement).disabled = false;
         if (!ok) return;
-        savedTerms.add(term);
-        btn.classList.add('saved');
+        if (wasSaved) savedWords.delete(term);
+        else savedWords.add(term);
+        btn.classList.toggle('saved', !wasSaved);
         const label = btn.querySelector('span');
-        if (label) label.textContent = msg('ytLookupSaved', 'Saved');
+        // The label says what pressing it does next, so a saved word offers
+        // "Remove" rather than stating "Saved".
+        if (label) {
+            label.textContent = wasSaved
+                ? msg('ytLookupSave', 'Save')
+                : msg('ytLookupRemove', 'Remove');
+        }
     }
 
     async function show(anchor: Anchor): Promise<void> {
         const word = anchor.term;
         if (!word) return;
         const prefs = await loadLanguagePrefs();
+        // Alongside the prefs read, not after it: both are storage reads that
+        // the card cannot paint correctly without.
+        await seeded;
         // No native language chosen yet means no language to translate into —
         // the same gate that keeps subtitles from rendering pre-onboarding.
         if (!prefs?.native) return;
@@ -632,6 +662,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     document.addEventListener('click', onClick, true);
 
     return () => {
+        unsubscribeMirror();
         document.removeEventListener('mouseover', onMouseOver);
         document.removeEventListener('mouseout', onMouseOut);
         document.removeEventListener('mousedown', onMouseDown);

@@ -595,6 +595,10 @@
     "message": "Збережено",
     "description": "Heart button label after a successful save."
   },
+  "ytLookupRemove": {
+    "message": "Прибрати",
+    "description": "Label on a saved word’s heart: pressing it takes the word off the list."
+  },
   "ytLookupMore": {
     "message": "Розбір",
     "description": "Hover strip button that opens the sidebar word screen with the full entry."

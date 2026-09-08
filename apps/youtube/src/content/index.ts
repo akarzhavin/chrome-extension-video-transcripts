@@ -3,6 +3,8 @@ import {
     installQuickAddOverlay,
     labelForLanguage,
     markSpansSaved,
+    installFocusSync,
+    requestWordSync,
     refreshAuthStatusBadge,
     msg as i18nMsg,
     initTheme,
@@ -811,9 +813,18 @@ function bootstrap(): void {
         // YouTube tears down/rebuilds its player chrome on SPA navigation;
         // re-run (idempotent) so the button survives it.
         document.addEventListener('yt-navigate-finish', () => installPlayerMenu(app));
+        // (b) Video page open. Off the existing navigation hook rather than a
+        // new detection mechanism of its own — the worker coalesces, so firing
+        // beside the menu re-install costs nothing when both run together.
+        document.addEventListener('yt-navigate-finish', () => requestWordSync('page'));
+        requestWordSync('page');
     } else {
         return;
     }
+    // (c) Tab focus. Outside the site branch: it applies to YouTube and
+    // Netflix alike, and putting it inside one of them is how the other loses
+    // it silently.
+    installFocusSync();
     installQuickAddOverlay();
     // Hover strip: point at a word (or drag a phrase), see its translations;
     // "More" opens the sidebar's word screen.

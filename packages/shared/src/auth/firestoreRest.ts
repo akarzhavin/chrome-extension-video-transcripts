@@ -1,4 +1,5 @@
 import { AuthConfig } from './config';
+import { displayForm, normalizeTerm, wordKey } from '../word-key';
 import { refreshIdToken } from './firebaseRest';
 import { AuthState, getAuthState, setAuthState } from './storage';
 
@@ -26,17 +27,6 @@ function todayBucket(): number {
     return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
 }
 
-// Firestore web SDK auto-IDs use 20 chars from this charset. We mirror it so
-// the generated paths look indistinguishable from server-allocated ones.
-const ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-function generateFirestoreId(): string {
-    const buf = new Uint8Array(20);
-    crypto.getRandomValues(buf);
-    let id = '';
-    for (let i = 0; i < 20; i++) id += ID_CHARS[buf[i] % ID_CHARS.length];
-    return id;
-}
 
 interface SentinelState {
     dailyCount: number;
@@ -77,21 +67,32 @@ interface CommitWrite {
         name: string;
         fields: Record<string, unknown>;
     };
+    // Names exactly the fields this write touches. Without it a commit is a
+    // full REPLACE of the document — which for a re-activation would drop or
+    // re-stamp `addedAt`, and this client could not build a correct replacement
+    // anyway: its mirror holds state, not dates.
+    updateMask?: { fieldPaths: string[] };
     currentDocument?: { exists?: boolean };
     updateTransforms?: Array<{ fieldPath: string; setToServerValue?: string }>;
 }
 
-interface AddInboxWordInput {
+export interface AddInboxWordInput {
     term: string;
     // prev + current + next subtitle lines, main language only. Empty when the
     // pill was created outside of a subtitle item (defensive — quick-add only
     // ever fires inside one today).
     context?: string;
+    // The base form, when the caller has one. Carried into the document so the
+    // site can group inflections without re-deriving them.
+    lemma?: string;
 }
 
-interface AddInboxWordResult {
+export interface AddInboxWordResult {
     wordId: string;
     documentPath: string;
+    // What the document says after this write. The caller mirrors it locally;
+    // without it a save and a re-activation are indistinguishable to the mirror.
+    state?: 'active' | 'removed';
 }
 
 interface CommitResponse {
@@ -104,40 +105,76 @@ function buildWrites(
     uid: string,
     input: AddInboxWordInput,
     sentinel: SentinelState | null,
+    reactivate = false,
 ): { writes: CommitWrite[]; wordId: string; documentPath: string } {
     const today = todayBucket();
     const newCount = sentinel && sentinel.dayBucket === today ? sentinel.dailyCount + 1 : 1;
     if (newCount > MAX_WORDS_PER_DAY) {
         throw new Error(`Daily limit of ${MAX_WORDS_PER_DAY} words reached. Try again tomorrow.`);
     }
-    const wordId = generateFirestoreId();
+    // The id is the word's address, not a fresh random string: one word, one
+    // document, addressable by any client that can compute the key.
+    const wordId = wordKey(input.term);
     const basePath = `projects/${cfg.projectId}/databases/(default)/documents/inbox/${uid}`;
     const wordPath = `${basePath}/words/${wordId}`;
 
-    const wordFields: Record<string, unknown> = {
-        term: { stringValue: input.term },
-        source: { stringValue: cfg.source },
-        processed: { booleanValue: false },
-    };
-    // Only emit context when non-empty — Firestore rules treat it as optional
-    // and writing an empty string would burn bytes for nothing.
-    if (input.context) wordFields.context = { stringValue: input.context };
-
-    const writes: CommitWrite[] = [
-        {
+    // Two activation forms, chosen by what the mirror knows. Re-activation
+    // cannot simply re-send the field set: a maskless commit is a full replace,
+    // and the immutable fields would be dropped or re-stamped.
+    const wordWrite: CommitWrite = reactivate
+        ? {
             update: {
                 name: wordPath,
-                fields: wordFields,
+                fields: { state: { stringValue: 'active' } },
             },
-            currentDocument: { exists: false },
-            // Set addedAt to server's request.time so the rule's
-            // `addedAt == request.time` always holds — a client-side
-            // `new Date().toISOString()` drifts by network latency and
-            // mismatches at millisecond precision.
+            // No addedAt transform: the immutable fields are never sent, so
+            // they cannot be damaged. The rules compare against the STORED
+            // document, so they still hold with nothing sent.
+            updateMask: { fieldPaths: ['state', 'updatedAt'] },
             updateTransforms: [
-                { fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' },
+                { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
             ],
-        },
+        }
+        : (() => {
+            const wordFields: Record<string, unknown> = {
+                term: { stringValue: normalizeTerm(input.term) },
+                display: { stringValue: displayForm(input.term) },
+                state: { stringValue: 'active' },
+                source: { stringValue: cfg.source },
+                // NO `processed`. It belonged to the legacy import-and-delete
+                // flow, where the field is required, and it is absent from
+                // every hashed document — the durable rule's allowlist does not
+                // name it, so a body carrying it is REFUSED outright. Measured
+                // on the emulator: the same body with and without this one
+                // field is refused and accepted respectively.
+            };
+            // Only emit context when non-empty — Firestore rules treat it as
+            // optional and writing an empty string would burn bytes for
+            // nothing. A reader must not assume the field is always present.
+            if (input.context) wordFields.context = { stringValue: input.context };
+            if (input.lemma) wordFields.lemma = { stringValue: input.lemma };
+            return {
+                update: { name: wordPath, fields: wordFields },
+                updateMask: {
+                    fieldPaths: [...Object.keys(wordFields), 'addedAt', 'updatedAt'],
+                },
+                // Kept, and deliberately: it is what makes the seam work. A
+                // device that has never synced uses this form, the server
+                // refuses it because the document exists, and the client
+                // retries with re-activation.
+                currentDocument: { exists: false },
+                // Set from the server's request.time so the rule's
+                // `addedAt == request.time` always holds — a client clock
+                // drifts by network latency and mismatches at ms precision.
+                updateTransforms: [
+                    { fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' },
+                    { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
+                ],
+            } as CommitWrite;
+        })();
+
+    const writes: CommitWrite[] = [
+        wordWrite,
         {
             update: {
                 name: basePath,
@@ -359,7 +396,11 @@ export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput)
     }
 }
 
-export async function addInboxWord(cfg: AuthConfig, input: AddInboxWordInput): Promise<AddInboxWordResult> {
+export async function addInboxWord(
+    cfg: AuthConfig,
+    input: AddInboxWordInput,
+    opts: { reactivate?: boolean } = {},
+): Promise<AddInboxWordResult> {
     const termBytes = utf8Bytes(input.term);
     if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
         throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
@@ -388,7 +429,7 @@ export async function addInboxWord(cfg: AuthConfig, input: AddInboxWordInput): P
         }
     }
 
-    const { writes, wordId, documentPath } = buildWrites(cfg, state.uid, input, sentinel);
+    const { writes, wordId, documentPath } = buildWrites(cfg, state.uid, input, sentinel, opts.reactivate);
     const commitUrl = `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents:commit`;
     const body = JSON.stringify({ writes });
 
@@ -415,11 +456,235 @@ export async function addInboxWord(cfg: AuthConfig, input: AddInboxWordInput): P
         });
     }
 
+    // THE SEAM. A device that has never synced cannot know whether this word
+    // already has a document, so it sends the create form and lets the server
+    // decide: `currentDocument: { exists: false }` against an existing document
+    // is refused, and the correct answer is the re-activation form.
+    //
+    // The retry lives HERE, and the placement is the whole point. The refusal
+    // arrives as `Firestore commit 403` — one of the exact strings
+    // `isAuthFailure` matches in background.ts. Retried one level up, the first
+    // save of an unsynced word would clear the auth state and raise the
+    // re-authorisation badge: the learner signed out for saving a word they had
+    // saved before. Below the classifier, the refusal never reaches it.
+    //
+    // Exactly once, and only for the create form. A second refusal escapes —
+    // but NOT as a dead session.
+    //
+    // The earlier wording here said a second refusal "is a real one", which is
+    // false for the commonest case: two saves inside MIN_INTERVAL_MS are both
+    // refused by the rules, the second because the first second has not yet
+    // elapsed. It is the same refusal, not a new one. A comment asserting the
+    // very property that fails is worse than none — it reads as though the case
+    // was considered and ruled out, and it is why this survived a review.
+    //
+    // What actually escapes is classified below, where the token's fate is
+    // still known: a 403 past this point is the rules refusing the WRITE, and
+    // it must not be spelled like the classifier's dead-session string.
+    //
+    // 403 OR 409, and the second is the one that actually happens. The create
+    // form carries `currentDocument: { exists: false }`, which is a Firestore
+    // PRECONDITION rather than a rule: violating it is answered
+    // `409 ALREADY_EXISTS`. The rules answer 403. Both mean the identical
+    // thing here — the word already has a document — and the contract's
+    // permission table says only "refused", naming no code, which is how a
+    // 403-only reading passed review and then failed on the first live save of
+    // an already-saved word.
+    if (!res.ok && (res.status === 403 || res.status === 409) && !opts.reactivate) {
+        const retry = buildWrites(cfg, state.uid, input, sentinel, true);
+        res = await fetch(commitUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.idToken}`,
+            },
+            body: JSON.stringify({ writes: retry.writes }),
+        });
+    }
+
     if (!res.ok) {
         const text = await res.text().catch(() => '');
+        // A 403 SURVIVING THE RETRY IS THE RULES, NOT THE SESSION — and the
+        // two are indistinguishable by their body, so the seam is drawn here
+        // where the difference is still known rather than at the classifier
+        // where it is not.
+        //
+        // What is known here: the token was accepted. A rejected token answers
+        // 401, which the refresh above already handled; a request that got this
+        // far carries credentials Firestore was willing to read. So the write
+        // was refused for what it ASKED, not for who asked it — a rate limit
+        // (MIN_INTERVAL_MS, tripped by any two saves inside a second), the
+        // daily cap, or a document shape the rules decline.
+        //
+        // Measured on the emulator: both refusals carry `permission-denied`,
+        // and the only text separating them is emulator diagnostics that
+        // production does not emit. Nothing downstream can tell them apart, so
+        // nothing downstream is asked to.
+        //
+        // The distinct prefix is what `isAuthFailure` does NOT match. Sending
+        // `Firestore commit 403` from here would sign the learner out for
+        // saving two words quickly — the whole defect this branch exists to
+        // remove.
+        if (res.status === 403) {
+            throw new Error(`Firestore rules ${res.status}: ${text || res.statusText}`);
+        }
         throw new Error(`Firestore commit ${res.status}: ${text || res.statusText}`);
     }
 
     await res.json() as CommitResponse;
-    return { wordId, documentPath };
+    return { wordId, documentPath, state: 'active' };
+}
+
+/** One saved word as the sync sees it: enough to update the mirror, no more. */
+export interface SyncedWord {
+    key: string;
+    term: string;
+    state: 'active' | 'removed';
+    updatedAt: number;
+}
+
+/**
+ * List what changed since `sinceMs`, or everything when it is 0.
+ *
+ * `0` is not a timestamp — it means "never synced", which is also the recovery
+ * path after the mirror is lost. In that case the query carries no filter at
+ * all and the whole collection comes back.
+ *
+ * Ordered by `updatedAt` so the caller can advance its cursor to the largest
+ * value it actually applied, rather than to whatever arrived last.
+ */
+export async function listInboxWords(cfg: AuthConfig, sinceMs: number): Promise<SyncedWord[]> {
+    const state = await ensureFreshToken(cfg);
+    const parent = `projects/${cfg.projectId}/databases/(default)/documents/inbox/${state.uid}`;
+    const structuredQuery: Record<string, unknown> = {
+        from: [{ collectionId: 'words' }],
+        orderBy: [{ field: { fieldPath: 'updatedAt' }, direction: 'ASCENDING' }],
+    };
+    if (sinceMs > 0) {
+        structuredQuery.where = {
+            fieldFilter: {
+                field: { fieldPath: 'updatedAt' },
+                op: 'GREATER_THAN',
+                value: { timestampValue: new Date(sinceMs).toISOString() },
+            },
+        };
+    }
+
+    const res = await fetch(`${cfg.firestoreUrl}/v1/${parent}:runQuery`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.idToken}`,
+        },
+        body: JSON.stringify({ structuredQuery }),
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Firestore runQuery ${res.status}: ${text || res.statusText}`);
+    }
+
+    const rows = (await res.json()) as Array<{ document?: { name?: string; fields?: Record<string, any> } }>;
+    const out: SyncedWord[] = [];
+    for (const row of Array.isArray(rows) ? rows : []) {
+        const doc = row?.document;
+        if (!doc?.name || !doc.fields) continue;
+        const term = doc.fields.term?.stringValue;
+        const stateValue = doc.fields.state?.stringValue;
+        const updatedAt = Date.parse(doc.fields.updatedAt?.timestampValue ?? '');
+        // A legacy document has no `state` and is not part of this projection:
+        // the site converts it, and until then it is invisible here rather than
+        // guessed at.
+        if (typeof term !== 'string' || (stateValue !== 'active' && stateValue !== 'removed')) continue;
+        out.push({
+            key: doc.name.split('/').pop() ?? '',
+            term,
+            state: stateValue,
+            updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+        });
+    }
+    return out;
+}
+
+/**
+ * Take a word off the learner's list.
+ *
+ * One masked write, and no sentinel — deliberately. A removal costs no counter
+ * units and carries no rate condition at all, so it needs no read of the
+ * sentinel either; an implementation that fetches it here has copied the
+ * activation path too closely. The counter is untouched, which is why a
+ * save-remove-save loop still spends cap on every save and cannot be used to
+ * escape it.
+ *
+ * The document is addressed by `wordKey`, so this reaches the same document a
+ * save would — the whole point of a deterministic id.
+ */
+export async function removeInboxWord(
+    cfg: AuthConfig,
+    input: { term: string },
+): Promise<{ wordId: string; documentPath: string; state: 'removed' }> {
+    const termBytes = utf8Bytes(input.term);
+    if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
+        throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
+    }
+
+    let state = await ensureFreshToken(cfg);
+    const wordId = wordKey(input.term);
+    const documentPath =
+        `projects/${cfg.projectId}/databases/(default)/documents/inbox/${state.uid}/words/${wordId}`;
+
+    const writes: CommitWrite[] = [
+        {
+            update: {
+                name: documentPath,
+                fields: { state: { stringValue: 'removed' } },
+            },
+            updateMask: { fieldPaths: ['state', 'updatedAt'] },
+            updateTransforms: [
+                { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
+            ],
+        },
+    ];
+
+    const commitUrl = `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents:commit`;
+    const body = JSON.stringify({ writes });
+    const post = (): Promise<Response> => fetch(commitUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.idToken}`,
+        },
+        body,
+    });
+
+    let res = await post();
+    if (res.status === 401) {
+        const refreshed = await refreshIdToken(cfg, state.refreshToken);
+        state = { ...state, ...refreshed };
+        await setAuthState(state);
+        res = await post();
+    }
+    // TWO REFUSALS THAT ARE NOT FAILURES, from the contract's own table.
+    //
+    // A removal refused because the document is not `active`, and a removal
+    // against a document that does not exist, both mean the word is already in
+    // the state the learner asked for. Reporting a failure would ask them to
+    // retry something that has already happened, and would leave the mirror
+    // claiming the word is still saved.
+    //
+    // ⚠ This must NOT be read as "a 403 on a word write is fine". The third
+    // refusal in that table — a create refused because the document exists —
+    // looks identical over the wire and means the opposite: the word is NOT
+    // saved, and answering success there would leave it unsaved while telling
+    // the learner otherwise. That one is a retry, and it lives in
+    // `addInboxWord`. The two paths are separate for exactly this reason.
+    if (!res.ok && res.status === 403) {
+        return { wordId, documentPath, state: 'removed' };
+    }
+
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Firestore commit ${res.status}: ${text || res.statusText}`);
+    }
+    await res.json() as CommitResponse;
+    return { wordId, documentPath, state: 'removed' };
 }

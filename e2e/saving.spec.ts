@@ -17,6 +17,74 @@ import { resolve } from 'node:path';
 
 const MIN_GAP_MS = 1_200;
 
+/**
+ * The five keys a session consists of, for saving and putting back.
+ *
+ * The sign-out checks below are the only ones that destroy shared state, and
+ * the state they destroy cannot be rebuilt by this suite: signing back in needs
+ * a one-time nonce minted by the popup and a real hand-off, which is a person's
+ * act, not a script's. The browser is a live one reached over CDP and the `ext`
+ * fixture is worker-scoped, so what they leave behind outlives the whole run.
+ *
+ * So the session is captured before the sign-out and written back after it. Not
+ * a tidiness measure: without it, one run of this file makes the NEXT run's
+ * save-based checks fail on "Not signed in", and that red says nothing about the
+ * code. Restoring is the only thing that keeps the file re-runnable.
+ */
+/**
+ * The floor applies BETWEEN checks too, and nothing was honouring it there.
+ *
+ * Every save in this file is spaced by MIN_GAP_MS inside its own check — and
+ * every one of those pauses sits AFTER a save, so the last save of a check is
+ * followed by nothing. The next check then opens with a save of its own, and
+ * the two land inside the rules' 1000 ms window.
+ *
+ * Measured on preprod: `the review ask` failed on **save 1**, not on the sixth.
+ * `Firestore rules 403 … PERMISSION_DENIED`. Its own six saves are correctly
+ * spaced; what broke it was the save at the end of the check before it. So the
+ * failure belonged to no single check — it belonged to the seam between two,
+ * which is why reading either one in isolation showed nothing wrong. Run alone,
+ * that check passes.
+ *
+ * A `beforeEach` is the right place precisely because no check can know what ran
+ * before it. Fixing this by adding a trailing pause to whichever check happens
+ * to precede it today would break again the next time the order changes.
+ *
+ * This is a defect in the CHECKS, not in the product: the rules' floor is real
+ * and the extension has no client-side guard for it yet (see analysis.md). The
+ * pause here keeps the suite from tripping a limit it is not testing; it does
+ * not paper over the missing guard, which stays recorded as open.
+ */
+test.beforeEach(async () => {
+    await new Promise((r) => setTimeout(r, MIN_GAP_MS));
+});
+
+const SESSION_KEYS = ['auth.idToken', 'auth.refreshToken', 'auth.expiresAt', 'auth.email', 'auth.uid'];
+
+type SessionSnapshot = Record<string, unknown>;
+
+const captureSession = (page: import('@playwright/test').Page): Promise<SessionSnapshot> =>
+    page.evaluate(
+        (keys) =>
+            new Promise<SessionSnapshot>((r) =>
+                (globalThis as any).chrome.storage.local.get(keys, (v: any) => r(v ?? {})),
+            ),
+        SESSION_KEYS,
+    );
+
+const restoreSession = async (
+    page: import('@playwright/test').Page,
+    snapshot: SessionSnapshot,
+): Promise<void> => {
+    // Nothing to put back if there was nothing there: restoring an empty object
+    // would silently "succeed" and hide that the profile was already signed out.
+    if (!snapshot['auth.idToken']) return;
+    await page.evaluate(
+        (s) => new Promise<void>((r) => (globalThis as any).chrome.storage.local.set(s, () => r())),
+        snapshot,
+    );
+};
+
 function readStandAccount(): { email: string; password: string } | null {
     const path = process.env.LINGOGRAM_STAND_ACCOUNT;
     if (!path) return null;
@@ -69,7 +137,26 @@ test.describe('saving a word', () => {
                         ),
                     ),
             );
-            expect(email, 'the stand account must be signed in').toBe(account!.email);
+            // A SKIP, not a failure — and the difference is the point.
+            //
+            // The browser is a live one reached over CDP and the `ext` fixture is
+            // worker-scoped, so ONE profile serves the whole file and outlives the
+            // run entirely. The sign-out checks at the end of this file leave that
+            // profile signed out permanently: the next run starts with no session
+            // and every save-based check fails on "Not signed in" — a red that says
+            // nothing about the code.
+            //
+            // Playwright's own guard does not cover this. A worker is discarded
+            // after a FAILURE; signing out is a success, so nothing is thrown away
+            // and the state persists into the following run.
+            //
+            // Failing here reports a broken feature. Skipping reports what is true:
+            // being signed in is a PRECONDITION of this check, not a claim it makes.
+            test.skip(
+                email !== account!.email,
+                `the stand profile is not signed in (auth.email=${email ?? 'null'}). ` +
+                    "A previous run's sign-out checks leave it that way — sign in again via the popup.",
+            );
 
             const readCount = () =>
                 popup.evaluate(
@@ -105,12 +192,26 @@ test.describe('saving a word', () => {
     });
 
     /**
-     * T6.9 · §14.8 — saving the same word again creates a second entry.
+     * T6.9 — saving the same word again reaches the SAME entry.
      *
-     * "There is no duplicate detection or merging." Two saves of one term must
-     * therefore produce two distinct ids, and move the total twice.
+     * ⚠ INVERTED by the word-save feature, and the previous wording is kept
+     * here on purpose: it read "saving the same word again creates a second
+     * entry — there is no duplicate detection or merging", and asserted two
+     * distinct ids. That was true of the old shape, where every save minted a
+     * random 20-character id, and it is exactly what made a saved word
+     * unrecognisable the next time it was met: one word became as many
+     * documents as times it was seen.
+     *
+     * The id is now `wordKey(term)` — a hash of the normalized form — so a
+     * second save addresses the document the first one created. The rules
+     * refuse the create form against an existing document and the client
+     * retries as a re-activation.
+     *
+     * This test could not have caught the change on its own: it skips without
+     * stand credentials, so it stayed green through the whole feature while
+     * describing behaviour that no longer exists.
      */
-    test('the same word saved twice becomes two entries', async ({ ext }) => {
+    test('the same word saved twice reaches one entry', async ({ ext }) => {
         const account = readStandAccount();
         test.skip(!account, 'no stand credentials — this check needs the phase 6 stand');
 
@@ -140,7 +241,64 @@ test.describe('saving a word', () => {
             const second = await save();
             expect(second.ok, `second save must succeed (${second.error ?? ''})`).toBe(true);
 
-            expect(second.wordId, 'the second save must create its own entry').not.toBe(first.wordId);
+            expect(
+                second.wordId,
+                'one word is one document: the second save must address the first one',
+            ).toBe(first.wordId);
+        } finally {
+            await popup.close().catch(() => {});
+        }
+    });
+
+    /**
+     * T6.11 — the second click removes the word.
+     *
+     * US2's named behaviour change, end to end against a real account: save a
+     * word, remove it, and confirm the worker reports `removed` and the running
+     * total comes back down. The unit tests cover the message and the mirror;
+     * what only a live run can show is that the rules accept the removal write
+     * — a masked update carrying `state` and `updatedAt` and no sentinel.
+     */
+    test('a saved word can be removed again', async ({ ext }) => {
+        const account = readStandAccount();
+        test.skip(!account, 'no stand credentials — this check needs the phase 6 stand');
+
+        const popup = await ext.open(`chrome-extension://${ext.id}/popup.html`);
+        try {
+            await popup.waitForFunction(() => typeof (globalThis as any).chrome?.runtime !== 'undefined', null, {
+                timeout: 15_000,
+            });
+            const readCount = () =>
+                popup.evaluate(
+                    () =>
+                        new Promise<number>((r) =>
+                            (globalThis as any).chrome.storage.local.get('inbox.count', (v: any) =>
+                                r(Number(v?.['inbox.count'] ?? 0)),
+                            ),
+                        ),
+                );
+            const send = (message: Record<string, unknown>) =>
+                popup.evaluate(
+                    (m) =>
+                        new Promise((r) => (globalThis as any).chrome.runtime.sendMessage(m, r)),
+                    message,
+                ) as Promise<{ ok: boolean; state?: string; error?: string }>;
+
+            const term = uniqueTerm();
+            const before = await readCount();
+
+            const saved = await send({ action: 'ADD_WORD', term, context: 'context', site: 'youtube' });
+            expect(saved.ok, `the save must succeed (${saved.error ?? ''})`).toBe(true);
+            expect(await readCount(), 'the total must move up by one').toBe(before + 1);
+
+            // The same one-second floor as above: without the gap the throttle,
+            // not the removal, decides what happens.
+            await popup.waitForTimeout(MIN_GAP_MS);
+
+            const removed = await send({ action: 'REMOVE_WORD', term, site: 'youtube' });
+            expect(removed.ok, `the removal must succeed (${removed.error ?? ''})`).toBe(true);
+            expect(removed.state, 'the worker reports the resulting state').toBe('removed');
+            expect(await readCount(), 'the total must come back down').toBe(before);
         } finally {
             await popup.close().catch(() => {});
         }
@@ -391,11 +549,15 @@ test.describe('signing out', () => {
         const strings = readLocale();
 
         const popup = await ext.open(`chrome-extension://${ext.id}/popup.html`);
+        let session: SessionSnapshot = {};
         try {
             await popup.waitForFunction(() => typeof (globalThis as any).chrome?.runtime !== 'undefined', null, {
                 timeout: 15_000,
             });
 
+            // Captured before the session is destroyed; put back in `finally`
+            // so the next run of this file still has one. See SESSION_KEYS.
+            session = await captureSession(popup);
             await popup.evaluate(
                 () => new Promise((r) => (globalThis as any).chrome.runtime.sendMessage({ action: 'AUTH_SIGN_OUT' }, r)),
             );
@@ -421,6 +583,10 @@ test.describe('signing out', () => {
                 'Sign in via the Lingogram row above the subtitle list to save words.',
             );
         } finally {
+            // In `finally`, so a failed assertion above still hands the profile
+            // back signed in. A restore that only ran on success would leave
+            // the damage behind precisely on the runs that already went wrong.
+            await restoreSession(popup, session).catch(() => {});
             await popup.close().catch(() => {});
         }
     });
@@ -438,6 +604,7 @@ test.describe('signing out', () => {
         test.skip(!account, 'no stand credentials — this check needs the phase 6 stand');
 
         const popup = await ext.open(`chrome-extension://${ext.id}/popup.html`);
+        let session: SessionSnapshot = {};
         try {
             await popup.waitForFunction(() => typeof (globalThis as any).chrome?.runtime !== 'undefined', null, {
                 timeout: 15_000,
@@ -459,6 +626,7 @@ test.describe('signing out', () => {
             expect(Number(before['rate.savedWordCount'] ?? 0), 'need a non-zero count to assert it survives')
                 .toBeGreaterThan(0);
 
+            session = await captureSession(popup);
             await popup.evaluate(
                 () => new Promise((r) => (globalThis as any).chrome.runtime.sendMessage({ action: 'AUTH_SIGN_OUT' }, r)),
             );
@@ -471,6 +639,9 @@ test.describe('signing out', () => {
             expect(after['rate.promptShown'], 'the review one-shot survives sign-out').toBe(before['rate.promptShown']);
             expect(after['inbox.count'], 'the inbox total survives sign-out').toBe(before['inbox.count']);
         } finally {
+            // As above: the profile goes back the way it was found, whatever
+            // happened to the assertions.
+            await restoreSession(popup, session).catch(() => {});
             await popup.close().catch(() => {});
         }
     });

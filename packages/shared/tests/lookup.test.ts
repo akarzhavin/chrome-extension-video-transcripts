@@ -854,12 +854,27 @@ describe('selection — dragging a phrase opens the same card', () => {
 
     const card = (): HTMLElement | null => document.getElementById('lingogram-lookup-strip');
 
-    /** Click the card's heart and return the ADD_WORD message it sent. */
-    async function saveFromCard(): Promise<any> {
+    /**
+     * Press the card's heart and return what it put on the wire.
+     *
+     * ⚠ This used to answer every non-LOOKUP_WORD message with
+     * `{ ok: true, wordId: 'w1' }` and then pick the ADD_WORD call out of the
+     * log. After the toggle landed that made the strip's removal invisible: a
+     * REMOVE_WORD was answered "ok" by the stub and never appeared in what this
+     * helper returned, so the strip half of the toggle would have shipped with
+     * no test able to observe it — while the word screen's half is covered by
+     * the three rewrites in word-screen.test.ts.
+     *
+     * It now returns BOTH actions. Callers that only save read `.add`, and a
+     * caller that presses twice can see the removal.
+     */
+    async function pressHeart(): Promise<{ add?: any; remove?: any; calls: any[] }> {
         const send = chrome.runtime.sendMessage as jest.Mock;
         send.mockImplementation((msg: any, cb?: (r: unknown) => void) => {
             const res = msg?.action === 'LOOKUP_WORD'
                 ? { ok: true, result: dictAnswer }
+                : msg?.action === 'REMOVE_WORD'
+                ? { ok: true, state: 'removed', inboxCount: 0 }
                 : { ok: true, wordId: 'w1' };
             cb?.(res);
             return Promise.resolve(res);
@@ -868,8 +883,16 @@ describe('selection — dragging a phrase opens the same card', () => {
         heart.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await new Promise((r) => setTimeout(r, 0));
         await new Promise((r) => setTimeout(r, 0));
-        return send.mock.calls.map((c) => c[0]).find((m: any) => m?.action === 'ADD_WORD');
+        const calls = send.mock.calls.map((c) => c[0]);
+        return {
+            add: calls.find((m: any) => m?.action === 'ADD_WORD'),
+            remove: calls.find((m: any) => m?.action === 'REMOVE_WORD'),
+            calls,
+        };
     }
+
+    /** Back-compat shim: the three existing callers only ever save once. */
+    const saveFromCard = async (): Promise<any> => (await pressHeart()).add;
 
     let teardown: () => void;
 
@@ -908,6 +931,23 @@ describe('selection — dragging a phrase opens the same card', () => {
         expect(card()).not.toBeNull();
         const hits = list.querySelectorAll('.vtt-lookup-hit');
         expect(hits.length).toBe(4); // a0 b0 a1 b1
+    });
+
+    it('a second press on the strip removes the word', async () => {
+        // The strip's half of the toggle. Without this the helper's new sight
+        // of REMOVE_WORD would be unused — a fixed instrument nobody reads.
+        const list = buildList(2);
+        selectAcross(list, 0, 0);
+        await release();
+        expect(card()).not.toBeNull();
+
+        const first = await pressHeart();
+        expect(first.add).toBeDefined();
+        expect(first.remove).toBeUndefined();
+
+        const second = await pressHeart();
+        expect(second.remove).toBeDefined();
+        expect(second.remove.term).toBe(first.add.term);
     });
 
     it('saves the dragged phrase, not just the word under the cursor', async () => {

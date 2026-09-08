@@ -118,9 +118,19 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
     });
 
-    test('the registry holds exactly the eleven non-dev actions', () => {
-        // Fails loudly when an action is added to the union but not the Set.
-        expect(AUTH_ACTIONS.size).toBe(11);
+    test('the registry holds exactly the thirteen non-dev actions', () => {
+        // Fails loudly when an action is added to the union but not the Set —
+        // which it did twice during this feature, for REMOVE_WORD and then for
+        // SYNC_WORDS, exactly as intended. A name present in only one of the
+        // two type-checks cleanly and is then dropped by isAuthAction with no
+        // error at all: the message is never handled and the caller's promise
+        // never settles.
+        expect(AUTH_ACTIONS.size).toBe(13);
+        // Named as well as counted: a count alone stays green if one action is
+        // added while another is dropped in the same edit.
+        expect(AUTH_ACTIONS.has('ADD_WORD')).toBe(true);
+        expect(AUTH_ACTIONS.has('REMOVE_WORD')).toBe(true);
+        expect(AUTH_ACTIONS.has('SYNC_WORDS')).toBe(true);
     });
 
     test('an unknown analytics event is rejected at the boundary', async () => {
