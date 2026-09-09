@@ -8,14 +8,21 @@
 //
 // Reads are synchronous by design. Both callers decide how to paint while
 // building a frame, so this can await neither storage nor crypto.subtle. That
-// is also why it is keyed by the lowercased term rather than by the hash the
+// is also why it is keyed by the normalized term rather than by the hash the
 // documents use: the hash is only obtainable asynchronously.
+//
+// The key is `normalizeTerm`, the mirror's own — not `toLowerCase()`. This
+// object is filled from a mirror snapshot and questioned with raw DOM text, so
+// the two sides have to agree on more than case: a phrase carrying a tab
+// between its spans or an NBSP from subtitle markup reaches `has()` in a form
+// no lowercase pass would ever match to the entry `reset()` put in.
 //
 // At this commit the object is still populated only by saves made in this
 // session — the mirror seeding arrives with the next task, and behaviour here
 // is deliberately identical to the two Sets it replaces.
 
 import type { WordState } from '../word-mirror';
+import { normalizeTerm } from '../word-key';
 
 export interface SavedWords {
     /** Whether the term is currently saved. Synchronous, for the render path. */
@@ -31,19 +38,19 @@ export interface SavedWords {
 }
 
 /**
- * A fresh, empty view. Terms are normalized to lower case on the way in and on
- * the way out, so callers that already lowercase (both of them, today) and any
- * that forget agree on the same key.
+ * A fresh, empty view. Terms go through `normalizeTerm` on the way in and on the
+ * way out, so a caller that already normalized and one that hands over raw DOM
+ * text agree on the same key.
  */
 export function createSavedWords(): SavedWords {
     const active = new Set<string>();
     return {
-        has: (term) => active.has(term.toLowerCase()),
+        has: (term) => active.has(normalizeTerm(term)),
         add: (term) => {
-            active.add(term.toLowerCase());
+            active.add(normalizeTerm(term));
         },
         delete: (term) => {
-            active.delete(term.toLowerCase());
+            active.delete(normalizeTerm(term));
         },
         reset: (words) => {
             active.clear();
@@ -52,7 +59,7 @@ export function createSavedWords(): SavedWords {
             // never saved, but here — where the question is only "is the heart
             // filled" — it reads exactly like absence.
             for (const [term, state] of Object.entries(words)) {
-                if (state === 'active') active.add(term.toLowerCase());
+                if (state === 'active') active.add(normalizeTerm(term));
             }
         },
         get size() {

@@ -12,6 +12,7 @@ import { MAX_LOOKUP_TERM_LEN, hasLookupContent, latencyBucket, lookupCached } fr
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
 import { applySyncedDocs, loadMirror } from '../word-mirror';
+import { normalizeTerm } from '../word-key';
 import { loadLanguagePrefs } from '../languages';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
@@ -145,9 +146,30 @@ let envRestored: Promise<void> | null = null;
 let seq = 0;
 const localWrites = new Map<string, number>();
 
+// A full sync that came back with nothing to stamp a cursor with, in THIS
+// worker.
+//
+// `cursor: 0` means "never synced" and the contract fixes that meaning, so an
+// account with no saved words cannot record progress in the mirror: there is no
+// server timestamp to record. Without this flag such an account re-runs the
+// unfiltered whole-collection query on every wake, page open and tab focus, for
+// as long as it stays empty — the query is cheap on an empty collection but it
+// is a round trip per focus event, forever, for an answer that has not changed.
+//
+// Deliberately worker-lifetime and not persisted: the first save clears it, and
+// a worker restart re-checks once, which is the correct amount of paranoia for
+// something a second device could have changed while this one was asleep.
+//
+// Held as the UID it was observed for rather than a boolean, so signing out and
+// into another account cannot inherit it. A `null` means "ask". Sign-out needs
+// no explicit reset for the same reason: the next account's uid will not match.
+let emptyFullSyncUid: string | null = null;
+
 /** Stamp a term as locally changed, before its commit goes out. */
 export function stampLocalWrite(term: string): void {
-    localWrites.set(term.toLowerCase(), ++seq);
+    localWrites.set(normalizeTerm(term), ++seq);
+    // This account is no longer empty, whatever the last full sync found.
+    emptyFullSyncUid = null;
 }
 
 // A sync already running is joined rather than queued: the three triggers fire
@@ -165,6 +187,13 @@ interface SyncResult { ok: boolean; applied?: number; full?: boolean; error?: st
 async function runSync(): Promise<SyncResult> {
     const mirror = await loadMirror();
     const full = mirror.cursor === 0;
+    // Only the full-and-empty repeat is skipped, and only for the account it
+    // was observed on. A cursor that has advanced takes the filtered query,
+    // which is what the sync is for.
+    const uid = (await getAuthState())?.uid ?? null;
+    if (full && uid !== null && uid === emptyFullSyncUid) {
+        return { ok: true, applied: 0, full: true };
+    }
     const since = full ? 0 : Math.max(0, mirror.cursor - OVERLAP_MS);
     // Recorded when the query is ISSUED, not when it returns: a write that
     // lands while the query is in flight must win over what the query brings
@@ -172,18 +201,59 @@ async function runSync(): Promise<SyncResult> {
     const issuedAt = seq;
     try {
         const docs = await listInboxWords(config, since);
-        const fresh = docs.filter((d) => (localWrites.get(d.term.toLowerCase()) ?? 0) <= issuedAt);
+        // Keyed by `normalizeTerm` on both sides. The stamp comes from a raw
+        // term off the page and `d.term` from the document, so a lowercase
+        // key would miss the match on exactly the terms the two forms part
+        // on — letting a sync overwrite a local write it was meant to yield to.
+        const fresh = docs.filter((d) => (localWrites.get(normalizeTerm(d.term)) ?? 0) <= issuedAt);
         // Nothing applied means nothing written: a rewrite with identical
         // contents would wake every subscriber in every open tab.
         if (fresh.length > 0) {
             await applySyncedDocs(fresh.map((d) => ({ term: d.term, state: d.state, updatedAt: d.updatedAt })));
         }
+        // A full pass that applied nothing left the cursor at 0, so the next
+        // one would be full as well and would ask the same question again.
+        // Note the condition is on what the QUERY returned, not on `fresh`: a
+        // document held back by `localWrites` is a change this worker itself
+        // made, and the sync that follows it must still run.
+        if (full && docs.length === 0) emptyFullSyncUid = uid;
         return { ok: true, applied: fresh.length, full };
     } catch (err) {
         // Never rejects: the caller is a background trigger with no one to
         // tell, and the mirror is still usable from what it has.
         return { ok: false, error: String(err instanceof Error ? err.message : err) };
+    } finally {
+        // Drop the stamps this pass has now outlived.
+        //
+        // A stamp exists only to outrank the `issuedAt` of a sync racing the
+        // write that made it. This query was issued at `issuedAt` and is now
+        // over, so every stamp at or below that value has already met the one
+        // query that could have raced it, and no later sync can read a smaller
+        // `issuedAt` — `seq` only grows. Such an entry can never change an
+        // outcome again.
+        //
+        // In `finally` and not beside the return: a sync that THREW still
+        // issued its query, and a failing sync is exactly when the map would
+        // otherwise grow without bound.
+        //
+        // Without this the map keeps one entry per save and removal for the
+        // life of the worker — every term the learner touches, held in memory,
+        // with nothing outside the test-only reset taking it out.
+        for (const [term, at] of localWrites) {
+            if (at <= issuedAt) localWrites.delete(term);
+        }
     }
+}
+
+/**
+ * Test seam: how many local-write stamps are being held.
+ *
+ * The count, not the map — a test has no business reading which terms are in
+ * there, and exposing the map would make the pruning's bookkeeping part of the
+ * module's surface. What is worth pinning is that the number comes back down.
+ */
+export function __localWriteCountForTests(): number {
+    return localWrites.size;
 }
 
 /**
@@ -198,6 +268,7 @@ export function __resetSyncStateForTests(): void {
     lastFinishedAt = 0;
     seq = 0;
     localWrites.clear();
+    emptyFullSyncUid = null;
 }
 
 export async function syncWords(): Promise<SyncResult> {
@@ -256,6 +327,11 @@ export async function handleAuthMessage(
         }
         case 'AUTH_SIGN_OUT': {
             await clearAuthState();
+            // The stamps are module state, so `clearAuthState` cannot reach
+            // them: without this the signed-out account's terms stay in worker
+            // memory until the worker recycles.
+            localWrites.clear();
+            emptyFullSyncUid = null;
             clearNeedsReauthBadge();
             return { ok: true };
         }

@@ -65,6 +65,33 @@ describe('SidebarUI', () => {
         };
     });
 
+    // The word screen subscribes to chrome.storage.onChanged to keep its hearts
+    // in step with the mirror. Removing the sidebar's DOM does not undo that —
+    // it is the same class of binding the `teardown` list exists for, and it is
+    // NOT in that list, because the screen is built in the constructor before
+    // the list is populated.
+    //
+    // No host reaches this today: the extensions build one app per page load
+    // and never destroy it, and the embed — the one host that remounts — passes
+    // no word-screen factory. The wiring is pinned here anyway, because an
+    // unreachable teardown is indistinguishable from an absent one, and the
+    // first host to both remount and want a word screen would leak a listener
+    // per remount with nothing in the code saying it should not.
+    test('destroy() unsubscribes the word screen from the mirror', () => {
+        const before = (chrome.storage.onChanged.removeListener as jest.Mock).mock.calls.length;
+
+        ui.destroy();
+
+        expect((chrome.storage.onChanged.removeListener as jest.Mock).mock.calls.length)
+            .toBe(before + 1);
+    });
+
+    test('destroy() is safe on a sidebar built without a word screen', () => {
+        // The embed's configuration. `dispose()` must not be assumed present.
+        const embedUi = new SidebarUI(new AppState(), mockApp);
+        expect(() => embedUi.destroy()).not.toThrow();
+    });
+
     test('highlightSubtitle should find the correct subtitle for time', () => {
         const subs: Subtitle[] = [
             { startTime: 0, endTime: 2, text: 'First' },

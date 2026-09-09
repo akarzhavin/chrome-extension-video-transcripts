@@ -423,6 +423,10 @@
     "message": "저장하지 못했습니다: {error}",
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
+  "ytQuickAddRemoveFailed": {
+    "message": "Couldn't remove: {error}",
+    "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
+  },
   "ytPopupLoading": {
     "message": "불러오는 중…",
     "description": "Placeholder while the toolbar popup fetches the account status."

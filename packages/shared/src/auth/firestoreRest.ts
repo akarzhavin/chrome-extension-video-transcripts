@@ -595,11 +595,20 @@ export async function listInboxWords(cfg: AuthConfig, sinceMs: number): Promise<
         // the site converts it, and until then it is invisible here rather than
         // guessed at.
         if (typeof term !== 'string' || (stateValue !== 'active' && stateValue !== 'removed')) continue;
+        // An unparseable `updatedAt` drops the document too, rather than
+        // reporting it with a 0. The caller advances its cursor to the largest
+        // value it applied, and 0 can never be the largest — so a single such
+        // document among the results would hold the cursor at 0 and make EVERY
+        // later sync re-run the unfiltered whole-collection query, on every
+        // worker wake, page open and tab focus, forever, while reporting
+        // success. The document is also unreachable by the `updatedAt` ordering
+        // this query is built on, so there is no window that could carry it.
+        if (!Number.isFinite(updatedAt)) continue;
         out.push({
             key: doc.name.split('/').pop() ?? '',
             term,
             state: stateValue,
-            updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+            updatedAt,
         });
     }
     return out;
@@ -639,6 +648,19 @@ export async function removeInboxWord(
                 fields: { state: { stringValue: 'removed' } },
             },
             updateMask: { fieldPaths: ['state', 'updatedAt'] },
+            // No `currentDocument` precondition, and it is not an omission.
+            //
+            // A masked write to a MISSING document is evaluated by Firestore as
+            // a create, so it lands on the word rule's create branch — which
+            // demands `term`, `source`, `processed == false`, a server-stamped
+            // `addedAt` and a same-commit sentinel advance. This body carries
+            // none of them, so the rules refuse it on their own and no
+            // term-less stub can be written. Measured against firestore.rules
+            // on the emulator (2026-09-09): refused, and no document created.
+            //
+            // Adding `{ exists: true }` here would be redundant, and it would
+            // trade a rules refusal for a precondition failure — a different
+            // status for a case the handler below already treats as success.
             updateTransforms: [
                 { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
             ],
@@ -670,6 +692,12 @@ export async function removeInboxWord(
     // the state the learner asked for. Reporting a failure would ask them to
     // retry something that has already happened, and would leave the mirror
     // claiming the word is still saved.
+    //
+    // Both arrive as 403, because both are the RULES refusing: the removal
+    // branch requires `resource.data.state == 'active'`, which a `removed`
+    // document fails and a missing document fails by having no `resource` at
+    // all. Verified on the emulator against firestore.rules — see the note on
+    // the write above.
     //
     // ⚠ This must NOT be read as "a 403 on a word write is fine". The third
     // refusal in that table — a create refused because the document exists —

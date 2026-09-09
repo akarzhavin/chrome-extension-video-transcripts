@@ -221,6 +221,11 @@ export class WordScreen {
         // Heart at the word itself — the save action where the eye already
         // is. The labeled footer button stays; both run the same handler
         // (wired below, once both exist) so they can never disagree.
+        // Lowercased only because it is also what gets SENT to saveTerm /
+        // removeTerm below, keeping one string for both. The membership
+        // question itself no longer depends on this: createSavedWords
+        // normalizes on the way in and out, so `has` would answer the same
+        // for the raw term.
         const termKey = term.toLowerCase();
         const alreadySaved = this.savedWords.has(termKey);
         const headHeart = document.createElement('button');

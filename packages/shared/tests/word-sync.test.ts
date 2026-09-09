@@ -56,7 +56,7 @@ const listeners: Array<(changes: Record<string, chrome.storage.StorageChange>, a
     action: { setBadgeText: jest.fn(), setBadgeBackgroundColor: jest.fn() },
 };
 
-import { __resetSyncStateForTests, handleAuthMessage } from '../src/auth/background';
+import { __localWriteCountForTests, __resetSyncStateForTests, handleAuthMessage } from '../src/auth/background';
 import { MIRROR_KEY, loadMirror, setMirrorEntry } from '../src/word-mirror';
 import { wordKey } from '../src/word-key';
 import type { AuthConfig } from '../src/auth/config';
@@ -290,5 +290,155 @@ describe('coalescing', () => {
         queries.length = 0;
         await sync('page');
         expect(queries).toHaveLength(0);
+    });
+});
+
+// The worker's own cooldown, restated here rather than exported: a test that
+// imported it would pass on a build where the constant itself had gone wrong.
+const SYNC_COOLDOWN_FOR_TESTS = 2_000;
+const realNow = Date.now;
+
+// A document whose `updatedAt` the sync cannot read.
+//
+// `asRows` above always writes a parseable timestamp, so these build the row by
+// hand: the defect is precisely in what happens to a row the normal fixture
+// cannot produce.
+const asBrokenRow = (term: string, timestampValue: unknown): unknown => ({
+    document: {
+        name: `projects/${cfg.projectId}/databases/(default)/documents/inbox/uid-1/words/${wordKey(term)}`,
+        fields: {
+            term: { stringValue: term },
+            state: { stringValue: 'active' },
+            ...(timestampValue === undefined ? {} : { updatedAt: { timestampValue } }),
+        },
+    },
+});
+
+describe('the cursor cannot be pinned at zero', () => {
+    // `cursor: 0` means "never synced", and a sync that starts there sends the
+    // UNFILTERED whole-collection query. So a cursor that can never leave 0 is
+    // not a slow cursor — it is a full download on every worker wake, every
+    // page open and every tab focus, for the life of the install, while every
+    // one of those syncs reports `ok: true`.
+    function serveRows(rows: unknown[]): void {
+        (global as any).fetch = jest.fn(async (url: string, init?: RequestInit) => {
+            if (String(url).includes(':runQuery')) {
+                queries.push(JSON.parse(String(init?.body ?? '{}')));
+                return { ok: true, status: 200, json: async () => rows, text: async () => '' } as any;
+            }
+            return { ok: true, status: 200, json: async () => ({}), text: async () => '' } as any;
+        });
+    }
+
+    test('an unreadable updatedAt is not applied as a saved word', async () => {
+        // Deliberately the ONLY document, and deliberately not an assertion
+        // about the cursor: alongside a well-formed document the cursor reaches
+        // that document's timestamp either way, because `applySyncedDocs` takes
+        // the largest value and 0 is never the largest. A cursor assertion
+        // there is green on the broken build and pins nothing.
+        //
+        // What genuinely differs is whether the row is applied at all. Reported
+        // with a 0 it becomes a saved word carrying a timestamp the sync just
+        // invented — and the next query, filtered from a cursor this row did
+        // not contribute to, will never return it again to correct it.
+        serveRows([asBrokenRow('unstamped', 'not a timestamp at all')]);
+
+        const res = await sync();
+
+        expect(await loadMirror()).toEqual({ v: 1, words: {}, cursor: 0 });
+        expect(res).toMatchObject({ applied: 0 });
+    });
+
+    test('a document with no updatedAt field at all is skipped, not reported as 0', async () => {
+        serveRows([asBrokenRow('unstamped', undefined)]);
+
+        await sync();
+
+        const m = await loadMirror();
+        // Not applied: a document the query's own ordering cannot reach is not
+        // one this sync can claim to have covered.
+        expect(m.words.unstamped).toBeUndefined();
+    });
+
+    test('the SECOND sync of an unstamped account is not another full download', async () => {
+        // The consequence, stated as the user would meet it. Without the guard
+        // the cursor is still 0 after the first pass, so the second query is
+        // full again — and so is every one after it.
+        serveRows([asBrokenRow('unstamped', 'not a timestamp at all')]);
+        await sync();
+        queries.length = 0;
+        // Step past the 2s coalescing window WITHOUT calling
+        // __resetSyncStateForTests(): that clears the guard this test is about,
+        // and clearing it here would make the assertion pass on a build that
+        // never had the guard at all.
+        jest.spyOn(Date, 'now').mockReturnValue(realNow() + SYNC_COOLDOWN_FOR_TESTS + 1);
+
+        // A second wake, with the same signed-in account.
+        await sync();
+        (Date.now as jest.Mock).mockRestore();
+
+        // Either it did not ask again, or it asked a FILTERED question. What it
+        // must not do is re-send the unfiltered whole-collection query.
+        const full = queries.filter((q) => !q.structuredQuery?.where);
+        expect(full).toHaveLength(0);
+    });
+});
+
+describe('the local-write stamps do not accumulate forever', () => {
+    // One entry per save and per removal, in worker memory, for the life of the
+    // worker. A stamp's whole job is to outrank the `issuedAt` of a sync racing
+    // the write that made it; once such a sync has been and gone, the entry can
+    // never change an outcome again.
+    test('a stamp is dropped once a sync has outlived it', async () => {
+        await handleAuthMessage({ action: 'REMOVE_WORD', term: 'going', site: 'youtube' }, cfg);
+        expect(__localWriteCountForTests()).toBe(1);
+
+        __resetSyncStateForTests();
+        // The reset clears the map too, so re-stamp and then let a sync pass.
+        await handleAuthMessage({ action: 'REMOVE_WORD', term: 'going', site: 'youtube' }, cfg);
+        expect(__localWriteCountForTests()).toBe(1);
+        await sync();
+
+        expect(__localWriteCountForTests()).toBe(0);
+    });
+
+    test('a stamp made DURING the query survives it', async () => {
+        // The pruning must not eat the very entry the mechanism exists for:
+        // this write is stamped after the query was issued, so the sync it
+        // races has not outlived it.
+        // Seeded, like the scenario-6 test above: REMOVE_WORD writes the
+        // mirror optimistically and rolls back when its commit fails, and the
+        // fake fetch answers every non-query with an empty body.
+        await setMirrorEntry('going', 'removed');
+        documents = [{ term: 'going', state: 'active', updatedAt: 1_700_000_000_000 }];
+        const inFlight = sync();
+        await handleAuthMessage({ action: 'REMOVE_WORD', term: 'going', site: 'youtube' }, cfg);
+        await inFlight;
+
+        expect(__localWriteCountForTests()).toBe(1);
+        // And the local change still won, which is the behaviour the stamp buys.
+        expect((await loadMirror()).words.going).toBe('removed');
+    });
+
+    test('a sync that FAILED still drops the stamps it outlived', async () => {
+        // The growth case that matters: a worker with no network stamps every
+        // save and prunes on no path at all if the pruning sits beside the
+        // success return.
+        await handleAuthMessage({ action: 'REMOVE_WORD', term: 'going', site: 'youtube' }, cfg);
+        expect(__localWriteCountForTests()).toBe(1);
+
+        queryStatus = 500;
+        await sync();
+
+        expect(__localWriteCountForTests()).toBe(0);
+    });
+
+    test('signing out drops the previous account’s stamps', async () => {
+        await handleAuthMessage({ action: 'REMOVE_WORD', term: 'going', site: 'youtube' }, cfg);
+        expect(__localWriteCountForTests()).toBe(1);
+
+        await handleAuthMessage({ action: 'AUTH_SIGN_OUT' }, cfg);
+
+        expect(__localWriteCountForTests()).toBe(0);
     });
 });

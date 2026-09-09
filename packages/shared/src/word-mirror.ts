@@ -7,6 +7,16 @@
 // the NORMALIZED TERM and not by the hash the documents are keyed by: the hash
 // is only obtainable asynchronously, and a render cannot wait for it.
 //
+// `normalizeTerm` is the ONE key function, and this module applies it itself
+// rather than trusting callers to. A caller reaching for `toLowerCase()`
+// instead is not a style slip: `normalizeTerm` also trims, collapses runs of
+// whitespace, and closes the two host-lowercase divergences, so the two forms
+// part on any term carrying a double space, an NBSP between spans, a BOM, a
+// Turkish İ or a Greek final sigma. The server writes documents under
+// `normalizeTerm`, so a mirror entry written under the other form is a SECOND
+// entry for one word, and the heart over it never fills. `key()` below is the
+// only door in.
+//
 // Written by the worker only. Content scripts read it and subscribe; they never
 // write. Cleared with the auth state on sign-out.
 //
@@ -15,6 +25,7 @@
 // mirror can be trusted to paint a heart.
 
 import { WORD_KEYS } from './auth/storage';
+import { normalizeTerm } from './word-key';
 
 export type WordState = 'active' | 'removed';
 
@@ -42,6 +53,18 @@ export interface SyncedDoc {
     term: string;
     state: WordState;
     updatedAt: number;
+}
+
+/**
+ * The mirror's key for a term — the same normalization the documents are
+ * written under.
+ *
+ * Applied here rather than at each call site so that the entry a save writes
+ * and the entry a sync writes cannot end up under different keys. Callers pass
+ * raw terms; DOM text is exactly what this has to absorb.
+ */
+function key(term: string): string {
+    return normalizeTerm(term);
 }
 
 function empty(): WordMirror {
@@ -114,7 +137,7 @@ async function write(next: WordMirror): Promise<void> {
  */
 export async function setMirrorEntry(term: string, state: WordState): Promise<void> {
     const m = await loadMirror();
-    m.words[term.toLowerCase()] = state;
+    m.words[key(term)] = state;
     await write(m);
 }
 
@@ -128,7 +151,7 @@ export async function setMirrorEntry(term: string, state: WordState): Promise<vo
  */
 export async function deleteMirrorEntry(term: string): Promise<void> {
     const m = await loadMirror();
-    delete m.words[term.toLowerCase()];
+    delete m.words[key(term)];
     await write(m);
 }
 
@@ -145,7 +168,16 @@ export async function applySyncedDocs(docs: SyncedDoc[]): Promise<void> {
     const m = await loadMirror();
     for (const doc of docs) {
         if (!doc || typeof doc.term !== 'string' || !doc.term || !isWordState(doc.state)) continue;
-        m.words[doc.term] = doc.state;
+        // Through `key` too, and not because the server's `term` is
+        // suspect: it is already `normalizeTerm` output, so this is a
+        // no-op on every well-formed document. It is here so that the
+        // sync path and the save path cannot be given different keys by a
+        // later edit to one of them — and so a legacy document written
+        // before the field was normalized lands on the same entry a save
+        // would write, instead of beside it.
+        const k = key(doc.term);
+        if (!k) continue;
+        m.words[k] = doc.state;
         if (typeof doc.updatedAt === 'number' && Number.isFinite(doc.updatedAt) && doc.updatedAt > m.cursor) {
             m.cursor = doc.updatedAt;
         }

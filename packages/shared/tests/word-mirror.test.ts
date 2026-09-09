@@ -72,10 +72,13 @@ import {
     MIRROR_KEY,
     applySyncedDocs,
     clearMirror,
+    deleteMirrorEntry,
     loadMirror,
     onMirrorChanged,
     setMirrorEntry,
 } from '../src/word-mirror';
+import { normalizeTerm } from '../src/word-key';
+import { createSavedWords } from '../src/lookup/saved-words';
 import { WORD_KEYS, clearAuthState } from '../src/auth/storage';
 
 beforeEach(() => {
@@ -202,5 +205,71 @@ describe('the mirror is part of the documented storage inventory', () => {
         await setMirrorEntry('hello', 'active');
         await clearAuthState();
         expect(await loadMirror()).toEqual(EMPTY);
+    });
+});
+// The two normalizations, and the entry that split between them.
+//
+// The mirror is written from two directions: `setMirrorEntry` on a local save,
+// and `applySyncedDocs` on a sync. The server writes its documents' `term`
+// under `normalizeTerm`, so an entry written under any OTHER key is a second
+// entry for one word — and the heart, which asks under the first key, never
+// fills.
+//
+// These are not hypotheticals about Unicode trivia. Every input below is
+// something DOM text actually carries: a phrase selected across two subtitle
+// spans arrives with a tab or a double space in it, subtitle markup carries
+// NBSP, and a Turkish or Greek learner's own words carry the rest.
+describe('one term, one key, whichever side writes it', () => {
+    const SPLITTERS = [
+        // Two spaces between words — a phrase dragged across a line break.
+        ['a double space', 'café  de  paris'],
+        // NBSP from subtitle markup.
+        ['a non-breaking space', 'café de paris'],
+        // A tab between the spans of a phrase.
+        ['a tab', 'café\tde\tparis'],
+        // A BOM riding along on a copy.
+        ['a BOM', '﻿café de paris'],
+        // Turkish dotted capital I: JS lowercases it to i + U+0307.
+        ['a Turkish dotted I', 'İstanbul'],
+        // Greek final sigma: JS picks U+03C2 at a word's end, Go never does.
+        ['a Greek final sigma', 'ΣΟΦΟΣ'],
+        // Leading and trailing whitespace, which trim() and the contract's set
+        // disagree about.
+        ['surrounding whitespace', '  going  '],
+    ] as const;
+
+    test.each(SPLITTERS)('a save then a sync of %s land on ONE entry', async (_label, raw) => {
+        // The learner saves the word from the page: the raw DOM text.
+        await setMirrorEntry(raw, 'active');
+        // The server then reports the same word back, under its own key — the
+        // `term` field of a document is `normalizeTerm` output.
+        await applySyncedDocs([
+            { term: normalizeTerm(raw), state: 'removed', updatedAt: 1_700_000_000_000 },
+        ]);
+
+        const m = await loadMirror();
+        // ONE entry, not two. Two would mean the sync's `removed` sat beside
+        // the save's `active` and the heart kept answering from the stale one.
+        expect(Object.keys(m.words)).toEqual([normalizeTerm(raw)]);
+        expect(m.words[normalizeTerm(raw)]).toBe('removed');
+    });
+
+    test.each(SPLITTERS)('a rollback of %s finds the entry the save wrote', async (_label, raw) => {
+        // deleteMirrorEntry is the failed-save rollback. Keyed differently from
+        // setMirrorEntry it would delete nothing, leaving the optimistic
+        // `active` behind for a word that was never saved.
+        await setMirrorEntry(raw, 'active');
+        await deleteMirrorEntry(raw);
+        expect(await loadMirror()).toEqual(EMPTY);
+    });
+
+    test('the in-tab view answers for the raw term the page hands it', async () => {
+        // saved-words.ts is filled from a mirror snapshot and questioned with
+        // raw DOM text. Keyed by toLowerCase() it would answer "not saved" for
+        // exactly the terms above — the heart the mirror exists to fill.
+        const raw = 'café  de  paris';
+        const view = createSavedWords();
+        view.reset({ [normalizeTerm(raw)]: 'active' });
+        expect(view.has(raw)).toBe(true);
     });
 });
