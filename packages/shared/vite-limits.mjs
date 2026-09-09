@@ -39,6 +39,11 @@ const DEFAULTS = {
         'youtube-extension',
         'web-extension',
         'site-uninstall',
+        // Added to the canonical file 2026-09-07 (11:48) for the word-save
+        // feature: the site writes documents of its own now, and a source it
+        // sends that this list does not carry would fail a standalone build
+        // exactly the way /uninstall/ did.
+        'site',
     ],
 };
 

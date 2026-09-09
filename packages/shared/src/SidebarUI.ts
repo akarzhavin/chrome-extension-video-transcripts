@@ -1708,6 +1708,19 @@ export class SidebarUI {
         // panel that is being dismantled. The renderers already guard on a
         // missing panel; this drops it one step earlier.
         this.closeLookupScreen();
+        // The word screen holds a chrome.storage.onChanged subscription, which
+        // removing the DOM does not undo — the same class of binding the
+        // `teardown` list above exists for. It is not in that list because the
+        // screen is built in the constructor, before the list is populated.
+        //
+        // No caller reaches this today: the extensions build one app per page
+        // load and never destroy it, and the embed — the one host that does
+        // remount — passes no word-screen factory, so there is nothing here to
+        // dispose. That is exactly why it has to be wired now rather than when
+        // it first matters: `dispose()` otherwise sits unreachable, and the
+        // first host to both remount AND want a word screen would leak a
+        // listener per remount with nothing in the code saying it should not.
+        this.wordScreen?.dispose();
         this.elements.sidebar?.remove();
         // The toggle tab is BORN inside the sidebar but a host may re-parent it
         // (packages/embed moves it onto its own tab slot, and fullscreen moves

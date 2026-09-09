@@ -2,6 +2,8 @@ import { platformOf } from '../analytics';
 import { msg as i18nMsg } from '../i18n';
 import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feedback';
 import { sendMessageGuarded as sendMessage } from '../messaging';
+import { deleteMirrorEntry, loadMirror, setMirrorEntry } from '../word-mirror';
+import { normalizeTerm } from '../word-key';
 
 const TOAST_ID = 'lingogram-quick-add-toast';
 export const MAX_TERM_LEN = 256;
@@ -613,12 +615,69 @@ function showRatePrompt(): void {
  * `spans` are the word elements to tag "saved" on success; pass an empty array
  * when there is nothing on screen to mark. Returns whether the save succeeded.
  */
+// A lost response, not a refusal. The worker surfaces its own timeout wording;
+// matching on it here keeps the distinction in one place rather than spread
+// across the two call sites of saveTerm.
+function isTimeout(message: string): boolean {
+    return /timed? ?out|timeout/i.test(message);
+}
+
+/**
+ * Turn a raw worker error into something a learner can act on.
+ *
+ * Shared by save and removal because the two failures a learner can actually do
+ * something about — being signed out, and an extension that reloaded under the
+ * page — are identical on both paths, and the removal path used to have
+ * neither. `fallback` is what remains when the message is neither: the caller
+ * supplies it because only the caller knows which operation failed.
+ */
+function friendlyError(raw: string, fallback: (raw: string) => string): string {
+    if (/Not signed in|sign in via/i.test(raw)) {
+        return i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.');
+    }
+    // The worker's own wording for an orphaned content script, already written
+    // for a human — passed through rather than wrapped.
+    if (/reloaded/i.test(raw)) return raw;
+    return fallback(raw);
+}
+
+/**
+ * Ask the worker to reconcile the mirror against the store.
+ *
+ * Fire-and-forget, and deliberately tolerant of the message not existing yet:
+ * `SYNC_WORDS` is introduced in a later task, and until then a timeout simply
+ * leaves the mirror rolled back — the same state it had before this feature.
+ */
+async function scheduleSync(): Promise<void> {
+    try {
+        await sendMessage({ action: 'SYNC_WORDS' });
+    } catch {
+        // Nothing to recover here: the next sync, whenever it runs, is
+        // authoritative.
+    }
+}
+
 export async function saveTerm(
     term: string,
     context: string,
     spans: HTMLElement[] = [],
 ): Promise<boolean> {
     console.log('[Lingogram] ADD_WORD →', term);
+    // Write the mirror BEFORE the message goes out, so the heart fills the
+    // instant it is pressed rather than after a round trip. The exact previous
+    // value is captured first — including "absent" — because a rollback that
+    // wrote 'removed' over an entry that had never existed would read as a
+    // deliberate un-save and suppress the retry.
+    // Read under the mirror's own key, not a lowercase of it: a phrase with a
+    // double space or an NBSP hashes to the entry `setMirrorEntry` is about to
+    // write, and reading a different one here would report "absent" for a word
+    // that is saved — rolling a failure back to absent instead of to 'active'.
+    const previous = (await loadMirror()).words[normalizeTerm(term)];
+    await setMirrorEntry(term, 'active');
+    const rollBack = async (): Promise<void> => {
+        if (previous === undefined) await deleteMirrorEntry(term);
+        else await setMirrorEntry(term, previous);
+    };
     try {
         const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
             action: 'ADD_WORD',
@@ -631,6 +690,7 @@ export async function saveTerm(
         });
         console.log('[Lingogram] ADD_WORD ←', res);
         if (!res.ok) throw new Error(res.error ?? 'add failed');
+        // The commit landed; the optimistic entry above is now the truth.
         showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
         markSpansSaved(spans);
         // Value-moment rating ask (P1.8) — background signals the one-shot.
@@ -638,15 +698,103 @@ export async function saveTerm(
         return true;
     } catch (err) {
         const msg = String(err instanceof Error ? err.message : err);
-        const friendly = /Not signed in|sign in via/i.test(msg)
-            ? i18nMsg('ytQuickAddNeedsSignIn', 'Sign in via the Lingogram row above the subtitle list to save words.')
-            : /reloaded/i.test(msg)
-            ? msg
-            : i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', msg);
+        await rollBack();
+        // A TIMEOUT is not a refusal. The commit may well have landed and only
+        // the response was lost, which would leave the store holding a word the
+        // mirror has just rolled back — so ask for a sync to settle it. A
+        // refusal carries no such doubt: nothing was written, and a sync would
+        // be a request made for no reason.
+        if (isTimeout(msg)) void scheduleSync();
+        const friendly = friendlyError(msg, (raw) =>
+            i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', raw));
         showToast(friendly, false);
         console.warn('[Lingogram] add failed:', err);
         return false;
     }
+}
+
+/**
+ * Take a word off the learner's list — the mirror image of `saveTerm`.
+ *
+ * Optimistic in the same way and for the same reason: the heart empties the
+ * instant it is pressed, and the exact previous value is put back if the write
+ * fails. The decoration `markSpansSaved` applied is cleared too, or the
+ * subtitle line would keep claiming the word is saved.
+ */
+export async function removeTerm(term: string, spans: HTMLElement[] = []): Promise<boolean> {
+    console.log('[Lingogram] REMOVE_WORD →', term);
+    // Read under the mirror's own key, not a lowercase of it: a phrase with a
+    // double space or an NBSP hashes to the entry `setMirrorEntry` is about to
+    // write, and reading a different one here would report "absent" for a word
+    // that is saved — rolling a failure back to absent instead of to 'active'.
+    const previous = (await loadMirror()).words[normalizeTerm(term)];
+    await setMirrorEntry(term, 'removed');
+    const rollBack = async (): Promise<void> => {
+        if (previous === undefined) await deleteMirrorEntry(term);
+        else await setMirrorEntry(term, previous);
+    };
+    try {
+        const res = await sendMessage<{ ok: boolean; error?: string; state?: string }>({
+            action: 'REMOVE_WORD',
+            term,
+            site: platformOf(location.hostname),
+        });
+        console.log('[Lingogram] REMOVE_WORD ←', res);
+        if (!res.ok) throw new Error(res.error ?? 'remove failed');
+        clearSpansSaved(spans);
+        return true;
+    } catch (err) {
+        const msg = String(err instanceof Error ? err.message : err);
+        await rollBack();
+        // Unlike a save, a removal schedules no sync on timeout: the commit
+        // either landed (and the next sync sees `removed` anyway) or it did
+        // not, and the mirror is back where it was. Nothing is in doubt that a
+        // request would settle sooner.
+        // NOT the save wording. The heart has just been put back by the
+        // rollback above, so the word is still on the list — telling the
+        // learner it could not be SAVED states the opposite of what happened
+        // and invites them to press save on a word that is already saved.
+        //
+        // The reusable half of the sign-in / extension-reloaded handling comes
+        // from `friendlyError`; only the last-resort wording differs, and it is
+        // built from the shared `ytQuickAddRemoveFailed` string so no locale
+        // has to be re-translated for the two branches above.
+        const friendly = friendlyError(msg, (raw) =>
+            i18nMsg('ytQuickAddRemoveFailed', "Couldn't remove: {error}").replace('{error}', raw));
+        showToast(friendly, false);
+        console.warn('[Lingogram] remove failed:', err);
+        return false;
+    }
+}
+
+/**
+ * Ask the worker to reconcile the mirror. Fire-and-forget by construction.
+ *
+ * (c) Tab focus, plus whatever else a page wants to trigger from. The worker
+ * coalesces: a sync already running is joined, and one that finished under two
+ * seconds ago is skipped — so a page that fires this on both navigation and
+ * focus costs one read, not two.
+ */
+export function requestWordSync(reason: 'wake' | 'page' | 'focus'): void {
+    // Never awaited and never surfaced: there is nobody to tell, and the mirror
+    // still answers from what it has.
+    void sendMessage({ action: 'SYNC_WORDS', reason }).catch(() => {});
+}
+
+/** Fire a sync when the learner comes back to this tab. */
+export function installFocusSync(): () => void {
+    const onFocus = (): void => requestWordSync('focus');
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+}
+
+/** Undo `markSpansSaved`: the word is no longer on the list. */
+export function clearSpansSaved(spans: HTMLElement[]): void {
+    if (!spans.length) return;
+    spans.forEach((s) => s.classList.remove('vtt-saved-word'));
+    const last = spans[spans.length - 1];
+    const badge = last.nextElementSibling;
+    if (badge?.classList.contains('vtt-saved-badge')) badge.remove();
 }
 
 // Re-exported under this name because lookup/word-screen.ts imports it from

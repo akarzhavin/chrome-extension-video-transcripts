@@ -241,4 +241,120 @@ describe('which failures are treated as a dead session', () => {
         expect(await getAuthState()).not.toBeNull();
         expect(setBadgeText).not.toHaveBeenCalled();
     });
+
+    /**
+     * The create-refusal seam, from this side.
+     *
+     * A word this device has never synced is saved with the create form, and
+     * the rules refuse it because the document already exists. That refusal is
+     * `Firestore commit 403` — the very string two entries up in REVOKED. The
+     * retry therefore has to sit INSIDE addInboxWord, below this classifier: it
+     * resolves the refusal before anything here ever sees it, which is why
+     * addInboxWord resolves rather than rejecting.
+     *
+     * These two tests are what keep the retry there. Hoisting it into this
+     * handler would leave the first assertion passing and break the second —
+     * the learner signed out for saving a word they had saved before.
+     */
+    it('the handler retries nothing itself — one call, and a 403 is a 403 here', async () => {
+        // The placement assertion, and it has to be written this way round.
+        //
+        // `addInboxWord` is mocked in this file, so a test that merely lets it
+        // resolve cannot tell where the retry lives — it passes whether the
+        // retry sits inside that function or in this handler. What DOES
+        // distinguish them is the call count: with the retry inside, the
+        // handler calls addInboxWord exactly once and the refusal never
+        // surfaces; hoisted here, the handler would call it a second time with
+        // { reactivate: true } after seeing the 403.
+        //
+        // That second call is what must never exist. `Firestore commit 403` is
+        // one of the strings isAuthFailure matches, so a handler that inspects
+        // the error to decide on a retry is a handler one edit away from
+        // clearing the auth state on the first save of an unsynced word.
+        await signedIn();
+        // The refusal has to actually happen, or the branch under test never
+        // runs: a handler that retries on 403 looks identical to one that does
+        // not, until a 403 arrives. This is the condition the mutation needs.
+        addInboxWord.mockRejectedValue(new Error('Firestore commit 403: denied'));
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        // Exactly one call: the handler does not inspect the error and try
+        // again. With the retry hoisted here there would be a second call
+        // carrying { reactivate: true }.
+        expect(addInboxWord).toHaveBeenCalledTimes(1);
+        expect(addInboxWord.mock.calls[0][2]).toBeUndefined();
+        // And the 403 that reaches this level is treated as what it is — a
+        // dead session. That is the same assertion as the REVOKED table above,
+        // and it is why the create-refusal must be resolved below this point:
+        // the two are indistinguishable here, by design.
+        expect(await getAuthState()).toBeNull();
+    });
+
+    it('a 403 that survives the retry still wipes the session', async () => {
+        // The opposite direction, and it must keep working: a genuine
+        // permission failure is not a seam, and swallowing it would leave a
+        // dead session failing silently forever.
+        await signedIn();
+        addInboxWord.mockRejectedValue(new Error('Firestore commit 403: denied'));
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        expect(await getAuthState()).toBeNull();
+        expect(badge()).toBe('!');
+    });
+});
+
+/**
+ * A refusal by the RULES is not a dead session.
+ *
+ * The two arrive as the same string. `isAuthFailure` matches
+ * `Firestore commit 403`, and the rules answer 403 when they refuse a write —
+ * for exceeding MIN_INTERVAL_MS, most often, which any two saves inside a
+ * second will do. Measured on the emulator by the backend side: both refusals
+ * carry `code: "permission-denied"`, and the only text that separates them is
+ * emulator diagnostics. Production Firestore does not report which rule line
+ * refused, so on production the two are byte-identical.
+ *
+ * That leaves nothing to classify at the message level, which is why the seam
+ * is drawn at the SOURCE instead: `addInboxWord` knows the token was accepted
+ * (a 401 would have refreshed it first) and marks the refusal as the rules',
+ * not the session's. This file pins the consequence — the learner keeps their
+ * session — because that is what the person experiences, and because a test
+ * asserting the marker's spelling would pass on a marker wired to nothing.
+ */
+describe('a refusal by the rules leaves the session alone', () => {
+    it('a rules 403 does not sign the learner out', async () => {
+        await signedIn();
+        addInboxWord.mockRejectedValue(new Error('Firestore rules 403: denied'));
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        // Still signed in, and the badge was never touched at all — `null`
+        // from this helper means setBadgeText was not called, which is a
+        // stronger statement than "it was set to empty": the handler did not
+        // reach the re-authorisation path even to clear it.
+        expect(await getAuthState()).not.toBeNull();
+        expect(badge()).toBeNull();
+    });
+
+    it('and a genuine permission failure still ends it', async () => {
+        // The other direction, and it must keep working: swallowing a real
+        // permission failure would leave a dead session failing silently.
+        await signedIn();
+        addInboxWord.mockRejectedValue(new Error('Firestore commit 403: denied'));
+
+        await handleAuthMessage({ action: 'ADD_WORD', term: 'w', context: '' }, CONFIG).catch(
+            () => {},
+        );
+
+        expect(await getAuthState()).toBeNull();
+        expect(badge()).toBe('!');
+    });
 });

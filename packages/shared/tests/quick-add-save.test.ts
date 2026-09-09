@@ -25,7 +25,7 @@
     i18n: { getMessage: jest.fn(() => '') }, // force the English fallbacks
 };
 
-import { saveTerm } from '../src/content/quick-add-overlay';
+import { removeTerm, saveTerm } from '../src/content/quick-add-overlay';
 
 const TOAST_ID = 'lingogram-quick-add-toast';
 const toast = () => document.getElementById(TOAST_ID);
@@ -123,5 +123,58 @@ describe('a failed save interrupts; a success waits its turn', () => {
         const failure = [toast()?.getAttribute('role'), toast()?.getAttribute('aria-live')];
 
         expect(failure).not.toEqual(success);
+    });
+});
+
+/**
+ * The same three cases, for the OTHER direction.
+ *
+ * `removeTerm` is the mirror image of `saveTerm` and had none of the mapping
+ * above: every failure reached one line, and that line said "Couldn't save".
+ * A learner pressing the filled heart to take a word OFF the list, on a
+ * failure, was told the save had failed — for a word that is still saved,
+ * because the rollback has just put it back. The message states the opposite
+ * of what happened, and the action it suggests is one the learner did not ask
+ * for.
+ */
+describe('a failed removal says removal, not saving', () => {
+    test('the last-resort wording is about removing', async () => {
+        workerReplies({ ok: false, error: 'network unreachable' });
+
+        const removed = await removeTerm('serendipity');
+
+        expect(removed).toBe(false);
+        expect(toast()?.textContent).toContain('network unreachable');
+        // The heart is filled again by the rollback, so the word IS still
+        // saved. Telling the learner it could not be saved is the one thing
+        // this message must not do.
+        expect(toast()?.textContent).not.toContain("Couldn't save");
+        expect(toast()?.textContent).toContain("Couldn't remove");
+    });
+
+    test('a signed-out removal says how to sign in, like a save does', async () => {
+        // The friendly branches were reachable from `saveTerm` only. A learner
+        // whose session expired between the save and the removal got the raw
+        // worker string with no route back.
+        workerReplies({ ok: false, error: 'Not signed in' });
+
+        await removeTerm('serendipity');
+
+        expect(toast()?.textContent).toBe(
+            'Sign in via the Lingogram row above the subtitle list to save words.',
+        );
+        expect(toast()?.textContent).not.toContain('Not signed in');
+    });
+
+    test('an orphaned content script keeps the worker’s own wording', async () => {
+        // The extension reloaded under the page. The worker's message is
+        // already written for a human and says what to do; wrapping it in
+        // "Couldn't remove: …" would bury the instruction.
+        workerReplies({ ok: false, error: 'Lingogram was reloaded — refresh the page to save words.' });
+
+        await removeTerm('serendipity');
+
+        expect(toast()?.textContent).toBe('Lingogram was reloaded — refresh the page to save words.');
+        expect(toast()?.textContent).not.toContain("Couldn't");
     });
 });

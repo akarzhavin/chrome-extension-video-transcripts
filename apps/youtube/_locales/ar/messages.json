@@ -423,6 +423,10 @@
     "message": "تعذّر الحفظ: {error}",
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
+  "ytQuickAddRemoveFailed": {
+    "message": "Couldn't remove: {error}",
+    "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
+  },
   "ytPopupLoading": {
     "message": "جارٍ التحميل…",
     "description": "Placeholder while the toolbar popup fetches the account status."

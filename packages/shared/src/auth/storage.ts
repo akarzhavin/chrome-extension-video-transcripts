@@ -27,6 +27,15 @@ const KEYS = {
     ratePromptShown: 'rate.promptShown',
 } as const;
 
+// The saved-word mirror. Read/written only by ../word-mirror.ts; declared here
+// so this file stays the single inventory the privacy policy's "Local Storage"
+// section documents. Unlike the notification and analytics keys below, this one
+// IS derived from the account: it holds the normalized terms this learner has
+// saved, so it is cleared with the credentials on sign-out — see clearAuthState.
+export const WORD_KEYS = {
+    mirror: 'words.v1',
+} as const;
+
 // Remote-notification storage keys. Read/written only by ../notifications.ts;
 // declared here so this file stays the single inventory the privacy policy's
 // "Local Storage" section documents. All four are extension-authored content
@@ -106,6 +115,12 @@ export async function clearAuthState(): Promise<void> {
         KEYS.expiresAt,
         KEYS.email,
         KEYS.uid,
+        // The saved-word mirror goes with the credentials: it names the words
+        // THIS account saved, and leaving it behind would show them to whoever
+        // signs in next on this profile. Note what still stays — the lifetime
+        // saved-word count and the rating flag two keys up are deliberately not
+        // in this list, because the person is the same person.
+        WORD_KEYS.mirror,
     ]);
 }
 
@@ -114,8 +129,15 @@ export async function getInboxCount(): Promise<number> {
     return v[KEYS.inboxCount] ?? 0;
 }
 
-export async function bumpInboxCount(): Promise<number> {
-    const next = (await getInboxCount()) + 1;
+/**
+ * Move the inbox tally. `by` is +1 on a save and -1 on a removal.
+ *
+ * Clamped at zero: a learner can remove a word this install never counted —
+ * saved on another device, or before this counter existed — and a negative
+ * badge would be a visible artefact of bookkeeping the person never saw.
+ */
+export async function bumpInboxCount(by = 1): Promise<number> {
+    const next = Math.max(0, (await getInboxCount()) + by);
     await chrome.storage.local.set({ [KEYS.inboxCount]: next });
     return next;
 }

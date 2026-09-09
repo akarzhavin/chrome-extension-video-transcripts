@@ -12,8 +12,10 @@
 // has no service worker to reach the dictionary through, so it constructs one
 // with no word screen and never loads this file.
 import { platformOf } from '../analytics';
+import { createSavedWords } from './saved-words';
+import { loadMirror, onMirrorChanged } from '../word-mirror';
 import { msg } from '../i18n';
-import { saveTerm, sendMessage } from '../content/quick-add-overlay';
+import { removeTerm, saveTerm, sendMessage } from '../content/quick-add-overlay';
 import { HEART_SVG, ICON_EXTERNAL, posLabel } from './icons';
 import { isContextual, hasLookupContent, oxfordLookupUrl, showsLemma } from './shape';
 import { LookupResult } from './types';
@@ -56,10 +58,39 @@ export interface WordScreenHost {
 }
 
 export class WordScreen {
-    constructor(private readonly host: WordScreenHost) {}
+    constructor(private readonly host: WordScreenHost) {
+        // Seed from the mirror and then track it. Both are fire-and-forget:
+        // the screen must be usable the instant it is constructed, and a word
+        // opened before the seed lands simply renders from what is known then —
+        // the subscription repaints nothing, but the next open reads the filled
+        // view. Failing to load leaves an empty view, which is the pre-mirror
+        // behaviour rather than a broken screen.
+        this.seeded = loadMirror().then((m) => {
+            this.savedWords.reset(m.words);
+        });
+        this.unsubscribeMirror = onMirrorChanged((m) => this.savedWords.reset(m.words));
+    }
+
+    /** Stops tracking the mirror. */
+    dispose(): void {
+        this.unsubscribeMirror?.();
+        this.unsubscribeMirror = undefined;
+    }
+
+    private unsubscribeMirror?: () => void;
+    // Resolves once the first mirror read has been applied. The article is
+    // awaited on it before painting: a screen opened in the moments after the
+    // content script installs would otherwise render an empty heart for a word
+    // the learner has saved — the very lie the mirror exists to end — and then
+    // never repaint, because nothing changed to repaint it. Waiting costs
+    // nothing: the lookup round trip it sits beside is far slower.
+    private seeded: Promise<void> = Promise.resolve();
 
     private seq = 0;
-    private savedTerms = new Set<string>();
+    // The same in-tab view the strip holds — see ./saved-words. One object,
+    // so the heart on the card and the controls on this screen cannot end up
+    // disagreeing about whether a word is saved.
+    private savedWords = createSavedWords();
     // Whether opening the word screen is what expanded the sidebar. The tab's
     // cross closes the word screen either way; this decides whether it also
     // collapses the panel — closing must put things back the way they were.
@@ -121,6 +152,7 @@ export class WordScreen {
 
     private async fetchArticle(term: string, context: string): Promise<void> {
         const seq = ++this.seq;
+        await this.seeded;
         const targetLang = this.host.langPrefs()?.native ?? '';
         if (!targetLang) {
             this.renderError();
@@ -189,14 +221,19 @@ export class WordScreen {
         // Heart at the word itself — the save action where the eye already
         // is. The labeled footer button stays; both run the same handler
         // (wired below, once both exist) so they can never disagree.
+        // Lowercased only because it is also what gets SENT to saveTerm /
+        // removeTerm below, keeping one string for both. The membership
+        // question itself no longer depends on this: createSavedWords
+        // normalizes on the way in and out, so `has` would answer the same
+        // for the raw term.
         const termKey = term.toLowerCase();
-        const alreadySaved = this.savedTerms.has(termKey);
+        const alreadySaved = this.savedWords.has(termKey);
         const headHeart = document.createElement('button');
         headHeart.type = 'button';
         headHeart.className = `vtt-lookup-head-heart${alreadySaved ? ' saved' : ''}`;
         headHeart.innerHTML = HEART_SVG;
         headHeart.setAttribute('aria-label',
-            alreadySaved ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save'));
+            alreadySaved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save'));
         head.appendChild(headHeart);
         if (r.source) {
             const badge = document.createElement('span');
@@ -304,21 +341,37 @@ export class WordScreen {
         save.type = 'button';
         save.className = `vtt-lookup-save${alreadySaved ? ' saved' : ''}`;
         save.innerHTML = `${HEART_SVG}<span>${
-            alreadySaved ? msg('ytLookupSaved', 'Saved') : msg('ytLookupSave', 'Save')}</span>`;
-        // One save, two faces. Saving again is not un-saving (removal lives in
-        // the site's word list), so a second tap on either control is a no-op.
+            alreadySaved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save')}</span>`;
+        // One word, two faces, and now a TOGGLE. The guard that used to sit
+        // here — "saving again is not un-saving" — was true while removal lived
+        // only in the site's word list. It is the behaviour US2 changes: a
+        // second press on a filled heart takes the word off the list.
+        const paint = (isSaved: boolean): void => {
+            const label = isSaved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save');
+            headHeart.classList.toggle('saved', isSaved);
+            headHeart.setAttribute('aria-label', label);
+            save.classList.toggle('saved', isSaved);
+            const span = save.querySelector('span');
+            // The footer button says what pressing it DOES, so a saved word
+            // offers "Remove" rather than stating "Saved" — US2 scenario 1.
+            if (span) span.textContent = label;
+        };
+
         const doSave = async (pressed: HTMLButtonElement): Promise<void> => {
-            if (this.savedTerms.has(termKey)) return;
+            // Dispatch on the word's current state, not on whether it has ever
+            // been saved: a word the mirror calls `removed` is saved again as
+            // an ordinary save, and costs a unit of the daily cap like any
+            // other (US2 scenario 4).
+            const wasSaved = this.savedWords.has(termKey);
             pressed.disabled = true;
-            const ok = await saveTerm(termKey, context, []);
+            const ok = wasSaved
+                ? await removeTerm(termKey, [])
+                : await saveTerm(termKey, context, []);
             pressed.disabled = false;
             if (!ok) return;
-            this.savedTerms.add(termKey);
-            headHeart.classList.add('saved');
-            headHeart.setAttribute('aria-label', msg('ytLookupSaved', 'Saved'));
-            save.classList.add('saved');
-            const label = save.querySelector('span');
-            if (label) label.textContent = msg('ytLookupSaved', 'Saved');
+            if (wasSaved) this.savedWords.delete(termKey);
+            else this.savedWords.add(termKey);
+            paint(!wasSaved);
         };
         headHeart.addEventListener('click', () => void doSave(headHeart));
         save.addEventListener('click', () => void doSave(save));

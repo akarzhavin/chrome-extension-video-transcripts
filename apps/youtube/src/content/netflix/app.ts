@@ -1,4 +1,4 @@
-import { labelForLanguage, parseVTT, TrackRole } from '@video-transcripts/shared';
+import { labelForLanguage, parseVTT, requestWordSync, TrackRole } from '@video-transcripts/shared';
 import { BaseVttApp, SIDEBAR_CHROME_CSS } from '../app-base';
 import { classifyStatus } from '../timedtext-fetch';
 import {
@@ -118,6 +118,11 @@ class NetflixVttApp extends BaseVttApp {
                 this.resetForNewVideo();
                 this.updateSidebarVisibility();
                 this.queryManifest();
+                // (b) Video page open, Netflix's half. It has no navigation
+                // event at all, so this URL poll IS the hook — which is exactly
+                // why it gets forgotten when the manual check is run on YouTube
+                // only, and why the task asks for three boxes rather than one.
+                requestWordSync('page');
             }
         }, 1000);
 

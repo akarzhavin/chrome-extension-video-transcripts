@@ -57,6 +57,9 @@ import {
     validatePendingAuthNonce,
     clearPendingAuthNonce,
 } from '@video-transcripts/shared';
+// Not from the package index: word-key is deliberately not exported there —
+// it is an internal of the write path, not part of the shared surface.
+import { wordKey } from '../../../packages/shared/src/word-key';
 
 function mockJsonResponse(body: unknown, status = 200): any {
     return {
@@ -239,7 +242,12 @@ describe('addInboxWord', () => {
             .mockResolvedValueOnce(mockCommitOk());        // POST :commit
 
         const r = await addInboxWord(config, { term: 'ephemeral' });
-        expect(r.wordId).toMatch(/^[A-Za-z0-9]{20}$/);
+        // Was a 20-character random id. Cycle D makes the id the wordKey, so
+        // one word is one document and a save can be recognised on a later
+        // page — the change this whole feature rests on. Pinned to the
+        // function, not to a shape: "64 lowercase hex" would pass a completely
+        // different key and let it drift silently.
+        expect(r.wordId).toBe(wordKey('ephemeral'));
         expect(r.documentPath).toContain(`/documents/inbox/uid-X/words/${r.wordId}`);
 
         const [getUrl, getInit] = ((global as any).fetch as jest.Mock).mock.calls[0];
@@ -260,12 +268,22 @@ describe('addInboxWord', () => {
         expect(wordWrite.update.fields.term.stringValue).toBe('ephemeral');
         expect(wordWrite.update.fields.source.stringValue).toBe('rezka-extension');
         expect(wordWrite.update.fields.sourceUrl).toBeUndefined();
-        expect(wordWrite.update.fields.processed.booleanValue).toBe(false);
+        // `processed` is GONE from the durable shape, and its absence is the
+        // assertion: it belonged to the legacy import-and-delete flow, and the
+        // durable rule's allowlist does not name it — a body carrying it is
+        // refused outright, so every save would have failed with
+        // PERMISSION_DENIED. Measured on the emulator by the backend side:
+        // the same body with and without this field, refused and accepted.
+        expect(wordWrite.update.fields.processed).toBeUndefined();
         // addedAt comes from a server transform — Firestore rule pins it to
         // request.time, which a client-supplied timestamp can't match.
         expect(wordWrite.update.fields.addedAt).toBeUndefined();
+        // Two stamps since cycle D: a create sets addedAt and updatedAt
+        // together, so a document's first version is not left with an
+        // updatedAt that a later re-activation would compare against nothing.
         expect(wordWrite.updateTransforms).toEqual([
             { fieldPath: 'addedAt', setToServerValue: 'REQUEST_TIME' },
+            { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
         ]);
 
         const sentinelWrite = body.writes[1];

@@ -5,6 +5,8 @@ import {
     LanguageUtils,
     AppInterface,
     installAuthStatusBadge,
+    installFocusSync,
+    requestWordSync,
     installQuickAddOverlay,
     initTheme,
     loadLanguagePrefs,
@@ -1054,6 +1056,12 @@ function bootstrap(): void {
     void initTheme();
     const app = new VttApp();
     installQuickAddOverlay();
+    // (b) Page open. HDrezka is not a SPA for this purpose — one page is one
+    // title — so the load itself is the event, and no navigation hook exists to
+    // hang this on.
+    requestWordSync('page');
+    // (c) Tab focus, on all three sites.
+    installFocusSync();
     // Hover strip: point at a word, see its translations; "More" opens the
     // sidebar's word screen. Selection saving above stays — it is still the
     // only way to grab a multi-word phrase.

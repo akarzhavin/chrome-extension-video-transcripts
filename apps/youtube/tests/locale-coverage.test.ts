@@ -32,6 +32,7 @@ const WORD_CARD_KEYS = [
     'ytLookupLoading',
     'ytLookupMore',
     'ytLookupNone',
+    'ytLookupRemove',
     'ytLookupSave',
     'ytLookupSaved',
     'ytLookupSrcAi',

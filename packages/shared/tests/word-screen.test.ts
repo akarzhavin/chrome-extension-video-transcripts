@@ -273,11 +273,19 @@ describe('an answer that arrives too late', () => {
 // first press looks like it did nothing. Every extra press is a duplicate row
 // in someone's dictionary.
 describe('pressing save more than once', () => {
-    const addWordCalls = () =>
+    const callsOf = (action: string) =>
         (chrome.runtime.sendMessage as jest.Mock).mock.calls
-            .filter(([m]) => m?.action === 'ADD_WORD');
+            .filter(([m]) => m?.action === action);
+    const addWordCalls = () => callsOf('ADD_WORD');
+    const removeWordCalls = () => callsOf('REMOVE_WORD');
 
-    it('a second press on the same control sends nothing', async () => {
+    it('a second press on the same control removes the word', async () => {
+        // REWRITTEN for US2. This used to assert the second press sent
+        // NOTHING, which stayed green after the toggle landed while describing
+        // behaviour that no longer exists: the second press sends REMOVE_WORD,
+        // and a filter watching only ADD_WORD cannot see it. Counting both
+        // actions separately is what makes the toggle observable — a combined
+        // count of "two messages" would be satisfied by two saves.
         const h = harness();
         h.screen.open('going', 'we are going home');
         await flush();
@@ -286,13 +294,18 @@ describe('pressing save more than once', () => {
         heart.click();
         await flush();
         expect(addWordCalls()).toHaveLength(1);
+        expect(removeWordCalls()).toHaveLength(0);
 
         heart.click();
         await flush();
         expect(addWordCalls()).toHaveLength(1);
+        expect(removeWordCalls()).toHaveLength(1);
     });
 
-    it('the other control does not get a second go at it either', async () => {
+    it('the other control removes it too — one word, two faces', async () => {
+        // REWRITTEN for US2, same reason. Pressing the footer button after the
+        // heart is not "a second save that was blocked"; it is the removal, and
+        // it must reach the worker.
         const h = harness();
         h.screen.open('going', 'we are going home');
         await flush();
@@ -303,9 +316,14 @@ describe('pressing save more than once', () => {
         await flush();
 
         expect(addWordCalls()).toHaveLength(1);
+        expect(removeWordCalls()).toHaveLength(1);
     });
 
-    it('reopening the same word does not let it be saved again', async () => {
+    it('reopening the same word offers removal, not a second save', async () => {
+        // REWRITTEN for US2. The old assertion — "no second ADD_WORD" — is
+        // still literally true, and that is exactly why it had to change: it
+        // would have stayed green whether the second press removed the word or
+        // did nothing at all.
         const h = harness();
         h.screen.open('going', 'we are going home');
         await flush();
@@ -319,6 +337,7 @@ describe('pressing save more than once', () => {
         await flush();
 
         expect(addWordCalls()).toHaveLength(1);
+        expect(removeWordCalls()).toHaveLength(1);
     });
 
     // The guard is deliberately not "one press per card": a save that FAILED
@@ -531,34 +550,73 @@ describe('the lemma is shown only when it differs from the word', () => {
  * when it is not, and the control refuses a second save on the strength of it.
  */
 describe('the saved marker is not restored from storage', () => {
-    it('a fresh screen holds no saved terms', () => {
-        const h = harness();
-        expect((h.screen as any).savedTerms.size).toBe(0);
-    });
-
-    it('a fresh screen reads nothing from storage while opening a word', () => {
-        (chrome.storage.local.get as jest.Mock).mockClear();
+    it('a fresh screen holds no saved terms', async () => {
         const h = harness();
         h.screen.open('main', 'the main sail');
-        expect(chrome.storage.local.get).not.toHaveBeenCalled();
+        await flush();
+        // Asserted through the control the reader actually sees, not through
+        // the private field that happens to back it today: T008 replaces that
+        // field with a read of the shared in-tab object, and a test reaching
+        // into internals would have to be rewritten for a refactor that
+        // changes no behaviour — which is precisely the evidence T008 needs.
+        expect(h.panel.querySelector('.vtt-lookup-head-heart')!.classList.contains('saved')).toBe(false);
+    });
+
+    it('a fresh screen issues no network request while opening a word', async () => {
+        // This used to assert that storage was not read, which stopped being
+        // true the moment the screen started seeding itself from the mirror —
+        // and reading local storage was never the thing worth forbidding. What
+        // the project actually promises (FR-008) is that deciding whether a
+        // word is saved costs no round trip: a hover that reaches the network
+        // makes the heart lie again whenever the connection is poor, which is
+        // the defect the mirror exists to remove.
+        const h = harness();
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        h.screen.open('main', 'the main sail');
+        await flush();
+        const saveRelated = (chrome.runtime.sendMessage as jest.Mock).mock.calls
+            .filter(([m]) => m?.action === 'ADD_WORD' || m?.action === 'SYNC_WORDS');
+        expect(saveRelated).toHaveLength(0);
     });
 
     // The other side, and the reason the set exists at all: within one session
     // a save IS remembered, so a second tap on the same word is a no-op rather
     // than a duplicate write.
-    it('a term saved in this session is remembered', () => {
+    it('a term saved in this session is remembered', async () => {
         const h = harness();
-        (h.screen as any).savedTerms.add('main');
-        expect((h.screen as any).savedTerms.has('main')).toBe(true);
+        h.screen.open('main', 'the main sail');
+        await flush();
+        h.panel.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!.click();
+        await flush();
+        // Saved by pressing the control rather than by seeding the private
+        // set, so what is asserted is the promise ("a save is remembered")
+        // instead of the mechanism that currently keeps it.
+        expect(h.panel.querySelector('.vtt-lookup-head-heart')!.classList.contains('saved')).toBe(true);
     });
 
-    // And a second screen does not inherit the first one's set: the marker is
-    // per-instance, which is what makes it per-session.
-    it('a second screen starts empty even after the first saved something', () => {
+    // INVERTED at T009, and named here because Constitution I requires the
+    // change to be stated where it happened. The marker used to be
+    // per-instance, so a second screen deliberately started empty. That was the
+    // defect: reload the page and a saved word read as unsaved. Both screens
+    // now read one mirror, so the second inherits what the first saved — US1
+    // scenario 2.
+    //
+    // The assertion below still reads `false`, and that is not a leftover: this
+    // file's `chrome.storage.local` stub returns nothing and stores nothing, so
+    // no mirror can exist here to inherit. What it now pins is the *fallback* —
+    // with no mirror to read, a fresh surface starts empty rather than
+    // inventing a marker. The inherited-marker claim is asserted where a real
+    // mirror exists, in word-screen-mirror.test.ts.
+    it('a second screen starts empty when there is no mirror to inherit', async () => {
         const first = harness();
-        (first.screen as any).savedTerms.add('main');
+        first.screen.open('main', 'the main sail');
+        await flush();
+        first.panel.querySelector<HTMLButtonElement>('.vtt-lookup-head-heart')!.click();
+        await flush();
 
         const second = harness();
-        expect((second.screen as any).savedTerms.size).toBe(0);
+        second.screen.open('main', 'the main sail');
+        await flush();
+        expect(second.panel.querySelector('.vtt-lookup-head-heart')!.classList.contains('saved')).toBe(false);
     });
 });

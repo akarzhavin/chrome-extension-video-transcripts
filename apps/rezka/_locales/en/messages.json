@@ -355,6 +355,10 @@
     "message": "Couldn't save: {error}",
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
+  "ytQuickAddRemoveFailed": {
+    "message": "Couldn't remove: {error}",
+    "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
+  },
   "ytPopupLoading": {
     "message": "Loading…",
     "description": "Placeholder while the toolbar popup fetches the account status."
@@ -486,6 +490,10 @@
   "ytLookupSaved": {
     "message": "Saved",
     "description": "Heart button label after a successful save."
+  },
+  "ytLookupRemove": {
+    "message": "Remove",
+    "description": "Label on a saved word’s heart: pressing it takes the word off the list."
   },
   "ytLookupMore": {
     "message": "Details",
