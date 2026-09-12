@@ -353,11 +353,35 @@ own — not a gap in the recording.
 
 ### Why it cannot reach the store
 
-`assert-shippable.mjs` refuses any build containing `LG_TRACE_HELLO` (the
-cross-world handshake, present in both bundles) or `debug.trace.v1` (the storage
-key, isolated world only). Two markers rather than one because a **partial**
-fold is a real outcome: during development the content bundle folded correctly
-while the page-script still carried 1.6KB of the recorder.
+Three checks, at three different moments, each catching what the others cannot.
+
+**Before the build — `assert-foldable.mjs`** (run first by
+`build-with-analytics.sh`, for dev and prod alike). Reads the SOURCE and asks
+whether the recorder is still written in a shape that folds: the module-level
+`DEBUG_BUILD` constant, a `DEBUG_BUILD &&` prefix on every trace call site, the
+`import type` discipline in `timedtext-fetch.ts`, and the guard as the first
+statement of `installDebugMode`. It also compares the names the recorder
+actually uses against `DEBUG_TRACE_MARKERS` **in both directions** — a new name
+missing from the list, or a listed name the source no longer uses. That second
+direction is the point: a rule matching a string that can never appear again
+looks exactly like coverage.
+
+**Between the build and the zip — `assert-shippable.mjs`.** Refuses any build
+containing any of the six markers: the three wire messages (`LG_TRACE_HELLO`,
+`LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key (`debug.trace.v1`), and
+both DOM ids (`vtt-debug-panel`, `vtt-debug-toggle`).
+
+The list is exhaustive because a shorter one was measured and found wanting:
+the first version matched two markers, and four of the six passed it. A build
+carrying the whole settings toggle and the download panel — folded just enough
+to drop the handshake — was shippable by that gate's own verdict.
+
+**After the zip — `verify-zip.mjs`**, now run automatically by `zip-build.mjs`
+rather than only on request. It re-runs every rule against the unpacked
+ARCHIVE. The middle gate inspects `build/`, a directory the next build
+overwrites, so its verdict is about whatever was there a moment ago rather than
+about the bytes in the file: `youtube-v1.0.15.zip` was written by a dev run
+while a prod build had passed the gate earlier the same day.
 
 That leak is also why the MAIN-world guard is a module-level
 `const DEBUG_BUILD = __EXT_ENV__ === 'dev'` with every call site written

@@ -22,13 +22,25 @@
  * Usage: node assert-shippable.mjs <build-dir> [--label youtube]
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, extname, relative } from 'node:path';
+import { join, extname, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+let files = [];
 const buildDir = process.argv[2];
 const labelArg = process.argv.indexOf('--label');
 const label = labelArg > -1 ? process.argv[labelArg + 1] : 'extension';
 
-if (!buildDir) {
+/**
+ * Whether this file was RUN or merely imported.
+ *
+ * assert-foldable.mjs imports it for DEBUG_TRACE_MARKERS — one list serving
+ * both gates, so a marker added in one place cannot go missing from the other.
+ * Without this, that import would execute the whole CLI and exit(2) on the
+ * missing argument, taking its caller down with it.
+ */
+const invokedDirectly = !!process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (invokedDirectly && !buildDir) {
     console.error('assert-shippable: missing build directory argument');
     process.exit(2);
 }
@@ -43,6 +55,29 @@ function collect(dir) {
     }
     return out;
 }
+
+/**
+ * Every string that betrays the subtitle diagnostics recorder in a bundle.
+ *
+ * Exported so one list serves the gate, the source-side fold test, and anyone
+ * grepping a downloaded archive by hand. Kept in sync by
+ * apps/youtube/tests/debug-fold.test.ts, which reads the recorder's own source
+ * and fails when it introduces a marker absent from here.
+ *
+ * Two classes, both needed:
+ *   - the wire protocol (LG_TRACE_*), present in BOTH the page-script and the
+ *     content bundle, so a partial fold is caught;
+ *   - the DOM ids (vtt-debug-*), which live only in the content bundle and are
+ *     what a leaked UI would show a user.
+ */
+export const DEBUG_TRACE_MARKERS = [
+    'LG_TRACE_HELLO',
+    'LG_TRACE_BATCH',
+    'LG_TRACE_STATE',
+    'debug.trace.v1',
+    'vtt-debug-panel',
+    'vtt-debug-toggle',
+];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the
 // failure message names the actual problem instead of "something looks off".
@@ -63,12 +98,20 @@ const RULES = [
         // That is acceptable in a dev build and nowhere else, so its presence
         // in the output is a hard stop rather than a warning.
         //
-        // Two markers, one per world: LG_TRACE_HELLO is the handshake and
-        // appears in both bundles, debug.trace.v1 is the storage key and only
-        // in the content script. A partial fold — the content bundle folding
-        // while the page-script does not, which is exactly what happened once
-        // during development — is then still caught.
-        test: (s) => s.includes('LG_TRACE_HELLO') || s.includes('debug.trace.v1'),
+        // EVERY name the feature can leave behind, not a representative two.
+        //
+        // The first version of this rule matched the handshake and the storage
+        // key. Measured against synthetic builds, four of the feature's six
+        // identifying strings passed it: the other two wire messages and both
+        // DOM ids. A build carrying the whole settings toggle and the download
+        // panel — but folded just enough to drop the handshake — was shippable
+        // by this gate's own verdict.
+        //
+        // So the list is exhaustive and the source-side test
+        // (apps/youtube/tests/debug-fold.test.ts) fails when the code grows a
+        // marker this list does not know about. A gate matching a sample of a
+        // feature is a gate that reports on the sample.
+        test: (s) => DEBUG_TRACE_MARKERS.some((marker) => s.includes(marker)),
         why: 'the subtitle diagnostics recorder is compiled in (built with EXT_ENV=dev) — it captures signed caption URLs and posts them to the page',
     },
     {
@@ -304,19 +347,39 @@ function manifestProblems(dir) {
     return problems;
 }
 
-const files = collect(buildDir);
-const findings = [];
+/**
+ * The gate proper.
+ *
+ * A FUNCTION, not top-level statements, so importing this module for
+ * DEBUG_TRACE_MARKERS runs none of it. An early `process.exit(0)` guard was the
+ * obvious alternative and is a trap: process.exit() in an imported module
+ * terminates the IMPORTER, so assert-foldable.mjs exited 0 having executed not
+ * one of its own checks — a green gate that checked nothing.
+ */
+function runGate() {
+    files = collect(buildDir);
+    const findings = [];
 
-for (const rule of RULES) {
-    const scope = rule.files ? files.filter(rule.files) : files;
-    const hits = scope.filter((f) => rule.test(readFileSync(f, 'utf8')));
-    if (hits.length) {
-        findings.push(`${rule.why}\n      ${hits.map((h) => h.replace(buildDir + '/', '')).join('\n      ')}`);
+    for (const rule of RULES) {
+        const scope = rule.files ? files.filter(rule.files) : files;
+        const hits = scope.filter((f) => rule.test(readFileSync(f, 'utf8')));
+        if (hits.length) {
+            findings.push(`${rule.why}\n      ${hits.map((h) => h.replace(buildDir + '/', '')).join('\n      ')}`);
+        }
     }
+    findings.push(...backendProblems());
+    findings.push(...analyticsProblems());
+    findings.push(...manifestProblems(buildDir));
+    return findings;
 }
-findings.push(...backendProblems());
-findings.push(...analyticsProblems());
-findings.push(...manifestProblems(buildDir));
+
+if (!invokedDirectly) {
+    // Imported for the constants. Nothing below runs.
+} else {
+    reportAndExit(runGate());
+}
+
+function reportAndExit(findings) {
 
 if (!findings.length) process.exit(0);
 
@@ -343,3 +406,4 @@ console.error('  To package such a build anyway: WRITE_UNSHIPPABLE_ZIP=1 npm run
 console.error('  (it will be written as <app>-v<version>-UNSHIPPABLE.zip)');
 console.error('');
 process.exit(1);
+}
