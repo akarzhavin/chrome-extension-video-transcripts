@@ -76,13 +76,23 @@ describe('in a dev build', () => {
         expect(last.contains(toggle!)).toBe(true);
     });
 
-    test('it starts off and reflects the stored preference', async () => {
+    test('it paints the default immediately, then corrects from storage', async () => {
+        // Seeded rather than hardcoded off: on a dev build the default is ON,
+        // and a switch that renders off for a frame reads as "the recorder is
+        // not running" at exactly the moment someone is checking whether it is.
+        prefsStore['prefs.v1'] = { debugMode: false };
+
+        const { toggle } = buildSidebar();
+        expect(toggle!.checked).toBe(true); // the dev default, before storage answers
+        await flush();
+
+        expect(toggle!.checked).toBe(false); // the stored opt-out wins
+    });
+
+    test('a stored opt-in is reflected too', async () => {
         prefsStore['prefs.v1'] = { debugMode: true };
 
         const { toggle } = buildSidebar();
-        // Optimistically off until storage answers — recording is never the
-        // assumed state.
-        expect(toggle!.checked).toBe(false);
         await flush();
 
         expect(toggle!.checked).toBe(true);

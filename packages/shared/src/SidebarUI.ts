@@ -3,6 +3,7 @@ import { AppState } from './AppState';
 // safe in a bundle the page can read. analytics-bg must never be imported here.
 import { trackVia, platformOf } from './analytics';
 import {
+    DEFAULT_DEBUG_MODE,
     loadPrefs,
     onPrefsChanged,
     savePrefs,
@@ -800,7 +801,12 @@ export class SidebarUI {
         box.type = 'checkbox';
         box.id = 'vtt-debug-toggle';
         box.className = 'vtt-switch-input';
-        box.checked = false;
+        // Seeded from the default and corrected below once storage resolves —
+        // the same shape as the analytics row. Hardcoding `false` here would
+        // paint the switch off for a frame on a dev build, where the default
+        // is on, and read as "the recorder is not running" at exactly the
+        // moment someone is checking whether it is.
+        box.checked = DEFAULT_DEBUG_MODE;
 
         const track = document.createElement('span');
         track.className = 'vtt-switch';

@@ -25,7 +25,24 @@ import vm from 'node:vm';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BUNDLE = join(REPO, 'apps/youtube/build/src/content/page-script.js');
+const CONTENT = join(REPO, 'apps/youtube/build/src/content/index.js');
 const expectProd = process.argv.includes('--expect-prod');
+
+/**
+ * What a fresh install defaults to, read out of the built bundle.
+ *
+ * `DEFAULT_DEBUG_MODE` is `__EXT_ENV__ === 'dev'`, which the bundler folds to a
+ * literal — so this is the one place the fold is observable as a VALUE rather
+ * than as the presence or absence of code. A dev build that shipped `false`
+ * here would come up silent, and the only symptom would be an empty buffer at
+ * the moment someone went looking.
+ */
+function bakedDefault() {
+    if (!existsSync(CONTENT)) return null;
+    const m = readFileSync(CONTENT, 'utf8').match(/debugMode:(!0|!1)/);
+    if (!m) return null;
+    return m[1] === '!0';
+}
 
 if (!existsSync(BUNDLE)) {
     console.error(`No bundle at ${BUNDLE}`);
@@ -134,7 +151,13 @@ async function main() {
             console.error('FAIL  a production bundle announced the recorder:', leaked.map((m) => m.type));
             process.exit(1);
         }
+        const def = bakedDefault();
+        if (def === true) {
+            console.error('FAIL  a production bundle defaults debugMode to ON');
+            process.exit(1);
+        }
         console.log('PASS  the production bundle carries no recorder (nothing announced)');
+        if (def === false) console.log('PASS  and its baked default is off');
         return;
     }
 
@@ -143,6 +166,13 @@ async function main() {
         process.exit(1);
     }
     console.log('PASS  the dev bundle announces itself on load');
+
+    const def = bakedDefault();
+    if (def === false) {
+        console.error('FAIL  the dev bundle bakes debugMode OFF — a fresh profile would record nothing');
+        process.exit(1);
+    }
+    if (def === true) console.log('PASS  a fresh profile comes up recording (baked default is on)');
 
     // Answer the handshake the way the isolated world does, then drive a
     // navigation so the recorder has something real to capture.

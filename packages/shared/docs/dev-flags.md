@@ -294,12 +294,18 @@ delete it.
 
 ### Using it
 
+**On by default in a dev build** — `DEFAULT_DEBUG_MODE` in `prefs.ts` is
+`__EXT_ENV__ === 'dev'`, so it folds to `false` in a shipped bundle and there is
+nothing to arm. That default is the point: the failure is noticed *after* it
+happens, and a recorder you have to switch on in advance gets switched on for
+the session after the one you wanted.
+
 1. Build dev: `./scripts/build-with-analytics.sh dev`, load unpacked.
    **Disable the store copy first** — two copies share `#vtt-*` ids and graft
    into each other's sidebar.
-2. Turn the toggle on. A small panel appears bottom-left, above the
-   `#vtt-export` button: **⬇ Trace (n)** / **⧉** copy / **✕** clear. The count
-   is how many videos are in the buffer, and the only sign the recorder is live.
+2. A small panel is already there, bottom-left, above the `#vtt-export` button:
+   **⬇ Trace (n)** / **⧉** copy / **✕** clear. The count is how many videos are
+   in the buffer, and the sign the recorder is live.
 3. Reproduce, then click ⬇. The file is
    `lingogram-trace-<videoId>-<timestamp>.json`.
 
@@ -307,6 +313,9 @@ The buffer survives a page reload (it is in `chrome.storage.local` under
 `debug.trace.v1`) — which matters, because reloading is the first instinct when
 subtitles do not appear, and an in-memory buffer would be empty by the time you
 went looking. Turning the toggle **off does not discard it**; only ✕ does.
+
+To switch it off, use the Settings row — a stored `false` beats the default and
+sticks across reloads.
 
 ### Forcing failures without provoking YouTube
 

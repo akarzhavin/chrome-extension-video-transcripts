@@ -352,6 +352,15 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     return resolved;
 }
 
+/**
+ * Whether a fresh install records subtitle diagnostics.
+ *
+ * Exported so a test can assert the fold: `__EXT_ENV__` is a build-time
+ * literal, and whether this is `false` in a shipped bundle is not observable
+ * from a single jest run, where the literal is fixed for the whole process.
+ */
+export const DEFAULT_DEBUG_MODE: boolean = __EXT_ENV__ === 'dev';
+
 const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
     overlayEnabled: true,
@@ -378,9 +387,19 @@ const DEFAULT_PREFS: Prefs = {
     // defaults first, so a stored blob written before this field existed
     // resolves to true with no migration.
     analyticsEnabled: true,
-    // OFF for everyone, including a dev build: recording is something you turn
-    // on when you are about to go looking, not a standing cost.
-    debugMode: false,
+    // ON by default in a dev build, off everywhere else.
+    //
+    // The failure this records is noticed AFTER it happens, so a recorder that
+    // has to be armed in advance is armed on the wrong session — you turn it on
+    // and then cannot reproduce the thing you turned it on for. Defaulting to
+    // on means the last few videos are always already recorded.
+    //
+    // `__EXT_ENV__` is a build-time literal, so this folds to `false` in a
+    // production build — where nothing reads the field anyway, the recorder
+    // itself being compiled out. Written this way rather than a plain `true`
+    // so that a shipped extension does not carry an enabled-by-default flag
+    // for a feature it does not have.
+    debugMode: DEFAULT_DEBUG_MODE,
 };
 
 function isPrefs(value: unknown): value is Partial<StoredPrefs> {
