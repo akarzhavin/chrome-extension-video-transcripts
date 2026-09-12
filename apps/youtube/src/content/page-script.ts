@@ -77,7 +77,7 @@ function installYouTubeHook() {
     // `#lingogram_http=429:5@2` → status 429, Retry-After 5s, for the first 2
     // requests. Real throttling can't be summoned on demand, and this is the
     // only way to exercise the 429/403/404 paths by hand. Stripped from prod by
-    // the minifier via the __EXT_ENV__ guard (see docs/dev-flags.md).
+    // the minifier via the __EXT_ENV__ guard (see packages/shared/docs/dev-flags.md).
     function makeForcedFetch(): typeof originalFetch | null {
         if (__EXT_ENV__ !== 'dev') return null;
         const m = /[?#&]lingogram_http=(\d{3})(?::(\d+))?(?:@(\d+))?/.exec(location.href);
