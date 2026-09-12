@@ -43,9 +43,11 @@ done < .env
 if [[ "$ENV_NAME" == "prod" ]]; then
     MEASUREMENT_ID="${ENVFILE_EXT_GA4_MEASUREMENT_ID_PROD:-}"
     API_SECRET="${ENVFILE_EXT_GA4_API_SECRET_PROD:-}"
+    API_BASE_URL="${ENVFILE_EXT_API_BASE_URL_PROD:-}"
 else
     MEASUREMENT_ID="${ENVFILE_EXT_GA4_MEASUREMENT_ID:-}"
     API_SECRET="${ENVFILE_EXT_GA4_API_SECRET:-}"
+    API_BASE_URL="${ENVFILE_EXT_API_BASE_URL:-}"
 fi
 
 # A placeholder is worse than an empty value: the empty case is a documented
@@ -61,10 +63,38 @@ if [[ -z "$API_SECRET" ]]; then
     exit 1
 fi
 
+# The dictionary address, refused when empty rather than defaulted.
+#
+# vite.config.ts reads EXT_API_BASE_URL and falls back to '' — which builds
+# CLEANLY and ships an extension with the lookup switched off: background.ts
+# answers every LOOKUP_WORD with ok:false, "lookup not configured", before it
+# ever fetches. The user hovers a word and gets "Couldn't load"; the build that
+# produced it said nothing, because an empty value is a legitimate state and
+# config.ts documents it as one.
+#
+# That is the point. A feature that disappears quietly is the same failure this
+# script already exists to prevent for the GA4 pair — a green build, a shipped
+# extension, and no signal anywhere until someone notices the gap in production.
+# A release build is refused here on the same terms instead of inheriting the
+# off-by-default that the library layer is right to keep.
+if [[ -z "$API_BASE_URL" ]]; then
+    if [[ "$ENV_NAME" == "prod" ]]; then
+        echo "error: no EXT_API_BASE_URL_PROD in .env." >&2
+    else
+        echo "error: no EXT_API_BASE_URL in .env." >&2
+    fi
+    echo "       This is the dictionary gateway. Without it the build is" >&2
+    echo "       silently lookup-less: see .env.example for the values, which" >&2
+    echo "       mirror english/frontend/.env.lingogram-prod (VITE_API_URL)." >&2
+    exit 1
+fi
+
 export EXT_GA4_MEASUREMENT_ID="$MEASUREMENT_ID"
 export EXT_GA4_API_SECRET="$API_SECRET"
+export EXT_API_BASE_URL="$API_BASE_URL"
 
 echo "Building all three extensions against the $ENV_NAME property ($MEASUREMENT_ID)."
+echo "Dictionary gateway: $API_BASE_URL"
 if [[ "$ENV_NAME" == "dev" ]]; then
     export EXT_ENV=dev
     echo "EXT_ENV=dev -> hits go to /debug/mp/collect, which reports payload"
