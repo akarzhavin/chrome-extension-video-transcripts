@@ -6,7 +6,7 @@ import {
     RateLimitBreaker,
     type FetchDeps,
 } from '../src/content/timedtext-fetch';
-import { BODY_HEAD_BYTES, type FetchTraceEvent } from '../src/content/debug-trace';
+import { BODY_HEAD_BYTES, clipBody, pickHeaders, type FetchTraceEvent } from '../src/content/debug-trace';
 
 /**
  * What the retry loop reports about itself.
@@ -52,6 +52,10 @@ function makeDeps(
         rand: () => 0.5,
         traceKey: 'Russian',
         onEvent: (e: FetchTraceEvent) => events.push(e),
+        // The formatters travel WITH the sink (see FetchDeps.readHeaders):
+        // importing them into the fetcher would ship them to production.
+        readHeaders: pickHeaders,
+        clipText: (t: string) => clipBody(t),
         events,
         ...overrides,
     } as FetchDeps & { fetchImpl: jest.Mock; sleep: Sleep; events: FetchTraceEvent[] };

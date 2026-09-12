@@ -11,12 +11,16 @@
 // and the most common non-error case (YouTube offers no translation for the
 // requested language) burned all four attempts before failing silently.
 
-// The EVENT TYPE is imported as a type only: it vanishes at compile time, so a
-// production bundle carries no trace of it. The two formatting helpers are real
-// values and do come along — they are a dozen lines of string/loop code with no
-// constants worth hiding, and the alternative (duplicating them here) is how the
-// header allow-list ends up differing between the two copies.
-import { clipBody, pickHeaders, type FetchTraceEvent } from './debug-trace';
+// `import type`, and nothing else, from debug-trace.
+//
+// A VALUE import would be carried into production by this module's own
+// consumers: page-script.ts constructs fetchTimedText and RateLimitBreaker
+// directly, so anything imported here reaches the MAIN-world bundle whether a
+// sink is ever attached or not. Measured: importing the two formatting helpers
+// put 367 bytes of unreachable header-allow-list and body-clipping code into
+// the shipped page-script. So the raw material is reported and the SINK does
+// the formatting — the sink only exists in a dev build.
+import type { FetchTraceEvent } from './debug-trace';
 
 /** Why a timedtext request did not produce usable subtitles. */
 export type VttFailure =
@@ -268,6 +272,13 @@ export interface FetchDeps {
     onEvent?: (e: FetchTraceEvent) => void;
     /** Correlates this call's events with the track it belongs to. Diagnostics only. */
     traceKey?: string;
+    /**
+     * How to render a response's headers and body for the trace. Injected with
+     * the sink rather than imported, for the reason given at the import above:
+     * a value imported here ships to production whether it is reachable or not.
+     */
+    readHeaders?: (h: { get(name: string): string | null } | undefined) => Record<string, string>;
+    clipText?: (text: string) => string;
 }
 
 const isAbortError = (e: unknown): boolean =>
@@ -293,6 +304,8 @@ export async function fetchTimedText(
         refreshUrl,
         onEvent,
         traceKey = '',
+        readHeaders,
+        clipText,
         rand = Math.random,
         now = Date.now,
     } = deps;
@@ -342,8 +355,8 @@ export async function fetchTimedText(
                     attempt,
                     status: res.status,
                     bytes: text.length,
-                    headers: pickHeaders(res.headers),
-                    bodyHead: clipBody(text),
+                    headers: readHeaders?.(res.headers) ?? {},
+                    bodyHead: clipText?.(text) ?? '',
                     classified: cls,
                 });
                 if (!cls) {
@@ -392,7 +405,7 @@ export async function fetchTimedText(
                 attempt,
                 status: res.status,
                 bytes: 0,
-                headers: pickHeaders(res.headers),
+                headers: readHeaders?.(res.headers) ?? {},
                 bodyHead: '',
                 classified: failure,
             });
