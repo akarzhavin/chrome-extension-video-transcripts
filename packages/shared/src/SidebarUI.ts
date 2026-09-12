@@ -570,6 +570,19 @@ export class SidebarUI {
         settingsPanel.appendChild(feedbackLink);
         this.elements = { ...this.elements, feedbackLink };
 
+        // Dev-only: the subtitle diagnostics recorder. LAST row in the panel —
+        // it is not a product setting and must not sit among ones that are.
+        //
+        // Guarded on the __EXT_ENV__ literal, which Vite substitutes before
+        // minification, so in a shipped build the row is not hidden or
+        // disabled: it is never constructed at all, and the minifier drops the
+        // builder with it. Same shape as the backend switch in the header —
+        // the guard wraps the CONSTRUCTION, not a branch inside a method the
+        // shipped build still calls.
+        if (__EXT_ENV__ === 'dev') {
+            settingsPanel.appendChild(this.buildDebugToggle());
+        }
+
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
         // toggle; no separate Done button at the panel bottom.
         header.appendChild(settingsPanel);
@@ -752,6 +765,55 @@ export class SidebarUI {
             // re-enables. Same ordering as the popup's copy of this control.
             if (!on) trackVia('analytics_opt_out');
             void savePrefs({ analyticsEnabled: on });
+        });
+
+        return label;
+    }
+
+    /**
+     * Dev-only: the subtitle diagnostics toggle.
+     *
+     * Anatomy is deliberately the analytics row's, so the panel's footer stays
+     * one band rather than gaining a differently-shaped stranger.
+     *
+     * The label is hardcoded English, NOT an i18n key. The interface ships in
+     * 54 locales and locale-coverage.test.ts checks that every key in `en`
+     * exists in the others; adding one here would fail 53 locales at once to
+     * translate a string only ever read by one person on one machine. The
+     * backend switch above says `backend: …` for the same reason.
+     */
+    private buildDebugToggle(): HTMLElement {
+        // Second guard, matching wireEnvSwitch(): the caller is already inside
+        // an __EXT_ENV__ check, and this makes the method itself unreachable in
+        // a prod bundle rather than merely uncalled.
+        if (__EXT_ENV__ !== 'dev') return document.createElement('span');
+
+        const label = document.createElement('label');
+        label.className = 'vtt-panel-row';
+        label.innerHTML = `${ICONS.download}<span class="vtt-privacy-text">Record subtitle diagnostics</span>`;
+        label.title =
+            'Dev build only. Records the whole subtitle load — every request, ' +
+            'status, header and retry — for the last few videos, downloadable as JSON. ' +
+            'The file contains signed caption URLs and pot tokens: do not share it.';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-debug-toggle';
+        box.className = 'vtt-switch-input';
+        box.checked = false;
+
+        const track = document.createElement('span');
+        track.className = 'vtt-switch';
+        track.setAttribute('aria-hidden', 'true');
+
+        label.appendChild(box);
+        label.appendChild(track);
+
+        void loadPrefs().then((p) => {
+            box.checked = p.debugMode;
+        });
+        box.addEventListener('change', () => {
+            void savePrefs({ debugMode: box.checked });
         });
 
         return label;

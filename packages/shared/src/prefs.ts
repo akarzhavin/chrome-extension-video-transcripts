@@ -92,6 +92,17 @@ export interface Prefs {
     // it. Read only by analytics-bg's track() gate — never branch on it
     // anywhere else (one gate, one place).
     analyticsEnabled: boolean;
+    // Dev-only subtitle diagnostics recorder (YouTube). Off by default and
+    // read by nothing in a production build — the only reader sits behind an
+    // `__EXT_ENV__ === 'dev'` guard, so a shipped extension carries the field
+    // and no code that looks at it.
+    //
+    // GLOBAL rather than per-site for a mechanical reason: the MAIN-world
+    // page-script is one bundle injected on youtube.com and netflix.com alike,
+    // and it learns this flag by being told. A per-scope copy would make
+    // "which scope's value did the isolated world send?" a real question on a
+    // site whose overlay scope differs from the one the toggle was flipped in.
+    debugMode: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -331,6 +342,11 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     if (typeof resolved.overlayEnabled !== 'boolean') {
         resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
+    // Coerced rather than trusted: a stored `"yes"` or `1` is truthy, and the
+    // recorder would switch itself on for a user who never asked.
+    if (typeof resolved.debugMode !== 'boolean') {
+        resolved.debugMode = DEFAULT_PREFS.debugMode;
+    }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
     return resolved;
@@ -362,6 +378,9 @@ const DEFAULT_PREFS: Prefs = {
     // defaults first, so a stored blob written before this field existed
     // resolves to true with no migration.
     analyticsEnabled: true,
+    // OFF for everyone, including a dev build: recording is something you turn
+    // on when you are about to go looking, not a standing cost.
+    debugMode: false,
 };
 
 function isPrefs(value: unknown): value is Partial<StoredPrefs> {

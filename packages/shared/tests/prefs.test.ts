@@ -65,6 +65,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            debugMode: false,
             theme: 'dark',
         });
     });
@@ -144,6 +145,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            debugMode: false,
             theme: 'dark',
         });
     });
@@ -535,5 +537,60 @@ describe('prefs', () => {
             warn.mockRestore();
             (global as any).chrome.runtime = realRuntime;
         }
+    });
+});
+
+describe('debugMode (dev-only subtitle diagnostics)', () => {
+    test('defaults to off for a fresh install', async () => {
+        const p = await loadPrefs();
+        expect(p.debugMode).toBe(false);
+    });
+
+    test('defaults to off for a stored blob written before the field existed', async () => {
+        // No migration: resolve() spreads DEFAULT_PREFS first, the same
+        // contract analyticsEnabled relies on.
+        (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual', theme: 'dark' };
+
+        const p = await loadPrefs();
+
+        expect(p.debugMode).toBe(false);
+    });
+
+    test.each([['a string', 'yes'], ['a number', 1], ['null', null]])(
+        'coerces %s to off rather than letting a truthy value switch recording on',
+        async (_label, stored) => {
+            (chromeStorage.local as any)._store['prefs.v1'] = { debugMode: stored };
+
+            const p = await loadPrefs();
+
+            expect(p.debugMode).toBe(false);
+        },
+    );
+
+    test('round-trips when set deliberately', async () => {
+        await savePrefs({ debugMode: true });
+        expect((await loadPrefs()).debugMode).toBe(true);
+    });
+
+    test('is GLOBAL: writing it under one scope is visible from another', async () => {
+        // The MAIN-world page-script is one bundle serving youtube.com and
+        // netflix.com, and it learns this flag by being told. A per-scope copy
+        // would make "which scope's value was sent?" a real question.
+        await savePrefs({ debugMode: true }, 'youtube');
+
+        expect((await loadPrefs('netflix')).debugMode).toBe(true);
+        // And it is stored at the top level, not inside byPlatform.
+        const raw = (chromeStorage.local as any)._store['prefs.v1'] as Record<string, unknown>;
+        expect(raw.debugMode).toBe(true);
+        expect((raw.byPlatform as Record<string, unknown> | undefined)?.youtube ?? {}).not.toHaveProperty(
+            'debugMode',
+        );
+    });
+
+    test('a scoped write of another field leaves debugMode alone', async () => {
+        await savePrefs({ debugMode: true });
+        await savePrefs({ overlayFontSize: 150 }, 'youtube');
+
+        expect((await loadPrefs('youtube')).debugMode).toBe(true);
     });
 });
