@@ -1,6 +1,14 @@
 import { installNetflixHook } from './netflix/manifest-hook';
 import { isNetflix } from './site';
 import {
+    DEBUG_BATCH,
+    DEBUG_HELLO,
+    MainTraceSink,
+    isDebugState,
+    type DebugBatchMessage,
+} from './debug-bridge';
+import { clipBody, pickHeaders, type TraceEvent } from './debug-trace';
+import {
     fetchTimedText,
     RateLimitBreaker,
     type VttOutcome,
@@ -45,6 +53,22 @@ if (isNetflix()) {
     installYouTubeHook();
 }
 
+/**
+ * Whether this build records diagnostics at all.
+ *
+ * A module-level const, not a check inside a function, because that is the
+ * difference between the minifier folding the whole feature away and merely
+ * dropping its classes. Measured: with the guard living only inside
+ * installTraceSink(), a production page-script still carried 1.6KB of
+ * unreachable event literals and header-formatting code — the terser could not
+ * prove across the call boundary that `trace` was always null.
+ *
+ * With `DEBUG_BUILD` a literal `false`, every `DEBUG_BUILD && trace?.(…)` below
+ * is dead on its face and goes, and the debug-trace/debug-bridge imports go
+ * with it.
+ */
+const DEBUG_BUILD = __EXT_ENV__ === 'dev';
+
 function installYouTubeHook() {
     const TAG = '[YT-VTT page-script]';
     const originalFetch = window.fetch.bind(window);
@@ -76,6 +100,38 @@ function installYouTubeHook() {
         };
     }
     const forcedFetch = makeForcedFetch();
+
+    // ---------- dev: the diagnostics recorder ----------
+    // Same shape as makeForcedFetch above, and for the same reason: the guard
+    // is the FIRST statement of a function whose result lands in a module-level
+    // const, so `'prod' !== 'dev'` folds, the body is dropped, and every
+    // `trace?.(...)` call site below collapses to nothing.
+    //
+    // This world cannot read the toggle (it has no chrome.* at all), so it
+    // buffers until the isolated world answers the hello below. See
+    // debug-bridge.ts for why that pre-arm window matters.
+    function installTraceSink(): ((e: TraceEvent) => void) | null {
+        if (!DEBUG_BUILD) return null;
+        const sink = new MainTraceSink({
+            post: (msg: DebugBatchMessage) => window.postMessage(msg, '*'),
+            now: () => Date.now(),
+            setTimer: (fn, ms) => window.setTimeout(fn, ms),
+            clearTimer: (id) => window.clearTimeout(id),
+        });
+        window.addEventListener('message', (event) => {
+            if (event.source !== window) return;
+            if (!isDebugState(event.data)) return;
+            sink.setState(event.data.on, event.data.startedAt);
+        });
+        // Announce ourselves: the isolated world boots later and may have
+        // missed nothing, but an extension reload leaves this script running
+        // with a stale state and only a fresh hello reconciles the two.
+        window.postMessage({ type: DEBUG_HELLO }, '*');
+        // Never let a lost batch die with the page.
+        window.addEventListener('pagehide', () => sink.flush());
+        return (e: TraceEvent) => sink.record(e, 'main');
+    }
+    const trace = DEBUG_BUILD ? installTraceSink() : null;
     const timedTextFetch = (url: string, init: RequestInit): Promise<Response> =>
         (forcedFetch ?? originalFetch)(url, init);
 
@@ -92,6 +148,10 @@ function installYouTubeHook() {
             kind: t.kind,
         }));
         console.log(TAG, 'sending tracks for', videoId, tracks.map((t) => t.lang));
+        DEBUG_BUILD && trace?.({
+            ev: 'catalog',
+            tracks: tracks.map((t) => ({ lang: t.lang, kind: t.kind, name: t.name })),
+        });
         window.postMessage({ type: 'YT_CAPTIONS_FOUND', videoId, tracks }, '*');
         return true;
     }
@@ -132,6 +192,37 @@ function installYouTubeHook() {
     // fetch time anyway.
     function readPlayerResponse(): PlayerResponse | null {
         return readPlayerResponseFromPlayerApi() ?? readPlayerResponseFromYtdApp();
+    }
+
+    /**
+     * readPlayerResponse(), but saying WHICH source answered.
+     *
+     * The distinction is the whole diagnosis for a class of failure: the
+     * ytd-app copy lists the right tracks behind signed URLs the server no
+     * longer honours, so a video resolved from it fails in a way that looks
+     * like a network problem and is not one.
+     */
+    function readPlayerResponseTraced(polls: number): PlayerResponse | null {
+        const live = readPlayerResponseFromPlayerApi();
+        if (live) {
+            DEBUG_BUILD && trace?.({
+                ev: 'player_response',
+                source: 'player-api',
+                videoId: live.videoDetails?.videoId,
+                trackCount: live.captions?.playerCaptionsTracklistRenderer?.captionTracks?.length ?? 0,
+                polls,
+            });
+            return live;
+        }
+        const ssr = readPlayerResponseFromYtdApp();
+        DEBUG_BUILD && trace?.({
+            ev: 'player_response',
+            source: ssr ? 'ytd-app' : 'none',
+            videoId: ssr?.videoDetails?.videoId,
+            trackCount: ssr?.captions?.playerCaptionsTracklistRenderer?.captionTracks?.length ?? 0,
+            polls,
+        });
+        return ssr;
     }
 
     /**
@@ -179,12 +270,16 @@ function installYouTubeHook() {
     // between Shorts, where the response lags the URL, never misfires.
     async function broadcastCurrent(): Promise<void> {
         const target = currentUrlVideoId();
+        DEBUG_BUILD && trace?.({ ev: 'nav', videoId: target, url: location.href });
         let caughtUpNoCap = 0;
         for (let i = 0; i < 70; i++) {
             // Bail if the user moved to a different video meanwhile.
             if (target && currentUrlVideoId() !== target) return;
 
-            const pr = readPlayerResponse();
+            // Traced only on the first poll and then every tenth: the loop can
+            // run 70 times and an event per iteration would crowd out the
+            // events that carry the answer.
+            const pr = i === 0 || i % 10 === 0 ? readPlayerResponseTraced(i) : readPlayerResponse();
             const vid = pr?.videoDetails?.videoId;
             const matches = !!vid && (!target || vid === target);
 
@@ -194,6 +289,7 @@ function installYouTubeHook() {
                 // with the response, so a brief stable confirmation is enough.
                 if (++caughtUpNoCap >= 8) {
                     console.log(TAG, 'no caption tracks for', vid);
+                    DEBUG_BUILD && trace?.({ ev: 'no_captions', videoId: vid! });
                     window.postMessage({ type: 'YT_NO_CAPTIONS', videoId: vid }, '*');
                     return;
                 }
@@ -340,7 +436,10 @@ function installYouTubeHook() {
     XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: unknown[]) {
         try {
             const raw = typeof url === 'string' ? url : url.href;
-            if (pots.capture(raw, location.href)) console.log(TAG, 'captured pot (xhr)');
+            if (pots.capture(raw, location.href)) {
+                console.log(TAG, 'captured pot (xhr)');
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'sniffed', present: true, source: 'xhr' });
+            }
         } catch {
             // ignore
         }
@@ -354,7 +453,10 @@ function installYouTubeHook() {
             const raw = typeof input === 'string' ? input
                 : input instanceof URL ? input.href
                 : (input as Request)?.url;
-            if (raw && pots.capture(raw, location.href)) console.log(TAG, 'captured pot');
+            if (raw && pots.capture(raw, location.href)) {
+                console.log(TAG, 'captured pot');
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'sniffed', present: true, source: 'fetch' });
+            }
         } catch {
             // ignore
         }
@@ -387,7 +489,9 @@ function installYouTubeHook() {
     // answered 429, and gating them here escalated a missing translation into
     // a fully empty panel. Lives here because this is the only place that can
     // actually decline to send a request.
-    const breaker = new RateLimitBreaker();
+    // The three defaulted tuning params are passed as undefined so the sink
+    // can occupy the fourth position without changing any of them.
+    const breaker = new RateLimitBreaker(undefined, undefined, undefined, DEBUG_BUILD ? trace ?? undefined : undefined);
 
     // Duplicate YT_FETCH_VTT messages are easy to provoke (navigation races,
     // "Search again", a prefs change) and each one used to mean a fresh burst
@@ -423,11 +527,16 @@ function installYouTubeHook() {
     function fetchDeduped(
         url: string,
         signal: AbortSignal,
-        opts: { translation: boolean; probe: boolean; refreshUrl?: () => string },
+        opts: { translation: boolean; probe: boolean; refreshUrl?: () => string; reqKey?: string },
     ): Promise<VttOutcome> {
         const existing = inFlightFetch.get(url);
         if (existing) {
             console.log(TAG, 'reusing in-flight request');
+            // A request that produces no attempts of its own. Without this the
+            // trace shows a track asking for nothing and then receiving an
+            // answer, which reads as a bug in the recorder rather than as
+            // deduplication working.
+            DEBUG_BUILD && trace?.({ ev: 'request', key: opts.reqKey ?? '', probe: opts.probe, deduped: true });
             return existing;
         }
         const p = fetchTimedText(
@@ -438,6 +547,11 @@ function installYouTubeHook() {
                 breaker: opts.translation ? breaker : undefined,
                 maxAttempts: opts.probe ? 1 : undefined,
                 refreshUrl: opts.refreshUrl,
+                onEvent: DEBUG_BUILD ? trace ?? undefined : undefined,
+                traceKey: opts.reqKey,
+                // The formatters travel with the sink — see FetchDeps.readHeaders.
+                readHeaders: DEBUG_BUILD && trace ? pickHeaders : undefined,
+                clipText: DEBUG_BUILD && trace ? clipBody : undefined,
             },
             signal,
         ).finally(() => {
@@ -540,11 +654,17 @@ function installYouTubeHook() {
         // all along — the retry would then be skipped in exactly the case it
         // exists for.
         const potBefore = knownPot(videoId);
+        DEBUG_BUILD && trace?.({ ev: 'request', key: reqKey, tlang, probe: !!probe });
         const url = makeUrl();
+        // Whether the live player response had a fresher URL than the one the
+        // isolated world handed us. A baseUrl that came from SSR data is the
+        // signature of the permanently-empty-200 failure.
+        DEBUG_BUILD && trace?.({ ev: 'url_resolved', key: reqKey, changed: url !== baseUrl, url });
         let outcome = await fetchDeduped(url, signal, {
             translation: !!tlang,
             probe: !!probe,
             refreshUrl: makeUrl,
+            reqKey,
         });
 
         // Second way in — the cascade. An empty answer with no token in hand is
@@ -561,13 +681,16 @@ function installYouTubeHook() {
         // identical request and launder the same empty answer into a second
         // attempt.
         if (!outcome.ok && !signal.aborted && !potBefore && isEmptyish(outcome.failure)) {
+            DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_start', present: false });
             const late = await mintPotViaCcToggle(videoId, signal);
+            DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_done', present: !!late });
             if (shouldRetryWithPot(outcome.failure, potBefore, late)) {
                 console.log(TAG, 'retrying with a freshly captured pot for', reqKey);
                 outcome = await fetchDeduped(makeUrl(), signal, {
                     translation: !!tlang,
                     probe: !!probe,
                     refreshUrl: makeUrl,
+                    reqKey,
                 });
             }
         }
@@ -583,6 +706,14 @@ function installYouTubeHook() {
             // a fresh baseUrl, and resolveLiveBaseUrl re-signs on every fetch.
         }
 
+        DEBUG_BUILD && trace?.({
+            ev: 'outcome',
+            key: reqKey,
+            ok: outcome.ok,
+            failure: outcome.failure,
+            status: outcome.status,
+            attempts: outcome.attempts,
+        });
         postResult({
             url: reqKey,
             videoId,

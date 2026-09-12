@@ -29,6 +29,7 @@ import { installPlayerMenu } from './player-menu';
 import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
 import { decideCaptionSearch, isStaleResult } from './nav-guards';
+import { installDebugMode, traceRecorder } from './debug-mode';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -208,7 +209,15 @@ class YouTubeVttApp extends BaseVttApp {
 
     handleVttResult(m: YtVttResultMessage): void {
         // A result for a video the user already left is noise, not a failure.
-        if (isStaleResult(m.videoId, this.getVideoId())) return;
+        if (isStaleResult(m.videoId, this.getVideoId())) {
+            traceRecorder()?.record({
+                ev: 'received',
+                key: m.url,
+                stale: true,
+                bytes: m.text?.length ?? 0,
+            });
+            return;
+        }
 
         const name = this.takePending(m.url);
         console.log('[YT-VTT] VTT_RESULT <-', name, m.ok ? `bytes: ${m.text.length}` : `failed: ${m.failure}`);
@@ -219,6 +228,15 @@ class YouTubeVttApp extends BaseVttApp {
             return;
         }
         const subs = parseJson3(m.text);
+        // The parsed count is where a 200 carrying "events" becomes
+        // 'not-offered' below — a reclassification that is otherwise invisible.
+        traceRecorder()?.record({
+            ev: 'received',
+            key: m.url,
+            stale: false,
+            bytes: m.text.length,
+            parsedCues: subs.length,
+        });
         console.log('[YT-VTT] parsed subs:', subs.length, 'for', name);
         // A 200 carrying "events" that parse to nothing is the same thing to the
         // user as "YouTube offers no translation here" — report it rather than
@@ -633,6 +651,7 @@ class YouTubeCaptionDetector {
     checkCurrentVideo(): void {
         const id = this.getVideoIdFromUrl();
         if (!id || id === this.currentVideoId) return;
+        traceRecorder()?.startSession(id, location.href);
         this.currentVideoId = id;
         this.captionsLoadedForVideo = null;
         this.probeNextLoad = false;
@@ -648,6 +667,7 @@ class YouTubeCaptionDetector {
         if (currentId && videoId !== currentId) return;
 
         if (videoId !== this.currentVideoId) {
+            traceRecorder()?.startSession(videoId, location.href);
             this.currentVideoId = videoId;
             this.captionsLoadedForVideo = null;
             this.probeNextLoad = false; // armed for a retry, not for a new video
@@ -678,6 +698,12 @@ class YouTubeCaptionDetector {
             this.isShortsPage(),
             this.app.isSidebarCollapsed(),
         );
+        traceRecorder()?.record({
+            ev: 'decision',
+            decision,
+            isShorts: this.isShortsPage(),
+            collapsed: this.app.isSidebarCollapsed(),
+        });
         if (decision === 'setup') {
             this.app.showLanguageOnboarding();
             return;
@@ -738,6 +764,10 @@ class YouTubeCaptionDetector {
 
         const plan = planTrackRequests(prefs, tracks, videoId);
         if (!plan) return [];
+        traceRecorder()?.record({
+            ev: 'plan',
+            requests: plan.requests.map((r) => ({ key: r.key, name: r.name, tlang: r.tlang })),
+        });
 
         // Keep AppState's primary/secondary selection aligned with the names the
         // plan assigned (VTTs arrive asynchronously and out of order).
@@ -852,6 +882,9 @@ function bootstrap(): void {
     // site's hero demo. Inert without `#vtt-export` in the URL; watches for the
     // flag being appended to an already-open tab.
     watchSubsExport(app.state);
+    // Dev-only, toggle-gated: record the whole subtitle load for post-hoc
+    // analysis. Returns immediately in a production build.
+    installDebugMode(app);
 }
 
 bootstrap();

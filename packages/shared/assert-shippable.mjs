@@ -55,6 +55,23 @@ const RULES = [
         why: 'the dev backend switch is compiled in (built with EXT_ENV=dev)',
     },
     {
+        id: 'debug-trace-recorder',
+        // The subtitle diagnostics recorder captures FULL timedtext URLs
+        // (signature and pot token included), response headers and body heads,
+        // and relays them across the world boundary with
+        // window.postMessage(..., '*') — which means the PAGE can read them.
+        // That is acceptable in a dev build and nowhere else, so its presence
+        // in the output is a hard stop rather than a warning.
+        //
+        // Two markers, one per world: LG_TRACE_HELLO is the handshake and
+        // appears in both bundles, debug.trace.v1 is the storage key and only
+        // in the content script. A partial fold — the content bundle folding
+        // while the page-script does not, which is exactly what happened once
+        // during development — is then still caught.
+        test: (s) => s.includes('LG_TRACE_HELLO') || s.includes('debug.trace.v1'),
+        why: 'the subtitle diagnostics recorder is compiled in (built with EXT_ENV=dev) — it captures signed caption URLs and posts them to the page',
+    },
+    {
         id: 'localhost-origin',
         test: (s) => s.includes('localhost:') || s.includes('127.0.0.1:'),
         why: 'it carries a localhost origin',

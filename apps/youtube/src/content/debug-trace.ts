@@ -56,7 +56,13 @@ export type TraceEvent =
     // ── planning (isolated world) ────────────────────────────────────────
     | { ev: 'decision'; decision: 'setup' | 'defer' | 'load'; isShorts: boolean; collapsed: boolean }
     | { ev: 'plan'; requests: Array<{ key: string; name: string; tlang?: string }> }
-    | { ev: 'request'; key: string; tlang?: string; probe: boolean }
+    /**
+     * A track was asked for. `deduped` marks one that collapsed onto an
+     * identical in-flight request and so produced no attempts of its own —
+     * without it the trace shows a track receiving an answer it never asked
+     * for, which reads as a recorder bug rather than as deduplication.
+     */
+    | { ev: 'request'; key: string; tlang?: string; probe: boolean; deduped?: boolean }
     // ── the network leg (MAIN world) ─────────────────────────────────────
     /** Whether resolveLiveBaseUrl() actually found a fresher URL, and the URL used. */
     | { ev: 'url_resolved'; key: string; changed: boolean; url: string }
