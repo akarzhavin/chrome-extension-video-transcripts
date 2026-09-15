@@ -39,6 +39,17 @@ const chromeStorage = makeChromeStorage();
 
 import { loadPrefs, onPrefsChanged, savePrefs } from '../src/prefs';
 
+/** Run `fn` with __EXT_ENV__ pinned, then restore it. */
+function withEnv<T>(env: 'dev' | 'prod', fn: () => T): T {
+    const prev = (global as any).__EXT_ENV__;
+    (global as any).__EXT_ENV__ = env;
+    try {
+        return fn();
+    } finally {
+        (global as any).__EXT_ENV__ = prev;
+    }
+}
+
 beforeEach(() => {
     Object.keys((chromeStorage.local as any)._store).forEach((k) => {
         delete (chromeStorage.local as any)._store[k];
@@ -65,6 +76,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             theme: 'dark',
         });
     });
@@ -144,6 +156,7 @@ describe('prefs', () => {
             overlayBgOpacity: 'medium',
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
+            debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             theme: 'dark',
         });
     });
@@ -535,5 +548,88 @@ describe('prefs', () => {
             warn.mockRestore();
             (global as any).chrome.runtime = realRuntime;
         }
+    });
+});
+
+describe('debugMode (dev-only subtitle diagnostics)', () => {
+    // Jest runs with __EXT_ENV__ = 'dev' (apps/rezka/tests/jest.setup.ts), which
+    // is the build the recorder exists for.
+    test('defaults to ON in a dev build, so the last few videos are always already recorded', async () => {
+        // The failure this records is noticed AFTER it happens. A recorder that
+        // has to be armed in advance gets armed on the wrong session.
+        const p = await loadPrefs();
+        expect(p.debugMode).toBe(true);
+    });
+
+    test('defaults the same way for a stored blob written before the field existed', async () => {
+        // No migration: resolve() spreads DEFAULT_PREFS first, the same
+        // contract analyticsEnabled relies on.
+        (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual', theme: 'dark' };
+
+        const p = await loadPrefs();
+
+        expect(p.debugMode).toBe(true);
+    });
+
+    test('is OFF by default in a production build, where the recorder does not exist', () => {
+        // `__EXT_ENV__` is a build-time literal, so this folds to false in a
+        // shipped bundle. Asserted on the module's own default rather than
+        // through loadPrefs, because the literal is fixed for the whole run.
+        const prod = withEnv('prod', () => {
+            jest.resetModules();
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            return require('../src/prefs') as typeof import('../src/prefs');
+        });
+        // A fresh import under 'prod' must not carry an enabled-by-default flag
+        // for a feature that build does not have.
+        expect(prod.DEFAULT_DEBUG_MODE).toBe(false);
+        jest.resetModules();
+    });
+
+    test.each([['a string', 'yes'], ['a number', 1], ['null', null]])(
+        'coerces %s to the default rather than letting an arbitrary value decide',
+        async (_label, stored) => {
+            // A stored "yes" is truthy and a stored "" is falsy; neither should
+            // be able to set the flag. Only a real boolean survives.
+            (chromeStorage.local as any)._store['prefs.v1'] = { debugMode: stored };
+
+            const p = await loadPrefs();
+
+            expect(p.debugMode).toBe(true); // the dev default, not the garbage
+        },
+    );
+
+    test('a stored false is honoured — turning it off has to stick', async () => {
+        // The coercion above must not swallow a deliberate opt-out.
+        (chromeStorage.local as any)._store['prefs.v1'] = { debugMode: false };
+
+        expect((await loadPrefs()).debugMode).toBe(false);
+    });
+
+    test('round-trips when set deliberately', async () => {
+        await savePrefs({ debugMode: true });
+        expect((await loadPrefs()).debugMode).toBe(true);
+    });
+
+    test('is GLOBAL: writing it under one scope is visible from another', async () => {
+        // The MAIN-world page-script is one bundle serving youtube.com and
+        // netflix.com, and it learns this flag by being told. A per-scope copy
+        // would make "which scope's value was sent?" a real question.
+        await savePrefs({ debugMode: true }, 'youtube');
+
+        expect((await loadPrefs('netflix')).debugMode).toBe(true);
+        // And it is stored at the top level, not inside byPlatform.
+        const raw = (chromeStorage.local as any)._store['prefs.v1'] as Record<string, unknown>;
+        expect(raw.debugMode).toBe(true);
+        expect((raw.byPlatform as Record<string, unknown> | undefined)?.youtube ?? {}).not.toHaveProperty(
+            'debugMode',
+        );
+    });
+
+    test('a scoped write of another field leaves debugMode alone', async () => {
+        await savePrefs({ debugMode: true });
+        await savePrefs({ overlayFontSize: 150 }, 'youtube');
+
+        expect((await loadPrefs('youtube')).debugMode).toBe(true);
     });
 });

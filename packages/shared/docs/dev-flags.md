@@ -257,6 +257,145 @@ Before uploading anything, run the gate against the ARCHIVE rather than against
 npm run verify-zip -- releases/youtube-v1.0.17.zip
 ```
 
+## Subtitle diagnostics (sidebar toggle)
+
+**Settings → "Record subtitle diagnostics"**, the last row in the panel. Dev
+builds only — in a shipped build the row is never constructed and the recorder
+is not in the bundle.
+
+### What problem it solves
+
+Subtitles on YouTube sometimes do not load, and the failure is not reproducible
+on demand. The extension already records the **verdict** (`no_subtitles`,
+`subs_rate_limited` and friends carry a failure, a status, an attempt count and
+the breaker's escalation step) but nothing records the **sequence** that
+produced it:
+
+- `fetchTimedText()` retries inside itself — empty-body re-asks, backoff sleeps,
+  breaker trips — and only the final `VttOutcome` escapes;
+- the pot cascade runs entirely in the MAIN world and reported nothing but
+  console lines, which are gone by the time anyone looks;
+- `resolveLiveBaseUrl()` swaps a stale signed URL for a fresh one silently, so a
+  repeated empty 200 could not be told from a re-ask that was never going to be
+  answered differently;
+- the timer layer concludes "no subtitles" from **silence**, and which of its
+  branches fired was written down nowhere.
+
+The recorder keeps that sequence for the last 6 videos and hands it over as one
+JSON file.
+
+### ⚠️ The report is a credential, not a log
+
+It contains **complete timedtext URLs — `signature` and `pot` included** — plus
+response headers and the first 2KB of bodies. That is deliberate: signed-URL
+problems are exactly what it exists to diagnose. But it means the file must
+never be pasted into an issue, a chat, or anywhere else. Read it locally and
+delete it.
+
+### Using it
+
+**On by default in a dev build** — `DEFAULT_DEBUG_MODE` in `prefs.ts` is
+`__EXT_ENV__ === 'dev'`, so it folds to `false` in a shipped bundle and there is
+nothing to arm. That default is the point: the failure is noticed *after* it
+happens, and a recorder you have to switch on in advance gets switched on for
+the session after the one you wanted.
+
+1. Build dev: `./scripts/build-with-analytics.sh dev`, load unpacked.
+   **Disable the store copy first** — two copies share `#vtt-*` ids and graft
+   into each other's sidebar.
+2. A small panel is already there, bottom-left, above the `#vtt-export` button:
+   **⬇ Trace (n)** / **⧉** copy / **✕** clear. The count is how many videos are
+   in the buffer, and the sign the recorder is live.
+3. Reproduce, then click ⬇. The file is
+   `lingogram-trace-<videoId>-<timestamp>.json`.
+
+The buffer survives a page reload (it is in `chrome.storage.local` under
+`debug.trace.v1`) — which matters, because reloading is the first instinct when
+subtitles do not appear, and an in-memory buffer would be empty by the time you
+went looking. Turning the toggle **off does not discard it**; only ✕ does.
+
+To switch it off, use the Settings row — a stored `false` beats the default and
+sticks across reloads.
+
+### Forcing failures without provoking YouTube
+
+Combine with `#lingogram_http=` (above). **Never provoke a real 429** — a live
+throttle holds for hours and takes all other debugging with it.
+
+```
+#lingogram_http=429:5@2   throttle the first two requests, Retry-After 5s
+#lingogram_http=200       an empty json3 envelope → "translation not offered"
+#lingogram_http=403       a stale signed URL
+```
+
+### Reading a trace
+
+Each session is one video. Every event carries `t` (ms since that session
+opened) and `w` — `main` for the page world, `iso` for the content script.
+`dropped` counts what the ring surrendered, by kind.
+
+A healthy load reads: `nav` → `player_response` → `catalog` → `decision` →
+`plan` → `request` → `url_resolved` → `attempt` → `response` → `outcome` →
+`received` → `verdict{kind:"loaded"}`.
+
+Three pathologies and their signatures:
+
+| Symptom | What to look for |
+|---|---|
+| Stale signed URLs | `player_response` with `source:"ytd-app"`, then `response` with `status:200, bytes:0`. The SSR copy lists the right tracks behind URLs the server no longer honours. |
+| Throttled | `response 429` → `breaker{action:"trip"}` → `breaker{action:"blocked"}` on the next request. `retry_sleep` says whether a `Retry-After` was honoured or our own backoff was used. |
+| Lost reply | An `outcome` in `main` with no matching `received` in `iso`, then `timer{which:"pending-track"}`. The message never crossed. |
+
+`url_resolved` with `changed:false` between two empty 200s means the re-ask was
+never going to be answered differently. `request` with `deduped:true` means that
+track collapsed onto an identical in-flight request and has no attempts of its
+own — not a gap in the recording.
+
+### Why it cannot reach the store
+
+Three checks, at three different moments, each catching what the others cannot.
+
+**Before the build — `assert-foldable.mjs`** (run first by
+`build-with-analytics.sh`, for dev and prod alike). Reads the SOURCE and asks
+whether the recorder is still written in a shape that folds: the module-level
+`DEBUG_BUILD` constant, a `DEBUG_BUILD &&` prefix on every trace call site, the
+`import type` discipline in `timedtext-fetch.ts`, and the guard as the first
+statement of `installDebugMode`. It also compares the names the recorder
+actually uses against `DEBUG_TRACE_MARKERS` **in both directions** — a new name
+missing from the list, or a listed name the source no longer uses. That second
+direction is the point: a rule matching a string that can never appear again
+looks exactly like coverage.
+
+**Between the build and the zip — `assert-shippable.mjs`.** Refuses any build
+containing any of the six markers: the three wire messages (`LG_TRACE_HELLO`,
+`LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key (`debug.trace.v1`), and
+both DOM ids (`vtt-debug-panel`, `vtt-debug-toggle`).
+
+The list is exhaustive because a shorter one was measured and found wanting:
+the first version matched two markers, and four of the six passed it. A build
+carrying the whole settings toggle and the download panel — folded just enough
+to drop the handshake — was shippable by that gate's own verdict.
+
+**After the zip — `verify-zip.mjs`**, now run automatically by `zip-build.mjs`
+rather than only on request. It re-runs every rule against the unpacked
+ARCHIVE. The middle gate inspects `build/`, a directory the next build
+overwrites, so its verdict is about whatever was there a moment ago rather than
+about the bytes in the file: `youtube-v1.0.15.zip` was written by a dev run
+while a prod build had passed the gate earlier the same day.
+
+That leak is also why the MAIN-world guard is a module-level
+`const DEBUG_BUILD = __EXT_ENV__ === 'dev'` with every call site written
+`DEBUG_BUILD && trace?.(…)`, rather than a check inside the installer. Terser
+drops the classes either way, but it will not prove across a call boundary that
+a returned sink is always null — so `trace?.(…)` survived on its own.
+`apps/youtube/tests/debug-fold.test.ts` pins that shape by reading the source,
+because no runtime test can observe a fold.
+
+Implementation: `debug-trace.ts` (pure ring buffer and schema),
+`debug-recorder.ts` (persistence), `debug-bridge.ts` (the world boundary),
+`debug-mode.ts` (the guarded entry point), `debug-ui.ts` (the panel), with the
+toggle in `SidebarUI.buildDebugToggle()` and the pref in `prefs.ts`.
+
 ## `lng=<locale>` — locale override (rezka)
 
 ```

@@ -11,6 +11,17 @@
 // and the most common non-error case (YouTube offers no translation for the
 // requested language) burned all four attempts before failing silently.
 
+// `import type`, and nothing else, from debug-trace.
+//
+// A VALUE import would be carried into production by this module's own
+// consumers: page-script.ts constructs fetchTimedText and RateLimitBreaker
+// directly, so anything imported here reaches the MAIN-world bundle whether a
+// sink is ever attached or not. Measured: importing the two formatting helpers
+// put 367 bytes of unreachable header-allow-list and body-clipping code into
+// the shipped page-script. So the raw material is reported and the SINK does
+// the formatting — the sink only exists in a dev build.
+import type { FetchTraceEvent } from './debug-trace';
+
 /** Why a timedtext request did not produce usable subtitles. */
 export type VttFailure =
     | 'rate-limited' // 429/503. Retryable with backoff, then the breaker opens.
@@ -162,6 +173,12 @@ export class RateLimitBreaker {
         private now: () => number = Date.now,
         private readonly threshold = 1,
         private readonly steps: readonly number[] = [30_000, 60_000, 120_000, 300_000],
+        /**
+         * Dev-only diagnostics sink. Last parameter so the three tuning knobs
+         * above keep their positions — every existing construction site passes
+         * none of them and is unaffected.
+         */
+        private readonly onEvent?: (e: FetchTraceEvent) => void,
     ) {}
 
     remainingMs(): number {
@@ -179,6 +196,12 @@ export class RateLimitBreaker {
         const idx = Math.min(this.consecutive - this.threshold, this.steps.length - 1);
         const step = this.steps[idx];
         this.openUntil = this.now() + Math.max(step, retryAfterMs ?? 0);
+        this.onEvent?.({
+            ev: 'breaker',
+            action: 'trip',
+            step: this.step(),
+            remainingMs: this.remainingMs(),
+        });
     }
 
     /**
@@ -194,6 +217,12 @@ export class RateLimitBreaker {
 
     /** Any success means the throttling lifted. */
     reset(): void {
+        // Report only a reset that CHANGES something. reset() runs on every
+        // 200, so an unconditional event would bury the trace in no-ops and
+        // push the events that matter out of the ring.
+        if (this.consecutive > 0 || this.openUntil > 0) {
+            this.onEvent?.({ ev: 'breaker', action: 'reset', step: this.step(), remainingMs: 0 });
+        }
         this.consecutive = 0;
         this.openUntil = 0;
     }
@@ -226,6 +255,30 @@ export interface FetchDeps {
     refreshUrl?: () => string | null | undefined;
     rand?: () => number;
     now?: () => number;
+    /**
+     * Dev-only diagnostics sink.
+     *
+     * This retry loop is the one stretch of the subtitle path with no outside
+     * observer: an empty-body re-ask, a backoff sleep, a URL re-signed mid-
+     * flight and a breaker trip all happen in here, and only the final
+     * VttOutcome escapes. A caller that wants the sequence has to be handed it
+     * from the inside.
+     *
+     * Injected rather than imported so this module stays pure and every
+     * existing construction of FetchDeps keeps compiling untouched. Undefined
+     * in production, where `onEvent?.()` is a property read on an object that
+     * never has the field.
+     */
+    onEvent?: (e: FetchTraceEvent) => void;
+    /** Correlates this call's events with the track it belongs to. Diagnostics only. */
+    traceKey?: string;
+    /**
+     * How to render a response's headers and body for the trace. Injected with
+     * the sink rather than imported, for the reason given at the import above:
+     * a value imported here ships to production whether it is reachable or not.
+     */
+    readHeaders?: (h: { get(name: string): string | null } | undefined) => Record<string, string>;
+    clipText?: (text: string) => string;
 }
 
 const isAbortError = (e: unknown): boolean =>
@@ -249,6 +302,10 @@ export async function fetchTimedText(
         breaker,
         maxAttempts = MAX_ATTEMPTS,
         refreshUrl,
+        onEvent,
+        traceKey = '',
+        readHeaders,
+        clipText,
         rand = Math.random,
         now = Date.now,
     } = deps;
@@ -256,6 +313,10 @@ export async function fetchTimedText(
 
     const cooling = breaker?.remainingMs() ?? 0;
     if (cooling > 0) {
+        // A request that was never sent. Without this event the trace shows a
+        // gap where a fetch should be, which reads as a lost message rather
+        // than as the breaker doing its job.
+        onEvent?.({ ev: 'breaker', action: 'blocked', step: breaker?.step() ?? 0, remainingMs: cooling });
         return { ok: false, text: '', failure: 'cooldown', retryAfterMs: cooling, attempts: 0 };
     }
     if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts: 0 };
@@ -270,6 +331,17 @@ export async function fetchTimedText(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         retryAfterMs = undefined;
         try {
+            onEvent?.({
+                ev: 'attempt',
+                key: traceKey,
+                attempt,
+                url: currentUrl,
+                // Read off the URL rather than taken as an argument: this
+                // module knows nothing about pot and should keep knowing
+                // nothing, but "was a token on the request" is the single most
+                // diagnostic bit about an empty 200.
+                potPresent: currentUrl.includes('pot='),
+            });
             const res = await fetchImpl(currentUrl, { credentials: 'include', signal });
             attempts = attempt;
             status = res.status;
@@ -277,6 +349,16 @@ export async function fetchTimedText(
             if (res.ok) {
                 const text = await res.text();
                 const cls = classifyStatus(res.status, isUsableResponse(text));
+                onEvent?.({
+                    ev: 'response',
+                    key: traceKey,
+                    attempt,
+                    status: res.status,
+                    bytes: text.length,
+                    headers: readHeaders?.(res.headers) ?? {},
+                    bodyHead: clipText?.(text) ?? '',
+                    classified: cls,
+                });
                 if (!cls) {
                     breaker?.reset();
                     return { ok: true, text, status: res.status, attempts };
@@ -297,15 +379,36 @@ export async function fetchTimedText(
                     };
                 }
                 breaker?.reset(); // a 200 is not a throttle, whatever it contains
+                onEvent?.({ ev: 'retry_sleep', key: traceKey, attempt, ms: EMPTY_RETRY_DELAY_MS, reason: 'empty' });
                 await sleep(EMPTY_RETRY_DELAY_MS, signal);
                 if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
                 // If the emptiness was a stale URL, only a re-signed one can
                 // answer differently — swap it in for the re-ask.
-                currentUrl = refreshUrl?.() || currentUrl;
+                const refreshed = refreshUrl?.() || currentUrl;
+                // Whether the URL actually MOVED is the whole question behind a
+                // repeated empty 200: an unchanged URL means the re-ask was
+                // always going to collect the same answer.
+                onEvent?.({
+                    ev: 'url_resolved',
+                    key: traceKey,
+                    changed: refreshed !== currentUrl,
+                    url: refreshed,
+                });
+                currentUrl = refreshed;
                 continue;
             }
 
             failure = classifyStatus(res.status, false) ?? 'unknown';
+            onEvent?.({
+                ev: 'response',
+                key: traceKey,
+                attempt,
+                status: res.status,
+                bytes: 0,
+                headers: readHeaders?.(res.headers) ?? {},
+                bodyHead: '',
+                classified: failure,
+            });
             if (failure === 'rate-limited') {
                 sawRateLimit = true;
                 retryAfterMs = parseRetryAfter(res.headers?.get?.('Retry-After') ?? null, now()) ?? undefined;
@@ -326,7 +429,15 @@ export async function fetchTimedText(
         // No sleep after the final attempt — the old loop always slept, wasting
         // over a second before reporting a failure the user was waiting on.
         if (attempt < maxAttempts) {
-            await sleep(retryAfterMs ?? backoffMs(attempt, rand), signal);
+            const waitMs = retryAfterMs ?? backoffMs(attempt, rand);
+            onEvent?.({
+                ev: 'retry_sleep',
+                key: traceKey,
+                attempt,
+                ms: waitMs,
+                reason: retryAfterMs ? 'retry-after' : 'backoff',
+            });
+            await sleep(waitMs, signal);
             if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
         }
     }

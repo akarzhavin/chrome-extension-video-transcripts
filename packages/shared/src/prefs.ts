@@ -92,6 +92,17 @@ export interface Prefs {
     // it. Read only by analytics-bg's track() gate — never branch on it
     // anywhere else (one gate, one place).
     analyticsEnabled: boolean;
+    // Dev-only subtitle diagnostics recorder (YouTube). Off by default and
+    // read by nothing in a production build — the only reader sits behind an
+    // `__EXT_ENV__ === 'dev'` guard, so a shipped extension carries the field
+    // and no code that looks at it.
+    //
+    // GLOBAL rather than per-site for a mechanical reason: the MAIN-world
+    // page-script is one bundle injected on youtube.com and netflix.com alike,
+    // and it learns this flag by being told. A per-scope copy would make
+    // "which scope's value did the isolated world send?" a real question on a
+    // site whose overlay scope differs from the one the toggle was flipped in.
+    debugMode: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -331,10 +342,24 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     if (typeof resolved.overlayEnabled !== 'boolean') {
         resolved.overlayEnabled = DEFAULT_PREFS.overlayEnabled;
     }
+    // Coerced rather than trusted: a stored `"yes"` or `1` is truthy, and the
+    // recorder would switch itself on for a user who never asked.
+    if (typeof resolved.debugMode !== 'boolean') {
+        resolved.debugMode = DEFAULT_PREFS.debugMode;
+    }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
     return resolved;
 }
+
+/**
+ * Whether a fresh install records subtitle diagnostics.
+ *
+ * Exported so a test can assert the fold: `__EXT_ENV__` is a build-time
+ * literal, and whether this is `false` in a shipped bundle is not observable
+ * from a single jest run, where the literal is fixed for the whole process.
+ */
+export const DEFAULT_DEBUG_MODE: boolean = __EXT_ENV__ === 'dev';
 
 const DEFAULT_PREFS: Prefs = {
     displayMode: 'dual',
@@ -362,6 +387,19 @@ const DEFAULT_PREFS: Prefs = {
     // defaults first, so a stored blob written before this field existed
     // resolves to true with no migration.
     analyticsEnabled: true,
+    // ON by default in a dev build, off everywhere else.
+    //
+    // The failure this records is noticed AFTER it happens, so a recorder that
+    // has to be armed in advance is armed on the wrong session — you turn it on
+    // and then cannot reproduce the thing you turned it on for. Defaulting to
+    // on means the last few videos are always already recorded.
+    //
+    // `__EXT_ENV__` is a build-time literal, so this folds to `false` in a
+    // production build — where nothing reads the field anyway, the recorder
+    // itself being compiled out. Written this way rather than a plain `true`
+    // so that a shipped extension does not carry an enabled-by-default flag
+    // for a feature it does not have.
+    debugMode: DEFAULT_DEBUG_MODE,
 };
 
 function isPrefs(value: unknown): value is Partial<StoredPrefs> {

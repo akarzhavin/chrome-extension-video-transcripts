@@ -93,6 +93,20 @@ export EXT_GA4_MEASUREMENT_ID="$MEASUREMENT_ID"
 export EXT_GA4_API_SECRET="$API_SECRET"
 export EXT_API_BASE_URL="$API_BASE_URL"
 
+# BEFORE the build: is the dev-only recorder still written in a shape that
+# folds? The output gate below cannot answer this — it matches strings in a
+# finished bundle, so a guard rewritten to a weaker form that leaves unnamed
+# literals behind passes it while shipping readable dead code. Measured once at
+# 1.6KB in a production page-script.
+#
+# Runs for BOTH dev and prod: a source that cannot fold is a defect either way,
+# and catching it on the dev build you are about to test is cheaper than
+# catching it at release time.
+echo "Checking the dev-only recorder can still fold away..."
+node packages/shared/assert-foldable.mjs
+echo "  ok: source is foldable"
+echo
+
 echo "Building all three extensions against the $ENV_NAME property ($MEASUREMENT_ID)."
 echo "Dictionary gateway: $API_BASE_URL"
 if [[ "$ENV_NAME" == "dev" ]]; then

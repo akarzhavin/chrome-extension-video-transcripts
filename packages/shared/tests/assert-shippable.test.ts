@@ -176,6 +176,60 @@ describe('assert-shippable', () => {
         });
     });
 
+    describe('the subtitle diagnostics recorder', () => {
+        // The trace carries full signed timedtext URLs (signature and pot) and
+        // posts them to the page with postMessage(..., '*'). Shipping it would
+        // be handing every youtube.com visitor a reader for it.
+        it('refuses a content bundle carrying the storage key', () => {
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: { 'src/content/index.js': 'const k = "debug.trace.v1";' },
+                }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/diagnostics recorder is compiled in/);
+        });
+
+        // The second marker exists because a PARTIAL fold is a real outcome,
+        // not a hypothetical: during development the content bundle folded
+        // correctly while the page-script still carried 1.6KB of the recorder.
+        // One marker per world is what catches that.
+        it('refuses a page-script carrying the handshake, even when the content bundle is clean', () => {
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: {
+                        'src/content/index.js': 'const clean = 1;',
+                        'src/content/page-script.js': 'window.postMessage({type:"LG_TRACE_HELLO"});',
+                    },
+                }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/diagnostics recorder is compiled in/);
+        });
+
+        it('names the file it found the recorder in', () => {
+            const { output } = runGate(
+                makeBuild({ extraFiles: { 'src/content/index.js': 'const k = "debug.trace.v1";' } }),
+            );
+            expect(output).toMatch(/src\/content\/index\.js/);
+        });
+
+        it('passes a build where the recorder folded away', () => {
+            // The healthy case: a production bundle that does the same work
+            // with none of the recorder's strings in it.
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: {
+                        'src/content/index.js': 'const x = fetch("/api/timedtext");',
+                        'src/content/page-script.js': 'window.postMessage({type:"YT_VTT_RESULT"});',
+                    },
+                }),
+            );
+            expect(output).toBe('');
+            expect(code).toBe(0);
+        });
+    });
+
     describe('pre-existing rules still bite', () => {
         it('refuses a dev backend switch', () => {
             const { code, output } = runGate(

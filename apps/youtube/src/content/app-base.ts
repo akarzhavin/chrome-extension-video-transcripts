@@ -96,7 +96,15 @@ export interface ReprocessOptions {
  * when it fires: 'timeout' — a reply that did not come — never the false
  * "this video has no subtitles" verdict this whole branch exists to remove.
  */
+import { traceRecorder } from './debug-mode';
+
 export const STALLED_REQUEST_MS = 12_000;
+
+// Diagnostics sink. Null in production (nothing assigns it: the only setter is
+// inside debug-mode's __EXT_ENV__ guard) and null on Rezka, which never calls
+// installDebugMode — so every `traceRecorder()?.record(...)` below is inert
+// there too.
+
 
 /**
  * How many times an expired throttle cooldown may auto-retry unattended before
@@ -647,6 +655,12 @@ export abstract class BaseVttApp implements AppInterface {
             if (this.getVideoId() === null) return;
             if (this.state.tracks.length !== 0) return;
 
+            traceRecorder()?.record({
+                ev: 'timer',
+                which: 'no-subs-stage1',
+                pending: this.pendingRequests.size,
+                tracks: this.state.tracks.length,
+            });
             // Nothing was even asked: there is nothing to wait for.
             if (this.pendingRequests.size === 0) {
                 this.declareNoSubtitles('not-attempted');
@@ -679,6 +693,12 @@ export abstract class BaseVttApp implements AppInterface {
                 if (!this.langPrefs) return;
                 if (this.getVideoId() === null) return;
                 if (this.state.tracks.length !== 0) return;
+                traceRecorder()?.record({
+                    ev: 'timer',
+                    which: 'no-subs-stage2',
+                    pending: this.pendingRequests.size,
+                    tracks: this.state.tracks.length,
+                });
                 // Still nothing after the whole retry budget could have run.
                 this.declareNoSubtitles(this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted');
             }, STALLED_REQUEST_MS);
@@ -704,6 +724,12 @@ export abstract class BaseVttApp implements AppInterface {
             // still outstanding — the all-empty case is declareNoSubtitles'.
             if (this.state.tracks.length === 0) return;
             if (this.pendingRequests.size === 0) return;
+            traceRecorder()?.record({
+                ev: 'timer',
+                which: 'pending-track',
+                pending: this.pendingRequests.size,
+                tracks: this.state.tracks.length,
+            });
             for (const name of this.pendingRequests.values()) {
                 this.noteTrackFailure(name, { failure: 'timeout' });
             }
@@ -738,6 +764,7 @@ export abstract class BaseVttApp implements AppInterface {
             const count = this.state.tracks.length;
             if (count === 0) return;
             this.analyticsOnce.fire('subtitles_loaded', () => {
+                traceRecorder()?.record({ ev: 'verdict', kind: 'loaded', trackCount: count });
                 trackVia('subtitles_loaded', { site, track_count: count });
             });
         }, settleMs);
@@ -769,6 +796,13 @@ export abstract class BaseVttApp implements AppInterface {
             const detail = [...this.trackFailures.values()].find((i) => i.failure === worst);
             const failure = worst ?? cause ?? 'unknown';
             this.lastNoSubsFailure = failure;
+            traceRecorder()?.record({
+                ev: 'verdict',
+                kind: 'no-subtitles',
+                cause,
+                failure,
+                trackCount: this.state.tracks.length,
+            });
             trackVia('no_subtitles', {
                 site: platformOf(location.hostname),
                 retried: this.noSubsRetries > 0,
@@ -1522,6 +1556,12 @@ export abstract class BaseVttApp implements AppInterface {
             // in entirely different ways.
             if (this.trackFailures.size > 0) {
                 this.analyticsOnce.fire('subs_partial', () => {
+                traceRecorder()?.record({
+                    ev: 'verdict',
+                    kind: 'partial',
+                    failure: this.dominantFailure() ?? undefined,
+                    trackCount: this.state.tracks.length,
+                });
                     trackVia('subs_partial', {
                         site: platformOf(location.hostname),
                         failure: this.dominantFailure() ?? 'unknown',
