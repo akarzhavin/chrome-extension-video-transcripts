@@ -35,8 +35,21 @@ const baseApp: AppInterface = {
 const traceRows = (): HTMLElement[] =>
     [...document.querySelectorAll<HTMLElement>('.vtt-trace-row')];
 
-const rowLabelled = (text: string): HTMLElement | undefined =>
-    traceRows().find((r) => (r.textContent ?? '').includes(text));
+/** The clickable actions, without the status readout that sits beside them. */
+const actionButtons = (): HTMLElement[] =>
+    [...document.querySelectorAll<HTMLElement>('button.vtt-trace-row')];
+
+/**
+ * The actions are icon buttons now, so their identity lives in `title` rather
+ * than in visible text — which is precisely why each one still needs a test:
+ * an unlabelled button wired to the wrong verb looks correct.
+ */
+const actionTitled = (title: string): HTMLElement | undefined =>
+    actionButtons().find((b) => (b.title ?? '').toLowerCase().includes(title.toLowerCase()));
+
+/** The count/feedback element: the one non-button in the cluster. */
+const status = (): HTMLElement | null =>
+    document.querySelector<HTMLElement>('#vtt-trace-rows .vtt-trace-row:not(button)');
 
 function build(app: AppInterface): SidebarUI {
     document.body.innerHTML = '';
@@ -91,8 +104,8 @@ describe('the recorder arrives after the sidebar is built', () => {
         };
         ui.openSettings();
 
-        expect(traceRows()).toHaveLength(3);
-        expect(rowLabelled('Download')?.textContent).toContain('(2)');
+        expect(actionButtons()).toHaveLength(3);
+        expect(status()?.textContent).toBe('2');
     });
 
     test('a later open refreshes the count without stacking rows', () => {
@@ -110,14 +123,14 @@ describe('the recorder arrives after the sidebar is built', () => {
         });
 
         ui.openSettings();
-        expect(rowLabelled('Download')?.textContent).toContain('(1)');
+        expect(status()?.textContent).toBe('1');
 
         sessions = 7;
         ui.toggleSettingsPanel();   // close
         ui.toggleSettingsPanel();   // open again
 
-        expect(traceRows()).toHaveLength(3);
-        expect(rowLabelled('Download')?.textContent).toContain('(7)');
+        expect(actionButtons()).toHaveLength(3);
+        expect(status()?.textContent).toBe('7');
     });
 });
 
@@ -137,35 +150,77 @@ describe('with a recorder, each row calls its own verb', () => {
         return calls;
     };
 
-    test('three rows appear', () => {
+    test('three actions appear', () => {
         wire();
-        expect(traceRows()).toHaveLength(3);
+        expect(actionButtons()).toHaveLength(3);
     });
 
     test('Download calls download, and nothing else', () => {
         const calls = wire();
-        rowLabelled('Download')?.click();
+        actionTitled('Download trace')?.click();
         expect(calls).toEqual({ download: 1, copy: 0, clear: 0 });
     });
 
     test('Copy calls copy, and nothing else', () => {
         const calls = wire();
-        rowLabelled('Copy')?.click();
+        actionTitled('Copy trace')?.click();
         expect(calls).toEqual({ download: 0, copy: 1, clear: 0 });
     });
 
     test('Discard calls clear, and nothing else', () => {
         // The one that costs a recording if it is miswired.
         const calls = wire();
-        rowLabelled('Discard')?.click();
+        actionTitled('Discard recording')?.click();
         expect(calls).toEqual({ download: 0, copy: 0, clear: 1 });
     });
 
-    test('the session count is shown on the Download row', () => {
+    test('the row text still toggles the recorder once the actions are there', () => {
+        // The regression putting the actions in the switch's own row caused,
+        // and the reason the row carries an explicit `for`.
+        //
+        // A label with no `for` takes its control from the FIRST labelable
+        // descendant. The action buttons sit before the checkbox, so the
+        // implicit control silently became the Download button and the row's
+        // own text stopped switching recording on. Measured before the fix:
+        // the text toggled the switch with no recorder attached and stopped
+        // the moment the buttons appeared — no error, nothing to see.
+        wire();
+        const box = document.getElementById('vtt-debug-toggle') as HTMLInputElement;
+        const text = box.closest('label')!.querySelector('.vtt-privacy-text') as HTMLElement;
+        const before = box.checked;
+
+        text.click();
+
+        expect(box.checked).toBe(!before);
+    });
+
+    test('clicking in the action cluster does not toggle the recorder', () => {
+        // THE hazard of putting the actions in the switch's own row: that row
+        // is a <label> for the checkbox, so a click anywhere inside it
+        // activates the control. Un-guarded, a click that lands on the gap
+        // between two icons — or on the session count — switches recording off
+        // while the user is reaching for a button.
+        //
+        // The buttons themselves are safe without any help: a <button> is
+        // interactive content and a label does not activate through one. The
+        // padding around them is not, which is why the guard sits on the
+        // container and this test clicks the container and the count.
+        wire();
+        const box = document.getElementById('vtt-debug-toggle') as HTMLInputElement;
+        const before = box.checked;
+
+        (document.getElementById('vtt-trace-rows') as HTMLElement).click();
+        expect(box.checked).toBe(before);
+
+        status()?.click();
+        expect(box.checked).toBe(before);
+    });
+
+    test('the session count is shown in the cluster', () => {
         // The only signal that says the recorder is capturing rather than
         // merely switched on.
         wire();
-        expect(rowLabelled('Download')?.textContent).toContain('(3)');
+        expect(status()?.textContent).toBe('3');
     });
 
     test('a recorder with nothing captured does not download', () => {
@@ -180,9 +235,11 @@ describe('with a recorder, each row calls its own verb', () => {
             }),
         }).openSettings();
 
-        rowLabelled('Download')?.click();
+        actionTitled('Download trace')?.click();
 
         expect(calls.download).toBe(0);
-        expect(rowLabelled('nothing recorded yet')).toBeDefined();
+        // And it says so. Without this the click is indistinguishable from a
+        // dead button — the status is the only thing that answers.
+        expect(status()?.textContent).toBe('none');
     });
 });

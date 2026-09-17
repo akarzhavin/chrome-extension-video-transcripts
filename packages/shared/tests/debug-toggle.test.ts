@@ -138,7 +138,7 @@ describe('in a dev build', () => {
         const { toggle } = buildSidebar();
         const row = toggle!.closest('.vtt-panel-row') as HTMLElement;
 
-        expect(row.textContent).toContain('Record subtitle diagnostics');
+        expect(row.textContent).toContain('Subtitle diagnostics');
     });
 });
 
