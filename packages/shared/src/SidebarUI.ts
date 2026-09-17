@@ -1314,7 +1314,14 @@ export class SidebarUI {
      */
     private wireEnvSwitch(btn: HTMLButtonElement): void {
         if (__EXT_ENV__ !== 'dev') return;
-        type Info = { side: 'home' | 'away'; label: string; canSwitch: boolean; isProd?: boolean };
+        type Info = {
+            side: string;
+            label: string;
+            canSwitch: boolean;
+            isProd?: boolean;
+            targets?: string[];
+            next?: string;
+        };
         let info: Info | null = null;
 
         const paint = (i: Info) => {
@@ -1322,9 +1329,13 @@ export class SidebarUI {
             btn.textContent = i.canSwitch ? `backend: ${i.label}  ⇄` : `backend: ${i.label}`;
             btn.dataset.env = i.isProd ? 'live' : 'safe';
             btn.disabled = !i.canSwitch;
+            // The ring is named in the tooltip, and the next stop spelled out:
+            // a cycling button whose order you cannot see is one you have to
+            // discover by clicking, and every click here signs you out.
             btn.title = i.canSwitch
-                ? `${i.isProd ? 'REAL user data. ' : ''}Click to switch (signs you out).`
-                : 'This build was given no second target to switch to.';
+                ? `${i.isProd ? 'REAL user data. ' : ''}${(i.targets ?? []).join(' → ')}`
+                  + `\nClick for ${i.next} (signs you out).`
+                : 'This build was given no other target to switch to.';
         };
 
         const ask = (msgObj: object) =>
@@ -1340,14 +1351,15 @@ export class SidebarUI {
             .then(paint)
             .catch((err) => {
                 console.warn('[Lingogram] dev env probe failed:', err);
-                paint({ side: 'home', label: 'env?', canSwitch: false });
+                paint({ side: '', label: 'env?', canSwitch: false });
             });
 
         btn.addEventListener('click', () => {
             if (!info?.canSwitch) return;
-            const next = info.side === 'away' ? 'home' : 'away';
+            // No side named: the worker advances the ring. The order lives in
+            // one place, so the button cannot disagree with it.
             btn.disabled = true;
-            void ask({ action: 'DEV_SET_ENV', side: next })
+            void ask({ action: 'DEV_SET_ENV' })
                 .then(paint)
                 .catch((err) => {
                     console.warn('[Lingogram] dev env switch failed:', err);

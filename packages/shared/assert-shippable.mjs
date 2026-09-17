@@ -84,10 +84,55 @@ export const DEBUG_TRACE_MARKERS = [
 const RULES = [
     {
         id: 'dev-env-switch',
-        // The prod/preprod switch is guarded by __EXT_ENV__ and should be
+        // The backend switch is guarded by __EXT_ENV__ and should be
         // eliminated by the minifier. Its presence means EXT_ENV=dev.
-        test: (s) => s.includes('DEV_GET_ENV') || s.includes('DEV_SET_ENV'),
+        test: (s) => s.includes('DEV_GET_ENV') || s.includes('DEV_SET_ENV')
+            || s.includes('dev.targetEnv'),
         why: 'the dev backend switch is compiled in (built with EXT_ENV=dev)',
+    },
+    {
+        id: 'dev-target-ring',
+        // The switch's TARGETS, which the rule above structurally cannot see.
+        //
+        // Those two rules look for the switch's machinery — action names the
+        // minifier drops with the guarded code. This one looks for its
+        // PAYLOAD: EXT_DEV_TARGETS names every environment the build can
+        // reach, each with a live Firebase api key, and it arrives as a JSON
+        // string literal. A string literal is data, not code, so no amount of
+        // dead-code elimination is obliged to remove it — a guard rewritten so
+        // the table is reachable from anywhere ships the whole ring while
+        // 'dev-env-switch' still passes, because the action names went away
+        // exactly as expected.
+        //
+        // What ships if this is missed is not only a leaked key. Each target's
+        // frontendBaseUrl is also written into the manifest's
+        // externally_connectable at build time, and any origin listed there can
+        // ask the extension for a signed-in user's SSO token. That is precisely
+        // how youtube 1.0.15 reached the store with preprod.lingogram.ai
+        // listed, so the check belongs here and not in a code review.
+        //
+        // Matched by SHAPE, not by environment name: the repo deliberately
+        // stores no environment's project id or host (see devEnvSwitch.ts), so
+        // a list of names here would both reintroduce them and go stale the
+        // moment a target is added.
+        //
+        // Matched on the ESCAPED spelling alone. The ring reaches the bundle
+        // as a JSON string literal, so inside the source text its keys read
+        // \"apiKey\" — backslash, quote — while the one object a shippable
+        // build legitimately carries (`config` in auth/config.ts, its own
+        // single backend) is plain `apiKey:` after minification. That single
+        // character is the whole difference between the two, and keying on it
+        // is what keeps the rule from flagging every correct build.
+        //
+        // Counting occurrences was the first attempt and was wrong twice over.
+        // A pattern written for the object form matched nothing at all inside
+        // a JSON literal; once that was fixed, a ring of ONE row still
+        // produced a single hit and slipped under a `> 1` threshold — and a
+        // build with exactly one other target is the ordinary case here, not
+        // an edge one. Both misses were found by probing the rule with a
+        // bundle that carried a ring, not by reading it.
+        test: (s) => /\\"apiKey\\"\s*:/.test(s) && /\\"frontendBaseUrl\\"\s*:/.test(s),
+        why: 'the dev backend switch\'s target table shipped — it carries every environment\'s project id, Firebase api key and origin',
     },
     {
         id: 'debug-trace-recorder',
@@ -127,7 +172,7 @@ const RULES = [
         // in a service worker that means NO listener is ever registered and the
         // extension is silently dead, with nothing shown on chrome://extensions.
         // Cost us a real regression: importing auth/devEnvSwitch into apps/web,
-        // which has no __EXT_ALT_*__ defines, disabled that whole extension.
+        // which has no __EXT_DEV_TARGETS__ define, disabled that whole extension.
         // JS only: an identifier is only dangerous where it gets evaluated.
         // CSS and HTML mention these names in comments (styles.css explains
         // that a dev-only affordance sits behind an __EXT_ENV__ literal), and

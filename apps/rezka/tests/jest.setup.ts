@@ -7,16 +7,14 @@
 (global as any).__FIRESTORE_URL__ = 'http://localhost:8080';
 (global as any).__FRONTEND_BASE_URL__ = 'http://localhost:5173';
 (global as any).__EXT_SOURCE__ = 'rezka-extension';
-// No second target in tests: the dev backend switch stays inert, which is also
+// No other target in tests: the dev backend switch stays inert, which is also
 // what a checkout with no credentials gets.
-(global as any).__EXT_ALT_PROJECT_ID__ = '';
-(global as any).__EXT_ALT_API_KEY__ = '';
-(global as any).__EXT_ALT_FRONTEND_BASE_URL__ = '';
+(global as any).__EXT_DEV_TARGETS__ = '';
+(global as any).__EXT_HOME_TARGET_NAME__ = '';
 // Lookup API. A non-empty value keeps the LOOKUP_WORD handler's "not
 // configured" early-return from short-circuiting the tests that mean to
 // exercise the real path; tests wanting the off state override config locally.
 (global as any).__EXT_API_BASE_URL__ = 'https://api.test';
-(global as any).__EXT_ALT_API_BASE_URL__ = '';
 (global as any).__LIMIT_MAX_WORDS_PER_DAY__ = 500;
 (global as any).__LIMIT_MIN_INTERVAL_MS__ = 1000;
 (global as any).__LIMIT_MAX_TERM_BYTES__ = 256;

@@ -65,26 +65,40 @@ beforeEach(() => {
 
 afterEach(() => setBackendResolver(null));
 
-describe('the backend tag distinguishes prod from preprod', () => {
+describe('the backend tag tells the switchable targets apart', () => {
     test('the resolver decides the value, verbatim', async () => {
         // Mirrors what the background scripts wire up:
-        //   setBackendResolver(() => isLiveProd() ? 'prod' : 'preprod')
-        let liveIsProd = false;
-        setBackendResolver(() => (liveIsProd ? 'prod' : 'preprod'));
+        //   setBackendResolver(() => currentSide())
+        let live = 'local';
+        setBackendResolver(() => live);
 
         await track('word_saved');
-        expect(paramsOf().backend).toBe('preprod');
+        expect(paramsOf().backend).toBe('local');
 
-        // Flipping the underlying condition — what switching sides does — must
-        // change the tag on the very next event, with no restart in between.
-        liveIsProd = true;
+        // Flipping the underlying condition — what switching targets does —
+        // must change the tag on the very next event, with no restart between.
+        live = 'prod';
         (global as any).fetch = jest.fn(async () => ({ json: async () => ({}) }));
         await track('word_saved');
         expect(paramsOf().backend).toBe('prod');
     });
 
+    test('a third target gets its own value, not a prod/not-prod bit', async () => {
+        // The regression this pins: `isLiveProd() ? 'prod' : 'preprod'` filed
+        // every local-emulator session under 'preprod', a label that reads as
+        // a real shared environment. Three targets need three values.
+        const seen: unknown[] = [];
+        for (const name of ['local', 'preprod', 'prod']) {
+            setBackendResolver(() => name);
+            (global as any).fetch = jest.fn(async () => ({ json: async () => ({}) }));
+            await track('word_saved');
+            seen.push(paramsOf().backend);
+        }
+        expect(seen).toEqual(['local', 'preprod', 'prod']);
+    });
+
     test('an edition with no switch sends no tag at all', async () => {
-        // apps/web defines no __EXT_ALT_*__ and wires no resolver: there is one
+        // apps/web defines no __EXT_DEV_TARGETS__ and wires no resolver: there is one
         // backend, so the question has no meaning and ext_env already answers it.
         await track('word_saved');
         expect(paramsOf().backend).toBeUndefined();

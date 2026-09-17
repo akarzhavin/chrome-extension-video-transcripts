@@ -8,16 +8,21 @@ import {
     setBackendResolver,
     track,
 } from '../../../../packages/shared/src/analytics-bg';
-import { isLiveProd } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
 });
 
 // Tags every event with the backend it came from. A dev build can be switched
-// between prod and preprod at runtime, so without this a preprod test session
-// is indistinguishable from one against real data in the same dev property.
-setBackendResolver(() => (isLiveProd() ? 'prod' : 'preprod'));
+// between its targets at runtime, so without this a test session against the
+// emulators is indistinguishable from one against real data in the same dev
+// property.
+//
+// The TARGET'S OWN NAME, not a prod/not-prod bit: a ring of three collapsed to
+// two labels would file every local-emulator session under 'preprod' — a value
+// that reads as real and is wrong. A prod build has one target and reports it.
+setBackendResolver(() => currentSide());
 
 installAuthBackground();
 installOnboarding('youtube', {

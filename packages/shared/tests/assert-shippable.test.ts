@@ -239,6 +239,70 @@ describe('assert-shippable', () => {
             expect(output).toContain('dev backend switch');
         });
 
+        it("refuses the backend switch's target table, even with the action names gone", () => {
+            // The case the 'dev-env-switch' rule structurally cannot catch.
+            // That rule matches DEV_GET_ENV / DEV_SET_ENV — action names the
+            // minifier removes along with the guarded code. The RING is a JSON
+            // string literal, which is data: nothing obliges a minifier to
+            // drop it, so a guard rewritten to leave the table reachable ships
+            // every environment's api key while the action names vanish
+            // exactly as expected and the older rule stays green.
+            const ring = JSON.stringify([
+                {
+                    name: 'preprod',
+                    projectId: 'lingogram-preprod',
+                    apiKey: 'AIzaFAKE',
+                    frontendBaseUrl: 'https://preprod.example/',
+                    identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
+                },
+            ]);
+            const background =
+                healthyBackground() + `\nconst R = JSON.parse(${JSON.stringify(ring)});`;
+            expect(background).not.toContain('DEV_SET_ENV');
+            expect(background).not.toContain('DEV_GET_ENV');
+
+            const { code, output } = runGate(makeBuild({ background }));
+            expect(code).toBe(1);
+            expect(output).toContain('target table');
+        });
+
+        it('sees the table through ESCAPED quotes, not just the object form', () => {
+            // The bug this pins, found by probing the rule rather than trusting
+            // it: inside a JSON string literal the keys are spelled \"apiKey\",
+            // and a pattern written for the object form (apiKey:) matches
+            // nothing. The first version of the rule passed a build carrying a
+            // full ring. Asserted on the escaped spelling ALONE so the object
+            // form cannot carry the test.
+            const escaped =
+                '\nconst R = "[{\\"projectId\\":\\"lingogram-preprod\\",'
+                + '\\"apiKey\\":\\"AIzaFAKE\\",'
+                + '\\"frontendBaseUrl\\":\\"https://preprod.example/\\"}]";';
+            expect(escaped).not.toMatch(/[^\\]"apiKey"\s*:/);
+
+            const { code, output } = runGate(
+                makeBuild({ background: healthyBackground() + escaped }),
+            );
+            expect(code).toBe(1);
+            expect(output).toContain('target table');
+        });
+
+        it('does not fire on a build carrying its own single backend', () => {
+            // A shippable build already contains one object with exactly these
+            // keys — `config` in auth/config.ts. Matching the field names alone
+            // flagged every correct build, which is how the rule was first
+            // written. What must be absent is a SECOND key next to a second
+            // project, so the one-backend shape has to stay green.
+            const soleConfig =
+                '\nconst c = { projectId: "lingogram-prod", apiKey: "AIzaPROD",'
+                + ' identityToolkitUrl: "https://identitytoolkit.googleapis.com",'
+                + ' frontendBaseUrl: "https://lingogram.ai" };';
+            const { code, output } = runGate(
+                makeBuild({ background: healthyBackground() + soleConfig }),
+            );
+            expect(output).toBe('');
+            expect(code).toBe(0);
+        });
+
         it('refuses a localhost origin', () => {
             const { code, output } = runGate(
                 makeBuild({ background: healthyBackground() + '\nconst u = "http://localhost:5173/";' }),

@@ -111,20 +111,26 @@ It sits in the header rather than inside Settings on purpose: in the settings
 panel it fell below the fold and got missed entirely, which defeats the point of
 having it.
 
-The colour follows the **data**, not which slot the build put it in:
+Each click advances a **ring** of targets and wraps around, so with three
+configured the order is `local -> preprod -> prod -> local`. The tooltip names
+the whole ring and the next stop, because a cycling button whose order you
+cannot see is one you have to discover by clicking — and every click here signs
+you out.
+
+The colour follows the **data**, not a target's name or its position:
 
 - **red** — the live production project. Real users' words and accounts.
 - **indigo** — anything else. That is where you are meant to be while testing.
 
-Either target can be production depending on how the build was configured, which
-is why the colour is derived from the project id rather than from the slot.
+Any target can be production depending on how the build was configured, which is
+why the colour is derived from the project id rather than from the label.
 
 Switching **signs you out**: an ID token only means something inside the project
 that issued it. The choice is stored in `chrome.storage.local`
 (`dev.targetEnv`) and survives the service worker being torn down and respawned,
 which Chrome does aggressively.
 
-If a build was given no second target, the bar still names the current backend
+If a build was given no other target, the bar still names the current backend
 but is inert — there is nothing to switch to.
 
 ### No credentials in the repository
@@ -135,42 +141,51 @@ The two sides are deliberately named `home`/`away` rather than `prod`/`preprod`
 so that even the environment names stay out of the checkout.
 
 The build's own target comes from the existing `EXT_FIREBASE_*` /
-`EXT_FRONTEND_BASE_URL`. The second one comes from `EXT_ALT_*`:
+`EXT_FRONTEND_BASE_URL` and is named by `EXT_HOME_TARGET_NAME`. Every other
+target arrives as one JSON array in `EXT_DEV_TARGETS`:
 
 ```sh
-cd apps/youtube
-export EXT_ENV=dev
-# what this build targets (home)
-export EXT_FIREBASE_PROJECT_ID=<project-a>
-export EXT_FIREBASE_API_KEY=<key-a>
-export EXT_FRONTEND_BASE_URL=https://<host-a>
-# the second target the switch can reach (away)
-export EXT_ALT_PROJECT_ID=<project-b>
-export EXT_ALT_API_KEY=<key-b>
-export EXT_ALT_FRONTEND_BASE_URL=https://<host-b>
-
-WRITE_UNSHIPPABLE_ZIP=1 npm run build
+EXT_HOME_TARGET_NAME=local
+EXT_DEV_TARGETS=[{"name":"preprod","projectId":"<project-b>","apiKey":"<key-b>",
+  "frontendBaseUrl":"https://<host-b>","apiBaseUrl":"https://<api-b>",
+  "identityToolkitUrl":"https://identitytoolkit.googleapis.com",
+  "secureTokenUrl":"https://securetoken.googleapis.com",
+  "firestoreUrl":"https://firestore.googleapis.com"}]
 ```
 
-Run it through `npm run build`, not bare `npx vite build`: `npm` is what sets
-`npm_package_version`, and without it the manifest is stamped with the monorepo
-root's version instead of the extension's. `WRITE_UNSHIPPABLE_ZIP=1` is needed
-because the packaging gate refuses to zip a dev build — see below. The archive
-it writes is named `<app>-v<version>-UNSHIPPABLE.zip`.
+Put both in `.env` (gitignored) and `./scripts/build-with-analytics.sh dev`
+passes them through; it prints the ring it compiled in, so a build that silently
+lost its targets is visible in the build log rather than at the badge.
 
-With no `EXT_ALT_*` set there is nothing to switch to and the bar is inert.
-That is exactly what a checkout handed no credentials gets.
+A row needs `projectId`, `apiKey` and `frontendBaseUrl`; the build fails if one
+is missing, rather than shipping a bundle whose ring quietly lost a stop. The
+three Firebase hosts are optional and default to the ones this build uses —
+which is what a second **cloud** target wants. A row naming them explicitly is
+how one dev build reaches both the local emulators and a cloud project.
+
+`EXT_DEV_TARGETS` is exported for `dev` only. A release must carry no target but
+its own: the origins would otherwise reach the manifest, which is how youtube
+1.0.15 shipped with `preprod.lingogram.ai` in `externally_connectable`.
+
+With no `EXT_DEV_TARGETS` set there is nothing to switch to and the bar is
+inert. That is exactly what a checkout handed no credentials gets.
 
 ### What switches and what does not
 
-Firestore, Identity Toolkit, and the frontend URL all switch at runtime: every
-consumer reads `config.x` at call time, and nothing caches a field at import.
+The whole `config` row switches at runtime — project, key, the three Firebase
+**hosts**, the frontend URL and the lookup gateway: every consumer reads
+`config.x` at call time, and nothing caches a field at import.
+
+The hosts are in the row deliberately. An earlier two-slot version retargeted
+only the project and left `identityToolkitUrl` pointing at `localhost:9099`, so
+a build booted against the emulators could never reach a cloud project at all.
 
 **`manifest.json` cannot switch.** `externally_connectable` and
 `host_permissions` are static, and they are what decides whether a page may talk
-to the extension at all. That is why `EXT_ALT_FRONTEND_BASE_URL` writes the
-**second origin into the manifest** at build time: without it the data plane
-switches but the sign-in handoff on the other side silently never connects.
+to the extension at all. That is why every target's `frontendBaseUrl` is written
+into the manifest at build time, and each `apiBaseUrl` into `host_permissions`:
+without them the data plane switches but the sign-in handoff on the other side
+silently never connects.
 
 Note that a locally-loaded build gets a **random extension id** from Chrome, so
 its id has to be allow-listed by whichever frontend it signs in against
@@ -182,9 +197,35 @@ reinstall unless the manifest ships a `key`.
 The guard is `__EXT_ENV__ !== 'dev'`. Vite substitutes the literal **before**
 minification, so the branch becomes unreachable and is removed wholesale: a
 production bundle carries no environment table, no keys, and no `DEV_*` action
-names. Verified by scanning every file in the build; all that remains is an
-empty `wireEnvSwitch(e){}` stub and CSS rules styling an element that is never
-created.
+names. Measured on a real prod build — zero occurrences of `preprod`,
+`DEV_SET_ENV`, `DEV_GET_ENV` or `targetEnv` in either background bundle. What
+remains is an empty `wireEnvSwitch(e){}` stub, three small functions the prod
+build genuinely calls (the backend tag and the handoff allow-list), and CSS
+rules styling an element that is never created.
+
+`HOME` itself is behind the same literal, and has to be. Built without that
+guard it stays reachable from the production branches of `currentSide()` and
+`switchableFrontendBaseUrls()`, so the minifier keeps it — correctly — and the
+bundle ships a live eight-field table with a second `apiKey:` beside the one
+`config.ts` already carries. Those two functions therefore read `config`
+directly. Same shape as the `assert-foldable` rule: a guard inside a function
+body does not fold, only a module-level constant does.
+
+None of that is trusted to hold on its own. `assert-shippable.mjs` refuses a
+release whose bundles contain the target table, under `dev-target-ring` —
+separately from the `dev-env-switch` rule, which cannot see it: that rule
+matches the `DEV_*` action names, and those are code the minifier drops, while
+the ring arrives as a **JSON string literal**, which is data nothing is obliged
+to remove. A guard rewritten so the table stays reachable ships every
+environment's api key while the action names vanish exactly as expected.
+
+The rule keys on the escaped spelling `\"apiKey\"`, which is how the keys read
+inside a JSON literal and never how the one legitimate `config` object reads
+after minification. Two earlier attempts at it were wrong — a pattern written
+for the object form matched nothing inside a JSON literal, and a
+count-based one let a **single-row** ring through under a `> 1` threshold.
+Both were found by probing the gate with a bundle that actually carried a ring,
+which is also how the three tests in `assert-shippable.test.ts` are written.
 
 **Guard on `__EXT_ENV__`, never on `isDev`** from `auth/config`. `isDev` is
 computed at runtime (`config.env === 'dev'`), so a minifier cannot prove it
