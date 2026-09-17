@@ -30,8 +30,8 @@ rest of the page is dimmed + blurred so the panel pops. It's gated on the
 literal `vtt-demo` token, so it never triggers for real users. Source:
 `startDemoMode()` / `injectPromoStyles()` in `src/content/index.ts`.
 
-Three variants: `#vtt-demo` (dual subtitles, a language-pair chip, a `✓ saved`
-word and "142 words saved" badge), `#vtt-demo-onboarding` (the spotlit language
+Three variants: `#vtt-demo` (dual subtitles, a language-pair chip, a highlighted
+saved word and "142 words saved" badge), `#vtt-demo-onboarding` (the spotlit language
 picker) and `#vtt-demo-guess` (guess/active-recall mode with masked words). All
 skip pre-roll ads before shooting.
 

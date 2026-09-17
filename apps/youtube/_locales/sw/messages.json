@@ -71,10 +71,6 @@
     "message": "Ingia ili kuhifadhi maneno",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "imehifadhiwa",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Maneno {count} yamehifadhiwa",
     "description": "Saved-words counter; {count} is the number."

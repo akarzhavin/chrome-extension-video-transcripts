@@ -219,10 +219,20 @@ function cueIndexOf(scope: Element): number {
     return attr === null || attr === undefined ? NaN : parseInt(attr, 10);
 }
 
-// ── "✓ saved" marker ──────────────────────────────────────────────────────
+// ── saved-word highlight ──────────────────────────────────────────────────
 // After a word is saved we tag it inline in the transcript so the action has
-// visible feedback (until the list next re-renders). Same classes are reused by
+// visible feedback (until the list next re-renders). Same class is reused by
 // the promo demo so the screenshots reflect a real feature.
+//
+// This is NOT the standing mark on words already in the dictionary — that is
+// `vtt-saved-mark`, fed by the mirror (transcript/saved-marks.ts). This one is
+// momentary and consults nothing, which is what the promo path needs.
+//
+// A "✓ saved" pill used to sit beside the highlight. It was the fourth voice
+// saying one thing — the card's heart fills and its label turns to Remove, a
+// toast names the word, the word itself lights up — and being inline-block it
+// shoved the neighbouring words sideways the moment it appeared, inside a line
+// the reader is mid-sentence on.
 function injectSavedWordStyles(): void {
     if (document.getElementById('lingogram-saved-style')) return;
     const style = document.createElement('style');
@@ -236,19 +246,6 @@ function injectSavedWordStyles(): void {
             border-radius: 4px; padding: 0 2px;
             background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
             box-shadow: inset 0 -2px 0 var(--vtt-accent, #7c8dff);
-        }
-        .vtt-saved-badge {
-            /* inline-block so the margin actually separates it from the word:
-               as a plain inline the badge butted straight against the last
-               glyph ("teeming✓ saved"), because the word spans carry no
-               trailing whitespace of their own. */
-            display: inline-block;
-            margin: 0 4px 0 7px; padding: 1px 7px; border-radius: 999px;
-            font-size: 10px; font-weight: 700; vertical-align: middle;
-            white-space: nowrap;
-            color: var(--vtt-success-text, #6ee7b7);
-            background: var(--vtt-success-quiet, rgba(52,211,153,0.16));
-            border: 1px solid var(--vtt-success-border, rgba(52,211,153,0.4));
         }
     `;
     (document.head ?? document.documentElement).appendChild(style);
@@ -271,16 +268,10 @@ export function selectionWordSpans(): HTMLElement[] {
     );
 }
 
-/** Tag the given word spans as saved (highlight + a single "✓ saved" badge). */
+/** Tag the given word spans as saved (highlight only — see the note above). */
 export function markSpansSaved(spans: HTMLElement[]): void {
     if (!spans.length) return;
     spans.forEach((s) => s.classList.add('vtt-saved-word'));
-    const last = spans[spans.length - 1];
-    if (last.nextElementSibling?.classList.contains('vtt-saved-badge')) return;
-    const badge = document.createElement('span');
-    badge.className = 'vtt-saved-badge';
-    badge.textContent = `✓ ${i18nMsg('ytSavedBadge', 'saved')}`;
-    last.insertAdjacentElement('afterend', badge);
 }
 
 function showToast(text: string, ok: boolean): void {
@@ -792,9 +783,6 @@ export function installFocusSync(): () => void {
 export function clearSpansSaved(spans: HTMLElement[]): void {
     if (!spans.length) return;
     spans.forEach((s) => s.classList.remove('vtt-saved-word'));
-    const last = spans[spans.length - 1];
-    const badge = last.nextElementSibling;
-    if (badge?.classList.contains('vtt-saved-badge')) badge.remove();
 }
 
 // Re-exported under this name because lookup/word-screen.ts imports it from

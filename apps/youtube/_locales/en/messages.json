@@ -79,10 +79,6 @@
     "message": "Sign in to save words",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "saved",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytRateButton": {
     "message": "Rate it",
     "description": "Primary button on the rating prompt; opens the extension's Web Store review page."

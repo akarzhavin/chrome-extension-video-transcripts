@@ -71,10 +71,6 @@
     "message": "Mag-sign in para i-save ang mga salita",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "naka-save",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} salita ang naka-save",
     "description": "Saved-words counter; {count} is the number."

@@ -395,10 +395,6 @@
     "message": "Не надіслалося. Ще раз?",
     "description": "Error shown when sending the feedback failed; the user can retry."
   },
-  "ytSavedBadge": {
-    "message": "збережено",
-    "description": "Inline badge appended to a word right after it is saved."
-  },
   "ytSignInToSave": {
     "message": "Увійди, щоб зберігати слова",
     "description": "Prompt on the sidebar auth badge for signed-out users."

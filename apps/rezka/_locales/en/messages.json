@@ -395,10 +395,6 @@
     "message": "Couldn't send. Try again?",
     "description": "Error shown when sending the feedback failed; the user can retry."
   },
-  "ytSavedBadge": {
-    "message": "saved",
-    "description": "Inline badge appended to a word right after it is saved."
-  },
   "ytSignInToSave": {
     "message": "Sign in to save words",
     "description": "Prompt on the sidebar auth badge for signed-out users."

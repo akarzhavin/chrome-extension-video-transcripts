@@ -71,10 +71,6 @@
     "message": "Sign in to save words",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "saved",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} words saved",
     "description": "Saved-words counter; {count} is the number."

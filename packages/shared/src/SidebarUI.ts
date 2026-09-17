@@ -44,6 +44,13 @@ import {
     fillMaskedWordsInto,
     fillPlainWordsInto,
 } from './transcript/word-markup';
+import {
+    isSaved,
+    markSavedIn,
+    markSavedSpan,
+    onSavedWordsChanged,
+    startSavedMarks,
+} from './transcript/saved-marks';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
@@ -193,6 +200,34 @@ export class SidebarUI {
         this.app = app;
         this.elements = {};
         this.wordScreen = wordScreen?.(this.wordScreenHost());
+        // Which words the learner already owns, for the whole page. Seeded from
+        // the mirror and kept in step with it; on a host without extension
+        // storage (the embed) both halves no-op and nothing is ever marked.
+        this.stopSavedMarks = startSavedMarks();
+        // A line already on screen has to gain or lose its mark when the
+        // dictionary changes, and a rebuild will not do it: the overlay only
+        // rebuilds when its content signature changes, and "which words are
+        // saved" is deliberately not in that signature — putting it there would
+        // rebuild the caption under an open lookup card.
+        this.offSavedWords = onSavedWordsChanged(() => this.repaintSavedMarks());
+    }
+
+    private stopSavedMarks?: () => void;
+    private offSavedWords?: () => void;
+
+    /**
+     * Re-decide the mark on every word currently rendered.
+     *
+     * Both surfaces, because both show words: the transcript list and the
+     * on-video overlay. Cheap enough to run on a dictionary change — it is one
+     * `querySelectorAll` and a `classList.toggle` per word, on at most the
+     * lines that exist right now, and it happens when the learner saves or
+     * removes a word, not on a timer.
+     */
+    private repaintSavedMarks(): void {
+        if (this.elements.list) markSavedIn(this.elements.list);
+        const overlay = document.getElementById('vtt-video-overlay');
+        if (overlay) markSavedIn(overlay);
     }
 
     /**
@@ -1801,6 +1836,12 @@ export class SidebarUI {
         // first host to both remount AND want a word screen would leak a
         // listener per remount with nothing in the code saying it should not.
         this.wordScreen?.dispose();
+        // Same class of binding as the word screen's: a chrome.storage listener
+        // that removing the DOM does not undo.
+        this.offSavedWords?.();
+        this.offSavedWords = undefined;
+        this.stopSavedMarks?.();
+        this.stopSavedMarks = undefined;
         this.elements.sidebar?.remove();
         // The toggle tab is BORN inside the sidebar but a host may re-parent it
         // (packages/embed moves it onto its own tab slot, and fullscreen moves
@@ -2088,7 +2129,8 @@ export class SidebarUI {
         // order too; without one this stays the plain prefix render, which is
         // what the two-argument callers (and their tests) mean by it.
         fillMaskedWordsInto(container, text, revealedCount,
-            index === undefined ? undefined : (ti) => this.state.isWordRevealed(index, ti));
+            index === undefined ? undefined : (ti) => this.state.isWordRevealed(index, ti),
+            isSaved);
         return container;
     }
 
@@ -2122,6 +2164,13 @@ export class SidebarUI {
                 // Only this transition animates: the pane clearing is the
                 // reveal. Words already out must not re-focus on every repaint.
                 span.className = 'vtt-revealed-word vtt-just-revealed';
+                // A word coming out of the mask earns its saved mark at this
+                // moment, and it has to be re-applied by hand: the line above
+                // replaces className wholesale, so a mark set when the span was
+                // built would be wiped here. (The re-masking branch below sets
+                // className the same way, which is how a word going back under
+                // the pane loses the mark — there, that is the correct result.)
+                markSavedSpan(span, word);
                 // A word that is out is ordinary text again, so it drops the
                 // no-translate guard the mask put on it.
                 span.translate = true;
@@ -2338,7 +2387,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        fillPlainWordsInto(mainText, sub.text);
+        fillPlainWordsInto(mainText, sub.text, isSaved);
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
@@ -3090,7 +3139,7 @@ export class SidebarUI {
     private buildPreviewMain(sub: Subtitle): HTMLDivElement {
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
-        fillPlainWordsInto(mainDiv, sub.text);
+        fillPlainWordsInto(mainDiv, sub.text, isSaved);
         return mainDiv;
     }
 
@@ -3100,9 +3149,9 @@ export class SidebarUI {
         mainDiv.dataset.index = String(index);
         if (this.state.displayMode === 'guess') {
             fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index),
-                (ti) => this.state.isWordRevealed(index, ti));
+                (ti) => this.state.isWordRevealed(index, ti), isSaved);
         } else {
-            fillPlainWordsInto(mainDiv, sub.text);
+            fillPlainWordsInto(mainDiv, sub.text, isSaved);
         }
         return mainDiv;
     }

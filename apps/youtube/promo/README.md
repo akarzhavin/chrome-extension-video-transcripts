@@ -116,7 +116,7 @@ canned content, no network → can't be rate-limited), captured at 2×
 (2560×1600 PNG) so they stay sharp when scaled/cropped:
 - `slide1`/`slide2`/`slide4` → `live-demo-en.png` (`#vtt-demo`): dual subtitles,
   an `ES ⇄ EN` chip in the header, the labelled mode row (`Dual` selected,
-  `On-screen` toggled on), a `✓ saved` word, "142 words saved", and the
+  `On-screen` toggled on), a highlighted saved word, "142 words saved", and the
   on-video overlay (slide4 crops the player region).
 - `slide3` → `live-demo-guess-en.png` (`#vtt-demo-guess`): guess (active-recall)
   mode with masked words.

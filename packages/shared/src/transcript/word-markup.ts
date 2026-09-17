@@ -9,6 +9,17 @@
 // quick-add's `span[data-word]` query, the guess-mode reveal order and the
 // stylesheet all key on them.
 import { tokenizeForGuess, isMaskableToken } from '../guess-tokenize';
+import { SAVED_MARK_CLASS } from './saved-marks';
+
+/**
+ * Answers "is this word in the learner's dictionary" for one token.
+ *
+ * Passed in rather than imported so these functions stay what their header
+ * says they are — pure, hostless, driven only by their arguments. The caller
+ * (SidebarUI) hands over the page-wide view from `saved-marks`; the tests hand
+ * over a literal.
+ */
+export type IsSavedTerm = (term: string) => boolean;
 
 // What sits under the frosted pane: the word itself, painted transparent.
 // Its only job is to give the pane a width, and the word is the one string
@@ -41,6 +52,7 @@ export function fillMaskedWordsInto(
     text: string,
     revealedCount: number,
     isRevealed?: (tokenIndex: number) => boolean,
+    isSavedTerm?: IsSavedTerm,
 ): void {
     const { tokens, sep } = tokenizeForGuess(text);
     const spaced = sep === ' ';
@@ -75,12 +87,21 @@ export function fillMaskedWordsInto(
             container.appendChild(plain);
             return;
         }
-        const span = makeMaskedSpan(word, revealed(m), maskGlyphs(word, spaced));
+        const isOut = revealed(m);
+        const span = makeMaskedSpan(word, isOut, maskGlyphs(word, spaced));
         // The token's own index, so a click can name the word it landed on
         // rather than inferring one from the reveal count. Stamped on every
         // word, revealed or not: updateGuessItem patches spans in place and a
         // word that comes out must not lose its identity on the way.
         span.dataset.ti = String(m);
+        // The saved mark goes on REVEALED words only. On a capsule it would be
+        // a hint — "you have studied this one" narrows the guess this mode
+        // exists to pose — so a hidden word renders identically whether or not
+        // it is in the learner's dictionary. Keyed off `revealed(m)`, not off
+        // `m < revealedCount`: once words can be opened out of order the count
+        // no longer says which ones are out, and a mark placed by the count
+        // would appear on a capsule the moment any earlier word was picked.
+        if (isOut && isSavedTerm?.(word)) span.classList.add(SAVED_MARK_CLASS);
         if (m === lit) span.classList.add('vtt-next-word');
         container.appendChild(span);
         m++;
@@ -116,13 +137,22 @@ export function makeMaskedSpan(word: string, revealed: boolean, maskText: string
 // Non-guess subtitles still wrap each word in a span carrying data-word
 // so the quick-add selection can snap to whole-word boundaries. Inline
 // spans without a class read identically to the previous text node.
-export function fillPlainWordsInto(container: HTMLElement, text: string): void {
+export function fillPlainWordsInto(
+    container: HTMLElement,
+    text: string,
+    isSavedTerm?: IsSavedTerm,
+): void {
     const { tokens, sep } = tokenizeForGuess(text);
     tokens.forEach((word, i) => {
         if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
         const span = document.createElement('span');
         span.dataset.word = word;
         span.textContent = word;
+        // A class, never a node: the mark is drawn by ::after outside the
+        // span's box, so a line gains and loses it without a single word
+        // moving. The badge this replaced was an inserted element, and it
+        // shoved the rest of the line sideways every time it appeared.
+        if (isSavedTerm?.(word)) span.classList.add(SAVED_MARK_CLASS);
         container.appendChild(span);
     });
 }
