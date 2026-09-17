@@ -335,4 +335,63 @@ describe('the session epoch the MAIN world stamps against', () => {
         const { recorder } = makeRecorder();
         expect(recorder.sessionStartedAt()).toBe(1_000_000);
     });
+
+    /**
+     * Opening a session tells whoever has to relay the epoch.
+     *
+     * The MAIN world learns the epoch only when the isolated world posts it,
+     * and sessions open from four places — hydrate, the prefs toggle, and two
+     * navigation paths in index.ts that have no reference to the announcement
+     * at all. The hook is what makes the epoch a property of opening a session
+     * rather than something each call site has to remember.
+     */
+    describe('opening a session notifies the epoch relay', () => {
+        function withHook(clock: () => number) {
+            const starts: number[] = [];
+            const timers = fakeTimers();
+            const recorder = new TraceRecorder({
+                storage: fakeStorage(),
+                now: clock,
+                setTimer: timers.setTimer,
+                clearTimer: timers.clearTimer,
+                onSessionStart: () => starts.push(recorder.sessionStartedAt()),
+            });
+            recorder.setEnabled(true);
+            return { recorder, starts };
+        }
+
+        test('a new video fires it with that video’s epoch', () => {
+            let t = 1_000_000;
+            const { recorder, starts } = withHook(() => t);
+
+            recorder.startSession('first', 'u1');
+            t += 30_000;
+            recorder.startSession('second', 'u2');
+
+            // Both epochs, in order — and the second is the NEW session's
+            // start, not the one the MAIN world was still stamping against.
+            expect(starts).toEqual([1_000_000, 1_030_000]);
+            expect(starts[1]).toBe(recorder.sessions()[1].startedAt);
+        });
+
+        test('re-opening the same video does not fire it, because the epoch did not move', () => {
+            let t = 1_000_000;
+            const { recorder, starts } = withHook(() => t);
+
+            recorder.startSession('same', 'u');
+            t += 5_000;
+            recorder.startSession('same', 'u'); // a "Search again", not a navigation
+
+            expect(starts).toEqual([1_000_000]);
+        });
+
+        test('it does not fire while the recorder is off, because no session opened', () => {
+            const { recorder, starts } = withHook(() => 1_000_000);
+            recorder.setEnabled(false);
+
+            recorder.startSession('abc', 'u');
+
+            expect(starts).toEqual([]);
+        });
+    });
 });

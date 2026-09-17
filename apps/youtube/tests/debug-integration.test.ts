@@ -52,7 +52,18 @@ function memoryStorage(): StorageLike & { data: Record<string, unknown> } {
  * The MAIN sink posts batches; the recorder ingests them. Timers are driven by
  * hand so the whole exchange is synchronous and assertable.
  */
-function wireWorlds(storage = memoryStorage()) {
+function wireWorlds(
+    opts: {
+        storage?: ReturnType<typeof memoryStorage>;
+        /**
+         * Wire the session-start hook to the MAIN sink, the way debug-mode.ts
+         * wires it to its `announce()`. Off by default so the tests written
+         * before the hook existed keep driving `setState` by hand.
+         */
+        announceOnSessionStart?: boolean;
+    } = {},
+) {
+    const storage = opts.storage ?? memoryStorage();
     let clock = 1_000_000;
     const timers: Array<() => void> = [];
     const recorder = new TraceRecorder({
@@ -63,6 +74,9 @@ function wireWorlds(storage = memoryStorage()) {
             return timers.length;
         },
         clearTimer: () => {},
+        onSessionStart: opts.announceOnSessionStart
+            ? () => main.setState(recorder.isEnabled(), recorder.sessionStartedAt())
+            : undefined,
     });
     recorder.setEnabled(true);
 
@@ -178,7 +192,7 @@ describe('a throttled video, end to end', () => {
 
     test('the sequence survives a reload, which is when it is actually read', async () => {
         const storage = memoryStorage();
-        const first = wireWorlds(storage);
+        const first = wireWorlds({ storage });
         first.recorder.startSession('abc', 'https://www.youtube.com/watch?v=abc');
         first.recorder.record({ ev: 'decision', decision: 'load', isShorts: false, collapsed: false });
         first.recorder.record({ ev: 'verdict', kind: 'no-subtitles', failure: 'stale-url', trackCount: 0 });
@@ -186,7 +200,7 @@ describe('a throttled video, end to end', () => {
 
         // The page reloads — the user's first instinct when subtitles do not
         // appear, and the moment an in-memory buffer would be lost.
-        const second = wireWorlds(storage);
+        const second = wireWorlds({ storage });
         await second.recorder.hydrate();
 
         const revived = second.recorder.sessions()[0];
@@ -311,5 +325,56 @@ describe('the two worlds land on one timeline', () => {
         const events = w.recorder.sessions()[0].events as StampedEvent[];
         expect(events.map((e) => e.t)).toEqual([100, 200, 300]);
         expect(events.map((e) => e.w)).toEqual(['iso', 'main', 'iso']);
+    });
+
+    /**
+     * ...and they stay on one timeline across an SPA navigation.
+     *
+     * This is the case the wiring above cannot reach by hand: on YouTube the
+     * second video never reloads the page, so the MAIN world keeps whatever
+     * epoch it was last told. index.ts opens the new session and knows nothing
+     * about the announcement, so without the recorder's session-start hook the
+     * MAIN world went on subtracting the FIRST video's start — stamping its
+     * events minutes into the future — and `merge()`'s sort then filed them
+     * after a verdict that had already been reached.
+     *
+     * Note what makes the bug so quiet: every event is still present and every
+     * number still looks plausible. Only the ORDER is wrong, which is the one
+     * thing the trace exists to establish.
+     */
+    test('a navigation re-announces the epoch, so the second video is not stamped against the first', () => {
+        // The isolated world's real wiring: the announcement is a consequence
+        // of a session opening, exactly as debug-mode.ts arranges it.
+        const w = wireWorlds({ announceOnSessionStart: true });
+
+        w.recorder.startSession('first', 'u1');
+        w.advance(100);
+        w.main.record({ ev: 'attempt', key: 'k', attempt: 1, url: 'https://first', potPresent: false });
+        w.main.flush();
+        w.runTimers();
+
+        // Four minutes of the first video, then the user clicks the next one.
+        w.advance(240_000);
+        w.recorder.startSession('second', 'u2');
+
+        w.advance(100);
+        w.recorder.record({ ev: 'decision', decision: 'load', isShorts: false, collapsed: false });
+        w.advance(100);
+        w.main.record({ ev: 'attempt', key: 'k', attempt: 1, url: 'https://second', potPresent: false });
+        w.advance(100);
+        w.recorder.record({ ev: 'verdict', kind: 'loaded', trackCount: 1 });
+        w.main.flush();
+        w.runTimers();
+
+        const second = w.recorder.sessions()[1].events as StampedEvent[];
+
+        // Stamped against the SECOND session: a MAIN event 200ms in, not
+        // 240200ms in.
+        expect(second.map((e) => e.t)).toEqual([100, 200, 300]);
+        expect(second.map((e) => e.w)).toEqual(['iso', 'main', 'iso']);
+
+        // And the order is the order things happened: the fetch attempt comes
+        // before the verdict it produced.
+        expect(second.map((e) => e.ev)).toEqual(['decision', 'attempt', 'verdict']);
     });
 });

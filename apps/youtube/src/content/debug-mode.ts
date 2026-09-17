@@ -44,17 +44,24 @@ export function installDebugMode(app: BaseVttApp): void {
     const storage = chromeStorage();
     if (!storage) return; // not an extension context (tests, embed)
 
-    const rec = new TraceRecorder({ storage });
-    recorder = rec;
-
     // Tell the MAIN world whether to record, and which epoch to stamp against.
     // It cannot read storage itself — it has no chrome.* at all.
-    const announce = (): void => {
+    //
+    // A hoisted declaration, not a const: the recorder is handed this as its
+    // session-start hook below, and the hook has to exist before the recorder
+    // that calls it is constructed.
+    function announce(): void {
         window.postMessage(
             { type: DEBUG_STATE, on: rec.isEnabled(), startedAt: rec.sessionStartedAt() },
             '*',
         );
-    };
+    }
+
+    // `onSessionStart` is what keeps the MAIN world's epoch current across an
+    // SPA navigation: index.ts opens sessions on a video change and has no
+    // reference to this world's announcement. See RecorderDeps.
+    const rec = new TraceRecorder({ storage, onSessionStart: () => announce() });
+    recorder = rec;
 
     // The MAIN world says hello at document_start and again after an extension
     // reload, which is the case that matters: a reload orphans this world and

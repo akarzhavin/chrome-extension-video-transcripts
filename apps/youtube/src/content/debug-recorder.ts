@@ -49,6 +49,22 @@ export interface RecorderDeps {
     setTimer?: (fn: () => void, ms: number) => number;
     clearTimer?: (id: number) => void;
     flushDebounceMs?: number;
+    /**
+     * Called whenever a NEW session actually opens.
+     *
+     * The MAIN world stamps its events as an offset from the open session's
+     * start, and it only learns that epoch when the isolated world tells it.
+     * Sessions open from four places — hydrate, the prefs toggle, and two SPA
+     * navigation paths in index.ts — and only the first two sat next to the
+     * announcement. So a navigation left the MAIN world stamping against the
+     * previous video's epoch, and `merge()`'s sort then interleaved the two
+     * worlds by numbers measured from different zeroes.
+     *
+     * A callback here rather than an `announce()` at each call site because the
+     * requirement is "the epoch is never stale", and that is a property of
+     * opening a session, not a courtesy each caller has to remember.
+     */
+    onSessionStart?: () => void;
 }
 
 /**
@@ -67,6 +83,7 @@ export class TraceRecorder {
     private readonly setTimer: (fn: () => void, ms: number) => number;
     private readonly clearTimer: (id: number) => void;
     private readonly debounceMs: number;
+    private readonly onSessionStart: () => void;
     /** Counts writes refused by the quota, surfaced in the report rather than swallowed. */
     private quotaFailures = 0;
 
@@ -76,6 +93,7 @@ export class TraceRecorder {
         this.setTimer = deps.setTimer ?? ((fn, ms) => setTimeout(fn, ms) as unknown as number);
         this.clearTimer = deps.clearTimer ?? ((id) => clearTimeout(id));
         this.debounceMs = deps.flushDebounceMs ?? FLUSH_DEBOUNCE_MS;
+        this.onSessionStart = deps.onSessionStart ?? (() => {});
         this.trace = new DebugTrace(this.now);
     }
 
@@ -94,8 +112,14 @@ export class TraceRecorder {
 
     startSession(videoId: string, url: string): void {
         if (!this.enabled) return;
+        const before = this.trace.current();
         this.trace.startSession(videoId, url);
+        const after = this.trace.current();
         this.scheduleFlush();
+        // Only when the epoch actually moved. Re-opening the same video is a
+        // no-op in the trace, and announcing anyway would post a message per
+        // "Search again" for an epoch that never changed.
+        if (after && after !== before) this.onSessionStart();
     }
 
     record(e: TraceEvent): void {
