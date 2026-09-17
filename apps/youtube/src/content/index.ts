@@ -30,7 +30,6 @@ import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
 import { decideCaptionSearch, isStaleResult } from './nav-guards';
 import { installDebugMode, traceRecorder } from './debug-mode';
-import { downloadTrace, traceReportText } from './debug-ui';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -123,43 +122,6 @@ class YouTubeVttApp extends BaseVttApp {
 
     reprocessCurrentVideo(opts?: ReprocessOptions): void {
         this.detector.reprocessCurrentVideo(opts);
-    }
-
-    /**
-     * The diagnostics recorder's three actions, for the settings panel.
-     *
-     * Null in production twice over: `__EXT_ENV__` folds this body to a
-     * `return null` the minifier keeps, and `traceRecorder()` is provably null
-     * there anyway (see debug-mode.ts). The sidebar renders no rows for null.
-     *
-     * Plain closures rather than the recorder itself — packages/shared must not
-     * gain a type from an app package, and this way the panel can reach exactly
-     * these three verbs and nothing else on the recorder.
-     */
-    traceActions(): {
-        sessions(): number;
-        download(): void;
-        copy(): Promise<boolean>;
-        clear(): Promise<void>;
-    } | null {
-        if (__EXT_ENV__ !== 'dev') return null;
-        const rec = traceRecorder();
-        if (!rec) return null;
-        return {
-            sessions: () => rec.sessions().length,
-            download: () => {
-                void rec.flush();
-                downloadTrace(rec);
-            },
-            copy: () => navigator.clipboard
-                ?.writeText(traceReportText(rec))
-                .then(() => true)
-                // writeText rejects on a page without focus, and there is
-                // nothing to do about it here — report it rather than
-                // appearing to succeed.
-                .catch(() => false) ?? Promise.resolve(false),
-            clear: () => rec.clear(),
-        };
     }
 
     getOverlayParent(): HTMLElement | null {

@@ -97,6 +97,7 @@ export interface ReprocessOptions {
  * "this video has no subtitles" verdict this whole branch exists to remove.
  */
 import { traceRecorder } from './debug-mode';
+import { downloadTrace, traceReportText } from './debug-ui';
 
 export const STALLED_REQUEST_MS = 12_000;
 
@@ -1451,6 +1452,50 @@ export abstract class BaseVttApp implements AppInterface {
      * observed to hold for hours, so "usually clears in a minute" was a lie
      * the user caught us in. Say what is known — it varies — and no more.
      */
+    /**
+     * The diagnostics recorder's three actions, for the settings panel.
+     *
+     * On the BASE class, not on the YouTube subclass, because the recorder is
+     * not a YouTube feature: bootstrap() calls installDebugMode(app) for
+     * whichever app it built, so a Netflix session records exactly the same
+     * way. Putting this on YouTubeVttApp shipped a settings panel with no
+     * controls on Netflix — the switch was there, the rows it promises were
+     * not, and nothing said why.
+     *
+     * Null in production twice over: `__EXT_ENV__` folds this body to a
+     * `return null` the minifier keeps, and `traceRecorder()` is provably null
+     * there anyway (see debug-mode.ts). The sidebar renders no rows for null.
+     *
+     * Plain closures rather than the recorder itself — packages/shared must not
+     * gain a type from an app package, and this way the panel can reach exactly
+     * these three verbs and nothing else on the recorder.
+     */
+    traceActions(): {
+        sessions(): number;
+        download(): void;
+        copy(): Promise<boolean>;
+        clear(): Promise<void>;
+    } | null {
+        if (__EXT_ENV__ !== 'dev') return null;
+        const rec = traceRecorder();
+        if (!rec) return null;
+        return {
+            sessions: () => rec.sessions().length,
+            download: () => {
+                void rec.flush();
+                downloadTrace(rec);
+            },
+            copy: () => navigator.clipboard
+                ?.writeText(traceReportText(rec))
+                .then(() => true)
+                // writeText rejects on a page without focus, and there is
+                // nothing to do about it here — report it rather than
+                // appearing to succeed.
+                .catch(() => false) ?? Promise.resolve(false),
+            clear: () => rec.clear(),
+        };
+    }
+
     missingTrackHint(): string | null {
         if (this.trackFailures.size === 0) return null;
         const failed = this.dominantFailure();
