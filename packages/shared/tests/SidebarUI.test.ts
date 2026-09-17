@@ -77,13 +77,25 @@ describe('SidebarUI', () => {
     // unreachable teardown is indistinguishable from an absent one, and the
     // first host to both remount and want a word screen would leak a listener
     // per remount with nothing in the code saying it should not.
-    test('destroy() unsubscribes the word screen from the mirror', () => {
-        const before = (chrome.storage.onChanged.removeListener as jest.Mock).mock.calls.length;
+    //
+    // TWO such bindings exist now: the word screen's, and the saved-word marks'
+    // (transcript/saved-marks), which keeps `vtt-saved-mark` in step with the
+    // same mirror. The assertion below names each listener it expects to be
+    // handed back rather than counting the calls — a count says "one more than
+    // before", which stays true if a future subscriber is added and the wrong
+    // one is released.
+    test('destroy() unsubscribes from the mirror everything it subscribed', () => {
+        const added = (chrome.storage.onChanged.addListener as jest.Mock).mock.calls
+            .map((c) => c[0]);
+        expect(added.length).toBeGreaterThanOrEqual(2);
 
         ui.destroy();
 
-        expect((chrome.storage.onChanged.removeListener as jest.Mock).mock.calls.length)
-            .toBe(before + 1);
+        const removed = (chrome.storage.onChanged.removeListener as jest.Mock).mock.calls
+            .map((c) => c[0]);
+        for (const listener of added) {
+            expect(removed).toContain(listener);
+        }
     });
 
     test('destroy() is safe on a sidebar built without a word screen', () => {
