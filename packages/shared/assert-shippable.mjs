@@ -72,7 +72,11 @@ function collect(dir) {
  *
  * `vtt-debug-panel` was one of these until the recorder's actions moved out of
  * a floating panel and into the settings list; `vtt-trace-row` is the class
- * those rows carry, and it guards the same thing in the same way.
+ * they carry, and it guards the same thing in the same way. `vtt-trace-rows` is
+ * the id of the container holding them inside the switch's row — listed even
+ * though the gate matches substrings and `vtt-trace-row` already covers it,
+ * because the source-side scanner (assert-foldable.mjs) compares NAMES against
+ * this list and would otherwise call it an unknown marker.
  */
 export const DEBUG_TRACE_MARKERS = [
     'LG_TRACE_HELLO',
@@ -81,6 +85,7 @@ export const DEBUG_TRACE_MARKERS = [
     'debug.trace.v1',
     'vtt-debug-toggle',
     'vtt-trace-row',
+    'vtt-trace-rows',
 ];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the

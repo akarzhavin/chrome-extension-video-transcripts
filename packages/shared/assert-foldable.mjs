@@ -154,8 +154,8 @@ const fail = (why) => findings.push(why);
         const src = read(rel);
         if (!src) continue;
         // The shapes the feature's names take: the wire protocol, and the DOM
-        // names — `vtt-debug-*` for the recorder's own ids, `vtt-trace-row` for
-        // the settings rows its actions live on. Deliberately narrow: a broad
+        // names — `vtt-debug-*` for the recorder's own ids, `vtt-trace-*` for
+        // the settings row its actions live on. Deliberately narrow: a broad
         // pattern would sweep up unrelated identifiers and make this cry wolf.
         //
         // The boundary is a quote OR a space, not a quote alone. A CSS class is
@@ -163,11 +163,17 @@ const fail = (why) => findings.push(why);
         // quote-anchored pattern silently sees nothing there, which is this
         // gate's own failure mode rather than a finding.
         //
-        // `vtt-trace-row` carries no trailing wildcard on purpose: the modifier
-        // `vtt-trace-row--danger` contains it, so one entry covers both, while
-        // `[a-z-]*` would report the modifier as a separate unknown marker.
+        // `vtt-trace-*` carries a wildcard, like `vtt-debug-*` beside it. It
+        // once did not: a `vtt-trace-row--danger` modifier would have been
+        // reported as a second unknown marker, so the entry was written exact.
+        // That modifier is gone, and the exact form then missed the very thing
+        // this gate exists to catch — the actions moved into one row and grew
+        // a container id, `vtt-trace-rows`, which the pattern could not see
+        // because of the trailing `s`. A gate that reads a sample of the
+        // feature and reports on the sample is the failure mode being guarded
+        // against here, so the pattern matches the family, not one member.
         for (const m of src.matchAll(
-            /['"`\s](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|vtt-trace-row|debug\.trace\.v\d+)['"`\s]/g,
+            /['"`\s](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|vtt-trace-[a-z-]+|debug\.trace\.v\d+)['"`\s]/g,
         )) {
             found.add(m[1]);
         }
