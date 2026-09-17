@@ -71,10 +71,6 @@
     "message": "היכנסו כדי לשמור מילים",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "נשמר",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} מילים נשמרו",
     "description": "Saved-words counter; {count} is the number."

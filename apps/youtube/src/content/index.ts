@@ -388,8 +388,7 @@ class YouTubeVttApp extends BaseVttApp {
                 .filter((s) => (s.textContent || '').trim().length > 1)
                 .sort((a, b) => (b.textContent || '').length - (a.textContent || '').length)[0];
             // Clear any prior marker first so repeated decorate runs (and mode
-            // switches) never stack duplicate "saved" badges.
-            document.querySelectorAll('#vtt-list .vtt-saved-badge').forEach((b) => b.remove());
+            // switches) leave the highlight on one word only.
             document.querySelectorAll('#vtt-list .vtt-saved-word').forEach((s) => s.classList.remove('vtt-saved-word'));
             if (word) markSpansSaved([word as HTMLElement]);
             // Show the dual-subtitle overlay on the video for the same line.

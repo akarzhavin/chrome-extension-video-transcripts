@@ -71,10 +71,6 @@
     "message": "Prisijunkite, kad išsaugotumėte žodžius",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "išsaugota",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Išsaugota žodžių: {count}",
     "description": "Saved-words counter; {count} is the number."

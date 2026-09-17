@@ -71,10 +71,6 @@
     "message": "Prijavite se za spremanje riječi",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "spremljeno",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Spremljeno riječi: {count}",
     "description": "Saved-words counter; {count} is the number."

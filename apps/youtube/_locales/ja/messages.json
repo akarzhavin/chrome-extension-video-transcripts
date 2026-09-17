@@ -71,10 +71,6 @@
     "message": "ログインして単語を保存",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "保存済み",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count}個の単語を保存しました",
     "description": "Saved-words counter; {count} is the number."

@@ -71,10 +71,6 @@
     "message": "शब्द सहेजने के लिए साइन इन करें",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "सहेजा गया",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} शब्द सहेजे गए",
     "description": "Saved-words counter; {count} is the number."

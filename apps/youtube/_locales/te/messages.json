@@ -71,10 +71,6 @@
     "message": "పదాలను సేవ్ చేయడానికి సైన్ ఇన్ చేయండి",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "సేవ్ చేయబడింది",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} పదాలు సేవ్ చేయబడ్డాయి",
     "description": "Saved-words counter; {count} is the number."

@@ -71,10 +71,6 @@
     "message": "Prijavite se za shranjevanje besed",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "shranjeno",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Shranjenih besed: {count}",
     "description": "Saved-words counter; {count} is the number."

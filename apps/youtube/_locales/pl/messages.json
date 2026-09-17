@@ -71,10 +71,6 @@
     "message": "Zaloguj się, aby zapisać słowa",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "zapisano",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Zapisano słów: {count}",
     "description": "Saved-words counter; {count} is the number."

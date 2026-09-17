@@ -71,10 +71,6 @@
     "message": "শব্দ সংরক্ষণ করতে সাইন ইন করুন",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "সংরক্ষিত",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} শব্দ সংরক্ষিত",
     "description": "Saved-words counter; {count} is the number."

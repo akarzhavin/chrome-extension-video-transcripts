@@ -530,15 +530,7 @@ async function confirmSaveWord(lineIndex, wordText) {
         const item = document.querySelector(`#vtt-list .vtt-item[data-index="${lineIndex}"]`);
         const span = item && Array.from(item.querySelectorAll('.vtt-main-text span[data-word]'))
             .find((s) => (s.dataset.word || '').toLowerCase() === wordText.toLowerCase());
-        if (span) {
-            span.classList.add('vtt-saved-word');
-            if (!(span.nextElementSibling && span.nextElementSibling.classList.contains('vtt-saved-badge'))) {
-                const badge = document.createElement('span');
-                badge.className = 'vtt-saved-badge';
-                badge.textContent = '✓ saved';
-                span.insertAdjacentElement('afterend', badge);
-            }
-        }
+        if (span) span.classList.add('vtt-saved-word');
         window.getSelection()?.removeAllRanges();
         document.querySelectorAll('#vtt-sidebar *').forEach((e) => {
             if (e.children.length === 0 && /\b142\b/.test(e.textContent || '')) e.textContent = (e.textContent || '').replace('142', '143');
@@ -595,7 +587,7 @@ await setDemo('sidebar');
 await glide(W * 0.86, H * 0.30, 900);          // drift up toward the panel as it fills
 await sleep(1700);                              // let decorate() settle (saved word, overlay)
 
-// 3) Rest on the active line + the saved word (✓ saved)
+// 3) Rest on the active line + the saved word (highlight)
 await glideTo('#vtt-list .vtt-item.active-sub .vtt-main-text span', { nth: 1, ms: 900 });
 await sleep(800);
 const savedC = await center('#vtt-list .vtt-saved-word', 0);
@@ -647,14 +639,14 @@ for (let i = 0; i < 7; i++) {
 await sleep(900);
 
 // 9) Select a word from that line and add it to Lingogram — drag-select raises
-//    the real "+ Lingogram" pill; clicking it saves the word (✓ saved + toast).
+//    the real "+ Lingogram" pill; clicking it saves the word (highlight + toast).
 const SAVE_WORD = 'aprender';
 if (await dragSelectWord(1, SAVE_WORD)) {
     await sleep(600);                                   // the "+ Lingogram" pill pops up
     const pillC = await center('#lingogram-quick-add-pill', 0);
     if (pillC) { await glide(Math.round(pillC.x), Math.round(pillC.y), 680); await sleep(280); await tapVisualOnly(); }
     await sleep(140);
-    await confirmSaveWord(1, SAVE_WORD);               // ✓ saved highlight + counter + toast
+    await confirmSaveWord(1, SAVE_WORD);               // saved highlight + counter + toast
     await sleep(1900);
 }
 

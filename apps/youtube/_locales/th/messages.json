@@ -71,10 +71,6 @@
     "message": "ลงชื่อเข้าใช้เพื่อบันทึกคำศัพท์",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "บันทึกแล้ว",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "บันทึก {count} คำ",
     "description": "Saved-words counter; {count} is the number."

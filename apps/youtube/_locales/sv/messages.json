@@ -71,10 +71,6 @@
     "message": "Logga in för att spara ord",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "sparat",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} ord sparade",
     "description": "Saved-words counter; {count} is the number."

@@ -71,10 +71,6 @@
     "message": "വാക്കുകൾ സംരക്ഷിക്കാൻ സൈൻ ഇൻ ചെയ്യുക",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "സംരക്ഷിച്ചു",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
     "description": "Saved-words counter; {count} is the number."

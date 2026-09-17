@@ -71,10 +71,6 @@
     "message": "登入以儲存單字",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "已儲存",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "已儲存 {count} 個單字",
     "description": "Saved-words counter; {count} is the number."

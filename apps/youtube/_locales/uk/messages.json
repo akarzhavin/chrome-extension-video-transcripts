@@ -71,10 +71,6 @@
     "message": "Увійдіть, щоб зберігати слова",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "збережено",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Збережено слів: {count}",
     "description": "Saved-words counter; {count} is the number."

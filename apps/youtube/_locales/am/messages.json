@@ -71,10 +71,6 @@
     "message": "ቃላትን ለማስቀመጥ ይግቡ",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "ተቀምጧል",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} ቃላት ተቀምጠዋል",
     "description": "Saved-words counter; {count} is the number."
