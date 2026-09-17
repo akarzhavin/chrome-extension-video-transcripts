@@ -1837,11 +1837,20 @@
 }
 
 /* A word wearing both states — saved, and the card open over it — shows the
-   accent: the card is the thing the reader is looking at right now, and it
-   goes away, while the save does not. The bar returns to the heart the moment
-   the cursor leaves. */
+   HEART, not the accent.
+   ────────────────────────────────────────────────────────────────────────
+   The other way round first, on the reasoning that the card is what the
+   reader is looking at right now. That was wrong, and pressing the heart is
+   what shows it: the card's own button flips to Remove, but the bar under the
+   word stays accent-coloured, so the press appears to have done nothing to
+   the line. The save is the state the reader is CHANGING; the hover is just
+   where the cursor happens to be, and the card already says that by existing.
+
+   Specificity, not source order, decides this one: .vtt-lookup-hit::after in
+   lookup.css loads later and would otherwise win, so the two-class selector
+   here (0,2,0 vs 0,1,0) is what carries it. */
 .vtt-saved-mark.vtt-lookup-hit::after {
-    background: var(--vtt-accent);
+    background: var(--vtt-heart);
 }
 
 /* "Every word uncovered" in guess mode. Carried by the border colour rather

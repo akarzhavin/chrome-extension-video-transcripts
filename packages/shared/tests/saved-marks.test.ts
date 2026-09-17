@@ -345,3 +345,71 @@ describe('the class name is part of the DOM contract', () => {
         expect(SAVED_MARK_CLASS).not.toBe('vtt-saved-word');
     });
 });
+
+describe('the mark answers the press, not the round trip', () => {
+    // What the user reported: pressing the heart flipped the card's button to
+    // Remove, but the bar under the word stayed the hover colour, so the press
+    // looked like it had done nothing to the line.
+    //
+    // Two separate causes, one symptom, and both are pinned here: the mark has
+    // to change on the OPTIMISTIC mirror write (before any network round trip),
+    // and it has to be visible while the card is still open over the word.
+    test('marking follows the optimistic write, before the worker answers', async () => {
+        stop = startSavedMarks();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const el = line('It', 'was', 'a', 'beautiful', 'evening');
+        onSavedWordsChanged(() => markSavedIn(el));
+        markSavedIn(el);
+        expect(markedWords()).toEqual([]);
+
+        // saveTerm writes the mirror first and only then messages the worker.
+        // No worker is wired in this test at all, which is the point: the mark
+        // must already be there.
+        await setMirrorEntry('beautiful', 'active');
+        await Promise.resolve();
+
+        expect(markedWords()).toEqual(['beautiful']);
+    });
+
+    test('a rollback puts the mark back the way it was', async () => {
+        // The save failed after the optimistic write, so removeTerm/saveTerm
+        // restore the previous entry — and the bar has to follow that too,
+        // or the line would keep claiming a word the dictionary rejected.
+        stop = startSavedMarks();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const el = line('a', 'beautiful', 'evening');
+        onSavedWordsChanged(() => markSavedIn(el));
+
+        await setMirrorEntry('beautiful', 'active');
+        await Promise.resolve();
+        expect(markedWords()).toEqual(['beautiful']);
+
+        await setMirrorEntry('beautiful', 'removed');
+        await Promise.resolve();
+        expect(markedWords()).toEqual([]);
+    });
+
+    test('the mark is applied to a word the open card is anchored on', async () => {
+        // The card marks its word with .vtt-lookup-hit. That class must not
+        // stop the saved mark from being applied — the two live on one span,
+        // and which colour wins between them is settled in the stylesheet
+        // (.vtt-saved-mark.vtt-lookup-hit::after), not here.
+        await setMirrorEntry('beautiful', 'active');
+        stop = startSavedMarks();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        const el = line('a', 'beautiful', 'evening');
+        const span = el.querySelector<HTMLElement>('[data-word="beautiful"]')!;
+        span.classList.add('vtt-lookup-hit');
+
+        markSavedIn(el);
+
+        expect(span.classList.contains(SAVED_MARK_CLASS)).toBe(true);
+        expect(span.classList.contains('vtt-lookup-hit')).toBe(true);
+    });
+});
