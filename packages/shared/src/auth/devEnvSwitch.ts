@@ -25,7 +25,7 @@
  */
 import { clearLookupCache } from '../lookup';
 import { config } from './config';
-import { clearAuthState } from './storage';
+import { parkAuthState, unparkAuthState } from './storage';
 
 /**
  * A target's name is whatever the build called it — deliberately NOT a fixed
@@ -234,25 +234,37 @@ export async function restoreEnv(): Promise<void> {
 }
 
 /**
- * Switch targets and forget the current session.
+ * Switch targets, parking the session you are leaving and restoring the one
+ * belonging to the target you are entering.
  *
- * Clearing auth is not optional: a uid and an ID token are only meaningful
- * inside the project that issued them. Carrying a session across would either
- * fail confusingly or, worse, write words under a uid that means something
- * different on the other side.
+ * The live session cannot come along: a uid and an ID token are only
+ * meaningful inside the project that issued them, and carrying one across
+ * would either fail confusingly or, worse, write words under a uid that means
+ * a different person on the other side. But it does not have to be DESTROYED
+ * for that to hold — each project's session is set aside under its own key and
+ * handed back on return, so a lap of the ring costs no sign-ins at all.
  *
- * The lookup cache goes for the same reason, one level down: it is keyed by
- * term and language but not by backend, so answers fetched from one side would
- * be served after the switch — and switching sides is usually how you check a
- * dictionary change reached the other one.
+ * Order matters: park BEFORE applySide. Parking keys on the live project id,
+ * so retargeting `config` first would file the outgoing session under the
+ * INCOMING project's name — handing one environment's credentials to another.
+ *
+ * The lookup cache is dropped outright rather than parked: it is keyed by term
+ * and language but not by backend, so answers fetched from one side would be
+ * served after the switch — and switching sides is usually how you check a
+ * dictionary change reached the other one. It costs a refetch, not a sign-in.
  */
 export async function switchEnv(side: ExtEnvName): Promise<void> {
     if (__EXT_ENV__ !== 'dev') return;
-    if (!TARGETS.some((t) => t.name === side)) return;
+    const target = TARGETS.find((t) => t.name === side);
+    if (!target) return;
+    await parkAuthState(config.projectId);
     applySide(side);
     await chrome.storage.local.set({ [STORAGE_KEY]: side });
     clearLookupCache();
-    await clearAuthState();
+    // Nothing parked for this project — clearAuthState already ran inside
+    // parkAuthState, so the worker is correctly signed out and the badge will
+    // ask for a sign-in here.
+    await unparkAuthState(target.projectId);
 }
 
 /**

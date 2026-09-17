@@ -22,6 +22,7 @@ import {
     bumpInboxCount,
     bumpSavedWordCount,
     clearAuthState,
+    clearParkedAuthStates,
     clearPendingAuthNonce,
     getAuthState,
     getInboxCount,
@@ -327,6 +328,12 @@ export async function handleAuthMessage(
         }
         case 'AUTH_SIGN_OUT': {
             await clearAuthState();
+            // Dev builds park one session per backend so the switch does not
+            // cost a sign-in (see storage.parkAuthState). An explicit sign-out
+            // has to reach those too: leaving them would make "signed out"
+            // untrue the moment the badge is clicked. Folds away in prod,
+            // where nothing is ever parked.
+            await clearParkedAuthStates();
             // The stamps are module state, so `clearAuthState` cannot reach
             // them: without this the signed-out account's terms stay in worker
             // memory until the worker recycles.

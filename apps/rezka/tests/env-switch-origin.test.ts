@@ -162,3 +162,81 @@ describe('a malformed ring degrades instead of killing the worker', () => {
         expect(targetNames()).toEqual(['local', 'prod']);
     });
 });
+
+describe('switching parks the session it leaves, not the one it enters', () => {
+    // The regression this exists for: parking keys on the LIVE project id, so
+    // calling applySide() first files the outgoing session under the INCOMING
+    // project's name — and the next visit there restores credentials issued by
+    // a different project, for a uid that means a different person.
+    //
+    // Invisible to every other test here: the ring still cycles, the origins
+    // are still right, and the switch still "works". Only where the session
+    // landed is wrong.
+    const AUTH = {
+        idToken: 'token-local',
+        refreshToken: 'refresh-local',
+        expiresAt: 9_000_000,
+        email: 'dev@example.com',
+        uid: 'uid-in-demo-lingogram',
+    };
+
+    function installStorage(): Record<string, unknown> {
+        const store: Record<string, unknown> = {};
+        (global as any).chrome = {
+            storage: {
+                local: {
+                    get: jest.fn(async (keys: unknown) => {
+                        if (keys === null || keys === undefined) return { ...store };
+                        const arr = typeof keys === 'string' ? [keys] : (keys as string[]);
+                        const out: Record<string, unknown> = {};
+                        for (const k of arr) if (k in store) out[k] = store[k];
+                        return out;
+                    }),
+                    set: jest.fn(async (items: Record<string, unknown>) => {
+                        Object.assign(store, items);
+                    }),
+                    remove: jest.fn(async (keys: unknown) => {
+                        const arr = typeof keys === 'string' ? [keys] : (keys as string[]);
+                        for (const k of arr) delete store[k];
+                    }),
+                },
+            },
+        };
+        return store;
+    }
+
+    test('the outgoing session is filed under the project that issued it', async () => {
+        setBuild(RING);
+        const store = installStorage();
+        const { switchEnv } = await load();
+        const { setAuthState } = await import('../../../packages/shared/src/auth/storage');
+
+        // Signed into the build's own target, whose project is demo-lingogram.
+        await setAuthState(AUTH);
+        await switchEnv('prod');
+
+        // Asserted on the KEY, because that is what the bug corrupts. Reading
+        // it back through unparkAuthState would pass either way once the ring
+        // returns home — the session is there, just filed as prod's.
+        expect(Object.keys(store).filter((k) => k.startsWith('dev.parkedAuth.')))
+            .toEqual(['dev.parkedAuth.demo-lingogram']);
+    });
+
+    test("returning home restores the session, and prod's stays absent", async () => {
+        setBuild(RING);
+        installStorage();
+        const { switchEnv } = await load();
+        const { setAuthState, getAuthState } = await import(
+            '../../../packages/shared/src/auth/storage'
+        );
+
+        await setAuthState(AUTH);
+        await switchEnv('prod');
+        // Never signed in on prod: the switch must leave it signed out rather
+        // than handing it the session that belongs to the local project.
+        expect(await getAuthState()).toBeNull();
+
+        await switchEnv('local');
+        expect((await getAuthState())?.uid).toBe(AUTH.uid);
+    });
+});
