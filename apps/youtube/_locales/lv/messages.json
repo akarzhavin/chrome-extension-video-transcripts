@@ -71,10 +71,6 @@
     "message": "Pierakstieties, lai saglabātu vārdus",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "saglabāts",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Saglabāti {count} vārdi",
     "description": "Saved-words counter; {count} is the number."

@@ -71,10 +71,6 @@
     "message": "로그인하여 단어 저장",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "저장됨",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "단어 {count}개 저장됨",
     "description": "Saved-words counter; {count} is the number."

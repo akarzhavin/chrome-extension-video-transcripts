@@ -248,6 +248,93 @@ describe('fetchTimedText', () => {
         expect(urls).toEqual(['u-stale', 'u-fresh']);
     });
 
+    /**
+     * Fetching what the request was missing, before spending another attempt.
+     *
+     * On YouTube an empty 200 usually means the pot token was absent, and the
+     * token is obtained by a routine OUTSIDE this module. It used to run only
+     * after the retry budget was gone: measured on a real trace, three attempts
+     * and ~2.3s were spent on a URL that could not answer, and the viewer got a
+     * failure. On a video where the routine happened to run in time it took
+     * 3ms — so asking early costs nothing and asking late costs the whole load.
+     */
+    describe('onEmptyBody — repair before the re-ask, not after the budget', () => {
+        test('runs on the first empty body, before the sleep and the re-ask', async () => {
+            const order: string[] = [];
+            const queue = [response(200, ''), response(200, GOOD_BODY)];
+            const fetchImpl = jest.fn(async () => {
+                order.push('fetch');
+                return (queue.shift() ?? queue[0]) as unknown as Response;
+            });
+            const deps = makeDeps([], {
+                fetchImpl,
+                onEmptyBody: async () => { order.push('repair'); },
+            });
+            deps.sleep = jest.fn(async () => { order.push('sleep'); }) as unknown as Sleep;
+
+            const out = await fetchTimedText('u', deps);
+
+            expect(out).toMatchObject({ ok: true, attempts: 2 });
+            // The repair lands between the empty answer and the wait for the
+            // next try — not after every attempt has been used up.
+            expect(order).toEqual(['fetch', 'repair', 'sleep', 'fetch']);
+        });
+
+        test('the re-ask carries what the repair produced', async () => {
+            // The whole point: the second attempt must be a DIFFERENT request.
+            const urls: string[] = [];
+            const queue = [response(200, ''), response(200, GOOD_BODY)];
+            let token: string | null = null;
+            const fetchImpl = jest.fn(async (url: string) => {
+                urls.push(url);
+                return (queue.shift() ?? queue[0]) as unknown as Response;
+            });
+            const deps = makeDeps([], {
+                fetchImpl,
+                onEmptyBody: async () => { token = 'TOK'; },
+                refreshUrl: () => (token ? `u?pot=${token}` : 'u'),
+            });
+
+            await fetchTimedText('u', deps);
+
+            expect(urls).toEqual(['u', 'u?pot=TOK']);
+        });
+
+        test('it is asked once, not on every empty answer', async () => {
+            // A language YouTube genuinely does not carry answers empty every
+            // time; paying the repair wait three times would make a fast "no
+            // translation" slow.
+            const repair = jest.fn(async () => {});
+            const deps = makeDeps(
+                [response(200, ''), response(200, ''), response(200, '')],
+                { onEmptyBody: repair },
+            );
+
+            await fetchTimedText('u', deps);
+
+            expect(repair).toHaveBeenCalledTimes(1);
+        });
+
+        test('a call without the hook behaves exactly as before', async () => {
+            // Every existing caller passes no hook, and none of them may change.
+            const deps = makeDeps([response(200, ''), response(200, GOOD_BODY)]);
+            const out = await fetchTimedText('u', deps);
+            expect(out).toMatchObject({ ok: true, attempts: 2 });
+        });
+
+        test('an abort during the repair stops the loop', async () => {
+            const ctl = new AbortController();
+            const deps = makeDeps([response(200, ''), response(200, GOOD_BODY)], {
+                onEmptyBody: async () => { ctl.abort(); },
+            });
+
+            const out = await fetchTimedText('u', deps, ctl.signal);
+
+            expect(out).toMatchObject({ ok: false, failure: 'aborted' });
+            expect(deps.fetchImpl).toHaveBeenCalledTimes(1);
+        });
+    });
+
     test('a null refreshUrl keeps the current URL for the re-ask', async () => {
         const urls: string[] = [];
         const queue = [response(200, ''), response(200, GOOD_BODY)];
@@ -258,6 +345,86 @@ describe('fetchTimedText', () => {
         const deps = makeDeps([], { fetchImpl, refreshUrl: () => null });
         await fetchTimedText('u', deps);
         expect(urls).toEqual(['u', 'u']);
+    });
+
+    /**
+     * A retry must carry whatever became true while it was waiting.
+     *
+     * Measured on a live trace (NVbqRHmqVc0): a translation track met 429 and
+     * retried four times, and all four requests went out on the SAME tokenless
+     * URL — because refreshUrl was only consulted on the empty-body branch, not
+     * on the retryable-failure branch. Meanwhile the sibling track got an empty
+     * 200, went and minted a pot, and loaded on its second attempt. The token
+     * was sitting in the store by the second Russian attempt; that request
+     * never looked. Three of the four requests that tripped the breaker were
+     * re-sends of a URL that had already been refused.
+     */
+    describe('re-signing between retries, not only between empty re-asks', () => {
+        test('a 429 retry picks up a URL that changed while it waited', async () => {
+            const urls: string[] = [];
+            const queue = [response(429), response(200, GOOD_BODY)];
+            const fetchImpl = jest.fn(async (url: string) => {
+                urls.push(url);
+                return (queue.shift() ?? queue[queue.length - 1]) as unknown as Response;
+            });
+            // Stands in for the pot arriving from the player while we back off.
+            let token: string | null = null;
+            const deps = makeDeps([], {
+                fetchImpl,
+                sleep: makeSleep(async () => { token = 'TOK'; }),
+                refreshUrl: () => (token ? `u?pot=${token}` : 'u'),
+            });
+
+            await fetchTimedText('u', deps);
+
+            expect(urls).toEqual(['u', 'u?pot=TOK']);
+        });
+
+        test('a network-error retry re-signs too', async () => {
+            const urls: string[] = [];
+            const queue: Array<ReturnType<typeof response> | Error> = [
+                new Error('boom'),
+                response(200, GOOD_BODY),
+            ];
+            const fetchImpl = jest.fn(async (url: string) => {
+                urls.push(url);
+                const next = queue.shift();
+                if (next instanceof Error) throw next;
+                return next as unknown as Response;
+            });
+            const deps = makeDeps([], { fetchImpl, refreshUrl: () => 'u-fresh' });
+
+            await fetchTimedText('u', deps);
+
+            expect(urls).toEqual(['u', 'u-fresh']);
+        });
+
+        test('the re-signed URL is the one reported to the trace', async () => {
+            const seen: Array<{ ev: string; url?: string }> = [];
+            const deps = makeDeps([response(429), response(200, GOOD_BODY)], {
+                refreshUrl: () => 'u-fresh',
+                onEvent: (e) => seen.push(e as { ev: string; url?: string }),
+            });
+
+            await fetchTimedText('u', deps);
+
+            expect(seen.filter((e) => e.ev === 'attempt').map((e) => e.url))
+                .toEqual(['u', 'u-fresh']);
+        });
+
+        test('a caller with no refreshUrl retries the same URL, as before', async () => {
+            const urls: string[] = [];
+            const queue = [response(429), response(200, GOOD_BODY)];
+            const fetchImpl = jest.fn(async (url: string) => {
+                urls.push(url);
+                return (queue.shift() ?? queue[queue.length - 1]) as unknown as Response;
+            });
+            const deps = makeDeps([], { fetchImpl });
+
+            await fetchTimedText('u', deps);
+
+            expect(urls).toEqual(['u', 'u']);
+        });
     });
 
     test('an empty answer never trips the rate-limit breaker', async () => {

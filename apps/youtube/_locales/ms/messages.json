@@ -71,10 +71,6 @@
     "message": "Log masuk untuk simpan perkataan",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "disimpan",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} perkataan disimpan",
     "description": "Saved-words counter; {count} is the number."

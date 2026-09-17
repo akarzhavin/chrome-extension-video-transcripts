@@ -71,10 +71,6 @@
     "message": "Đăng nhập để lưu từ vựng",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "đã lưu",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "Đã lưu {count} từ",
     "description": "Saved-words counter; {count} is the number."

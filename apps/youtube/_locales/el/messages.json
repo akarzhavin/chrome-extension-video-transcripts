@@ -71,10 +71,6 @@
     "message": "Συνδεθείτε για αποθήκευση λέξεων",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "αποθηκεύτηκε",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} λέξεις αποθηκεύτηκαν",
     "description": "Saved-words counter; {count} is the number."

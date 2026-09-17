@@ -344,6 +344,123 @@ describe('AppState', () => {
             expect(state.isFullyRevealed(99)).toBe(false);
             expect(state.revealNextWord(99)).toBe(false);
         });
+
+        /**
+         * Pointing at a word opens THAT word.
+         *
+         * Reveal used to be a prefix and nothing else: the count said how many
+         * leading words were out, so the word you aimed at was rarely the word
+         * that opened (the stylesheet still carries the note explaining why
+         * only the next capsule was ever lit). Picking breaks the prefix, so
+         * the two models now run side by side — a word is out if the prefix
+         * covers it OR it was picked — and these pin the seams between them.
+         */
+        describe('picking a word out of order', () => {
+            test('uncovers the word aimed at, and leaves the ones before it hidden', () => {
+                track('one two three four');
+
+                state.revealWordAt(0, 3); // the last word, with 1 and 2 still masked
+
+                expect(state.isWordRevealed(0, 3)).toBe(true);
+                expect(state.isWordRevealed(0, 1)).toBe(false);
+                expect(state.isWordRevealed(0, 2)).toBe(false);
+                // The prefix has NOT moved: that is what "out of order" means.
+                expect(state.getRevealedCount(0)).toBe(1);
+            });
+
+            test('the free first word reads as revealed without being picked', () => {
+                track('one two three');
+                expect(state.isWordRevealed(0, 0)).toBe(true);
+            });
+
+            test('a picked word counts toward finishing the line', () => {
+                track('one two three');
+                expect(state.isFullyRevealed(0)).toBe(false);
+
+                state.revealWordAt(0, 2); // skip the middle
+                expect(state.isFullyRevealed(0)).toBe(false); // "two" is still hidden
+                // Asked of the predicate directly: this is what both renderers
+                // consult for every capsule, so "the line is not finished yet"
+                // is not on its own proof that the right word came out.
+                expect(state.isWordRevealed(0, 2)).toBe(true);
+                expect(state.isWordRevealed(0, 1)).toBe(false);
+
+                state.revealWordAt(0, 1);
+                expect(state.isWordRevealed(0, 1)).toBe(true);
+                expect(state.isFullyRevealed(0)).toBe(true);
+            });
+
+            test('it reports whether the line is finished, like revealNextWord does', () => {
+                track('one two');
+                // Two maskable words, the first free — so picking the second
+                // finishes the line, and the caller repaints on that answer.
+                expect(state.revealWordAt(0, 1)).toBe(true);
+            });
+
+            test('advancing the prefix steps over a word already picked', () => {
+                // Otherwise the click spends itself landing the prefix on a
+                // word that is already on screen, and reads as a dead control.
+                track('one two three four');
+                state.revealWordAt(0, 1); // pick the word the prefix would open next
+
+                state.revealNextWord(0);
+
+                // Straight past 1 and onto 2, which was genuinely still hidden.
+                expect(state.getRevealedCount(0)).toBe(3);
+                expect(state.isWordRevealed(0, 2)).toBe(true);
+            });
+
+            test('a line finished by a mix of both routes is finished', () => {
+                track('one two three');
+                state.revealWordAt(0, 2);
+                // One ordinary reveal now covers the only word left.
+                expect(state.revealNextWord(0)).toBe(true);
+                expect(state.isFullyRevealed(0)).toBe(true);
+            });
+
+            test('picking the same word twice is not a second word', () => {
+                track('one two three');
+                state.revealWordAt(0, 2);
+                state.revealWordAt(0, 2);
+                expect(state.isFullyRevealed(0)).toBe(false); // "two" is still out there
+                expect(state.isWordRevealed(0, 1)).toBe(false);
+                expect(state.revealedTotal(0)).toBe(2); // the free word and the picked one
+            });
+
+            test('picking a word the prefix already covers records nothing', () => {
+                // Storing it would grow the set on every click at a line the
+                // user is simply working through in order.
+                track('one two three');
+                state.revealWordAt(0, 0);
+                expect(state.pickedWords.get(0)).toBeUndefined();
+            });
+
+            test('refuses an index outside the line', () => {
+                track('one two');
+                expect(state.revealWordAt(0, 5)).toBe(false);
+                expect(state.revealWordAt(0, -1)).toBe(false);
+                expect(state.revealWordAt(99, 0)).toBe(false);
+                expect(state.pickedWords.size).toBe(0);
+            });
+
+            test('a fresh round forgets picked words too', () => {
+                // Re-entering guess mode resets progress; a picked word that
+                // survived would leave a hole in the new round.
+                track('one two three');
+                state.revealWordAt(0, 2);
+                state.setDisplayMode('guess');
+
+                expect(state.isWordRevealed(0, 2)).toBe(false);
+                expect(state.pickedWords.size).toBe(0);
+            });
+
+            test('a new video forgets them as well', () => {
+                track('one two three');
+                state.revealWordAt(0, 2);
+                state.reset();
+                expect(state.pickedWords.size).toBe(0);
+            });
+        });
     });
 });
 

@@ -43,17 +43,60 @@ const API_ORIGIN_MATCH = (() => {
     throw new Error(`EXT_API_BASE_URL is not a valid URL: ${API_BASE_URL}`);
   }
 })();
-// Second origin for the dev-only backend switch, when a build is given one.
-const ALT_ORIGIN_MATCH = originMatch(
-  process.env.EXT_ALT_FRONTEND_BASE_URL ?? '',
-  'EXT_ALT_FRONTEND_BASE_URL',
+// The dev-only backend switch's ring of targets, supplied as JSON in
+// EXT_DEV_TARGETS. Each row is {name, projectId, apiKey, frontendBaseUrl} plus
+// optional apiBaseUrl and the three Firebase hosts (identityToolkitUrl,
+// secureTokenUrl, firestoreUrl) — hosts default to this build's own, which is
+// what a second CLOUD target wants. Parsed here rather than passed through
+// verbatim so a malformed value fails the BUILD instead of shipping a bundle
+// whose switch silently degraded to a ring of one.
+//
+// No environment's project id, key, or host is stored in this repo; a build
+// handed nothing simply has nowhere to switch to.
+const parseDevTargets = (): Array<Record<string, string>> => {
+  const raw = process.env.EXT_DEV_TARGETS ?? '';
+  if (!raw.trim()) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`EXT_DEV_TARGETS is not valid JSON: ${(e as Error).message}`);
+  }
+  if (!Array.isArray(parsed)) throw new Error('EXT_DEV_TARGETS must be a JSON array');
+  return parsed.map((row, i) => {
+    const t = row as Record<string, string>;
+    for (const k of ['projectId', 'apiKey', 'frontendBaseUrl']) {
+      if (!t?.[k]) throw new Error(`EXT_DEV_TARGETS[${i}] is missing ${k}`);
+    }
+    // Validated here so a typo surfaces at build time rather than as a
+    // handoff that never connects.
+    new URL(t.frontendBaseUrl);
+    if (t.apiBaseUrl) new URL(t.apiBaseUrl);
+    return t;
+  });
+};
+const DEV_TARGETS = isDev ? parseDevTargets() : [];
+// Every switchable frontend needs its origin in the static manifest, or the
+// data plane switches while the sign-in handoff silently never connects.
+const TARGET_ORIGIN_MATCHES = DEV_TARGETS.map((t, i) =>
+  originMatch(t.frontendBaseUrl, `EXT_DEV_TARGETS[${i}].frontendBaseUrl`),
+).filter(Boolean);
+// The lookup gateways of the other targets need host_permissions for the same
+// reason this build's own does: the edge's CORS allow-list has no
+// chrome-extension:// origin, so the worker's fetch needs the permission.
+const TARGET_API_ORIGIN_MATCHES = DEV_TARGETS.filter((t) => t.apiBaseUrl).map(
+  (t) => `${new URL(t.apiBaseUrl).origin}/*`,
 );
+// What this build calls its OWN target, for the badge.
+const HOME_TARGET_NAME = process.env.EXT_HOME_TARGET_NAME ?? '';
 
-// EXT_FIREBASE_HOSTS=live keeps a dev build on the cloud Firebase hosts. The
-// emulators are the right default for local work, but they are also the reason
-// a dev build cannot reach a cloud project: applySide() retargets projectId,
-// apiKey and frontendBaseUrl, never the host, so a switch to a cloud project
-// would otherwise still resolve against localhost.
+// EXT_FIREBASE_HOSTS=live keeps a dev build on the cloud Firebase hosts, and
+// sets what this build's OWN target resolves against. The emulators stay the
+// right default for local work.
+//
+// A target in EXT_DEV_TARGETS may carry its own hosts and is not bound by this
+// choice: that is how one dev build reaches the local emulators AND a cloud
+// project. A row that omits them inherits the ones chosen here.
 const useLiveHosts = !isDev || process.env.EXT_FIREBASE_HOSTS === 'live';
 const identityToolkitUrl = useLiveHosts
   ? 'https://identitytoolkit.googleapis.com'
@@ -90,17 +133,15 @@ const buildDefines = {
   // the live site so their "Sign in" flow works without running the SPA.
   __FRONTEND_BASE_URL__: JSON.stringify(FRONTEND_BASE_URL),
   __EXT_SOURCE__: JSON.stringify(EXT_SOURCE),
-  // Optional SECOND target for the dev-only backend switch (see
+  // The dev-only backend switch's ring (see
   // packages/shared/src/auth/devEnvSwitch.ts). Supplied at build time only —
   // no environment's project id, key, or host is stored in this repo. Empty
   // in every build that isn't handed them, which leaves the switch inert.
   // Dropped from prod bundles: devEnvSwitch sits behind an __EXT_ENV__ guard.
-  __EXT_ALT_PROJECT_ID__: JSON.stringify(process.env.EXT_ALT_PROJECT_ID ?? ''),
-  __EXT_ALT_API_KEY__: JSON.stringify(process.env.EXT_ALT_API_KEY ?? ''),
-  __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(process.env.EXT_ALT_FRONTEND_BASE_URL ?? ''),
-  // Lookup API for this side and (dev switch) the other one. Empty = off.
+  __EXT_DEV_TARGETS__: JSON.stringify(DEV_TARGETS.length ? JSON.stringify(DEV_TARGETS) : ''),
+  __EXT_HOME_TARGET_NAME__: JSON.stringify(HOME_TARGET_NAME),
+  // Lookup API for this build's own target. Empty = off.
   __EXT_API_BASE_URL__: JSON.stringify(API_BASE_URL),
-  __EXT_ALT_API_BASE_URL__: JSON.stringify(process.env.EXT_ALT_API_BASE_URL ?? ''),
   // GA4 Measurement Protocol. The api_secret is a WRITE-ONLY credential: it can
   // send events to our property, not read from it. It ships inside the service
   // worker bundle, so treat a leak as a data-poisoning risk (rotate it in the
@@ -194,18 +235,20 @@ export default defineConfig(({ command, mode }) => {
                 // the sign-in handoff is a chrome.runtime message from the
                 // page, and externally_connectable is an allow-list, so
                 // without this the auth flow silently never connects.
-                // ALT_ORIGIN_MATCH is the dev-only switch's second target: the
-                // manifest is static, so a build that cannot name both origins
-                // up front can move its data plane but never complete a
-                // sign-in on the other side.
+                // TARGET_ORIGIN_MATCHES are the dev-only switch's other
+                // targets: the manifest is static, so a build that cannot name
+                // every origin up front can move its data plane but never
+                // complete a sign-in on the other side.
                 // API_ORIGIN_MATCH goes into host_permissions only — unlike
                 // the frontend origins it never talks TO the extension, so it
                 // has no business in externally_connectable.
-                if (API_ORIGIN_MATCH && Array.isArray(manifest.host_permissions)
-                    && !manifest.host_permissions.includes(API_ORIGIN_MATCH)) {
-                  manifest.host_permissions = [...manifest.host_permissions, API_ORIGIN_MATCH];
+                for (const apiOrigin of [API_ORIGIN_MATCH, ...TARGET_API_ORIGIN_MATCHES]) {
+                  if (!apiOrigin || !Array.isArray(manifest.host_permissions)) continue;
+                  if (!manifest.host_permissions.includes(apiOrigin)) {
+                    manifest.host_permissions = [...manifest.host_permissions, apiOrigin];
+                  }
                 }
-                for (const origin of [FRONTEND_ORIGIN_MATCH, ALT_ORIGIN_MATCH]) {
+                for (const origin of [FRONTEND_ORIGIN_MATCH, ...TARGET_ORIGIN_MATCHES]) {
                   if (!origin) continue;
                   const add = (list) =>
                     list && !list.includes(origin) ? [...list, origin] : list;

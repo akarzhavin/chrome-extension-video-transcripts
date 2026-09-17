@@ -4,7 +4,7 @@
  *
  * WHY THIS SLIDE NEEDED ANYTHING EXTRA
  * The saving mechanic was already IN the capture — demo mode highlights a word
- * and pins a "✓ saved" badge to it through markSpansSaved(), the very function
+ * through markSpansSaved(), the very function
  * the real save flow calls. But at slide scale that badge is ~7px tall inside a
  * panel holding eight subtitle cards, so the slide read as "here is a list of
  * subtitles" no matter what the headline said. Two additions fix that without

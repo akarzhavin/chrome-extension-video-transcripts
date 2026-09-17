@@ -93,6 +93,44 @@ export EXT_GA4_MEASUREMENT_ID="$MEASUREMENT_ID"
 export EXT_GA4_API_SECRET="$API_SECRET"
 export EXT_API_BASE_URL="$API_BASE_URL"
 
+# The dev-only backend switch's ring, passed through to vite.
+#
+# Dev only, and deliberately so: these values name every environment the build
+# can reach, and a prod bundle must carry none of them. devEnvSwitch folds away
+# behind __EXT_ENV__, but exporting them here for a release would also write
+# each target's origin into the manifest's externally_connectable — which is
+# exactly how youtube 1.0.15 shipped with preprod.lingogram.ai listed, handing
+# any page on that origin the ability to ask for a signed-in user's SSO token.
+#
+# Absent from .env the ring is empty, the badge is inert, and the build still
+# works against its own target. That is the correct outcome for a checkout
+# handed no credentials, so this is NOT refused the way the GA4 pair is.
+if [[ "$ENV_NAME" == "dev" ]]; then
+    export EXT_DEV_TARGETS="${ENVFILE_EXT_DEV_TARGETS:-}"
+    export EXT_HOME_TARGET_NAME="${ENVFILE_EXT_HOME_TARGET_NAME:-}"
+    if [[ -n "$EXT_DEV_TARGETS" ]]; then
+        ring=$(node -e 'const t=JSON.parse(process.env.EXT_DEV_TARGETS);console.log(t.map(x=>x.name||x.projectId).join(" -> "))' 2>/dev/null) \
+            || { echo "error: EXT_DEV_TARGETS in .env is not valid JSON." >&2; exit 1; }
+        echo "Backend switch ring: ${EXT_HOME_TARGET_NAME:-<own>} -> $ring -> (wraps)"
+    else
+        echo "No EXT_DEV_TARGETS in .env: the backend badge will be inert."
+    fi
+fi
+
+# BEFORE the build: is the dev-only recorder still written in a shape that
+# folds? The output gate below cannot answer this — it matches strings in a
+# finished bundle, so a guard rewritten to a weaker form that leaves unnamed
+# literals behind passes it while shipping readable dead code. Measured once at
+# 1.6KB in a production page-script.
+#
+# Runs for BOTH dev and prod: a source that cannot fold is a defect either way,
+# and catching it on the dev build you are about to test is cheaper than
+# catching it at release time.
+echo "Checking the dev-only recorder can still fold away..."
+node packages/shared/assert-foldable.mjs
+echo "  ok: source is foldable"
+echo
+
 echo "Building all three extensions against the $ENV_NAME property ($MEASUREMENT_ID)."
 echo "Dictionary gateway: $API_BASE_URL"
 if [[ "$ENV_NAME" == "dev" ]]; then

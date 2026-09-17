@@ -71,10 +71,6 @@
     "message": "Connectez-vous pour enregistrer des mots",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "enregistré",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} mots enregistrés",
     "description": "Saved-words counter; {count} is the number."

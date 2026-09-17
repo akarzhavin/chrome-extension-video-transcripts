@@ -46,6 +46,13 @@ export interface SliderRowElements {
 
 export interface SidebarElements {
   sidebar?: HTMLDivElement;
+  /**
+   * Container for the dev diagnostics rows (download / copy / discard).
+   * Created empty with the settings panel and filled when settings first open
+   * — the recorder does not exist yet at panel-build time. Present only on a
+   * dev build; undefined otherwise, and every use is `?.`-guarded.
+   */
+  traceRows?: HTMLDivElement;
   settingsBtn?: HTMLButtonElement;
   settingsPanel?: HTMLDivElement;
   mainSelect?: HTMLSelectElement;
@@ -136,4 +143,22 @@ export interface AppInterface {
    * the partial-failure notice, so every surface tells one story.
    */
   missingTrackHint?(): string | null;
+  /**
+   * The diagnostics recorder's actions, for the settings panel to offer under
+   * its "Record subtitle diagnostics" switch. Undefined everywhere but a dev
+   * build of the YouTube app.
+   *
+   * Handed over as plain functions rather than the recorder itself so this
+   * interface — which deliberately has no imports — does not gain a type from
+   * an app package, and so the sidebar cannot reach anything but these three.
+   *
+   * `sessions` is read at render time for the count on the Download row: it is
+   * the one signal that says the recorder is actually capturing.
+   */
+  traceActions?(): {
+    sessions(): number;
+    download(): void;
+    copy(): Promise<boolean>;
+    clear(): Promise<void>;
+  } | null;
 }

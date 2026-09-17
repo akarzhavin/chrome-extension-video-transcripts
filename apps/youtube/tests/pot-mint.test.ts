@@ -319,3 +319,298 @@ describe('what the viewer is told', () => {
         expect(document.body.textContent).toBe('');
     });
 });
+
+/**
+ * Not during an ad — behaviour map §3.10.
+ *
+ * The routine mints by flashing the viewer's own captions on so the player
+ * signs a caption request we can read a token from. During an ad that request
+ * is the AD's, not the video's: the token comes back keyed to a different `v=`,
+ * PotStore files it under that id, and the video is no better off.
+ *
+ * So the whole exchange is a pure loss — the viewer sees captions appear on an
+ * ad they never asked to have captions on, the one mint this video is allowed
+ * is spent, and nothing is learned. Worse, the mint is once-per-video: spending
+ * it on an ad means the real opportunity, seconds later when the video starts,
+ * is gone.
+ *
+ * Reported from the field: two ads back to back, and the panel had already
+ * given up before the video began.
+ *
+ * Crucially this does NOT claim the video — an ad is a "come back later", not
+ * an answer, so the next attempt must still be able to mint.
+ */
+describe('minting is not attempted during an ad', () => {
+    test('no click happens while an ad is playing', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.isAdPlaying = () => true;
+
+        const got = await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(got).toBeNull();
+        expect(h.clicks()).toBe(0);
+    });
+
+    // The viewer's own captions are never touched on an ad.
+    test('the CC control is left exactly as it was', async () => {
+        const h = harness();
+        const btn = ccButton(false);
+        h.deps.isAdPlaying = () => true;
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(btn.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    /**
+     * The half that keeps this from becoming a permanent refusal: the one mint
+     * per video must survive an ad, or a pre-roll would consume it and the
+     * video itself would never get one.
+     */
+    test('the video stays unclaimed, so it can mint once the ad ends', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.isAdPlaying = () => true;
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+        expect(h.once.hasCompleted(VIDEO)).toBe(false);
+
+        // The ad ends; the very next attempt mints normally.
+        h.deps.isAdPlaying = () => false;
+        h.deps.knownPot = () => (h.clicks() > 0 ? 'the-token' : null);
+
+        const got = await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(got).toBe('the-token');
+        expect(h.clicks()).toBeGreaterThan(0);
+    });
+
+    // A token already in hand is still handed back during an ad: the guard is
+    // about not CLICKING, not about withholding what we already know.
+    test('a token already known is still returned during an ad', async () => {
+        const h = harness({ token: 'already-have' });
+        ccButton(false);
+        h.deps.isAdPlaying = () => true;
+
+        expect(await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps)).toBe('already-have');
+        expect(h.clicks()).toBe(0);
+    });
+
+    // Callers that never supply the hook (and Rezka, which has no ads) keep
+    // today's behaviour exactly.
+    test('with no isAdPlaying supplied it mints as before', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.knownPot = () => (h.clicks() > 0 ? 'the-token' : null);
+
+        expect(await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps)).toBe('the-token');
+    });
+});
+
+/**
+ * Why the routine stopped, not just what it returned.
+ *
+ * From a live trace (wjZofJX0v4M, 2026-09-17): four mints, each one a
+ * `mint_start` and a `mint_done` one millisecond apart with `present: false`.
+ * A millisecond means no click and no wait — so the routine took one of the
+ * early exits. WHICH one is the entire diagnosis, and nothing recorded it:
+ *
+ *   - 'cc-already-on'  the control says captions are on, so the player is
+ *                      assumed to have fetched its track and we merely missed
+ *                      the sniff. On that trace the assumption was false: the
+ *                      resource-timing haystack showed zero timedtext entries,
+ *                      so the player had fetched nothing at all.
+ *   - 'ad'             an ad was on screen.
+ *   - 'no-button'      the player chrome had not rendered yet.
+ *
+ * These three are indistinguishable from outside and lead to different fixes,
+ * so the trace has to say which. Reported through a callback rather than in the
+ * return value on purpose: the token is what every caller wants, and widening
+ * the return type would push a diagnostic concern through the whole chain.
+ */
+describe('the routine reports why it stopped', () => {
+    test('a normal mint reports that it actually toggled', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.knownPot = () => (h.clicks() > 0 ? 'the-token' : null);
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(reasons).toEqual(['toggled']);
+    });
+
+    test('a toggle that produced nothing is still a toggle', async () => {
+        const h = harness();
+        ccButton(false);
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        // It clicked and waited out the budget — a different failure from the
+        // three below, and the only one where the player was actually asked.
+        expect(reasons).toEqual(['toggled']);
+    });
+
+    test('captions already on are reported as such', async () => {
+        const h = harness({ token: 'already-known' });
+        ccButton(true);
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(reasons).toEqual(['cc-already-on']);
+    });
+
+    test('an ad is reported as an ad', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.isAdPlaying = () => true;
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(reasons).toEqual(['ad']);
+    });
+
+    test('a player that has not rendered its controls is reported', async () => {
+        const h = harness();
+        // No ccButton() — the chrome is not up yet.
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(reasons).toEqual(['no-button']);
+    });
+
+    // Nothing about the routine may depend on someone listening.
+    test('it works the same with no listener attached', async () => {
+        const h = harness();
+        ccButton(false);
+        h.deps.knownPot = () => (h.clicks() > 0 ? 'the-token' : null);
+
+        expect(await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps)).toBe('the-token');
+    });
+});
+
+/**
+ * "Captions are already on" is a claim about the PLAYER, and the button does
+ * not make it.
+ *
+ * The exit reads `aria-pressed === 'true'` and concludes the player has
+ * already fetched its caption track, so a token exists and we merely missed
+ * the sniff. Toggling then would turn the viewer's captions off and mint
+ * nothing, which is why the exit is right whenever its premise holds.
+ *
+ * Trace wjZofJX0v4M (2026-09-17) is the case where it does not. The video
+ * offered 21 caption tracks; every one of our requests came back 200 with zero
+ * bytes, the signature of a missing token; and the resource-timing haystack
+ * reported `timedtextEntries: 0` right up until our own tokenless requests
+ * started filling it. The player had fetched NOTHING, so there was no token to
+ * have missed — yet the routine took this exit four times and returned null
+ * each time, and the panel said "Couldn't load subtitles" on a video that had
+ * subtitles in 21 languages.
+ *
+ * So the exit needs its premise checked rather than assumed: captions on AND
+ * the player actually having asked for a track. When the player has not asked,
+ * the control is lying about the player's state and the toggle is worth
+ * spending — off and back on, which leaves the viewer's setting where it was
+ * found and makes the player re-fetch.
+ */
+describe('captions "already on" with a player that never fetched', () => {
+    test('a stale ON control is toggled off and on to provoke a fetch', async () => {
+        const h = harness();
+        const btn = ccButton(true);
+        // The premise of the old exit, falsified: nothing was ever fetched.
+        h.deps.playerFetchedCaptions = () => false;
+        h.deps.knownPot = () => (h.clicks() > 0 ? 'provoked' : null);
+
+        const got = await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(got).toBe('provoked');
+        // The viewer's captions end where they started: ON.
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    test('when the player HAS fetched, nothing is touched — as before', async () => {
+        const h = harness({ token: 'already-known' });
+        const btn = ccButton(true);
+        h.deps.playerFetchedCaptions = () => true;
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        const got = await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(got).toBe('already-known');
+        expect(h.clicks()).toBe(0);
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+        expect(reasons).toEqual(['cc-already-on']);
+    });
+
+    test('a caller that cannot answer keeps the old behaviour', async () => {
+        // Rezka supplies no such probe; its exit must stay exactly as it was.
+        const h = harness({ token: 'already-known' });
+        ccButton(true);
+
+        expect(await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps)).toBe('already-known');
+        expect(h.clicks()).toBe(0);
+    });
+
+    test('the provoking toggle is reported distinctly from a plain one', async () => {
+        const h = harness();
+        ccButton(true);
+        h.deps.playerFetchedCaptions = () => false;
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(reasons).toEqual(['recycled-cc']);
+    });
+
+    test('the provoking toggle claims the video, like any other mint', async () => {
+        const h = harness();
+        ccButton(true);
+        h.deps.playerFetchedCaptions = () => false;
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        // It spent a real toggle on the viewer's player; repeating it on every
+        // failed track is exactly what the once-per-video rule exists to stop.
+        expect(h.once.hasCompleted(VIDEO)).toBe(true);
+    });
+
+    test('an ad still outranks it — no toggle during an ad', async () => {
+        const h = harness();
+        const btn = ccButton(true);
+        h.deps.playerFetchedCaptions = () => false;
+        h.deps.isAdPlaying = () => true;
+        const reasons: string[] = [];
+        h.deps.onOutcome = (r) => reasons.push(r);
+
+        await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(h.clicks()).toBe(0);
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+        expect(reasons).toEqual(['ad']);
+        expect(h.once.hasCompleted(VIDEO)).toBe(false);
+    });
+
+    test('the viewer keeps their captions even if the token never comes', async () => {
+        const h = harness();
+        const btn = ccButton(true);
+        h.deps.playerFetchedCaptions = () => false;
+        // No token, ever: the budget is waited out in full.
+
+        const got = await doMintPotViaCcToggle(VIDEO, live(), h.once, h.deps);
+
+        expect(got).toBeNull();
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+    });
+});

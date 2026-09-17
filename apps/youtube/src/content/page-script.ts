@@ -1,6 +1,23 @@
 import { installNetflixHook } from './netflix/manifest-hook';
 import { isNetflix } from './site';
 import {
+    DEBUG_BATCH,
+    DEBUG_HELLO,
+    MainTraceSink,
+    isDebugState,
+    type DebugBatchMessage,
+} from './debug-bridge';
+import {
+    clipBody,
+    describeTimingHaystack,
+    pickHeaders,
+    type PotLookupReason,
+    type TraceEvent,
+} from './debug-trace';
+import { AfterAdMint } from './after-ad-mint';
+import { InFlightFetches } from './in-flight-fetches';
+import { LateTokenRescue } from './late-token-rescue';
+import {
     fetchTimedText,
     RateLimitBreaker,
     type VttOutcome,
@@ -11,11 +28,14 @@ import {
     POT_TOGGLE_TIMEOUT_MS,
     PotStore,
     SharedOnce,
+    awaitPot,
     buildTimedTextUrl,
     doMintPotViaCcToggle,
+    type MintReason,
     isEmptyish,
     potFromResourceTiming,
     shouldRetryWithPot,
+    worthRetryingWithToken,
     type MintDeps,
 } from './pot';
 
@@ -45,6 +65,22 @@ if (isNetflix()) {
     installYouTubeHook();
 }
 
+/**
+ * Whether this build records diagnostics at all.
+ *
+ * A module-level const, not a check inside a function, because that is the
+ * difference between the minifier folding the whole feature away and merely
+ * dropping its classes. Measured: with the guard living only inside
+ * installTraceSink(), a production page-script still carried 1.6KB of
+ * unreachable event literals and header-formatting code — the terser could not
+ * prove across the call boundary that `trace` was always null.
+ *
+ * With `DEBUG_BUILD` a literal `false`, every `DEBUG_BUILD && trace?.(…)` below
+ * is dead on its face and goes, and the debug-trace/debug-bridge imports go
+ * with it.
+ */
+const DEBUG_BUILD = __EXT_ENV__ === 'dev';
+
 function installYouTubeHook() {
     const TAG = '[YT-VTT page-script]';
     const originalFetch = window.fetch.bind(window);
@@ -53,7 +89,7 @@ function installYouTubeHook() {
     // `#lingogram_http=429:5@2` → status 429, Retry-After 5s, for the first 2
     // requests. Real throttling can't be summoned on demand, and this is the
     // only way to exercise the 429/403/404 paths by hand. Stripped from prod by
-    // the minifier via the __EXT_ENV__ guard (see docs/dev-flags.md).
+    // the minifier via the __EXT_ENV__ guard (see packages/shared/docs/dev-flags.md).
     function makeForcedFetch(): typeof originalFetch | null {
         if (__EXT_ENV__ !== 'dev') return null;
         const m = /[?#&]lingogram_http=(\d{3})(?::(\d+))?(?:@(\d+))?/.exec(location.href);
@@ -76,6 +112,38 @@ function installYouTubeHook() {
         };
     }
     const forcedFetch = makeForcedFetch();
+
+    // ---------- dev: the diagnostics recorder ----------
+    // Same shape as makeForcedFetch above, and for the same reason: the guard
+    // is the FIRST statement of a function whose result lands in a module-level
+    // const, so `'prod' !== 'dev'` folds, the body is dropped, and every
+    // `trace?.(...)` call site below collapses to nothing.
+    //
+    // This world cannot read the toggle (it has no chrome.* at all), so it
+    // buffers until the isolated world answers the hello below. See
+    // debug-bridge.ts for why that pre-arm window matters.
+    function installTraceSink(): ((e: TraceEvent) => void) | null {
+        if (!DEBUG_BUILD) return null;
+        const sink = new MainTraceSink({
+            post: (msg: DebugBatchMessage) => window.postMessage(msg, '*'),
+            now: () => Date.now(),
+            setTimer: (fn, ms) => window.setTimeout(fn, ms),
+            clearTimer: (id) => window.clearTimeout(id),
+        });
+        window.addEventListener('message', (event) => {
+            if (event.source !== window) return;
+            if (!isDebugState(event.data)) return;
+            sink.setState(event.data.on, event.data.startedAt);
+        });
+        // Announce ourselves: the isolated world boots later and may have
+        // missed nothing, but an extension reload leaves this script running
+        // with a stale state and only a fresh hello reconciles the two.
+        window.postMessage({ type: DEBUG_HELLO }, '*');
+        // Never let a lost batch die with the page.
+        window.addEventListener('pagehide', () => sink.flush());
+        return (e: TraceEvent) => sink.record(e, 'main');
+    }
+    const trace = DEBUG_BUILD ? installTraceSink() : null;
     const timedTextFetch = (url: string, init: RequestInit): Promise<Response> =>
         (forcedFetch ?? originalFetch)(url, init);
 
@@ -92,6 +160,10 @@ function installYouTubeHook() {
             kind: t.kind,
         }));
         console.log(TAG, 'sending tracks for', videoId, tracks.map((t) => t.lang));
+        DEBUG_BUILD && trace?.({
+            ev: 'catalog',
+            tracks: tracks.map((t) => ({ lang: t.lang, kind: t.kind, name: t.name })),
+        });
         window.postMessage({ type: 'YT_CAPTIONS_FOUND', videoId, tracks }, '*');
         return true;
     }
@@ -132,6 +204,37 @@ function installYouTubeHook() {
     // fetch time anyway.
     function readPlayerResponse(): PlayerResponse | null {
         return readPlayerResponseFromPlayerApi() ?? readPlayerResponseFromYtdApp();
+    }
+
+    /**
+     * readPlayerResponse(), but saying WHICH source answered.
+     *
+     * The distinction is the whole diagnosis for a class of failure: the
+     * ytd-app copy lists the right tracks behind signed URLs the server no
+     * longer honours, so a video resolved from it fails in a way that looks
+     * like a network problem and is not one.
+     */
+    function readPlayerResponseTraced(polls: number): PlayerResponse | null {
+        const live = readPlayerResponseFromPlayerApi();
+        if (live) {
+            DEBUG_BUILD && trace?.({
+                ev: 'player_response',
+                source: 'player-api',
+                videoId: live.videoDetails?.videoId,
+                trackCount: live.captions?.playerCaptionsTracklistRenderer?.captionTracks?.length ?? 0,
+                polls,
+            });
+            return live;
+        }
+        const ssr = readPlayerResponseFromYtdApp();
+        DEBUG_BUILD && trace?.({
+            ev: 'player_response',
+            source: ssr ? 'ytd-app' : 'none',
+            videoId: ssr?.videoDetails?.videoId,
+            trackCount: ssr?.captions?.playerCaptionsTracklistRenderer?.captionTracks?.length ?? 0,
+            polls,
+        });
+        return ssr;
     }
 
     /**
@@ -179,12 +282,16 @@ function installYouTubeHook() {
     // between Shorts, where the response lags the URL, never misfires.
     async function broadcastCurrent(): Promise<void> {
         const target = currentUrlVideoId();
+        DEBUG_BUILD && trace?.({ ev: 'nav', videoId: target, url: location.href });
         let caughtUpNoCap = 0;
         for (let i = 0; i < 70; i++) {
             // Bail if the user moved to a different video meanwhile.
             if (target && currentUrlVideoId() !== target) return;
 
-            const pr = readPlayerResponse();
+            // Traced only on the first poll and then every tenth: the loop can
+            // run 70 times and an event per iteration would crowd out the
+            // events that carry the answer.
+            const pr = i === 0 || i % 10 === 0 ? readPlayerResponseTraced(i) : readPlayerResponse();
             const vid = pr?.videoDetails?.videoId;
             const matches = !!vid && (!target || vid === target);
 
@@ -194,6 +301,7 @@ function installYouTubeHook() {
                 // with the response, so a brief stable confirmation is enough.
                 if (++caughtUpNoCap >= 8) {
                     console.log(TAG, 'no caption tracks for', vid);
+                    DEBUG_BUILD && trace?.({ ev: 'no_captions', videoId: vid! });
                     window.postMessage({ type: 'YT_NO_CAPTIONS', videoId: vid }, '*');
                     return;
                 }
@@ -216,6 +324,12 @@ function installYouTubeHook() {
             navAbort.abort();
             navAbort = new AbortController();
             inFlightFetch.clear();
+            // The aborts above already stop every armed rescue (each holds the
+            // old signal), but the map of what to refetch is ours to drop: a
+            // new video must not inherit the last one's pending work.
+            lateRescue.clear();
+            afterAd.clear();
+            rescuable.clear();
         }
         setTimeout(broadcastCurrent, 200);
     });
@@ -311,6 +425,22 @@ function installYouTubeHook() {
         }
     }
 
+    /**
+     * sessionStorage, or null where it is unavailable.
+     *
+     * Reading the PROPERTY throws — not just its methods — when a browser is set
+     * to block site data. This runs at document_start on every watch page, so an
+     * uncaught throw here would take the whole page-script down and with it the
+     * subtitles it exists to load.
+     */
+    function sessionStorageOrNull(): Storage | undefined {
+        try {
+            return window.sessionStorage ?? undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
     // ---------- timedtext fetching ----------
     // `pot` (PO token) came back. As of 2026-08-28 /api/timedtext answers a
     // request WITHOUT it as HTTP 200 with a ZERO-BYTE body — measured on a
@@ -331,7 +461,17 @@ function installYouTubeHook() {
     // 'no-pot' when the sniff missed, so a missing optimisation became a total
     // outage. A request always goes out with whatever is known at the time,
     // and the token only ever improves a retry.
-    const pots = new PotStore();
+    // Backed by sessionStorage: the in-memory map dies with this script, and a
+    // reload therefore threw away a token that was working moments earlier.
+    // Measured on a live trace (RkonDCcrZwo): captured at t=1032763, gone by
+    // t=1309460 on the same tab and video, and the six requests that followed
+    // all went out tokenless — six guaranteed empty answers and a "no
+    // subtitles" verdict on a video that had loaded minutes before.
+    //
+    // Read through a getter rather than passed directly: some embedding
+    // contexts make `sessionStorage` itself throw on access (site data blocked),
+    // and that must not stop the page-script from installing.
+    const pots = new PotStore(sessionStorageOrNull());
 
     // Sniff both transports the player might use. These wrappers only observe:
     // they must never change what the page sends, or we would break playback to
@@ -340,7 +480,10 @@ function installYouTubeHook() {
     XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: unknown[]) {
         try {
             const raw = typeof url === 'string' ? url : url.href;
-            if (pots.capture(raw, location.href)) console.log(TAG, 'captured pot (xhr)');
+            if (pots.capture(raw, location.href)) {
+                console.log(TAG, 'captured pot (xhr)');
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'sniffed', present: true, source: 'xhr' });
+            }
         } catch {
             // ignore
         }
@@ -354,7 +497,10 @@ function installYouTubeHook() {
             const raw = typeof input === 'string' ? input
                 : input instanceof URL ? input.href
                 : (input as Request)?.url;
-            if (raw && pots.capture(raw, location.href)) console.log(TAG, 'captured pot');
+            if (raw && pots.capture(raw, location.href)) {
+                console.log(TAG, 'captured pot');
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'sniffed', present: true, source: 'fetch' });
+            }
         } catch {
             // ignore
         }
@@ -362,15 +508,35 @@ function installYouTubeHook() {
     };
 
     /** The token for this video, consulting resource timing as a late fallback. */
-    function knownPot(videoId: string): string | null {
+    function knownPot(videoId: string, reason: PotLookupReason = 'build-url'): string | null {
         const cached = pots.get(videoId);
-        if (cached) return cached;
+        if (cached) {
+            DEBUG_BUILD && trace?.({
+                ev: 'pot_store', source: 'store', reason, tokenHead: cached.slice(0, 12),
+            });
+            return cached;
+        }
         try {
-            const late = potFromResourceTiming(videoId, performance.getEntriesByType('resource'));
+            const all = performance.getEntriesByType('resource');
+            const late = potFromResourceTiming(videoId, all);
+            // Counted even on the hit path: "the fallback found nothing" and
+            // "the buffer had already evicted everything" are the same outcome
+            // from outside, and only one of them is ours to fix.
+            //
+            // The breakdown is computed only in a dev build. It parses every
+            // timedtext entry's URL, which is real work on a path that runs
+            // several times per fetch, and production has no reader for it.
+            const haystack = DEBUG_BUILD && trace
+                ? describeTimingHaystack(videoId, all)
+                : { entries: all.length, timedtextEntries: 0 };
             if (late) {
                 pots.remember(videoId, late);
+                DEBUG_BUILD && trace?.({
+                    ev: 'pot_store', source: 'timing', reason, tokenHead: late.slice(0, 12), ...haystack,
+                });
                 return late;
             }
+            DEBUG_BUILD && trace?.({ ev: 'pot_store', source: 'miss', reason, ...haystack });
         } catch {
             // ignore
         }
@@ -387,12 +553,18 @@ function installYouTubeHook() {
     // answered 429, and gating them here escalated a missing translation into
     // a fully empty panel. Lives here because this is the only place that can
     // actually decline to send a request.
-    const breaker = new RateLimitBreaker();
+    // The three defaulted tuning params are passed as undefined so the sink
+    // can occupy the fourth position without changing any of them.
+    const breaker = new RateLimitBreaker(undefined, undefined, undefined, DEBUG_BUILD ? trace ?? undefined : undefined);
 
     // Duplicate YT_FETCH_VTT messages are easy to provoke (navigation races,
     // "Search again", a prefs change) and each one used to mean a fresh burst
     // of requests. Same pattern as inFlightEnsurePot above.
-    const inFlightFetch = new Map<string, Promise<VttOutcome>>();
+    //
+    // Keyed on the TRACK, not the URL — see InFlightFetches. A URL key looked
+    // right and collapsed nothing, because every navigation re-mints ei= and
+    // signature= for the same track.
+    const inFlightFetch = new InFlightFetches<VttOutcome>();
 
     // Abandoned when the user navigates: without this the retry loop and its
     // backoff keep running for a video nobody is watching any more.
@@ -423,28 +595,48 @@ function installYouTubeHook() {
     function fetchDeduped(
         url: string,
         signal: AbortSignal,
-        opts: { translation: boolean; probe: boolean; refreshUrl?: () => string },
+        opts: {
+            translation: boolean;
+            probe: boolean;
+            refreshUrl?: () => string;
+            onEmptyBody?: () => Promise<void>;
+            /**
+             * The dedup key — required, not optional. Under the old URL keying
+             * an absent key cost only a trace label; now it decides which
+             * requests are the same request, and a shared default would
+             * collapse two unrelated tracks into one.
+             */
+            reqKey: string;
+        },
     ): Promise<VttOutcome> {
-        const existing = inFlightFetch.get(url);
-        if (existing) {
-            console.log(TAG, 'reusing in-flight request');
-            return existing;
-        }
-        const p = fetchTimedText(
-            url,
-            {
-                fetchImpl: timedTextFetch,
-                sleep,
-                breaker: opts.translation ? breaker : undefined,
-                maxAttempts: opts.probe ? 1 : undefined,
-                refreshUrl: opts.refreshUrl,
+        return inFlightFetch.run(
+            opts.reqKey,
+            () => fetchTimedText(
+                url,
+                {
+                    fetchImpl: timedTextFetch,
+                    sleep,
+                    breaker: opts.translation ? breaker : undefined,
+                    maxAttempts: opts.probe ? 1 : undefined,
+                    refreshUrl: opts.refreshUrl,
+                    onEmptyBody: opts.onEmptyBody,
+                    onEvent: DEBUG_BUILD ? trace ?? undefined : undefined,
+                    traceKey: opts.reqKey,
+                    // The formatters travel with the sink — see FetchDeps.readHeaders.
+                    readHeaders: DEBUG_BUILD && trace ? pickHeaders : undefined,
+                    clipText: DEBUG_BUILD && trace ? clipBody : undefined,
+                },
+                signal,
+            ),
+            (key) => {
+                console.log(TAG, 'reusing in-flight request');
+                // A request that produces no attempts of its own. Without this
+                // the trace shows a track asking for nothing and then receiving
+                // an answer, which reads as a bug in the recorder rather than
+                // as deduplication working.
+                DEBUG_BUILD && trace?.({ ev: 'request', key, probe: opts.probe, deduped: true });
             },
-            signal,
-        ).finally(() => {
-            inFlightFetch.delete(url);
-        });
-        inFlightFetch.set(url, p);
-        return p;
+        );
     }
 
     function postResult(msg: Omit<YtVttResultMessage, 'type'>): void {
@@ -495,25 +687,139 @@ function installYouTubeHook() {
      * to a single language on every video that took this path. Everyone awaits
      * the same promise instead, and they all see the token it produces.
      */
-    function mintPotViaCcToggle(videoId: string, signal: AbortSignal): Promise<string | null> {
+    function mintPotViaCcToggle(
+        videoId: string,
+        signal: AbortSignal,
+        onOutcome?: (reason: MintReason) => void,
+    ): Promise<string | null> {
         return potMint.run(
             videoId,
-            () => doMintPotViaCcToggle(videoId, signal, potMint, mintDeps()),
-            () => knownPot(videoId),
+            () => doMintPotViaCcToggle(videoId, signal, potMint, mintDeps((reason) => {
+                onOutcome?.(reason);
+                // The ad branch refuses to click and leaves the video
+                // unclaimed, on the promise that a later attempt can still
+                // mint. Nothing used to make that attempt: the tokenless
+                // retries ran out, the verdict was filed, and the pre-roll
+                // ended with nobody watching. Armed HERE rather than at the
+                // call sites so every path into the mint keeps the promise.
+                if (reason === 'ad') afterAd.arm({ videoId, signal });
+            })),
+            () => knownPot(videoId, 'mint-check'),
         );
     }
 
+    /**
+     * Is an ad on screen right now?
+     *
+     * The same class the isolated world reads (see index.ts isAdPlaying) — it
+     * is a plain DOM check, so it works identically here and needs no bridge.
+     * Duplicated rather than relayed for exactly that reason: a postMessage
+     * round trip to learn a fact that is already in this document would add a
+     * race to the one place that must not have one.
+     */
+    function isAdPlaying(): boolean {
+        const player = document.querySelector('#movie_player, .html5-video-player');
+        return !!player && player.classList.contains('ad-showing');
+    }
+
+    /**
+     * Has the PLAYER fetched a caption track for this video?
+     *
+     * Read off resource timing, which records every request the page made
+     * whether or not our sniffers saw it. Our OWN requests land in the same
+     * buffer, so they have to be excluded — they all go out without a `pot`,
+     * and a request the player signed always carries one. That is the whole
+     * discriminator: a timedtext entry for this `v=` WITH a token is the
+     * player's; without one it is ours.
+     *
+     * Used only to check the "captions already on" exit's premise. A `false`
+     * answer is what licenses recycling the control, so it has to mean "the
+     * player really has not asked", not "we could not tell".
+     */
+    function playerFetchedCaptions(videoId: string): boolean {
+        try {
+            for (const e of performance.getEntriesByType('resource')) {
+                if (!e.name.includes('/api/timedtext')) continue;
+                const u = new URL(e.name);
+                if (u.searchParams.get('v') !== videoId) continue;
+                if (u.searchParams.get('pot')) return true;
+            }
+        } catch {
+            // A buffer we cannot read is not evidence of absence. Answering
+            // `true` keeps the old exit, which is the conservative side: it
+            // never touches the viewer's captions.
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * The mint an ad refused, waiting for the ad to end.
+     *
+     * The ad branch in doMintPotViaCcToggle leaves the video unclaimed and
+     * calls itself a "come back later"; this is what comes back. Driven by the
+     * player's own class changes rather than a poll — `ad-showing` is the same
+     * class isAdPlaying() reads, so the observer and the predicate cannot
+     * disagree.
+     */
+    const afterAd = new AfterAdMint({
+        isAdPlaying,
+        mint: (videoId) => {
+            console.log(TAG, 'the ad ended — retrying the mint for', videoId);
+            void mintPotViaCcToggle(videoId, navAbort.signal);
+        },
+        watch: (fn) => {
+            const player = document.querySelector('#movie_player, .html5-video-player');
+            if (!player) return () => {};
+            const obs = new MutationObserver(fn);
+            obs.observe(player, { attributes: true, attributeFilter: ['class'] });
+            return () => obs.disconnect();
+        },
+    });
+
     // The routine itself lives in ./pot so it can be tested: everything it
     // needs from this closure is handed over here.
-    function mintDeps(): MintDeps {
+    function mintDeps(onOutcome?: (reason: MintReason) => void): MintDeps {
         return {
             ccToggle: ccToggleForMinting,
             knownPot,
             currentUrlVideoId,
+            isAdPlaying,
+            playerFetchedCaptions,
             sleep,
             log: (m) => console.log(TAG, m),
+            onOutcome,
         };
     }
+
+    /**
+     * Tracks that failed for want of a token, waiting to be told one arrived.
+     * The rules live in ./late-token-rescue so they can be tested; this closure
+     * only supplies the page's half.
+     */
+    const lateRescue = new LateTokenRescue({
+        onToken: (fn) => pots.onToken(fn),
+        refetch: (reqKey) => {
+            const req = rescuable.get(reqKey);
+            if (!req) return;
+            console.log(TAG, 'a pot arrived after we gave up — refetching', reqKey);
+            void fetchVtt(reqKey, req.baseUrl, req.videoId, req.tlang, req.probe);
+        },
+        onRescue: (reqKey) => {
+            DEBUG_BUILD && trace?.({ ev: 'pot', action: 'rescued', present: true, source: reqKey });
+        },
+    });
+
+    /**
+     * What each waiting track needs in order to be re-fetched.
+     *
+     * Kept beside the rescue rather than captured in its closure so the rescue
+     * module stays free of YouTube's request shape — it knows only reqKeys.
+     */
+    const rescuable = new Map<
+        string,
+        { baseUrl: string; videoId: string; tlang?: string; probe?: boolean }
+    >();
 
     async function fetchVtt(
         reqKey: string,
@@ -534,17 +840,52 @@ function installYouTubeHook() {
         // empty-answer re-asks inside fetchTimedText, so a pot the player mints
         // while our first request is in flight is picked up without any waiting.
         const makeUrl = () => buildUrl(resolveLiveBaseUrl(videoId, baseUrl), tlang, knownPot(videoId));
+        // Let an already-arriving token catch up before spending a request that
+        // cannot succeed without one. Bounded by POT_WAIT_MS and never fatal —
+        // when it expires we proceed exactly as before, tokenless. See awaitPot
+        // for the measurement: 158 tokenless requests across four traces
+        // returned subtitles 0 times.
+        //
+        // Placed before the snapshot below so a token that lands during the
+        // wait is treated as one we HAD, not one that arrived mid-flight: it is
+        // going on this very request, so the empty-answer retry must not be
+        // armed for it.
+        await awaitPot(() => knownPot(videoId, 'pre-request'), { sleep, signal });
+        if (signal.aborted) return;
         // Snapshot BEFORE the request, not after: the player's own caption
         // request commonly lands while ours is in flight, and reading the token
         // afterwards would make a just-arrived one look like it had been there
         // all along — the retry would then be skipped in exactly the case it
         // exists for.
-        const potBefore = knownPot(videoId);
+        const potBefore = knownPot(videoId, 'pre-request');
+        DEBUG_BUILD && trace?.({ ev: 'request', key: reqKey, tlang, probe: !!probe });
         const url = makeUrl();
+        // Whether the live player response had a fresher URL than the one the
+        // isolated world handed us. A baseUrl that came from SSR data is the
+        // signature of the permanently-empty-200 failure.
+        DEBUG_BUILD && trace?.({ ev: 'url_resolved', key: reqKey, changed: url !== baseUrl, url });
         let outcome = await fetchDeduped(url, signal, {
             translation: !!tlang,
             probe: !!probe,
             refreshUrl: makeUrl,
+            // Mint on the FIRST empty answer, not after the retry budget is
+            // spent. Measured on a live trace: three attempts and ~2.3s went to
+            // a tokenless URL that could not answer, and the mint that would
+            // have fixed it ran afterwards; on a video where it happened to run
+            // in time it took 3ms. The first request still goes out immediately
+            // with whatever is known — only an already-empty answer waits.
+            //
+            // Skipped when a token is already in hand: the empty answer then
+            // means something else, and flashing the viewer's captions on would
+            // buy nothing. The post-loop cascade below stays as the late path.
+            onEmptyBody: potBefore ? undefined : async () => {
+                if (signal.aborted) return;
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_start', present: false });
+                let why: MintReason | undefined;
+                const minted = await mintPotViaCcToggle(videoId, signal, (r) => { why = r; });
+                DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_done', present: !!minted, reason: why });
+            },
+            reqKey,
         });
 
         // Second way in — the cascade. An empty answer with no token in hand is
@@ -561,13 +902,17 @@ function installYouTubeHook() {
         // identical request and launder the same empty answer into a second
         // attempt.
         if (!outcome.ok && !signal.aborted && !potBefore && isEmptyish(outcome.failure)) {
-            const late = await mintPotViaCcToggle(videoId, signal);
+            DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_start', present: false });
+            let lateWhy: MintReason | undefined;
+            const late = await mintPotViaCcToggle(videoId, signal, (r) => { lateWhy = r; });
+            DEBUG_BUILD && trace?.({ ev: 'pot', action: 'mint_done', present: !!late, reason: lateWhy });
             if (shouldRetryWithPot(outcome.failure, potBefore, late)) {
                 console.log(TAG, 'retrying with a freshly captured pot for', reqKey);
                 outcome = await fetchDeduped(makeUrl(), signal, {
                     translation: !!tlang,
                     probe: !!probe,
                     refreshUrl: makeUrl,
+                    reqKey,
                 });
             }
         }
@@ -581,8 +926,33 @@ function installYouTubeHook() {
             // 'stale-url' needs no cleanup here: the caller's "Search again"
             // re-reads the player response via YT_QUERY_CAPTIONS, which yields
             // a fresh baseUrl, and resolveLiveBaseUrl re-signs on every fetch.
+            //
+            // But an emptyish failure with no token in hand is not final: the
+            // token may still be coming. Measured on the live traces, that is
+            // exactly what the failed mints are — both tracks burn the 4s
+            // budget, the video is marked as attempted so nothing will click
+            // again, and then the token arrives anyway (+5.2s in one session,
+            // +73.8s in another). The sessions where it "never" arrived simply
+            // ended ~1.6s after we stopped looking.
+            //
+            // So wait for the news instead of polling for it: one refetch, on
+            // an event that happens regardless. No request is spent unless a
+            // token actually shows up, which is the difference between this and
+            // the retry burst that used to hammer a URL that could not answer.
+            if (worthRetryingWithToken(outcome.failure) && !knownPot(videoId, 'pre-request')) {
+                rescuable.set(reqKey, { baseUrl, videoId, tlang, probe });
+                lateRescue.arm({ reqKey, videoId, signal });
+            }
         }
 
+        DEBUG_BUILD && trace?.({
+            ev: 'outcome',
+            key: reqKey,
+            ok: outcome.ok,
+            failure: outcome.failure,
+            status: outcome.status,
+            attempts: outcome.attempts,
+        });
         postResult({
             url: reqKey,
             videoId,

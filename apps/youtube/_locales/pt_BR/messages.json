@@ -71,10 +71,6 @@
     "message": "Faça login para salvar palavras",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "salvo",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} palavras salvas",
     "description": "Saved-words counter; {count} is the number."

@@ -108,6 +108,141 @@ export async function setAuthState(s: AuthState): Promise<void> {
     });
 }
 
+/**
+ * Dev-only: one parked session per backend, so the switch does not cost a
+ * sign-in every time.
+ *
+ * A session is only meaningful inside the project that issued it — an ID token
+ * is signed by one project and no other will verify it, and a `uid` names a
+ * DIFFERENT person in each. So a switch cannot carry the live session across;
+ * what it can do is set it aside and hand back the one belonging to the target
+ * being entered.
+ *
+ * Keyed by project id, not by the target's label: the label is whatever a build
+ * chose to call a row, and two builds may spell the same project differently.
+ * The project id is what the credentials actually belong to.
+ *
+ * `__EXT_ENV__`-guarded and therefore absent from production, where there is
+ * one backend and nothing to park. The guard is on the module constant rather
+ * than inside each function so the whole thing folds away.
+ *
+ * That guard is also why these two keys are NOT in the privacy policy's
+ * "Local Storage" inventory, unlike every other key in this file: the policy
+ * describes the published extension, and no published build can write them.
+ * Verified against a prod build of both editions — zero occurrences in any
+ * bundle. Should parking ever reach a release, Section 3 gains an entry.
+ */
+const PARKED_PREFIX = 'dev.parkedAuth.';
+
+/**
+ * The projects that currently have something parked.
+ *
+ * An explicit index rather than a `chrome.storage.local.get(null)` scan. Two
+ * reasons, and the second is the one that bit: reading the WHOLE of local
+ * storage to find a handful of keys pulls the word mirror and every cached
+ * notification through the worker for no reason — and `get(null)` is a corner
+ * of the API that stubs routinely do not implement, so code depending on it
+ * throws where a plain keyed read would have worked. That is not a test
+ * problem: a service worker whose sign-out throws leaves the user signed in.
+ */
+// NOT under PARKED_PREFIX. Sharing the prefix makes "every parked session"
+// and "every parking key" the same query by accident, so any sweep over the
+// prefix silently includes the index — a trap that already cost one wrong
+// assertion before the key was moved out.
+const PARKED_INDEX_KEY = 'dev.parkedIndex';
+
+/** Whether parking exists at all in this build. */
+const PARKING_ENABLED = __EXT_ENV__ === 'dev';
+
+interface ParkedSession {
+    auth: AuthState;
+    /** The saved-word mirror, which is per-account and travels with it. */
+    mirror?: unknown;
+}
+
+/**
+ * Park the live session under the project it belongs to, and clear it.
+ *
+ * The mirror goes with it. It lists the terms THIS account saved, so leaving it
+ * behind would show one environment's words while signed into another — and
+ * hand them to whoever signs in next on this profile.
+ */
+export async function parkAuthState(projectId: string): Promise<void> {
+    if (!PARKING_ENABLED || !projectId) return;
+    const auth = await getAuthState();
+    if (!auth) {
+        await clearAuthState();
+        return;
+    }
+    const v = (await chrome.storage.local.get(WORD_KEYS.mirror)) as Record<string, unknown>;
+    const parked: ParkedSession = { auth, mirror: v[WORD_KEYS.mirror] };
+    await chrome.storage.local.set({
+        [PARKED_PREFIX + projectId]: parked,
+        [PARKED_INDEX_KEY]: [...new Set([...(await parkedProjectIds()), projectId])],
+    });
+    await clearAuthState();
+}
+
+/** Which projects have a parked session, per the index. */
+async function parkedProjectIds(): Promise<string[]> {
+    const v = (await chrome.storage.local.get(PARKED_INDEX_KEY)) as Record<string, unknown>;
+    const ids = v[PARKED_INDEX_KEY];
+    // Stored input: an index written by an older build, or truncated, must not
+    // throw here — sign-out runs through this path.
+    return Array.isArray(ids) ? ids.filter((x): x is string => typeof x === 'string') : [];
+}
+
+/**
+ * Restore a previously parked session for a project, if one is there.
+ *
+ * Returns whether anything was restored, so the caller can tell "you are back
+ * where you were" from "you need to sign in here".
+ *
+ * An expired token is restored anyway rather than discarded: the refresh token
+ * outlives it, and the normal refresh path is what turns one into a fresh
+ * session. Dropping it here would make the switch cost a sign-in exactly in
+ * the case parking exists to avoid.
+ */
+export async function unparkAuthState(projectId: string): Promise<boolean> {
+    if (!PARKING_ENABLED || !projectId) return false;
+    const key = PARKED_PREFIX + projectId;
+    const v = (await chrome.storage.local.get(key)) as Record<string, unknown>;
+    const parked = v[key] as ParkedSession | undefined;
+    // A parked blob is stored input like any other: a shape that does not carry
+    // both halves of an identity is not a session, and restoring half of one
+    // would leave the worker believing it is signed in.
+    if (!parked?.auth?.idToken || !parked.auth.uid) return false;
+    await setAuthState({
+        idToken: String(parked.auth.idToken),
+        refreshToken: String(parked.auth.refreshToken ?? ''),
+        expiresAt: Number(parked.auth.expiresAt ?? 0),
+        email: String(parked.auth.email ?? ''),
+        uid: String(parked.auth.uid),
+    });
+    if (parked.mirror !== undefined) {
+        await chrome.storage.local.set({ [WORD_KEYS.mirror]: parked.mirror });
+    }
+    await chrome.storage.local.remove(key);
+    await chrome.storage.local.set({
+        [PARKED_INDEX_KEY]: (await parkedProjectIds()).filter((id) => id !== projectId),
+    });
+    return true;
+}
+
+/**
+ * Forget every parked session. Called on an explicit sign-out: the user asked
+ * to be signed out, and leaving other environments' credentials parked would
+ * make that untrue on the next switch.
+ */
+export async function clearParkedAuthStates(): Promise<void> {
+    if (!PARKING_ENABLED) return;
+    const ids = await parkedProjectIds();
+    await chrome.storage.local.remove([
+        ...ids.map((id) => PARKED_PREFIX + id),
+        PARKED_INDEX_KEY,
+    ]);
+}
+
 export async function clearAuthState(): Promise<void> {
     await chrome.storage.local.remove([
         KEYS.idToken,

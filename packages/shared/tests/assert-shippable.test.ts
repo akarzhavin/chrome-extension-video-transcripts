@@ -12,9 +12,10 @@
  * contract IS its exit code, and it calls process.exit() at module scope.
  */
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 
 const GATE = join(__dirname, '..', 'assert-shippable.mjs');
 
@@ -176,6 +177,60 @@ describe('assert-shippable', () => {
         });
     });
 
+    describe('the subtitle diagnostics recorder', () => {
+        // The trace carries full signed timedtext URLs (signature and pot) and
+        // posts them to the page with postMessage(..., '*'). Shipping it would
+        // be handing every youtube.com visitor a reader for it.
+        it('refuses a content bundle carrying the storage key', () => {
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: { 'src/content/index.js': 'const k = "debug.trace.v1";' },
+                }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/diagnostics recorder is compiled in/);
+        });
+
+        // The second marker exists because a PARTIAL fold is a real outcome,
+        // not a hypothetical: during development the content bundle folded
+        // correctly while the page-script still carried 1.6KB of the recorder.
+        // One marker per world is what catches that.
+        it('refuses a page-script carrying the handshake, even when the content bundle is clean', () => {
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: {
+                        'src/content/index.js': 'const clean = 1;',
+                        'src/content/page-script.js': 'window.postMessage({type:"LG_TRACE_HELLO"});',
+                    },
+                }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/diagnostics recorder is compiled in/);
+        });
+
+        it('names the file it found the recorder in', () => {
+            const { output } = runGate(
+                makeBuild({ extraFiles: { 'src/content/index.js': 'const k = "debug.trace.v1";' } }),
+            );
+            expect(output).toMatch(/src\/content\/index\.js/);
+        });
+
+        it('passes a build where the recorder folded away', () => {
+            // The healthy case: a production bundle that does the same work
+            // with none of the recorder's strings in it.
+            const { code, output } = runGate(
+                makeBuild({
+                    extraFiles: {
+                        'src/content/index.js': 'const x = fetch("/api/timedtext");',
+                        'src/content/page-script.js': 'window.postMessage({type:"YT_VTT_RESULT"});',
+                    },
+                }),
+            );
+            expect(output).toBe('');
+            expect(code).toBe(0);
+        });
+    });
+
     describe('pre-existing rules still bite', () => {
         it('refuses a dev backend switch', () => {
             const { code, output } = runGate(
@@ -183,6 +238,70 @@ describe('assert-shippable', () => {
             );
             expect(code).toBe(1);
             expect(output).toContain('dev backend switch');
+        });
+
+        it("refuses the backend switch's target table, even with the action names gone", () => {
+            // The case the 'dev-env-switch' rule structurally cannot catch.
+            // That rule matches DEV_GET_ENV / DEV_SET_ENV — action names the
+            // minifier removes along with the guarded code. The RING is a JSON
+            // string literal, which is data: nothing obliges a minifier to
+            // drop it, so a guard rewritten to leave the table reachable ships
+            // every environment's api key while the action names vanish
+            // exactly as expected and the older rule stays green.
+            const ring = JSON.stringify([
+                {
+                    name: 'preprod',
+                    projectId: 'lingogram-preprod',
+                    apiKey: 'AIzaFAKE',
+                    frontendBaseUrl: 'https://preprod.example/',
+                    identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
+                },
+            ]);
+            const background =
+                healthyBackground() + `\nconst R = JSON.parse(${JSON.stringify(ring)});`;
+            expect(background).not.toContain('DEV_SET_ENV');
+            expect(background).not.toContain('DEV_GET_ENV');
+
+            const { code, output } = runGate(makeBuild({ background }));
+            expect(code).toBe(1);
+            expect(output).toContain('target table');
+        });
+
+        it('sees the table through ESCAPED quotes, not just the object form', () => {
+            // The bug this pins, found by probing the rule rather than trusting
+            // it: inside a JSON string literal the keys are spelled \"apiKey\",
+            // and a pattern written for the object form (apiKey:) matches
+            // nothing. The first version of the rule passed a build carrying a
+            // full ring. Asserted on the escaped spelling ALONE so the object
+            // form cannot carry the test.
+            const escaped =
+                '\nconst R = "[{\\"projectId\\":\\"lingogram-preprod\\",'
+                + '\\"apiKey\\":\\"AIzaFAKE\\",'
+                + '\\"frontendBaseUrl\\":\\"https://preprod.example/\\"}]";';
+            expect(escaped).not.toMatch(/[^\\]"apiKey"\s*:/);
+
+            const { code, output } = runGate(
+                makeBuild({ background: healthyBackground() + escaped }),
+            );
+            expect(code).toBe(1);
+            expect(output).toContain('target table');
+        });
+
+        it('does not fire on a build carrying its own single backend', () => {
+            // A shippable build already contains one object with exactly these
+            // keys — `config` in auth/config.ts. Matching the field names alone
+            // flagged every correct build, which is how the rule was first
+            // written. What must be absent is a SECOND key next to a second
+            // project, so the one-backend shape has to stay green.
+            const soleConfig =
+                '\nconst c = { projectId: "lingogram-prod", apiKey: "AIzaPROD",'
+                + ' identityToolkitUrl: "https://identitytoolkit.googleapis.com",'
+                + ' frontendBaseUrl: "https://lingogram.ai" };';
+            const { code, output } = runGate(
+                makeBuild({ background: healthyBackground() + soleConfig }),
+            );
+            expect(output).toBe('');
+            expect(code).toBe(0);
         });
 
         it('refuses a localhost origin', () => {
@@ -227,6 +346,85 @@ describe('assert-shippable', () => {
             );
             expect(code).toBe(1);
             expect(output).toContain('placeholder');
+        });
+    });
+
+    /**
+     * The documentation names the markers; this is what keeps it true.
+     *
+     * dev-flags.md describes what the gate refuses, and that paragraph was
+     * still naming `vtt-debug-panel` long after the marker was dropped — the
+     * recorder's actions had moved out of a floating panel into settings rows,
+     * the list followed, and the prose did not. A doc that names a guard the
+     * guard does not have reads as coverage and is the opposite.
+     *
+     * Checked in BOTH directions, for the same reason assert-foldable.mjs
+     * checks its own list both ways: a doc missing a real marker understates
+     * the gate, and a doc naming an absent one invents protection.
+     */
+    describe('the documented marker list', () => {
+        const DOC = join(__dirname, '..', 'docs', 'dev-flags.md');
+
+        /**
+         * The gate's own list, read out of the real .mjs by running node.
+         *
+         * Not a static import: this suite is transpiled to CommonJS, and an ESM
+         * module cannot be required from it. Asking node for the array also
+         * means the assertion is made against the file the build actually
+         * loads, rather than a copy the test runner reshaped.
+         */
+        const gateMarkers = (): string[] => {
+            const { stdout, status, stderr } = spawnSync(
+                process.execPath,
+                [
+                    '--input-type=module',
+                    '-e',
+                    `import { DEBUG_TRACE_MARKERS } from ${JSON.stringify(GATE)};` +
+                        'process.stdout.write(JSON.stringify(DEBUG_TRACE_MARKERS));',
+                ],
+                { encoding: 'utf8' },
+            );
+            if (status !== 0) throw new Error(`could not read DEBUG_TRACE_MARKERS: ${stderr}`);
+            return JSON.parse(stdout) as string[];
+        };
+
+        /**
+         * The markers named in the paragraph that describes what the gate
+         * refuses — that paragraph only, not the whole document.
+         *
+         * Scoped deliberately: prose elsewhere discusses markers the gate no
+         * longer has (the history of `vtt-debug-panel`, right below it), and a
+         * document-wide scan would read those mentions as claims about the
+         * current list and fail on an accurate sentence.
+         */
+        function documentedMarkers(): string[] {
+            const text = readFileSync(DOC, 'utf8');
+            const heading = '**Between the build and the zip';
+            const start = text.indexOf(heading);
+            if (start === -1) throw new Error(`dev-flags.md no longer contains ${heading}`);
+            // To the end of that paragraph: a blank line.
+            const end = text.indexOf('\n\n', start);
+            const paragraph = text.slice(start, end === -1 ? undefined : end);
+
+            const named = new Set<string>();
+            for (const [, inner] of paragraph.matchAll(/`([^`\n]+)`/g)) {
+                // Only names that look like trace markers: the paragraph also
+                // backticks a filename and the array's own name.
+                if (/^(LG_TRACE_|vtt-(debug|trace)-|debug\.trace\.)/.test(inner)) named.add(inner);
+            }
+            return [...named].sort();
+        }
+
+        it('names every marker the gate actually refuses', () => {
+            const documented = documentedMarkers();
+            const missing = gateMarkers().filter((m) => !documented.includes(m));
+            expect(missing).toEqual([]);
+        });
+
+        it('names no marker the gate does not have', () => {
+            const markers = gateMarkers();
+            const stale = documentedMarkers().filter((m) => !markers.includes(m));
+            expect(stale).toEqual([]);
         });
     });
 

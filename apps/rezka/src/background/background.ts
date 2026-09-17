@@ -7,11 +7,15 @@ import {
     setBackendResolver,
     track,
 } from '../../../../packages/shared/src/analytics-bg';
-import { isLiveProd } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
 
 // Tags every event with the backend it came from — a dev build can be switched
-// between prod and preprod at runtime, and the two must stay distinguishable.
-setBackendResolver(() => (isLiveProd() ? 'prod' : 'preprod'));
+// between its targets at runtime, and they must stay distinguishable.
+//
+// The TARGET'S OWN NAME, not a prod/not-prod bit: a ring of three collapsed to
+// two labels would file every local-emulator session under 'preprod' — a value
+// that reads as real and is wrong.
+setBackendResolver(() => currentSide());
 
 /**
  * Carries the HTTP status alongside the error so callers can tell a rate limit

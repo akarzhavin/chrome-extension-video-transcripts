@@ -12,9 +12,8 @@ declare const __FRONTEND_BASE_URL__: string;
 declare const __EXT_SOURCE__: string;
 // Dev-only backend switch. Never set in an embed build, but devEnvSwitch.ts is
 // reachable from the auth module this program imports, so tsc needs the names.
-declare const __EXT_ALT_PROJECT_ID__: string;
-declare const __EXT_ALT_API_KEY__: string;
-declare const __EXT_ALT_FRONTEND_BASE_URL__: string;
+declare const __EXT_DEV_TARGETS__: string;
+declare const __EXT_HOME_TARGET_NAME__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_CONTEXT_BYTES__: number;

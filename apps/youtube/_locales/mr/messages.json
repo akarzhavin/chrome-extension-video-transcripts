@@ -71,10 +71,6 @@
     "message": "शब्द जतन करण्यासाठी साइन इन करा",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "जतन केले",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} शब्द जतन केले",
     "description": "Saved-words counter; {count} is the number."

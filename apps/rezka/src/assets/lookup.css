@@ -96,11 +96,33 @@
     font-size: 12.5px;
 }
 
-/* The word the open card belongs to. Same inset-underline technique as the
-   saved-word marker, in the accent so the two never read as the same state. */
+/* The word the open card belongs to.
+   ────────────────────────────────────────────────────────────────────────
+   The same short bar as the saved-word mark (.vtt-saved-mark in styles.css),
+   in the accent rather than the heart. One form for both states, because a
+   word can carry both at once and two different forms on one word read as
+   decoration rather than as state — over a guess-mode capsule, which brings
+   its own ring and fill, they read as noise.
+
+   It was an `inset 0 -2px` underline spanning the whole word, which also put
+   it in the shape of a link. Drawn outside the box now, so it cannot alter
+   the word's own metrics. */
 .vtt-lookup-hit {
-    box-shadow: inset 0 -2px 0 var(--vtt-accent);
-    border-radius: 2px;
+    position: relative;
+}
+
+.vtt-lookup-hit::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.14em;
+    width: 44%;
+    height: 0.12em;
+    min-height: 2px;
+    transform: translateX(-50%);
+    border-radius: 0.06em;
+    background: var(--vtt-accent);
+    pointer-events: none;
 }
 
 .vtt-lookup-muted {

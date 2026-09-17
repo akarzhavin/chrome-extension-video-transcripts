@@ -74,6 +74,31 @@ if (zip.status !== 0) {
 }
 
 console.log(`  packaged: releases/${label}-v${version}${suffix}.zip`);
-if (waived) {
+
+// AFTER packaging: re-run the verdict against the ARCHIVE.
+//
+// The gate above inspected build/ — a directory the next build overwrites,
+// dev or prod. So its verdict is about whatever was in build/ a moment ago,
+// not about the bytes that just went into the zip. Those came apart in
+// practice: releases/youtube-v1.0.15.zip was written by a dev run while a prod
+// build had passed the gate earlier the same day.
+//
+// verify-zip re-runs every rule against the unpacked archive and adds the
+// checks that only exist once there is a file: the api_secret in a
+// page-readable bundle, the manifest version matching the filename, stray
+// source maps. It was available as `npm run verify-zip` and therefore
+// optional; a check nobody is required to run is a check that reports on the
+// releases somebody remembered.
+//
+// Skipped for a deliberately-unshippable archive: verify-zip refuses those on
+// the name alone, which is correct and would turn a successful `WRITE_
+// UNSHIPPABLE_ZIP=1` run into a failure.
+if (!waived) {
+    const verify = spawnSync('node', [join(here, 'verify-zip.mjs'), zipPath], { stdio: 'inherit' });
+    if (verify.status !== 0) {
+        console.error('  The archive was written but does NOT verify. Do not upload it.');
+        process.exit(verify.status ?? 1);
+    }
+} else {
     console.log('  NOT SHIPPABLE — do not upload this archive to the Web Store.');
 }

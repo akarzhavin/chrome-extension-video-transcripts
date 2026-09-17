@@ -219,10 +219,21 @@ function cueIndexOf(scope: Element): number {
     return attr === null || attr === undefined ? NaN : parseInt(attr, 10);
 }
 
-// ── "✓ saved" marker ──────────────────────────────────────────────────────
+// ── saved-word highlight ──────────────────────────────────────────────────
 // After a word is saved we tag it inline in the transcript so the action has
-// visible feedback (until the list next re-renders). Same classes are reused by
-// the promo demo so the screenshots reflect a real feature.
+// visible feedback. PROMO ONLY now — the real save path no longer calls it.
+//
+// Saving a word already shows in three places: the card's heart fills and its
+// label turns to Remove, a toast names the word, and the word itself gains the
+// standing mark from the mirror (`vtt-saved-mark`, transcript/saved-marks.ts).
+// This highlight was a fourth, and on screen the two marks stacked: a tinted
+// box with an accent underline from here, the heart-coloured bar from there,
+// on one word. It also carries `padding: 0 2px`, so it moved the words beside
+// it — the exact fault that got the "✓ saved" pill removed before it.
+//
+// The class stays because the promo path paints it deliberately on an
+// arbitrary word during captures, consulting nothing (see
+// apps/youtube/src/content/index.ts and deliberate-absences.test.ts).
 function injectSavedWordStyles(): void {
     if (document.getElementById('lingogram-saved-style')) return;
     const style = document.createElement('style');
@@ -236,19 +247,6 @@ function injectSavedWordStyles(): void {
             border-radius: 4px; padding: 0 2px;
             background: var(--vtt-accent-quiet, rgba(124,141,255,0.16));
             box-shadow: inset 0 -2px 0 var(--vtt-accent, #7c8dff);
-        }
-        .vtt-saved-badge {
-            /* inline-block so the margin actually separates it from the word:
-               as a plain inline the badge butted straight against the last
-               glyph ("teeming✓ saved"), because the word spans carry no
-               trailing whitespace of their own. */
-            display: inline-block;
-            margin: 0 4px 0 7px; padding: 1px 7px; border-radius: 999px;
-            font-size: 10px; font-weight: 700; vertical-align: middle;
-            white-space: nowrap;
-            color: var(--vtt-success-text, #6ee7b7);
-            background: var(--vtt-success-quiet, rgba(52,211,153,0.16));
-            border: 1px solid var(--vtt-success-border, rgba(52,211,153,0.4));
         }
     `;
     (document.head ?? document.documentElement).appendChild(style);
@@ -271,16 +269,10 @@ export function selectionWordSpans(): HTMLElement[] {
     );
 }
 
-/** Tag the given word spans as saved (highlight + a single "✓ saved" badge). */
+/** Tag the given word spans as saved (highlight only — see the note above). */
 export function markSpansSaved(spans: HTMLElement[]): void {
     if (!spans.length) return;
     spans.forEach((s) => s.classList.add('vtt-saved-word'));
-    const last = spans[spans.length - 1];
-    if (last.nextElementSibling?.classList.contains('vtt-saved-badge')) return;
-    const badge = document.createElement('span');
-    badge.className = 'vtt-saved-badge';
-    badge.textContent = `✓ ${i18nMsg('ytSavedBadge', 'saved')}`;
-    last.insertAdjacentElement('afterend', badge);
 }
 
 function showToast(text: string, ok: boolean): void {
@@ -692,7 +684,10 @@ export async function saveTerm(
         if (!res.ok) throw new Error(res.error ?? 'add failed');
         // The commit landed; the optimistic entry above is now the truth.
         showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
-        markSpansSaved(spans);
+        // The word itself is not painted here: the mirror entry written above
+        // is what `vtt-saved-mark` reads, and it paints the word on this very
+        // frame. Highlighting it a second time from this side put two marks on
+        // one word (see the note on injectSavedWordStyles).
         // Value-moment rating ask (P1.8) — background signals the one-shot.
         if (res.promptRate) showRatePrompt();
         return true;
@@ -718,8 +713,13 @@ export async function saveTerm(
  *
  * Optimistic in the same way and for the same reason: the heart empties the
  * instant it is pressed, and the exact previous value is put back if the write
- * fails. The decoration `markSpansSaved` applied is cleared too, or the
- * subtitle line would keep claiming the word is saved.
+ * fails. The word's own mark needs no separate undo — it reads the mirror, so
+ * writing 'removed' clears it and a rollback restores it, both on the next
+ * frame.
+ *
+ * `spans` is still taken: callers pass the nodes they acted on, and the
+ * parameter keeps that contract for the promo path and for any future
+ * decoration. It is unused by the real path on purpose.
  */
 export async function removeTerm(term: string, spans: HTMLElement[] = []): Promise<boolean> {
     console.log('[Lingogram] REMOVE_WORD →', term);
@@ -741,7 +741,8 @@ export async function removeTerm(term: string, spans: HTMLElement[] = []): Promi
         });
         console.log('[Lingogram] REMOVE_WORD ←', res);
         if (!res.ok) throw new Error(res.error ?? 'remove failed');
-        clearSpansSaved(spans);
+        // Nothing to unpaint: the mark follows the mirror, and deleting the
+        // entry clears it on the next frame.
         return true;
     } catch (err) {
         const msg = String(err instanceof Error ? err.message : err);
@@ -792,9 +793,6 @@ export function installFocusSync(): () => void {
 export function clearSpansSaved(spans: HTMLElement[]): void {
     if (!spans.length) return;
     spans.forEach((s) => s.classList.remove('vtt-saved-word'));
-    const last = spans[spans.length - 1];
-    const badge = last.nextElementSibling;
-    if (badge?.classList.contains('vtt-saved-badge')) badge.remove();
 }
 
 // Re-exported under this name because lookup/word-screen.ts imports it from

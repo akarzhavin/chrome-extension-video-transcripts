@@ -3,6 +3,7 @@ import { AppState } from './AppState';
 // safe in a bundle the page can read. analytics-bg must never be imported here.
 import { trackVia, platformOf } from './analytics';
 import {
+    DEFAULT_DEBUG_MODE,
     loadPrefs,
     onPrefsChanged,
     savePrefs,
@@ -43,6 +44,13 @@ import {
     fillMaskedWordsInto,
     fillPlainWordsInto,
 } from './transcript/word-markup';
+import {
+    isSaved,
+    markSavedIn,
+    markSavedSpan,
+    onSavedWordsChanged,
+    startSavedMarks,
+} from './transcript/saved-marks';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
@@ -95,6 +103,15 @@ export const ICONS = {
     // label to be understood at 14px.
     download: svgIcon('<path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'),
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
+    // Two offset sheets — the copy glyph, and the same shape the floating
+    // debug panel used before its actions moved into settings.
+    // The recorder's own glyph. `download` used to stand in, and it also sits
+    // on the download action one element away in the same row.
+    record: svgIcon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/>'),
+    copy: svgIcon('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    // A bin, for discarding the recording. Only ever shown on a dev build's
+    // diagnostics rows, never on a product setting.
+    trash: svgIcon('<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
     // single: one subtitle line; dual: two stacked subtitle lines; guess: a
@@ -192,6 +209,34 @@ export class SidebarUI {
         this.app = app;
         this.elements = {};
         this.wordScreen = wordScreen?.(this.wordScreenHost());
+        // Which words the learner already owns, for the whole page. Seeded from
+        // the mirror and kept in step with it; on a host without extension
+        // storage (the embed) both halves no-op and nothing is ever marked.
+        this.stopSavedMarks = startSavedMarks();
+        // A line already on screen has to gain or lose its mark when the
+        // dictionary changes, and a rebuild will not do it: the overlay only
+        // rebuilds when its content signature changes, and "which words are
+        // saved" is deliberately not in that signature — putting it there would
+        // rebuild the caption under an open lookup card.
+        this.offSavedWords = onSavedWordsChanged(() => this.repaintSavedMarks());
+    }
+
+    private stopSavedMarks?: () => void;
+    private offSavedWords?: () => void;
+
+    /**
+     * Re-decide the mark on every word currently rendered.
+     *
+     * Both surfaces, because both show words: the transcript list and the
+     * on-video overlay. Cheap enough to run on a dictionary change — it is one
+     * `querySelectorAll` and a `classList.toggle` per word, on at most the
+     * lines that exist right now, and it happens when the learner saves or
+     * removes a word, not on a timer.
+     */
+    private repaintSavedMarks(): void {
+        if (this.elements.list) markSavedIn(this.elements.list);
+        const overlay = document.getElementById('vtt-video-overlay');
+        if (overlay) markSavedIn(overlay);
     }
 
     /**
@@ -570,6 +615,51 @@ export class SidebarUI {
         settingsPanel.appendChild(feedbackLink);
         this.elements = { ...this.elements, feedbackLink };
 
+        // Dev-only: the subtitle diagnostics recorder. LAST row in the panel —
+        // it is not a product setting and must not sit among ones that are.
+        //
+        // Guarded on the __EXT_ENV__ literal, which Vite substitutes before
+        // minification, so in a shipped build the row is not hidden or
+        // disabled: it is never constructed at all, and the minifier drops the
+        // builder with it. Same shape as the backend switch in the header —
+        // the guard wraps the CONSTRUCTION, not a branch inside a method the
+        // shipped build still calls.
+        if (__EXT_ENV__ === 'dev') {
+            // ONE row for the recorder: the switch that turns it on, and its
+            // three actions as icons in the same row. They were four
+            // full-height rows — a quarter of the settings panel spent on a
+            // dev-only feature, with the download glyph appearing twice (on
+            // the switch and on the download row) for two different verbs.
+            //
+            // The actions go in an EMPTY container inside that row, filled on
+            // first open. The sidebar is built from the app's constructor,
+            // and installDebugMode runs at the end of bootstrap and then
+            // awaits rec.hydrate() — so at this moment traceActions() is
+            // still null and building the actions now produces nothing,
+            // permanently. That is exactly the bug that made the controls
+            // vanish when they moved off the floating panel (debug-ui.ts),
+            // which covered the player the trace was being taken of.
+            const debugRow = this.buildDebugToggle();
+            const traceRows = document.createElement('div');
+            traceRows.id = 'vtt-trace-rows';
+            // Inline, like everything else dev-only here: styles.css is copied
+            // into the bundle verbatim with no __EXT_ENV__ to fold it.
+            traceRows.style.cssText = 'display:flex;align-items:center;gap:2px;flex:none;';
+            // The row is a <label> whose `for` names the switch, so a click
+            // anywhere in it — the gaps between icons, the session count —
+            // toggles the recorder. Discarding a recording would switch
+            // recording off with it. Stopped on the container rather than on
+            // each button: one guard cannot be forgotten on a fourth action.
+            traceRows.addEventListener('click', (e) => e.preventDefault());
+            // Before the switch in DOM order, so the row reads
+            // label · actions · switch: the switch keeps the right edge every
+            // other setting's switch sits on, and the destructive action is
+            // not the control nearest it.
+            debugRow.insertBefore(traceRows, debugRow.querySelector('.vtt-switch-input'));
+            settingsPanel.appendChild(debugRow);
+            this.elements = { ...this.elements, traceRows };
+        }
+
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
         // toggle; no separate Done button at the panel bottom.
         header.appendChild(settingsPanel);
@@ -755,6 +845,220 @@ export class SidebarUI {
         });
 
         return label;
+    }
+
+    /**
+     * Dev-only: the subtitle diagnostics toggle.
+     *
+     * Anatomy is deliberately the analytics row's, so the panel's footer stays
+     * one band rather than gaining a differently-shaped stranger.
+     *
+     * The label is hardcoded English, NOT an i18n key. The interface ships in
+     * 54 locales and locale-coverage.test.ts checks that every key in `en`
+     * exists in the others; adding one here would fail 53 locales at once to
+     * translate a string only ever read by one person on one machine. The
+     * backend switch above says `backend: …` for the same reason.
+     */
+    private buildDebugToggle(): HTMLElement {
+        // Second guard, matching wireEnvSwitch(): the caller is already inside
+        // an __EXT_ENV__ check, and this makes the method itself unreachable in
+        // a prod bundle rather than merely uncalled.
+        if (__EXT_ENV__ !== 'dev') return document.createElement('span');
+
+        const label = document.createElement('label');
+        // Explicit, rather than relying on the checkbox being nested inside.
+        // An implicit label takes the FIRST labelable descendant as its
+        // control, and the recorder's action buttons sit in this row before
+        // the checkbox — so without this, the control resolves to the Download
+        // button and clicking the row's own text stops toggling the recorder.
+        // Measured: the label text toggled the switch with no recorder
+        // attached and stopped doing so as soon as the buttons appeared.
+        label.htmlFor = 'vtt-debug-toggle';
+        label.className = 'vtt-panel-row';
+        // `record`, not `download`: the download glyph also sits on the download
+        // action in this same row, and one glyph for two verbs is a coin toss.
+        label.innerHTML = `${ICONS.record}<span class="vtt-privacy-text">Subtitle diagnostics</span>`;
+        label.title =
+            'Dev build only. Records the whole subtitle load — every request, ' +
+            'status, header and retry — for the last few videos, downloadable as JSON. ' +
+            'The file contains signed caption URLs and pot tokens: do not share it.';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-debug-toggle';
+        box.className = 'vtt-switch-input';
+        // Seeded from the default and corrected below once storage resolves —
+        // the same shape as the analytics row. Hardcoding `false` here would
+        // paint the switch off for a frame on a dev build, where the default
+        // is on, and read as "the recorder is not running" at exactly the
+        // moment someone is checking whether it is.
+        box.checked = DEFAULT_DEBUG_MODE;
+
+        const track = document.createElement('span');
+        track.className = 'vtt-switch';
+        track.setAttribute('aria-hidden', 'true');
+
+        label.appendChild(box);
+        label.appendChild(track);
+
+        void loadPrefs().then((p) => {
+            box.checked = p.debugMode;
+        });
+        box.addEventListener('change', () => {
+            void savePrefs({ debugMode: box.checked });
+        });
+
+        return label;
+    }
+
+    /**
+     * Download / copy / discard for the diagnostics recording.
+     *
+     * Empty unless the app offers `traceActions` — only a dev build of the
+     * YouTube app does. Guarded on the same `__EXT_ENV__` literal as the switch
+     * above so a shipped bundle never constructs the rows and the minifier can
+     * drop this method whole.
+     *
+     * These lived in a panel fixed over the page, and its cost was structural
+     * rather than aesthetic: a floating control on a video player covers the
+     * player, and the player is what a subtitle trace is being taken of. In
+     * settings they cover nothing, and they sit next to the switch that
+     * explains what they act on.
+     *
+     * The count goes on the Download row and is refreshed whenever the panel
+     * opens, because it is the only thing that says the recorder is capturing
+     * rather than merely enabled.
+     */
+    /** Refreshes the recorded-session count; set once the rows exist. */
+    private traceRelabel?: () => void;
+
+    /**
+     * Fill the diagnostics container on first open, refresh its count on every
+     * one.
+     *
+     * Deferred rather than built with the panel because of an ordering that is
+     * not visible from here: the sidebar is constructed from the app's own
+     * constructor, while the recorder is stood up at the end of bootstrap and
+     * then awaits its storage hydrate. At panel-build time `traceActions()`
+     * answers null — so rows built then are no rows, for the life of the page.
+     * Opening settings is the first moment the recorder is reliably up, and it
+     * is also the only moment these rows can be looked at.
+     */
+    private syncTraceRows(): void {
+        if (__EXT_ENV__ !== 'dev') return;
+        const host = this.elements.traceRows;
+        if (!host) return;
+        if (host.childElementCount > 0) {
+            this.traceRelabel?.();
+            return;
+        }
+        for (const row of this.buildTraceActionRows()) host.appendChild(row);
+    }
+
+    private buildTraceActionRows(): HTMLElement[] {
+        if (__EXT_ENV__ !== 'dev') return [];
+        const actions = this.app.traceActions?.();
+        if (!actions) return [];
+
+        // Styled inline rather than from styles.css, and that is the point: the
+        // stylesheet is copied into the bundle verbatim, with no __EXT_ENV__ to
+        // fold it, so a `.vtt-trace-row` rule would ship to every user as dead
+        // CSS naming a dev-only feature — which is exactly what the release
+        // gate refuses (assert-shippable.mjs). Inline declarations live inside
+        // this guarded method and leave with it.
+        //
+        // Icon buttons rather than rows: three verbs on one recording do not
+        // each deserve the height of a setting. 22px targets, the same as the
+        // sidebar header's own icon buttons.
+        const btn = (icon: string, title: string): HTMLButtonElement => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'vtt-trace-row';
+            b.title = title;
+            b.innerHTML = icon;
+            b.style.cssText =
+                'all:unset;cursor:pointer;width:22px;height:22px;border-radius:5px;'
+                + 'display:grid;place-items:center;color:inherit;flex:none;';
+            const svg = b.querySelector('svg');
+            if (svg) {
+                svg.style.width = '14px';
+                svg.style.height = '14px';
+                svg.style.opacity = '0.75';
+            }
+            // :hover is not expressible inline, so the row's own hover feedback
+            // is reproduced on pointer events.
+            b.addEventListener('pointerenter', () => {
+                b.style.backgroundColor = 'rgba(255,255,255,0.10)';
+                if (svg) svg.style.opacity = '1';
+            });
+            b.addEventListener('pointerleave', () => {
+                b.style.removeProperty('background-color');
+                if (svg) svg.style.opacity = '0.75';
+            });
+            return b;
+        };
+
+        // The count, and the place feedback goes. It used to replace the
+        // Download row's own label, which meant the only readout of whether
+        // the recorder had captured anything disappeared for two seconds every
+        // time it spoke. Its own element can say both.
+        const status = document.createElement('span');
+        status.className = 'vtt-trace-row';
+        status.style.cssText =
+            'font-size:11px;opacity:0.75;font-variant-numeric:tabular-nums;'
+            + 'white-space:nowrap;margin-right:2px;';
+
+        const relabel = (): void => {
+            const n = actions.sessions();
+            status.style.removeProperty('color');
+            status.textContent = n ? String(n) : '—';
+            status.title = n ? `${n} video${n === 1 ? '' : 's'} recorded` : 'nothing recorded yet';
+        };
+        relabel();
+        // A message in place of the count for a moment, then the count back.
+        const flash = (text: string, ok = true): void => {
+            status.textContent = text;
+            status.title = text;
+            status.style.color = ok ? 'var(--vtt-success-text, #6ee7b7)' : 'var(--vtt-danger, #f87171)';
+            setTimeout(relabel, 2000);
+        };
+        // Handed to syncTraceRows so a later open refreshes the count without
+        // rebuilding the actions.
+        this.traceRelabel = relabel;
+
+        const dl = btn(ICONS.download, 'Download trace. The file contains signed caption URLs '
+            + 'and pot tokens: do not share it.');
+        dl.addEventListener('click', () => {
+            if (actions.sessions() === 0) {
+                flash('none', false);
+                return;
+            }
+            actions.download();
+        });
+
+        const copy = btn(ICONS.copy, 'Copy trace to the clipboard');
+        copy.addEventListener('click', () => {
+            void actions.copy().then((ok) => flash(ok ? '✓' : 'blocked', ok));
+        });
+
+        const clear = btn(ICONS.trash, 'Discard recording');
+        // Discarding is destructive and unrecoverable, so it carries the quiet
+        // red the emergency actions use — never the accent, which on this panel
+        // means "a setting is on". The colour arrives on hover rather than at
+        // rest: at rest this is one icon of three and should not shout.
+        clear.addEventListener('pointerenter', () => {
+            clear.style.color = 'var(--vtt-danger, #f87171)';
+            clear.style.backgroundColor = 'rgba(248,113,113,0.10)';
+        });
+        clear.addEventListener('pointerleave', () => {
+            clear.style.removeProperty('color');
+            clear.style.removeProperty('background-color');
+        });
+        clear.addEventListener('click', () => {
+            void actions.clear().then(relabel);
+        });
+
+        return [status, dl, copy, clear];
     }
 
     // Label + select field row with a custom chevron (the select itself is
@@ -1246,7 +1550,14 @@ export class SidebarUI {
      */
     private wireEnvSwitch(btn: HTMLButtonElement): void {
         if (__EXT_ENV__ !== 'dev') return;
-        type Info = { side: 'home' | 'away'; label: string; canSwitch: boolean; isProd?: boolean };
+        type Info = {
+            side: string;
+            label: string;
+            canSwitch: boolean;
+            isProd?: boolean;
+            targets?: string[];
+            next?: string;
+        };
         let info: Info | null = null;
 
         const paint = (i: Info) => {
@@ -1254,9 +1565,13 @@ export class SidebarUI {
             btn.textContent = i.canSwitch ? `backend: ${i.label}  ⇄` : `backend: ${i.label}`;
             btn.dataset.env = i.isProd ? 'live' : 'safe';
             btn.disabled = !i.canSwitch;
+            // The ring is named in the tooltip, and the next stop spelled out:
+            // a cycling button whose order you cannot see is one you have to
+            // discover by clicking, and every click here signs you out.
             btn.title = i.canSwitch
-                ? `${i.isProd ? 'REAL user data. ' : ''}Click to switch (signs you out).`
-                : 'This build was given no second target to switch to.';
+                ? `${i.isProd ? 'REAL user data. ' : ''}${(i.targets ?? []).join(' → ')}`
+                  + `\nClick for ${i.next} (signs you out).`
+                : 'This build was given no other target to switch to.';
         };
 
         const ask = (msgObj: object) =>
@@ -1272,14 +1587,15 @@ export class SidebarUI {
             .then(paint)
             .catch((err) => {
                 console.warn('[Lingogram] dev env probe failed:', err);
-                paint({ side: 'home', label: 'env?', canSwitch: false });
+                paint({ side: '', label: 'env?', canSwitch: false });
             });
 
         btn.addEventListener('click', () => {
             if (!info?.canSwitch) return;
-            const next = info.side === 'away' ? 'home' : 'away';
+            // No side named: the worker advances the ring. The order lives in
+            // one place, so the button cannot disagree with it.
             btn.disabled = true;
-            void ask({ action: 'DEV_SET_ENV', side: next })
+            void ask({ action: 'DEV_SET_ENV' })
                 .then(paint)
                 .catch((err) => {
                     console.warn('[Lingogram] dev env switch failed:', err);
@@ -1483,6 +1799,11 @@ export class SidebarUI {
         this.closeLookupScreen();
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
+        // The diagnostics rows are built on first open and their session count
+        // re-read on every one: the recorder is stood up after the sidebar and
+        // keeps capturing while the panel is closed. No-op everywhere but a
+        // dev build with the recorder wired.
+        if (open) this.syncTraceRows();
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
         // Settings is where appearance gets adjusted, so it is also where the
         // captions grow their position arrows. Tying the two together means the
@@ -1721,6 +2042,12 @@ export class SidebarUI {
         // first host to both remount AND want a word screen would leak a
         // listener per remount with nothing in the code saying it should not.
         this.wordScreen?.dispose();
+        // Same class of binding as the word screen's: a chrome.storage listener
+        // that removing the DOM does not undo.
+        this.offSavedWords?.();
+        this.offSavedWords = undefined;
+        this.stopSavedMarks?.();
+        this.stopSavedMarks = undefined;
         this.elements.sidebar?.remove();
         // The toggle tab is BORN inside the sidebar but a host may re-parent it
         // (packages/embed moves it onto its own tab slot, and fullscreen moves
@@ -2001,10 +2328,15 @@ export class SidebarUI {
         addGroup(msg('ytLangGroupOther', 'Other languages'), others, true);
     }
 
-    buildMaskedContent(text: string, revealedCount: number): HTMLElement {
+    buildMaskedContent(text: string, revealedCount: number, index?: number): HTMLElement {
         const container = document.createElement('div');
         container.className = 'vtt-main-text';
-        fillMaskedWordsInto(container, text, revealedCount);
+        // With a line index the state can answer for words picked out of
+        // order too; without one this stays the plain prefix render, which is
+        // what the two-argument callers (and their tests) mean by it.
+        fillMaskedWordsInto(container, text, revealedCount,
+            index === undefined ? undefined : (ti) => this.state.isWordRevealed(index, ti),
+            isSaved);
         return container;
     }
 
@@ -2025,10 +2357,12 @@ export class SidebarUI {
         // Query by class, not [data-word]: masked spans deliberately lack that
         // attribute (see makeMaskedSpan), and missing them here would shift
         // every index and mask the wrong words.
-        const revealedCount = this.state.getRevealedCount(index);
         const spans = main.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
         spans.forEach((span, i) => {
-            const shouldReveal = i < revealedCount;
+            // Ask the state per word rather than comparing against the count:
+            // a word picked out of order is out while the ones before it are
+            // not, which no single number can express.
+            const shouldReveal = this.state.isWordRevealed(index, i);
             if (shouldReveal && !span.classList.contains('vtt-revealed-word')) {
                 const word = span.dataset.word ?? span.dataset.hidden ?? '';
                 span.dataset.word = word;
@@ -2036,6 +2370,13 @@ export class SidebarUI {
                 // Only this transition animates: the pane clearing is the
                 // reveal. Words already out must not re-focus on every repaint.
                 span.className = 'vtt-revealed-word vtt-just-revealed';
+                // A word coming out of the mask earns its saved mark at this
+                // moment, and it has to be re-applied by hand: the line above
+                // replaces className wholesale, so a mark set when the span was
+                // built would be wiped here. (The re-masking branch below sets
+                // className the same way, which is how a word going back under
+                // the pane loses the mark — there, that is the correct result.)
+                markSavedSpan(span, word);
                 // A word that is out is ordinary text again, so it drops the
                 // no-translate guard the mask put on it.
                 span.translate = true;
@@ -2051,8 +2392,15 @@ export class SidebarUI {
             }
         });
 
-        // Mark the next word up, so exactly one target is lit at a time.
-        spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === revealedCount));
+        // Mark the next word up, so exactly one target is lit at a time. The
+        // first STILL-HIDDEN word, not the one at the count: with words opened
+        // out of order the slot at the count may already be visible, and
+        // lighting it would point at a word that is plainly there.
+        let lit = -1;
+        spans.forEach((_span, i) => {
+            if (lit === -1 && !this.state.isWordRevealed(index, i)) lit = i;
+        });
+        spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === lit));
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -2098,7 +2446,7 @@ export class SidebarUI {
 
     private buildGuessItem(sub: Subtitle, index: number): HTMLDivElement {
         const item = this.createSubtitleItem(index);
-        item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index)));
+        item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index), index));
         // The whole line is the reveal target, so say so to assistive tech —
         // the words themselves are not individually actionable. role="button"
         // obliges the rest: a div is not focusable and answers no key on its
@@ -2194,12 +2542,38 @@ export class SidebarUI {
         this.revealAndSeek(index, sub);
     }
 
+    /**
+     * Uncover the word that was actually pointed at, then follow the line.
+     *
+     * The out-of-order sibling of revealAndSeek. Guess mode used to open words
+     * strictly in order, which is why only one capsule was ever lit — the word
+     * you aimed at was rarely the word that opened. Pointing at one now opens
+     * that one; everything after the reveal is identical, so the two share a
+     * tail rather than drifting apart.
+     */
+    private revealPickedAndSeek(index: number, sub: Subtitle, tokenIndex: number): void {
+        this.peek.peekOff();
+        this.state.revealWordAt(index, tokenIndex);
+        this.afterReveal(index, sub);
+    }
+
     private revealAndSeek(index: number, sub: Subtitle): void {
         // A peek is transient paint on a span the repaint below is about to
         // rewrite; let go of it first so peekOff can never restore the mask
         // over a word the reveal has just uncovered.
         this.peek.peekOff();
         this.state.revealNextWord(index);
+        this.afterReveal(index, sub);
+    }
+
+    /**
+     * What both reveal routes do once the state has moved: repaint the line on
+     * each surface and follow it.
+     *
+     * Shared so the in-order and picked reveals cannot drift — the selection
+     * drop in particular is load-bearing and easy to forget in a second copy.
+     */
+    private afterReveal(index: number, sub: Subtitle): void {
         // Drop any leftover highlight: the user has moved on to revealing, and
         // updateOverlay refuses to repaint while a selection is inside (it would
         // orphan the Range), so the mask would advance in state but not on screen.
@@ -2219,7 +2593,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        fillPlainWordsInto(mainText, sub.text);
+        fillPlainWordsInto(mainText, sub.text, isSaved);
         item.appendChild(mainText);
 
         if (this.state.displayMode === 'dual') {
@@ -2237,7 +2611,27 @@ export class SidebarUI {
     highlightSubtitle(currentTime: number): void {
         this.playbackTime = currentTime;
         const mainTrack = this.state.getMainTrack();
-        if (!mainTrack || !this.elements.list) return;
+        // No track — either nothing has loaded yet, or a video change just
+        // emptied AppState. Returning here left the overlay holding the
+        // PREVIOUS video's line: its children and their signature survive a
+        // state reset, and updateOverlay is reached only through this method,
+        // so the next repaint was whenever a new track arrived. On a video
+        // whose subtitles never load, that is never — the viewer reads a line
+        // from the video before while the panel says nothing loaded.
+        //
+        // Repaint as "nothing is playing" instead. index -1 wipes the children
+        // and sets the 'empty' signature, so the block is empty rather than
+        // wrong; currentIndex comes back to -1 with it so the next track's
+        // first paint is not compared against another video's index.
+        if (!mainTrack) {
+            if (this.state.currentIndex !== -1) {
+                this.moveActiveSubtitleClass(-1);
+                this.state.currentIndex = -1;
+            }
+            this.updateOverlay(-1);
+            return;
+        }
+        if (!this.elements.list) return;
 
         // End-exclusive: adjacent cues share a boundary (one's endTime is the
         // next's startTime), so `<= endTime` would match BOTH at that instant
@@ -2323,6 +2717,11 @@ export class SidebarUI {
         const preview = !sub && this.overlayAdjusting ? this.previewSubtitleFor(index) : null;
         const sig = sub
             ? [index, this.state.displayMode, this.state.getRevealedCount(index),
+               // Words opened out of order are not expressible as a count, so
+               // the signature has to carry them too — otherwise picking one
+               // leaves the signature identical and the rebuild below is
+               // skipped, which looks exactly like a click that did nothing.
+               [...(this.state.pickedWords.get(index) ?? [])].sort((a, b) => a - b).join(','),
                this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped,
                this.overlayAdjusting].join('|')
             : preview
@@ -2493,85 +2892,215 @@ export class SidebarUI {
     // pen, and setPointerCapture keeps the drag alive when the pointer leaves
     // the small grip — which it immediately does, since the caption moves out
     // from under it.
+    /**
+     * Is this press on the caption box's BORDER — its padding ring — rather
+     * than on the text inside it?
+     *
+     * The ring is the band between the box's outer edge and its content: the
+     * 0.25em/0.67em padding .vtt-overlay-main carries (both in em, so the band
+     * scales with the caption and never thins to nothing). Pressing there is
+     * unambiguous in a way pressing the text is not — there is no word under it
+     * to reveal and no glyph to select — which is what makes it safe to give it
+     * a second meaning on a surface that already owns three gestures.
+     *
+     * Answers FALSE whenever the geometry cannot be measured: a zero-sized rect
+     * means the box has not been laid out (jsdom, or the tick before first
+     * paint), and treating "I cannot tell" as "this is the ring" would turn
+     * every press on a caption — including every guess-mode reveal — into a
+     * drag. The conservative answer costs nothing: the grip is still there.
+     */
+    private isOnCaptionRing(box: HTMLElement, x: number, y: number): boolean {
+        const r = box.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return false;
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) return false;
+        const cs = window.getComputedStyle?.(box);
+        if (!cs) return false;
+        const top = parseFloat(cs.paddingTop) || 0;
+        const right = parseFloat(cs.paddingRight) || 0;
+        const bottom = parseFloat(cs.paddingBottom) || 0;
+        const left = parseFloat(cs.paddingLeft) || 0;
+        // No padding at all means no ring to grab — not a box-wide drag surface.
+        if (top + right + bottom + left === 0) return false;
+        return (
+            x < r.left + left ||
+            x > r.right - right ||
+            y < r.top + top ||
+            y > r.bottom - bottom
+        );
+    }
+
+    /**
+     * Dragging the captions by the box's own border.
+     *
+     * The grip is still the discoverable, keyboard-reachable control and still
+     * the only one announced to assistive tech. This is the direct route for a
+     * pointer: grab the edge of the subtitles and move them, without first
+     * opening the settings panel to reveal the grip.
+     *
+     * Lives on the CONTAINER because the caption box is rebuilt ~4x/sec: a
+     * listener bound to the box would be thrown away and re-added constantly,
+     * and mid-drag the element holding the pointer capture would vanish.
+     *
+     * Registered in the CAPTURE phase so it runs before any listener on the
+     * box itself and before the propagation-stoppers further down. Note what
+     * this does NOT do: the guess-mode reveal declines a ring press on its own,
+     * because it requires e.target to be inside a .vtt-masked-word and the
+     * padding lies outside every capsule. Capture is the safer registration,
+     * not the thing keeping reveal away — measured, by dropping it and finding
+     * no behaviour changed.
+     */
+    private attachCaptionRingDrag(overlay: HTMLElement): void {
+        overlay.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            const box = (e.target as Element | null)?.closest?.<HTMLElement>('.vtt-overlay-main');
+            if (!box) return;
+            if (!this.isOnCaptionRing(box, e.clientX, e.clientY)) return;
+            // The press belongs to the drag now: stop it before the reveal
+            // handler below, before the player's play/pause, and before the
+            // text selection the box would otherwise begin.
+            e.preventDefault();
+            e.stopPropagation();
+            this.beginOverlayDrag(overlay, e);
+        }, true);
+
+        // The container holds the capture, so it is also what receives the rest
+        // of the gesture — the caption box under the cursor is rebuilt ~4x/sec
+        // and would lose it. Both are no-ops unless a drag is actually live.
+        overlay.addEventListener('pointermove', (e) => this.moveOverlayDrag(e));
+        overlay.addEventListener('pointerup', (e) => this.finishOverlayDrag(e));
+        overlay.addEventListener('pointercancel', (e) => this.finishOverlayDrag(e));
+
+        // Show the grab cursor while the pointer is over the ring. No CSS
+        // selector addresses a padding area, so the affordance has to be
+        // toggled from here — without it the edge is draggable but says
+        // nothing, and the feature is only findable by accident.
+        //
+        // The box is found by QUERY, not from e.target. Once a drag starts the
+        // container holds the pointer capture, so every subsequent move
+        // retargets to the container and `e.target.closest` finds nothing —
+        // the class would then freeze at whatever it was when the press
+        // landed, and never clear. There is exactly one caption box, so asking
+        // the overlay for it is both simpler and correct in either phase.
+        overlay.addEventListener('pointermove', (e) => {
+            const box = overlay.querySelector<HTMLElement>('.vtt-overlay-main');
+            if (!box) return;
+            box.classList.toggle('vtt-ring-grab', this.isOnCaptionRing(box, e.clientX, e.clientY));
+        });
+        overlay.addEventListener('pointerleave', () => {
+            overlay.querySelector('.vtt-ring-grab')?.classList.remove('vtt-ring-grab');
+        });
+    }
+
+    // The live drag, whichever surface started it. Instance state rather than a
+    // closure because there are now two entry points — the grip and the caption
+    // box's own border — and they must share ONE gesture: two independent
+    // `dragging` flags would let a ring press begin while a grip drag was still
+    // flagged open, and the second release would save a position computed from
+    // the first one's origin.
+    private dragFrom: {
+        host: HTMLElement;
+        pointerId: number;
+        x: number;
+        y: number;
+        bottom: number;
+        inline: number;
+    } | null = null;
+
+    /**
+     * Start a drag from `host`, which takes the pointer capture.
+     *
+     * The capture is what keeps the gesture alive once the caption moves out
+     * from under the cursor — which happens immediately, since the thing being
+     * dragged is the thing the pointer is over.
+     */
+    private beginOverlayDrag(host: HTMLElement, e: PointerEvent): void {
+        this.dragFrom = {
+            host,
+            pointerId: e.pointerId,
+            x: e.clientX,
+            y: e.clientY,
+            bottom: this.position.bottom,
+            inline: this.position.inline,
+        };
+        host.setPointerCapture?.(e.pointerId);
+        document.getElementById('vtt-video-overlay')?.classList.add('vtt-drag-active');
+    }
+
+    /** Follow the pointer. Shared by both surfaces; no-op when nothing is held. */
+    private moveOverlayDrag(e: PointerEvent): void {
+        const from = this.dragFrom;
+        if (!from) return;
+        e.preventDefault();
+        // Both axes move on one drag: this is a position control, not a
+        // vertical slider, so a diagonal pull has to land where the pointer
+        // went. Each axis is measured against its own dimension — vertical
+        // against the player's height, horizontal against its width — since
+        // that is the unit each one is stored in.
+        //
+        // Screen y grows downward while `bottom` grows upward, so that delta
+        // is inverted: drag up, the caption goes up. Screen x and the
+        // translate agree in direction, so that one is not. Live feedback
+        // without touching prefs — the write happens once, on release.
+        this.position.set(
+            this.overlayMetrics(),
+            from.bottom + this.pxToPct(from.y - e.clientY),
+            from.inline + this.pxToPctX(e.clientX - from.x),
+        );
+        this.applyOverlayStyle();
+    }
+
+    /**
+     * End the drag and persist where it landed.
+     *
+     * Tolerates being called with no event (the grip torn out mid-gesture,
+     * where no pointerup is coming) and a capture that is already gone.
+     */
+    private finishOverlayDrag(e?: PointerEvent): void {
+        const from = this.dragFrom;
+        if (!from) return;
+        this.dragFrom = null;
+        // Guarded: on the pointercancel path the capture may already be
+        // released, and Safari throws NotFoundError for an unknown pointerId.
+        // An exception here would skip the save below and strand
+        // .vtt-drag-active on the overlay.
+        try {
+            from.host.releasePointerCapture?.(e ? e.pointerId : from.pointerId);
+        } catch {
+            /* capture already gone — nothing to release */
+        }
+        from.host.classList.remove('vtt-dragging');
+        document.getElementById('vtt-video-overlay')?.classList.remove('vtt-drag-active');
+        savePrefs(
+            {
+                overlayBottomNudge: this.position.bottom,
+                overlayInlineNudge: this.position.inline,
+            },
+            this.scope,
+        );
+    }
+
     private attachOverlayDrag(btn: HTMLButtonElement): void {
-        let startX = 0;
-        let startY = 0;
-        let startNudge = 0;
-        let startInline = 0;
-        let dragging = false;
-
-        const overlayEl = () => document.getElementById('vtt-video-overlay');
-
         btn.addEventListener('pointerdown', (e) => {
             if (e.button !== 0) return;
             // Without this the press also reaches the player and toggles
             // playback, so every drag would pause the video.
             e.preventDefault();
             e.stopPropagation();
-            dragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startNudge = this.position.bottom;
-            startInline = this.position.inline;
-            btn.setPointerCapture(e.pointerId);
             btn.classList.add('vtt-dragging');
-            overlayEl()?.classList.add('vtt-drag-active');
+            this.beginOverlayDrag(btn, e);
         });
 
-        btn.addEventListener('pointermove', (e) => {
-            if (!dragging) return;
-            e.preventDefault();
-            // Both axes move on one drag: the grip is a position control, not a
-            // vertical slider, so a diagonal pull has to land where the pointer
-            // went. Each axis is measured against its own dimension — vertical
-            // against the player's height, horizontal against its width — since
-            // that is the unit each one is stored in.
-            //
-            // Screen y grows downward while `bottom` grows upward, so that delta
-            // is inverted: drag up, the caption goes up. Screen x and the
-            // translate agree in direction, so that one is not. Live feedback
-            // without touching prefs — the write happens once, on release.
-            this.position.set(
-                this.overlayMetrics(),
-                startNudge + this.pxToPct(startY - e.clientY),
-                startInline + this.pxToPctX(e.clientX - startX),
-            );
-            this.applyOverlayStyle();
-        });
+        btn.addEventListener('pointermove', (e) => this.moveOverlayDrag(e));
 
-        // Ends the drag and persists. Tolerates being called with no event (the
-        // grip being torn out mid-gesture, where there is no pointerup to come)
-        // and a capture that is already gone.
-        const end = (e?: PointerEvent) => {
-            if (!dragging) return;
-            dragging = false;
-            // Guarded: on the pointercancel path the capture may already be
-            // released, and Safari throws NotFoundError for an unknown
-            // pointerId. An exception here would skip the save below and strand
-            // .vtt-drag-active on the overlay.
-            try {
-                if (e) btn.releasePointerCapture?.(e.pointerId);
-            } catch {
-                /* capture already gone — nothing to release */
-            }
-            btn.classList.remove('vtt-dragging');
-            overlayEl()?.classList.remove('vtt-drag-active');
-            savePrefs(
-                {
-                    overlayBottomNudge: this.position.bottom,
-                    overlayInlineNudge: this.position.inline,
-                },
-                this.scope,
-            );
-        };
+        const end = (e?: PointerEvent) => this.finishOverlayDrag(e);
         btn.addEventListener('pointerup', end);
         btn.addEventListener('pointercancel', end);
         // The panel closing mid-drag hides the grip (display: none), which
         // silently kills the pointer capture and with it the pointerup that
-        // would have ended the gesture — leaving `dragging` stuck true and the
+        // would have ended the gesture — leaving the drag stuck open and the
         // release never saved. Nothing else can end a drag once the grip is
         // gone, so the teardown owns it.
-        this.endOverlayDrag = () => end();
+        this.endOverlayDrag = () => this.finishOverlayDrag();
 
         // Keyboard parity: the control is a real button, so it has to work
         // without a pointer. Arrows nudge, Shift jumps, and the write is
@@ -2706,12 +3235,21 @@ export class SidebarUI {
         overlay.addEventListener('pointerdown', (e) => {
             this.pointerRevealed = false;
             if (this.state.displayMode !== 'guess' || e.button !== 0) return;
-            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
+            const capsule = (e.target as Element | null)?.closest?.('.vtt-masked-word');
+            if (!capsule) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
             if (!sub) return;
             this.pointerRevealed = true;
-            this.revealAndSeek(index, sub);
+            // The word that was actually pressed, named by the index the
+            // renderer stamped on it. Guess mode used to open the next word in
+            // order whatever you aimed at; pressing a capsule now opens that
+            // capsule. A span from before this attribute existed (or any other
+            // reason it is missing) falls back to the in-order reveal rather
+            // than swallowing the press.
+            const ti = Number((capsule as HTMLElement).dataset.ti);
+            if (Number.isInteger(ti)) this.revealPickedAndSeek(index, sub, ti);
+            else this.revealAndSeek(index, sub);
         });
         overlay.addEventListener('click', (e) => {
             if (this.state.displayMode !== 'guess') return;
@@ -2744,6 +3282,7 @@ export class SidebarUI {
                 }
             });
         }
+        this.attachCaptionRingDrag(overlay);
         this.peek.attachPeek(overlay);
         parent.appendChild(overlay);
         this.applyOverlayStyle();
@@ -2806,7 +3345,7 @@ export class SidebarUI {
     private buildPreviewMain(sub: Subtitle): HTMLDivElement {
         const mainDiv = document.createElement('div');
         mainDiv.className = 'vtt-overlay-main';
-        fillPlainWordsInto(mainDiv, sub.text);
+        fillPlainWordsInto(mainDiv, sub.text, isSaved);
         return mainDiv;
     }
 
@@ -2815,9 +3354,10 @@ export class SidebarUI {
         mainDiv.className = 'vtt-overlay-main';
         mainDiv.dataset.index = String(index);
         if (this.state.displayMode === 'guess') {
-            fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index));
+            fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index),
+                (ti) => this.state.isWordRevealed(index, ti), isSaved);
         } else {
-            fillPlainWordsInto(mainDiv, sub.text);
+            fillPlainWordsInto(mainDiv, sub.text, isSaved);
         }
         return mainDiv;
     }

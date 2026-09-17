@@ -71,10 +71,6 @@
     "message": "Jelentkezz be a szavak mentéséhez",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "mentve",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} szó mentve",
     "description": "Saved-words counter; {count} is the number."

@@ -1479,3 +1479,316 @@ describe('the Details action opens the word screen', () => {
         teardown();
     });
 });
+
+/**
+ * Guess mode: the card over a word that is still hidden.
+ *
+ * Two affordances now share the capsule. Peek turns it over so you can LOOK at
+ * the word without answering for it; the card answers the other question —
+ * what does it mean — and both are reached by resting the cursor there, the
+ * same gesture that opens a card over an ordinary word on the video.
+ *
+ * The capsule is a lookup target but still not a SAVEABLE one: quick-add reads
+ * span[data-word], which a masked span deliberately lacks, so the selection
+ * path keeps refusing it. That separation is asserted here too, because it is
+ * exactly what a widened hover selector could quietly undo.
+ */
+describe('guess mode: hovering a hidden word opens its card', () => {
+    const CARD = 'lingogram-lookup-strip';
+    const card = () => document.getElementById(CARD);
+
+    /** A masked capsule as makeMaskedSpan builds one: word in data-hidden. */
+    function maskedCapsule(word: string): HTMLElement {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        const span = document.createElement('span');
+        span.className = 'vtt-masked-word';
+        span.dataset.hidden = word;
+        span.dataset.ti = '1';
+        span.translate = false;
+        span.textContent = word; // the pane is CSS; the node holds the real word
+        box.appendChild(span);
+        document.body.appendChild(box);
+        const rect = { top: 400, bottom: 420, left: 100, right: 160,
+            width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}) } as DOMRect;
+        span.getBoundingClientRect = () => rect;
+        return span;
+    }
+
+    const hover = (el: Element): void => {
+        el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    };
+
+    beforeEach(async () => {
+        document.body.innerHTML = '';
+        await chromeStorage.local.set({ 'lang.v1': { learning: 'en', native: 'ru' } });
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_m, cb) =>
+            cb({ ok: true, result: dictAnswer }));
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => jest.useRealTimers());
+
+    it('looks up the hidden word, not the masked markup', async () => {
+        const teardown = installLookupStrip();
+        hover(maskedCapsule('anchor'));
+        await jest.advanceTimersByTimeAsync(300);
+
+        const msg = (chrome.runtime.sendMessage as jest.Mock).mock.calls
+            .map((c) => c[0]).find((m: any) => m?.action === 'LOOKUP_WORD');
+        expect(msg).toBeDefined();
+        expect(msg.term).toBe('anchor');
+        teardown();
+    });
+
+    it('shows the translation, the same card an ordinary word gets', async () => {
+        const teardown = installLookupStrip();
+        hover(maskedCapsule('anchor'));
+        await jest.advanceTimersByTimeAsync(300);
+
+        expect(card()).not.toBeNull();
+        expect(card()!.querySelector('.vtt-lookup-tr')!.textContent).toContain('якорь');
+        teardown();
+    });
+
+    it('leaves the word masked — a card is looking, not answering', async () => {
+        // The reveal state is guess mode's whole point; reading a translation
+        // must not spend it. Same rule the peek already follows.
+        const teardown = installLookupStrip();
+        const span = maskedCapsule('anchor');
+        hover(span);
+        await jest.advanceTimersByTimeAsync(300);
+
+        expect(span.classList.contains('vtt-masked-word')).toBe(true);
+        expect(span.dataset.hidden).toBe('anchor');
+        expect(span.dataset.word).toBeUndefined();
+        teardown();
+    });
+
+    it('pauses the video, as any lookup over the moving line does', async () => {
+        // The line is about to scroll away, and reading a translation while it
+        // does is impossible — the reason the overlay pauses at all.
+        const video = document.createElement('video');
+        Object.defineProperty(video, 'paused', { value: false, writable: true });
+        video.pause = jest.fn();
+        document.body.appendChild(video);
+
+        const teardown = installLookupStrip();
+        hover(maskedCapsule('anchor'));
+        await jest.advanceTimersByTimeAsync(300);
+
+        expect(video.pause).toHaveBeenCalled();
+        teardown();
+    });
+
+    it('still refuses to SAVE a hidden word', async () => {
+        // The card may open over it, but quick-add's span[data-word] query
+        // must keep skipping it: offering to save a word the user has not been
+        // shown is the collision the two attributes exist to prevent.
+        const teardown = installLookupStrip();
+        const span = maskedCapsule('anchor');
+        hover(span);
+        await jest.advanceTimersByTimeAsync(300);
+
+        expect(span.dataset.word).toBeUndefined();
+        expect(document.querySelectorAll('.vtt-overlay-main span[data-word]')).toHaveLength(0);
+        teardown();
+    });
+
+    /**
+     * The peek and the card share one capsule, and the peek REWRITES it.
+     *
+     * peekOn wraps the capsule's text in a .vtt-peek-face child — destroying
+     * the text node the cursor is standing on — and then rewrites that child
+     * again 180ms later, when the flip reaches its halfway point. Chrome
+     * answers a destroyed node under the pointer with a mouseout whose
+     * relatedTarget is null, and the card's 220ms debounce is still running at
+     * both of those moments.
+     *
+     * So the question these ask is not "does hover work" but "does hover
+     * survive the peek happening on the same capsule at the same time".
+     */
+    describe('while the capsule is also being peeked', () => {
+        /**
+         * The mouseout Chrome sends when the node under the cursor is
+         * destroyed: no relatedTarget, but the pointer is still where it was —
+         * so the coordinates land inside the capsule's own box.
+         */
+        const mutationMouseOut = (el: Element): void => {
+            el.dispatchEvent(new MouseEvent('mouseout', {
+                bubbles: true, relatedTarget: null, clientX: 130, clientY: 410,
+            }));
+        };
+
+        it('still opens when the peek rewrites the capsule mid-debounce', async () => {
+            const teardown = installLookupStrip();
+            const span = maskedCapsule('anchor');
+
+            hover(span);
+            // The peek's own DOM churn, landing inside the card's 220ms wait:
+            // faceOf() on the hover itself, then the halfway swap at 180ms.
+            await jest.advanceTimersByTimeAsync(10);
+            mutationMouseOut(span);
+            await jest.advanceTimersByTimeAsync(170);
+            mutationMouseOut(span);
+
+            await jest.advanceTimersByTimeAsync(400);
+
+            expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+            expect(card()).not.toBeNull();
+            teardown();
+        });
+
+        it('a real departure still closes it — the cursor genuinely left', async () => {
+            // The counter-half. If the fix simply ignored every null
+            // relatedTarget, leaving the caption for the video would strand an
+            // open card over a word nobody is pointing at.
+            const teardown = installLookupStrip();
+            const span = maskedCapsule('anchor');
+            hover(span);
+            await jest.advanceTimersByTimeAsync(300);
+            expect(card()).not.toBeNull();
+
+            // Leaving for another element: relatedTarget is a real node.
+            const elsewhere = document.createElement('div');
+            document.body.appendChild(elsewhere);
+            span.dispatchEvent(new MouseEvent('mouseout', {
+                bubbles: true, relatedTarget: elsewhere, clientX: 900, clientY: 900,
+            }));
+            await jest.advanceTimersByTimeAsync(400);
+
+            expect(card()).toBeNull();
+            teardown();
+        });
+
+        it('an ordinary revealed word is unaffected either way', async () => {
+            // The control: no peek, no face, no mutation — so a failure in the
+            // two above cannot be blamed on the harness.
+            const box = document.createElement('div');
+            box.className = 'vtt-overlay-main';
+            box.dataset.index = '0';
+            const span = document.createElement('span');
+            span.dataset.word = 'anchor';
+            span.textContent = 'anchor';
+            box.appendChild(span);
+            document.body.appendChild(box);
+            span.getBoundingClientRect = () => ({
+                top: 400, bottom: 420, left: 100, right: 160,
+                width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}),
+            }) as DOMRect;
+
+            const teardown = installLookupStrip();
+            hover(span);
+            await jest.advanceTimersByTimeAsync(300);
+
+            expect(card()).not.toBeNull();
+            teardown();
+        });
+    });
+
+    /**
+     * Revealing a word must not switch the card off for the rest of the video.
+     *
+     * The press that uncovers a capsule destroys it: the reveal repaints the
+     * overlay, so the very node the pointer is standing on leaves the document
+     * before the gesture finishes. A mouseup dispatched at a detached node
+     * never reaches the document listener that clears `dragging` — and
+     * onMouseOver returns early for as long as that flag is set. One reveal and
+     * the pill was gone until the page reloaded.
+     */
+    describe('after revealing a word by pressing it', () => {
+        /**
+         * The press, as the DOM really delivers it: mousedown, then the reveal
+         * tearing the span out, then a mouseup that lands on a node which is no
+         * longer in the document.
+         */
+        function pressAndDetach(span: HTMLElement): void {
+            span.dispatchEvent(new MouseEvent('mousedown', {
+                bubbles: true, button: 0, clientX: 130, clientY: 410,
+            }));
+            // The reveal's repaint: this capsule is replaced wholesale.
+            span.remove();
+            // Dispatched at the detached node — it bubbles nowhere.
+            span.dispatchEvent(new MouseEvent('mouseup', {
+                bubbles: true, button: 0, clientX: 130, clientY: 410,
+            }));
+        }
+
+        it('the next hover still opens a card', async () => {
+            const teardown = installLookupStrip();
+            pressAndDetach(maskedCapsule('gone'));
+
+            // A fresh capsule, exactly as the repaint would have built it.
+            hover(maskedCapsule('anchor'));
+            await jest.advanceTimersByTimeAsync(300);
+
+            expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+            expect(card()).not.toBeNull();
+            teardown();
+        });
+
+        it('and so does the one after that', async () => {
+            // Guards against a fix that merely papers over the first hover.
+            const teardown = installLookupStrip();
+            pressAndDetach(maskedCapsule('gone'));
+
+            hover(maskedCapsule('anchor'));
+            await jest.advanceTimersByTimeAsync(300);
+            (chrome.runtime.sendMessage as jest.Mock).mockClear();
+
+            document.body.innerHTML = '';
+            hover(maskedCapsule('second'));
+            await jest.advanceTimersByTimeAsync(300);
+
+            expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+            teardown();
+        });
+
+        it('a real drag still suppresses the hover card', async () => {
+            // The counter-half. `dragging` exists so that sweeping a selection
+            // across a line does not open a card per word; clearing it
+            // unconditionally would bring that back.
+            const teardown = installLookupStrip();
+            const span = maskedCapsule('anchor');
+            span.dispatchEvent(new MouseEvent('mousedown', {
+                bubbles: true, button: 0, clientX: 130, clientY: 410,
+            }));
+
+            // Still held down, sweeping across words. `buttons: 1` is what the
+            // browser reports while the primary button is pressed — the live
+            // fact the hover consults, rather than the flag that can go stale.
+            span.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, buttons: 1 }));
+            await jest.advanceTimersByTimeAsync(300);
+
+            expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+            teardown();
+        });
+    });
+
+    it('does not open in the sidebar transcript', async () => {
+        // The sidebar has no peek for the same reason: the cursor crosses
+        // dozens of words there on the way anywhere.
+        const item = document.createElement('div');
+        item.className = 'vtt-item';
+        item.dataset.index = '0';
+        const main = document.createElement('div');
+        main.className = 'vtt-main-text';
+        const span = document.createElement('span');
+        span.className = 'vtt-masked-word';
+        span.dataset.hidden = 'anchor';
+        span.textContent = 'anchor';
+        main.appendChild(span);
+        item.appendChild(main);
+        document.body.appendChild(item);
+
+        const teardown = installLookupStrip();
+        hover(span);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(card()).toBeNull();
+        teardown();
+    });
+});

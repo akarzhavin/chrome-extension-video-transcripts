@@ -29,6 +29,7 @@ import { installPlayerMenu } from './player-menu';
 import { watchSubsExport } from './subs-export';
 import { isNetflix, isYouTube } from './site';
 import { decideCaptionSearch, isStaleResult } from './nav-guards';
+import { installDebugMode, traceRecorder } from './debug-mode';
 
 // Localized UI string from _locales/<lang>/messages.json. Falls back to the
 // English default when the message isn't registered (non-extension contexts,
@@ -196,6 +197,9 @@ class YouTubeVttApp extends BaseVttApp {
     // post-cooldown retry; see ReprocessOptions.probe).
     requestVtt(req: TrackRequest, videoId: string, probe = false): void {
         this.pendingRequests.set(req.key, req.name);
+        // Kept for as long as the video is: a rescued refetch answers after the
+        // pending entry has been consumed, and needs the name to be attributed.
+        this.requestNames.set(req.key, req.name);
         // Backstop for a request that never answers at all — without it a lost
         // reply leaves Dual silently disabled and nothing recorded anywhere.
         this.schedulePendingTrackCheck();
@@ -208,9 +212,19 @@ class YouTubeVttApp extends BaseVttApp {
 
     handleVttResult(m: YtVttResultMessage): void {
         // A result for a video the user already left is noise, not a failure.
-        if (isStaleResult(m.videoId, this.getVideoId())) return;
+        if (isStaleResult(m.videoId, this.getVideoId())) {
+            traceRecorder()?.record({
+                ev: 'received',
+                key: m.url,
+                stale: true,
+                bytes: m.text?.length ?? 0,
+            });
+            return;
+        }
 
-        const name = this.takePending(m.url);
+        // Fall back to the name table: a result that arrives after the key was
+        // consumed is a rescued refetch, not a stray — see nameForRequest.
+        const name = this.takePending(m.url) ?? this.nameForRequest(m.url);
         console.log('[YT-VTT] VTT_RESULT <-', name, m.ok ? `bytes: ${m.text.length}` : `failed: ${m.failure}`);
         if (!name) return;
 
@@ -219,6 +233,15 @@ class YouTubeVttApp extends BaseVttApp {
             return;
         }
         const subs = parseJson3(m.text);
+        // The parsed count is where a 200 carrying "events" becomes
+        // 'not-offered' below — a reclassification that is otherwise invisible.
+        traceRecorder()?.record({
+            ev: 'received',
+            key: m.url,
+            stale: false,
+            bytes: m.text.length,
+            parsedCues: subs.length,
+        });
         console.log('[YT-VTT] parsed subs:', subs.length, 'for', name);
         // A 200 carrying "events" that parse to nothing is the same thing to the
         // user as "YouTube offers no translation here" — report it rather than
@@ -370,8 +393,7 @@ class YouTubeVttApp extends BaseVttApp {
                 .filter((s) => (s.textContent || '').trim().length > 1)
                 .sort((a, b) => (b.textContent || '').length - (a.textContent || '').length)[0];
             // Clear any prior marker first so repeated decorate runs (and mode
-            // switches) never stack duplicate "saved" badges.
-            document.querySelectorAll('#vtt-list .vtt-saved-badge').forEach((b) => b.remove());
+            // switches) leave the highlight on one word only.
             document.querySelectorAll('#vtt-list .vtt-saved-word').forEach((s) => s.classList.remove('vtt-saved-word'));
             if (word) markSpansSaved([word as HTMLElement]);
             // Show the dual-subtitle overlay on the video for the same line.
@@ -633,6 +655,7 @@ class YouTubeCaptionDetector {
     checkCurrentVideo(): void {
         const id = this.getVideoIdFromUrl();
         if (!id || id === this.currentVideoId) return;
+        traceRecorder()?.startSession(id, location.href);
         this.currentVideoId = id;
         this.captionsLoadedForVideo = null;
         this.probeNextLoad = false;
@@ -648,6 +671,7 @@ class YouTubeCaptionDetector {
         if (currentId && videoId !== currentId) return;
 
         if (videoId !== this.currentVideoId) {
+            traceRecorder()?.startSession(videoId, location.href);
             this.currentVideoId = videoId;
             this.captionsLoadedForVideo = null;
             this.probeNextLoad = false; // armed for a retry, not for a new video
@@ -678,6 +702,12 @@ class YouTubeCaptionDetector {
             this.isShortsPage(),
             this.app.isSidebarCollapsed(),
         );
+        traceRecorder()?.record({
+            ev: 'decision',
+            decision,
+            isShorts: this.isShortsPage(),
+            collapsed: this.app.isSidebarCollapsed(),
+        });
         if (decision === 'setup') {
             this.app.showLanguageOnboarding();
             return;
@@ -738,6 +768,10 @@ class YouTubeCaptionDetector {
 
         const plan = planTrackRequests(prefs, tracks, videoId);
         if (!plan) return [];
+        traceRecorder()?.record({
+            ev: 'plan',
+            requests: plan.requests.map((r) => ({ key: r.key, name: r.name, tlang: r.tlang })),
+        });
 
         // Keep AppState's primary/secondary selection aligned with the names the
         // plan assigned (VTTs arrive asynchronously and out of order).
@@ -852,6 +886,9 @@ function bootstrap(): void {
     // site's hero demo. Inert without `#vtt-export` in the URL; watches for the
     // flag being appended to an already-open tab.
     watchSubsExport(app.state);
+    // Dev-only, toggle-gated: record the whole subtitle load for post-hoc
+    // analysis. Returns immediately in a production build.
+    installDebugMode(app);
 }
 
 bootstrap();

@@ -33,15 +33,13 @@ export default defineConfig({
     __FIRESTORE_URL__: JSON.stringify('https://firestore.googleapis.com'),
     __FRONTEND_BASE_URL__: JSON.stringify('https://lingogram.ai'),
     __EXT_SOURCE__: JSON.stringify('embed'),
-    __EXT_ALT_PROJECT_ID__: JSON.stringify(''),
-    __EXT_ALT_API_KEY__: JSON.stringify(''),
-    __EXT_ALT_FRONTEND_BASE_URL__: JSON.stringify(''),
+    __EXT_DEV_TARGETS__: JSON.stringify(''),
+    __EXT_HOME_TARGET_NAME__: JSON.stringify(''),
     // Empty = word lookup off, which is what the embed wants: the chrome shim
     // has no worker to route LOOKUP_WORD through, and installLookupStrip sits
     // this surface out anyway (isEmbed). Unset they would survive the bundle
     // as bare identifiers and throw on first read.
     __EXT_API_BASE_URL__: JSON.stringify(''),
-    __EXT_ALT_API_BASE_URL__: JSON.stringify(''),
     ...limitDefines(loadLingogramLimits()),
   },
   build: {

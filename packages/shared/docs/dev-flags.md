@@ -111,20 +111,26 @@ It sits in the header rather than inside Settings on purpose: in the settings
 panel it fell below the fold and got missed entirely, which defeats the point of
 having it.
 
-The colour follows the **data**, not which slot the build put it in:
+Each click advances a **ring** of targets and wraps around, so with three
+configured the order is `local -> preprod -> prod -> local`. The tooltip names
+the whole ring and the next stop, because a cycling button whose order you
+cannot see is one you have to discover by clicking — and every click here signs
+you out.
+
+The colour follows the **data**, not a target's name or its position:
 
 - **red** — the live production project. Real users' words and accounts.
 - **indigo** — anything else. That is where you are meant to be while testing.
 
-Either target can be production depending on how the build was configured, which
-is why the colour is derived from the project id rather than from the slot.
+Any target can be production depending on how the build was configured, which is
+why the colour is derived from the project id rather than from the label.
 
 Switching **signs you out**: an ID token only means something inside the project
 that issued it. The choice is stored in `chrome.storage.local`
 (`dev.targetEnv`) and survives the service worker being torn down and respawned,
 which Chrome does aggressively.
 
-If a build was given no second target, the bar still names the current backend
+If a build was given no other target, the bar still names the current backend
 but is inert — there is nothing to switch to.
 
 ### No credentials in the repository
@@ -135,42 +141,51 @@ The two sides are deliberately named `home`/`away` rather than `prod`/`preprod`
 so that even the environment names stay out of the checkout.
 
 The build's own target comes from the existing `EXT_FIREBASE_*` /
-`EXT_FRONTEND_BASE_URL`. The second one comes from `EXT_ALT_*`:
+`EXT_FRONTEND_BASE_URL` and is named by `EXT_HOME_TARGET_NAME`. Every other
+target arrives as one JSON array in `EXT_DEV_TARGETS`:
 
 ```sh
-cd apps/youtube
-export EXT_ENV=dev
-# what this build targets (home)
-export EXT_FIREBASE_PROJECT_ID=<project-a>
-export EXT_FIREBASE_API_KEY=<key-a>
-export EXT_FRONTEND_BASE_URL=https://<host-a>
-# the second target the switch can reach (away)
-export EXT_ALT_PROJECT_ID=<project-b>
-export EXT_ALT_API_KEY=<key-b>
-export EXT_ALT_FRONTEND_BASE_URL=https://<host-b>
-
-WRITE_UNSHIPPABLE_ZIP=1 npm run build
+EXT_HOME_TARGET_NAME=local
+EXT_DEV_TARGETS=[{"name":"preprod","projectId":"<project-b>","apiKey":"<key-b>",
+  "frontendBaseUrl":"https://<host-b>","apiBaseUrl":"https://<api-b>",
+  "identityToolkitUrl":"https://identitytoolkit.googleapis.com",
+  "secureTokenUrl":"https://securetoken.googleapis.com",
+  "firestoreUrl":"https://firestore.googleapis.com"}]
 ```
 
-Run it through `npm run build`, not bare `npx vite build`: `npm` is what sets
-`npm_package_version`, and without it the manifest is stamped with the monorepo
-root's version instead of the extension's. `WRITE_UNSHIPPABLE_ZIP=1` is needed
-because the packaging gate refuses to zip a dev build — see below. The archive
-it writes is named `<app>-v<version>-UNSHIPPABLE.zip`.
+Put both in `.env` (gitignored) and `./scripts/build-with-analytics.sh dev`
+passes them through; it prints the ring it compiled in, so a build that silently
+lost its targets is visible in the build log rather than at the badge.
 
-With no `EXT_ALT_*` set there is nothing to switch to and the bar is inert.
-That is exactly what a checkout handed no credentials gets.
+A row needs `projectId`, `apiKey` and `frontendBaseUrl`; the build fails if one
+is missing, rather than shipping a bundle whose ring quietly lost a stop. The
+three Firebase hosts are optional and default to the ones this build uses —
+which is what a second **cloud** target wants. A row naming them explicitly is
+how one dev build reaches both the local emulators and a cloud project.
+
+`EXT_DEV_TARGETS` is exported for `dev` only. A release must carry no target but
+its own: the origins would otherwise reach the manifest, which is how youtube
+1.0.15 shipped with `preprod.lingogram.ai` in `externally_connectable`.
+
+With no `EXT_DEV_TARGETS` set there is nothing to switch to and the bar is
+inert. That is exactly what a checkout handed no credentials gets.
 
 ### What switches and what does not
 
-Firestore, Identity Toolkit, and the frontend URL all switch at runtime: every
-consumer reads `config.x` at call time, and nothing caches a field at import.
+The whole `config` row switches at runtime — project, key, the three Firebase
+**hosts**, the frontend URL and the lookup gateway: every consumer reads
+`config.x` at call time, and nothing caches a field at import.
+
+The hosts are in the row deliberately. An earlier two-slot version retargeted
+only the project and left `identityToolkitUrl` pointing at `localhost:9099`, so
+a build booted against the emulators could never reach a cloud project at all.
 
 **`manifest.json` cannot switch.** `externally_connectable` and
 `host_permissions` are static, and they are what decides whether a page may talk
-to the extension at all. That is why `EXT_ALT_FRONTEND_BASE_URL` writes the
-**second origin into the manifest** at build time: without it the data plane
-switches but the sign-in handoff on the other side silently never connects.
+to the extension at all. That is why every target's `frontendBaseUrl` is written
+into the manifest at build time, and each `apiBaseUrl` into `host_permissions`:
+without them the data plane switches but the sign-in handoff on the other side
+silently never connects.
 
 Note that a locally-loaded build gets a **random extension id** from Chrome, so
 its id has to be allow-listed by whichever frontend it signs in against
@@ -182,9 +197,35 @@ reinstall unless the manifest ships a `key`.
 The guard is `__EXT_ENV__ !== 'dev'`. Vite substitutes the literal **before**
 minification, so the branch becomes unreachable and is removed wholesale: a
 production bundle carries no environment table, no keys, and no `DEV_*` action
-names. Verified by scanning every file in the build; all that remains is an
-empty `wireEnvSwitch(e){}` stub and CSS rules styling an element that is never
-created.
+names. Measured on a real prod build — zero occurrences of `preprod`,
+`DEV_SET_ENV`, `DEV_GET_ENV` or `targetEnv` in either background bundle. What
+remains is an empty `wireEnvSwitch(e){}` stub, three small functions the prod
+build genuinely calls (the backend tag and the handoff allow-list), and CSS
+rules styling an element that is never created.
+
+`HOME` itself is behind the same literal, and has to be. Built without that
+guard it stays reachable from the production branches of `currentSide()` and
+`switchableFrontendBaseUrls()`, so the minifier keeps it — correctly — and the
+bundle ships a live eight-field table with a second `apiKey:` beside the one
+`config.ts` already carries. Those two functions therefore read `config`
+directly. Same shape as the `assert-foldable` rule: a guard inside a function
+body does not fold, only a module-level constant does.
+
+None of that is trusted to hold on its own. `assert-shippable.mjs` refuses a
+release whose bundles contain the target table, under `dev-target-ring` —
+separately from the `dev-env-switch` rule, which cannot see it: that rule
+matches the `DEV_*` action names, and those are code the minifier drops, while
+the ring arrives as a **JSON string literal**, which is data nothing is obliged
+to remove. A guard rewritten so the table stays reachable ships every
+environment's api key while the action names vanish exactly as expected.
+
+The rule keys on the escaped spelling `\"apiKey\"`, which is how the keys read
+inside a JSON literal and never how the one legitimate `config` object reads
+after minification. Two earlier attempts at it were wrong — a pattern written
+for the object form matched nothing inside a JSON literal, and a
+count-based one let a **single-row** ring through under a `> 1` threshold.
+Both were found by probing the gate with a bundle that actually carried a ring,
+which is also how the three tests in `assert-shippable.test.ts` are written.
 
 **Guard on `__EXT_ENV__`, never on `isDev`** from `auth/config`. `isDev` is
 computed at runtime (`config.env === 'dev'`), so a minifier cannot prove it
@@ -256,6 +297,154 @@ Before uploading anything, run the gate against the ARCHIVE rather than against
 ```bash
 npm run verify-zip -- releases/youtube-v1.0.17.zip
 ```
+
+## Subtitle diagnostics (sidebar toggle)
+
+**Settings → "Record subtitle diagnostics"**, the last row in the panel. Dev
+builds only — in a shipped build the row is never constructed and the recorder
+is not in the bundle.
+
+### What problem it solves
+
+Subtitles on YouTube sometimes do not load, and the failure is not reproducible
+on demand. The extension already records the **verdict** (`no_subtitles`,
+`subs_rate_limited` and friends carry a failure, a status, an attempt count and
+the breaker's escalation step) but nothing records the **sequence** that
+produced it:
+
+- `fetchTimedText()` retries inside itself — empty-body re-asks, backoff sleeps,
+  breaker trips — and only the final `VttOutcome` escapes;
+- the pot cascade runs entirely in the MAIN world and reported nothing but
+  console lines, which are gone by the time anyone looks;
+- `resolveLiveBaseUrl()` swaps a stale signed URL for a fresh one silently, so a
+  repeated empty 200 could not be told from a re-ask that was never going to be
+  answered differently;
+- the timer layer concludes "no subtitles" from **silence**, and which of its
+  branches fired was written down nowhere.
+
+The recorder keeps that sequence for the last 6 videos and hands it over as one
+JSON file.
+
+### ⚠️ The report is a credential, not a log
+
+It contains **complete timedtext URLs — `signature` and `pot` included** — plus
+response headers and the first 2KB of bodies. That is deliberate: signed-URL
+problems are exactly what it exists to diagnose. But it means the file must
+never be pasted into an issue, a chat, or anywhere else. Read it locally and
+delete it.
+
+### Using it
+
+**On by default in a dev build** — `DEFAULT_DEBUG_MODE` in `prefs.ts` is
+`__EXT_ENV__ === 'dev'`, so it folds to `false` in a shipped bundle and there is
+nothing to arm. That default is the point: the failure is noticed *after* it
+happens, and a recorder you have to switch on in advance gets switched on for
+the session after the one you wanted.
+
+1. Build dev: `./scripts/build-with-analytics.sh dev`, load unpacked.
+   **Disable the store copy first** — two copies share `#vtt-*` ids and graft
+   into each other's sidebar.
+2. A small panel is already there, bottom-left, above the `#vtt-export` button:
+   **⬇ Trace (n)** / **⧉** copy / **✕** clear. The count is how many videos are
+   in the buffer, and the sign the recorder is live.
+3. Reproduce, then click ⬇. The file is
+   `lingogram-trace-<videoId>-<timestamp>.json`.
+
+The buffer survives a page reload (it is in `chrome.storage.local` under
+`debug.trace.v1`) — which matters, because reloading is the first instinct when
+subtitles do not appear, and an in-memory buffer would be empty by the time you
+went looking. Turning the toggle **off does not discard it**; only ✕ does.
+
+To switch it off, use the Settings row — a stored `false` beats the default and
+sticks across reloads.
+
+### Forcing failures without provoking YouTube
+
+Combine with `#lingogram_http=` (above). **Never provoke a real 429** — a live
+throttle holds for hours and takes all other debugging with it.
+
+```
+#lingogram_http=429:5@2   throttle the first two requests, Retry-After 5s
+#lingogram_http=200       an empty json3 envelope → "translation not offered"
+#lingogram_http=403       a stale signed URL
+```
+
+### Reading a trace
+
+Each session is one video. Every event carries `t` (ms since that session
+opened) and `w` — `main` for the page world, `iso` for the content script.
+`dropped` counts what the ring surrendered, by kind.
+
+A healthy load reads: `nav` → `player_response` → `catalog` → `decision` →
+`plan` → `request` → `url_resolved` → `attempt` → `response` → `outcome` →
+`received` → `verdict{kind:"loaded"}`.
+
+Three pathologies and their signatures:
+
+| Symptom | What to look for |
+|---|---|
+| Stale signed URLs | `player_response` with `source:"ytd-app"`, then `response` with `status:200, bytes:0`. The SSR copy lists the right tracks behind URLs the server no longer honours. |
+| Throttled | `response 429` → `breaker{action:"trip"}` → `breaker{action:"blocked"}` on the next request. `retry_sleep` says whether a `Retry-After` was honoured or our own backoff was used. |
+| Lost reply | An `outcome` in `main` with no matching `received` in `iso`, then `timer{which:"pending-track"}`. The message never crossed. |
+
+`url_resolved` with `changed:false` between two empty 200s means the re-ask was
+never going to be answered differently. `request` with `deduped:true` means that
+track collapsed onto an identical in-flight request and has no attempts of its
+own — not a gap in the recording.
+
+### Why it cannot reach the store
+
+Three checks, at three different moments, each catching what the others cannot.
+
+**Before the build — `assert-foldable.mjs`** (run first by
+`build-with-analytics.sh`, for dev and prod alike). Reads the SOURCE and asks
+whether the recorder is still written in a shape that folds: the module-level
+`DEBUG_BUILD` constant, a `DEBUG_BUILD &&` prefix on every trace call site, the
+`import type` discipline in `timedtext-fetch.ts`, and the guard as the first
+statement of `installDebugMode`. It also compares the names the recorder
+actually uses against `DEBUG_TRACE_MARKERS` **in both directions** — a new name
+missing from the list, or a listed name the source no longer uses. That second
+direction is the point: a rule matching a string that can never appear again
+looks exactly like coverage.
+
+**Between the build and the zip — `assert-shippable.mjs`.** Refuses any build
+containing any marker in `DEBUG_TRACE_MARKERS`: the three wire messages
+(`LG_TRACE_HELLO`, `LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key
+(`debug.trace.v1`), and the DOM names (`vtt-debug-toggle`, plus `vtt-trace-row`
+and `vtt-trace-rows` for the rows inside the toggle's row).
+
+That list is the single source of truth, and the count above is deliberately
+not restated as a number: `vtt-debug-panel` was in it until the recorder's
+actions moved out of a floating panel and into settings rows, and this
+paragraph went on naming a marker the gate no longer had for as long as prose
+was the only place the list appeared. `assert-shippable.test.ts` now pins the
+names in this paragraph against the exported array, so the two cannot drift
+apart again.
+
+The list is exhaustive because a shorter one was measured and found wanting:
+the first version matched two markers, and four of the six then in use passed
+it. A build carrying the whole settings toggle and the download panel — folded
+just enough to drop the handshake — was shippable by that gate's own verdict.
+
+**After the zip — `verify-zip.mjs`**, now run automatically by `zip-build.mjs`
+rather than only on request. It re-runs every rule against the unpacked
+ARCHIVE. The middle gate inspects `build/`, a directory the next build
+overwrites, so its verdict is about whatever was there a moment ago rather than
+about the bytes in the file: `youtube-v1.0.15.zip` was written by a dev run
+while a prod build had passed the gate earlier the same day.
+
+That leak is also why the MAIN-world guard is a module-level
+`const DEBUG_BUILD = __EXT_ENV__ === 'dev'` with every call site written
+`DEBUG_BUILD && trace?.(…)`, rather than a check inside the installer. Terser
+drops the classes either way, but it will not prove across a call boundary that
+a returned sink is always null — so `trace?.(…)` survived on its own.
+`apps/youtube/tests/debug-fold.test.ts` pins that shape by reading the source,
+because no runtime test can observe a fold.
+
+Implementation: `debug-trace.ts` (pure ring buffer and schema),
+`debug-recorder.ts` (persistence), `debug-bridge.ts` (the world boundary),
+`debug-mode.ts` (the guarded entry point), `debug-ui.ts` (the panel), with the
+toggle in `SidebarUI.buildDebugToggle()` and the pref in `prefs.ts`.
 
 ## `lng=<locale>` — locale override (rezka)
 

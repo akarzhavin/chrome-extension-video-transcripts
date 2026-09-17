@@ -71,10 +71,6 @@
     "message": "Logg inn for å lagre ord",
     "description": "Account prompt to sign in and save vocabulary."
   },
-  "ytSavedBadge": {
-    "message": "lagret",
-    "description": "Inline badge shown after a word is saved."
-  },
   "ytWordsSaved": {
     "message": "{count} ord lagret",
     "description": "Saved-words counter; {count} is the number."
