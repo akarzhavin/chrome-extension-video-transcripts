@@ -47,15 +47,77 @@ function build(app: AppInterface): SidebarUI {
 
 describe('an app with no recorder gets no rows', () => {
     test('nothing is rendered for a plain app', () => {
-        build(baseApp);
+        // Settings opened, because that is where the rows get built — checking
+        // before the open would pass for an app that DOES have a recorder.
+        build(baseApp).openSettings();
         expect(traceRows()).toHaveLength(0);
     });
 
     test('nothing is rendered when traceActions answers null', () => {
         // The shape a production YouTube build takes: the method exists, the
         // recorder behind it does not.
-        build({ ...baseApp, traceActions: () => null });
+        build({ ...baseApp, traceActions: () => null }).openSettings();
         expect(traceRows()).toHaveLength(0);
+    });
+});
+
+describe('the recorder arrives after the sidebar is built', () => {
+    // THE bug this file exists for, and the one the first version shipped with.
+    //
+    // The sidebar is constructed from the app's own constructor; the recorder
+    // is stood up at the end of bootstrap and then awaits its storage hydrate.
+    // So at panel-build time `traceActions()` answers null — and rows built at
+    // that moment are no rows, for the life of the page. The controls simply
+    // could not be found.
+    //
+    // Building them when settings open is what fixes it, and this test pins
+    // that ordering rather than the fix's shape: the app below answers null
+    // until a recorder is attached, exactly as the real one does.
+    test('rows appear once settings are opened, not before', () => {
+        let recorder: { sessions(): number; download(): void; copy(): Promise<boolean>; clear(): Promise<void> } | null = null;
+        const ui = build({
+            ...baseApp,
+            traceActions: () => recorder,
+        });
+
+        // Panel built while the recorder is still null — the real order.
+        expect(traceRows()).toHaveLength(0);
+
+        recorder = {
+            sessions: () => 2,
+            download: () => {},
+            copy: () => Promise.resolve(true),
+            clear: () => Promise.resolve(),
+        };
+        ui.openSettings();
+
+        expect(traceRows()).toHaveLength(3);
+        expect(rowLabelled('Download')?.textContent).toContain('(2)');
+    });
+
+    test('a later open refreshes the count without stacking rows', () => {
+        // The recorder keeps capturing while the panel is closed, so the count
+        // has to be re-read — and re-reading must not append a second set.
+        let sessions = 1;
+        const ui = build({
+            ...baseApp,
+            traceActions: () => ({
+                sessions: () => sessions,
+                download: () => {},
+                copy: () => Promise.resolve(true),
+                clear: () => Promise.resolve(),
+            }),
+        });
+
+        ui.openSettings();
+        expect(rowLabelled('Download')?.textContent).toContain('(1)');
+
+        sessions = 7;
+        ui.toggleSettingsPanel();   // close
+        ui.toggleSettingsPanel();   // open again
+
+        expect(traceRows()).toHaveLength(3);
+        expect(rowLabelled('Download')?.textContent).toContain('(7)');
     });
 });
 
@@ -71,7 +133,7 @@ describe('with a recorder, each row calls its own verb', () => {
                 clear: () => { calls.clear++; return Promise.resolve(); },
             }),
         };
-        build(app);
+        build(app).openSettings();
         return calls;
     };
 
@@ -116,7 +178,7 @@ describe('with a recorder, each row calls its own verb', () => {
                 copy: () => Promise.resolve(true),
                 clear: () => Promise.resolve(),
             }),
-        });
+        }).openSettings();
 
         rowLabelled('Download')?.click();
 

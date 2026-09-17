@@ -627,7 +627,17 @@ export class SidebarUI {
             // turns it on. They used to be a floating panel pinned over the
             // page (debug-ui.ts), which covered whatever was behind it — on a
             // video player, that is the thing being diagnosed.
-            for (const row of this.buildTraceActionRows()) settingsPanel.appendChild(row);
+            //
+            // An EMPTY container here, filled on first open. The sidebar is
+            // built from the app's constructor, and installDebugMode runs at
+            // the end of bootstrap and then awaits rec.hydrate() — so at this
+            // moment traceActions() is still null and building the rows now
+            // produces nothing, permanently. That is exactly the bug that
+            // made the rows vanish after they moved off the floating panel.
+            const traceRows = document.createElement('div');
+            traceRows.id = 'vtt-trace-rows';
+            settingsPanel.appendChild(traceRows);
+            this.elements = { ...this.elements, traceRows };
         }
 
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
@@ -889,6 +899,32 @@ export class SidebarUI {
      * opens, because it is the only thing that says the recorder is capturing
      * rather than merely enabled.
      */
+    /** Refreshes the recorded-session count; set once the rows exist. */
+    private traceRelabel?: () => void;
+
+    /**
+     * Fill the diagnostics container on first open, refresh its count on every
+     * one.
+     *
+     * Deferred rather than built with the panel because of an ordering that is
+     * not visible from here: the sidebar is constructed from the app's own
+     * constructor, while the recorder is stood up at the end of bootstrap and
+     * then awaits its storage hydrate. At panel-build time `traceActions()`
+     * answers null — so rows built then are no rows, for the life of the page.
+     * Opening settings is the first moment the recorder is reliably up, and it
+     * is also the only moment these rows can be looked at.
+     */
+    private syncTraceRows(): void {
+        if (__EXT_ENV__ !== 'dev') return;
+        const host = this.elements.traceRows;
+        if (!host) return;
+        if (host.childElementCount > 0) {
+            this.traceRelabel?.();
+            return;
+        }
+        for (const row of this.buildTraceActionRows()) host.appendChild(row);
+    }
+
     private buildTraceActionRows(): HTMLElement[] {
         if (__EXT_ENV__ !== 'dev') return [];
         const actions = this.app.traceActions?.();
@@ -927,9 +963,9 @@ export class SidebarUI {
             label.textContent = text;
             setTimeout(relabel, 2000);
         };
-        // Reading the count on open covers the ordinary case: the panel is
-        // built once and the recorder keeps capturing behind it.
-        this.elements.traceRelabel = relabel;
+        // Handed to syncTraceRows so a later open refreshes the count without
+        // rebuilding the rows.
+        this.traceRelabel = relabel;
 
         dl.addEventListener('click', () => {
             if (actions.sessions() === 0) {
@@ -1705,11 +1741,11 @@ export class SidebarUI {
         this.closeLookupScreen();
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
-        // The diagnostics row shows how many sessions are recorded, and the
-        // recorder keeps capturing while the panel is closed — so the count is
-        // read on open rather than at build time. No-op everywhere but a dev
-        // build with the recorder wired.
-        if (open) this.elements.traceRelabel?.();
+        // The diagnostics rows are built on first open and their session count
+        // re-read on every one: the recorder is stood up after the sidebar and
+        // keeps capturing while the panel is closed. No-op everywhere but a
+        // dev build with the recorder wired.
+        if (open) this.syncTraceRows();
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
         // Settings is where appearance gets adjusted, so it is also where the
         // captions grow their position arrows. Tying the two together means the

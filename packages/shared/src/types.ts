@@ -47,11 +47,12 @@ export interface SliderRowElements {
 export interface SidebarElements {
   sidebar?: HTMLDivElement;
   /**
-   * Refreshes the recorded-session count on the dev diagnostics row. Set only
-   * on a dev build of an app that offers `traceActions`; undefined otherwise,
-   * and called with `?.()` so production simply has nothing to call.
+   * Container for the dev diagnostics rows (download / copy / discard).
+   * Created empty with the settings panel and filled when settings first open
+   * — the recorder does not exist yet at panel-build time. Present only on a
+   * dev build; undefined otherwise, and every use is `?.`-guarded.
    */
-  traceRelabel?: () => void;
+  traceRows?: HTMLDivElement;
   settingsBtn?: HTMLButtonElement;
   settingsPanel?: HTMLDivElement;
   mainSelect?: HTMLSelectElement;
