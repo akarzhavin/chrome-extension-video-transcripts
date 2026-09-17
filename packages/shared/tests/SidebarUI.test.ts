@@ -342,7 +342,10 @@ describe('SidebarUI', () => {
             const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
             masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
             masked.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
-            expect(state.getRevealedCount(0)).toBe(2);
+            // Asked of the word rather than of the count: a press opens the
+            // capsule it landed on, which need not be the next one in order,
+            // so the prefix is no longer what moves.
+            expect(state.isWordRevealed(0, 1)).toBe(true);
         });
 
         test('a full press (pointerdown, pointerup, click) reveals exactly once', () => {
@@ -351,7 +354,10 @@ describe('SidebarUI', () => {
             masked.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
             masked.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
             masked.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            expect(state.getRevealedCount(0)).toBe(2); // not 3
+            // One word out, not two: the click that follows the press must not
+            // open a second one. Counted across both reveal routes, since a
+            // press now picks a word instead of advancing the prefix.
+            expect(state.revealedTotal(0)).toBe(2); // the free word + the pressed one
         });
 
         test('a press on a masked word reveals even if the pointer drifts', () => {
@@ -372,7 +378,7 @@ describe('SidebarUI', () => {
             fire('pointerdown', 100, 200);
             fire('pointermove', 102, 150);
             fire('pointerup', 102, 150);
-            expect(state.getRevealedCount(0)).toBe(2);
+            expect(state.isWordRevealed(0, 1)).toBe(true);
             // The captions stayed put: the text is not a drag surface, so the
             // drift neither moved the stored position nor repainted the nudge.
             expect(positionWrites).not.toHaveBeenCalled();
@@ -394,6 +400,91 @@ describe('SidebarUI', () => {
 
             click(masked);
             expect(state.getRevealedCount(0)).toBe(2);
+        });
+
+        /**
+         * Pressing a capsule opens THAT capsule.
+         *
+         * Reveal ran strictly in order until now, which is why only one word
+         * was ever lit: the word you aimed at was rarely the word that opened
+         * (the note is still in styles.css, above .vtt-masked-word). Pointing
+         * at one now opens it, and the lit capsule becomes the first word that
+         * is still hidden rather than the one at the count.
+         */
+        describe('pressing a word opens that word', () => {
+            const press = (el: Element) =>
+                el.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+
+            test('the last capsule opens while the ones before it stay hidden', () => {
+                const overlay = buildGuessOverlay();
+                // 'alpha' is free; 'beta' and 'gamma' are masked, so the last
+                // capsule is 'gamma' — two words along from the frontier.
+                const masked = Array.from(
+                    overlay.querySelectorAll<HTMLElement>('.vtt-masked-word'));
+                expect(masked.map((s) => s.dataset.hidden)).toEqual(['beta', 'gamma']);
+
+                press(masked[1]);
+
+                expect(state.isWordRevealed(0, 2)).toBe(true);  // gamma, aimed at
+                expect(state.isWordRevealed(0, 1)).toBe(false); // beta, skipped over
+                // The prefix has not moved: that is what out-of-order means.
+                expect(state.getRevealedCount(0)).toBe(1);
+            });
+
+            test('the opened word is repainted, not merely recorded', () => {
+                // The overlay skips a rebuild when its signature is unchanged
+                // (~4x/sec), and a picked word is not expressible as a count —
+                // so without the picked set in that signature the state moves
+                // and the screen does not, which reads as a dead click.
+                const overlay = buildGuessOverlay();
+                const gamma = overlay.querySelectorAll<HTMLElement>('.vtt-masked-word')[1];
+
+                press(gamma);
+
+                const revealed = Array.from(
+                    overlay.querySelectorAll<HTMLElement>('.vtt-revealed-word'),
+                    (s) => s.textContent);
+                expect(revealed).toEqual(['alpha', 'gamma']);
+            });
+
+            test('the lit word moves to the first one still hidden', () => {
+                // Not to the slot at the count: with 'gamma' already out,
+                // lighting by count would point at a word plainly on screen.
+                const overlay = buildGuessOverlay();
+                press(overlay.querySelectorAll<HTMLElement>('.vtt-masked-word')[1]);
+
+                const lit = overlay.querySelectorAll<HTMLElement>('.vtt-next-word');
+                expect(lit).toHaveLength(1);
+                expect(lit[0].dataset.hidden).toBe('beta');
+            });
+
+            test('opening every word by hand finishes the line', () => {
+                const overlay = buildGuessOverlay();
+                press(overlay.querySelectorAll<HTMLElement>('.vtt-masked-word')[1]); // gamma
+                press(overlay.querySelector('.vtt-masked-word') as HTMLElement);     // beta
+                expect(state.isFullyRevealed(0)).toBe(true);
+            });
+
+            test('the sidebar still opens words in order', () => {
+                // Deliberately unchanged: the transcript is a list you scroll,
+                // and picking there was not asked for. Only the overlay — the
+                // line you are watching — answers to the word you point at.
+                state.displayMode = 'guess';
+                state.addTrack('English', [
+                    { startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+                ui.renderSubtitles();
+                const item = ui.elements.list!.querySelector(
+                    '.vtt-item[data-index="0"]') as HTMLElement;
+                const masked = Array.from(
+                    item.querySelectorAll<HTMLElement>('.vtt-masked-word'));
+
+                masked[1].dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+
+                // 'beta' came out — the next in order — not the 'gamma' pressed.
+                expect(state.getRevealedCount(0)).toBe(2);
+                expect(state.isWordRevealed(0, 1)).toBe(true);
+                expect(state.isWordRevealed(0, 2)).toBe(false);
+            });
         });
 
         test('a click anywhere on the line reveals — the line is the target', () => {
@@ -701,6 +792,52 @@ describe('SidebarUI', () => {
                 settleFlip();
                 expect(masked.classList.contains('vtt-flipping')).toBe(false);
                 expect(masked.textContent).toBe('beta');
+            });
+
+            test('the flip does not close the peek it just opened', () => {
+                // The peek rewrites its own capsule twice per turn: faceOf()
+                // moves the word into a child on the hover itself, and the
+                // halfway swap rewrites that child at 180ms. Chrome reports a
+                // node destroyed under the cursor as a mouseout with a null
+                // relatedTarget — indistinguishable, without asking, from the
+                // cursor leaving. Read as a departure it closed the capsule
+                // mid-turn, so peeking worked only when the timing missed it.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                // jsdom lays nothing out, so state the capsule's box outright —
+                // the guard compares the pointer against it.
+                masked.getBoundingClientRect = () => ({
+                    left: 100, right: 160, top: 400, bottom: 420,
+                    width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}),
+                }) as DOMRect;
+
+                over(masked);
+                // The churn the flip itself causes, mid-turn: no relatedTarget,
+                // but the pointer has not moved off the capsule.
+                masked.dispatchEvent(new MouseEvent('mouseout', {
+                    bubbles: true, relatedTarget: null, clientX: 130, clientY: 410,
+                }));
+                settleFlip();
+
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
+                expect(masked.textContent).toBe('beta');
+            });
+
+            test('leaving for another element still closes it', () => {
+                // The counter-half: ignoring every null relatedTarget would
+                // strand a capsule face-up after the cursor had gone.
+                const overlay = buildGuessOverlay();
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+                over(masked);
+                settleFlip();
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(true);
+
+                const elsewhere = document.createElement('div');
+                document.body.appendChild(elsewhere);
+                out(masked, elsewhere);
+                settleFlip();
+
+                expect(masked.classList.contains('vtt-peeked-word')).toBe(false);
             });
 
             test('a peek is looking, not answering: reveal state does not move', () => {
@@ -1962,6 +2099,223 @@ describe('SidebarUI', () => {
             expect(saved.overlayBottomNudge).toBeCloseTo(10, 2);
         });
 
+        /**
+         * Dragging the captions by the box's own border.
+         *
+         * The grip stays the discoverable, keyboard-reachable control — it is
+         * announced to assistive tech and it is what the settings panel
+         * reveals. This is the direct route for a pointer: grab the padding
+         * ring around the text and move the subtitles, without opening the
+         * panel first.
+         *
+         * The ring is the only part of the box that can carry a second
+         * meaning. The text itself already owns three gestures (guess-mode
+         * reveal, click, drag-select for the dictionary), and an earlier
+         * revision that put the grip inside the box is exactly why the grip is
+         * a separate body — see the note above .vtt-overlay-row. A press on
+         * the padding has no word under it to reveal and no glyph to select,
+         * so it is unambiguous.
+         *
+         * jsdom lays nothing out and resolves no padding, so every test here
+         * states the geometry outright: a 200x40 caption box with 6px/16px
+         * padding, which is the default 0.25em/0.67em at a 24px caption.
+         */
+        describe('dragging by the caption border', () => {
+            const PAD_Y = 6;
+            const PAD_X = 16;
+            // The box, in viewport coordinates: x 400..600, y 300..340.
+            const BOX = { left: 400, right: 600, top: 300, bottom: 340, width: 200, height: 40 };
+
+            /** Stand the overlay up with measurable geometry and a padded box. */
+            function mountCaption(): { overlay: HTMLElement; main: HTMLElement } {
+                state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+                ui.updateOverlay(0);
+                const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+                const player = overlay.parentElement as HTMLElement;
+                Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+                Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+                Object.defineProperty(overlay, 'offsetHeight', { value: 40, configurable: true });
+                const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+                Object.defineProperty(main, 'offsetWidth', { value: 200, configurable: true });
+                const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+                Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
+                main.getBoundingClientRect = () => ({ ...BOX, x: BOX.left, y: BOX.top, toJSON: () => ({}) }) as DOMRect;
+                overlay.setPointerCapture = jest.fn();
+                overlay.releasePointerCapture = jest.fn();
+                return { overlay, main };
+            }
+
+            /** The padding the hit test reads. Overridable per test. */
+            function stubPadding(top = PAD_Y, right = PAD_X, bottom = PAD_Y, left = PAD_X): void {
+                (window as any).getComputedStyle = jest.fn(() => ({
+                    paddingTop: `${top}px`,
+                    paddingRight: `${right}px`,
+                    paddingBottom: `${bottom}px`,
+                    paddingLeft: `${left}px`,
+                })) as unknown as typeof window.getComputedStyle;
+            }
+
+            const realComputedStyle = window.getComputedStyle;
+            afterEach(() => { (window as any).getComputedStyle = realComputedStyle; });
+
+            const fire = (el: Element, type: string, x: number, y: number) =>
+                el.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, cancelable: true, clientX: x, clientY: y }));
+
+            // A point inside the ring: 2px in from the left edge, vertically centred.
+            const RING_X = BOX.left + 2;
+            const RING_Y = BOX.top + BOX.height / 2;
+            // A point on the text: past the padding on every side.
+            const TEXT_X = BOX.left + PAD_X + 20;
+            const TEXT_Y = BOX.top + PAD_Y + 10;
+
+            test('a press on the border moves the captions and saves where they land', async () => {
+                stubPadding();
+                const { overlay, main } = mountCaption();
+
+                fire(main, 'pointerdown', RING_X, RING_Y);
+                // 150px right, 40px up — x against the 1000px width, y against
+                // the 400px height, exactly as the grip measures them.
+                fire(overlay, 'pointermove', RING_X + 150, RING_Y - 40);
+
+                expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(15, 2);
+                expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-nudge'))).toBeCloseTo(10, 2);
+
+                fire(overlay, 'pointerup', RING_X + 150, RING_Y - 40);
+                await new Promise((r) => setTimeout(r, 0));
+                const saved = await loadPrefs('other');
+                expect(saved.overlayInlineNudge).toBeCloseTo(15, 2);
+                expect(saved.overlayBottomNudge).toBeCloseTo(10, 2);
+            });
+
+            test('a press on the TEXT does not drag', () => {
+                // The whole point of the ring: the text keeps its own gestures.
+                stubPadding();
+                const { overlay, main } = mountCaption();
+
+                fire(main, 'pointerdown', TEXT_X, TEXT_Y);
+                fire(overlay, 'pointermove', TEXT_X + 150, TEXT_Y - 40);
+
+                expect(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge')).toBe('0%');
+                expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            });
+
+            test('a press on the text still reveals in guess mode', () => {
+                // The capture-phase ring handler runs BEFORE the reveal, so a
+                // mistake there would silently swallow every reveal press.
+                stubPadding();
+                state.displayMode = 'guess';
+                state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+                state.currentIndex = 0;
+                ui.updateOverlay(0);
+                const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+                const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+                main.getBoundingClientRect = () => ({ ...BOX, x: BOX.left, y: BOX.top, toJSON: () => ({}) }) as DOMRect;
+                const masked = overlay.querySelector('.vtt-masked-word') as HTMLElement;
+
+                masked.dispatchEvent(new MouseEvent('pointerdown', {
+                    button: 0, bubbles: true, clientX: TEXT_X, clientY: TEXT_Y,
+                }));
+
+                expect(state.isWordRevealed(0, 1)).toBe(true);
+            });
+
+            test('the border drag reaches the same clamps the grip does', () => {
+                stubPadding();
+                const { overlay, main } = mountCaption();
+
+                fire(main, 'pointerdown', RING_X, RING_Y);
+                fire(overlay, 'pointermove', 9000, RING_Y);
+                // 200px of 1000 is 20% wide, leaving (100 - 20) / 2 - 4 = 36%.
+                expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(36, 2);
+                fire(overlay, 'pointerup', 9000, RING_Y);
+            });
+
+            test('an unmeasured box never drags', () => {
+                // jsdom's own zeros, and the tick before first paint. Treating
+                // "cannot tell" as "this is the ring" would turn every press on
+                // a caption into a drag.
+                stubPadding();
+                const { overlay, main } = mountCaption();
+                main.getBoundingClientRect = () => ({
+                    left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0,
+                    x: 0, y: 0, toJSON: () => ({}),
+                }) as DOMRect;
+
+                fire(main, 'pointerdown', 0, 0);
+                fire(overlay, 'pointermove', 150, -40);
+
+                expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            });
+
+            test('a box with no padding has no ring, so nothing drags', () => {
+                // Guards the degenerate case rather than letting it fall
+                // through to "the whole box is a handle".
+                stubPadding(0, 0, 0, 0);
+                const { overlay, main } = mountCaption();
+
+                fire(main, 'pointerdown', RING_X, RING_Y);
+                fire(overlay, 'pointermove', RING_X + 150, RING_Y);
+
+                expect(overlay.classList.contains('vtt-drag-active')).toBe(false);
+            });
+
+            test('a press on the border of a masked line drags without revealing', () => {
+                // Grabbing the edge of a masked line must move it, not solve
+                // it. Today two things keep the reveal away — the ring handler
+                // stops the event, and the reveal's own guard wants a
+                // .vtt-masked-word under the pointer, which padding never is.
+                // Either could be relaxed later (a widened guard, a reveal
+                // moved onto the box), so the behaviour is pinned here rather
+                // than left resting on the coincidence of both.
+                stubPadding();
+                state.displayMode = 'guess';
+                state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' } as Subtitle]);
+                state.currentIndex = 0;
+                ui.updateOverlay(0);
+                const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+                const player = overlay.parentElement as HTMLElement;
+                Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+                Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+                Object.defineProperty(overlay, 'offsetHeight', { value: 40, configurable: true });
+                const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+                Object.defineProperty(main, 'offsetWidth', { value: 200, configurable: true });
+                const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+                Object.defineProperty(row, 'offsetWidth', { value: 1000, configurable: true });
+                main.getBoundingClientRect = () => ({ ...BOX, x: BOX.left, y: BOX.top, toJSON: () => ({}) }) as DOMRect;
+                overlay.setPointerCapture = jest.fn();
+                overlay.releasePointerCapture = jest.fn();
+
+                const before = state.revealedTotal(0);
+                // Dispatched on the BOX, the way a real press on the padding
+                // arrives — it is the innermost element at that point, and the
+                // event bubbles from there to the container.
+                main.dispatchEvent(new MouseEvent('pointerdown', {
+                    button: 0, bubbles: true, cancelable: true, clientX: RING_X, clientY: RING_Y,
+                }));
+                fire(overlay, 'pointermove', RING_X + 150, RING_Y - 40);
+
+                // The caption moved...
+                expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(15, 2);
+                // ...and not one word came out.
+                expect(state.revealedTotal(0)).toBe(before);
+                fire(overlay, 'pointerup', RING_X + 150, RING_Y - 40);
+            });
+
+            test('the grab cursor appears over the border and not over the text', () => {
+                // No CSS selector addresses a padding area, so the affordance
+                // is a class toggled from JS — without it the edge is
+                // draggable and says nothing.
+                stubPadding();
+                const { overlay, main } = mountCaption();
+
+                fire(overlay, 'pointermove', RING_X, RING_Y);
+                expect(main.classList.contains('vtt-ring-grab')).toBe(true);
+
+                fire(overlay, 'pointermove', TEXT_X, TEXT_Y);
+                expect(main.classList.contains('vtt-ring-grab')).toBe(false);
+            });
+        });
+
         test('a sideways drag cannot push the caption out of the frame', () => {
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
             ui.updateOverlay(0);
@@ -3161,5 +3515,83 @@ describe('the language picker on a site that loads languages on demand', () => {
         const select = document.getElementById('vtt-main-select') as HTMLSelectElement;
         expect(select.querySelectorAll('optgroup')).toHaveLength(0);
         expect([...select.querySelectorAll('option')].every((o) => !o.disabled)).toBe(true);
+    });
+});
+
+// ── The overlay must not outlive the video it belongs to ────────────────────
+//
+// Observed live (trace wjZofJX0v4M, 2026-09-17): a new video whose subtitles
+// fail to load keeps the PREVIOUS video's last line painted over the player,
+// while the panel beside it says "Couldn't load subtitles". Two statements
+// about the same video, one of them a lie, and the lie is the one on the video.
+//
+// The mechanism is a gap between the two halves of a reset. AppState.reset()
+// empties `tracks`, so the sidebar list clears — but highlightSubtitle() used
+// to return early when there was no main track, and updateOverlay() is reached
+// only through it. Nothing else clears the overlay's children, so they survive
+// with the signature of a line from a video that is no longer playing, and the
+// next repaint is whenever a NEW track finally arrives. On a video where none
+// ever does, that is never.
+describe('a new video clears the previous video’s caption off the screen', () => {
+    let state: AppState, ui: SidebarUI, mockApp: AppInterface;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div id="vtt-list"></div><div id="vtt-sidebar"></div>';
+        // The overlay mounts into the player; without a <video> there is
+        // nothing to attach to and updateOverlay quietly does nothing.
+        const player = document.createElement('div');
+        player.appendChild(document.createElement('video'));
+        document.body.appendChild(player);
+
+        state = new AppState();
+        state.overlayEnabled = true;
+        mockApp = { seekVideo: jest.fn(), updateHighlight: jest.fn() };
+        ui = new SidebarUI(state, mockApp, (host) => new WordScreen(host));
+        ui.elements = {
+            list: document.getElementById('vtt-list') as HTMLDivElement,
+            sidebar: document.getElementById('vtt-sidebar') as HTMLDivElement,
+            overlayBtn: { classList: { toggle: jest.fn() } } as any,
+            dualBtn: { classList: { toggle: jest.fn() } } as any,
+            settingsBtn: document.createElement('button'),
+            mainSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+            subSelect: { innerHTML: '', appendChild: jest.fn() } as any,
+        };
+    });
+
+    const overlayText = (): string | undefined =>
+        document.querySelector('#vtt-video-overlay .vtt-overlay-main')?.textContent ?? undefined;
+
+    test('the line from the previous video is gone once its track is', () => {
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Previous video' } as Subtitle]);
+        ui.highlightSubtitle(1);
+        expect(overlayText()).toBe('Previous video');
+
+        // Exactly what resetForNewVideo() does on a genuine video change.
+        state.reset();
+        ui.refresh();
+
+        // refresh() calls app.updateHighlight(), which in the extension calls
+        // back into highlightSubtitle with the playhead. Mocked here, so drive
+        // that one hop by hand — the claim is about highlightSubtitle, not
+        // about the app's plumbing.
+        ui.highlightSubtitle(1);
+
+        expect(overlayText()).toBeFalsy();
+    });
+
+    test('the stale line goes even when the playhead never moves again', () => {
+        // A paused player fires no timeupdate, so highlightSubtitle is called
+        // once by refresh() and then not again. One call has to be enough.
+        state.addTrack('English', [{ startTime: 0, endTime: 5, text: 'Stale line' } as Subtitle]);
+        ui.highlightSubtitle(3);
+        expect(overlayText()).toBe('Stale line');
+
+        state.reset();
+        ui.highlightSubtitle(3);
+
+        expect(document.querySelector('#vtt-video-overlay .vtt-overlay-main')).toBeNull();
+        // currentIndex must come back to "nothing is playing" too, or the next
+        // track's first repaint compares against an index from another video.
+        expect(state.currentIndex).toBe(-1);
     });
 });

@@ -1499,14 +1499,19 @@
     font-weight: 400;
 }
 
-/* Hidden words are quiet. Every one of them used to be dressed as a target,
-   which implied you could pick one — but reveal always runs in order, so the
-   word you aimed at was rarely the word that opened. Only .vtt-next-word below
-   is lit, and the line itself takes the click.
-   Unselectable so a click here can only ever mean reveal: this is what stops
+/* Hidden words are quiet. Only .vtt-next-word below is lit — but it marks the
+   word that opens if you press the LINE rather than the only word you may
+   press. Over the video, pressing a capsule opens that capsule (SidebarUI's
+   revealPickedAndSeek), and the accent moves to the first word still hidden.
+   Every capsule used to be dressed as a target back when reveal ran strictly
+   in order, which was the wrong promise then: the word you aimed at was rarely
+   the word that opened. One quiet lit word is still the right amount of
+   pointing — it answers "where does the line continue", not "what may I touch".
+   Unselectable so a press here can only ever mean reveal: this is what stops
    reveal and quick-add branching on the same "is something selected" bit in
    opposite directions. user-select rather than pointer-events — the latter
-   would let the click fall through to the video and toggle playback. */
+   would let the click fall through to the video and toggle playback, and would
+   also kill the hover that opens the word's translation card. */
 /* Frosted glass: the word is behind the pane, not missing. "***" said "nothing
    here"; a word out of focus says "this is still language, you just can't read
    it yet" — which is what guess mode actually means, and it gives the eye a
@@ -2211,6 +2216,27 @@
     cursor: grabbing;
     user-select: none;
     -webkit-user-select: none;
+}
+
+/* The caption box's own border is a drag surface: grab the padding ring around
+   the text and the subtitles move with the pointer, without opening the
+   settings panel to reveal the grip first.
+
+   The class is toggled from JS (SidebarUI.attachCaptionRingDrag) because no
+   selector can address a padding area — :hover covers the whole box, text
+   included, and the text is precisely where this must NOT apply. Without the
+   cursor the edge is draggable and silent, which is a feature found by
+   accident or not at all.
+
+   It outranks the `cursor: text` on .vtt-overlay-main by specificity, and the
+   guess-mode `cursor: pointer` by coming later in the sheet — a masked line's
+   ring drags like any other. */
+#vtt-video-overlay .vtt-overlay-main.vtt-ring-grab {
+    cursor: grab;
+}
+
+#vtt-video-overlay.vtt-drag-active .vtt-overlay-main.vtt-ring-grab {
+    cursor: grabbing;
 }
 
 /* The stand-in shown while the settings panel is open and the video has no

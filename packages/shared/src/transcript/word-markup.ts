@@ -36,14 +36,36 @@ export function maskGlyphs(token: string, _spaced: boolean): string {
 // Both sidebar and on-screen overlay share this layout so the quick-add
 // selection extractor can recover the real word from data-word — even when
 // the visible glyphs are masked.
-export function fillMaskedWordsInto(container: HTMLElement, text: string, revealedCount: number): void {
+export function fillMaskedWordsInto(
+    container: HTMLElement,
+    text: string,
+    revealedCount: number,
+    isRevealed?: (tokenIndex: number) => boolean,
+): void {
     const { tokens, sep } = tokenizeForGuess(text);
     const spaced = sep === ' ';
+    // Out by the prefix unless the caller knows better. Words can also be
+    // uncovered out of order by pointing at them (AppState.pickedWords), and
+    // only the state can answer that — but the two-argument form has to keep
+    // meaning exactly what it did, so the prefix stays the default.
+    const revealed = isRevealed ?? ((m: number) => m < revealedCount);
     // The reveal index walks maskable tokens only. Punctuation and sound
     // cues ("-", "♪", a stray bracket) render as plain text: a capsule over
     // them is nothing anyone can guess, and counting them let the "free"
     // first word come up as a lone symbol.
     let m = 0;
+    // Which capsule gets the accent. Once words can be opened out of order
+    // "the next one" is no longer `m === revealedCount`: that slot may already
+    // be out, and lighting it would point at a word that is plainly visible.
+    // The first still-hidden word is the honest target, and it is also what a
+    // plain run of in-order reveals produces, so nothing changes there.
+    let lit = -1;
+    let probe = 0;
+    for (const token of tokens) {
+        if (!isMaskableToken(token)) continue;
+        if (!revealed(probe)) { lit = probe; break; }
+        probe++;
+    }
     tokens.forEach((word, i) => {
         if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
         if (!isMaskableToken(word)) {
@@ -53,11 +75,13 @@ export function fillMaskedWordsInto(container: HTMLElement, text: string, reveal
             container.appendChild(plain);
             return;
         }
-        const span = makeMaskedSpan(word, m < revealedCount, maskGlyphs(word, spaced));
-        // Only the word that opens next is lit. Dressing every hidden word
-        // as a target implied you could pick one, but reveal always runs in
-        // order — the lit word is the honest version of that.
-        if (m === revealedCount) span.classList.add('vtt-next-word');
+        const span = makeMaskedSpan(word, revealed(m), maskGlyphs(word, spaced));
+        // The token's own index, so a click can name the word it landed on
+        // rather than inferring one from the reveal count. Stamped on every
+        // word, revealed or not: updateGuessItem patches spans in place and a
+        // word that comes out must not lose its identity on the way.
+        span.dataset.ti = String(m);
+        if (m === lit) span.classList.add('vtt-next-word');
         container.appendChild(span);
         m++;
     });

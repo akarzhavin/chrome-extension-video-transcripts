@@ -27,6 +27,20 @@ export class AppState {
     isHovering: boolean = false;
     guessState: Map<number, number> = new Map();
 
+    // Words uncovered by pointing at them, as maskable-token indexes per line.
+    //
+    // Kept SEPARATE from guessState rather than replacing it. guessState is a
+    // prefix — "the first N are out" — and it stays the meaning of a plain
+    // reveal, of the promo path that writes a raw count, and of the overlay's
+    // repaint signature. A picked word is not expressible as a prefix (you can
+    // open the fourth word while the second is still hidden), so it needs a
+    // set; making the SET the only model would have turned every existing
+    // count into a derived value and changed what getRevealedCount answers.
+    //
+    // A word is therefore revealed if it is under the prefix OR in this set,
+    // which is what isWordRevealed decides and what both renderers ask.
+    pickedWords: Map<number, Set<number>> = new Map();
+
     // When set (YouTube, driven by the user's chosen language pair), track
     // selection matches these display-name fragments instead of the legacy
     // English/Russian heuristic. Left undefined for Rezka → legacy behavior.
@@ -75,6 +89,7 @@ export class AppState {
         this.swapped = false;
         this.currentIndex = -1;
         this.guessState.clear();
+        this.pickedWords.clear();
         // The language catalog is per-title — the next title's manifest rebuilds
         // it. The user's selected learning/native codes persist (they're the
         // language pair, not video state) so the picker keeps its selection.
@@ -242,24 +257,93 @@ export class AppState {
         const total = this.tokenCount(index);
         const current = this.guessState.get(index) ?? 1;
 
-        if (current >= total) return true; // already fully revealed
+        if (this.isFullyRevealed(index)) return true;
+        if (current >= total) return true;
 
-        this.guessState.set(index, current + 1);
-        return current + 1 >= total;
+        // Step OVER words already picked out of order, so this uncovers
+        // something. Landing the prefix on a word that is already on screen
+        // would spend a click and change nothing visible — the one way mixing
+        // the two models can read as a dead control.
+        //
+        // The two indexes are off by one against each other: a count of `c`
+        // means tokens 0..c-1 are out, so raising it to `c+1` is what opens
+        // TOKEN c. The loop therefore asks about the token each step would
+        // open, not about the count it would set.
+        const picked = this.pickedWords.get(index);
+        let next = current + 1;
+        while (next <= total && picked?.has(next - 1)) next++;
+
+        this.guessState.set(index, next);
+        // Entries the prefix has now swallowed are dead weight: revealedTotal
+        // already ignores them, so this is bookkeeping rather than a fix, and
+        // it keeps the set to the words that are genuinely out of order.
+        if (picked) {
+            for (const ti of [...picked]) if (ti < next) picked.delete(ti);
+            if (picked.size === 0) this.pickedWords.delete(index);
+        }
+        return this.isFullyRevealed(index);
     }
 
     getRevealedCount(index: number): number {
         return this.guessState.get(index) ?? 1;
     }
 
+    /**
+     * Uncover one specific word, named by its maskable-token index.
+     *
+     * The out-of-order counterpart to revealNextWord: pointing at the fourth
+     * word opens the fourth word, leaving the second hidden. Returns whether
+     * the line is fully revealed afterwards, same contract as revealNextWord
+     * so the two are interchangeable at the call sites that follow a reveal
+     * with a repaint.
+     *
+     * A word already under the prefix is not recorded — it is out either way,
+     * and storing it would make the picked set grow on every click at a line
+     * the user is simply working through in order.
+     */
+    revealWordAt(index: number, tokenIndex: number): boolean {
+        const mainTrack = this.getMainTrack();
+        if (!mainTrack || !mainTrack[index]) return false;
+        if (tokenIndex < 0 || tokenIndex >= this.tokenCount(index)) return false;
+
+        if (tokenIndex >= this.getRevealedCount(index)) {
+            const picked = this.pickedWords.get(index);
+            if (picked) picked.add(tokenIndex);
+            else this.pickedWords.set(index, new Set([tokenIndex]));
+        }
+        return this.isFullyRevealed(index);
+    }
+
+    /** Is this particular word out — by the prefix, or because it was picked? */
+    isWordRevealed(index: number, tokenIndex: number): boolean {
+        if (tokenIndex < this.getRevealedCount(index)) return true;
+        return this.pickedWords.get(index)?.has(tokenIndex) ?? false;
+    }
+
+    /** How many words of this line are out, counting both routes. */
+    revealedTotal(index: number): number {
+        const total = this.tokenCount(index);
+        const prefix = Math.min(this.getRevealedCount(index), total);
+        let picked = 0;
+        // Only those beyond the prefix: revealWordAt declines to record a word
+        // the prefix already covers, but the prefix can also grow PAST a word
+        // picked earlier, and double-counting there would report a line solved
+        // one word early.
+        for (const ti of this.pickedWords.get(index) ?? []) {
+            if (ti >= prefix && ti < total) picked++;
+        }
+        return prefix + picked;
+    }
+
     isFullyRevealed(index: number): boolean {
         const mainTrack = this.getMainTrack();
         if (!mainTrack || !mainTrack[index]) return false;
-        return this.getRevealedCount(index) >= this.tokenCount(index);
+        return this.revealedTotal(index) >= this.tokenCount(index);
     }
 
     resetGuessState(): void {
         this.guessState.clear();
+        this.pickedWords.clear();
     }
 
     getMainTrack(): Subtitle[] | null {

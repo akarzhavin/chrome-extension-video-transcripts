@@ -23,6 +23,7 @@
 // dropped from production bundles); nothing in this file does the guarding
 // itself, because a pure module cannot be trusted to be the last word on it.
 import type { VttFailure } from './timedtext-fetch';
+import type { MintReason } from './pot';
 
 /** Which world recorded an event. The two see genuinely different things. */
 export type TraceWorld = 'main' | 'iso';
@@ -79,7 +80,63 @@ export type TraceEvent =
       }
     | { ev: 'retry_sleep'; key: string; attempt: number; ms: number; reason: 'backoff' | 'empty' | 'retry-after' }
     | { ev: 'breaker'; action: 'trip' | 'reset' | 'blocked'; step: number; remainingMs: number }
-    | { ev: 'pot'; action: 'sniffed' | 'mint_start' | 'mint_done'; present: boolean; source?: string }
+    // 'rescued' is a token that arrived AFTER its track had already failed, so
+    // the track is being refetched off the subscription rather than a poll. It
+    // is deliberately not 'sniffed': nothing was sniffed here, we were told.
+    | {
+          ev: 'pot';
+          action: 'sniffed' | 'mint_start' | 'mint_done' | 'rescued';
+          present: boolean;
+          source?: string;
+          /**
+           * On 'mint_done': which exit the mint took (see MintReason in pot.ts).
+           *
+           * Without it a mint that finished in a millisecond with no token is
+           * ambiguous between three early exits that need three different
+           * fixes — which is exactly how trace wjZofJX0v4M read.
+           */
+          reason?: MintReason;
+      }
+    /**
+     * What the token lookup answered, and where the answer came from.
+     *
+     * The `attempt` event already says whether a token ended up ON the request
+     * (`potPresent`), but not why. When a trace showed six tokenless attempts
+     * on a video whose token had worked minutes earlier, that distinction was
+     * the whole question and nothing recorded it — four different explanations
+     * fitted the same evidence and all four turned out to be wrong.
+     *
+     * `entries` / `timedtextEntries` describe the resource-timing fallback's
+     * haystack. Chrome's buffer holds 250 entries by default and a watch page
+     * fills it in seconds, so "the fallback found nothing" and "the fallback
+     * had nothing left to search" look identical from the outside — and only
+     * the second is a bug in our code.
+     */
+    | {
+          ev: 'pot_store';
+          /** Where the answer came from: the in-memory store, resource timing, or nowhere. */
+          source: 'store' | 'timing' | 'miss';
+          /** Which call asked — the same lookup runs several times per fetch. */
+          reason: 'build-url' | 'pre-request' | 'mint-check';
+          /** First few chars only: enough to tell two tokens apart in a diff. */
+          tokenHead?: string;
+          /** Resource-timing entries scanned, and how many were timedtext URLs. */
+          entries?: number;
+          timedtextEntries?: number;
+          /**
+           * Of those timedtext entries, how many carried a `pot` at all, and how
+           * many were for THIS video.
+           *
+           * Without this pair the fallback's failures are unreadable: a miss
+           * with timedtextEntries=5 could mean the buffer held five tokenless
+           * requests of our own, or five of the player's whose `v=` did not
+           * match. Measured across four traces the fallback recovered a token
+           * zero times out of hundreds of attempts, and the counts alone could
+           * not say which of those two it was.
+           */
+          withPot?: number;
+          forThisVideo?: number;
+      }
     | { ev: 'outcome'; key: string; ok: boolean; failure?: VttFailure; status?: number; attempts: number }
     // ── receipt & verdict (isolated world) ───────────────────────────────
     | { ev: 'received'; key: string; stale: boolean; bytes: number; parsedCues?: number }
@@ -104,6 +161,16 @@ export type FetchTraceEvent = Extract<
     TraceEvent,
     { ev: 'attempt' | 'response' | 'retry_sleep' | 'breaker' | 'url_resolved' }
 >;
+
+/**
+ * Which call asked for the token.
+ *
+ * The same lookup runs several times per fetch — once building the URL, once
+ * snapshotting before the request, once deciding whether a mint is worth it —
+ * and they can disagree, because the player may sign a request in between.
+ * Without this the events are indistinguishable and the trace reads as noise.
+ */
+export type PotLookupReason = 'build-url' | 'pre-request' | 'mint-check';
 
 /** A trace event as stored: the event, when it happened, and who saw it. */
 export type StampedEvent = TraceEvent & {
@@ -186,6 +253,10 @@ export const PROTECTED_KINDS: ReadonlySet<TraceEvent['ev']> = new Set([
     'breaker',
     'outcome',
     'verdict',
+    // Skeleton, not volume: one per URL build, and it carries the answer to
+    // "why did this request go out without a token". Evictable, it would be
+    // discarded first in exactly the long sessions where that question arises.
+    'pot_store',
 ]);
 
 /**
@@ -242,6 +313,45 @@ export function pickHeaders(headers: { get(name: string): string | null } | unde
 export function clipBody(text: string, limit: number = BODY_HEAD_BYTES): string {
     if (text.length <= limit) return text;
     return text.slice(0, limit) + `…[+${text.length - limit}B]`;
+}
+
+/**
+ * Describe the resource-timing buffer the pot fallback just searched.
+ *
+ * Exists because the counts alone could not explain that fallback's record:
+ * across four live traces it recovered a token ZERO times, while routinely
+ * reporting several timedtext entries in the buffer. Two very different causes
+ * produce that same line — the entries were our own tokenless requests, or they
+ * were the player's but for a different `v=` — and only one of them is a defect
+ * we can fix. Counting the two separately settles it from a single trace.
+ *
+ * Lives here rather than in page-script for the reason stated at that file's
+ * import of this module: a value reachable from the MAIN-world bundle ships to
+ * production whether it is called or not, so the URL parsing stays behind the
+ * dev-only sink.
+ */
+export function describeTimingHaystack(
+    videoId: string,
+    entries: ReadonlyArray<{ name: string }>,
+): { entries: number; timedtextEntries: number; withPot: number; forThisVideo: number } {
+    let timedtextEntries = 0;
+    let withPot = 0;
+    let forThisVideo = 0;
+    for (const e of entries) {
+        if (!e.name.includes('/api/timedtext')) continue;
+        timedtextEntries++;
+        try {
+            const u = new URL(e.name);
+            const isPot = !!u.searchParams.get('pot');
+            const mine = u.searchParams.get('v') === videoId;
+            if (isPot) withPot++;
+            if (mine) forThisVideo++;
+        } catch {
+            // An entry we cannot parse is counted as timedtext and nothing
+            // more: dropping it would understate the haystack we searched.
+        }
+    }
+    return { entries: entries.length, timedtextEntries, withPot, forThisVideo };
 }
 
 /**

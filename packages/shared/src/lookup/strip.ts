@@ -62,6 +62,16 @@ const OVERLAY_WORD_SELECTOR = '.vtt-overlay-main span[data-word]';
 const SIDEBAR_WORD_SELECTOR = '.vtt-main-text span[data-word]';
 const WORD_SELECTOR = `${OVERLAY_WORD_SELECTOR}, ${SIDEBAR_WORD_SELECTOR}`;
 
+// What the cursor may open a card on over the video: revealed words, and also
+// the masked capsules of guess mode, which park their word in data-hidden.
+//
+// A capsule is a legitimate lookup target even though it is not a SAVEABLE
+// one — the card answers "what is this word", which is a different question
+// from "add it to my list", and quick-add's span[data-word] queries still skip
+// it. Over the video only: the sidebar is a transcript the cursor crosses on
+// the way anywhere, and it has no peek for the same reason.
+const OVERLAY_HOVER_SELECTOR = '.vtt-overlay-main span[data-word], .vtt-overlay-main span[data-hidden]';
+
 const HOVER_DELAY_MS = 220;   // the rate-limit debounce — see the header
 const SPINNER_AFTER_MS = 400; // warm answers land in ~270ms; no flicker for them
 const HIDE_DELAY_MS = 140;    // long enough to travel word → card
@@ -125,9 +135,32 @@ interface Anchor {
     pauses(): boolean;
 }
 
+/**
+ * Is the pointer still physically on this element?
+ *
+ * Asked when a mouseout arrives with no relatedTarget, which is ambiguous: the
+ * cursor may have left the window, or the node it was standing on may have been
+ * destroyed under it. Only the first is a departure.
+ *
+ * Geometry rather than `:hover` because this runs in the frame where the DOM
+ * just changed, and `:hover` is recomputed style — it may not have been
+ * recalculated yet, which would make the answer depend on timing. The rect is
+ * arithmetic on coordinates the event already carries. `:hover` remains the
+ * fallback for a box that cannot be measured (a detached or zero-sized node).
+ */
+function stillOnSpan(span: HTMLElement, e: MouseEvent): boolean {
+    const r = span.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return span.matches(':hover');
+    return e.clientX >= r.left && e.clientX <= r.right
+        && e.clientY >= r.top && e.clientY <= r.bottom;
+}
+
 function spanAnchor(span: HTMLElement): Anchor {
     return {
-        term: span.dataset.word?.trim() ?? '',
+        // A masked guess-mode capsule keeps its word in data-hidden instead —
+        // see makeMaskedSpan. Reading both is what lets the card open over a
+        // word the user has not uncovered yet.
+        term: (span.dataset.word ?? span.dataset.hidden)?.trim() ?? '',
         key: span,
         rect: () => {
             // The overlay rebuilds its children ~4x/sec, so the span a request
@@ -561,11 +594,24 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // Mid-drag the cursor sweeps the words being selected; opening a card
         // for each would fight the phrase the user is still drawing. The
         // finished selection opens one card on mouseup.
+        // `dragging` is set on mousedown and cleared on mouseup — but that
+        // mouseup can go missing. Pressing a guess capsule REVEALS it, the
+        // reveal repaints the overlay, and the repaint detaches the very node
+        // the press landed on; an event dispatched at a detached node
+        // propagates nowhere, so neither document nor window ever hears the
+        // release. The flag then stayed true for the life of the page and this
+        // early return switched the card off after the first reveal.
+        //
+        // The event itself carries the truth: `buttons` is a live bitmask of
+        // what is held down right now, so a stale flag is corrected the moment
+        // the cursor moves with nothing pressed. A genuine drag still reports a
+        // non-zero mask and still suppresses the card.
+        if (dragging && e.buttons === 0) dragging = false;
         if (dragging) return;
         // Overlay only. In the sidebar the cursor crosses dozens of words on
         // the way anywhere, and each one would open a strip nobody asked for;
         // that surface opens on click instead (see onClick).
-        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_WORD_SELECTOR);
+        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
         clearTimeout(hideTimer);
         if (span === current?.key) return;
@@ -577,10 +623,30 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // Matches onMouseOver: only the overlay opens on hover, so only the
         // overlay closes on leaving. A sidebar strip stays until it is
         // dismissed by a click elsewhere or another word.
-        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_WORD_SELECTOR);
+        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
         const to = e.relatedTarget as Node | null;
         if (to && (span.contains(to) || strip()?.contains(to))) return;
+        // A null relatedTarget means two different things, and only one of them
+        // is a departure. The cursor may have left the window — or the node it
+        // was standing on may have been DESTROYED under it, which Chrome also
+        // reports as a mouseout with nothing to point at.
+        //
+        // Over a guess capsule the second happens constantly: the peek moves
+        // the word into a .vtt-peek-face child on the hover itself, then
+        // rewrites that child again at the flip's halfway point (180ms) — both
+        // inside this card's 220ms debounce. Taken as a departure, each one
+        // cancelled the pending lookup, so the pill came up only when the
+        // timing happened to miss both.
+        //
+        // Answered from the pointer's COORDINATES, which the event carries,
+        // rather than from :hover. Both describe the same thing, but :hover is
+        // recomputed style — in the very frame the node under the cursor was
+        // destroyed there is no guarantee it has been recalculated yet, so it
+        // decides this by timing. The rect is just arithmetic on numbers the
+        // event already holds. (:hover stays as the fallback for the case the
+        // rect cannot be measured at all.)
+        if (!to && span.isConnected && stillOnSpan(span, e)) return;
         clearTimeout(hoverTimer);
         scheduleHide();
     };
@@ -653,6 +719,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         dragging = false;
         onSelectionMouseUp();
     };
+
 
     document.addEventListener('mouseover', onMouseOver);
     document.addEventListener('mouseout', onMouseOut);

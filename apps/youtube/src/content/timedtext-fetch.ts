@@ -246,13 +246,34 @@ export interface FetchDeps {
      */
     maxAttempts?: number;
     /**
-     * Called before each empty-body re-ask to obtain a freshly signed URL for
-     * the same track (re-reading the live player response). An empty 200 often
-     * means the signed URL went stale, so re-asking the SAME url would just
-     * collect the same empty answer. Return null/undefined to keep the current
-     * URL.
+     * Called before every re-send — an empty-body re-ask and a backoff retry
+     * alike — to obtain a freshly signed URL for the same track (re-reading the
+     * live player response). Return null/undefined to keep the current URL.
+     *
+     * Re-sending an identical request is the one thing a retry must not do. An
+     * empty 200 often means the signed URL went stale; a 429 is survived by
+     * whatever the wait produced. Both are answered by asking for the URL again
+     * rather than replaying the one that just failed.
      */
     refreshUrl?: () => string | null | undefined;
+    /**
+     * Called on the FIRST empty body, before the re-ask sleep and before
+     * refreshUrl. A chance to go and obtain whatever the request was missing —
+     * on YouTube, the pot token — so the very next attempt carries it.
+     *
+     * Measured, on a trace of a real failure: the token was only fetched AFTER
+     * the retry budget was spent, so three attempts and ~2.3s were burned on a
+     * URL that could not answer, and the outcome was a failure the viewer had
+     * to click their way out of. On the video where the same routine happened
+     * to succeed it took 3ms — so the cost of asking early is near zero and the
+     * cost of asking late is the whole failure.
+     *
+     * Awaited, but never on the first request: the loop still fires straight
+     * away with whatever is known, which is the rule the pot module exists to
+     * protect (blocking on the token once turned a missing optimisation into a
+     * total outage). Only an already-empty answer pays this wait.
+     */
+    onEmptyBody?: () => Promise<void>;
     rand?: () => number;
     now?: () => number;
     /**
@@ -302,6 +323,7 @@ export async function fetchTimedText(
         breaker,
         maxAttempts = MAX_ATTEMPTS,
         refreshUrl,
+        onEmptyBody,
         onEvent,
         traceKey = '',
         readHeaders,
@@ -379,6 +401,15 @@ export async function fetchTimedText(
                     };
                 }
                 breaker?.reset(); // a 200 is not a throttle, whatever it contains
+                // Go and get whatever the request was missing, BEFORE spending
+                // the next attempt on an identical one. Only on the first empty
+                // answer: a language YouTube genuinely does not carry answers
+                // empty every time, and paying this wait three times for it
+                // would turn a fast "no translation" into a slow one.
+                if (emptyAnswers === 1 && onEmptyBody) {
+                    await onEmptyBody();
+                    if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
+                }
                 onEvent?.({ ev: 'retry_sleep', key: traceKey, attempt, ms: EMPTY_RETRY_DELAY_MS, reason: 'empty' });
                 await sleep(EMPTY_RETRY_DELAY_MS, signal);
                 if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
@@ -439,6 +470,25 @@ export async function fetchTimedText(
             });
             await sleep(waitMs, signal);
             if (signal?.aborted) return { ok: false, text: '', failure: 'aborted', attempts };
+            // Re-sign AFTER the wait, for the same reason the empty-body branch
+            // does it: the point of a retry is to send a request that differs
+            // from the one that just failed, and on YouTube the difference
+            // usually arrives during the wait (a freshly signed URL, a pot the
+            // player minted for its own caption request).
+            //
+            // Measured on a live trace: a translation track met 429 four times
+            // and re-sent the same tokenless URL every time, while its sibling
+            // track minted a pot 300ms into the first backoff and loaded. Three
+            // of those four requests were dead on arrival, and they are what
+            // opened the breaker.
+            const refreshed = refreshUrl?.() || currentUrl;
+            onEvent?.({
+                ev: 'url_resolved',
+                key: traceKey,
+                changed: refreshed !== currentUrl,
+                url: refreshed,
+            });
+            currentUrl = refreshed;
         }
     }
 

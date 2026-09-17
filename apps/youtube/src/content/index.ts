@@ -197,6 +197,9 @@ class YouTubeVttApp extends BaseVttApp {
     // post-cooldown retry; see ReprocessOptions.probe).
     requestVtt(req: TrackRequest, videoId: string, probe = false): void {
         this.pendingRequests.set(req.key, req.name);
+        // Kept for as long as the video is: a rescued refetch answers after the
+        // pending entry has been consumed, and needs the name to be attributed.
+        this.requestNames.set(req.key, req.name);
         // Backstop for a request that never answers at all — without it a lost
         // reply leaves Dual silently disabled and nothing recorded anywhere.
         this.schedulePendingTrackCheck();
@@ -219,7 +222,9 @@ class YouTubeVttApp extends BaseVttApp {
             return;
         }
 
-        const name = this.takePending(m.url);
+        // Fall back to the name table: a result that arrives after the key was
+        // consumed is a rescued refetch, not a stray — see nameForRequest.
+        const name = this.takePending(m.url) ?? this.nameForRequest(m.url);
         console.log('[YT-VTT] VTT_RESULT <-', name, m.ok ? `bytes: ${m.text.length}` : `failed: ${m.failure}`);
         if (!name) return;
 
@@ -388,8 +393,7 @@ class YouTubeVttApp extends BaseVttApp {
                 .filter((s) => (s.textContent || '').trim().length > 1)
                 .sort((a, b) => (b.textContent || '').length - (a.textContent || '').length)[0];
             // Clear any prior marker first so repeated decorate runs (and mode
-            // switches) never stack duplicate "saved" badges.
-            document.querySelectorAll('#vtt-list .vtt-saved-badge').forEach((b) => b.remove());
+            // switches) leave the highlight on one word only.
             document.querySelectorAll('#vtt-list .vtt-saved-word').forEach((s) => s.classList.remove('vtt-saved-word'));
             if (word) markSpansSaved([word as HTMLElement]);
             // Show the dual-subtitle overlay on the video for the same line.

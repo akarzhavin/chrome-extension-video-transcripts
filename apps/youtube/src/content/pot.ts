@@ -19,10 +19,83 @@
 // stopped sending `pot`, subtitles stopped loading entirely. Guaranteeing a
 // load means the request always goes out with whatever is known at the time,
 // and the token only ever improves a retry.
+//
+// What a token is worth, measured across four live traces (202 requests):
+//
+//     with a token   : 44 requests ->  39 loaded (89%)
+//     without a token: 158 requests ->  0 loaded (0%)
+//
+// Zero, not "fewer". So a token that was captured and then forgotten is the
+// single most expensive thing that can happen here: it turns every following
+// request into a guaranteed empty answer. Hence PotStore persists — see there.
 
-/** Remembers the token seen for each video id. */
+/**
+ * Where a surviving token is kept. sessionStorage's own key, versioned so a
+ * future shape change cannot be handed stale data.
+ */
+export const POT_STORAGE_KEY = 'lg.pot.v1';
+
+/** Most videos a tab keeps tokens for. Small: a tab visits a handful. */
+const MAX_REMEMBERED = 12;
+
+/**
+ * Remembers the token seen for each video id.
+ *
+ * Optionally backed by a Storage (sessionStorage in the page), because the
+ * in-memory map lives exactly as long as the MAIN-world script and a reload
+ * builds a fresh one. Measured on a live trace: a token captured and serving
+ * requests at t=1032763 was gone 4.6 minutes later on the same tab and the same
+ * video, and all six following requests went out tokenless — which on this
+ * endpoint is six guaranteed empty answers. Across four traces, 158 tokenless
+ * requests produced 0 subtitles, so a forgotten token is not a slower load, it
+ * is no load.
+ *
+ * sessionStorage rather than localStorage because that is the token's own
+ * lifetime: it is signed for this session, and a stale one carried into a new
+ * tab would occupy the request that could have minted a fresh one.
+ *
+ * Every storage call is wrapped: a viewer with site data blocked, or a full
+ * quota, makes all of them throw, and the token is an optimisation on top of an
+ * already-working request path. It may never take the page down.
+ */
 export class PotStore {
     private byVideoId = new Map<string, string>();
+    private listeners = new Set<(videoId: string, pot: string) => void>();
+
+    constructor(private readonly storage?: Storage) {
+        this.byVideoId = this.load();
+    }
+
+    /**
+     * Be told the moment a token for any video is first seen. Returns an
+     * unsubscribe function.
+     *
+     * Exists because a token that arrives AFTER a track gave up used to land in
+     * a store nobody read again. Measured across the live traces, that is what
+     * the failed mints are: two tracks burn the 4s budget, the video is marked
+     * as attempted, and then the token shows up anyway — +5.2s in one session,
+     * +73.8s in another. The sessions where it "never" arrived simply ended
+     * ~1.6s after we stopped looking.
+     *
+     * A subscription costs no requests: it fires on a capture that happens
+     * regardless, and only tells the truth sooner than the next poll would.
+     */
+    onToken(fn: (videoId: string, pot: string) => void): () => void {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+    }
+
+    private announce(videoId: string, pot: string): void {
+        for (const fn of [...this.listeners]) {
+            try {
+                fn(videoId, pot);
+            } catch {
+                // This runs inside the page's own fetch/XHR wrapper: an
+                // exception here would surface in YouTube's code, not ours, and
+                // one bad subscriber must not silence the rest.
+            }
+        }
+    }
 
     /**
      * Read `pot` off a URL the page itself requested. Ignores anything that is
@@ -38,6 +111,8 @@ export class PotStore {
             const pot = u.searchParams.get('pot');
             if (!v || !pot || this.byVideoId.has(v)) return false;
             this.byVideoId.set(v, pot);
+            this.persist();
+            this.announce(v, pot);
             return true;
         } catch {
             // A URL we cannot parse is simply not a source of tokens.
@@ -51,7 +126,42 @@ export class PotStore {
 
     /** Seed a token found by other means (e.g. resource timing). */
     remember(videoId: string, pot: string): void {
-        if (!this.byVideoId.has(videoId)) this.byVideoId.set(videoId, pot);
+        if (this.byVideoId.has(videoId)) return;
+        this.byVideoId.set(videoId, pot);
+        this.persist();
+        this.announce(videoId, pot);
+    }
+
+    private load(): Map<string, string> {
+        try {
+            const raw = this.storage?.getItem(POT_STORAGE_KEY);
+            if (!raw) return new Map();
+            const parsed: unknown = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return new Map();
+            const out = new Map<string, string>();
+            for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+                if (typeof v === 'string' && v) out.set(k, v);
+            }
+            return out;
+        } catch {
+            // Unreadable or corrupt storage is the same as an empty one: start
+            // fresh rather than refusing to work.
+            return new Map();
+        }
+    }
+
+    private persist(): void {
+        if (!this.storage) return;
+        try {
+            // Drop the oldest first: Map preserves insertion order, and the
+            // video being watched now is the last one in.
+            const entries = [...this.byVideoId.entries()].slice(-MAX_REMEMBERED);
+            this.byVideoId = new Map(entries);
+            this.storage.setItem(POT_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
+        } catch {
+            // Blocked site data or a full quota. The in-memory map still holds
+            // the token for this page's lifetime, which is what today does.
+        }
     }
 }
 
@@ -101,6 +211,38 @@ export function buildTimedTextUrl(
  */
 export function isEmptyish(failure: string | undefined): boolean {
     return failure === 'stale-url' || failure === 'not-offered';
+}
+
+/**
+ * Could a token that arrives LATER still turn this failure into subtitles?
+ *
+ * Deliberately broader than isEmptyish, and deliberately a separate function.
+ * isEmptyish answers "is this the shape of a missing token", which is what the
+ * pot cascade uses to decide whether to flash the viewer's own captions on —
+ * and a throttle is not a reason to do that, so widening it would make the
+ * extension touch the player's settings on every 429.
+ *
+ * This asks something else: is a refetch worth arming. On this endpoint a
+ * request without a token cannot succeed whatever the status line said, so a
+ * 429 that went out bare was doomed before it left, exactly like an empty 200,
+ * and a token is equally what it was missing. Measured across the traces: 14
+ * failed tokenless rounds ended 'stale-url' and 2 ended 'rate-limited'; the
+ * latter were getting no rescue at all.
+ *
+ * Excluded are the outcomes a token cannot change — the viewer navigated away,
+ * or the track is genuinely gone.
+ */
+const TOKEN_FIXABLE: ReadonlySet<string> = new Set([
+    'stale-url',
+    'not-offered',
+    'rate-limited',
+    'cooldown',
+    'unknown',
+    'network',
+]);
+
+export function worthRetryingWithToken(failure: string | undefined): boolean {
+    return !!failure && TOKEN_FIXABLE.has(failure);
 }
 
 /**
@@ -160,6 +302,71 @@ export class SharedOnce<T> {
 }
 
 /**
+ * How long to give an ALREADY-ARRIVING token before spending a request without
+ * it, and how often to look.
+ *
+ * Deliberately far shorter than POT_TOGGLE_TIMEOUT_MS below: this wait provokes
+ * nothing and touches nothing, it only declines to race a token that is already
+ * on its way. Measured on live traces, a token that arrives at all arrives
+ * within ~100ms of our first request on a warm page (+92ms, +94ms, +95ms, +97ms
+ * across four sessions); the slower cases are cold pages where the player has
+ * not yet fetched its own track, and those are what the ceiling exists for.
+ *
+ * The ceiling is the whole safety argument, and it is why this is not the
+ * outage of 9cf1f39. That implementation waited 15 seconds AND reported
+ * 'no-pot' when the sniff missed, so a missed token stopped subtitles. Here the
+ * wait is under a second and expiring it changes nothing about what happens
+ * next: the request goes out with whatever is known, exactly as today.
+ */
+export const POT_WAIT_MS = 900;
+export const POT_WAIT_POLL_MS = 60;
+
+/** What awaitPot needs; injected so it is testable on a fake clock. */
+export interface AwaitPotDeps {
+    now?: () => number;
+    sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
+    signal?: AbortSignal;
+}
+
+/**
+ * Give a token a brief chance to show up, then answer with whatever there is.
+ *
+ * Why wait at all, when the rule of this module is that nothing may block:
+ * because a tokenless request to /api/timedtext does not have poor odds, it has
+ * none. Across four live traces, 158 requests went out without a token and 0
+ * of them returned subtitles, while 44 went out with one and 39 loaded. Sending
+ * the doomed request first and looking for the token afterwards spends a
+ * guaranteed failure — and, because an empty answer is retried, spends it up to
+ * three times per track. Every 429 in those traces landed on such a request.
+ *
+ * So this is a bounded pause, not a precondition. It NEVER throws, never waits
+ * past POT_WAIT_MS, and returns null rather than failing the track — the caller
+ * then proceeds exactly as it does today. An abort ends it at once.
+ */
+export async function awaitPot(
+    lookup: () => string | null,
+    deps: AwaitPotDeps = {},
+): Promise<string | null> {
+    const now = deps.now ?? (() => Date.now());
+    const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    const { signal } = deps;
+
+    // The overwhelmingly common case on a warm page: already in hand, no wait.
+    const immediate = lookup();
+    if (immediate) return immediate;
+    if (signal?.aborted) return null;
+
+    const deadline = now() + POT_WAIT_MS;
+    while (now() < deadline) {
+        await sleep(POT_WAIT_POLL_MS, signal);
+        if (signal?.aborted) return null;
+        const found = lookup();
+        if (found) return found;
+    }
+    return null;
+}
+
+/**
  * How long to give the player to mint a token AFTER our own request already
  * came back empty, which is also how long the CC flash may last.
  *
@@ -171,6 +378,25 @@ export class SharedOnce<T> {
 export const POT_TOGGLE_TIMEOUT_MS = 4000;
 export const POT_POLL_MS = 150;
 
+/**
+ * How a mint attempt ended.
+ *
+ *  - 'toggled'        the control was actually clicked and the budget waited
+ *                     out (with or without a token at the end of it) — the
+ *                     only outcome where the player was genuinely asked;
+ *  - 'recycled-cc'    captions read as ON while the player had fetched no
+ *                     track, so they were cycled off and back on to provoke
+ *                     one; the viewer's setting ends where it started;
+ *  - 'cc-already-on'  captions were already on AND the player had fetched its
+ *                     track, so clicking would turn them OFF and mint nothing;
+ *  - 'ad'             an ad was on screen, so the token would be the ad's;
+ *  - 'no-button'      the player chrome had not rendered its control yet.
+ *
+ * The last three are early exits: they cost nothing and claim nothing, which
+ * is also why a trace cannot tell them apart by timing alone.
+ */
+export type MintReason = 'toggled' | 'recycled-cc' | 'cc-already-on' | 'ad' | 'no-button';
+
 /** What the minting routine needs from the page it runs on. */
 export interface MintDeps {
     /** The CC control to click, or null if the player chrome has not rendered. */
@@ -179,9 +405,35 @@ export interface MintDeps {
     knownPot: (videoId: string) => string | null;
     /** The video the address currently points at — not necessarily the one asked for. */
     currentUrlVideoId: () => string | null;
+    /**
+     * Whether an ad is on screen. Optional: a caller that does not supply it
+     * (and Rezka, which has no ads) behaves exactly as before.
+     */
+    isAdPlaying?: () => boolean;
+    /**
+     * Has the PLAYER itself fetched a caption track for this video?
+     *
+     * Only consulted when the CC control reads as on, to check that exit's
+     * premise rather than assume it. `false` means the control is describing a
+     * preference and not a fetch, and the toggle is worth spending.
+     *
+     * Optional, and `undefined` is not `false`: a caller that cannot answer
+     * (Rezka) keeps the old behaviour exactly.
+     */
+    playerFetchedCaptions?: (videoId: string) => boolean;
     sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
     /** Diagnostics only; nothing here reaches the viewer. */
     log?: (message: string) => void;
+    /**
+     * Why the routine stopped. Diagnostics only — the token is still the
+     * return value, and nothing here changes what the routine does.
+     *
+     * It exists because the three non-toggling exits are indistinguishable
+     * from outside: on a live trace, four mints each finished a millisecond
+     * after starting with no token, which says an early exit was taken but not
+     * which one — and they point at three different fixes.
+     */
+    onOutcome?: (reason: MintReason) => void;
     now?: () => number;
 }
 
@@ -210,6 +462,13 @@ export async function doMintPotViaCcToggle(
     // clicking it anyway flips aria-pressed and produces a pot-signed request.
     // The label describes the track not being loaded yet, not the video
     // lacking captions.
+    const report = (reason: MintReason): void => {
+        try {
+            deps.onOutcome?.(reason);
+        } catch {
+            // A diagnostic listener must never change what the routine does.
+        }
+    };
     const btn = deps.ccToggle();
     // No control yet — the player chrome renders late and this runs seconds
     // into the page. Claiming the attempt HERE would burn the one mint this
@@ -217,17 +476,66 @@ export async function doMintPotViaCcToggle(
     // every "Search again" would then return null without ever clicking the
     // control that exists by then. Leave the video unclaimed so the next
     // attempt can try again.
-    if (!btn) return null;
-    // Already on: the player has fetched its track and we simply missed the
-    // sniff, so a toggle would turn captions OFF and mint nothing.
-    if (btn.getAttribute('aria-pressed') === 'true') return deps.knownPot(videoId);
+    if (!btn) {
+        report('no-button');
+        return null;
+    }
+    // The state we found the viewer's control in. Everything below restores to
+    // THIS, whichever way round it was — the routine borrows the control, it
+    // does not get to decide where it ends up.
+    const wasOn = btn.getAttribute('aria-pressed') === 'true';
+
+    // Captions already on. The premise of skipping is that the player has
+    // therefore fetched its caption track and a token exists that we merely
+    // missed sniffing — true on a warm page, and then a toggle would only turn
+    // the viewer's captions OFF and mint nothing.
+    //
+    // Measured false on trace wjZofJX0v4M: captions read as on, the player had
+    // fetched no timedtext at all, and this exit fired four times on a video
+    // with 21 caption tracks while the panel reported none. So check the
+    // premise where the caller can answer it. When the player really has not
+    // asked, the control is describing a preference rather than a fetch, and
+    // the toggle is worth spending — see the recycle below.
+    const ccIsStale = wasOn && deps.playerFetchedCaptions?.(videoId) === false;
+    if (wasOn && !ccIsStale) {
+        report('cc-already-on');
+        return deps.knownPot(videoId);
+    }
+    // An ad is playing: the request our click would provoke is the AD's, signed
+    // for a different `v=`, which PotStore files under that id and never serves
+    // for this video. So the flash costs the viewer captions on an ad they did
+    // not ask for and teaches us nothing.
+    //
+    // Above the recycle as well as the plain toggle: an ad's caption track is
+    // the wrong track either way round, so provoking a re-fetch during one buys
+    // exactly as little.
+    //
+    // Left UNCLAIMED on purpose — an ad is "come back later", not an answer.
+    // Claiming it here would spend the one mint this video gets on a pre-roll,
+    // and the real opportunity seconds later would be refused. That is the same
+    // trap as the missing-button branch above.
+    if (deps.isAdPlaying?.()) {
+        deps.log?.('ad playing — not minting; the token would be the ad’s');
+        report('ad');
+        return deps.knownPot(videoId);
+    }
 
     // Claimed only now that a real toggle is about to happen — an attempt that
-    // bailed above (no control rendered yet) stays retryable.
+    // bailed above (no control rendered yet, an ad on screen) stays retryable.
     once.complete(videoId);
+    report(ccIsStale ? 'recycled-cc' : 'toggled');
 
-    deps.log?.('no pot — briefly enabling native captions to mint one');
-    btn.click();
+    if (ccIsStale) {
+        // Off and straight back on. The player treats the second click as a
+        // fresh request for the track, which is the signed request we are
+        // after; a single click would just leave the viewer's captions off.
+        deps.log?.('captions read as on but nothing was fetched — recycling them to mint');
+        btn.click();
+        btn.click();
+    } else {
+        deps.log?.('no pot — briefly enabling native captions to mint one');
+        btn.click();
+    }
     try {
         const deadline = now() + POT_TOGGLE_TIMEOUT_MS;
         while (now() < deadline) {
@@ -238,16 +546,22 @@ export async function doMintPotViaCcToggle(
         }
         return deps.knownPot(videoId);
     } finally {
-        // Restore the control WE clicked, and only while it is still that
-        // video's control. Re-querying the DOM here would, after a navigation,
-        // hand back the NEW video's button — and YouTube persists the CC
-        // preference across videos, so if that one is on we would switch the
-        // viewer's captions off on a video we never touched.
+        // Put the control back the way it was found, and only while it is still
+        // that video's control. Re-querying the DOM here would, after a
+        // navigation, hand back the NEW video's button — and YouTube persists
+        // the CC preference across videos, so we would be changing captions on
+        // a video we never touched.
+        //
+        // Compared against `wasOn` rather than assuming we turned them on: the
+        // recycle path starts from ON and must end there too. Reading the
+        // control's state and clicking only on a mismatch means a page that
+        // moved it underneath us (the player restoring its own preference) is
+        // left alone rather than clicked back into the wrong state.
         if (deps.currentUrlVideoId() === videoId
             && btn.isConnected
-            && btn.getAttribute('aria-pressed') === 'true') {
+            && (btn.getAttribute('aria-pressed') === 'true') !== wasOn) {
             btn.click();
-            deps.log?.('native captions -> Off (restored)');
+            deps.log?.(wasOn ? 'native captions -> On (restored)' : 'native captions -> Off (restored)');
         }
     }
 }

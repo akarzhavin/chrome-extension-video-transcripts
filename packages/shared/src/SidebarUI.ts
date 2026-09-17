@@ -2081,10 +2081,14 @@ export class SidebarUI {
         addGroup(msg('ytLangGroupOther', 'Other languages'), others, true);
     }
 
-    buildMaskedContent(text: string, revealedCount: number): HTMLElement {
+    buildMaskedContent(text: string, revealedCount: number, index?: number): HTMLElement {
         const container = document.createElement('div');
         container.className = 'vtt-main-text';
-        fillMaskedWordsInto(container, text, revealedCount);
+        // With a line index the state can answer for words picked out of
+        // order too; without one this stays the plain prefix render, which is
+        // what the two-argument callers (and their tests) mean by it.
+        fillMaskedWordsInto(container, text, revealedCount,
+            index === undefined ? undefined : (ti) => this.state.isWordRevealed(index, ti));
         return container;
     }
 
@@ -2105,10 +2109,12 @@ export class SidebarUI {
         // Query by class, not [data-word]: masked spans deliberately lack that
         // attribute (see makeMaskedSpan), and missing them here would shift
         // every index and mask the wrong words.
-        const revealedCount = this.state.getRevealedCount(index);
         const spans = main.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word');
         spans.forEach((span, i) => {
-            const shouldReveal = i < revealedCount;
+            // Ask the state per word rather than comparing against the count:
+            // a word picked out of order is out while the ones before it are
+            // not, which no single number can express.
+            const shouldReveal = this.state.isWordRevealed(index, i);
             if (shouldReveal && !span.classList.contains('vtt-revealed-word')) {
                 const word = span.dataset.word ?? span.dataset.hidden ?? '';
                 span.dataset.word = word;
@@ -2131,8 +2137,15 @@ export class SidebarUI {
             }
         });
 
-        // Mark the next word up, so exactly one target is lit at a time.
-        spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === revealedCount));
+        // Mark the next word up, so exactly one target is lit at a time. The
+        // first STILL-HIDDEN word, not the one at the count: with words opened
+        // out of order the slot at the count may already be visible, and
+        // lighting it would point at a word that is plainly there.
+        let lit = -1;
+        spans.forEach((_span, i) => {
+            if (lit === -1 && !this.state.isWordRevealed(index, i)) lit = i;
+        });
+        spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === lit));
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -2178,7 +2191,7 @@ export class SidebarUI {
 
     private buildGuessItem(sub: Subtitle, index: number): HTMLDivElement {
         const item = this.createSubtitleItem(index);
-        item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index)));
+        item.appendChild(this.buildMaskedContent(sub.text, this.state.getRevealedCount(index), index));
         // The whole line is the reveal target, so say so to assistive tech —
         // the words themselves are not individually actionable. role="button"
         // obliges the rest: a div is not focusable and answers no key on its
@@ -2274,12 +2287,38 @@ export class SidebarUI {
         this.revealAndSeek(index, sub);
     }
 
+    /**
+     * Uncover the word that was actually pointed at, then follow the line.
+     *
+     * The out-of-order sibling of revealAndSeek. Guess mode used to open words
+     * strictly in order, which is why only one capsule was ever lit — the word
+     * you aimed at was rarely the word that opened. Pointing at one now opens
+     * that one; everything after the reveal is identical, so the two share a
+     * tail rather than drifting apart.
+     */
+    private revealPickedAndSeek(index: number, sub: Subtitle, tokenIndex: number): void {
+        this.peek.peekOff();
+        this.state.revealWordAt(index, tokenIndex);
+        this.afterReveal(index, sub);
+    }
+
     private revealAndSeek(index: number, sub: Subtitle): void {
         // A peek is transient paint on a span the repaint below is about to
         // rewrite; let go of it first so peekOff can never restore the mask
         // over a word the reveal has just uncovered.
         this.peek.peekOff();
         this.state.revealNextWord(index);
+        this.afterReveal(index, sub);
+    }
+
+    /**
+     * What both reveal routes do once the state has moved: repaint the line on
+     * each surface and follow it.
+     *
+     * Shared so the in-order and picked reveals cannot drift — the selection
+     * drop in particular is load-bearing and easy to forget in a second copy.
+     */
+    private afterReveal(index: number, sub: Subtitle): void {
         // Drop any leftover highlight: the user has moved on to revealing, and
         // updateOverlay refuses to repaint while a selection is inside (it would
         // orphan the Range), so the mask would advance in state but not on screen.
@@ -2317,7 +2356,27 @@ export class SidebarUI {
     highlightSubtitle(currentTime: number): void {
         this.playbackTime = currentTime;
         const mainTrack = this.state.getMainTrack();
-        if (!mainTrack || !this.elements.list) return;
+        // No track — either nothing has loaded yet, or a video change just
+        // emptied AppState. Returning here left the overlay holding the
+        // PREVIOUS video's line: its children and their signature survive a
+        // state reset, and updateOverlay is reached only through this method,
+        // so the next repaint was whenever a new track arrived. On a video
+        // whose subtitles never load, that is never — the viewer reads a line
+        // from the video before while the panel says nothing loaded.
+        //
+        // Repaint as "nothing is playing" instead. index -1 wipes the children
+        // and sets the 'empty' signature, so the block is empty rather than
+        // wrong; currentIndex comes back to -1 with it so the next track's
+        // first paint is not compared against another video's index.
+        if (!mainTrack) {
+            if (this.state.currentIndex !== -1) {
+                this.moveActiveSubtitleClass(-1);
+                this.state.currentIndex = -1;
+            }
+            this.updateOverlay(-1);
+            return;
+        }
+        if (!this.elements.list) return;
 
         // End-exclusive: adjacent cues share a boundary (one's endTime is the
         // next's startTime), so `<= endTime` would match BOTH at that instant
@@ -2403,6 +2462,11 @@ export class SidebarUI {
         const preview = !sub && this.overlayAdjusting ? this.previewSubtitleFor(index) : null;
         const sig = sub
             ? [index, this.state.displayMode, this.state.getRevealedCount(index),
+               // Words opened out of order are not expressible as a count, so
+               // the signature has to carry them too — otherwise picking one
+               // leaves the signature identical and the rebuild below is
+               // skipped, which looks exactly like a click that did nothing.
+               [...(this.state.pickedWords.get(index) ?? [])].sort((a, b) => a - b).join(','),
                this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped,
                this.overlayAdjusting].join('|')
             : preview
@@ -2573,85 +2637,215 @@ export class SidebarUI {
     // pen, and setPointerCapture keeps the drag alive when the pointer leaves
     // the small grip — which it immediately does, since the caption moves out
     // from under it.
+    /**
+     * Is this press on the caption box's BORDER — its padding ring — rather
+     * than on the text inside it?
+     *
+     * The ring is the band between the box's outer edge and its content: the
+     * 0.25em/0.67em padding .vtt-overlay-main carries (both in em, so the band
+     * scales with the caption and never thins to nothing). Pressing there is
+     * unambiguous in a way pressing the text is not — there is no word under it
+     * to reveal and no glyph to select — which is what makes it safe to give it
+     * a second meaning on a surface that already owns three gestures.
+     *
+     * Answers FALSE whenever the geometry cannot be measured: a zero-sized rect
+     * means the box has not been laid out (jsdom, or the tick before first
+     * paint), and treating "I cannot tell" as "this is the ring" would turn
+     * every press on a caption — including every guess-mode reveal — into a
+     * drag. The conservative answer costs nothing: the grip is still there.
+     */
+    private isOnCaptionRing(box: HTMLElement, x: number, y: number): boolean {
+        const r = box.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return false;
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) return false;
+        const cs = window.getComputedStyle?.(box);
+        if (!cs) return false;
+        const top = parseFloat(cs.paddingTop) || 0;
+        const right = parseFloat(cs.paddingRight) || 0;
+        const bottom = parseFloat(cs.paddingBottom) || 0;
+        const left = parseFloat(cs.paddingLeft) || 0;
+        // No padding at all means no ring to grab — not a box-wide drag surface.
+        if (top + right + bottom + left === 0) return false;
+        return (
+            x < r.left + left ||
+            x > r.right - right ||
+            y < r.top + top ||
+            y > r.bottom - bottom
+        );
+    }
+
+    /**
+     * Dragging the captions by the box's own border.
+     *
+     * The grip is still the discoverable, keyboard-reachable control and still
+     * the only one announced to assistive tech. This is the direct route for a
+     * pointer: grab the edge of the subtitles and move them, without first
+     * opening the settings panel to reveal the grip.
+     *
+     * Lives on the CONTAINER because the caption box is rebuilt ~4x/sec: a
+     * listener bound to the box would be thrown away and re-added constantly,
+     * and mid-drag the element holding the pointer capture would vanish.
+     *
+     * Registered in the CAPTURE phase so it runs before any listener on the
+     * box itself and before the propagation-stoppers further down. Note what
+     * this does NOT do: the guess-mode reveal declines a ring press on its own,
+     * because it requires e.target to be inside a .vtt-masked-word and the
+     * padding lies outside every capsule. Capture is the safer registration,
+     * not the thing keeping reveal away — measured, by dropping it and finding
+     * no behaviour changed.
+     */
+    private attachCaptionRingDrag(overlay: HTMLElement): void {
+        overlay.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            const box = (e.target as Element | null)?.closest?.<HTMLElement>('.vtt-overlay-main');
+            if (!box) return;
+            if (!this.isOnCaptionRing(box, e.clientX, e.clientY)) return;
+            // The press belongs to the drag now: stop it before the reveal
+            // handler below, before the player's play/pause, and before the
+            // text selection the box would otherwise begin.
+            e.preventDefault();
+            e.stopPropagation();
+            this.beginOverlayDrag(overlay, e);
+        }, true);
+
+        // The container holds the capture, so it is also what receives the rest
+        // of the gesture — the caption box under the cursor is rebuilt ~4x/sec
+        // and would lose it. Both are no-ops unless a drag is actually live.
+        overlay.addEventListener('pointermove', (e) => this.moveOverlayDrag(e));
+        overlay.addEventListener('pointerup', (e) => this.finishOverlayDrag(e));
+        overlay.addEventListener('pointercancel', (e) => this.finishOverlayDrag(e));
+
+        // Show the grab cursor while the pointer is over the ring. No CSS
+        // selector addresses a padding area, so the affordance has to be
+        // toggled from here — without it the edge is draggable but says
+        // nothing, and the feature is only findable by accident.
+        //
+        // The box is found by QUERY, not from e.target. Once a drag starts the
+        // container holds the pointer capture, so every subsequent move
+        // retargets to the container and `e.target.closest` finds nothing —
+        // the class would then freeze at whatever it was when the press
+        // landed, and never clear. There is exactly one caption box, so asking
+        // the overlay for it is both simpler and correct in either phase.
+        overlay.addEventListener('pointermove', (e) => {
+            const box = overlay.querySelector<HTMLElement>('.vtt-overlay-main');
+            if (!box) return;
+            box.classList.toggle('vtt-ring-grab', this.isOnCaptionRing(box, e.clientX, e.clientY));
+        });
+        overlay.addEventListener('pointerleave', () => {
+            overlay.querySelector('.vtt-ring-grab')?.classList.remove('vtt-ring-grab');
+        });
+    }
+
+    // The live drag, whichever surface started it. Instance state rather than a
+    // closure because there are now two entry points — the grip and the caption
+    // box's own border — and they must share ONE gesture: two independent
+    // `dragging` flags would let a ring press begin while a grip drag was still
+    // flagged open, and the second release would save a position computed from
+    // the first one's origin.
+    private dragFrom: {
+        host: HTMLElement;
+        pointerId: number;
+        x: number;
+        y: number;
+        bottom: number;
+        inline: number;
+    } | null = null;
+
+    /**
+     * Start a drag from `host`, which takes the pointer capture.
+     *
+     * The capture is what keeps the gesture alive once the caption moves out
+     * from under the cursor — which happens immediately, since the thing being
+     * dragged is the thing the pointer is over.
+     */
+    private beginOverlayDrag(host: HTMLElement, e: PointerEvent): void {
+        this.dragFrom = {
+            host,
+            pointerId: e.pointerId,
+            x: e.clientX,
+            y: e.clientY,
+            bottom: this.position.bottom,
+            inline: this.position.inline,
+        };
+        host.setPointerCapture?.(e.pointerId);
+        document.getElementById('vtt-video-overlay')?.classList.add('vtt-drag-active');
+    }
+
+    /** Follow the pointer. Shared by both surfaces; no-op when nothing is held. */
+    private moveOverlayDrag(e: PointerEvent): void {
+        const from = this.dragFrom;
+        if (!from) return;
+        e.preventDefault();
+        // Both axes move on one drag: this is a position control, not a
+        // vertical slider, so a diagonal pull has to land where the pointer
+        // went. Each axis is measured against its own dimension — vertical
+        // against the player's height, horizontal against its width — since
+        // that is the unit each one is stored in.
+        //
+        // Screen y grows downward while `bottom` grows upward, so that delta
+        // is inverted: drag up, the caption goes up. Screen x and the
+        // translate agree in direction, so that one is not. Live feedback
+        // without touching prefs — the write happens once, on release.
+        this.position.set(
+            this.overlayMetrics(),
+            from.bottom + this.pxToPct(from.y - e.clientY),
+            from.inline + this.pxToPctX(e.clientX - from.x),
+        );
+        this.applyOverlayStyle();
+    }
+
+    /**
+     * End the drag and persist where it landed.
+     *
+     * Tolerates being called with no event (the grip torn out mid-gesture,
+     * where no pointerup is coming) and a capture that is already gone.
+     */
+    private finishOverlayDrag(e?: PointerEvent): void {
+        const from = this.dragFrom;
+        if (!from) return;
+        this.dragFrom = null;
+        // Guarded: on the pointercancel path the capture may already be
+        // released, and Safari throws NotFoundError for an unknown pointerId.
+        // An exception here would skip the save below and strand
+        // .vtt-drag-active on the overlay.
+        try {
+            from.host.releasePointerCapture?.(e ? e.pointerId : from.pointerId);
+        } catch {
+            /* capture already gone — nothing to release */
+        }
+        from.host.classList.remove('vtt-dragging');
+        document.getElementById('vtt-video-overlay')?.classList.remove('vtt-drag-active');
+        savePrefs(
+            {
+                overlayBottomNudge: this.position.bottom,
+                overlayInlineNudge: this.position.inline,
+            },
+            this.scope,
+        );
+    }
+
     private attachOverlayDrag(btn: HTMLButtonElement): void {
-        let startX = 0;
-        let startY = 0;
-        let startNudge = 0;
-        let startInline = 0;
-        let dragging = false;
-
-        const overlayEl = () => document.getElementById('vtt-video-overlay');
-
         btn.addEventListener('pointerdown', (e) => {
             if (e.button !== 0) return;
             // Without this the press also reaches the player and toggles
             // playback, so every drag would pause the video.
             e.preventDefault();
             e.stopPropagation();
-            dragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startNudge = this.position.bottom;
-            startInline = this.position.inline;
-            btn.setPointerCapture(e.pointerId);
             btn.classList.add('vtt-dragging');
-            overlayEl()?.classList.add('vtt-drag-active');
+            this.beginOverlayDrag(btn, e);
         });
 
-        btn.addEventListener('pointermove', (e) => {
-            if (!dragging) return;
-            e.preventDefault();
-            // Both axes move on one drag: the grip is a position control, not a
-            // vertical slider, so a diagonal pull has to land where the pointer
-            // went. Each axis is measured against its own dimension — vertical
-            // against the player's height, horizontal against its width — since
-            // that is the unit each one is stored in.
-            //
-            // Screen y grows downward while `bottom` grows upward, so that delta
-            // is inverted: drag up, the caption goes up. Screen x and the
-            // translate agree in direction, so that one is not. Live feedback
-            // without touching prefs — the write happens once, on release.
-            this.position.set(
-                this.overlayMetrics(),
-                startNudge + this.pxToPct(startY - e.clientY),
-                startInline + this.pxToPctX(e.clientX - startX),
-            );
-            this.applyOverlayStyle();
-        });
+        btn.addEventListener('pointermove', (e) => this.moveOverlayDrag(e));
 
-        // Ends the drag and persists. Tolerates being called with no event (the
-        // grip being torn out mid-gesture, where there is no pointerup to come)
-        // and a capture that is already gone.
-        const end = (e?: PointerEvent) => {
-            if (!dragging) return;
-            dragging = false;
-            // Guarded: on the pointercancel path the capture may already be
-            // released, and Safari throws NotFoundError for an unknown
-            // pointerId. An exception here would skip the save below and strand
-            // .vtt-drag-active on the overlay.
-            try {
-                if (e) btn.releasePointerCapture?.(e.pointerId);
-            } catch {
-                /* capture already gone — nothing to release */
-            }
-            btn.classList.remove('vtt-dragging');
-            overlayEl()?.classList.remove('vtt-drag-active');
-            savePrefs(
-                {
-                    overlayBottomNudge: this.position.bottom,
-                    overlayInlineNudge: this.position.inline,
-                },
-                this.scope,
-            );
-        };
+        const end = (e?: PointerEvent) => this.finishOverlayDrag(e);
         btn.addEventListener('pointerup', end);
         btn.addEventListener('pointercancel', end);
         // The panel closing mid-drag hides the grip (display: none), which
         // silently kills the pointer capture and with it the pointerup that
-        // would have ended the gesture — leaving `dragging` stuck true and the
+        // would have ended the gesture — leaving the drag stuck open and the
         // release never saved. Nothing else can end a drag once the grip is
         // gone, so the teardown owns it.
-        this.endOverlayDrag = () => end();
+        this.endOverlayDrag = () => this.finishOverlayDrag();
 
         // Keyboard parity: the control is a real button, so it has to work
         // without a pointer. Arrows nudge, Shift jumps, and the write is
@@ -2786,12 +2980,21 @@ export class SidebarUI {
         overlay.addEventListener('pointerdown', (e) => {
             this.pointerRevealed = false;
             if (this.state.displayMode !== 'guess' || e.button !== 0) return;
-            if (!(e.target as Element | null)?.closest?.('.vtt-masked-word')) return;
+            const capsule = (e.target as Element | null)?.closest?.('.vtt-masked-word');
+            if (!capsule) return;
             const index = this.state.currentIndex;
             const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
             if (!sub) return;
             this.pointerRevealed = true;
-            this.revealAndSeek(index, sub);
+            // The word that was actually pressed, named by the index the
+            // renderer stamped on it. Guess mode used to open the next word in
+            // order whatever you aimed at; pressing a capsule now opens that
+            // capsule. A span from before this attribute existed (or any other
+            // reason it is missing) falls back to the in-order reveal rather
+            // than swallowing the press.
+            const ti = Number((capsule as HTMLElement).dataset.ti);
+            if (Number.isInteger(ti)) this.revealPickedAndSeek(index, sub, ti);
+            else this.revealAndSeek(index, sub);
         });
         overlay.addEventListener('click', (e) => {
             if (this.state.displayMode !== 'guess') return;
@@ -2824,6 +3027,7 @@ export class SidebarUI {
                 }
             });
         }
+        this.attachCaptionRingDrag(overlay);
         this.peek.attachPeek(overlay);
         parent.appendChild(overlay);
         this.applyOverlayStyle();
@@ -2895,7 +3099,8 @@ export class SidebarUI {
         mainDiv.className = 'vtt-overlay-main';
         mainDiv.dataset.index = String(index);
         if (this.state.displayMode === 'guess') {
-            fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index));
+            fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index),
+                (ti) => this.state.isWordRevealed(index, ti));
         } else {
             fillPlainWordsInto(mainDiv, sub.text);
         }

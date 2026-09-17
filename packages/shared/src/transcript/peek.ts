@@ -29,6 +29,22 @@ function prefersReducedMotion(): boolean {
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
 }
 
+/**
+ * Is the pointer still physically on this capsule?
+ *
+ * A mouseout with no relatedTarget means either "the cursor left the window" or
+ * "the node it stood on was destroyed" — and this peek destroys its own node
+ * twice per turn. Geometry answers it from coordinates the event carries;
+ * `:hover` would answer it from style that may not have been recomputed yet in
+ * that same frame. Falls back to `:hover` only when there is no box to measure.
+ */
+function pointerIsOn(span: HTMLElement, e: MouseEvent): boolean {
+    const r = span.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return span.matches(':hover');
+    return e.clientX >= r.left && e.clientX <= r.right
+        && e.clientY >= r.top && e.clientY <= r.bottom;
+}
+
 /** What the peek needs from the sidebar hosting it. */
 export interface PeekHost {
     /** Peeking is a guess-mode affordance; outside it the capsules are plain. */
@@ -274,6 +290,17 @@ export class PeekController {
             // Ignore moves that stay inside the same capsule.
             const to = (e as MouseEvent).relatedTarget as Node | null;
             if (to && span.contains(to)) return;
+            // The same ambiguity the lookup card had to resolve: a mouseout
+            // with nothing to point at is either the cursor leaving the window
+            // or the node under it being destroyed. This peek destroys its own
+            // node twice per turn — faceOf() on the way in, the halfway swap
+            // 180ms later — so read as a departure it closes the very capsule
+            // it just opened.
+            //
+            // Decided on the pointer's coordinates, not on :hover: this fires
+            // in the frame the DOM changed, and recomputed style may not have
+            // caught up there. Same rule as the lookup card's stillOnSpan.
+            if (!to && span.isConnected && pointerIsOn(span as HTMLElement, e as MouseEvent)) return;
             this.peekOff();
         });
     }

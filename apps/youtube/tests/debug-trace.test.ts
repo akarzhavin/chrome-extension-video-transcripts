@@ -2,6 +2,7 @@ import {
     BODY_HEAD_BYTES,
     clipBody,
     DebugTrace,
+    describeTimingHaystack,
     MAX_EVENTS_PER_SESSION,
     MAX_SESSIONS,
     PROTECTED_KINDS,
@@ -195,6 +196,7 @@ describe('caps keep one bad video from evicting the others', () => {
             'outcome',
             'plan',
             'player_response',
+            'pot_store',
             'verdict',
         ]);
     });
@@ -258,6 +260,79 @@ describe('the report', () => {
         expect(report.sessions[0].events).toHaveLength(1);
     });
 
+    /**
+     * Where the token came from — the field that was missing when it mattered.
+     *
+     * A live trace once showed six tokenless attempts on a video whose token
+     * had worked minutes earlier. `attempt.potPresent` said the request went
+     * out without one; nothing said whether the store had been consulted, what
+     * it answered, or whether the resource-timing fallback had anything left to
+     * search. Four explanations fitted that evidence and all four were wrong.
+     */
+    describe('the token lookup records its own answer', () => {
+        test('a hit names the store and carries enough of the token to compare', () => {
+            const trace = new DebugTrace(fakeClock().now);
+            trace.startSession('abc', 'u');
+
+            trace.push({
+                ev: 'pot_store', source: 'store', reason: 'build-url', tokenHead: 'MlKa4wIYJM9H',
+            }, 'main');
+
+            const e = trace.current()!.events[0] as { source: string; tokenHead: string };
+            expect(e.source).toBe('store');
+            expect(e.tokenHead).toBe('MlKa4wIYJM9H');
+        });
+
+        test('a miss reports the haystack, so an empty buffer is not read as an empty answer', () => {
+            // Chrome keeps 250 resource-timing entries by default and a watch
+            // page fills that in seconds. "The fallback found nothing" and "the
+            // fallback had nothing left to search" are the same outcome from
+            // outside, and only the second is ours to fix.
+            const trace = new DebugTrace(fakeClock().now);
+            trace.startSession('abc', 'u');
+
+            trace.push({
+                ev: 'pot_store', source: 'miss', reason: 'build-url',
+                entries: 250, timedtextEntries: 0,
+            }, 'main');
+
+            const e = trace.current()!.events[0] as { entries: number; timedtextEntries: number };
+            expect(e.entries).toBe(250);
+            expect(e.timedtextEntries).toBe(0);
+        });
+
+        test('the three callers are told apart', () => {
+            // The same lookup runs several times per fetch and they can
+            // disagree — the player may sign a request in between. Without the
+            // reason the events are indistinguishable and read as noise.
+            const trace = new DebugTrace(fakeClock().now);
+            trace.startSession('abc', 'u');
+
+            for (const reason of ['build-url', 'pre-request', 'mint-check'] as const) {
+                trace.push({ ev: 'pot_store', source: 'miss', reason }, 'main');
+            }
+
+            expect(trace.current()!.events.map((e) => (e as { reason: string }).reason))
+                .toEqual(['build-url', 'pre-request', 'mint-check']);
+        });
+
+        test('it is skeleton: a retry burst cannot evict it', () => {
+            // The long sessions are exactly the ones where this question comes
+            // up, and they are the ones that overflow. Evictable, the answer
+            // would be gone by the time anyone opened the file.
+            const trace = new DebugTrace(fakeClock().now);
+            trace.startSession('abc', 'u');
+            trace.push({ ev: 'pot_store', source: 'miss', reason: 'build-url' }, 'main');
+            for (let i = 0; i < MAX_EVENTS_PER_SESSION + 50; i++) {
+                trace.push({ ev: 'attempt', key: 'k', attempt: i, url: 'https://x', potPresent: false });
+            }
+
+            const session = trace.current()!;
+            expect(session.events.some((e) => e.ev === 'pot_store')).toBe(true);
+            expect(session.dropped.pot_store).toBeUndefined();
+        });
+    });
+
     test('survives a round trip through JSON, which is how it is persisted', () => {
         const trace = new DebugTrace(fakeClock().now);
         trace.startSession('abc', 'u');
@@ -282,5 +357,71 @@ describe('the report', () => {
         trace.load(many);
 
         expect(trace.all().map((s) => s.videoId)).toEqual(['v2', 'v3', 'v4', 'v5', 'v6', 'v7']);
+    });
+});
+
+/**
+ * Reading the resource-timing haystack.
+ *
+ * Added because the fallback's record was unreadable from the trace: across
+ * four live traces potFromResourceTiming recovered a token ZERO times while
+ * routinely reporting several timedtext entries in the buffer. The counts could
+ * not distinguish "those entries were our own tokenless requests" from "they
+ * were the player's, for a different video" — and the fix differs completely.
+ */
+describe('describeTimingHaystack', () => {
+    const tt = (params: Record<string, string>) => {
+        const u = new URL('https://www.youtube.com/api/timedtext');
+        for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+        return { name: u.toString() };
+    };
+
+    test('counts only timedtext entries out of the whole buffer', () => {
+        const got = describeTimingHaystack('abc', [
+            { name: 'https://www.youtube.com/s/player.js' },
+            { name: 'https://i.ytimg.com/vi/abc/hq.jpg' },
+            tt({ v: 'abc' }),
+        ]);
+        expect(got.entries).toBe(3);
+        expect(got.timedtextEntries).toBe(1);
+    });
+
+    // The distinction the whole helper exists for: our own requests carry no
+    // token, so a buffer full of them looks identical to an empty one.
+    test('separates our tokenless requests from the player’s signed ones', () => {
+        const got = describeTimingHaystack('abc', [
+            tt({ v: 'abc' }),
+            tt({ v: 'abc' }),
+            tt({ v: 'abc', pot: 'TOKEN' }),
+        ]);
+        expect(got.timedtextEntries).toBe(3);
+        expect(got.withPot).toBe(1);
+        expect(got.forThisVideo).toBe(3);
+    });
+
+    // The other cause of a fruitless search: signed requests that belong to a
+    // different video (an ad, or the previous page).
+    test('separates this video’s entries from another’s', () => {
+        const got = describeTimingHaystack('abc', [
+            tt({ v: 'other', pot: 'NOTMINE' }),
+            tt({ v: 'abc' }),
+        ]);
+        expect(got.withPot).toBe(1);
+        expect(got.forThisVideo).toBe(1);
+    });
+
+    test('an unparseable entry is still counted as timedtext', () => {
+        const got = describeTimingHaystack('abc', [
+            { name: 'https://www.youtube.com/api/timedtext?::::broken' },
+            tt({ v: 'abc', pot: 'T' }),
+        ]);
+        expect(got.timedtextEntries).toBe(2);
+        expect(got.withPot).toBe(1);
+    });
+
+    test('an empty buffer reports zeros, not undefined', () => {
+        expect(describeTimingHaystack('abc', [])).toEqual({
+            entries: 0, timedtextEntries: 0, withPot: 0, forThisVideo: 0,
+        });
     });
 });

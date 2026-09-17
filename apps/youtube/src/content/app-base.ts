@@ -100,6 +100,16 @@ import { traceRecorder } from './debug-mode';
 
 export const STALLED_REQUEST_MS = 12_000;
 
+/**
+ * How soon to look again while an ad is playing.
+ *
+ * Short, because this is a poll for "has the ad finished", not a grace period:
+ * the moment it ends the normal wait starts over from the top, and until then
+ * each tick costs one class lookup on the player element and nothing else.
+ * Nothing is fetched and no banner changes, so a long ad is simply quiet.
+ */
+export const AD_RECHECK_MS = 2_000;
+
 // Diagnostics sink. Null in production (nothing assigns it: the only setter is
 // inside debug-mode's __EXT_ENV__ guard) and null on Rezka, which never calls
 // installDebugMode — so every `traceRecorder()?.record(...)` below is inert
@@ -347,6 +357,22 @@ export abstract class BaseVttApp implements AppInterface {
     state: AppState;
     ui: SidebarUI;
     pendingRequests: Map<string, string> = new Map();
+    /**
+     * Every request key this video has issued, and the track name it stands for.
+     *
+     * Separate from pendingRequests because that map is a work LIST — an entry
+     * is consumed by the first answer, which is what "pending" has to mean for
+     * the timers that count it. This one is a NAME TABLE: it keeps the mapping
+     * for as long as the video does, so a second answer for the same key can
+     * still be attributed.
+     *
+     * Found on a live run: the MAIN world's late-token rescue refetched a track
+     * that had failed and got 46KB of real subtitles back, and the receiver
+     * dropped them because takePending() had already consumed the name and
+     * `if (!name) return` fired. The panel said "Couldn't load subtitles" over
+     * a body that had arrived intact.
+     */
+    requestNames: Map<string, string> = new Map();
     langPrefs: LanguagePrefs | null = null;
     noSubsTimer: number | null = null;
     // Separate from noSubsTimer: that one only guards the all-empty case.
@@ -661,6 +687,24 @@ export abstract class BaseVttApp implements AppInterface {
                 pending: this.pendingRequests.size,
                 tracks: this.state.tracks.length,
             });
+            // An ad is not an answer. Every clock here runs off page load, but
+            // during an ad the player is not fetching the MAIN video's caption
+            // track at all — so the token that track needs cannot exist yet and
+            // our own requests come back empty for a reason that has nothing to
+            // do with the video.
+            //
+            // Reported from the field: two ads back to back (easily 15s+, which
+            // outlasts both stages) and the panel said "This video doesn't have
+            // subtitles" before the video had begun.
+            //
+            // Re-armed, not cancelled: an ad that never ends, or a misread
+            // class on the player, must not leave the panel searching for ever.
+            // A real answer arriving meanwhile still publishes immediately —
+            // this only ever postpones the verdict drawn from silence.
+            if (this.isAdPlaying()) {
+                this.scheduleNoSubtitlesCheck(AD_RECHECK_MS);
+                return;
+            }
             // Nothing was even asked: there is nothing to wait for.
             if (this.pendingRequests.size === 0) {
                 this.declareNoSubtitles('not-attempted');
@@ -699,6 +743,13 @@ export abstract class BaseVttApp implements AppInterface {
                     pending: this.pendingRequests.size,
                     tracks: this.state.tracks.length,
                 });
+                // The watchdog needs the same guard as the first stage: an ad
+                // long enough to outlast the grace period is long enough to
+                // outlast this too, and the verdict would be just as wrong.
+                if (this.isAdPlaying()) {
+                    this.scheduleNoSubtitlesCheck(AD_RECHECK_MS);
+                    return;
+                }
                 // Still nothing after the whole retry budget could have run.
                 this.declareNoSubtitles(this.pendingRequests.size > 0 ? 'timeout' : 'not-attempted');
             }, STALLED_REQUEST_MS);
@@ -1250,6 +1301,17 @@ export abstract class BaseVttApp implements AppInterface {
 
     // ── subtitle-track bookkeeping ──────────────────────────────────────────
     // Look up (and consume) the display name a pending request was filed under.
+    /**
+     * The track a request key stands for, whether or not it is still pending.
+     *
+     * Used for an answer that arrives AFTER the key was consumed — a rescued
+     * refetch. Returns undefined for a key this video never issued, so a stray
+     * message still cannot inject a track.
+     */
+    nameForRequest(key: string): string | undefined {
+        return this.requestNames.get(key);
+    }
+
     takePending(key: string): string | undefined {
         const name = this.pendingRequests.get(key);
         if (name !== undefined) this.pendingRequests.delete(key);
@@ -1598,6 +1660,9 @@ export abstract class BaseVttApp implements AppInterface {
     // finally loads (addParsedTrack).
     resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
         this.pendingRequests.clear();
+        // The name table belongs to the video, not the page: without this a new
+        // video would answer nameForRequest() with the previous one's tracks.
+        this.requestNames.clear();
         // Nothing is outstanding any more, so the backstop has nothing to
         // report; leaving it armed would fire it against the next video's
         // requests on a grace period measured from the previous one.

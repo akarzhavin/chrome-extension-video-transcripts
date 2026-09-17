@@ -1216,3 +1216,230 @@ describe('every mode control advertises its shortcut', () => {
         expect(tipOf('vtt-qm-single')).toBe('Single');
     });
 });
+
+/**
+ * An ad is not silence — behaviour map §4.6.
+ *
+ * Reported from the field: two ads played back to back, and partway through the
+ * second one the panel already said subtitles could not be loaded — about a
+ * video that had not started playing yet.
+ *
+ * The mechanism is that every clock here runs off page load while the player is
+ * busy with something else entirely. During an ad YouTube does not fetch the
+ * main video's caption track, so the `pot` we read off that request cannot
+ * exist yet; our own requests therefore come back empty, the grace period
+ * expires, and a verdict is published about a video nobody has begun watching.
+ * Two ads back to back is easily 15s+, which outlasts both stages.
+ *
+ * `isAdPlaying()` already existed for this — it is how highlighting is
+ * suppressed — but nothing on the verdict path consulted it.
+ *
+ * The rule: an ad postpones the verdict, it never produces one. It must not
+ * suppress a verdict forever either (an ad that never ends, or a misread class
+ * on the player, would leave the panel searching indefinitely), so the wait is
+ * re-armed rather than cancelled, and a real answer that arrives during an ad
+ * is still published immediately.
+ */
+describe('a verdict must not be reached during an ad', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    class AdApp extends TestApp {
+        adPlaying = false;
+        isAdPlaying(): boolean {
+            return this.adPlaying;
+        }
+    }
+
+    function makeAdApp(): AdApp {
+        document.body.innerHTML = '';
+        const app = new AdApp();
+        app.langPrefs = { learning: 'en', native: 'ru' };
+        return app;
+    }
+
+    test('the grace period does not conclude "no subtitles" while an ad plays', () => {
+        const app = makeAdApp();
+        app.adPlaying = true;
+        // Nothing was asked for — the branch that today answers 'not-attempted'
+        // immediately at the first stage.
+        app.scheduleNoSubtitlesCheck();
+
+        jest.advanceTimersByTime(7000);
+
+        expect(bannerText()).toContain('Searching');
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+
+    test('two ads back to back still do not produce a verdict', () => {
+        const app = makeAdApp();
+        app.adPlaying = true;
+        app.scheduleNoSubtitlesCheck();
+
+        // Well past both stages: 7s grace + the stalled-request watchdog.
+        jest.advanceTimersByTime(60_000);
+
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+
+    /**
+     * The other half, and the one that keeps this from becoming a hang: once
+     * the ad ends the verdict must still be reachable.
+     */
+    test('once the ad ends, the verdict is reached as usual', () => {
+        const app = makeAdApp();
+        app.adPlaying = true;
+        app.scheduleNoSubtitlesCheck();
+
+        jest.advanceTimersByTime(30_000);
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+
+        // The ad finishes; the next re-check is free to answer.
+        app.adPlaying = false;
+        jest.advanceTimersByTime(30_000);
+
+        expect(bannerText()).toContain("doesn't have subtitles");
+    });
+
+    // Subtitles that DO arrive during an ad are shown; the postponement is only
+    // ever about the negative verdict.
+    /**
+     * The watchdog stage, reached only when a request is still outstanding —
+     * stage 1 then falls through to it instead of answering. Without its own
+     * guard this stage publishes the same wrong verdict a few seconds later,
+     * and a mutation proved the earlier tests never reach it.
+     */
+    test('the stalled-request watchdog also holds off during an ad', () => {
+        const app = makeAdApp();
+        app.adPlaying = true;
+        // Outstanding request: this is what routes stage 1 into the watchdog.
+        app.pendingRequests.set('vid1:English', 'English');
+        app.scheduleNoSubtitlesCheck();
+
+        // Past the grace period AND the watchdog that follows it.
+        jest.advanceTimersByTime(7_000 + 12_000 + 5_000);
+
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+
+    // An ad that STARTS after the grace period has already passed: stage 1
+    // fell through to the watchdog while no ad was playing, and the ad begins
+    // during the watchdog's own wait. This is the only way stage 2 runs with an
+    // ad on screen, and it is why the guard is there rather than only at the top.
+    test('an ad that starts during the watchdog wait also holds off the verdict', () => {
+        const app = makeAdApp();
+        app.adPlaying = false;
+        app.pendingRequests.set('vid1:English', 'English');
+        app.scheduleNoSubtitlesCheck();
+
+        // Stage 1 passes with no ad, arming the watchdog.
+        jest.advanceTimersByTime(7_000);
+        expect(bannerText()).toContain('Searching');
+
+        // The ad starts mid-wait.
+        app.adPlaying = true;
+        jest.advanceTimersByTime(12_000 + 5_000);
+
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+
+    test('tracks that load during an ad clear the banner', () => {
+        const app = makeAdApp();
+        app.adPlaying = true;
+        app.scheduleNoSubtitlesCheck();
+
+        jest.advanceTimersByTime(7000);
+        app.addParsedTrack('English', [sub('hello')]);
+
+        expect(bannerText()).not.toContain('Searching');
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+
+        // And the re-arm must not resurrect a verdict after real subtitles
+        // arrived: the ad is still playing, so the poll is still ticking.
+        jest.advanceTimersByTime(30_000);
+        expect(bannerText()).not.toContain("doesn't have subtitles");
+    });
+});
+
+/**
+ * A rescued track must still be accepted — behaviour map §4.7.
+ *
+ * Found on a LIVE run against real YouTube, and invisible to every test that
+ * preceded it because it spans both worlds.
+ *
+ * The MAIN world does its part correctly: a track fails for want of a token, a
+ * token arrives later, and the rescue refetches and gets the real body —
+ *
+ *     a pot arrived after we gave up — refetching aircAruvnKk:English
+ *     fetched 46010 bytes for aircAruvnKk:English
+ *
+ * — and then the isolated world throws it away:
+ *
+ *     VTT_RESULT <- undefined bytes: 46010
+ *
+ * `undefined` is the track NAME. takePending() removes the entry on the first
+ * result, so the earlier failure consumed it; by the time the rescued success
+ * arrives the key is gone, `if (!name) return` fires, and 46KB of subtitles are
+ * dropped on the floor while the panel says "Couldn't load subtitles".
+ *
+ * The fix is to remember the name rather than only consume it: a track that was
+ * requested for this video keeps its name for as long as the video does, so a
+ * late answer can still be matched to it.
+ */
+describe('a result that arrives after the failure is still used', () => {
+    /** What index.ts does when it issues a request: both maps, one call site. */
+    function issue(app: TestApp, key: string, name: string): void {
+        app.pendingRequests.set(key, name);
+        app.requestNames.set(key, name);
+    }
+
+    test('the track name survives the first (failing) result', () => {
+        const app = makeApp();
+        issue(app, 'vid1:English', 'English');
+
+        // The failure consumes the pending entry, as it does today.
+        expect(app.takePending('vid1:English')).toBe('English');
+
+        // The rescue's success arrives later for the same key. Without a memory
+        // of the name this is undefined and the subtitles are discarded.
+        expect(app.nameForRequest('vid1:English')).toBe('English');
+    });
+
+    test('a key that was never requested is still unknown', () => {
+        const app = makeApp();
+        expect(app.nameForRequest('vid1:Klingon')).toBeUndefined();
+    });
+
+    // The memory belongs to the video, not the page: a new video must not
+    // resurrect the previous one's track names.
+    test('a new video forgets the previous one’s names', () => {
+        const app = makeApp();
+        issue(app, 'vid1:English', 'English');
+        app.takePending('vid1:English');
+
+        app.resetForNewVideo();
+
+        expect(app.nameForRequest('vid1:English')).toBeUndefined();
+    });
+
+    /**
+     * The end-to-end claim, in one test: a failure followed by a late success
+     * leaves the reader with subtitles, not with a banner.
+     */
+    test('subtitles that arrive after a failure are shown', () => {
+        const app = makeApp();
+        issue(app, 'vid1:English', 'English');
+
+        const name = app.takePending('vid1:English');
+        app.noteTrackFailure(name!, { failure: 'stale-url' });
+        expect(bannerText()).toContain("Couldn't load");
+
+        // The rescue lands.
+        const late = app.nameForRequest('vid1:English');
+        expect(late).toBe('English');
+        app.addParsedTrack(late!, [sub('hello')]);
+
+        expect(app.state.tracks.length).toBe(1);
+        expect(bannerText()).not.toContain("Couldn't load");
+    });
+});
