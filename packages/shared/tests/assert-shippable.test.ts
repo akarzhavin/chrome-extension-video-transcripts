@@ -12,9 +12,10 @@
  * contract IS its exit code, and it calls process.exit() at module scope.
  */
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 
 const GATE = join(__dirname, '..', 'assert-shippable.mjs');
 
@@ -345,6 +346,85 @@ describe('assert-shippable', () => {
             );
             expect(code).toBe(1);
             expect(output).toContain('placeholder');
+        });
+    });
+
+    /**
+     * The documentation names the markers; this is what keeps it true.
+     *
+     * dev-flags.md describes what the gate refuses, and that paragraph was
+     * still naming `vtt-debug-panel` long after the marker was dropped — the
+     * recorder's actions had moved out of a floating panel into settings rows,
+     * the list followed, and the prose did not. A doc that names a guard the
+     * guard does not have reads as coverage and is the opposite.
+     *
+     * Checked in BOTH directions, for the same reason assert-foldable.mjs
+     * checks its own list both ways: a doc missing a real marker understates
+     * the gate, and a doc naming an absent one invents protection.
+     */
+    describe('the documented marker list', () => {
+        const DOC = join(__dirname, '..', 'docs', 'dev-flags.md');
+
+        /**
+         * The gate's own list, read out of the real .mjs by running node.
+         *
+         * Not a static import: this suite is transpiled to CommonJS, and an ESM
+         * module cannot be required from it. Asking node for the array also
+         * means the assertion is made against the file the build actually
+         * loads, rather than a copy the test runner reshaped.
+         */
+        const gateMarkers = (): string[] => {
+            const { stdout, status, stderr } = spawnSync(
+                process.execPath,
+                [
+                    '--input-type=module',
+                    '-e',
+                    `import { DEBUG_TRACE_MARKERS } from ${JSON.stringify(GATE)};` +
+                        'process.stdout.write(JSON.stringify(DEBUG_TRACE_MARKERS));',
+                ],
+                { encoding: 'utf8' },
+            );
+            if (status !== 0) throw new Error(`could not read DEBUG_TRACE_MARKERS: ${stderr}`);
+            return JSON.parse(stdout) as string[];
+        };
+
+        /**
+         * The markers named in the paragraph that describes what the gate
+         * refuses — that paragraph only, not the whole document.
+         *
+         * Scoped deliberately: prose elsewhere discusses markers the gate no
+         * longer has (the history of `vtt-debug-panel`, right below it), and a
+         * document-wide scan would read those mentions as claims about the
+         * current list and fail on an accurate sentence.
+         */
+        function documentedMarkers(): string[] {
+            const text = readFileSync(DOC, 'utf8');
+            const heading = '**Between the build and the zip';
+            const start = text.indexOf(heading);
+            if (start === -1) throw new Error(`dev-flags.md no longer contains ${heading}`);
+            // To the end of that paragraph: a blank line.
+            const end = text.indexOf('\n\n', start);
+            const paragraph = text.slice(start, end === -1 ? undefined : end);
+
+            const named = new Set<string>();
+            for (const [, inner] of paragraph.matchAll(/`([^`\n]+)`/g)) {
+                // Only names that look like trace markers: the paragraph also
+                // backticks a filename and the array's own name.
+                if (/^(LG_TRACE_|vtt-(debug|trace)-|debug\.trace\.)/.test(inner)) named.add(inner);
+            }
+            return [...named].sort();
+        }
+
+        it('names every marker the gate actually refuses', () => {
+            const documented = documentedMarkers();
+            const missing = gateMarkers().filter((m) => !documented.includes(m));
+            expect(missing).toEqual([]);
+        });
+
+        it('names no marker the gate does not have', () => {
+            const markers = gateMarkers();
+            const stale = documentedMarkers().filter((m) => !markers.includes(m));
+            expect(stale).toEqual([]);
         });
     });
 

@@ -408,14 +408,23 @@ direction is the point: a rule matching a string that can never appear again
 looks exactly like coverage.
 
 **Between the build and the zip — `assert-shippable.mjs`.** Refuses any build
-containing any of the six markers: the three wire messages (`LG_TRACE_HELLO`,
-`LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key (`debug.trace.v1`), and
-both DOM ids (`vtt-debug-panel`, `vtt-debug-toggle`).
+containing any marker in `DEBUG_TRACE_MARKERS`: the three wire messages
+(`LG_TRACE_HELLO`, `LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key
+(`debug.trace.v1`), and the DOM names (`vtt-debug-toggle`, plus `vtt-trace-row`
+and `vtt-trace-rows` for the rows inside the toggle's row).
+
+That list is the single source of truth, and the count above is deliberately
+not restated as a number: `vtt-debug-panel` was in it until the recorder's
+actions moved out of a floating panel and into settings rows, and this
+paragraph went on naming a marker the gate no longer had for as long as prose
+was the only place the list appeared. `assert-shippable.test.ts` now pins the
+names in this paragraph against the exported array, so the two cannot drift
+apart again.
 
 The list is exhaustive because a shorter one was measured and found wanting:
-the first version matched two markers, and four of the six passed it. A build
-carrying the whole settings toggle and the download panel — folded just enough
-to drop the handshake — was shippable by that gate's own verdict.
+the first version matched two markers, and four of the six then in use passed
+it. A build carrying the whole settings toggle and the download panel — folded
+just enough to drop the handshake — was shippable by that gate's own verdict.
 
 **After the zip — `verify-zip.mjs`**, now run automatically by `zip-build.mjs`
 rather than only on request. It re-runs every rule against the unpacked
