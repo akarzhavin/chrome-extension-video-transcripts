@@ -363,7 +363,6 @@ export function describeTimingHaystack(
  */
 export class DebugTrace {
     private sessions: TraceSession[] = [];
-    private bodyBytes = 0;
 
     constructor(private now: () => number = Date.now) {}
 
@@ -385,10 +384,7 @@ export class DebugTrace {
             events: [],
             dropped: {},
         });
-        while (this.sessions.length > MAX_SESSIONS) {
-            const gone = this.sessions.shift();
-            if (gone) this.bodyBytes -= bodyBytesOf(gone);
-        }
+        while (this.sessions.length > MAX_SESSIONS) this.sessions.shift();
     }
 
     current(): TraceSession | undefined {
@@ -411,7 +407,6 @@ export class DebugTrace {
         if (!session) return;
         const stamped = this.stamp(e, world, session);
         session.events.push(stamped);
-        this.bodyBytes += bodyBytesOf({ events: [stamped] } as TraceSession);
         this.enforceCaps(session);
     }
 
@@ -419,10 +414,7 @@ export class DebugTrace {
     merge(events: StampedEvent[]): void {
         const session = this.current();
         if (!session) return;
-        for (const e of events) {
-            session.events.push(e);
-            this.bodyBytes += bodyBytesOf({ events: [e] } as TraceSession);
-        }
+        for (const e of events) session.events.push(e);
         // Keep the timeline readable: the two worlds interleave, and a merge
         // that appended a batch verbatim would show the MAIN world's events
         // after isolated-world events that actually happened later.
@@ -447,11 +439,18 @@ export class DebugTrace {
         // dropping the events: the shape of the sequence (how many attempts,
         // what statuses, in what order) is what the trace is for, and the body
         // text is the least valuable part of it to keep.
-        if (this.bodyBytes <= SESSION_BODY_BUDGET) return;
+        //
+        // Measured against THIS session, not a running total across all six.
+        // A per-instance counter made the budget a shared pool: five older
+        // sessions holding bodies spent it between them, and the session being
+        // recorded right now — the one someone is about to read — had every
+        // body blanked on arrival while the stale ones kept theirs.
+        let bodyBytes = bodyBytesOf(session);
+        if (bodyBytes <= SESSION_BODY_BUDGET) return;
         for (const e of session.events) {
-            if (this.bodyBytes <= SESSION_BODY_BUDGET) break;
+            if (bodyBytes <= SESSION_BODY_BUDGET) break;
             if (e.ev !== 'response' || e.bodyHead === '') continue;
-            this.bodyBytes -= e.bodyHead.length;
+            bodyBytes -= e.bodyHead.length;
             e.bodyHead = '';
         }
     }
@@ -471,7 +470,6 @@ export class DebugTrace {
         const [gone] = session.events.splice(idx, 1);
         if (!gone) return;
         session.dropped[gone.ev] = (session.dropped[gone.ev] ?? 0) + 1;
-        this.bodyBytes -= bodyBytesOf({ events: [gone] } as TraceSession);
     }
 
     /** Everything, shaped for a file someone opens in an editor months later. */
@@ -489,13 +487,11 @@ export class DebugTrace {
 
     clear(): void {
         this.sessions = [];
-        this.bodyBytes = 0;
     }
 
     /** Restore a persisted trace (the point of persisting: surviving a reload). */
     load(sessions: TraceSession[]): void {
         this.sessions = sessions.slice(-MAX_SESSIONS);
-        this.bodyBytes = this.sessions.reduce((n, s) => n + bodyBytesOf(s), 0);
     }
 }
 

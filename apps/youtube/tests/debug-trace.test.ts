@@ -223,6 +223,51 @@ describe('caps keep one bad video from evicting the others', () => {
         );
         expect(kept).toBeLessThanOrEqual(SESSION_BODY_BUDGET);
     });
+
+    /**
+     * The budget belongs to a session, not to the recorder.
+     *
+     * The counter used to be one running total across all six sessions, which
+     * turned the per-session budget into a shared pool: earlier videos that had
+     * already filled it spent the whole allowance, and the session being
+     * recorded right now — the one the user opened the trace to read — had
+     * every body blanked the moment it arrived. The blanking is silent (the
+     * events survive, only their bodies go), so the trace looked complete and
+     * answered nothing.
+     *
+     * The older sessions are asserted too: a "fix" that blanked everything
+     * everywhere would pass on the newest session alone.
+     */
+    test('an earlier video that filled the budget does not blank the current one', () => {
+        const trace = new DebugTrace(fakeClock().now);
+        const body = 'x'.repeat(BODY_HEAD_BYTES);
+        const perSession = Math.ceil(SESSION_BODY_BUDGET / BODY_HEAD_BYTES) + 4;
+
+        // Two earlier videos, each pushed right up against the budget.
+        for (const id of ['old1', 'old2']) {
+            trace.startSession(id, `https://youtu.be/${id}`);
+            for (let i = 0; i < perSession; i++) trace.push(response(body, i + 1));
+        }
+
+        // The video being watched now: a handful of responses, nowhere near
+        // the budget on their own.
+        trace.startSession('current', 'https://youtu.be/current');
+        for (let i = 0; i < 3; i++) trace.push(response(body, i + 1));
+
+        const current = trace.current()!;
+        const bodies = current.events.map((e) => (e as { bodyHead: string }).bodyHead);
+        expect(bodies).toEqual([body, body, body]);
+
+        // And each older session still honours the budget on its own terms —
+        // the cap is real everywhere, not merely relocated.
+        for (const session of trace.all()) {
+            const kept = session.events.reduce(
+                (n, e) => n + (e.ev === 'response' ? e.bodyHead.length : 0),
+                0,
+            );
+            expect(kept).toBeLessThanOrEqual(SESSION_BODY_BUDGET);
+        }
+    });
 });
 
 describe('clipBody', () => {
