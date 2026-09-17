@@ -103,6 +103,12 @@ export const ICONS = {
     // label to be understood at 14px.
     download: svgIcon('<path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'),
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
+    // Two offset sheets — the copy glyph, and the same shape the floating
+    // debug panel used before its actions moved into settings.
+    copy: svgIcon('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+    // A bin, for discarding the recording. Only ever shown on a dev build's
+    // diagnostics rows, never on a product setting.
+    trash: svgIcon('<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>'),
     // Mode glyphs share one visual language — subtitle bars — instead of
     // abstractions (the old "?" read as Help/FAQ, the columns as split view).
     // single: one subtitle line; dual: two stacked subtitle lines; guess: a
@@ -617,6 +623,11 @@ export class SidebarUI {
         // shipped build still calls.
         if (__EXT_ENV__ === 'dev') {
             settingsPanel.appendChild(this.buildDebugToggle());
+            // The recorder's three actions, directly under the switch that
+            // turns it on. They used to be a floating panel pinned over the
+            // page (debug-ui.ts), which covered whatever was behind it — on a
+            // video player, that is the thing being diagnosed.
+            for (const row of this.buildTraceActionRows()) settingsPanel.appendChild(row);
         }
 
         // Exits from settings are the header "‹ Subtitles" back chip and the gear
@@ -858,6 +869,102 @@ export class SidebarUI {
         });
 
         return label;
+    }
+
+    /**
+     * Download / copy / discard for the diagnostics recording.
+     *
+     * Empty unless the app offers `traceActions` — only a dev build of the
+     * YouTube app does. Guarded on the same `__EXT_ENV__` literal as the switch
+     * above so a shipped bundle never constructs the rows and the minifier can
+     * drop this method whole.
+     *
+     * These lived in a panel fixed over the page, and its cost was structural
+     * rather than aesthetic: a floating control on a video player covers the
+     * player, and the player is what a subtitle trace is being taken of. In
+     * settings they cover nothing, and they sit next to the switch that
+     * explains what they act on.
+     *
+     * The count goes on the Download row and is refreshed whenever the panel
+     * opens, because it is the only thing that says the recorder is capturing
+     * rather than merely enabled.
+     */
+    private buildTraceActionRows(): HTMLElement[] {
+        if (__EXT_ENV__ !== 'dev') return [];
+        const actions = this.app.traceActions?.();
+        if (!actions) return [];
+
+        // Styled inline rather than from styles.css, and that is the point: the
+        // stylesheet is copied into the bundle verbatim, with no __EXT_ENV__ to
+        // fold it, so a `.vtt-trace-row` rule would ship to every user as dead
+        // CSS naming a dev-only feature — which is exactly what the release
+        // gate refuses (assert-shippable.mjs). Inline declarations live inside
+        // this guarded method and leave with it.
+        //
+        // The rows otherwise inherit .vtt-panel-row wholesale: same height,
+        // same icon column, same hover. They ARE panel rows.
+        const row = (icon: string, text: string, title: string): HTMLButtonElement => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'vtt-panel-row vtt-trace-row';
+            b.title = title;
+            b.innerHTML = `${icon}<span>${text}</span>`;
+            return b;
+        };
+
+        const dl = row(ICONS.download, 'Download trace', 'Save the recorded subtitle diagnostics as JSON. '
+            + 'The file contains signed caption URLs and pot tokens: do not share it.');
+        const label = dl.querySelector('span') as HTMLSpanElement;
+        const relabel = (): void => {
+            const n = actions.sessions();
+            label.textContent = n ? `Download trace (${n})` : 'Download trace';
+        };
+        relabel();
+        // A message that replaces the label for a moment, then puts the count
+        // back — the same feedback the floating panel gave, and the only one
+        // available: these rows have no room for a status line of their own.
+        const flash = (text: string): void => {
+            label.textContent = text;
+            setTimeout(relabel, 2000);
+        };
+        // Reading the count on open covers the ordinary case: the panel is
+        // built once and the recorder keeps capturing behind it.
+        this.elements.traceRelabel = relabel;
+
+        dl.addEventListener('click', () => {
+            if (actions.sessions() === 0) {
+                flash('nothing recorded yet');
+                return;
+            }
+            actions.download();
+        });
+
+        const copy = row(ICONS.copy, 'Copy trace', 'Copy the recorded diagnostics to the clipboard');
+        copy.addEventListener('click', () => {
+            void actions.copy().then((ok) => flash(ok ? '✓ copied' : 'clipboard blocked'));
+        });
+
+        const clear = row(ICONS.trash, 'Discard recording', 'Throw away everything recorded so far');
+        // Discarding is destructive and unrecoverable, so it carries the quiet
+        // red the emergency actions use — never the accent, which on this panel
+        // means "a setting is on". The colour arrives on hover rather than at
+        // rest: at rest this is one row of three and should not shout.
+        //
+        // Inline for the same reason as the rows themselves, and applied on
+        // pointer events because an inline style cannot express :hover.
+        clear.addEventListener('pointerenter', () => {
+            clear.style.color = 'var(--vtt-danger, #f87171)';
+            clear.style.backgroundColor = 'rgba(248,113,113,0.08)';
+        });
+        clear.addEventListener('pointerleave', () => {
+            clear.style.removeProperty('color');
+            clear.style.removeProperty('background-color');
+        });
+        clear.addEventListener('click', () => {
+            void actions.clear().then(relabel);
+        });
+
+        return [dl, copy, clear];
     }
 
     // Label + select field row with a custom chevron (the select itself is
@@ -1598,6 +1705,11 @@ export class SidebarUI {
         this.closeLookupScreen();
         const open = settingsPanel.classList.toggle('open');
         sidebar?.classList.toggle('vtt-settings-open', open);
+        // The diagnostics row shows how many sessions are recorded, and the
+        // recorder keeps capturing while the panel is closed — so the count is
+        // read on open rather than at build time. No-op everywhere but a dev
+        // build with the recorder wired.
+        if (open) this.elements.traceRelabel?.();
         this.elements.settingsBtn?.setAttribute('aria-expanded', String(open));
         // Settings is where appearance gets adjusted, so it is also where the
         // captions grow their position arrows. Tying the two together means the

@@ -206,8 +206,8 @@ describe('the marker list itself', () => {
             'LG_TRACE_HELLO',
             'LG_TRACE_STATE',
             'debug.trace.v1',
-            'vtt-debug-panel',
             'vtt-debug-toggle',
+            'vtt-trace-row',
         ]);
     });
 

@@ -67,16 +67,20 @@ function collect(dir) {
  * Two classes, both needed:
  *   - the wire protocol (LG_TRACE_*), present in BOTH the page-script and the
  *     content bundle, so a partial fold is caught;
- *   - the DOM ids (vtt-debug-*), which live only in the content bundle and are
- *     what a leaked UI would show a user.
+ *   - the DOM names (vtt-debug-*, vtt-trace-*), which live only in the content
+ *     bundle and are what a leaked UI would show a user.
+ *
+ * `vtt-debug-panel` was one of these until the recorder's actions moved out of
+ * a floating panel and into the settings list; `vtt-trace-row` is the class
+ * those rows carry, and it guards the same thing in the same way.
  */
 export const DEBUG_TRACE_MARKERS = [
     'LG_TRACE_HELLO',
     'LG_TRACE_BATCH',
     'LG_TRACE_STATE',
     'debug.trace.v1',
-    'vtt-debug-panel',
     'vtt-debug-toggle',
+    'vtt-trace-row',
 ];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the

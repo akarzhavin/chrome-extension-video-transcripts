@@ -153,10 +153,22 @@ const fail = (why) => findings.push(why);
     for (const rel of files) {
         const src = read(rel);
         if (!src) continue;
-        // The two shapes the feature's names take: the wire protocol and the
-        // DOM ids. Deliberately narrow — a broad pattern would sweep up
-        // unrelated identifiers and make this cry wolf.
-        for (const m of src.matchAll(/['"`](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|debug\.trace\.v\d+)['"`]/g)) {
+        // The shapes the feature's names take: the wire protocol, and the DOM
+        // names — `vtt-debug-*` for the recorder's own ids, `vtt-trace-row` for
+        // the settings rows its actions live on. Deliberately narrow: a broad
+        // pattern would sweep up unrelated identifiers and make this cry wolf.
+        //
+        // The boundary is a quote OR a space, not a quote alone. A CSS class is
+        // written inside a class list — `'vtt-panel-row vtt-trace-row'` — so a
+        // quote-anchored pattern silently sees nothing there, which is this
+        // gate's own failure mode rather than a finding.
+        //
+        // `vtt-trace-row` carries no trailing wildcard on purpose: the modifier
+        // `vtt-trace-row--danger` contains it, so one entry covers both, while
+        // `[a-z-]*` would report the modifier as a separate unknown marker.
+        for (const m of src.matchAll(
+            /['"`\s](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|vtt-trace-row|debug\.trace\.v\d+)['"`\s]/g,
+        )) {
             found.add(m[1]);
         }
     }

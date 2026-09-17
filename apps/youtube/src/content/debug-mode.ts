@@ -14,7 +14,6 @@ import { loadPrefs, onPrefsChanged } from '@video-transcripts/shared';
 import type { BaseVttApp } from './app-base';
 import { chromeStorage, TraceRecorder } from './debug-recorder';
 import { DEBUG_HELLO, DEBUG_STATE, isDebugBatch } from './debug-bridge';
-import { installDebugPanel } from './debug-ui';
 
 /**
  * The live recorder, or null when this is not a dev build.
@@ -79,7 +78,6 @@ export function installDebugMode(app: BaseVttApp): void {
         const videoId = app.getVideoId();
         if (prefs.debugMode && videoId) rec.startSession(videoId, location.href);
         announce();
-        installDebugPanel(rec);
     })();
 
     onPrefsChanged((p) => {
@@ -89,7 +87,6 @@ export function installDebugMode(app: BaseVttApp): void {
             const videoId = app.getVideoId();
             if (p.debugMode && videoId) rec.startSession(videoId, location.href);
             announce();
-            installDebugPanel(rec);
         }
     });
 
