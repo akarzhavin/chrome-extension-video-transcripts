@@ -183,6 +183,26 @@ describe('drift between the source and the release gate', () => {
         expect(output).toMatch(/does not know about: LG_TRACE_PING/);
     });
 
+    it('refuses a DOM name the release gate does not know about', () => {
+        // The same drift, in the family where it actually happened. Every test
+        // above exercises `LG_TRACE_*`, and the scanner had a separate,
+        // narrower branch for the DOM names: `vtt-trace-row` written exact,
+        // with no wildcard. It therefore could not see `vtt-trace-rows` — the
+        // container id the actions grew when they moved into one row — nor any
+        // other new name in the family. The gate whose whole job is to notice
+        // an unregistered name was blind to a real one for as long as it
+        // existed, and said nothing, which is what these gates are for.
+        const dir = makeTree();
+        edit(dir, 'packages/shared/src/SidebarUI.ts', (s) =>
+            s.replace("traceRows.id = 'vtt-trace-rows';", "traceRows.id = 'vtt-trace-cluster';"),
+        );
+
+        const { code, output } = runGate(dir);
+
+        expect(code).toBe(1);
+        expect(output).toMatch(/does not know about: vtt-trace-cluster/);
+    });
+
     it('refuses a marker the source no longer uses', () => {
         const dir = makeTree();
         edit(dir, 'apps/youtube/src/content/debug-bridge.ts', (s) =>
@@ -208,6 +228,7 @@ describe('the marker list itself', () => {
             'debug.trace.v1',
             'vtt-debug-toggle',
             'vtt-trace-row',
+            'vtt-trace-rows',
         ]);
     });
 
