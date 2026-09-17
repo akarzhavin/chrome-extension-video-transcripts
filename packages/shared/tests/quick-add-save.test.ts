@@ -178,3 +178,54 @@ describe('a failed removal says removal, not saving', () => {
         expect(toast()?.textContent).not.toContain("Couldn't");
     });
 });
+
+describe('a saved word wears exactly one mark', () => {
+    // A save used to paint the word from two sides at once. `markSpansSaved`
+    // put a tinted box with an accent underline on it, while the mirror entry
+    // the same call had just written put the heart-coloured bar under it
+    // (vtt-saved-mark, transcript/saved-marks.ts) — two marks, one fact, on one
+    // word. The tinted box also carries `padding: 0 2px`, so it nudged the
+    // words beside it: the exact fault that got the "✓ saved" pill removed.
+    //
+    // The mirror is the single source now. These tests pin that the save path
+    // paints NOTHING itself, counted as attributes rather than as the absence
+    // of one known class, so a different decoration added later fails here too.
+    const wordSpan = (word: string): HTMLElement => {
+        document.body.innerHTML = `<div class="vtt-main-text"><span data-word="${word}">${word}</span></div>`;
+        return document.querySelector<HTMLElement>('span[data-word]')!;
+    };
+
+    test('saving does not paint the word from the save path', async () => {
+        workerReplies({ ok: true, wordId: 'w1' });
+        const span = wordSpan('serendipity');
+
+        await saveTerm('serendipity', 'a context', [span]);
+
+        expect(span.className).toBe('');
+        expect(span.getAttribute('style')).toBeNull();
+    });
+
+    test('removing does not paint the word either', async () => {
+        workerReplies({ ok: true });
+        const span = wordSpan('serendipity');
+
+        await removeTerm('serendipity', [span]);
+
+        expect(span.className).toBe('');
+        expect(span.getAttribute('style')).toBeNull();
+    });
+
+    test('the line keeps its shape across a save', async () => {
+        // No node added, no character changed — the invariant the pill broke.
+        workerReplies({ ok: true, wordId: 'w1' });
+        const span = wordSpan('serendipity');
+        const line = span.parentElement!;
+        const nodes = line.childNodes.length;
+        const text = line.textContent;
+
+        await saveTerm('serendipity', 'a context', [span]);
+
+        expect(line.childNodes.length).toBe(nodes);
+        expect(line.textContent).toBe(text);
+    });
+});
