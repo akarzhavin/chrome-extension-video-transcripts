@@ -1807,10 +1807,15 @@
    tuned on an inline player is a speck at fullscreen and invisible on a 4K
    one. min-height keeps it from vanishing at the 0.33 floor instead.
 
-   A SHORT BAR, NOT AN UNDERLINE. A full-width rule under a word is already
-   .vtt-lookup-hit's shape; both can sit on one word at once (a card open over
-   a saved word), and two states must not wear one form. This one is shorter,
-   centred, below the box, in a different hue. */
+   ONE FORM, TWO COLOURS. The mark shares its exact geometry with
+   .vtt-lookup-hit, the bar under the word a card is open over (lookup.css).
+   That is deliberate and was arrived at by looking: when the two wore
+   DIFFERENT forms — a full-width inset rule for the hover, a short bar below
+   for the save — a word carrying both read as decorated rather than as
+   stateful, and in guess mode, where the capsule adds its own ring and fill,
+   the line turned to noise. Same bar, same place, same size; hover is the
+   accent, saved is the heart. Colour carries the difference because colour is
+   what the reader is already reading here. */
 .vtt-saved-mark {
     position: relative;
 }
@@ -1829,6 +1834,14 @@
     /* The bar sits over the caption box; a press on it must still reach the
        word underneath, which in guess mode is a reveal target. */
     pointer-events: none;
+}
+
+/* A word wearing both states — saved, and the card open over it — shows the
+   accent: the card is the thing the reader is looking at right now, and it
+   goes away, while the save does not. The bar returns to the heart the moment
+   the cursor leaves. */
+.vtt-saved-mark.vtt-lookup-hit::after {
+    background: var(--vtt-accent);
 }
 
 /* "Every word uncovered" in guess mode. Carried by the border colour rather
