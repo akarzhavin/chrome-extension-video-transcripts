@@ -105,6 +105,9 @@ export const ICONS = {
     swap: svgIcon('<path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>'),
     // Two offset sheets — the copy glyph, and the same shape the floating
     // debug panel used before its actions moved into settings.
+    // The recorder's own glyph. `download` used to stand in, and it also sits
+    // on the download action one element away in the same row.
+    record: svgIcon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/>'),
     copy: svgIcon('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
     // A bin, for discarding the recording. Only ever shown on a dev build's
     // diagnostics rows, never on a product setting.
@@ -622,21 +625,38 @@ export class SidebarUI {
         // the guard wraps the CONSTRUCTION, not a branch inside a method the
         // shipped build still calls.
         if (__EXT_ENV__ === 'dev') {
-            settingsPanel.appendChild(this.buildDebugToggle());
-            // The recorder's three actions, directly under the switch that
-            // turns it on. They used to be a floating panel pinned over the
-            // page (debug-ui.ts), which covered whatever was behind it — on a
-            // video player, that is the thing being diagnosed.
+            // ONE row for the recorder: the switch that turns it on, and its
+            // three actions as icons in the same row. They were four
+            // full-height rows — a quarter of the settings panel spent on a
+            // dev-only feature, with the download glyph appearing twice (on
+            // the switch and on the download row) for two different verbs.
             //
-            // An EMPTY container here, filled on first open. The sidebar is
-            // built from the app's constructor, and installDebugMode runs at
-            // the end of bootstrap and then awaits rec.hydrate() — so at this
-            // moment traceActions() is still null and building the rows now
-            // produces nothing, permanently. That is exactly the bug that
-            // made the rows vanish after they moved off the floating panel.
+            // The actions go in an EMPTY container inside that row, filled on
+            // first open. The sidebar is built from the app's constructor,
+            // and installDebugMode runs at the end of bootstrap and then
+            // awaits rec.hydrate() — so at this moment traceActions() is
+            // still null and building the actions now produces nothing,
+            // permanently. That is exactly the bug that made the controls
+            // vanish when they moved off the floating panel (debug-ui.ts),
+            // which covered the player the trace was being taken of.
+            const debugRow = this.buildDebugToggle();
             const traceRows = document.createElement('div');
             traceRows.id = 'vtt-trace-rows';
-            settingsPanel.appendChild(traceRows);
+            // Inline, like everything else dev-only here: styles.css is copied
+            // into the bundle verbatim with no __EXT_ENV__ to fold it.
+            traceRows.style.cssText = 'display:flex;align-items:center;gap:2px;flex:none;';
+            // The row is a <label> whose `for` names the switch, so a click
+            // anywhere in it — the gaps between icons, the session count —
+            // toggles the recorder. Discarding a recording would switch
+            // recording off with it. Stopped on the container rather than on
+            // each button: one guard cannot be forgotten on a fourth action.
+            traceRows.addEventListener('click', (e) => e.preventDefault());
+            // Before the switch in DOM order, so the row reads
+            // label · actions · switch: the switch keeps the right edge every
+            // other setting's switch sits on, and the destructive action is
+            // not the control nearest it.
+            debugRow.insertBefore(traceRows, debugRow.querySelector('.vtt-switch-input'));
+            settingsPanel.appendChild(debugRow);
             this.elements = { ...this.elements, traceRows };
         }
 
@@ -846,8 +866,18 @@ export class SidebarUI {
         if (__EXT_ENV__ !== 'dev') return document.createElement('span');
 
         const label = document.createElement('label');
+        // Explicit, rather than relying on the checkbox being nested inside.
+        // An implicit label takes the FIRST labelable descendant as its
+        // control, and the recorder's action buttons sit in this row before
+        // the checkbox — so without this, the control resolves to the Download
+        // button and clicking the row's own text stops toggling the recorder.
+        // Measured: the label text toggled the switch with no recorder
+        // attached and stopped doing so as soon as the buttons appeared.
+        label.htmlFor = 'vtt-debug-toggle';
         label.className = 'vtt-panel-row';
-        label.innerHTML = `${ICONS.download}<span class="vtt-privacy-text">Record subtitle diagnostics</span>`;
+        // `record`, not `download`: the download glyph also sits on the download
+        // action in this same row, and one glyph for two verbs is a coin toss.
+        label.innerHTML = `${ICONS.record}<span class="vtt-privacy-text">Subtitle diagnostics</span>`;
         label.title =
             'Dev build only. Records the whole subtitle load — every request, ' +
             'status, header and retry — for the last few videos, downloadable as JSON. ' +
@@ -937,60 +967,88 @@ export class SidebarUI {
         // gate refuses (assert-shippable.mjs). Inline declarations live inside
         // this guarded method and leave with it.
         //
-        // The rows otherwise inherit .vtt-panel-row wholesale: same height,
-        // same icon column, same hover. They ARE panel rows.
-        const row = (icon: string, text: string, title: string): HTMLButtonElement => {
+        // Icon buttons rather than rows: three verbs on one recording do not
+        // each deserve the height of a setting. 22px targets, the same as the
+        // sidebar header's own icon buttons.
+        const btn = (icon: string, title: string): HTMLButtonElement => {
             const b = document.createElement('button');
             b.type = 'button';
-            b.className = 'vtt-panel-row vtt-trace-row';
+            b.className = 'vtt-trace-row';
             b.title = title;
-            b.innerHTML = `${icon}<span>${text}</span>`;
+            b.innerHTML = icon;
+            b.style.cssText =
+                'all:unset;cursor:pointer;width:22px;height:22px;border-radius:5px;'
+                + 'display:grid;place-items:center;color:inherit;flex:none;';
+            const svg = b.querySelector('svg');
+            if (svg) {
+                svg.style.width = '14px';
+                svg.style.height = '14px';
+                svg.style.opacity = '0.75';
+            }
+            // :hover is not expressible inline, so the row's own hover feedback
+            // is reproduced on pointer events.
+            b.addEventListener('pointerenter', () => {
+                b.style.backgroundColor = 'rgba(255,255,255,0.10)';
+                if (svg) svg.style.opacity = '1';
+            });
+            b.addEventListener('pointerleave', () => {
+                b.style.removeProperty('background-color');
+                if (svg) svg.style.opacity = '0.75';
+            });
             return b;
         };
 
-        const dl = row(ICONS.download, 'Download trace', 'Save the recorded subtitle diagnostics as JSON. '
-            + 'The file contains signed caption URLs and pot tokens: do not share it.');
-        const label = dl.querySelector('span') as HTMLSpanElement;
+        // The count, and the place feedback goes. It used to replace the
+        // Download row's own label, which meant the only readout of whether
+        // the recorder had captured anything disappeared for two seconds every
+        // time it spoke. Its own element can say both.
+        const status = document.createElement('span');
+        status.className = 'vtt-trace-row';
+        status.style.cssText =
+            'font-size:11px;opacity:0.75;font-variant-numeric:tabular-nums;'
+            + 'white-space:nowrap;margin-right:2px;';
+
         const relabel = (): void => {
             const n = actions.sessions();
-            label.textContent = n ? `Download trace (${n})` : 'Download trace';
+            status.style.removeProperty('color');
+            status.textContent = n ? String(n) : '—';
+            status.title = n ? `${n} video${n === 1 ? '' : 's'} recorded` : 'nothing recorded yet';
         };
         relabel();
-        // A message that replaces the label for a moment, then puts the count
-        // back — the same feedback the floating panel gave, and the only one
-        // available: these rows have no room for a status line of their own.
-        const flash = (text: string): void => {
-            label.textContent = text;
+        // A message in place of the count for a moment, then the count back.
+        const flash = (text: string, ok = true): void => {
+            status.textContent = text;
+            status.title = text;
+            status.style.color = ok ? 'var(--vtt-success-text, #6ee7b7)' : 'var(--vtt-danger, #f87171)';
             setTimeout(relabel, 2000);
         };
         // Handed to syncTraceRows so a later open refreshes the count without
-        // rebuilding the rows.
+        // rebuilding the actions.
         this.traceRelabel = relabel;
 
+        const dl = btn(ICONS.download, 'Download trace. The file contains signed caption URLs '
+            + 'and pot tokens: do not share it.');
         dl.addEventListener('click', () => {
             if (actions.sessions() === 0) {
-                flash('nothing recorded yet');
+                flash('none', false);
                 return;
             }
             actions.download();
         });
 
-        const copy = row(ICONS.copy, 'Copy trace', 'Copy the recorded diagnostics to the clipboard');
+        const copy = btn(ICONS.copy, 'Copy trace to the clipboard');
         copy.addEventListener('click', () => {
-            void actions.copy().then((ok) => flash(ok ? '✓ copied' : 'clipboard blocked'));
+            void actions.copy().then((ok) => flash(ok ? '✓' : 'blocked', ok));
         });
 
-        const clear = row(ICONS.trash, 'Discard recording', 'Throw away everything recorded so far');
+        const clear = btn(ICONS.trash, 'Discard recording');
         // Discarding is destructive and unrecoverable, so it carries the quiet
         // red the emergency actions use — never the accent, which on this panel
         // means "a setting is on". The colour arrives on hover rather than at
-        // rest: at rest this is one row of three and should not shout.
-        //
-        // Inline for the same reason as the rows themselves, and applied on
-        // pointer events because an inline style cannot express :hover.
+        // rest: at rest this is one icon of three and should not shout.
         clear.addEventListener('pointerenter', () => {
             clear.style.color = 'var(--vtt-danger, #f87171)';
-            clear.style.backgroundColor = 'rgba(248,113,113,0.08)';
+            clear.style.backgroundColor = 'rgba(248,113,113,0.10)';
         });
         clear.addEventListener('pointerleave', () => {
             clear.style.removeProperty('color');
@@ -1000,7 +1058,7 @@ export class SidebarUI {
             void actions.clear().then(relabel);
         });
 
-        return [dl, copy, clear];
+        return [status, dl, copy, clear];
     }
 
     // Label + select field row with a custom chevron (the select itself is
