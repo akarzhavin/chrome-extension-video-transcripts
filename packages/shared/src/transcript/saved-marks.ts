@@ -44,7 +44,8 @@ const WORD_SELECTOR = 'span[data-word]';
 const view: SavedWords = createSavedWords();
 const subscribers = new Set<() => void>();
 
-let started = false;
+/** How many live callers hold the mirror subscription. See startSavedMarks. */
+let holders = 0;
 let unsubscribeMirror: (() => void) | undefined;
 
 /** Whether this term is in the learner's dictionary right now. */
@@ -102,33 +103,52 @@ export function onSavedWordsChanged(cb: () => void): () => void {
 /**
  * Seed the view from the mirror and keep it in step.
  *
- * Idempotent: content scripts construct more than one surface, and each may
- * reasonably ask for the marks to be live. Returns a disposer that stops
- * tracking; the seeded answers stay readable afterwards, which is what a
- * disposed sidebar rendering one last frame needs.
+ * Safe to call more than once: content scripts construct more than one surface,
+ * and each may reasonably ask for the marks to be live. Each call takes a hold
+ * and returns a disposer that releases exactly that one; tracking stops when
+ * the last hold goes. The seeded answers stay readable afterwards, which is
+ * what a disposed sidebar rendering one last frame needs.
  *
  * Both halves degrade on a page with no extension storage: `loadMirror`
  * resolves to an empty mirror and `onMirrorChanged` returns a no-op, so the
  * embed renders every word unmarked instead of throwing.
  */
 export function startSavedMarks(): () => void {
-    if (started) return () => {};
-    started = true;
+    // Counted, not a boolean.
+    //
+    // The boolean handed every caller after the first a no-op disposer while
+    // the FIRST caller's disposer tore the shared subscription down for
+    // everybody. A SidebarUI remount does exactly that — the replacement
+    // starts, then the outgoing instance disposes — so the live sidebar was
+    // left with marks that never updated again. Silent, too: the seeded
+    // answers stay correct until the first save, and then the heart simply
+    // does not fill.
+    //
+    // A count makes the subscription live exactly as long as someone holds it.
+    holders++;
 
-    void loadMirror().then((m) => {
-        view.reset(m.words);
-        notify();
-    });
+    if (holders === 1) {
+        void loadMirror().then((m) => {
+            view.reset(m.words);
+            notify();
+        });
 
-    unsubscribeMirror = onMirrorChanged((m) => {
-        view.reset(m.words);
-        notify();
-    });
+        unsubscribeMirror = onMirrorChanged((m) => {
+            view.reset(m.words);
+            notify();
+        });
+    }
 
+    // Idempotent per caller: a disposer called twice must not release a hold it
+    // does not have, or one careless caller would unsubscribe another's.
+    let released = false;
     return () => {
+        if (released) return;
+        released = true;
+        holders--;
+        if (holders > 0) return;
         unsubscribeMirror?.();
         unsubscribeMirror = undefined;
-        started = false;
     };
 }
 
@@ -149,7 +169,7 @@ function notify(): void {
 export function __resetSavedMarksForTest(): void {
     unsubscribeMirror?.();
     unsubscribeMirror = undefined;
-    started = false;
+    holders = 0;
     subscribers.clear();
     view.reset({});
 }

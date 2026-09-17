@@ -293,6 +293,71 @@ describe('the mark tracks the dictionary', () => {
 
         expect(cb).not.toHaveBeenCalled();
     });
+
+    /**
+     * Two surfaces may hold the marks at once, and the tracking belongs to
+     * whoever still holds it.
+     *
+     * The shape that made this necessary: `startSavedMarks` handed every caller
+     * after the first a no-op disposer, while the FIRST caller's disposer
+     * unsubscribed the shared mirror listener for everybody. A SidebarUI
+     * remount performs exactly that sequence — the replacement starts before
+     * the outgoing instance disposes — so the sidebar the user was looking at
+     * kept its seeded marks and never updated again.
+     *
+     * Silent, which is why it is worth a test rather than a comment: nothing
+     * throws, and every word already saved stays correctly marked. Only the
+     * NEXT save does nothing, and a heart that fails to fill reads as a save
+     * that did not happen.
+     */
+    describe('more than one holder', () => {
+        test('a remount keeps the marks live: the outgoing instance does not unsubscribe the incoming one', async () => {
+            const first = startSavedMarks();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            // The remount: the new sidebar starts while the old one is still
+            // up, and only then does the old one go away.
+            const second = startSavedMarks();
+            first();
+
+            const el = line('a', 'beautiful', 'evening');
+            onSavedWordsChanged(() => markSavedIn(el));
+
+            await setMirrorEntry('beautiful', 'active');
+            await Promise.resolve();
+
+            expect(markedWords()).toEqual(['beautiful']);
+
+            // And the last holder leaving really does stop it — the count is a
+            // bound, not a leak that merely hides the bug.
+            second();
+            await setMirrorEntry('evening', 'active');
+            await Promise.resolve();
+            expect(markedWords()).toEqual(['beautiful']);
+        });
+
+        test('a disposer called twice releases one hold, not two', async () => {
+            const first = startSavedMarks();
+            const second = startSavedMarks();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            first();
+            first(); // a careless caller, or a double teardown
+
+            const el = line('a', 'beautiful', 'evening');
+            onSavedWordsChanged(() => markSavedIn(el));
+
+            await setMirrorEntry('beautiful', 'active');
+            await Promise.resolve();
+
+            // `second` still holds it, and the stray second call must not have
+            // released that hold on its behalf.
+            expect(markedWords()).toEqual(['beautiful']);
+            second();
+        });
+    });
 });
 
 describe('marking changes no geometry', () => {
