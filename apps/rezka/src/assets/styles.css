@@ -1780,6 +1780,52 @@
     color: #fff;
 }
 
+/* A word the learner already has in their dictionary.
+   ────────────────────────────────────────────────────────────────────────
+   Fed by the word mirror (transcript/saved-marks.ts), so it is a standing
+   fact about the word and not feedback about an action: it is on the line
+   the first time that line renders, and it stays.
+
+   COLOUR. --vtt-heart is the one token that already means "saved" — it is
+   the lookup card's heart. The alternatives are all spoken for: --vtt-accent
+   marks the playing line, the open card's word (.vtt-lookup-hit) and the next
+   guess target (.vtt-next-word); --vtt-success marks a fully solved line.
+   Reusing any of them would make two different facts wear one colour.
+
+   GEOMETRY. Drawn by ::after OUTSIDE the span's box — no padding, no border,
+   no inserted node — because this replaced a "✓ saved" pill that shoved the
+   rest of the caption sideways the moment it appeared. A mark that moves the
+   words is worse than no mark on a line the reader is mid-sentence on.
+
+   EM, NOT PX. The overlay's font is player-relative with NO ceiling (see
+   #vtt-video-overlay below): the caption grows with the frame, so a 2px bar
+   tuned on an inline player is a speck at fullscreen and invisible on a 4K
+   one. min-height keeps it from vanishing at the 0.33 floor instead.
+
+   A SHORT BAR, NOT AN UNDERLINE. A full-width rule under a word is already
+   .vtt-lookup-hit's shape; both can sit on one word at once (a card open over
+   a saved word), and two states must not wear one form. This one is shorter,
+   centred, below the box, in a different hue. */
+.vtt-saved-mark {
+    position: relative;
+}
+
+.vtt-saved-mark::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.14em;
+    width: 44%;
+    height: 0.12em;
+    min-height: 2px;
+    transform: translateX(-50%);
+    border-radius: 0.06em;
+    background: var(--vtt-heart);
+    /* The bar sits over the caption box; a press on it must still reach the
+       word underneath, which in guess mode is a reveal target. */
+    pointer-events: none;
+}
+
 /* "Every word uncovered" in guess mode. Carried by the border colour rather
    than a 4px bar, for the same layout-stability reason as .active-sub above —
    a solved line must not resize. The border alone is enough: this marks a line
