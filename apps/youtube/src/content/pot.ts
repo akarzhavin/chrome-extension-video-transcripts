@@ -36,7 +36,7 @@
 export const POT_STORAGE_KEY = 'lg.pot.v1';
 
 /** Most videos a tab keeps tokens for. Small: a tab visits a handful. */
-const MAX_REMEMBERED = 12;
+export const MAX_REMEMBERED = 12;
 
 /**
  * Remembers the token seen for each video id.
@@ -151,12 +151,20 @@ export class PotStore {
     }
 
     private persist(): void {
+        // Drop the oldest first: Map preserves insertion order, and the video
+        // being watched now is the last one in.
+        //
+        // The trim runs BEFORE the storage guard, not inside it. MAX_REMEMBERED
+        // bounds the map itself, and the map is what every read goes through;
+        // storage is only where it survives a reload. Trimming under `if
+        // (this.storage)` made the bound a property of having storage, so a
+        // viewer with site data blocked — the one case the guard exists for —
+        // grew an unbounded map for the life of the tab.
+        const entries = [...this.byVideoId.entries()].slice(-MAX_REMEMBERED);
+        this.byVideoId = new Map(entries);
+
         if (!this.storage) return;
         try {
-            // Drop the oldest first: Map preserves insertion order, and the
-            // video being watched now is the last one in.
-            const entries = [...this.byVideoId.entries()].slice(-MAX_REMEMBERED);
-            this.byVideoId = new Map(entries);
             this.storage.setItem(POT_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
         } catch {
             // Blocked site data or a full quota. The in-memory map still holds

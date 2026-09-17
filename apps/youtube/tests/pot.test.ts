@@ -12,6 +12,7 @@
 // into a total outage.
 
 import {
+    MAX_REMEMBERED,
     POT_WAIT_MS,
     POT_WAIT_POLL_MS,
     PotStore,
@@ -172,6 +173,37 @@ describe('PotStore persistence across a reload', () => {
         expect(s.capture(timedtext({ v: 'abc', pot: 'TOKEN1' }), BASE)).toBe(true);
         expect(s.get('abc')).toBe('TOKEN1');
         expect(s.get('nope')).toBeNull();
+    });
+
+    /**
+     * MAX_REMEMBERED bounds the MAP, not the stored copy.
+     *
+     * The bound used to live inside `persist()`'s storage guard, so the one
+     * viewer it exists to protect — site data blocked, `storage` undefined —
+     * was the one whose map grew without limit for the life of the tab. Both
+     * halves are asserted together because the symmetry IS the claim: whether
+     * a token survives a reload is a storage question, how many are held is
+     * not.
+     */
+    describe.each([
+        ['with storage', () => new PotStore(memoryStorage())],
+        ['without storage', () => new PotStore()],
+    ])('the token map is bounded %s', (_label, make) => {
+        test(`it keeps the newest ${MAX_REMEMBERED} and forgets the rest`, () => {
+            const s = make();
+            const total = MAX_REMEMBERED + 5;
+            for (let i = 0; i < total; i++) {
+                s.capture(timedtext({ v: `vid${i}`, pot: `TOKEN${i}` }), BASE);
+            }
+
+            const held = Array.from({ length: total }, (_, i) => s.get(`vid${i}`));
+            expect(held.filter((t) => t !== null)).toHaveLength(MAX_REMEMBERED);
+
+            // And it is the OLDEST that went: the video being watched now is
+            // the last one in, and it is the one a retry is about to need.
+            expect(s.get('vid0')).toBeNull();
+            expect(s.get(`vid${total - 1}`)).toBe(`TOKEN${total - 1}`);
+        });
     });
 });
 
