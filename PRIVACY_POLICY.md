@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** September 6, 2026
+**Last updated:** September 18, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
@@ -21,14 +21,18 @@ describes what differs by platform, Netflix is covered by the YouTube edition.
 
 * **Without an account, the Extension stores nothing about you.** The interactive
   transcript, listening challenge, dual subtitles, and local word saving all run
-  entirely inside your browser. Two things do leave it, with or without an
-  account: **looking a word up** sends that word and its subtitle line to our
-  dictionary service (Section 1e), and the anonymous usage counting described
-  below, which you can turn off. Neither is tied to your identity.
+  entirely inside your browser, and so does downloading a subtitle track as a
+  file. Three things do leave it, with or without an account: **looking a word
+  up** sends that word and its subtitle line to our dictionary service (Section
+  1e); a **feedback message you choose to send** reaches us with the text you
+  typed (Section 1g); and the anonymous usage counting described below, which
+  you can turn off. None of them is tied to your identity unless you put it
+  there yourself, by typing a reply address into your feedback.
 * **Signing in is optional.** It exists only to sync your saved vocabulary across
   devices. If you choose to sign in, we collect your **email address** and store the
   **words you explicitly save** (with the surrounding subtitle lines) in our cloud
-  database.
+  database. A list of those words is also kept on your device, so the Extension
+  can mark a word you already own without asking our servers (Section 3).
 * **Diagnostics are opt-in, one click.** If subtitles fail to load, an emergency
   **"Reload page"** button (shown only after a failed retry) sends us a one-click
   diagnostic report — the video's address plus technical details — so we can fix
@@ -53,7 +57,8 @@ servers, and creates no account. Your language and layout preferences and a loca
 "words saved" counter are kept only in your browser (see Section 3). No account,
 email, or saved word ever leaves your device.
 
-Three things are sent even without an account, none of them tied to your identity:
+Four things are sent even without an account, none of them tied to your identity
+unless you choose to add it:
 
 * the **anonymous usage analytics** of Section 1c, which you can turn off in one
   click;
@@ -61,7 +66,9 @@ Three things are sent even without an account, none of them tied to your identit
   is the feature working, not measurement, so the analytics switch does not stop
   it; not looking words up does;
 * the **welcome and farewell pages** of Section 1f, which are ordinary visits to
-  our website.
+  our website;
+* a **feedback message**, only if you write one and press Send — Section 1g. It
+  carries what you typed, and a reply address only if you typed one.
 
 ### b. If you choose to sign in (optional account)
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
@@ -71,7 +78,9 @@ collect and process:
   identify your account and associate your saved words with you.
 * **Saved vocabulary** — only the items you explicitly choose to save while watching.
   For each saved item we store:
-  * the **word or phrase** you selected;
+  * the **word or phrase** you selected, both as you selected it and in a
+    normalized form (trimmed, lower-cased) that lets your devices agree it is the
+    same word;
   * a small amount of **subtitle context** — the saved subtitle line plus the line
     immediately before and after it, in the video's primary subtitle language only;
   * a **source tag** indicating where it was saved (`rezka`, `youtube`, or
@@ -82,14 +91,20 @@ collect and process:
   be sent). Each report contains: the website's hostname, the address (URL) or ID of
   the video the failure happened on, the subtitle language pair you selected (the
   language you are learning and your native language), the Extension version, your
-  browser's interface language, a source tag identifying the Extension, and a server
-  timestamp. Reports
+  browser's interface language, a source tag identifying the Extension, a server
+  timestamp, and the technical picture of the failure: a failure code from the
+  Extension's own vocabulary (for example "rate-limited" or "not-offered"), the
+  HTTP status behind it if there was one, how many attempts had been made, and how
+  many subtitle tracks had loaded. Reports
   are sent only while you are signed in, are capped at one per account per day, and
   are used solely to investigate the failure.
+* **Feedback** you send while signed in carries your user ID so we can reply — see
+  Section 1g, which also covers feedback sent without an account.
 
 We do **not** collect: your browsing history, the videos you watch (beyond the
 subtitle text you explicitly save, the subtitle line accompanying a word you look
-up as described in Section 1e, and the single video address included in a
+up as described in Section 1e, the site name attached to a feedback message you
+send, and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a
 coarse platform label such as `youtube` or `rezka`, never a video or a URL),
 IP-based location tracking, advertising identifiers, or cookies for tracking.
@@ -110,7 +125,7 @@ key that could join your analytics events to your account — the separation is
 structural, not just a promise. Clearing the Extension's storage or reinstalling
 produces a new, unrelated identifier.
 
-**The events we send** (18 in total):
+**The events we send** (22 in total):
 
 * `extension_installed`, `extension_updated` — the Extension was installed or
   updated;
@@ -120,8 +135,17 @@ produces a new, unrelated identifier.
   `subs_rate_limited`, `subs_recovered` — subtitles loaded, both languages were
   shown, none were found, only part loaded, the platform rate-limited us, or a
   retry succeeded;
-* `word_save_attempt`, `word_saved` — you tried to save a word, and it saved;
-* `signin_started` — you began the sign-in flow;
+* `subs_missed_with_cc` — the Extension showed no subtitles although the player's
+  own captions button says the video has some; this one only ever means our own
+  failure (YouTube edition only);
+* `subs_downloaded` — you saved a subtitle track to your computer as a file. The
+  file itself is written by your browser and never leaves it;
+* `word_save_attempt`, `word_saved`, `word_removed` — you tried to save a word, it
+  saved, or you removed one;
+* `word_lookup` — the Extension asked our dictionary service about a word (Section
+  1e). The event carries the shape of the answer, never the word;
+* `signin_started` — you began the sign-in flow, and from where (the toolbar popup
+  or the status badge);
 * `analytics_opt_out` — you turned this analytics off (sent once, so we know how
   many people opt out);
 * `notification_fetch_failed` — the Extension could not reach our service-status
@@ -138,19 +162,33 @@ produces a new, unrelated identifier.
 * **how many subtitle tracks** loaded;
 * **whether you were signed in** — a true/false flag, with no account identifier;
 * a **running count of words saved on this device**;
-* the **Extension version and edition**;
+* the **Extension version and edition**, and on `extension_updated` the version
+  you had before;
 * on developer test builds only, **which of our own test servers** the build was
   pointed at — a label about our infrastructure, not about you; builds installed
   from the Chrome Web Store never send it;
 * **days since install**;
-* a **technical failure code** when subtitles fail;
+* when subtitles fail: a **technical failure code**, the **HTTP status** behind it
+  if any, **how many attempts** had been made, whether a retry had already
+  happened, which half of your language pair was missing, and whether the
+  platform was throttling us;
+* when the platform rate-limits us: whether the request was for an automatic
+  translation, how long we were told to wait, and which back-off step the
+  Extension was on;
+* when subtitles recover: what triggered the recovery (an automatic probe, your
+  manual retry, or a late arrival) and how many seconds it took;
+* for `word_lookup` only: whether the hover strip or the full word screen asked,
+  whether the answer came from our cache, a dictionary, or a model, whether it
+  was empty, and a coarse latency bucket;
 * for `notification_fetch_failed` only, **why the request failed** and, if the
   server answered, its **HTTP status code**;
 * a **session ID** that groups events from one browsing session.
 
 **What is never sent:** the video you are watching (no title, no URL, no ID), the
-words you save, subtitle text, page content, your email address, your Firebase user
-ID, and your browsing history.
+words you save, look up, or remove, subtitle text, page content, feedback text, your
+email address, your Firebase user ID, and your browsing history. This is enforced
+by a deny-list in the code, not by convention: a parameter named like any of those
+is dropped before the event is built.
 
 **Google's role.** Google Analytics processes these events for us as our service
 provider; see Google's Privacy Policy at https://policies.google.com/privacy. On our
@@ -229,6 +267,27 @@ regardless of that setting; what changes is that it carries no identifier of you
 Both are ordinary visits to our website, and like any web request they reach our
 site with your IP address, which we do not store.
 
+### g. Feedback you send us
+
+The Extension has a **Send feedback** screen in its sidebar settings, and the
+one-time "Enjoying Lingogram?" card offers a short feedback box if you answer
+**"Not really"**. Nothing is sent until you press **Send**. When you do, we receive:
+
+* the **text you typed**, up to about 2,000 bytes;
+* a **reply address**, only if you are not signed in and chose to type one into
+  the optional email field. It is stored as part of your message text;
+* your **user ID**, if you are signed in, so we can reply through your account;
+* the **hostname** of the site you sent it from (for example `www.youtube.com`),
+  the Extension version and edition, your browser's interface language, and a
+  server timestamp.
+
+**This works whether or not you are signed in.** The message is stored in our
+Firebase database (Section 4) and is read by the developer to understand what
+broke and, where you gave us a way to, to reply. It is not used for anything else.
+Sending is capped at a fixed number of messages per day across all users
+(currently 500), so a message can occasionally fail to send; the screen tells you
+if it did.
+
 ## 2. How We Use Your Information
 
 We use the information above **only** to:
@@ -239,14 +298,16 @@ We use the information above **only** to:
 * enforce a reasonable daily limit on saved words to prevent abuse;
 * investigate the subtitle-loading failures you explicitly report via the
   **"Reload page"** button, so we can fix them;
+* read the feedback you send, and reply to it if you are signed in or left a reply
+  address;
 * count anonymous, aggregate usage — how many installs, how often subtitles fail,
   where people stop before finishing setup — so we can fix what is broken and
   improve what is confusing. We never use it to identify you or to build a profile
   of you.
 
 We do not use your information for advertising, profiling, or any purpose beyond
-providing the sync and diagnostics features and the aggregate usage counting
-described here.
+providing the sync, diagnostics, and feedback features and the aggregate usage
+counting described here.
 
 ## 3. Local Storage (On Your Device)
 
@@ -254,7 +315,8 @@ The Extension uses your browser's extension storage (`chrome.storage`) to keep, 
 your device only:
 
 * your language and subtitle layout preferences;
-* a local count of how many words you've saved;
+* a local count of how many words you've saved, and a one-time flag recording that
+  the Extension has already asked you to rate it;
 * your **analytics on/off setting**, the **random analytics identifier** described
   in Section 1c, and the **date you installed** the Extension, plus an analytics
   **session ID** in session storage;
@@ -263,13 +325,20 @@ your device only:
   you closed does not come back;
 * if you are signed in: your authentication tokens, your email address, and your
   user ID (so you stay signed in), and a short-lived sign-in nonce in session
-  storage.
+  storage;
+* if you are signed in: a **local list of the words you have saved** — each word
+  in its normalized form, whether it is currently saved or has been removed, and a
+  marker of how far the list has been synced. It exists so the Extension can mark
+  a word you already own the moment it appears in a subtitle, without a network
+  round-trip. It is filled from your cloud vocabulary (Section 4) and holds no
+  translations, subtitle context, or timestamps.
 
 This local data never leaves your browser except where Section 4 describes (saved
 words synced to the cloud). Signing out removes the authentication tokens, email, and
-user ID from your device. What the Extension sends while you use it is listed in
-Sections 1c, 1e and 1f; none of it is read from the storage described here, apart
-from the analytics identifier those sections name.
+user ID, and the local list of saved words from your device. What the Extension
+sends while you use it is listed in Sections 1c, 1e, 1f and 1g; none of it is read
+from the storage described here, apart from the analytics identifier those sections
+name and, for feedback sent while signed in, your user ID.
 
 ## 4. Cloud Storage and Third-Party Services
 
@@ -278,7 +347,9 @@ Firebase** (Firebase Authentication, Cloud Firestore, and Secure Token Service),
 operated by the developer on Google Cloud infrastructure. Google processes this data
 as our service provider; see Google's Privacy Policy at
 https://policies.google.com/privacy. Access is restricted by Firestore security
-rules so that you can only read and write your own data.
+rules so that you can only read and write your own data. The diagnostic reports of
+Section 1b and the feedback messages of Section 1g are written to the same
+database; the Extension can write them but never read them back.
 
 The service-status messages described in Section 1d are downloaded from the same
 Firebase project. That collection is public and read-only from the Extension: it
@@ -319,6 +390,11 @@ advertising.
   account deletion.
 * **Diagnostic reports** are kept only for troubleshooting and are covered by
   account deletion requests (they are keyed to your user ID).
+* **Feedback messages** are kept until they have been acted on. Feedback sent while
+  signed in carries your user ID and is covered by account deletion requests.
+  Feedback sent without an account carries no identifier of yours unless you
+  typed a reply address; to have such a message deleted, contact us (Section 10)
+  quoting that address.
 * **Word lookups** (Section 1e) are answered and not kept as a history against any
   identity; there is no account or identifier attached to one, so there is nothing
   to look up or delete per person. Operational logs, where they exist, are
@@ -330,11 +406,11 @@ advertising.
   toolbar popup stops any further collection, but it cannot retroactively remove
   events already sent; those expire on the 2-month schedule.
 * **Local data** can be cleared at any time by signing out (removes your tokens,
-  email, and user ID) or by removing the Extension from your browser (which also
-  removes the random analytics identifier).
-* To **delete your account and all associated cloud data** (email, saved words, and
-  diagnostic reports),
-  contact the developer using Section 9. We will delete it within a reasonable
+  email, user ID, and the local list of saved words) or by removing the Extension
+  from your browser (which also removes the random analytics identifier).
+* To **delete your account and all associated cloud data** (email, saved words,
+  diagnostic reports, and feedback sent while signed in),
+  contact the developer using Section 10. We will delete it within a reasonable
   period.
 
 ## 7. Security
