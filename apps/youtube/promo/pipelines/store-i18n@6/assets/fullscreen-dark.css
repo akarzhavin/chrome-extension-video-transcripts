@@ -1,0 +1,121 @@
+/* VARIANT LAYER: the panel in the product's DARK theme.
+ *
+ * WHY A SLIDE WOULD WANT THIS
+ * The panel's job on these slides is to read as part of the player, and that
+ * depends on the footage. Measured on the two frames we have (mean value of the
+ * visible photo vs the panel):
+ *
+ *   pexels-olly (guess)   photo 73% · light panel 96%  → 23 pt gap
+ *   luther-yonel (dual)   photo 41% · light panel 95%  → 54 pt gap
+ *
+ * At 23 points the light panel sits in the same light as the picture. At 54 it
+ * is a bright rectangle pasted onto a dark studio. So the theme follows the
+ * frame — dark footage gets the dark panel — which is also the product's own
+ * default in fullscreen.
+ *
+ * WHAT CHANGES BESIDES THE GREYS
+ * The dark theme is NOT the light one with inverted values: it has its own
+ * accent. Lime is the light theme's; dark uses periwinkle #7C8DFF, and the
+ * active row is a quiet wash of it rather than a filled tint. Everything below
+ * is copied from apps/rezka/src/assets/styles.css, not re-invented:
+ *
+ *   --vtt-panel        rgba(25,25,25,0.86)      the glass ground
+ *   --vtt-accent       #7C8DFF                  periwinkle, not lime
+ *   --vtt-accent-quiet rgba(124,141,255,0.16)   active row background
+ *   --vtt-text         #E9EAEE
+ *   --vtt-text-soft    rgba(255,255,255,0.72)   translation line
+ *   .vtt-item          rgba(255,255,255,0.03) + 1px rgba(255,255,255,0.02)
+ *   item text          #B0B0B0
+ *   --vtt-hairline     rgba(255,255,255,0.08)
+ *
+ * Unlike the light theme the panel here is TRANSLUCENT (0.86) — that alpha is
+ * load-bearing for the dark theme's contrast, and the slide keeps it: a bright
+ * frame showing through only ever lightens a dark ground, which helps its light
+ * text. (The inverse is not symmetric, which is why the light theme is opaque.)
+ */
+
+:root {
+    --panel-bg: rgba(25, 25, 25, 0.86);
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.02);
+    --text: #e9eaee;
+    --text-2: #b0b0b0;
+    /* The translation line is the accent in the dark theme, not violet. */
+    --violet: #7c8dff;
+    --lime: #7c8dff;
+}
+
+.panel {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    /* The dark theme's own edge: styles.css casts -10px 0 30px rgba(0,0,0,0.5)
+       here. The light theme's white hairline is dropped — on a dark panel it
+       would read as a seam of glare rather than as depth; the dark panel is
+       already separated from footage by being darker than it. */
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    /* The real panel blurs whatever is behind it; over a still image the blur
+       has nothing to resolve, so the glass is carried by the alpha alone. */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.p-title,
+.p-status .saved { color: var(--text); }
+.p-status { color: rgba(255, 255, 255, 0.62); }
+
+.langpair {
+    background: rgba(124, 141, 255, 0.16);
+    border-color: rgba(124, 141, 255, 0.32);
+    color: var(--text);
+}
+.langpair .arrow { color: #7c8dff; }
+
+.p-modes {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+.seg button { color: rgba(255, 255, 255, 0.62); }
+/* On the dark theme the selected mode is a filled periwinkle chip, and the
+   label on it is near-white — the inverse of lime's near-black label. */
+.seg button.active { background: #7c8dff; color: #12131a; }
+.divider { background: rgba(255, 255, 255, 0.15); }
+.toggle { color: rgba(255, 255, 255, 0.62); }
+.toggle .sw { background: #7c8dff; }
+
+.item .trans {
+    color: rgba(255, 255, 255, 0.72);
+    border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+/* The active row: a quiet wash of the accent plus its border, not a solid
+   fill. The dark theme marks the current line by tinting it, not by turning it
+   into a block of colour. */
+.item.active {
+    background: rgba(124, 141, 255, 0.16);
+    border-color: rgba(124, 141, 255, 0.32);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.item.active .orig { color: #ffffff; }
+
+/* The collapse tab is the panel's material, so it follows the ground. */
+.tab {
+    background: rgba(25, 25, 25, 0.86);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+/* Masked capsules revert to the base (white-alpha) treatment: over a dark
+   panel the light theme's rgba(17,17,17,…) pane would be invisible. */
+.mask {
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* The dark panel is separated from footage by being darker than it, so the
+   edge only needs to deepen slightly — a strong falloff here would read as a
+   black bar down the middle of the frame. */
+.panel {
+    /* No glow on this slide. Measured, the dark panel against this dark studio
+       is 1.03:1 — so the boundary here rests on the border and the shadow
+       alone, and it is a quiet one by design. */
+    --panel-edge: rgba(255, 255, 255, 0.10);
+}

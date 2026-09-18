@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />
+<link rel="stylesheet" href="assets/promo.css" />
+<link rel="stylesheet" href="assets/save-slide.css" /></head>
+<body class="theme-2">
+  <!-- SLIDE 2 (v6) — the personal dictionary.
+       Same message and same layout as v5; what changed is that the slide no
+       longer draws any of it. See assets/save-slide.css for the full account:
+       v5 staged a "+ Lingogram" pill and a selection swatch in CSS because the
+       capture could not hold both halves of the save at once. Both of those
+       controls are gone from the product (1.0.21), and the new capture carries
+       the real evidence instead — words the learner owns wear the standing
+       saved mark, painted through the shipped code path. -->
+  <div class="slide slide--side">
+    <div class="bg"></div>
+    <div class="brand"><img src="assets/brand-tile.png" alt="" /><span>Lingogram</span></div>
+    <div class="copy">
+      <span class="eyebrow">YOUR OWN DICTIONARY</span>
+      <h1>Every word you save,<br>in <span class="hl">your own dictionary</span></h1>
+      <p>Save a word while you watch, and it stays marked in every subtitle you
+         meet it in again — alongside your personal list on lingogram.ai.</p>
+    </div>
+    <div class="stage">
+      <div class="panel">
+        <div class="shot" style="background-image:url('../../../screenshots/out-live/live-demo-en.png'); left:-1080px; top:0;"></div>
+        <!-- The mark is 2px tall at slide scale, inside a panel holding eight
+             subtitle cards, so it needs the eye brought to it. The spotlight
+             does that and nothing else: a soft vertical dim that leaves the
+             active card lit. Its band is re-tuned for this capture, where the
+             marked words sit at y~272 (in the active card) and y~729. -->
+        <div class="spotlight"></div>
+      </div>
+      <div class="callout callout--saved" style="left:34px; bottom:-18px;">Synced to your account</div>
+    </div>
+  </div>
+</body></html>
