@@ -13,8 +13,18 @@
 // every label outside the map falls through to the English default compiled into
 // SidebarUI.ts, so a Russian capture came back with "Языки" next to "Font family".
 //
-// KEYS is therefore derived from SidebarUI.ts itself rather than hand-listed, so
-// a new control cannot silently go untranslated in captures.
+// KEYS is therefore derived from the SOURCE rather than hand-listed, so a new
+// control cannot silently go untranslated in captures.
+//
+// IT HAPPENED AGAIN, AND THAT IS WHY THE SCAN IS NOW A DIRECTORY WALK. The list
+// was two named files, SidebarUI.ts and auth-status-badge.ts. When the lookup
+// card and the word screen shipped, their eight keys (ytLookupSave,
+// ytLookupRemove, ytLookupLoading, …) were in neither, so every localized
+// capture would have drawn the dictionary's buttons in English — the same bug
+// as "Языки" next to "Font family", one layer down. A named-file list is a
+// hand-written list wearing a derivation's clothes: it only covers the files
+// someone remembered. Walking packages/shared/src + apps/youtube/src instead
+// means a new UI file is covered the day it is written.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,16 +32,35 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');            // apps/youtube
 const LOCALES = path.join(ROOT, '_locales');
-const SIDEBAR = path.resolve(ROOT, '../../packages/shared/src/SidebarUI.ts');
-const AUTH_BADGE = path.resolve(ROOT, '../../packages/shared/src/content/auth-status-badge.ts');
+const SHARED_SRC = path.resolve(ROOT, '../../packages/shared/src');
+const YT_SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'src/content/demo-ui.ts');
 
-// Every msg()/i18nMsg() key rendered by the sidebar chrome and the settings panel.
+// Every msg()/i18nMsg() key anywhere in the in-page UI source.
 const keysIn = (file) => {
   const src = fs.readFileSync(file, 'utf8');
   return [...src.matchAll(/(?:i18n)?[mM]sg\('([A-Za-z0-9_]+)'/g)].map((m) => m[1]);
 };
-const KEYS = [...new Set([...keysIn(SIDEBAR), ...keysIn(AUTH_BADGE)])].sort();
+// Walk rather than name files: see the note above on why a named list rots.
+// Tests and generated output are skipped — a key that only a test mentions is
+// not rendered, and demo-ui.ts is this script's own product.
+const walk = (dir) => {
+  const out = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name === 'node_modules' || e.name === '__tests__') continue;
+      out.push(...walk(full));
+    } else if (/\.ts$/.test(e.name)
+      && !/\.(test|spec)\.ts$/.test(e.name)
+      && e.name !== 'demo-ui.ts') {
+      out.push(full);
+    }
+  }
+  return out;
+};
+const SOURCES = [...walk(SHARED_SRC), ...walk(YT_SRC)];
+const KEYS = [...new Set(SOURCES.flatMap(keysIn))].sort();
 
 const locales = fs.readdirSync(LOCALES).filter((d) =>
   fs.existsSync(path.join(LOCALES, d, 'messages.json'))).sort();
