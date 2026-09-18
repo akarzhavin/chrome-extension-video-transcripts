@@ -574,5 +574,41 @@
   "ytOverlayDragHandle": {
     "message": "Drag to move the subtitles",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
+  },
+  "ytLookupLoading": {
+    "message": "খোঁজা হচ্ছে…",
+    "description": "Hover strip / word screen: shown while the dictionary lookup is in flight."
+  },
+  "ytLookupNone": {
+    "message": "অনুবাদ নেই",
+    "description": "Hover strip / word screen: the dictionary had nothing for this word (a name, a typo)."
+  },
+  "ytLookupError": {
+    "message": "লোড ব্যর্থ",
+    "description": "Hover strip / word screen: the lookup request failed (network/timeout)."
+  },
+  "ytLookupSave": {
+    "message": "সংরক্ষণ",
+    "description": "Heart button label: save the looked-up word to the dictionary."
+  },
+  "ytLookupSaved": {
+    "message": "সংরক্ষিত",
+    "description": "Heart button label after a successful save."
+  },
+  "ytLookupRemove": {
+    "message": "সরান",
+    "description": "Label on a saved word’s heart: pressing it takes the word off the list."
+  },
+  "ytLookupMore": {
+    "message": "বিস্তারিত",
+    "description": "Hover strip button that opens the sidebar word screen with the full entry."
+  },
+  "ytLookupSrcDict": {
+    "message": "অভিধান",
+    "description": "Word screen source badge: the answer came from the Wiktionary-based dictionary."
+  },
+  "ytLookupSrcAi": {
+    "message": "AI",
+    "description": "Word screen source badge: the answer came from the language model."
   }
 }
