@@ -6,6 +6,8 @@ import {
     installFocusSync,
     requestWordSync,
     refreshAuthStatusBadge,
+    saveLanguagePrefs,
+    setMirrorEntry,
     msg as i18nMsg,
     initTheme,
     setI18nOverride,
@@ -69,18 +71,105 @@ void initTheme();
 // the sidebar itself is set RTL so its own content reads right-to-left.
 const DEMO_RTL = new Set(['ar', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'yi']);
 
+/**
+ * A demo state the capture tool can ask for.
+ *
+ * `lookup` and `word` exist for the store slides that show the dictionary: the
+ * hover card over the video, and the sidebar's word screen. Neither invents any
+ * UI — both drive the SHIPPED code paths (installLookupStrip's own anchor
+ * handling, SidebarUI.openLookupScreen) against the real dictionary, so what a
+ * capture shows is what a user gets. See applyDemoState.
+ */
+interface DemoState {
+    mode: 'onboarding' | 'guess' | 'sidebar' | 'lookup' | 'word';
+    learn: string;
+    native: string;
+    /**
+     * Which word the 'lookup' and 'word' states open on, overriding the
+     * per-language default below.
+     *
+     * The capture tool needs this because how much the word screen SHOWS is a
+     * property of the word, not of the screen: a one-sense entry leaves the
+     * panel's lower half empty, a three-sense one fills it. Which word is rich
+     * cannot be known from here — it is whatever the dictionary holds — so the
+     * choice has to be answerable by trying words, not by reasoning about them.
+     */
+    term?: string;
+}
+
+/**
+ * Words pre-seeded into the word mirror in demo mode, per learning language.
+ *
+ * These paint the standing saved mark (`vtt-saved-mark`, the heart-coloured bar
+ * under a word the learner already owns) — the one piece of the dictionary a
+ * still frame can show without any interaction at all.
+ *
+ * Seeding the MIRROR rather than adding the class by hand is the whole point:
+ * the mark is then applied by transcript/saved-marks.ts through its ordinary
+ * subscription, exactly as it is for a real user, so a capture cannot show a
+ * form the product has stopped painting. (That is how the old `vtt-saved-word`
+ * highlight below outlived its removal from the product for three releases.)
+ *
+ * Chosen from demoLinesFor's own lines so they actually occur on screen; two
+ * per language, spread across different cards, so the mark reads as a standing
+ * property of the transcript rather than as a highlight on one word.
+ *
+ * Whether the article word is among them is a per-language CHOICE, not an
+ * accident — it decides whether the word screen's footer reads "Save" or
+ * "Remove". See DEMO_ARTICLE_WORD.
+ */
+const DEMO_SAVED_WORDS: Record<string, string[]> = {
+    es: ['divertido', 'palabras'],
+    de: ['Wörter', 'zusammen'],
+    fr: ['mots', 'ensemble'],
+    // 'learn' is also DEMO_ARTICLE_WORD.en, and that overlap is deliberate
+    // rather than an oversight: the store's dictionary slide shows the screen
+    // for a word the learner already has, so the word it opens on must be one
+    // of the seeded ones or the footer renders "Save" instead of "Remove".
+    en: ['learn', 'words'],
+};
+
+/**
+ * The word the 'word' state opens its article on.
+ *
+ * The screen's primary button states what pressing it does NEXT, so the word's
+ * saved state decides the label: an unsaved word offers "Save", one already in
+ * the dictionary offers "Remove". Both are honest; which one a slide wants is
+ * the slide's call, and it is made by choosing the word rather than by dressing
+ * the button. The store slide currently shows the saved face, matching a real
+ * signed-in screen, and gets it by opening on a seeded word.
+ *
+ * `term` on the demo state overrides this map, which is how a capture can ask
+ * for a specific word without a code change (scratchpad/probe-en-ru.mjs walks
+ * the whole transcript that way).
+ */
+const DEMO_ARTICLE_WORD: Record<string, string> = {
+    es: 'aprender',
+    de: 'lernen',
+    fr: 'apprendre',
+    // English learners: the pair the store's dictionary slide uses (en->es),
+    // because only an English LEARNING language gets translations and Oxford.
+    // The native side stays free, and the slide keeps Spanish there.
+    en: 'learn',
+};
+
 // Parse the demo state from the current hash. Re-read on every hashchange so the
 // capture tool can switch mode/pair WITHOUT reloading YouTube — it just rewrites
 // location.hash (e.g. `#vtt-demo-guess?learn=fr&native=de`) and the content
 // script re-renders the panel in place.
-function parseDemoState(): { mode: 'onboarding' | 'guess' | 'sidebar'; learn: string; native: string } {
+function parseDemoState(): DemoState {
     const h = location.hash;
     const code = (param: string, fb: string): string => {
         const m = h.match(new RegExp('[?&]' + param + '=([A-Za-z_]+)'));
         return m ? m[1] : fb;
     };
+    // `vtt-demo-word` before `vtt-demo-lookup`: the two share a prefix with
+    // neither of the older tokens, but both contain `vtt-demo`, so the plain
+    // sidebar branch has to stay last.
     const mode = h.includes('vtt-demo-onboarding') ? 'onboarding'
-        : h.includes('vtt-demo-guess') ? 'guess' : 'sidebar';
+        : h.includes('vtt-demo-guess') ? 'guess'
+            : h.includes('vtt-demo-word') ? 'word'
+                : h.includes('vtt-demo-lookup') ? 'lookup' : 'sidebar';
     return { mode, learn: code('learn', 'es'), native: code('native', 'en') };
 }
 
@@ -270,14 +359,14 @@ class YouTubeVttApp extends BaseVttApp {
         // unlike a window property, which lives only in this isolated world.
         window.addEventListener('message', (ev) => {
             if (ev.source !== window) return;
-            const d = ev.data as { __lingogram?: string; state?: { mode: 'onboarding' | 'guess' | 'sidebar'; learn: string; native: string } };
+            const d = ev.data as { __lingogram?: string; state?: DemoState };
             if (d && d.__lingogram === 'demo' && d.state) this.applyDemoState(d.state);
         });
     }
 
-    applyDemoState(override?: { mode: 'onboarding' | 'guess' | 'sidebar'; learn: string; native: string }): void {
+    applyDemoState(override?: DemoState): void {
         const gen = ++this.demoGen;             // stale deferred callbacks bail out
-        const { mode, learn, native } = override ?? parseDemoState();
+        const { mode, learn, native, term: wantTerm } = override ?? parseDemoState();
         // Let the (shared) auth badge know the demo mode without reading the URL.
         (window as unknown as { __vttDemo?: { onboarding: boolean } }).__vttDemo = { onboarding: mode === 'onboarding' };
 
@@ -298,6 +387,21 @@ class YouTubeVttApp extends BaseVttApp {
         this.state.reset();
         document.getElementById('vtt-video-overlay')?.remove();
         this.hideStatusBanner();
+        this.ui.closeLookupScreen();            // a previous 'word' shot's takeover
+        document.getElementById('lingogram-lookup-strip')?.remove();
+        // Seed the dictionary the saved marks read from. Fire-and-forget: the
+        // mark is painted by a mirror subscription, so it lands whenever the
+        // write completes rather than needing to be awaited here.
+        void this.seedDemoDictionary(learn);
+        // Persist the pair the demo is posing in.
+        //
+        // The panel itself runs off `this.langPrefs` above, in memory — but the
+        // lookup strip re-reads the pair from STORAGE on every hover and returns
+        // early when no native language is set (there is nothing to translate
+        // into). On the capture profile that store starts empty, so the card
+        // silently never opened: no error, no request, just a hover that did
+        // nothing. Writing it here makes the demo's pair the real one.
+        void saveLanguagePrefs({ learning: baseLangCode(learn), native: baseLangCode(native) }, 'sidebar');
 
         if (mode === 'onboarding') {
             this.langPrefs = null;
@@ -403,6 +507,80 @@ class YouTubeVttApp extends BaseVttApp {
         requestAnimationFrame(decorate);
         setTimeout(decorate, 400);
         setTimeout(decorate, 1200);
+
+        // The two dictionary states build on the decorated panel above, so they
+        // run after it rather than returning early like guess/onboarding do.
+        if (mode === 'lookup') setTimeout(() => this.openDemoLookupCard(gen, activeIndex, learn, wantTerm), 1600);
+        if (mode === 'word') setTimeout(() => this.openDemoWordScreen(gen, learn, wantTerm), 1600);
+    }
+
+    /**
+     * Put a word in the learner's dictionary, so the transcript paints its
+     * standing saved mark.
+     *
+     * Writes the MIRROR, never the class: see DEMO_SAVED_WORDS. `setMirrorEntry`
+     * is the same call the real save path makes after the worker accepts a word,
+     * and the repaint that follows is an ordinary `onMirrorChanged` delivery.
+     */
+    async seedDemoDictionary(learn: string): Promise<void> {
+        const words = DEMO_SAVED_WORDS[baseLangCode(learn)];
+        if (!words) return;
+        for (const word of words) await setMirrorEntry(word, 'active');
+    }
+
+    /**
+     * Open the hover card over a word in the on-video captions.
+     *
+     * Dispatches a real `mouseover` at the word's centre rather than calling
+     * into the strip: `installLookupStrip` delegates its listeners to
+     * `document` and derives the anchor, the pause and the placement from the
+     * event, so synthesising the event exercises all of it. The card's contents
+     * then come from the live dictionary through the ordinary LOOKUP_WORD
+     * round-trip — a capture cannot show a translation the product would not.
+     */
+    openDemoLookupCard(gen: number, activeIndex: number, learn: string, wantTerm?: string): void {
+        if (gen !== this.demoGen) return;
+        this.ui.updateOverlay(activeIndex);
+        // `.vtt-overlay-main` and not the overlay root: the strip's hover
+        // selector is scoped to the learning line, so a word picked out of the
+        // translation row underneath would be ignored by the very listener this
+        // is trying to reach.
+        const overlay = document.getElementById('vtt-video-overlay');
+        const spans = overlay
+            ? Array.from(overlay.querySelectorAll<HTMLElement>('.vtt-overlay-main span[data-word]'))
+            : [];
+        // The unsaved word, for the reason DEMO_ARTICLE_WORD gives: the heart
+        // reads "Save" only on a word the dictionary does not already hold.
+        // Falls back to the longest token so a language with no entry of its
+        // own still gets a card rather than none.
+        const want = wantTerm ?? DEMO_ARTICLE_WORD[baseLangCode(learn)];
+        const candidates = spans.filter((s) => (s.textContent || '').trim().length > 2);
+        const word = candidates.find((s) => (s.textContent || '').trim() === want)
+            ?? candidates.sort((a, b) => (b.textContent || '').length - (a.textContent || '').length)[0];
+        if (!word) return;
+        const r = word.getBoundingClientRect();
+        word.dispatchEvent(new MouseEvent('mouseover', {
+            bubbles: true,
+            clientX: r.left + r.width / 2,
+            clientY: r.top + r.height / 2,
+        }));
+    }
+
+    /**
+     * Open the sidebar's word screen on a word from the demo transcript.
+     *
+     * Straight through `SidebarUI.openLookupScreen` — the very method the hover
+     * card's "Details" button calls — with the subtitle line as its context, so
+     * the article renders its quote block the way it does in use.
+     */
+    openDemoWordScreen(gen: number, learn: string, wantTerm?: string): void {
+        if (gen !== this.demoGen) return;
+        const term = wantTerm ?? DEMO_ARTICLE_WORD[baseLangCode(learn)];
+        if (!term) return;
+        const line = Array.from(document.querySelectorAll('#vtt-list .vtt-main-text'))
+            .map((el) => el.textContent || '')
+            .find((text) => text.includes(term)) || '';
+        this.ui.openLookupScreen(term, line);
     }
 
     injectPromoStyles(): void {
