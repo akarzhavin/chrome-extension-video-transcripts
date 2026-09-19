@@ -65,7 +65,8 @@ const chromeLocale=loc.replace('_','-');
 // onboarding. It is the sidebar state with the settings panel opened by
 // clicking #vtt-settings-btn, which is how a user reaches it too.
 const demoModeFor=m=>m==='settings'?'sidebar':m;
-const hash=m=>(m==='onboarding'?'vtt-demo-onboarding':m==='guess'?'vtt-demo-guess':'vtt-demo')+`?learn=${learn}&native=${native}`;
+const hash=m=>(m==='onboarding'?'vtt-demo-onboarding':m==='guess'?'vtt-demo-guess'
+  :m==='lookup'?'vtt-demo-lookup':m==='word'?'vtt-demo-word':'vtt-demo')+`?learn=${learn}&native=${native}`;
 const outFor=m=>m==='sidebar'?`live-demo-${loc}.png`:`live-demo-${m}-${loc}.png`;
 
 // Snapshot out-live/ before overwriting anything — it is gitignored, so a bad
@@ -180,7 +181,14 @@ if (st.backdrop==='MISSING') console.warn('  ! backdrop missing — shots will s
 for(let k=0;k<modes.length;k++){
   const m=modes[k];
   if(k>0){ await page.evaluate(s=>window.postMessage({__lingogram:'demo',state:s},'*'),{mode:demoModeFor(m),learn,native}); }
-  await page.waitForFunction(mm=>(mm==='onboarding'?!!document.getElementById('vtt-lang-onboarding'):document.querySelectorAll('#vtt-list .vtt-item').length>3),demoModeFor(m),{timeout:8000}).catch(()=>{});
+  // What "built" means differs per mode. 'word' is the exception that needs
+  // naming: its takeover HIDES #vtt-list, so waiting for subtitle items there
+  // would time out on a panel that is in fact ready.
+  await page.waitForFunction(mm=>(
+    mm==='onboarding' ? !!document.getElementById('vtt-lang-onboarding')
+    : mm==='word' ? !!document.getElementById('vtt-lookup-panel')
+    : document.querySelectorAll('#vtt-list .vtt-item').length>3
+  ),demoModeFor(m),{timeout:8000}).catch(()=>{});
   // Open (or close) the settings panel to match the requested mode, so
   // sidebar/guess never inherit a panel a previous 'settings' shot left open.
   await page.evaluate((want)=>{
@@ -191,6 +199,19 @@ for(let k=0;k<modes.length;k++){
   if(m==='settings') await page.waitForFunction(
     ()=>document.getElementById('vtt-settings-panel')?.classList.contains('open'),
     null,{timeout:8000}).catch(()=>{});
+  // The two dictionary shots wait for a real answer, not for a clock: both go
+  // through LOOKUP_WORD to the live gateway, so the card/article paints
+  // whenever the round-trip lands. Waiting on the SETTLED state (a headword or
+  // a translation row, never the spinner) is what keeps a slow reply from being
+  // photographed mid-flight — a shot of "Looking up…" would be a true picture
+  // of a state no store visitor should be sold.
+  if(m==='lookup') await page.waitForFunction(
+    ()=>{ const s=document.getElementById('lingogram-lookup-strip');
+      return !!s && !!s.querySelector('.vtt-lookup-tr, .vtt-lookup-def'); },
+    null,{timeout:20000}).catch(()=>console.warn('  ! lookup card never settled'));
+  if(m==='word') await page.waitForFunction(
+    ()=>!!document.querySelector('#vtt-lookup-panel .vtt-lookup-headword'),
+    null,{timeout:20000}).catch(()=>console.warn('  ! word screen never settled'));
   await sleep(1400);
   await page.screenshot({path:join(OUT,outFor(m)),type:'png',clip:{x:0,y:0,width:1280,height:800}});
   console.log('✓',outFor(m));

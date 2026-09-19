@@ -37,6 +37,9 @@ const VARIANTS = {
   // The theme follows the footage: this frame is dark (mean value 41% against
   // the light panel's 95%), so the panel goes dark with it. See assets/dark.css.
   dark:  { page: 'slide.html',       sheets: ['dark'] },
+  // The dictionary: same frame and same dark panel as `dark`, but the panel
+  // holds the WORD SCREEN rather than the transcript. See assets/wordscreen.css.
+  word:  { page: 'slide-word.html',  sheets: ['dark', 'wordscreen'] },
 };
 const variant = arg('variant') || 'base';
 if (!VARIANTS[variant]) {
@@ -51,7 +54,12 @@ if (backdrop) {
   if (!fs.existsSync(src)) { console.error(`backdrop not found: ${src}`); process.exit(1); }
   // Each variant has its own vendored backdrop, so swapping one never silently
   // changes the other slide.
-  const target = variant === 'guess' ? 'backdrop-guess.jpg' : 'backdrop.jpg';
+  // Variants with their OWN vendored backdrop keep it; everything else shares
+  // assets/backdrop.jpg. Missing a variant here is not a cosmetic slip: it
+  // points --backdrop at the shared file and restyles every other slide that
+  // reads it.
+  const OWN_BACKDROP = { guess: 'backdrop-guess.jpg', word: 'backdrop-word.jpg' };
+  const target = OWN_BACKDROP[variant] ?? 'backdrop.jpg';
   fs.copyFileSync(src, path.join(HERE, 'assets', target));
   console.log(`backdrop ← ${src}`);
 }

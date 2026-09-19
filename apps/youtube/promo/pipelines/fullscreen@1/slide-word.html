@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />
+<link rel="stylesheet" href="assets/panel.css" />
+<link rel="stylesheet" href="assets/slide.css" />
+<!-- VARIANT --></head>
+<body>
+  <div class="frame">
+    <!-- Its OWN backdrop, not the shared assets/backdrop.jpg that slide.html
+         uses: base/warm/dark all render from that one file, so pointing this
+         slide at it would mean any future reshoot of the dictionary slide
+         silently restyles three other variants. `guess` already had its own
+         for the same reason. -->
+    <img class="backdrop" src="assets/backdrop-word.jpg" alt="" />
+    <div class="scrim"></div>
+
+    <div class="copy">
+      <span class="eyebrow">BUILT-IN DICTIONARY</span>
+      <h1>Any word,<br><span class="hl">explained</span><br>on the spot</h1>
+      <p>Point at a word in the subtitles and the video pauses with its meaning
+         beside it — part of speech, sense, and the line you met it in.</p>
+    </div>
+
+    <!-- The caption keeps the mark the product puts under the word a card is
+         open on. The card itself is NOT drawn here: slide 1 already shows it
+         over the captions, and repeating it would make this slide the second
+         telling of that, instead of the one that shows what "Details" opens.
+
+         WHY THIS SLIDE LEARNS ENGLISH AND NOT SPANISH. It used to be es->en,
+         and two elements of the real screen were missing from it: the
+         translations row under the headword (.vtt-lookup-article-tr) and the
+         Oxford button in the footer. Both were written off as impossible —
+         Oxford genuinely is gated on an English learning language
+         (shape.ts's oxfordLookupUrl: the site is a dictionary OF English), and
+         no Spanish word in the demo transcript returned translations. But
+         "impossible for Spanish" is not the same as "impossible", and the
+         pair is ours to choose. Measured on the live gateway
+         (scratchpad/probe-en-ru.mjs and probe-en-es.mjs, 2026-09-18): every
+         English word returns BOTH — translations and Oxford — so the slide now
+         shows the screen the reference screen shows, rather than a reduced one.
+
+         THE NATIVE LANGUAGE IS SPANISH, THE LEARNING ONE ENGLISH. Only the
+         LEARNING language is constrained: Oxford is a dictionary OF English,
+         and translations arrive for English headwords. The native side is free,
+         so the pair reads en->es and the translations come back in Spanish
+         (aprender, escarmentar, estudiar, enterarse) — the same article, the
+         same 480px and the same zero overflow as en->ru, measured on both.
+
+         WHY "learn". Chosen by measurement, not taste, the same way the
+         Spanish word was. The panel's scroll box is 608px, so an article
+         taller than that renders as a half-article with its tail cut off —
+         which is what the two richest words do: "words" runs 1143px (562px
+         past the fold) and "Save" 992px (411px past). "learn" is 480px with
+         ZERO overflow: two parts of speech, four senses, four translations,
+         everything visible at once. Its examples are also modern prose, which
+         several taller candidates are not — "mistake" (559px) returns two
+         17th-century citations in long-s ("Miftake me not, my Lord"), and
+         "understand" repeats one definition verbatim across two senses.
+
+         And the line it is met in is the line slide 1 already uses — there in
+         Spanish over English subtitles, here the other way round, because this
+         slide learns the other language of the same pair. -->
+    <div class="captions">
+      <span class="cap-main">Today we'll <span class="hit">learn</span> something fun</span>
+      <span class="cap-sub">Hoy vamos a aprender algo divertido</span>
+    </div>
+
+    <div class="tab">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </div>
+
+    <div class="panel">
+      <div class="p-header">
+        <div class="p-top">
+          <!-- The word screen claims the header: "‹ Subtitles" walks back, and
+               the title is the word rather than "Subtitles". -->
+          <span class="backchip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Subtitles
+          </span>
+          <span class="p-title">learn</span>
+        </div>
+        <div class="p-status">
+          <span class="brand">LINGOGRAM</span>
+          <span class="dot"></span>
+          <span class="account">you@example.com</span>
+        </div>
+      </div>
+
+      <!-- The mode row SURVIVES the takeover: lookup.css hides only #vtt-list,
+           the gear and the download button, so Dual/On-screen stay visible over
+           the word screen. Lifted verbatim from slide.html.
+           On-screen is OFF here — with the word screen open the panel is what
+           the reader is reading, and the reference screen shows it off too. -->
+      <div class="p-modes">
+        <div class="seg">
+          <button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="1.5"/></svg>
+          </button>
+          <button class="active">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13" width="18" height="6" rx="1.5"/></svg>
+            Dual
+          </button>
+          <button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M4 8h5M12 8h3M18 8h2"/></svg>
+          </button>
+        </div>
+        <span class="divider"></span>
+        <span class="toggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/></svg>
+          On-screen<span class="sw off"></span>
+        </span>
+      </div>
+
+      <div class="article">
+        <div class="a-head">
+          <span class="a-word">learn</span>
+          <span class="a-heart saved">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+          </span>
+          <span class="a-src">dictionary</span>
+        </div>
+
+        <!-- The translations row: its own element between the head and the
+             quote, NOT the per-sense translations that used to be the only
+             ones here. Rendered whenever the answer carries translations
+             (word-screen.ts: `if (r.translations.length)`), joined by the
+             product's own middot. Transcribed from the live answer for
+             learn, en->ru. -->
+        <div class="a-trs">aprender · escarmentar · estudiar · enterarse</div>
+
+        <div class="a-ctx">Today we'll <b>learn</b> something fun</div>
+
+        <div class="a-group">
+          <div class="a-grouphead">
+            <span class="a-pos">v.</span>
+            <span class="a-poslabel">Verb</span>
+          </div>
+          <div class="a-sense">
+            <span class="a-num">1</span>
+            <span>
+              <span class="a-def">To acquire, or attempt to acquire knowledge or an ability to do something.</span>
+              <div class="a-ex">It's time Dad learned (how) to change the oil in the car.</div>
+            </span>
+          </div>
+          <div class="a-sense">
+            <span class="a-num">2</span>
+            <span>
+              <span class="a-def">To attend a course or other educational activity.</span>
+              <div class="a-ex">For, as he took delight to introduce me, I took delight to learn.</div>
+            </span>
+          </div>
+          <div class="a-sense">
+            <span class="a-num">3</span>
+            <span>
+              <span class="a-def">To gain knowledge from a bad experience so as to improve.</span>
+              <div class="a-ex">learn from one's mistakes</div>
+            </span>
+          </div>
+        </div>
+
+        <div class="a-group">
+          <div class="a-grouphead">
+            <span class="a-pos">n.</span>
+            <span class="a-poslabel">Noun</span>
+          </div>
+          <div class="a-sense">
+            <span class="a-num">1</span>
+            <span><span class="a-def">The act of learning something.</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save AND Oxford: the footer carries a second opinion one click away,
+           and it exists here because the learning language is English
+           (word-screen.ts appends it only when oxfordLookupUrl returns a URL).
+           Save keeps flex:1 and Oxford flex:0 0 auto, so the pair fills the
+           width with Oxford at its intrinsic size — the shipped layout. -->
+      <div class="a-foot">
+        <span class="a-save saved">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+          Remove
+        </span>
+        <span class="a-oxford">
+          <span>Oxford</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,74 @@
+/* SLIDE 2 — "Every word you save, in your own dictionary".
+ *
+ * Only slide 2 loads this; promo.css stays the series' shared ground.
+ *
+ * WHAT CHANGED IN v6, AND WHY
+ * v5 painted two controls on top of the capture, because no single screenshot
+ * could hold both halves of the save: a selection swatch on "vamos" with the
+ * quick-add pill above it (the before), beside "divertido" already highlighted
+ * (the after). Both are deleted here, and NOT because the staging was clumsy —
+ * because the product no longer has either control:
+ *
+ *   - the "✓ saved" badge was removed outright in 1.0.21 (a72f6c6); its
+ *     message key is gone from all 57 locale files of both apps.
+ *   - the "+ Lingogram" quick-add pill was replaced by the lookup card, which
+ *     translates as well as saves (strip.ts's onSelectionMouseUp).
+ *
+ * That is the failure worth naming: the slide kept selling a button for three
+ * releases after it stopped existing, and nothing caught it, because the pill
+ * was drawn by this stylesheet rather than captured from the product. v6 draws
+ * no product UI at all. Everything the slide claims is in the PNG.
+ *
+ * WHAT THE CAPTURE NOW CARRIES
+ * Demo mode seeds the word mirror (DEMO_SAVED_WORDS in the YouTube content
+ * script) with two words from the demo lines, and the transcript paints the
+ * standing saved mark on them through transcript/saved-marks.ts — the same
+ * subscription that runs for a real user. Measured on live-demo-en.png, in css
+ * px on the 1280x800 canvas:
+ *
+ *   "divertido"  mark x 1196..1223, y ~272   (inside the active lime card)
+ *   "palabras"   mark x 1079..1103, y ~729
+ *
+ * The mark is --vtt-heart, which the LIGHT theme sets to #d92d4e — the colour
+ * that means "saved" everywhere in the product, and deliberately not the lime
+ * accent, which means "the card a lookup is open on".
+ */
+
+/* ── Spotlight on the saved card ────────────────────────────────────────── */
+/* The active card sits at roughly 34-52% of the panel's height in this
+ * capture. Rather than masking a rectangle (which would need re-measuring
+ * every time the capture is retaken), this is a soft vertical dim that fades
+ * to nothing across that band — so it degrades gracefully if the card shifts
+ * by a few percent.
+ *
+ * Re-tuned from v5: the v5 stops were cut for a capture whose active card sat
+ * lower. Kept as a gradient rather than tightened into a hard window, because
+ * the second marked word ("palabras", y~729) should stay legible in the dimmed
+ * lower half — it is what makes the mark read as a standing property of the
+ * transcript rather than as a highlight on one card. */
+.stage .panel .spotlight {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        rgba(247, 247, 245, 0.62) 0%,
+        rgba(247, 247, 245, 0.52) 26%,
+        rgba(247, 247, 245, 0.08) 36%,
+        rgba(247, 247, 245, 0) 42%,
+        rgba(247, 247, 245, 0) 52%,
+        rgba(247, 247, 245, 0.16) 60%,
+        rgba(247, 247, 245, 0.46) 72%,
+        rgba(247, 247, 245, 0.58) 100%
+    );
+}
+
+/* ── The counter chip ───────────────────────────────────────────────────── */
+/* The series' callout with its dot recoloured: on this slide the chip reports
+ * the dictionary's size ("142 words saved" — popup.ts's ytWordsSaved string),
+ * so its marker is the success green rather than the generic emerald. */
+.callout--saved::before {
+    background: #15803d;
+}

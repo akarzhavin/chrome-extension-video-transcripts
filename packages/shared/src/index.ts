@@ -13,6 +13,12 @@ export * from './content';
 // client and its cache on the barrel, and the barrel is the embed's surface —
 // the embed has no worker to route LOOKUP_WORD through. See src/lookup/index.
 export { installLookupStrip, WordScreen } from './lookup';
+// One name from the word mirror, for the same reason: `export *` would put
+// applySyncedDocs and the sync cursor on the barrel, which only the worker has
+// any business touching. The apps need the single-entry write to seed the
+// dictionary in promo demo mode, where the saved mark has to be painted by the
+// mirror subscription rather than by hand.
+export { setMirrorEntry } from './word-mirror';
 export * from './popup';
 export * from './onboarding';
 // Content-safe half only. analytics-bg.ts is deliberately NOT re-exported: it

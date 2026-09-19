@@ -3,16 +3,22 @@
   "version": "1.0.0",
   "title": "Fullscreen slide — the product edge to edge over swappable footage",
   "style": "No slide ground of its own: the video frame IS the slide. Headline sits over a left-weighted scrim, panel on the right, dual captions bottom-centre.",
-  "run": "node pipelines/fullscreen@1/render.mjs [--backdrop <path>] [--variant base|warm]",
+  "run": "node pipelines/fullscreen@1/render.mjs [--backdrop <path>] [--variant base|warm|dark|guess|word]",
   "sourceOfTruth": "slide.html + assets/panel.css — the panel is REBUILT in HTML, not captured",
   "inputs": {
     "assets": [
       "assets/panel.css",
       "assets/slide.css",
       "assets/warm.css",
-      "assets/backdrop.jpg"
+      "assets/dark.css",
+      "assets/guess.css",
+      "assets/wordscreen.css",
+      "assets/backdrop.jpg — base, warm and dark all render from this ONE file",
+      "assets/backdrop-guess.jpg — guess only",
+      "assets/backdrop-word.jpg — word only"
     ],
-    "note": "This pipeline reads NO shared product captures — the one pipeline that doesn't. Everything it needs is vendored beside it, so the backdrop is a parameter (--backdrop) instead of pixels welded behind a screenshot."
+    "note": "This pipeline reads NO shared product captures — the one pipeline that doesn't. Everything it needs is vendored beside it, so the backdrop is a parameter (--backdrop) instead of pixels welded behind a screenshot.",
+    "backdropOwnership": "Three variants share assets/backdrop.jpg, so --backdrop on any of them restyles all three. guess and word each have their own vendored file; render.mjs's OWN_BACKDROP map routes --backdrop to the right one. A variant added without an entry there silently writes to the shared file."
   },
   "outputs": {
     "dir": "out/fullscreen@1",
@@ -33,6 +39,12 @@
   ],
   "variants": {
     "base": "Panel in the shipped light theme: neutral-cool #F7F7F5 ground.",
-    "warm": "assets/warm.css layers ~2-3 points of red over blue onto the panel's greys only (ground #F8F6F2, surface #FFFDFA, border #E8E4DE). Accents, type colours and all geometry are untouched, so the panel is still the product's. It exists because the cool ground meets a warm frame and the seam down the panel's left edge reads as a paste-up. Contrast was re-measured after the shift: original text 8.7:1, translation 5.7:1 on the card, 5.5:1 on the active card — all still AA."
+    "warm": "assets/warm.css layers ~2-3 points of red over blue onto the panel's greys only (ground #F8F6F2, surface #FFFDFA, border #E8E4DE). Accents, type colours and all geometry are untouched, so the panel is still the product's. It exists because the cool ground meets a warm frame and the seam down the panel's left edge reads as a paste-up. Contrast was re-measured after the shift: original text 8.7:1, translation 5.7:1 on the card, 5.5:1 on the active card — all still AA.",
+    "dark": "assets/dark.css: the panel in the product's own dark theme. The theme follows the FOOTAGE, and that is a measurement, not a taste call — assets/backdrop.jpg reads 23.1% mean luminance, so a light panel on it is a slab.",
+    "guess": "slide-guess.html + dark.css + guess.css over assets/backdrop-guess.jpg. Rides the dark panel although its frame is bright (68.7% mean): a light panel on that window left no visible boundary, measured at 1.02:1 photo-to-panel.",
+    "word": "slide-word.html + dark.css + wordscreen.css over assets/backdrop-word.jpg: the panel holds the WORD SCREEN rather than the transcript. Its backdrop is a chalkboard, and the subject sits centre-left so the right quarter stays clear for the panel. Brighter than the podcast frame (33.2% mean vs 23.1%) but still far from the guess frame's 68.7%, so the dark panel keeps its boundary; the panel band alone reads 46.1%. The headline now falls over chalk writing rather than a flat wall, so the scrim was re-measured against the ground with the type hidden: worst case 5.03:1 on the headline, 6.69:1 on the paragraph, 3.72:1 on the violet 'explained' at 46px — all AA. CHOSEN OVER AN ALTERNATIVE, 2026-09-18: a desk/office frame was rendered through the same pipeline and rejected on composition, not contrast (it measured slightly BETTER on the paragraph, 15.06:1 vs 6.69:1). The slide commits three zones — headline left, panel right, captions bottom-centre — and the chalkboard leaves all three: its subject stands left of centre and the board runs to the frame edges, so the captions have texture under them. In the office frame the face lands dead centre and the lower left empties out, leaving the captions on nothing. It is also 3:2, so a centred 16:9 crop cuts the top of the head."
+  },
+  "credits": {
+    "assets/backdrop-word.jpg": "Photo by Vitaly Gariev, Unsplash (GTNTkxGckGg), free to use under the Unsplash License. Downscaled 3840x2160 -> 2560x1440 to match the other backdrops. The vendored JPG here IS the archive copy: /docs is gitignored, so the full-resolution original is not in the repo — same as for backdrop.jpg and backdrop-guess.jpg."
   }
 }

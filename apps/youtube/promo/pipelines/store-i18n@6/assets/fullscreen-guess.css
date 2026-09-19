@@ -1,0 +1,149 @@
+/* VARIANT: guess — active recall, on a bright frame.
+ *
+ * Two things separate this from the dual-subtitle slide, and both come from
+ * what guess mode IS rather than from taste:
+ *
+ * 1. THE WORDS ARE HIDDEN. The panel shows capsules where the words were, and
+ *    the on-video line shows them too. That is the whole feature: you hear the
+ *    line, then check yourself. Capsule styling below mirrors the shipped
+ *    .vtt-masked-word under .vtt-light — rgba(17,17,17,0.10) with a
+ *    rgba(17,17,17,0.14) inset hairline, radius 5, padding .14em/.3em.
+ *
+ * 2. THE FRAME IS BRIGHT. pexels-olly is a blown-out window: the left edge runs
+ *    near-white, where the dual slide's frame ran near-black. The base scrim is
+ *    a dark wash tuned for that dark frame; reused here it would grey out a
+ *    photograph whose whole appeal is the light. So the scrim is rebuilt as a
+ *    LIGHT one and the copy flips to dark type — same layout, inverted values.
+ */
+
+/* ── Opaque panel ─────────────────────────────────────────────────────────
+   dark.css carries the shipped 0.86 glass, which is right in the product: the
+   blur resolves live video behind it. On a still frame there is nothing to
+   resolve, so the alpha only lets a bright window bleed up through the panel
+   and lift its ground unevenly — the list looked washed toward the top, where
+   the window sits. Opaque here, and the ground is the solid token the product
+   itself uses when it needs one (--vtt-panel-solid: #1b1c20). */
+.panel {
+    background: #1b1c20;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+.tab {
+    background: #1b1c20;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+/* The cards sit on a known ground now, so their white-alpha resolves to a flat
+   value rather than to whatever the window was doing behind them. */
+.item { background: #232428; border-color: #26272c; }
+.item.active { background: #2b2e42; border-color: rgba(124, 141, 255, 0.32); }
+
+/* ── Scrim: light ─────────────────────────────────────────────────────────
+   The left side goes back to a bright wash with dark type on it. That is what
+   this frame wants — it is a blown-out window, and a dark wash over it fought
+   the light the photo was chosen for.
+
+   It also fixes a contrast failure the dark wash had: at 46% falloff the copy
+   column ran past the shaded band onto the sunlit wall and the yellow shirt,
+   where white type measured 1.78:1. Dark type on the light wash has the
+   opposite failure mode, and here the worst case is the shirt — which the
+   ramp below still covers. */
+.scrim {
+    background:
+        linear-gradient(100deg,
+            rgba(255, 253, 250, 0.96) 0%,
+            rgba(255, 253, 250, 0.88) 14%,
+            rgba(255, 253, 250, 0.58) 24%,
+            rgba(255, 253, 250, 0.20) 32%,
+            rgba(255, 253, 250, 0.04) 38%,
+            rgba(255, 253, 250, 0) 43%),
+        radial-gradient(46% 58% at 2% 44%, rgba(123, 44, 255, 0.06) 0%, transparent 58%);
+}
+
+/* ── Copy: dark type on the light wash ───────────────────────────────────── */
+.eyebrow {
+    background: rgba(123, 44, 255, 0.08);
+    border-color: rgba(123, 44, 255, 0.22);
+    color: #5b1fc0;
+}
+.copy h1 { color: #111111; text-shadow: none; }
+/* Violet, not the panel's periwinkle: #7C8DFF is a dark-theme accent and lands
+   near 2:1 on a white wash. This is the light-side member of the same family. */
+.copy h1 .hl { color: #6a20e0; }
+.copy p { color: rgba(17, 17, 17, 0.74); text-shadow: none; }
+.copy { width: 330px; }
+.copy h1 { font-size: 44px; }
+.copy p { font-size: 16.5px; }
+
+/* ── Masked words ─────────────────────────────────────────────────────────
+   Geometry only. The capsule's colours come from dark.css, which carries the
+   dark theme's white-alpha pane — the light theme's rgba(17,17,17,...) would
+   be invisible on this panel. */
+.mask {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0.14em 0.3em;
+    vertical-align: -0.22em;
+    line-height: 0.92;
+    margin: 0 0.02em;
+    /* The capsule is sized by the word it hides, so the line keeps its rhythm
+       and the reader can still judge word length — the text inside is present
+       but transparent. */
+    color: transparent;
+}
+
+/* On the video the caption box is dark, so the capsule inverts back to the
+   white-alpha pane the base theme uses over footage. */
+.cap-main .mask {
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+/* ── Caption size ─────────────────────────────────────────────────────────
+   A deliberate departure from the product's formula, recorded because it is
+   one. The product sizes captions as `24px * (player width / 1920)`, which on
+   this 1280-wide frame resolves to 16px main / 12px sub. That is correct on a
+   real screen — the frame there is 1920 across and the viewer is at arm's
+   length — but this slide is a 1280x800 THUMBNAIL in a store listing, often
+   seen smaller still. At 16px the masked capsules, which are the whole point
+   of the guess slide, stop reading as words at all.
+
+   So the captions are set to what stays legible in a store thumbnail: 28px
+   main, 20px sub — 1.75x the literal formula. Everything else about the box
+   (padding, radius, in em) is the product's, so proportions hold. */
+.cap-main {
+    font-size: 28px;
+    padding: 0.25em 0.67em;
+    border-radius: 0.34em;
+}
+.cap-sub {
+    font-size: 20px;
+    padding: 0.22em 0.67em;
+    border-radius: 0.33em;
+}
+.captions { gap: 6px; bottom: 60px; }
+
+/* The active card in guess mode: the lime tint still marks "this is the line
+   playing now", which is what tells you which capsules to be guessing at. */
+
+/* The copy column is narrower here than on the dual slide. The bright wash has
+   to stop before the subject — a scrim wide enough for a 440px column washed
+   her out completely — so the text is set to fit the band, not the band to the
+   text. */
+.copy { width: 390px; }
+.copy h1 { font-size: 50px; }
+
+/* The edge has to work hardest on this frame: the window behind the panel runs
+   to near-white, so panel and photo measured 1.02:1 — the boundary vanished.
+   A wider, stronger falloff is what puts it back without drawing a hard rule
+   across a photograph. */
+.panel {
+    --panel-edge: rgba(123, 44, 255, 0.30);
+    /* The frame here is a blown-out window, so the glow is kept SHORT: spread
+       over 110px against near-white it stops being light and starts being a
+       lilac stain across the photo. It has less separating to do anyway — the
+       dark panel already stands off this background on value alone. */
+    --glow-mid: rgba(150, 122, 245, 0.14);
+    --glow-near: rgba(150, 122, 245, 0.46);
+    --glow-reach: 78px;
+}

@@ -1,0 +1,297 @@
+/* VARIANT LAYER: the panel showing the WORD SCREEN instead of the transcript.
+ *
+ * Layers over panel.css + dark.css. The frame, the scrim, the headline, the
+ * captions and the panel chassis are all unchanged — what changes is what the
+ * panel holds: the sidebar's word screen, which takes the panel over the way
+ * Settings does (#vtt-sidebar gains .vtt-lookup-open, the list is hidden, the
+ * title becomes the word, "‹ Subtitles" walks back).
+ *
+ * MEASURED, NOT INVENTED. Every value below is a computed style read off the
+ * running extension over CDP on 2026-09-18, in the product's OWN dark theme —
+ * the same method and the same discipline as panel.css and dark.css. Source of
+ * truth: apps/rezka/src/assets/lookup.css.
+ *
+ *   back chip      12.5px/500 #7c8dff, transparent, pad 6px 8px 6px 4px
+ *   title          18px/600 #fff — the word, not "Subtitles"
+ *   headword       21px/600, letter-spacing -0.01em
+ *   head rule      1px rgba(255,255,255,0.08) under the row
+ *   heart          26x26, r6, rgba(255,255,255,0.62), 17px glyph
+ *   source badge   9.5px, ls 0.38px, #6ee7b7 on rgba(52,211,153,0.16), r4
+ *   quote          12px italic rgba(255,255,255,0.72) on rgba(255,255,255,0.03),
+ *                  2px left border rgba(124,141,255,0.32), r 0 6px 6px 0
+ *   pos tag        10.5px/600 #dfe4ff on rgba(124,141,255,0.30), r4
+ *   pos label      11px rgba(255,255,255,0.62)
+ *   sense grid     14px / 1fr, gap 6px
+ *   sense tr       12.5px/500 #e9eaee
+ *   sense def      12.5px rgba(255,255,255,0.72)
+ *   sense example  11.5px italic rgba(255,255,255,0.62)
+ *   footer         border-top 1px rgba(255,255,255,0.08), pad 10px 16px 12px
+ *   Save           #7c8dff ground, #0a1129 type, h36, r7, 12.5px/600
+ *   translations   margin-top 8px, 12.5px/500, #e9eaee
+ *   Oxford         h36, pad 0 14px, r7, 1px rgba(255,255,255,.15), 12.5px/600
+ *
+ * THE PAIR IS en->ru, and that is what puts two elements on this screen that
+ * an es->en one cannot have: the translations row and the Oxford button. Both
+ * are gated on the answer or the language, never on layout — see their blocks
+ * at the end of this file.
+ */
+
+/* The header: the back chip replaces the language pair, and the title is the
+   word being looked at. */
+.p-top .backchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 8px 6px 4px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #7c8dff;
+    white-space: nowrap;
+}
+.p-top .backchip svg { width: 13px; height: 13px; flex: none; }
+
+/* ── The article ───────────────────────────────────────────────────────── */
+.article {
+    flex: 1;
+    min-height: 0;
+    padding: 4px 16px 14px;
+    font-size: 12.5px;
+    line-height: 18.125px;
+    color: var(--text);
+}
+
+.a-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.a-word {
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: var(--text);
+}
+
+/* The heart has no baseline worth aligning to, so it centres itself in a row
+   that is otherwise baseline-aligned — the product's own rule. */
+.a-heart {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.62);
+    flex: none;
+}
+.a-heart svg { width: 17px; height: 17px; }
+
+/* Pushed right by margin-left:auto, as in the product. The green pair is the
+   "dictionary" badge; the model's answer would wear the amber one. */
+.a-src {
+    margin-left: auto;
+    font-size: 9.5px;
+    letter-spacing: 0.38px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: rgba(52, 211, 153, 0.16);
+    color: #6ee7b7;
+}
+
+/* The line the word was met in. */
+.a-ctx {
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-left: 2px solid rgba(124, 141, 255, 0.32);
+    border-radius: 0 6px 6px 0;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 17.4px;
+}
+.a-ctx b { color: var(--text); font-weight: 600; }
+
+.a-group { margin-top: 14px; }
+.a-grouphead { display: flex; align-items: center; gap: 7px; }
+.a-pos {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.25;
+    background: rgba(124, 141, 255, 0.30);
+    color: #dfe4ff;
+}
+.a-poslabel { font-size: 11px; color: rgba(255, 255, 255, 0.62); }
+
+.a-sense {
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    gap: 6px;
+    margin-top: 9px;
+}
+.a-num { font-size: 10px; color: rgba(255, 255, 255, 0.62); }
+.a-tr { font-size: 12.5px; font-weight: 500; color: var(--text); }
+.a-def { font-size: 12.5px; color: rgba(255, 255, 255, 0.72); }
+.a-ex {
+    margin-top: 3px;
+    font-size: 11.5px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.62);
+}
+.a-ext { font-size: 11px; color: rgba(255, 255, 255, 0.62); font-style: normal; }
+
+/* ── The pinned footer ─────────────────────────────────────────────────── */
+/* The one control on the panel, and the reason the slide has a call to action
+   without the slide having to add one. */
+.a-foot {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.a-save {
+    flex: 1;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 7px;
+    border: 1px solid rgba(124, 141, 255, 0.55);
+    background: #7c8dff;
+    color: #0a1129;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+.a-save svg { width: 15px; height: 15px; flex: none; }
+
+/* ── The word the screen belongs to, marked in the caption ─────────────────
+ * The product marks it with a short bar drawn OUTSIDE the glyph box, so it
+ * cannot alter the caption's metrics: 44% of the word's width, 0.12em tall,
+ * radius 0.06em (lookup.css .vtt-lookup-hit::after).
+ *
+ * In the accent, not the heart colour: accent means "this is the word the
+ * open screen is about", heart would mean "already in your dictionary" — a
+ * different claim, and one contradicted by the panel's own Save button, which
+ * only says "Save" for a word the learner does not yet have. The dark theme's
+ * accent is periwinkle, which is what --lime resolves to under dark.css. */
+.cap-main .hit { position: relative; }
+.cap-main .hit::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.14em;
+    width: 44%;
+    height: 0.12em;
+    min-height: 2px;
+    transform: translateX(-50%);
+    border-radius: 0.06em;
+    background: var(--lime);
+}
+
+/* The base form, shown beside the headword when the word on screen is inflected
+   ("Guarda" -> "guardar"). The product prefixes it with an arrow in CSS. */
+.a-lemma { font-size: 11.5px; color: rgba(255, 255, 255, 0.62); }
+.a-lemma::before { content: '→ '; }
+
+/* ── The word is ALREADY in the dictionary ────────────────────────────────
+ * The reference screen (2026-09-18) shows the saved state, and it is the more
+ * honest one for a slide whose headline is about keeping words: the heart is
+ * filled and the footer button says what pressing it would DO next, which for
+ * a saved word is Remove, not "Saved".
+ *
+ * Both faces come from lookup.css:
+ *   .vtt-lookup-head-heart.saved  colour + fill + stroke -> --vtt-heart
+ *   .vtt-lookup-save.saved        ground --vtt-heart-quiet, border
+ *                                 --vtt-heart-border, type --vtt-heart
+ * In the DARK theme those tokens are #ff7a90 / rgba(255,122,144,0.16) /
+ * rgba(255,122,144,0.4) — styles.css's dark block, not the light one's #d92d4e.
+ */
+.a-heart.saved { color: #ff7a90; }
+.a-heart.saved svg { fill: #ff7a90; stroke: #ff7a90; }
+
+.a-save.saved {
+    background: rgba(255, 122, 144, 0.16);
+    border-color: rgba(255, 122, 144, 0.4);
+    color: #ff7a90;
+}
+.a-save.saved svg { fill: #ff7a90; stroke: #ff7a90; }
+
+/* ── The status row carries the account, not the counter ──────────────────
+ * A signed-in panel shows the address the words are being saved TO — which is
+ * what the reference shows, and what makes "142 words saved" the wrong line
+ * here: that chip is the SIGNED-OUT/demo face. An address also says, without
+ * any slide copy having to, that the dictionary is an account and not a local
+ * list. Same type as the counter it replaces (auth-status-badge.ts). */
+.p-status .account { font-weight: 600; color: var(--text); }
+
+/* The On-screen toggle in its OFF state: the knob slides left and the track
+   drops to the panel's inactive fill. Values from styles.css's .vtt-switch —
+   the same track the light theme uses, in the dark theme's hairline grey. */
+.toggle .sw.off { background: rgba(255, 255, 255, 0.15); }
+.toggle .sw.off::after { right: auto; left: 2px; }
+
+/* ── THE TRANSLATIONS ROW ──────────────────────────────────────────────────
+ * The word's translations as their OWN element, between the head and the
+ * quote — not the per-sense translations, which are a different thing and were
+ * for a while the only ones this replica had.
+ *
+ * The product renders it whenever the answer carries translations at all
+ * (word-screen.ts: `if (r.translations.length)`), joined by its own middot.
+ * That is a property of the ANSWER, and therefore of the language pair: the
+ * gateway returns translations for English headwords and returned none for any
+ * Spanish word in this transcript. Measured, not asserted —
+ * scratchpad/probe-en-ru.mjs, 2026-09-18.
+ *
+ * Values read off the running panel in the dark theme, same run:
+ *   margin-top 8px · 12.5px/500 · line-height 18.125px · #e9eaee (--vtt-text)
+ */
+.a-trs {
+    margin-top: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 18.125px;
+    color: var(--text);
+}
+
+/* ── THE OXFORD LINK ───────────────────────────────────────────────────────
+ * A second opinion one click away. It sits beside Save and NOT inside the
+ * button row's flex share: Save keeps flex:1 and this keeps flex:0 0 auto, so
+ * it stays at its intrinsic width while Save takes the rest.
+ *
+ * It exists only when the LEARNING language is English, because
+ * oxfordLearnersdictionaries is a dictionary OF English — shape.ts gates the
+ * URL on /^en(-|_|$)/ and every other language 404s there. That gate is why
+ * this slide learns English: the button cannot honestly appear otherwise.
+ *
+ * Measured on the running panel, dark theme (2026-09-18):
+ *   h36 · pad 0 14px · r7 · 1px rgba(255,255,255,0.15) · transparent ground
+ *   12.5px/600 rgba(255,255,255,0.72) · gap 5px · icon 13px · no underline
+ */
+.a-oxford {
+    flex: 0 0 auto;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 14px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.a-oxford svg { width: 13px; height: 13px; flex: none; }
