@@ -154,9 +154,46 @@ const slide1 = (p, loc, s, ui) => {
       <p>${p('slide1', 'sub')}</p>
     </div>
 
+    <!-- THE SAVED WORD, marked in the captions and carrying the card.
+         The learning-side caption is the same Spanish line in all 54 locales
+         (promo-copy.json: one unique slide1.caption), so marking a fixed word
+         in it is safe — SLIDE1_HIT is anchored to the end of the line so a
+         substring elsewhere cannot match. Only the card's BUTTON LABELS
+         localize, from _locales like every other product string. -->
     <div class="captions">
-      <span class="cap-main">${p('slide1', 'caption')}</span>
+      <span class="cap-main">${slide1Caption(p)}</span>
       <span class="cap-sub">${p('slide1', 'captionSub')}</span>
+    </div>
+
+    <!-- The lookup card, over the word it belongs to. Ported from
+         store-en@6/slide1.html, where its geometry was solved: the card points
+         at the caption's LAST word because the headline's paragraph fills the
+         left half of the frame and a card over an earlier word lands on it.
+         Position from scratchpad/align-card.mjs — measured, not nudged.
+
+         THE WORD IS ALREADY SAVED, which is three linked facts rather than one
+         decoration: the heart is filled and the button says what pressing it
+         does NEXT (lookup/strip.ts:438); the caption word wears the HEART bar,
+         not the accent one, even with a card open over it; and the same word is
+         marked in the sidebar transcript. The last two are one subscription in
+         the product — repaintSavedMarks paints over BOTH containers — so a
+         slide marking only the caption would show a state the product cannot
+         be in. -->
+    <div class="lookup" style="left: 547.2px; bottom: 150.6px;">
+      <div class="lk-body">
+        <span class="lk-pos">adj.</span>
+        <span class="${p('slide1', 'lookupIsDef') ? 'lk-def' : 'lk-tr'}">${p('slide1', 'lookupTr')}</span>
+      </div>
+      <div class="lk-acts">
+        <span class="lk-btn saved">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 22.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+          <span>${ui.lookupRemove}</span>
+        </span>
+        <span class="lk-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          <span>${ui.lookupMore}</span>
+        </span>
+      </div>
     </div>
 
     <div class="tab">
@@ -212,7 +249,7 @@ const slide1 = (p, loc, s, ui) => {
               <div class="trans">${tr[0]}</div>
             </div>
             <div class="item active">
-              <div class="orig">Hoy vamos a aprender algo divertido</div>
+              <div class="orig">Hoy vamos a aprender algo <span class="w saved">divertido</span></div>
               <div class="trans">${tr[1]}</div>
             </div>
             <div class="item">
@@ -232,7 +269,7 @@ const slide1 = (p, loc, s, ui) => {
               <div class="trans">${tr[5]}</div>
             </div>
             <div class="item">
-              <div class="orig">Guarda las palabras que no conozcas</div>
+              <div class="orig">Guarda las <span class="w saved">palabras</span> que no conozcas</div>
               <div class="trans">${tr[6]}</div>
             </div>
             <div class="item">
@@ -440,6 +477,17 @@ const slide4 = (p, loc, s, ui) => `${head(loc, ['promo.css'])}
 // it and break the pair the slide depends on — see the note on slide5 below.
 // The copy file still carries slide5.caption for reference; this asserts they
 // agree, so a future edit to one is not silently ignored.
+// The word slide 1's card is open on, marked in the on-screen caption. The
+// learning-side line is the same Spanish sentence in every locale, so this is a
+// constant rather than per-locale copy; anchored to the end of the line so
+// "divertido" inside a longer token could not match instead.
+const SLIDE1_HIT = 'divertido';
+
+function slide1Caption(p) {
+  const line = p('slide1', 'caption');
+  return line.replace(new RegExp(`${SLIDE1_HIT}$`), `<span class="hit saved">${SLIDE1_HIT}</span>`);
+}
+
 const SLIDE5_CAPTION = "Today we'll learn something fun";
 // The word the HOVER CARD points at, and deliberately not the word the panel
 // is showing. The card has to sit over its own word, and a card over "learn"

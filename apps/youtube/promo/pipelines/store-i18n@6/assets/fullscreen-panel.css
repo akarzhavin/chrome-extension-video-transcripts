@@ -31,6 +31,12 @@
     --text-2: #4a4a4a;
     --violet: #7b2cff;
     --lime: #c8ff00;
+    /* "This word is in your dictionary" — the one token that already means
+       saved (--vtt-heart). The LIGHT value: styles.css darkens the dark
+       theme's #ff7a90 on white, where the pink washes out. Without this the
+       saved marks and the card's heart resolve to nothing and paint no colour
+       at all, which is how they went missing when the card was first ported. */
+    --heart: #d92d4e;
     /* The product's own UI font stack, as measured on .vtt-main-text. */
     --ui: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -245,4 +251,239 @@ body {
     justify-content: center;
     color: var(--text-2);
     opacity: 0.7;
+}
+
+/* ── The lookup card over the captions ────────────────────────────────────
+   New in v6. The word lookup shipped in 1.0.21: pointing at a word in the
+   on-screen captions pauses the video and opens this card under the cursor.
+   Slide 1 is the only frame in the series that shows the captions at full
+   size, so it is the only one where the gesture can be shown where it
+   actually happens — on the video, not in the panel.
+
+   MEASURED, NOT DRAWN BY EYE. Every value below is a computed style read off
+   the running card over CDP (2026-09-18), the same method the panel above was
+   built with. Source of truth: apps/rezka/src/assets/lookup.css.
+
+     card        #fff, 1px #d6d6d2, radius 10px, shadow 0 8px 26px rgba(0,0,0,.55)
+     body        padding 8px 11px 7px, gap 4px
+     pos tag     10.5px/600 #4a4a4a on rgba(17,17,17,.06), radius 4px, pad 2px 6px
+     translation 13px/500 #111, line-height 18.2px
+     action row  border-top 1px #e5e5e2; buttons 33px min-height, 12.5px/500
+                 #4a4a4a, 15px icons, 6px gap, divided by 1px #e5e5e2
+     word mark   .vtt-lookup-hit::after — 44% wide, 0.12em tall. The accent
+                 (#c8ff00) alone means "a card is open on this word"; a word
+                 that is ALSO saved wears the heart (#d92d4e) instead — see
+                 the two-state note at the end of this file
+     card saved  heart filled #d92d4e, button label "Remove" (lookup/strip.ts)
+
+   THE ONE DEPARTURE, and it is the same one the captions already make: this
+   frame renders the product at 1.75x the shipped caption formula, because a
+   1280x800 store thumbnail is read far smaller than a real 1080p player. A
+   card at its literal 163x90 would be a smudge beside 28px captions.
+
+   The card takes 1.28x rather than the captions' 1.75x, and the gap between
+   those two numbers is the whole compromise on this slide. At 1.75 the card
+   reaches straight through the headline's paragraph, which ends at x 504.
+   Shrinking the captions instead would cost the slide its subject; moving the
+   card off its word would break the one thing it is there to show. So the card
+   shrinks, applied as a transform so every internal proportion stays exactly
+   the product's — nothing is re-typeset, only scaled.
+
+   IT WAS 1.45 UNTIL THE WORD BECAME A SAVED ONE. The saved card's button says
+   "Remove", and the product sizes the card to its content, so the card itself
+   widened 163px -> 215.7px. At 1.45 that rendered 312.7px and crossed back
+   into the paragraph. 1.28 is not a nudge: scratchpad/solve-scale.mjs renders
+   the candidates and reports the largest one that still clears the copy with a
+   12px gutter, keeps the card off the sidebar, and leaves both buttons inside
+   the card's own box. 1.30 fails the first of those at x 514.9. */
+.lookup {
+    position: absolute;
+    /* Anchored to the caption block below it, positioned in slide1.html so the
+       card sits over the word it belongs to. */
+    z-index: 3;
+    /* 215.7px, not the 163px this replica first carried.
+       The card is content-sized in the product (max-width 300px), so its width
+       is a function of the LABEL: "Save" gives 163px, and the saved word's
+       "Remove" gives 215.7px. Hardcoding the Save-state width while showing the
+       Remove-state label clipped "Details" straight out of the card's own box —
+       the measurement said the buttons needed 260.8px inside 236.4px, and the
+       render showed the letters cut off. Measured on the running card in this
+       exact state (scratchpad/measure-saved.mjs). */
+    width: 215.7px;
+    background: #fff;
+    border: 1px solid #d6d6d2;
+    border-radius: 10px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
+    color: #111;
+    font-family: var(--ui);
+    font-size: 13px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    /* 1.45x — see the note above for why this is not the captions' 1.75x.
+       The origin is the card's bottom centre so it grows UP and OUT from the
+       word it points at, keeping the 6px gap the product leaves between word
+       and card. */
+    transform: scale(1.28);
+    transform-origin: 50% 100%;
+}
+
+.lk-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 11px 7px;
+}
+
+.lk-pos {
+    align-self: flex-start;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #4a4a4a;
+    background: rgba(17, 17, 17, 0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* The card's headline: the translations, joined by the product's own middot. */
+.lk-tr {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18.2px;
+    color: #111;
+}
+
+/* Two equal, labelled buttons filling the width — the shipped layout, with the
+   heart on the edge facing the word so the cursor's path to it is a few px. */
+.lk-acts {
+    display: flex;
+    border-top: 1px solid #e5e5e2;
+}
+.lk-btn {
+    flex: 1 1 0;
+    min-height: 33px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #4a4a4a;
+    white-space: nowrap;
+}
+.lk-btn + .lk-btn { border-left: 1px solid #e5e5e2; }
+.lk-btn svg { width: 15px; height: 15px; flex: none; }
+
+/* The word the card is open on, marked the way the product marks it: a short
+   bar drawn OUTSIDE the glyph box so it cannot alter the caption's metrics.
+   The accent is the "card is open here" colour; .saved repaints it — see the
+   two-state block at the end of this file. */
+.cap-main .hit {
+    position: relative;
+}
+.cap-main .hit::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.14em;
+    width: 44%;
+    height: 0.12em;
+    min-height: 2px;
+    transform: translateX(-50%);
+    border-radius: 0.06em;
+    background: var(--lime);
+}
+
+/* The middot between translations. The product carries the break opportunities
+   in literal spaces around the character and only tops the width up with
+   margins (lookup.css .vtt-lookup-sep). */
+.lk-sep {
+    color: #7a7a7a;
+    font-weight: 400;
+    margin: 0 2px;
+}
+
+/* ── A WORD THE LEARNER ALREADY OWNS ──────────────────────────────────────
+ * New in v6, and the one thing on this slide that is a standing fact rather
+ * than a consequence of the cursor: "divertido" is in the dictionary, so it
+ * is marked wherever it appears — in the on-screen captions AND down in the
+ * sidebar transcript.
+ *
+ * ONE SUBSCRIPTION, TWO CONTAINERS. That pairing is not a composition choice
+ * here; it is what the product does. SidebarUI.repaintSavedMarks runs
+ * markSavedIn over `this.elements.list` and over the overlay on the same
+ * mirror change, so no real frame can show the word marked in one and bare in
+ * the other. Marking only the caption would be a state the product cannot be
+ * in.
+ *
+ * HEART, NOT ACCENT, ON A WORD THAT ALSO HAS THE CARD OPEN. The product
+ * settles this with specificity: .vtt-saved-mark.vtt-lookup-hit::after (0,2,0)
+ * beats .vtt-lookup-hit::after (0,1,0), and styles.css carries a note on why
+ * it was flipped to this — with the accent winning, pressing the heart changed
+ * the card's button to Remove while the bar under the word stayed accent, so
+ * the press looked like it had done nothing to the line. The save is the state
+ * the reader is CHANGING; the hover is just where the cursor is, and the card
+ * says that by existing.
+ *
+ * #d92d4e AND NOT #ff7a90. --vtt-heart has two values, and this panel is the
+ * LIGHT theme: styles.css darkens the dark theme's pink on white, where it
+ * would otherwise wash out. Slide 5 is the dark panel and uses #ff7a90.
+ *
+ * EM, NOT PX, for the geometry — the same reason the product does it: the
+ * caption font is player-relative, and this frame renders it at 1.75x, so a
+ * px bar tuned on one would be wrong on the other. Measured off the running
+ * extension (scratchpad/measure-saved.mjs, 2026-09-18): overlay word 51.1px
+ * wide -> 22.45px bar, sidebar word 64.3px -> 28.27px, both 44%.
+ */
+.cap-main .hit.saved::after { background: var(--heart); }
+
+/* The sidebar transcript marks the same word. The replica's list is plain
+   text, so the marked word gets the span the product's own tokenizer would
+   have given it (transcript/word-markup.ts wraps every word in
+   span[data-word] and adds the class to the saved ones). */
+.item .orig .w {
+    position: relative;
+}
+.item .orig .w.saved::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.14em;
+    width: 44%;
+    height: 0.12em;
+    min-height: 2px;
+    transform: translateX(-50%);
+    border-radius: 0.06em;
+    background: var(--heart);
+}
+
+/* The card's own saved faces: a filled heart, and a label that says what the
+   button DOES next rather than what the word is. Both from lookup.css
+   (.vtt-lookup-heart.saved / the Remove label in strip.ts). The hover card is
+   a plain text row here, not the panel's filled button, so the .saved state is
+   just the colour — there is no tinted ground to carry over. */
+.lk-btn.saved { color: var(--heart); }
+.lk-btn.saved svg { fill: var(--heart); stroke: var(--heart); }
+
+/* THE DEFINITION FALLBACK.
+ * The card shows translations when the answer carries any, and the DEFINITION
+ * when it does not — the product's own else-branch (strip.ts, the else of
+ * `translations.length`). One store locale hits it for "divertido": Norwegian
+ * gets no equivalents from the gateway, so its card reads the English gloss,
+ * exactly as a real Norwegian user's card would. Inventing two Norwegian words
+ * to keep the slides uniform would be showing a state the product cannot reach.
+ *
+ * Values from lookup.css .vtt-lookup-def, in the LIGHT theme this slide uses:
+ * --vtt-text-soft is #4a4a4a there, and the strip clamps the gloss to two
+ * lines because it is a glance, not an article. */
+.lk-def {
+    color: #4a4a4a;
+    font-size: 12.5px;
+    max-width: 270px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
