@@ -1792,3 +1792,139 @@ describe('guess mode: hovering a hidden word opens its card', () => {
         teardown();
     });
 });
+
+/**
+ * Hovering is something the USER does. The overlay rebuilds its children
+ * ~4×/sec, and a rebuild moves a fresh word under a cursor that has not
+ * budged — which Chrome reports as a plain `mouseover` on that word, with no
+ * `mousemove` before it and the coordinates of wherever the pointer was last
+ * put down. Acted on, it opens a card and PAUSES the film under someone who
+ * was only watching.
+ *
+ * Measured in Chrome via Playwright rather than assumed, because the first two
+ * guesses at the mechanism were both wrong: inserting a node under a still
+ * cursor fires nothing at all, and the events a rebuild does fire arrive as a
+ * bare out/over pair that no `mousemove` ever follows. What separates the two
+ * cases is therefore the COORDINATES: a hover the user performed lands
+ * somewhere the pointer has not already been sitting.
+ */
+describe('hover means the user moved — not that the subtitles moved', () => {
+    function overlaySpan(word: string): HTMLElement {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        const span = document.createElement('span');
+        span.dataset.word = word;
+        span.textContent = word;
+        box.appendChild(span);
+        document.body.appendChild(box);
+        // jsdom measures everything as zero, and place() drops a card whose
+        // anchor has no box — so the span is given one, as the other suites do.
+        const rect = { top: 400, bottom: 420, left: 100, right: 160,
+            width: 60, height: 20, x: 100, y: 400, toJSON: () => ({}) } as DOMRect;
+        span.getBoundingClientRect = () => rect;
+        return span;
+    }
+
+    /** Physically move the pointer to a point, as the browser reports it. */
+    function movePointerTo(x: number, y: number, over?: Element): void {
+        (over ?? document).dispatchEvent(new MouseEvent('mousemove', {
+            bubbles: true, clientX: x, clientY: y,
+        }));
+    }
+
+    function hoverAt(el: Element, x: number, y: number): void {
+        el.dispatchEvent(new MouseEvent('mouseover', {
+            bubbles: true, clientX: x, clientY: y,
+        }));
+    }
+
+    let video: HTMLVideoElement;
+    let pauseSpy: jest.Mock;
+
+    beforeEach(async () => {
+        document.body.innerHTML = '';
+        await chromeStorage.local.set({ 'lang.v1': { learning: 'en', native: 'ru' } });
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(
+            (_m, cb) => cb({ ok: true, result: dictAnswer }));
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        video = document.createElement('video');
+        pauseSpy = jest.fn(function (this: HTMLVideoElement) {
+            Object.defineProperty(this, 'paused', { value: true, configurable: true });
+        });
+        Object.defineProperty(video, 'paused', { value: false, configurable: true });
+        video.play = jest.fn(() => Promise.resolve()) as unknown as HTMLVideoElement['play'];
+        video.pause = pauseSpy as unknown as HTMLVideoElement['pause'];
+        document.body.appendChild(video);
+        jest.useFakeTimers();
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it('ignores a word that slides under a resting cursor — no card, no pause', async () => {
+        const teardown = installLookupStrip();
+        // The user put the pointer here at some point and left it alone.
+        movePointerTo(300, 400);
+        // A cue renders; one of its words now occupies that exact point. The
+        // browser reports the hover at the coordinates the pointer already had.
+        hoverAt(overlaySpan('anchor'), 300, 400);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+        // The whole point of the bug report: the film kept playing.
+        expect(pauseSpy).not.toHaveBeenCalled();
+        teardown();
+    });
+
+    it('opens as before when the cursor actually travels onto the word', async () => {
+        const teardown = installLookupStrip();
+        movePointerTo(300, 400);
+        // The pointer moves somewhere new, and the word is under it there.
+        hoverAt(overlaySpan('anchor'), 120, 90);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(document.getElementById('lingogram-lookup-strip')).not.toBeNull();
+        expect(pauseSpy).toHaveBeenCalledTimes(1);
+        teardown();
+    });
+
+    it('asks once when a hover and its mousemove both land on the same word', async () => {
+        // Chrome delivers both for one gesture — mouseover first, then the
+        // mousemove that caused it. Both now reach aimAt(), and the budget the
+        // 220ms debounce exists to protect (30 requests/min) must not pay twice
+        // for one movement.
+        const teardown = installLookupStrip();
+        const span = overlaySpan('anchor');
+        movePointerTo(300, 400);
+        hoverAt(span, 120, 90);
+        movePointerTo(120, 90);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+        teardown();
+    });
+
+    it('re-arms on a nudge inside the word, which fires no mouseover at all', async () => {
+        const teardown = installLookupStrip();
+        movePointerTo(300, 400);
+        const span = overlaySpan('anchor');
+        // Suppressed: it came to the cursor.
+        hoverAt(span, 300, 400);
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+
+        // The user now deliberately nudges the pointer within that same word.
+        //
+        // Measured in Chrome: moving WITHIN the element the cursor already
+        // rests on fires no mouseover — the hit target never changed — so a
+        // mousemove is the whole of what the browser sends. That makes this
+        // gesture the only way back for a word the guard above suppressed, and
+        // the reason the re-arm lives on the mousemove handler rather than
+        // being left to the next hover that may never come.
+        movePointerTo(305, 402, span);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(document.getElementById('lingogram-lookup-strip')).not.toBeNull();
+        teardown();
+    });
+});

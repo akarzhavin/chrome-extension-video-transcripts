@@ -230,6 +230,22 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     let token = 0;
     let current: Anchor | null = null;
     let dragging = false;
+    // The last point the pointer was physically reported at, and the guard that
+    // tells a hover the user performed from one the subtitles performed on them.
+    //
+    // The overlay rebuilds its children ~4x/sec, and a rebuild can put a fresh
+    // word under a cursor that has not moved in minutes. Chrome reports that as
+    // an ordinary mouseover on the new word — measured in Chrome, it arrives as
+    // a bare mouseout/mouseover pair with no mousemove before OR after it, and
+    // carrying the coordinates the pointer already had. Acted on, it opens a
+    // card and pauses the film under someone who was only watching.
+    //
+    // So the question "did the user hover this" is answered by the coordinates:
+    // a hover the user performed lands somewhere the pointer was not already
+    // sitting. Null until the first mousemove, because with no point on record
+    // there is nothing to be suspicious of — the first hover of a page is taken
+    // at face value.
+    let restingAt: { x: number; y: number } | null = null;
     // Which words read as saved in this tab. Shared with the word screen
     // through one object rather than a Set each, which is what makes the
     // strip's heart and the screen's controls agree about the same word.
@@ -613,6 +629,15 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // that surface opens on click instead (see onClick).
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
+        // The word came to the cursor rather than the cursor to the word: the
+        // pointer is exactly where it was last seen, so this hover is the
+        // overlay's repaint, not a question anybody asked.
+        if (restingAt && e.clientX === restingAt.x && e.clientY === restingAt.y) return;
+        aimAt(span);
+    };
+
+    /** Arm the debounce for a word the user has genuinely pointed at. */
+    const aimAt = (span: HTMLElement): void => {
         clearTimeout(hideTimer);
         if (span === current?.key) return;
         clearTimeout(hoverTimer);
@@ -704,6 +729,28 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         }, 0);
     };
 
+    /**
+     * Records where the pointer physically is — the reference the hover guard
+     * measures against — and doubles as the second way a word gets aimed at.
+     *
+     * Runs on every mousemove of a cursor crossing the player, so it stays two
+     * comparisons and a selector match; the request it may arm is still behind
+     * the same 220ms debounce as any other hover.
+     */
+    const onMouseMove = (e: MouseEvent): void => {
+        const moved = !restingAt || e.clientX !== restingAt.x || e.clientY !== restingAt.y;
+        restingAt = { x: e.clientX, y: e.clientY };
+        if (!moved) return;
+        // A word suppressed above must not stay dead until the cue changes
+        // again. Moving the pointer WITHIN the word it already rests on fires
+        // no mouseover at all — the hit target never changes — so that gesture
+        // reaches us only here, and it is the one that says "yes, this word, I
+        // mean it". Measured in Chrome: park on a word, let the cue rebuild
+        // (suppressed), then nudge 3px; without this the card never opens.
+        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
+        if (span) aimAt(span);
+    };
+
     const onMouseDown = (e: MouseEvent): void => {
         dragging = true;
         const el = strip();
@@ -722,6 +769,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
 
     document.addEventListener('mouseover', onMouseOver);
+    document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseout', onMouseOut);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
@@ -731,6 +779,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     return () => {
         unsubscribeMirror();
         document.removeEventListener('mouseover', onMouseOver);
+        document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseout', onMouseOut);
         document.removeEventListener('mousedown', onMouseDown);
         document.removeEventListener('mouseup', onMouseUp);
