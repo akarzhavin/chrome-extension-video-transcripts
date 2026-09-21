@@ -50,12 +50,25 @@ const attachId = (() => {
     }
 })();
 
+// When the inline-config scans run (scanInlineSubtitles). The player config can
+// execute slightly after document_idle, so a movie's full track list is not
+// always in the DOM on the first pass.
+const INLINE_SCAN_DELAYS_MS = [0, 1500, 4000];
+
 // How long to keep "Searching…" before declaring "No subtitles". Auto-search now
 // reads the player's CDN data up front, so tracks usually arrive within a second
 // or two — a short window means the manual how-to appears promptly when nothing
 // loads. The "Search again" button re-arms this for the start-playback-then-retry
 // flow.
-const NO_SUBS_GRACE_MS = 3000;
+//
+// Derived from the scan schedule rather than written as a number, because the
+// verdict must not be reached before the last scan's fetches can land. At a flat
+// 3000ms it was: the 4000ms scan had not run yet, so a page whose track list
+// appeared late was declared 'native-only' (or 'not-selected') for a title that
+// went on to load fine. The one-shot means no later event corrects it —
+// subs_recovered needs hadFailures, which this path never sets. The margin
+// covers the round trip through the worker; measured at ~280ms on a live fetch.
+const NO_SUBS_GRACE_MS = INLINE_SCAN_DELAYS_MS[INLINE_SCAN_DELAYS_MS.length - 1] + 2000;
 
 // Exported for tests only: bootstrap() below is the single production entry
 // point and bails out on any non-rezka host, so a test can import this module
@@ -71,6 +84,11 @@ export class VttApp implements AppInterface {
     detector: VttDetector;
     langPrefs: LanguagePrefs | null = null;
     noSubsTimer: number | null = null;
+    // The grace window has already run to its end and put a verdict on screen.
+    // Tracked apart from noSubsTimer, which returns to null the instant the
+    // timer fires: without this a late answer re-armed the window and replaced
+    // the banner the user was reading with "Searching…" again.
+    noSubsSettled: boolean = false;
     // How many times the user hit "Search again" for the current no-subs banner
     // without a track loading. Once they've retried and it's still empty we offer
     // a page reload as the next fallback. Reset when a track finally loads.
@@ -219,14 +237,20 @@ export class VttApp implements AppInterface {
         const newSubs = parseVTT(vttText);
         if (newSubs.length === 0) return;
 
-        const name = this.trackNameFor(newSubs, label);
         // Content-identical tracks under DIFFERENT player labels are not
         // duplicates: a director's cut and the theatrical version share their
         // opening and often their middle line, which is all the content check
         // compares. Trusting it there dropped the second track outright, so the
         // user picked "(реж.)" and got the other one — the only track left.
-        if (!this.state.isDuplicate(newSubs, name)) {
-            this.state.addTrack(name, newSubs);
+        //
+        // Ask with the UNNUMBERED name. trackNameFor appends " 2", " 3" … as
+        // soon as the base name is taken, and isDuplicate treats a name it has
+        // never seen as "not a duplicate" without looking at the content at
+        // all — so the numbered name made every re-fetch of the SAME track
+        // look new. "Search again" re-fetches every known URL, which is how a
+        // native-only page could pile up "Russian — Русский 2…6" from one file.
+        if (!this.state.isDuplicate(newSubs, this.baseTrackName(newSubs, label))) {
+            this.state.addTrack(this.trackNameFor(newSubs, label), newSubs);
         }
         this.ui.refresh();
 
@@ -269,11 +293,24 @@ export class VttApp implements AppInterface {
         // the secondary slot and shows nothing, and clearing the notice there
         // left a blank sidebar with no explanation. Re-arm instead, so the
         // grace window ends in the manual how-to.
+        //
+        // Arm the window ONCE. scheduleNoSubtitlesCheck clears the pending timer
+        // before setting a new one, so calling it per arriving track pushes the
+        // verdict out by a full grace period each time — and calling it after
+        // the verdict has landed replaces the banner with "Searching…" again.
+        // "Search again" re-fetches every URL it knows at once, so on a
+        // native-only title the answers kept deferring the banner and it never
+        // came back: measured live, 25s after the retry click, still nothing.
+        //
+        // `noSubsTimer !== null` is not enough on its own — it goes back to null
+        // the moment the timer fires, so the next answer re-armed a window whose
+        // verdict was already on screen. Hence the explicit "has it spoken yet".
         if (this.hasVisibleTranscript()) {
             this.clearNoSubtitlesTimer();
             this.hideStatusBanner();
             this.noSubsRetries = 0;
-        } else {
+            this.noSubsSettled = false;
+        } else if (this.noSubsTimer === null && !this.noSubsSettled) {
             this.scheduleNoSubtitlesCheck();
         }
     }
@@ -297,12 +334,23 @@ export class VttApp implements AppInterface {
      * exactly the theatrical/director's-cut case. Without a label we fall back
      * to the old numbering ("Russian 2"), which at least stays unique.
      */
-    trackNameFor(subs: Subtitle[], label?: string): string {
-        const lang = LanguageUtils.guessLanguage(subs);
-        if (!label) return LanguageUtils.generateTrackName(subs, this.state.tracks);
+    /**
+     * The name this track would get if nothing shared it — no " 2" suffix.
+     *
+     * The duplicate check needs this one, not the numbered result: isDuplicate
+     * short-circuits to "not a duplicate" on a name it has not seen, so asking
+     * it about an already-numbered name never compares the content.
+     */
+    baseTrackName(subs: Subtitle[], label?: string): string {
+        if (!label) return LanguageUtils.generateTrackName(subs, []);
         // Rezka labels often already name the language ("Русский"); keep the
         // name short when the label adds nothing beyond it.
-        const composed = `${lang} — ${label}`;
+        return `${LanguageUtils.guessLanguage(subs)} — ${label}`;
+    }
+
+    trackNameFor(subs: Subtitle[], label?: string): string {
+        if (!label) return LanguageUtils.generateTrackName(subs, this.state.tracks);
+        const composed = this.baseTrackName(subs, label);
         return this.state.tracks.some(t => t.name === composed)
             ? `${composed} ${this.state.tracks.filter(t => t.name.startsWith(composed)).length + 1}`
             : composed;
@@ -597,12 +645,29 @@ export class VttApp implements AppInterface {
         return this.state.getMainTrack() !== null;
     }
 
+    /**
+     * May this frame write status banners into the sidebar at all?
+     *
+     * The same three conditions updateOnboardingState() gates on, hoisted here
+     * because this method now has a second caller (handleNewSubtitles, when a
+     * track loads that cannot carry the main pane) which reaches it from every
+     * frame and on every page. Without the gate a second installed copy of the
+     * extension writes its banner into the sidebar the first copy built — the
+     * ids are shared, so it lands — and non-watch pages grow a notice where
+     * there is no player. Gating at the writer covers every caller, present
+     * and future, instead of repeating the condition at each call site.
+     */
+    private mayShowStatus(): boolean {
+        return this.isTopWindow && this.uiOwned && this.isWatchPage();
+    }
+
     // While waiting for subtitles we show a "Searching…" status so the sidebar is
     // never blank. If nothing arrives within the grace period it flips to "No
     // subtitles". Cleared as soon as a track loads or onboarding is showing.
     scheduleNoSubtitlesCheck(graceMs: number = NO_SUBS_GRACE_MS): void {
         this.clearNoSubtitlesTimer();
         this.hideStatusBanner();
+        if (!this.mayShowStatus()) return;
         if (!this.langPrefs) return;
         if (this.hasVisibleTranscript()) return; // already have something to show
 
@@ -620,6 +685,8 @@ export class VttApp implements AppInterface {
 
     declareNoSubtitles(): void {
         this.clearNoSubtitlesTimer();
+        this.noSubsSettled = true;
+        if (!this.mayShowStatus()) return;
         if (!this.langPrefs) return;
         if (this.hasVisibleTranscript()) return;
 
@@ -628,7 +695,17 @@ export class VttApp implements AppInterface {
         // the original sits behind a different voice-over option. A distinct
         // failure class, because the fix is distinct too — switch the audio
         // track, not re-click the CC menu.
-        const nativeOnly = this.state.tracks.length > 0;
+        //
+        // Both halves matter. `tracks.length > 0` alone is NOT this state: a
+        // 429 on the English track while Russian is already loaded satisfies it
+        // too, and telling that user to "switch to the original" points at a
+        // control that cannot fix throttling. So require the native track to be
+        // the one we have, the learning track to be genuinely absent, and
+        // nothing to have reported a failure — a failure means the cause is the
+        // fetch, not the dub.
+        const nativeOnly = !this.lastFailure
+            && this.state.hasNativeTrack()
+            && !this.state.hasLearningTrack();
 
         // On rezka the player only fetches a track once it's picked in the CC
         // menu, so "nothing reported a failure" means the user hasn't picked
@@ -671,15 +748,26 @@ export class VttApp implements AppInterface {
         // track visibly did is the kind of wrong that sends people to support.
         // The recovery is a different click too — the voice-over row above the
         // player, not the CC menu — so the steps and the illustration change
-        // with it. A failed retry still escalates to the reload button, which
-        // is why `retried` is checked first in both branches.
-        if (nativeOnly && !retried) {
+        // with it.
+        //
+        // NOT gated on `retried`. Clicking "Search again" changes nothing about
+        // this state: the dub still ships one track, and falling back to the
+        // CC-menu copy would replace correct advice with advice that cannot
+        // work — the very failure this branch exists to prevent. The retry
+        // escalation is already handled, because `actions` carries the reload
+        // button by then and this branch passes `actions` through unchanged.
+        if (nativeOnly) {
             this.showStatusBanner(
                 t('rzNativeOnlyTitle', 'Only your own language is available'),
-                t(
-                    'rzNativeOnlyText',
-                    'The player is showing a dubbed version. Switch to the original to get subtitles in the language you are learning:',
-                ),
+                retried
+                    ? t(
+                          'rzNativeOnlyRetryText',
+                          "Still only your own language. Switch the voice-over to the original — if that doesn't help, reload the page.",
+                      )
+                    : t(
+                          'rzNativeOnlyText',
+                          'The player is showing a dubbed version. Switch to the original to get subtitles in the language you are learning:',
+                      ),
                 actions,
                 [
                     t('rzNativeOnlyStep1', 'Pick “Оригинал (+субтитры)” in the voice-over row above the player.'),
@@ -836,6 +924,9 @@ export class VttApp implements AppInterface {
         // Remember the retry so the next empty result can escalate to a reload
         // prompt rather than looping on "Search again".
         this.noSubsRetries++;
+        // An explicit retry is the one thing that reopens the window after a
+        // verdict: the user asked for another look.
+        this.noSubsSettled = false;
         this.detector.rescan();
         try {
             if (chrome?.runtime?.id) chrome.runtime.sendMessage({ action: 'RESCAN' });
@@ -1001,9 +1092,12 @@ class VttDetector {
     // a few times because the player config can run slightly after document_idle.
     scanInlineSubtitles(): void {
         const scan = () => this.scanText(document.documentElement.outerHTML);
-        scan();
-        setTimeout(scan, 1500);
-        setTimeout(scan, 4000);
+        // The same list NO_SUBS_GRACE_MS is derived from, so the "no subtitles"
+        // verdict cannot be reached before the last scan has had its chance.
+        for (const delay of INLINE_SCAN_DELAYS_MS) {
+            if (delay === 0) scan();
+            else setTimeout(scan, delay);
+        }
     }
 
     scanText(text: string): void {

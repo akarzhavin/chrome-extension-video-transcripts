@@ -75,6 +75,10 @@
     "message": "Плеєр показує дубльовану версію. Перемкніться на оригінал, щоб отримати субтитри мовою, яку вивчаєте:",
     "description": "Sidebar banner body on HDrezka explaining that the dubbed voice-over only ships native-language subtitles."
   },
+  "rzNativeOnlyRetryText": {
+    "message": "Як і раніше доступна лише рідна мова. Перемкніть озвучення на оригінал — якщо це не допомагає, перезавантажте сторінку.",
+    "description": "Native-only banner body after a retry still found no original-language track; points at the reload fallback."
+  },
   "rzNativeOnlyStep1": {
     "message": "Оберіть «Оригинал (+субтитры)» у рядку озвучення над плеєром.",
     "description": "Native-only how-to, step 1. The quoted label is HDrezka's own UI text and must stay in Russian in every locale."
