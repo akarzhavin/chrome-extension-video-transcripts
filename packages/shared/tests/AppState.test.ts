@@ -519,4 +519,23 @@ describe('AppState language-pair preferences', () => {
         expect(state.activeTrackIndex).toBe(1); // English takes over as main
         expect(state.secondaryTrackIndex).toBe(0); // Russian becomes secondary
     });
+
+    // A loaded track is NOT the same thing as a visible transcript, and callers
+    // that conflate the two go silent on the user. Measured on HDrezka
+    // (5141-odnazhdy-v-meksike, 2026-09-21): the default dub offers exactly one
+    // subtitle track, the viewer's native Russian. It parsed — 105 cues — so
+    // `tracks.length` was 1, which the rezka content script read as "we have
+    // something to show": it cleared the "Searching…" banner and never ran the
+    // no-subtitles path. The panel sat blank with nothing explaining why, and
+    // no event was reported. Anything deciding whether to show a recovery
+    // notice must ask getMainTrack(), never tracks.length.
+    test('a native-only load leaves the main pane empty while tracks.length is 1', () => {
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('Russian', [{ text: 'ru' } as Subtitle]);
+
+        expect(state.tracks.length).toBe(1);   // something loaded…
+        expect(state.getMainTrack()).toBeNull(); // …and nothing is on screen
+        expect(state.hasLearningTrack()).toBe(false);
+        expect(state.hasNativeTrack()).toBe(true);
+    });
 });

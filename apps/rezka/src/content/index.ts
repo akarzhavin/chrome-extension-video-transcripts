@@ -57,7 +57,11 @@ const attachId = (() => {
 // flow.
 const NO_SUBS_GRACE_MS = 3000;
 
-class VttApp implements AppInterface {
+// Exported for tests only: bootstrap() below is the single production entry
+// point and bails out on any non-rezka host, so a test can import this module
+// on a neutral URL and drive a real VttApp instead of re-implementing one.
+// A copy is what let the live no-subtitles regression pass unnoticed here.
+export class VttApp implements AppInterface {
     state: AppState;
     ui: SidebarUI;
     // False when another copy of the extension owns the sidebar on this page.
@@ -260,10 +264,18 @@ class VttApp implements AppInterface {
         }
 
         // Subtitles arrived — drop any pending/visible "searching"/"no subtitles"
-        // notice (only the top window shows one).
-        this.clearNoSubtitlesTimer();
-        this.hideStatusBanner();
-        this.noSubsRetries = 0;
+        // notice (only the top window shows one). Gated on the track being
+        // VISIBLE, not merely loaded: a native-only page seats its one track in
+        // the secondary slot and shows nothing, and clearing the notice there
+        // left a blank sidebar with no explanation. Re-arm instead, so the
+        // grace window ends in the manual how-to.
+        if (this.hasVisibleTranscript()) {
+            this.clearNoSubtitlesTimer();
+            this.hideStatusBanner();
+            this.noSubsRetries = 0;
+        } else {
+            this.scheduleNoSubtitlesCheck();
+        }
     }
 
     /**
@@ -564,6 +576,27 @@ class VttApp implements AppInterface {
         document.getElementById('vtt-lang-onboarding')?.remove();
     }
 
+    /**
+     * Is there anything in the main pane right now?
+     *
+     * NOT `tracks.length > 0`. A track can load and still leave the transcript
+     * empty: applyPreferences() refuses to seat the native translation in the
+     * learning slot, so a page whose player offers only the user's native
+     * language (rezka's default dub, where the original track is behind
+     * "Оригинал (+субтитры)") parks it in the secondary slot and leaves
+     * activeTrackIndex at -1. Measured on 5141-odnazhdy-v-meksike: one Russian
+     * track, 105 cues parsed, main pane empty.
+     *
+     * Counting that as "we have something to show" is what made the panel go
+     * silent — the loaded track cleared the "Searching…" banner, and the
+     * "no subtitles" path never ran because tracks.length was 1. The user was
+     * left with a blank sidebar and nothing telling them to switch the player
+     * to the original audio.
+     */
+    hasVisibleTranscript(): boolean {
+        return this.state.getMainTrack() !== null;
+    }
+
     // While waiting for subtitles we show a "Searching…" status so the sidebar is
     // never blank. If nothing arrives within the grace period it flips to "No
     // subtitles". Cleared as soon as a track loads or onboarding is showing.
@@ -571,7 +604,7 @@ class VttApp implements AppInterface {
         this.clearNoSubtitlesTimer();
         this.hideStatusBanner();
         if (!this.langPrefs) return;
-        if (this.state.tracks.length > 0) return; // already have something to show
+        if (this.hasVisibleTranscript()) return; // already have something to show
 
         this.showStatusBanner(
             t('ytSearchingTitle', 'Searching for subtitles…'),
@@ -581,14 +614,21 @@ class VttApp implements AppInterface {
         this.noSubsTimer = window.setTimeout(() => {
             this.noSubsTimer = null;
             if (!this.langPrefs) return;
-            if (this.state.tracks.length === 0) this.declareNoSubtitles();
+            if (!this.hasVisibleTranscript()) this.declareNoSubtitles();
         }, graceMs);
     }
 
     declareNoSubtitles(): void {
         this.clearNoSubtitlesTimer();
         if (!this.langPrefs) return;
-        if (this.state.tracks.length > 0) return;
+        if (this.hasVisibleTranscript()) return;
+
+        // A track DID load, it just cannot carry the main pane: the player is
+        // serving the user's native language only (rezka's default dub), and
+        // the original sits behind a different voice-over option. A distinct
+        // failure class, because the fix is distinct too — switch the audio
+        // track, not re-click the CC menu.
+        const nativeOnly = this.state.tracks.length > 0;
 
         // On rezka the player only fetches a track once it's picked in the CC
         // menu, so "nothing reported a failure" means the user hasn't picked
@@ -598,7 +638,7 @@ class VttApp implements AppInterface {
             trackVia('no_subtitles', {
                 site: platformOf(location.hostname),
                 retried: this.noSubsRetries > 0,
-                failure: this.lastFailure || 'not-selected',
+                failure: this.lastFailure || (nativeOnly ? 'native-only' : 'not-selected'),
                 status: this.lastFailureStatus ?? 0,
                 attempts: 0,
                 learning: this.langPrefs?.learning ?? '',
@@ -627,6 +667,30 @@ class VttApp implements AppInterface {
                 emergency: true,
             });
         }
+        // Native-only gets its own copy: saying "subtitles didn't load" when a
+        // track visibly did is the kind of wrong that sends people to support.
+        // The recovery is a different click too — the voice-over row above the
+        // player, not the CC menu — so the steps and the illustration change
+        // with it. A failed retry still escalates to the reload button, which
+        // is why `retried` is checked first in both branches.
+        if (nativeOnly && !retried) {
+            this.showStatusBanner(
+                t('rzNativeOnlyTitle', 'Only your own language is available'),
+                t(
+                    'rzNativeOnlyText',
+                    'The player is showing a dubbed version. Switch to the original to get subtitles in the language you are learning:',
+                ),
+                actions,
+                [
+                    t('rzNativeOnlyStep1', 'Pick “Оригинал (+субтитры)” in the voice-over row above the player.'),
+                    t('rzNativeOnlyStep2', 'Open the subtitles menu (CC) and click each language once.'),
+                    t('rzNativeOnlyStep3', 'Then set the player subtitles back to Off.'),
+                ],
+                this.buildNativeOnlyIllustration(),
+            );
+            return;
+        }
+
         this.showStatusBanner(
             t('ytNoSubsTitle', "Subtitles didn't load"),
             retried
@@ -643,6 +707,45 @@ class VttApp implements AppInterface {
             ],
             this.buildNoSubsIllustration(),
         );
+    }
+
+    /**
+     * The voice-over row above HDrezka's player, with the cursor sweeping to
+     * "Оригинал (+субтитры)" — the one click that makes the original subtitle
+     * track appear. Same visual language as buildNoSubsIllustration (violet →
+     * cyan, no real video frames), pointing at a different control.
+     */
+    buildNativeOnlyIllustration(): string {
+        return `
+<svg viewBox="0 0 240 212" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Player voice-over row">
+  <defs>
+    <linearGradient id="vtt-no-hi" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5aff"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="vtt-no-panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2f3a"/><stop offset="1" stop-color="#1a1e26"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="6" width="224" height="104" rx="12" fill="url(#vtt-no-panel)" stroke="rgba(255,255,255,0.10)"/>
+  <text x="22" y="28" fill="#8a93a3" font-family="Inter, sans-serif" font-size="11">В русской озвучке от:</text>
+  <rect x="16" y="38" width="98" height="22" rx="6" fill="rgba(255,255,255,0.06)"/>
+  <text x="26" y="53" fill="#e6e8ee" font-family="Inter, sans-serif" font-size="11">Дубляж</text>
+  <rect x="122" y="38" width="102" height="22" rx="6" fill="rgba(255,255,255,0.06)"/>
+  <text x="132" y="53" fill="#e6e8ee" font-family="Inter, sans-serif" font-size="11">Гаврилов</text>
+  <rect x="16" y="68" width="150" height="24" rx="7" fill="url(#vtt-no-hi)" opacity="0.35">
+    <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <text x="26" y="84" fill="#ffffff" font-family="Inter, sans-serif" font-size="11" font-weight="600">Оригинал (+субтитры)</text>
+  <path d="M0 0 L0 16 L4.5 11.5 L8 19 L11 17.5 L7.5 10.5 L13.5 10.5 Z" fill="#ffffff" stroke="#0b0e14" stroke-width="1">
+    <animateTransform attributeName="transform" type="translate"
+      values="60 44;60 44;120 74;120 74;60 44" dur="3s" repeatCount="indefinite"/>
+  </path>
+  <rect x="8" y="122" width="224" height="60" rx="10" fill="#11151c" stroke="rgba(255,255,255,0.08)"/>
+  <path d="M22 142 L22 158 L36 150 Z" fill="#8a93a3"/>
+  <text x="48" y="156" fill="#8a93a3" font-family="Inter, sans-serif" font-size="10">00:12 / 27:40</text>
+  <rect x="150" y="141" width="30" height="18" rx="5" fill="rgba(255,255,255,0.10)"/>
+  <text x="165" y="154" fill="#8a93a3" font-family="Inter, sans-serif" font-size="11" font-weight="700" text-anchor="middle">CC</text>
+</svg>`;
     }
 
     // A small, self-contained SVG mock of HDrezka's player subtitle menu (no real
