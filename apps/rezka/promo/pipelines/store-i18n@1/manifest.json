@@ -1,0 +1,59 @@
+{
+  "name": "store-i18n",
+  "version": "1.0.0",
+  "title": "HDrezka: localized Chrome Web Store screenshot series (en/ru/uk, 5 slides)",
+  "style": "Copied wholesale from apps/youtube/promo/pipelines/store-i18n@6. Same five slides, same layouts, same crops, same captures — only the ground colour (indigo/violet instead of off-white/lime) and the marketing copy are HDrezka's.",
+  "run": "node pipelines/store-i18n@1/render.mjs [-j N] [locale...]",
+  "sourceOfTruth": "assets/promo-copy.json — 3 locales (en/ru/uk), English is the per-field fallback",
+  "inputs": {
+    "assets": [
+      "assets/promo-copy.json",
+      "assets/promo.css",
+      "assets/brand-tile.png",
+      "assets/save-slide.css",
+      "assets/fullscreen-panel.css",
+      "assets/fullscreen-slide.css",
+      "assets/fullscreen-warm.css",
+      "assets/fullscreen-backdrop.jpg",
+      "assets/fullscreen-panel-guess.css",
+      "assets/fullscreen-slide-guess.css",
+      "assets/fullscreen-dark.css",
+      "assets/fullscreen-guess.css",
+      "assets/fullscreen-backdrop-guess.jpg"
+    ],
+    "captures": {
+      "dir": "../../../../youtube/screenshots/out-live",
+      "files": [
+        "live-demo-<locale>.png",
+        "live-demo-guess-<locale>.png",
+        "live-demo-settings-<locale>.png"
+      ],
+      "recapture": "node apps/youtube/screenshots/capture-backdrop.mjs --locale <loc> --learn es --native <loc> --modes sidebar,guess,settings --theme-pref light",
+      "note": "THE CAPTURES ARE THE YOUTUBE EXTENSION'S, ON PURPOSE. The sidebar panel is the shared SidebarUI/WordScreen component from @video-transcripts/shared, rendered byte-identically by both editions (apps/rezka/promo/README.md has said so since the v1 deck), and the HDrezka build has no demo mode to capture from at all. This pipeline therefore reads apps/youtube/screenshots/out-live directly rather than keeping a copy: the v1 Rezka deck kept its own copy under apps/rezka/screenshots/out-live and it silently went five weeks stale, still showing the '✓ saved' badge that 1.0.21 removed. One directory, one truth. Only en/ru/uk are needed here; all nine files exist."
+    },
+    "assetsNote": "Two panel sheets, deliberately. Slide 1 uses fullscreen-panel.css (store-en@5's copy: enlarged captions); slide 3 uses fullscreen-panel-guess.css (fullscreen@1's copy). They are near-identical and it is tempting to merge them — don't: they carry different caption sizing, and rendering one slide with the other's sheet changes it silently. UPDATED 2026-09-20: the sheets no longer differ in the .panel::before violet glow — it was ported into fullscreen-panel.css so slide 1 could have it too, with the same markup and the same defaults. It stays OPT-IN in both: a slide draws it only by setting --glow-reach, so nothing that does not opt in changed. slide 1 opts in from fullscreen-warm.css, slide 3 from fullscreen-guess.css, and their values differ on measurement — the band left of the panel is 21% mean value on slide 1's studio and 91% on slide 3's window, so the short reach that keeps violet from staining a bright frame would make a dark one's falloff abrupt.",
+    "localesNote": "Product-UI strings come from apps/rezka/_locales/<loc>/messages.json, which carries the same yt* key names as the YouTube edition (both editions read them from the shared UI). Verified for en/ru/uk: ytModeGuess = Guess/Угадай/Вгадай, ytLookupMore = Details/Разбор/Розбір."
+  },
+  "outputs": {
+    "dir": "out/store-i18n@1",
+    "files": [
+      "<locale>/screenshot-<n>.png (1280x800), n = 1..5"
+    ],
+    "intermediates": "shots/store-i18n@1",
+    "note": "The CWS autofill snippet reads the language from the folder directly containing screenshot-N.png, so <locale>/ must stay the last path segment. This REPLACES the v1 deck at apps/rezka/promo/render-i18n.mjs → out/<locale>/, which rendered a different five slides (two of them real HDrezka host captures). Those host slides have no equivalent here: aligning with the YouTube series was a deliberate call, see below."
+  },
+  "knownIssues": [
+    "NO HDREZKA HOST IMAGERY. The v1 deck opened on a real HDrezka window (host-hero.png) and showed the on-video overlay (host-overlay.png), both hand-captured because the site is region/IP-blocked. This series has neither: every slide is the shared panel, as on YouTube. That means the store page no longer shows the site it is for, and the on-video overlay — a real HDrezka feature the store description sells via Shift+O — is no longer pictured. Both were accepted when the series was aligned to YouTube.",
+    "NO MACHINE TRANSLATION ON HDREZKA. The YouTube slide 1 promises subtitles on any video because YouTube auto-translates; HDrezka does not — the extension only shows tracks a title actually carries. The copy here says 'any film that carries a subtitle track' for that reason. Do not restore YouTube's wording.",
+    "SLIDE 1'S HOVER CARD IS ENGLISH IN UKRAINIAN, AND THAT IS CORRECT. The card shows the real gateway answer for 'divertido' in the viewer's language: ru gets 'весёлый · забавный', uk gets 'funny · amusing · entertaining'. That is not an untranslated string — the dictionary holds no Ukrainian for Spanish headwords and falls back to English, which is exactly what a Ukrainian user sees in the product. Verified 2026-09-20 on two words (divertido, aprender) against the live gateway. Do NOT 'fix' slide1.lookupTr for uk by translating it: the copy brief requires measured answers, and an invented one would advertise a translation the product does not produce.",
+    "Product-UI strings drawn inside the rebuilt panel (its title, the mode chips, \"N words saved\") come from apps/youtube/_locales/<loc>/messages.json, read at render time — NOT from promo-copy.json. That is deliberate: a screenshot must never show a mode name the product does not use. It also means the panel text changes when _locales changes, with no re-render of the copy file needed.",
+    "The ORIGINAL transcript lines in the panel are Spanish in every locale (Spanish is the language being learned throughout the series); only the translation rows follow the locale. Slide 1 shows 8 such rows and slide 3 shows 2 — the rest stay masked by guess mode.",
+    "Slide 5 is the one slide whose captions and dictionary article are NOT localized. It reverses the series' language pair (the learner studies ENGLISH with Spanish as their own language) because the two elements it exists to show only exist for an English learning language: the Oxford button is gated on it in shape.ts, and the translations row only comes back for English headwords. Its marketing copy and its product-UI labels DO follow the locale.",
+    "Slide 5 is derived from the STATIC English page (pipelines/fullscreen@1/slide-word.html), so every product-UI string in it starts life as an English literal and has to be turned into a ${ui.*} hole by hand. Two were missed on the first pass — the Dual and On-screen labels in the mode row rendered English in all 54 locales while the back-chip beside them localized correctly. Anything copied from that page again needs the same check: a literal there is correct in English and wrong everywhere else."
+  ],
+  "verify": {
+    "run": "KEEP_BUILD=1 node pipelines/store-i18n@1/render.mjs   # then the checks below",
+    "check-overflow.mjs": "no headline, paragraph, eyebrow, callout or caption may leave the 1280x800 canvas.",
+    "check-orphans.mjs": "no headline may end with an orphan — a last line under 25% of the widest. Line COUNT is not the test: ru slide 3 wraps to 5 lines and reads fine."
+  }
+}

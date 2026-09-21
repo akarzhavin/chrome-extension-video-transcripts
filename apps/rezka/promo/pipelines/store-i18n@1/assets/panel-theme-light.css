@@ -1,0 +1,170 @@
+/* VARIANT: slide 3's panel in the product's LIGHT theme.
+ *
+ * Requested as an example — "на третьем светлой". The counterpart of
+ * panel-theme-dark.css, and a stylesheet swap for the same reason: slide 3
+ * rebuilds its panel in HTML rather than cropping a capture.
+ *
+ * Loaded LAST, after fullscreen-dark.css and fullscreen-guess.css, both of
+ * which set the panel dark. Those two sheets are left untouched: the base
+ * series still ships dark-on-slide-3, and this file is additive.
+ *
+ * Values from apps/rezka/src/assets/styles.css, the .vtt-light block:
+ *   --vtt-panel-solid  #ffffff     the ground, opaque as in the light theme
+ *   --vtt-accent       #c8ff00     lime — the LIGHT theme's accent, not the
+ *                                  dark theme's periwinkle
+ *   --vtt-accent-quiet rgba(200,255,0,0.22)
+ *   --vtt-text         #111111
+ *   --vtt-text-soft    #4a4a4a
+ *   --vtt-hairline     #e5e5e2
+ *
+ * TWO THINGS THAT WOULD BREAK IF WRITTEN CARELESSLY, both of which the product
+ * itself had to solve and documents:
+ *
+ * 1. THE MASKED CAPSULES ARE NOT ONE THING. The same capsule treatment appears
+ *    in the PANEL and on the VIDEO, and they need opposite values: the panel is
+ *    now white, so its capsules take the light theme's rgba(17,17,17,…) pane;
+ *    the caption box over the footage is still dark, so ITS capsules must keep
+ *    the white-alpha pane. styles.css scopes its light rule to `#vtt-list` for
+ *    exactly this reason — an unscoped rule turned the on-video panes
+ *    near-invisible in the product. Here the equivalent scoping is `.panel`,
+ *    and .cap-main .mask is deliberately not touched.
+ *
+ * 2. THE ACCENT FLIPS BACK TO LIME. fullscreen-dark.css sets --lime to
+ *    periwinkle so the whole dark frame agrees; undoing that here would also
+ *    repaint the HEADLINE, which on this slide is the guess sheet's purple
+ *    #6a20e0 and has nothing to do with the panel's theme. So --lime is
+ *    restored only for the panel's own chip and active row, scoped to .panel,
+ *    and the headline is left alone.
+ *
+ * WHY THIS FILE IS LONG. fullscreen-dark.css does not only redefine tokens — it
+ * also sets about twenty LITERAL colours (rgba(255,255,255,…) type, periwinkle
+ * chips, a white-alpha divider). Redefining --text and --lime does nothing to
+ * those, so a first draft that only swapped tokens produced a white panel with
+ * near-white transcript text on it: rows 1 and 2 were unreadable, the mode chip
+ * stayed periwinkle, and the mode-row icons vanished. Every literal that sheet
+ * sets is therefore restored below to the light theme's value, and the base
+ * sheet's own token-driven rules do the rest. */
+
+/* ── The panel's ground ──────────────────────────────────────────────────── */
+.panel {
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* NOT a literal border. This sheet loads last, so `border-left: #e5e5e2`
+       here would beat fullscreen-panel-guess.css's
+       `border-left: 1px solid var(--panel-edge, …)` and paint a grey hairline
+       over the violet edge fullscreen-guess.css sets — the one thing that slide
+       keeps, its panel measuring 1.02:1 against the near-white window behind
+       it. Written through the same token so the edge stays whatever the slide
+       decided, and a theme swap changes the panel's GROUND, not its boundary. */
+    border-left: 1px solid var(--panel-edge, var(--border));
+    box-shadow: -10px 0 30px rgba(17, 17, 17, 0.10);
+}
+
+.tab {
+    background: #ffffff;
+    border-color: #e5e5e2;
+    color: #4a4a4a;
+}
+
+/* ── Type and cards inside the panel ─────────────────────────────────────── */
+.panel {
+    --panel-bg: #ffffff;
+    --surface: #f7f7f5;
+    --border: #e5e5e2;
+    --text: #111111;
+    --text-2: #4a4a4a;
+    /* Lime is the light theme's accent. Scoped to .panel so the slide's own
+       purple headline, set by fullscreen-guess.css, is not repainted. */
+    --lime: #c8ff00;
+    --violet: #c8ff00;
+    /* The saved-word token in its LIGHT value: styles.css darkens the dark
+       theme's #ff7a90 to survive on white. Stated explicitly because a custom
+       property that does not resolve makes CSS drop the whole declaration —
+       the rule stays present and paints nothing. */
+    --heart: #d92d4e;
+}
+
+.panel .item { background: #f7f7f5; border-color: #e5e5e2; }
+.panel .item.active {
+    background: rgba(200, 255, 0, 0.22);
+    border-color: rgba(140, 178, 0, 0.45);
+}
+.panel .p-head, .panel .p-sub { border-color: #e5e5e2; color: #111111; }
+
+/* ── Masked capsules: the panel's only ─────────────────────────────────────
+   Scoped to .panel. The caption capsules over the footage keep the white-alpha
+   pane fullscreen-guess.css gives them — see note 1 in the header. */
+.panel .mask {
+    background: rgba(17, 17, 17, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.14);
+}
+/* The frosted highlight is built from white-alpha gradients, which do nothing
+   over a light pane — dropped rather than left as a no-op paint, as the
+   product drops it. */
+.panel .mask::before { background: none; }
+
+
+/* ── Undoing fullscreen-dark.css's LITERALS ───────────────────────────────
+   Each rule below exists because the dark sheet sets that colour outright
+   rather than through a token. Grouped in its order, so the two files can be
+   read side by side. */
+
+/* Panel head: status line and the language chip. */
+.panel .p-status { color: #4a4a4a; }
+.panel .p-status .saved { color: #111111; }
+.panel .langpair {
+    background: rgba(123, 44, 255, 0.08);
+    border-color: rgba(123, 44, 255, 0.18);
+    color: #111111;
+}
+.panel .langpair .arrow { color: #7b2cff; }
+
+/* Mode row: the segmented control, the divider, the on-screen toggle. The
+   active chip goes back to LIME — the light theme's accent — with the dark
+   type the product pairs with it. */
+.panel .seg {
+    background: #f7f7f5;
+    border-color: #e5e5e2;
+}
+.panel .seg button { color: #6a6a68; }
+.panel .seg button.active { background: #c8ff00; color: #111111; }
+.panel .divider { background: #e5e5e2; }
+.panel .toggle { color: #6a6a68; }
+.panel .toggle .sw { background: #c8ff00; }
+
+/* The transcript rows. This is the pair that made the first draft unreadable:
+   the dark sheet paints .item text in white-alpha, which on a white panel is
+   invisible. */
+.panel .p-sub {
+    color: #4a4a4a;
+    border-top-color: #e5e5e2;
+}
+.panel .item .orig { color: #4a4a4a; }
+.panel .item.active {
+    background: rgba(200, 255, 0, 0.22);
+    border-color: rgba(140, 178, 0, 0.45);
+}
+.panel .item.active .orig { color: #111111; }
+
+/* The translation line under each original. The dark sheet paints it in
+   white-alpha; on a white panel that is the SECOND invisible-text bug this
+   file exists to prevent, and it survived the first fix because the row's
+   ORIGINAL line and its TRANSLATION line are styled by two different rules —
+   fixing .orig left .trans still white. In the light theme this line is the
+   violet accent, as the base sheet's var(--violet) says. */
+.panel .item .trans {
+    color: #7b2cff;
+    border-top-color: #e5e5e2;
+}
+
+/* The active row's lift. The dark sheet casts a black shadow, which on a white
+   panel reads as dirt rather than elevation. */
+.panel .item.active { box-shadow: 0 4px 15px rgba(17, 17, 17, 0.08); }
+
+/* The collapse tab rides the panel's edge, so it follows its ground. */
+.tab {
+    background: #ffffff;
+    border-color: #e5e5e2;
+    color: #4a4a4a;
+}

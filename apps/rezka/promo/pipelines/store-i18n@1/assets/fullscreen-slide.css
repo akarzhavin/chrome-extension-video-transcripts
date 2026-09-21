@@ -73,20 +73,32 @@
     text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* ── The headline accent on the warm slide ────────────────────────────────
+/* ── HDrezka edition: the headline accent ─────────────────────────────────
  *
- * `--lime` does DOUBLE duty: the headline's accent word, and the product's own
- * chip/toggle colour inside the rebuilt panel. Slide 1's panel now carries the
- * dark theme (panel-theme-dark.css), and the dark theme redefines --lime to
- * periwinkle so the whole panel agrees — which silently repainted the HEADLINE
- * too. Measured: slide 1's accent was #C8FF00 before the theme landed and
- * #7C8DFF after, in every locale.
+ * This series inherits the YouTube layouts, and with them `--lime` — a token
+ * that does DOUBLE duty: the headline's accent word, and the product's own
+ * chip/toggle colour inside the rebuilt panel. The two must not be changed
+ * together. The panel's lime is the real UI and has to stay; the headline's is
+ * decoration and belongs to whichever edition is speaking.
  *
- * That is a regression, not a choice. Lime in the headline is this series'
- * signature; periwinkle belongs to the panel. The two are independent and the
- * token alone cannot tell them apart, so the headline is pinned here.
+ * Slides 3 and 5 already resolve the accent through fullscreen-dark.css, which
+ * redefines --lime to periwinkle for the whole dark frame; slides 2 and 4 read
+ * HDrezka's violet from promo.css. Slide 1 is the only frame left on a warm
+ * ground with no dark sheet over it, so without a rule here it alone would
+ * carry a lime headline — one slide out of five speaking the sibling edition's
+ * colour.
  *
- * Scoped to body.warm — the class slide 1 carries — so slide 5, which loads
- * this same sheet under fullscreen-dark.css and is periwinkle BY DESIGN (it has
- * been since v6 shipped), is not caught by it. */
-body.warm .copy h1 .hl { color: #c8ff00; }
+ * TWO THINGS THIS RULE MUST NOT DO, both of which a first draft did:
+ *
+ *   It must not set a literal colour on .copy h1 .hl. This sheet is loaded by
+ *   slide 5 as well, AFTER fullscreen-dark.css in the same document — a literal
+ *   here beats the token and repaints slide 5's periwinkle headline too, which
+ *   measured #6c4fd8 on a frame that is supposed to be #7c8dff.
+ *
+ *   It must not redefine --lime at :root. That token also paints the panel's
+ *   active chip and toggle — the product's own colour, which a promo slide has
+ *   no business changing.
+ *
+ * So it does neither: it scopes the token override to the warm slide's own
+ * body class, where no dark sheet and no panel chip can be caught by it. */
+body.warm .copy h1 .hl { color: #6c4fd8; }

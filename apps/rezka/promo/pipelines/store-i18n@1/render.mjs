@@ -37,6 +37,8 @@ const asset = (n) => href(path.join(ASSETS, n));
 const shotUrl = (name) => href(path.join(SHOT_DIR, name));
 
 // The extension's own translations, for the product UI drawn inside the slides.
+// This resolves to apps/rezka/_locales — HDrezka's own — which carries the same
+// yt* key names as the YouTube edition (both read them from the shared UI).
 const LOCALES_DIR = path.resolve(ASSETS, '../../../../_locales');
 function productStrings(loc) {
   const read = (l) => {
@@ -78,6 +80,21 @@ const shotsFor = (loc) => ({
   settings: shotFor(loc, 'settings'),
 });
 
+// THE PANEL'S THEME PER SLIDE: dark on slide 1, light on slide 3.
+//
+// This was briefly behind a SWAP_THEMES env flag writing to its own directory,
+// which was wrong: it left the series rendering the OLD themes while the flag
+// held the requested ones, so the two accepted changes — this and slide 1's
+// violet glow — never appeared in one render. It is the series now. There is no
+// flag and no second output directory.
+//
+// Both slides rebuild their panel in HTML rather than cropping a capture, so
+// this is a stylesheet swap and needs no recapture. Each theme sheet is
+// appended LAST, after the sheets that set the frame's original theme.
+const OUT_DIR = OUT;
+const SHOTS_DIR = SHOTS;
+const BUILD_DIR = BUILD;
+
 const RTL = new Set(['ar', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'yi']);
 const SLIDES = [1, 2, 3, 4, 5];
 
@@ -111,7 +128,12 @@ const BRAND = `<div class="brand"><img src="${asset('brand-tile.png')}" alt="" /
 // language's array is the same sentence, so the pair is guaranteed to line up.
 // That file already ships translations for every locale the store supports, so
 // a Russian screenshot shows Russian translation rows rather than English ones.
-const DEMO_SUBS_TS = path.resolve(ASSETS, '../../../../src/content/demo-subs.ts');
+// The HDrezka extension has no demo-subs.ts of its own: demo mode is a YouTube
+// feature and the panel captures this pipeline crops are the YouTube build's.
+// The transcript rows drawn in HTML must therefore come from the SAME file that
+// produced those captures, or a rebuilt panel would show different lines than
+// the cropped one beside it.
+const DEMO_SUBS_TS = path.resolve(ASSETS, '../../../../../youtube/src/content/demo-subs.ts');
 const DEMO_SUBS = (() => {
   // A tiny parse rather than an import: the renderer is plain ESM and the file
   // is TypeScript. The shape is a flat Record<string, string[]> of literals.
@@ -755,11 +777,11 @@ const browser = await chromium.launch({ args: ['--allow-file-access-from-files']
 
 
 async function renderLocale(loc) {
-  const build = path.join(BUILD, loc);
+  const build = path.join(BUILD_DIR, loc);
   fs.rmSync(build, { recursive: true, force: true });
   fs.mkdirSync(build, { recursive: true });
-  fs.mkdirSync(path.join(SHOTS, loc), { recursive: true });
-  fs.mkdirSync(path.join(OUT, loc), { recursive: true });
+  fs.mkdirSync(path.join(SHOTS_DIR, loc), { recursive: true });
+  fs.mkdirSync(path.join(OUT_DIR, loc), { recursive: true });
   const p = copyFor(loc);
   const shots = shotsFor(loc);
   const ui = productStrings(loc);
@@ -774,10 +796,10 @@ async function renderLocale(loc) {
     // product control they staged, so the per-locale measuring pass that moved
     // them onto the active card is gone too. What replaced them is in the
     // capture itself and needs no positioning.
-    const shot = path.join(SHOTS, loc, `slide${n}.png`);
+    const shot = path.join(SHOTS_DIR, loc, `slide${n}.png`);
     await page.screenshot({ path: shot });
     execFileSync('sips', ['-z', String(CWS_SCREENSHOT.height), String(CWS_SCREENSHOT.width),
-      shot, '--out', path.join(OUT, loc, `screenshot-${n}.png`)], { stdio: 'ignore' });
+      shot, '--out', path.join(OUT_DIR, loc, `screenshot-${n}.png`)], { stdio: 'ignore' });
   }
   await ctx.close();
   if (!process.env.KEEP_BUILD) fs.rmSync(build, { recursive: true, force: true });

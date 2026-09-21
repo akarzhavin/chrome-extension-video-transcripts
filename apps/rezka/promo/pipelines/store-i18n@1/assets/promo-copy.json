@@ -1,0 +1,108 @@
+{
+  "_l10n": "HDrezka edition of the YouTube store-i18n@6 series. The SLIDES, layouts, crops and captures are YouTube's — only the ground colour and this copy differ. Three locales: en / ru / uk (the only ones HDrezka ships).\n\nVOICE — the one thing that is not inherited. The YouTube series addresses the reader formally and capitalises sentences; the HDrezka series does not, and that difference is deliberate and pre-existing (see ../../promo-copy.json, the v1 deck): lowercase headlines, informal address (ru/uk «ты»/«ти», en contractions), and the subject is always a FILM or a SERIES, never 'a video'. Do not carry YouTube's register across while carrying its meaning.\n\nWHAT EACH SLIDE MUST SAY (inherited from YouTube, do not re-scope):\n  1  dual subtitles work on any title that has a subtitle track\n  2  a word you save is marked everywhere it turns up again, and syncs to your account\n  3  guess mode: catch the line by ear first, then reveal it\n  4  the subtitles are yours to restyle — fonts, colour, size, position, backdrop\n  5  the built-in dictionary\n\nSLIDE 1 — NO MACHINE TRANSLATION ON HDREZKA. The YouTube line 'works on any video with subtitles' is safe there because YouTube auto-translates. HDrezka does not: the extension only ever shows subtitle tracks the title actually carries (store-description.en.md says so explicitly). Copy here must not imply a translation appears where the title has only one track.\n\nSLIDE 5 — THE TWO STEPS ARE NOT THE SAME STEP. Hovering a word opens a small card: a part-of-speech tag and a few translations, nothing more. The FULL entry — every sense, the usage examples, the line the word appeared in — opens only when the reader presses the card's second button. Name that button with the locale's own ytLookupMore string from apps/rezka/_locales/<loc>/messages.json (ru «Разбор», uk «Розбір»), never a word you invent. Earlier YouTube copy said hovering showed the senses; it does not, and that wording was a bug, not a style.\n\nNO CHARACTER BUDGET. The column is 440px: 'Cualquier palabra,' is 18 characters but 473px. Write the sentence first, break it second, then MEASURE and re-break what does not fit. Four lines are fine — the block has room below it.\n\nThe eyebrow is NOT auto-uppercased by CSS, so caps live here in the JSON.",
+  "en": {
+    "slide1": {
+      "eyebrow": "DUAL SUBTITLES",
+      "title": "dual subtitles<br>right on<br><span class=\"hl\">HDrezka</span>",
+      "sub": "the original and your own language side by side — on the player itself and in a panel that keeps up with the scene. works on any film that carries a subtitle track.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Today we'll learn something fun",
+      "lookupTr": "funny <span class=\"lk-sep\">·</span> amusing"
+    },
+    "slide2": {
+      "eyebrow": "YOUR OWN DICTIONARY",
+      "title": "every word you save,<br>in <span class=\"hl\">your own dictionary</span>",
+      "sub": "save a word mid-film and it stays marked everywhere it turns up again — and lands in your list on lingogram.ai.",
+      "callout": "synced to your account"
+    },
+    "slide3": {
+      "eyebrow": "LISTEN, DON'T JUST READ",
+      "title": "catch the line by ear,<br>then <span class=\"hl\">check yourself</span>",
+      "sub": "guess mode hides each line until you reveal it — that's real practice, not passive reading.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Today we'll learn something fun"
+    },
+    "slide4": {
+      "eyebrow": "MAKE IT YOURS",
+      "title": "make the subtitles<br><span class=\"hl\">look how you want</span>",
+      "sub": "seven fonts, any colour, your own size, position and backdrop — set the two lines up independently until they read exactly how you like."
+    },
+    "slide5": {
+      "eyebrow": "BUILT-IN DICTIONARY",
+      "title": "<span class=\"hl\">a full explanation</span><br>of any word,<br>with examples",
+      "sub": "point at a word for a quick translation, or press Details to open the whole entry.",
+      "caption": "Today we'll learn something fun",
+      "captionSub": "Hoy vamos a aprender algo divertido"
+    }
+  },
+  "ru": {
+    "slide1": {
+      "eyebrow": "ДВОЙНЫЕ СУБТИТРЫ",
+      "title": "двойные<br>субтитры на<br><span class=\"hl\">HDrezka</span>",
+      "sub": "оригинал и твой родной язык рядом — и на самом плеере, и в боковой панели, что успевает за сценой. работает на любом фильме с дорожкой субтитров.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Сегодня мы выучим кое-что интересное",
+      "lookupTr": "весёлый <span class=\"lk-sep\">·</span> забавный"
+    },
+    "slide2": {
+      "eyebrow": "СВОЙ СЛОВАРЬ",
+      "title": "каждое слово, что сохранил —<br>в <span class=\"hl\">твоём личном словаре</span>",
+      "sub": "сохрани слово прямо во время фильма — оно подсветится всюду, где встретится снова, и попадёт в твой список на lingogram.ai.",
+      "callout": "синхронизация с аккаунтом"
+    },
+    "slide3": {
+      "eyebrow": "СЛУШАЙ, А НЕ ПРОСТО ЧИТАЙ",
+      "title": "поймай фразу на слух,<br>потом <span class=\"hl\">проверь себя</span>",
+      "sub": "режим «Угадай» прячет реплику, пока ты её не откроешь — вот это настоящая практика, а не пассивное чтение.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Сегодня мы выучим кое-что интересное"
+    },
+    "slide4": {
+      "eyebrow": "ПОД СЕБЯ",
+      "title": "настрой субтитры<br><span class=\"hl\">как тебе удобно</span>",
+      "sub": "семь шрифтов, любой цвет, свой размер, положение и подложка — обе строки настраиваются отдельно, пока не станет читаться именно так, как ты хочешь."
+    },
+    "slide5": {
+      "eyebrow": "ВСТРОЕННЫЙ СЛОВАРЬ",
+      "title": "<span class=\"hl\">подробное<br>пояснение</span><br>любого слова<br>с примерами",
+      "sub": "наведи на слово — появится короткий перевод, а по кнопке «Разбор» откроется вся статья.",
+      "caption": "Today we'll learn something fun",
+      "captionSub": "Hoy vamos a aprender algo divertido"
+    }
+  },
+  "uk": {
+    "slide1": {
+      "eyebrow": "ПОДВІЙНІ СУБТИТРИ",
+      "title": "подвійні<br>субтитри на<br><span class=\"hl\">HDrezka</span>",
+      "sub": "оригінал і твоя рідна мова поруч — і на самому плеєрі, і в бічній панелі, що встигає за сценою. працює на будь-якому фільмі з доріжкою субтитрів.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Сьогодні вивчимо щось цікаве",
+      "lookupTr": "funny <span class=\"lk-sep\">·</span> amusing <span class=\"lk-sep\">·</span> entertaining"
+    },
+    "slide2": {
+      "eyebrow": "СВІЙ СЛОВНИК",
+      "title": "кожне слово, що зберіг —<br>у <span class=\"hl\">твоєму словнику</span>",
+      "sub": "збережи слово просто під час фільму — воно підсвітиться всюди, де трапиться знову, і потрапить до твого списку на lingogram.ai.",
+      "callout": "синхронізація з акаунтом"
+    },
+    "slide3": {
+      "eyebrow": "СЛУХАЙ, А НЕ ПРОСТО ЧИТАЙ",
+      "title": "впіймай фразу на слух,<br>потім <span class=\"hl\">перевір себе</span>",
+      "sub": "режим «Вгадай» ховає репліку, доки ти її не відкриєш — ось це справжня практика, а не пасивне читання.",
+      "caption": "Hoy vamos a aprender algo divertido",
+      "captionSub": "Сьогодні вивчимо щось цікаве"
+    },
+    "slide4": {
+      "eyebrow": "ПІД СЕБЕ",
+      "title": "налаштуй субтитри<br><span class=\"hl\">як тобі зручно</span>",
+      "sub": "сім шрифтів, будь-який колір, свій розмір, розташування та підкладка — обидва рядки налаштовуються окремо, доки не читатиметься саме так, як ти хочеш."
+    },
+    "slide5": {
+      "eyebrow": "ВБУДОВАНИЙ СЛОВНИК",
+      "title": "<span class=\"hl\">докладне<br>пояснення</span><br>будь-якого слова<br>з прикладами",
+      "sub": "наведи на слово — з'явиться короткий переклад, а за кнопкою «Розбір» відкриється вся стаття.",
+      "caption": "Today we'll learn something fun",
+      "captionSub": "Hoy vamos a aprender algo divertido"
+    }
+  }
+}
