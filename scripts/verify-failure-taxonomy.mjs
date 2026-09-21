@@ -75,10 +75,14 @@ const wanted = (id) => ONLY.length === 0 || ONLY.includes(id);
 
 // The vocabulary as the shipped code declares it: VttFailure in
 // apps/youtube/src/content/timedtext-fetch.ts, NoSubsCause in
-// apps/youtube/src/content/app-base.ts, plus rezka's 'not-selected'.
+// apps/youtube/src/content/app-base.ts, plus rezka's 'not-selected' and
+// 'native-only'.
 // 'aborted' is deliberately excluded from dominantFailure(), so it can never be
 // the reported value.
-const EXPECTED_ABSENCE = ['no-tracks', 'no-language-match', 'not-selected'];
+// 'native-only': a track loaded, but only in the user's native language, so the
+// main pane stays empty. An expected absence, not a fault — the player is
+// serving a dub and the original is behind another voice-over option.
+const EXPECTED_ABSENCE = ['no-tracks', 'no-language-match', 'not-selected', 'native-only'];
 const INCONCLUSIVE = ['not-attempted', 'unknown'];
 const REAL_FAILURE = ['rate-limited', 'cooldown', 'stale-url', 'no-pot',
                       'network', 'timeout', 'not-offered', 'unavailable'];

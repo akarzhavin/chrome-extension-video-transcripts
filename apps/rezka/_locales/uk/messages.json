@@ -67,6 +67,30 @@
     "message": "Потім поверніть субтитри плеєра на «вимк.».",
     "description": "Manual subtitle how-to, step 3."
   },
+  "rzNativeOnlyTitle": {
+    "message": "Доступна лише рідна мова",
+    "description": "Sidebar banner title on HDrezka when a subtitle track loaded but only in the user's native language, so the main transcript pane is empty."
+  },
+  "rzNativeOnlyText": {
+    "message": "Плеєр показує дубльовану версію. Перемкніться на оригінал, щоб отримати субтитри мовою, яку вивчаєте:",
+    "description": "Sidebar banner body on HDrezka explaining that the dubbed voice-over only ships native-language subtitles."
+  },
+  "rzNativeOnlyRetryText": {
+    "message": "Як і раніше доступна лише рідна мова. Перемкніть озвучення на оригінал — якщо це не допомагає, перезавантажте сторінку.",
+    "description": "Native-only banner body after a retry still found no original-language track; points at the reload fallback."
+  },
+  "rzNativeOnlyStep1": {
+    "message": "Оберіть «Оригинал (+субтитры)» у рядку озвучення над плеєром.",
+    "description": "Native-only how-to, step 1. The quoted label is HDrezka's own UI text and must stay in Russian in every locale."
+  },
+  "rzNativeOnlyStep2": {
+    "message": "Відкрийте меню субтитрів (CC) і виберіть по черзі кожну мову.",
+    "description": "Native-only how-to, step 2."
+  },
+  "rzNativeOnlyStep3": {
+    "message": "Потім поверніть субтитри плеєра на «вимк.».",
+    "description": "Native-only how-to, step 3."
+  },
   "ytSearchAgain": {
     "message": "Шукати знову",
     "description": "Retry button label on the no-subtitles banner."
