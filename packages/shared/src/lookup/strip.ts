@@ -246,6 +246,12 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     // there is nothing to be suspicious of — the first hover of a page is taken
     // at face value.
     let restingAt: { x: number; y: number } | null = null;
+    // The word whose card the user just closed, held until the pointer leaves
+    // it. Only the mousemove path consults it: that path aims at the word under
+    // a moving cursor, which is also where the cursor is left standing after a
+    // click that dismissed the card, so without this the dismissal is undone by
+    // the smallest tremor of the hand that performed it.
+    let dismissed: HTMLElement | null = null;
     // Which words read as saved in this tab. Shared with the word screen
     // through one object rather than a Set each, which is what makes the
     // strip's heart and the screen's controls agree about the same word.
@@ -672,6 +678,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // event already holds. (:hover stays as the fallback for the case the
         // rect cannot be measured at all.)
         if (!to && span.isConnected && stillOnSpan(span, e)) return;
+        // Past every "not really a departure" guard above, so the pointer has
+        // genuinely left this word: a dismissal recorded against it has served
+        // its purpose and must not outlive it, or the word would be unhoverable
+        // for as long as it stays on screen.
+        if (span === dismissed) dismissed = null;
         clearTimeout(hoverTimer);
         scheduleHide();
     };
@@ -741,6 +752,14 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         const moved = !restingAt || e.clientX !== restingAt.x || e.clientY !== restingAt.y;
         restingAt = { x: e.clientX, y: e.clientY };
         if (!moved) return;
+        // Everything onMouseOver refuses to open a card for, this path must
+        // refuse too — it is the same offer reached by a different gesture.
+        // Mid-drag the cursor sweeps the words being selected, and here it does
+        // so continuously: without this, drawing a two-word phrase spends a
+        // request per word on the way and pauses the film mid-selection, and
+        // then onSelectionMouseUp spends a third on the phrase itself.
+        if (dragging && e.buttons === 0) dragging = false;
+        if (dragging) return;
         // A word suppressed above must not stay dead until the cue changes
         // again. Moving the pointer WITHIN the word it already rests on fires
         // no mouseover at all — the hit target never changes — so that gesture
@@ -748,7 +767,16 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // mean it". Measured in Chrome: park on a word, let the cue rebuild
         // (suppressed), then nudge 3px; without this the card never opens.
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
-        if (span) aimAt(span);
+        if (!span) return;
+        // A card the user just dismissed stays dismissed while the pointer is
+        // still standing in the word it belonged to. Clicking a word closes its
+        // card, and the hand that clicks is never perfectly still — a 1px
+        // tremor would land here, find `current` already cleared, and re-open
+        // the card the click had just closed. The mouseover path cannot reach
+        // this state at all, because moving within a span fires no mouseover;
+        // the dismissal is only forgotten when the pointer leaves the word.
+        if (span === dismissed) return;
+        aimAt(span);
     };
 
     const onMouseDown = (e: MouseEvent): void => {
@@ -760,6 +788,10 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // second click re-open the word instead of closing it. onClick owns
         // that case; this only dismisses presses landing somewhere else.
         if ((e.target as Element | null)?.closest?.(SIDEBAR_WORD_SELECTOR)) return;
+        // Remember the overlay word the press landed in, if any, so the nudge
+        // that follows the click does not re-open what the click dismissed.
+        dismissed = (e.target as Element | null)
+            ?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR) ?? null;
         removeStrip();
     };
     const onMouseUp = (): void => {

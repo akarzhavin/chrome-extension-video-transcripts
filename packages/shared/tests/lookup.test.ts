@@ -1927,4 +1927,107 @@ describe('hover means the user moved — not that the subtitles moved', () => {
         expect(document.getElementById('lingogram-lookup-strip')).not.toBeNull();
         teardown();
     });
+
+    it('a drag across words opens nothing — the mousemove path obeys it too', async () => {
+        // The counter-half of the re-arm above, and the half that only the
+        // mousemove path can break: a selection is drawn by MOVING, so every
+        // word the sweep crosses reaches aimAt() through this handler. The
+        // existing drag test dispatches mouseover alone and stays green.
+        //
+        // What the user gets otherwise: a card per word mid-sweep, the film
+        // paused halfway through drawing the phrase, and two or three requests
+        // against the 30/min budget for one gesture — the third from
+        // onSelectionMouseUp, which is the only one that was asked for.
+        const teardown = installLookupStrip();
+        const first = overlaySpan('anchor');
+        const second = overlaySpan('chain');
+        movePointerTo(300, 400);
+
+        first.dispatchEvent(new MouseEvent('mousedown', {
+            bubbles: true, button: 0, clientX: 120, clientY: 410,
+        }));
+        // Sweeping with the button held: `buttons: 1` is the live fact, as the
+        // mouseover guard reads it.
+        for (const [span, x] of [[first, 130], [second, 150]] as const) {
+            span.dispatchEvent(new MouseEvent('mousemove', {
+                bubbles: true, buttons: 1, clientX: x, clientY: 410,
+            }));
+            await jest.advanceTimersByTimeAsync(300);
+        }
+
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+        expect(pauseSpy).not.toHaveBeenCalled();
+        teardown();
+    });
+
+    it('a click that closes the card is not undone by the hand that clicked', async () => {
+        // A click dismisses the card through onMouseDown -> removeStrip(), and
+        // the hand that clicks is never perfectly still. The tremor that
+        // follows is a mousemove inside the word the card belonged to — which
+        // this path aims at, finding `current` already cleared. The card
+        // re-opens and re-pauses the film, and clicking again just repeats it.
+        //
+        // Unreachable through mouseover, which is why it appeared with this
+        // handler: moving within a span fires no mouseover at all.
+        const teardown = installLookupStrip();
+        const span = overlaySpan('anchor');
+        movePointerTo(300, 400);
+        hoverAt(span, 120, 410);
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(document.getElementById('lingogram-lookup-strip')).not.toBeNull();
+
+        span.dispatchEvent(new MouseEvent('mousedown', {
+            bubbles: true, button: 0, clientX: 120, clientY: 410,
+        }));
+        span.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 120, clientY: 410 }));
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+
+        // 1px of the hand settling, still inside the dismissed word.
+        movePointerTo(121, 410, span);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+        teardown();
+    });
+
+    it('and the word is hoverable again once the pointer has left it', async () => {
+        // The dismissal is remembered against one word, not forever: holding it
+        // past the departure would make that word dead for as long as the cue
+        // stays on screen, which is the bug this suite already fixed once.
+        const teardown = installLookupStrip();
+        const span = overlaySpan('anchor');
+        movePointerTo(300, 400);
+        hoverAt(span, 120, 410);
+        await jest.advanceTimersByTimeAsync(2000);
+        span.dispatchEvent(new MouseEvent('mousedown', {
+            bubbles: true, button: 0, clientX: 120, clientY: 410,
+        }));
+        span.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 120, clientY: 410 }));
+
+        // The cursor genuinely leaves for somewhere else, then comes back.
+        const elsewhere = document.createElement('div');
+        document.body.appendChild(elsewhere);
+        span.dispatchEvent(new MouseEvent('mouseout', {
+            bubbles: true, relatedTarget: elsewhere, clientX: 900, clientY: 900,
+        }));
+        movePointerTo(900, 900);
+        await jest.advanceTimersByTimeAsync(2000);
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+
+        // The return has to be judged on the MOUSEMOVE path, the only one that
+        // reads the dismissal — a bare mouseover would pass even with the flag
+        // never cleared. So the word comes back the suppressed way: it arrives
+        // under the resting cursor on a repaint, leaving the nudge inside it as
+        // the sole route to a card, exactly as in the re-arm test above.
+        hoverAt(span, 900, 900);
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(document.getElementById('lingogram-lookup-strip')).toBeNull();
+
+        movePointerTo(902, 901, span);
+        await jest.advanceTimersByTimeAsync(2000);
+
+        expect(document.getElementById('lingogram-lookup-strip')).not.toBeNull();
+        teardown();
+    });
 });
