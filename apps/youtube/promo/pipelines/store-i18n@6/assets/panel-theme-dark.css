@@ -1,0 +1,104 @@
+/* VARIANT: slide 1's panel in the product's DARK theme.
+ *
+ * Requested as an example — "расширение на первом слайде тёмной темы". It is a
+ * STYLESHEET SWAP, not a recapture: slides 1 and 3 do not crop a screenshot,
+ * they rebuild the panel in HTML, so the theme is whatever the sheets say.
+ *
+ * Loaded AFTER fullscreen-warm.css, which warmed the light panel's greys; every
+ * token it set is redefined here rather than partly overridden, because a half
+ * -swapped theme is the failure mode that looks fine in one locale and wrong in
+ * another.
+ *
+ * Values are the shipped dark theme's, copied from apps/rezka/src/assets/
+ * styles.css exactly as fullscreen-dark.css copies them — same source, so the
+ * two dark slides agree. The one deliberate difference from that sheet: the
+ * panel is OPAQUE here (#1b1c20, the product's own --vtt-panel-solid) instead
+ * of the shipped 0.86 glass, for the reason fullscreen-guess.css already
+ * documents — on a still frame there is no live video for the blur to resolve,
+ * so the alpha only lets the backdrop bleed through and lift the ground
+ * unevenly. slide 1's backdrop is a red-lit studio, which would tint the whole
+ * list pink.
+ *
+ * NOTE ON THE ACCENT: the dark theme's accent is periwinkle #7C8DFF, not lime.
+ * That also moves the lookup card's own type, which is why the card's tokens
+ * are restated below rather than left to the warm sheet. */
+
+:root {
+    --panel-bg: #1b1c20;
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.02);
+    --text: #e9eaee;
+    --text-2: #b0b0b0;
+    --violet: #7c8dff;
+    --lime: #7c8dff;
+    /* The saved-word token. The DARK value — styles.css uses #ff7a90 here,
+       where the light theme darkens it to #d92d4e so it survives on white.
+       Without this line the heart and the saved marks resolve to nothing and
+       paint no colour at all: CSS drops a declaration whose custom property
+       does not resolve, so the rules stay "present" and invisible. */
+    --heart: #ff7a90;
+}
+
+.panel {
+    background: #1b1c20;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* Through the token, not as a literal: this sheet loads after
+       fullscreen-warm.css, whose `--panel-edge: rgba(124,141,255,0.32)` is the
+       periwinkle edge slide 1's glow is built around. A white-alpha literal
+       here would load last and quietly replace it — invisibly so, because the
+       .panel::before gradient still paints and the boundary still looks lit. */
+    border-left: 1px solid var(--panel-edge, var(--border));
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.tab {
+    background: #1b1c20;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #e9eaee;
+}
+
+/* The cards sit on a known ground, so their white-alpha resolves to a flat
+   value rather than to whatever the studio lighting was doing behind them. */
+.item { background: #232428; border-color: #26272c; }
+.item.active { background: #2b2e42; border-color: rgba(124, 141, 255, 0.32); }
+
+/* The hairline the panel head sits on, and the head's own type. */
+.p-head, .p-sub { border-color: rgba(255, 255, 255, 0.08); }
+
+/* ── THE LOOKUP CARD ──────────────────────────────────────────────────────
+ * The card over the caption is separate markup from the panel (.lookup, not
+ * .item), so swapping the panel's theme leaves it light — a white card floating
+ * over a dark panel, which is not a state the product can be in: the card
+ * follows the extension's theme like everything else.
+ *
+ * Values are NOT invented here. They are the ones already measured from the
+ * running dark card for slide 5's .hovercard — see the block at the end of
+ * fullscreen-wordscreen.css — so the two dark cards in this series agree with
+ * each other and with the product. Only the class names differ. */
+.lookup {
+    background: #1b1c20;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
+    color: #e9eaee;
+}
+
+.lk-pos {
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.lk-tr { color: #e9eaee; }
+.lk-sep { color: rgba(255, 255, 255, 0.62); }
+.lk-def { color: rgba(255, 255, 255, 0.72); }
+
+.lk-acts { border-top-color: rgba(255, 255, 255, 0.08); }
+.lk-btn { color: rgba(255, 255, 255, 0.72); }
+.lk-btn + .lk-btn { border-left-color: rgba(255, 255, 255, 0.08); }
+
+/* The saved heart takes the DARK theme's value — #ff7a90, which the light
+   theme darkens to #d92d4e to survive on white. Stated as literals rather than
+   left to var(--heart) so this block reads as one measured set. */
+.lk-btn.saved { color: #ff7a90; }
+.lk-btn.saved svg { fill: #ff7a90; stroke: #ff7a90; }
