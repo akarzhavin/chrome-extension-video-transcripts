@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram ಎರಡು ಬಾರಿ ಚಾಲನೆಯಲ್ಲಿದೆ",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "ವಿಸ್ತರಣೆಯ ಎರಡು ಪ್ರತಿಗಳು ಆನ್ ಆಗಿವೆ, ಆದ್ದರಿಂದ ಪ್ರತಿ ಪದವನ್ನು ಎರಡು ಬಾರಿ ಉಳಿಸಲಾಗುತ್ತದೆ ಮತ್ತು ಎರಡರಲ್ಲಿ ಒಂದು ಪ್ರಯತ್ನ ದೋಷದೊಂದಿಗೆ ವಿಫಲಗೊಳ್ಳುತ್ತದೆ. ಒಂದು ಪ್ರತಿಯನ್ನು ಆಫ್ ಮಾಡಿ ಮತ್ತು ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "ವಿಸ್ತರಣೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }

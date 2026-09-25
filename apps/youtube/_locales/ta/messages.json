@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram இரண்டு முறை இயங்குகிறது",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "நீட்டிப்பின் இரண்டு பிரதிகள் இயக்கத்தில் உள்ளன, எனவே ஒவ்வொரு சொல்லும் இரண்டு முறை சேமிக்கப்படுகிறது, இரண்டில் ஒரு முயற்சி பிழையுடன் தோல்வியடைகிறது. ஒரு பிரதியை அணைத்து பக்கத்தை மீண்டும் ஏற்றவும்.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "நீட்டிப்பு அமைப்புகளைத் திற",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }

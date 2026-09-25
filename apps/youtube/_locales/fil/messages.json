@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Umaandar nang dalawang beses ang Lingogram",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "Naka-on ang dalawang kopya ng extension, kaya na-save nang dalawang beses ang bawat salita at nabibigo ang isa sa dalawang pagsubok dahil sa error. I-off ang isang kopya at i-reload ang page.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "Buksan ang mga setting ng extension",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }

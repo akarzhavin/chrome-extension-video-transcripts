@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "IA",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram s'exécute deux fois",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "Deux copies de l'extension sont activées, donc chaque mot est enregistré deux fois et l'un des deux essais échoue avec une erreur. Désactivez une des copies et actualisez la page.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "Ouvrir les paramètres de l'extension",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }

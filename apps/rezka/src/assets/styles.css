@@ -2354,7 +2354,10 @@
    because it is the same kind of thing: an announcement about the panel rather
    than content in it. Warning, not critical: nothing is lost, and one reload
    undoes it. */
-#vtt-orphan-notice {
+/* #vtt-duplicate-notice ("running twice") shares the look: both are
+   announcements about the panel itself, in the same banner slot. */
+#vtt-orphan-notice,
+#vtt-duplicate-notice {
     /* flex-shrink:0 — the sidebar is a flex column and #vtt-list grows to fill
        it, so without this a long transcript squeezes the banner thinner than
        its own text. */

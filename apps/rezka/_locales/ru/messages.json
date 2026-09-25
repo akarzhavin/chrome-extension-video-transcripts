@@ -566,5 +566,17 @@
   "ytPosPhrase": {
     "message": "фраза",
     "description": "Short part-of-speech label: phrase."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram запущен дважды",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "Включены две копии расширения, поэтому каждое слово сохраняется дважды и одно из сохранений падает с ошибкой. Выключи одну копию и перезагрузи страницу.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "Открыть настройки расширения",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }
