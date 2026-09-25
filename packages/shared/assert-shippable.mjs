@@ -453,9 +453,8 @@ if (waived) {
     process.exit(0);
 }
 
-console.error('  A shippable build is what `./scripts/build-with-analytics.sh prod` makes:');
-console.error('  production backends AND live GA4 credentials. Plain `npm run build` gives');
-console.error('  the first without the second, which ships mute analytics.');
+console.error('  A shippable build is what `npm run build` (= ./scripts/build-with-analytics.sh prod)');
+console.error('  makes: production backends AND live GA4 credentials.');
 console.error('  To package such a build anyway: WRITE_UNSHIPPABLE_ZIP=1 npm run build');
 console.error('  (it will be written as <app>-v<version>-UNSHIPPABLE.zip)');
 console.error('');

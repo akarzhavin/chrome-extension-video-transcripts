@@ -2,8 +2,21 @@
 #
 # Build the extensions with GA4 credentials loaded from .env.
 #
-#   ./scripts/build-with-analytics.sh dev     # dev property,  /debug/mp/collect
-#   ./scripts/build-with-analytics.sh prod    # prod property, /mp/collect
+#   ./scripts/build-with-analytics.sh dev      # dev property,  /debug/mp/collect
+#   ./scripts/build-with-analytics.sh prod     # prod property, /mp/collect, zip
+#   ./scripts/build-with-analytics.sh capture  # prod backends, NO analytics, no zip
+#   ./scripts/build-with-analytics.sh dev youtube   # one edition only
+#
+# The ONLY way to build an extension. `npm run build` / `npm run build:dev` in
+# apps/youtube and apps/rezka call this script, and vite.config.ts refuses to
+# build unless it runs under it (LINGOGRAM_BUILD_VIA_WRAPPER). A bare vite build
+# reads no .env and comes out green with the dictionary and analytics silently
+# off — that happened twice on 2026-09-25 alone, and it is how 1.0.15/1.0.16
+# reached the store without analytics.
+#
+# `capture` is for promo screenshots and video: a production build (no dev
+# backend bar across the panel) that sends nothing to the production GA4
+# property, so capture sessions never land in the funnel.
 #
 # Exists because the alternative is a hand-typed env prefix, and the failure
 # mode of getting that wrong is silent: a build with an empty api_secret sends
@@ -18,10 +31,20 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 ENV_NAME="${1:-}"
-if [[ "$ENV_NAME" != "dev" && "$ENV_NAME" != "prod" ]]; then
-    echo "usage: $0 <dev|prod>" >&2
+if [[ "$ENV_NAME" != "dev" && "$ENV_NAME" != "prod" && "$ENV_NAME" != "capture" ]]; then
+    echo "usage: $0 <dev|prod|capture> [youtube|rezka]" >&2
     exit 2
 fi
+
+# Which editions. Both by default; one when named, which is what
+# `npm run build[:dev]` inside an app passes.
+APPS="${2:-youtube rezka}"
+for app in $APPS; do
+    if [[ "$app" != "youtube" && "$app" != "rezka" ]]; then
+        echo "usage: $0 <dev|prod|capture> [youtube|rezka]" >&2
+        exit 2
+    fi
+done
 
 if [[ ! -f .env ]]; then
     echo "error: .env not found. Copy .env.example to .env and fill it in:" >&2
@@ -44,6 +67,12 @@ if [[ "$ENV_NAME" == "prod" ]]; then
     MEASUREMENT_ID="${ENVFILE_EXT_GA4_MEASUREMENT_ID_PROD:-}"
     API_SECRET="${ENVFILE_EXT_GA4_API_SECRET_PROD:-}"
     API_BASE_URL="${ENVFILE_EXT_API_BASE_URL_PROD:-}"
+elif [[ "$ENV_NAME" == "capture" ]]; then
+    # Production dictionary, so the word card in a capture is the real one;
+    # no GA4 pair at all, so the build is analytics-silent by construction.
+    MEASUREMENT_ID=""
+    API_SECRET=""
+    API_BASE_URL="${ENVFILE_EXT_API_BASE_URL_PROD:-}"
 else
     MEASUREMENT_ID="${ENVFILE_EXT_GA4_MEASUREMENT_ID:-}"
     API_SECRET="${ENVFILE_EXT_GA4_API_SECRET:-}"
@@ -53,14 +82,16 @@ fi
 # A placeholder is worse than an empty value: the empty case is a documented
 # silent no-op, while G-XXXXXXXXXX is a real-looking id that will never appear
 # in any report, which reads as "analytics is broken" instead of "unconfigured".
-if [[ -z "$MEASUREMENT_ID" || "$MEASUREMENT_ID" == "G-XXXXXXXXXX" ]]; then
-    echo "error: no $ENV_NAME measurement_id in .env (still the placeholder?)" >&2
-    exit 1
-fi
-if [[ -z "$API_SECRET" ]]; then
-    echo "error: no $ENV_NAME api_secret in .env." >&2
-    echo "       Admin -> Data Streams -> Measurement Protocol API secrets." >&2
-    exit 1
+if [[ "$ENV_NAME" != "capture" ]]; then
+    if [[ -z "$MEASUREMENT_ID" || "$MEASUREMENT_ID" == "G-XXXXXXXXXX" ]]; then
+        echo "error: no $ENV_NAME measurement_id in .env (still the placeholder?)" >&2
+        exit 1
+    fi
+    if [[ -z "$API_SECRET" ]]; then
+        echo "error: no $ENV_NAME api_secret in .env." >&2
+        echo "       Admin -> Data Streams -> Measurement Protocol API secrets." >&2
+        exit 1
+    fi
 fi
 
 # The dictionary address, refused when empty rather than defaulted.
@@ -78,7 +109,7 @@ fi
 # A release build is refused here on the same terms instead of inheriting the
 # off-by-default that the library layer is right to keep.
 if [[ -z "$API_BASE_URL" ]]; then
-    if [[ "$ENV_NAME" == "prod" ]]; then
+    if [[ "$ENV_NAME" != "dev" ]]; then
         echo "error: no EXT_API_BASE_URL_PROD in .env." >&2
     else
         echo "error: no EXT_API_BASE_URL in .env." >&2
@@ -92,6 +123,10 @@ fi
 export EXT_GA4_MEASUREMENT_ID="$MEASUREMENT_ID"
 export EXT_GA4_API_SECRET="$API_SECRET"
 export EXT_API_BASE_URL="$API_BASE_URL"
+
+# The mark vite.config.ts checks before it builds anything. Without it the
+# config throws and names this script.
+export LINGOGRAM_BUILD_VIA_WRAPPER=1
 
 # The dev-only backend switch's ring, passed through to vite.
 #
@@ -131,7 +166,11 @@ node packages/shared/assert-foldable.mjs
 echo "  ok: source is foldable"
 echo
 
-echo "Building all three extensions against the $ENV_NAME property ($MEASUREMENT_ID)."
+if [[ "$ENV_NAME" == "capture" ]]; then
+    echo "Building ($APPS) for capture: production backends, no analytics, no zip."
+else
+    echo "Building ($APPS) against the $ENV_NAME property ($MEASUREMENT_ID)."
+fi
 echo "Dictionary gateway: $API_BASE_URL"
 if [[ "$ENV_NAME" == "dev" ]]; then
     export EXT_ENV=dev
@@ -153,20 +192,31 @@ echo
 # A dev build is loaded unpacked via chrome://extensions, so the archive was
 # never needed in the first place. Not writing it removes the confusable
 # artifact instead of relying on someone remembering which zip is which.
-BUILD_TARGET=build
-if [[ "$ENV_NAME" == "dev" ]]; then
-    BUILD_TARGET=build:dev
-fi
+#
+# The *:raw targets are the bare vite steps. Only this script calls them: the
+# public `build` / `build:dev` in each app call this script instead.
+case "$ENV_NAME" in
+    prod)    BUILD_TARGET=build:raw ;;      # vite + shippable gate + zip
+    dev)     BUILD_TARGET=build:dev:raw ;;
+    capture) BUILD_TARGET=build:vite:raw ;; # vite only: no archive to confuse
+esac
 
-for app in youtube rezka; do
+for app in $APPS; do
     echo "--- apps/$app ---"
     npm run "$BUILD_TARGET" -w "apps/$app"
 done
 
+# Nothing to leak and nothing expected to be present.
+if [[ "$ENV_NAME" == "capture" ]]; then
+    echo
+    echo "Capture build ready: analytics-silent, loaded unpacked from build/."
+    exit 0
+fi
+
 echo
 echo "Verifying the api_secret stayed out of the page-readable bundles."
 leaked=0
-for app in youtube rezka; do
+for app in $APPS; do
     for bundle in "apps/$app/build/src/content/index.js" \
                   "apps/$app/build/src/popup/popup.js" \
                   "apps/$app/build/src/content/page-script.js"; do

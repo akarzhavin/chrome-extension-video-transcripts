@@ -261,8 +261,8 @@ export const test = base.extend<{ page: Page; pageFor: PageFor; loadAudit: void 
             throw new Error(
                 'The loaded build carries no dictionary address, so every word lookup\n' +
                     'answers "not configured" and the card never appears.\n\n' +
-                    'Rebuild with it set:\n' +
-                    '  (cd apps/youtube && EXT_API_BASE_URL="<gateway url>" npm run build:dev)',
+                    'Set EXT_API_BASE_URL in .env, then rebuild:\n' +
+                    '  (cd apps/youtube && npm run build:dev)',
             );
         }
 

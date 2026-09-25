@@ -48,8 +48,13 @@ Supply your own values: **no project id, key, or host belongs in this
 repository**. Take them from the environment (see `english/frontend/.env.*` or
 the Firebase Console).
 
+This is the one build that deliberately bypasses
+`scripts/build-with-analytics.sh`, so it has to set the wrapper's mark itself —
+`vite.config.ts` refuses to build without it.
+
 ```sh
 cd apps/youtube
+export LINGOGRAM_BUILD_VIA_WRAPPER=1   # deliberate bypass: a hybrid the wrapper cannot make
 export EXT_FIREBASE_PROJECT_ID=<project-id>
 export EXT_FIREBASE_API_KEY=<web-api-key>
 export EXT_FRONTEND_BASE_URL=https://<host>

@@ -16,7 +16,7 @@
  *   node scripts/verify-debug-trace.mjs --expect-prod   # expects a prod build
  *
  * Build first:
- *   cd apps/youtube && EXT_ENV=dev npx vite build --mode page-script
+ *   scripts/build-with-analytics.sh dev youtube    (prod for --expect-prod)
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -46,7 +46,7 @@ function bakedDefault() {
 
 if (!existsSync(BUNDLE)) {
     console.error(`No bundle at ${BUNDLE}`);
-    console.error('Build it: (cd apps/youtube && EXT_ENV=dev npx vite build --mode page-script)');
+    console.error('Build it: scripts/build-with-analytics.sh dev youtube');
     process.exit(2);
 }
 
