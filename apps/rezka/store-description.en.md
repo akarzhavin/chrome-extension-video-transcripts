@@ -107,7 +107,12 @@ KEYBOARD SHORTCUTS
 
 NATIVE SPEAKERS, NOT TEXTBOOKS
 Textbook dialogues are stiff and fake. Lingogram drops you into the films and
-shows native speakers actually watch.
+shows native speakers actually watch:
+• blockbusters and indie films
+• TV series and sitcoms
+• anime and cartoons
+• documentaries
+• crime, comedy, drama — whatever you're into
 Hear the language the way people really use it, while you watch titles you
 already enjoy. Works across single movies and full multi-season series alike.
 
