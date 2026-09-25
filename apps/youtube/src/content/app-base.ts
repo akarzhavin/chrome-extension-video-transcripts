@@ -156,7 +156,8 @@ export const SIDEBAR_CHROME_CSS = `
        an announcement about the panel, not content in it. Amber, not the
        emergency red of "Reload page" below — nothing is lost, and one reload
        undoes it. */
-    #vtt-orphan-notice {
+    #vtt-orphan-notice,
+    #vtt-duplicate-notice {
         /* flex-shrink:0 — the sidebar is a flex column and #vtt-list grows to
            fill it, so without this a long transcript squeezes the banner
            thinner than its own text. */
@@ -198,7 +199,8 @@ export const SIDEBAR_CHROME_CSS = `
        live here, beside the dark ones, or white-on-amber paints over the
        #f7f7f5 panel. Same trap the emergency action documents in rezka's
        styles.css; the html prefix is there for the same reason. */
-    html.vtt-light #vtt-orphan-notice {
+    html.vtt-light #vtt-orphan-notice,
+    html.vtt-light #vtt-duplicate-notice {
         border-left-color: #b45309;
         background: rgba(180, 83, 9, 0.09);
     }

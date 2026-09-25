@@ -37,6 +37,7 @@ import {
 } from './overlay-style';
 import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
+import { watchForDuplicateCopy } from './content/duplicate-copy-notice';
 import { buildFeedbackScreen, FeedbackScreenHost } from './content/feedback-screen';
 import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
 import { PeekController } from './transcript/peek';
@@ -315,7 +316,13 @@ export class SidebarUI {
                 if (isContextOrphaned()) showOrphanNotice();
                 return false;
             }
-            if (owner !== ownerId()) return false;
+            if (owner !== ownerId()) {
+                // A live rival copy. Yielding keeps the panel whole, but both
+                // copies still act on the page (one Save press = two saves), and
+                // only this side knows it — see duplicate-copy-notice.ts.
+                if (!isContextOrphaned()) watchForDuplicateCopy(ownerId());
+                return false;
+            }
             // Ours, and dead — the live instance would still be answering.
             // Take the page back: drop the stale panel and build a new one.
             existing.remove();

@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram กำลังทำงานซ้ำซ้อน",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "ส่วนขยายถูกเปิดใช้งานสองชุดพร้อมกัน ทำให้แต่ละคำถูกบันทึกสองครั้ง และหนึ่งในสองครั้งนั้นล้มเหลวด้วยข้อผิดพลาด ปิดส่วนขยายชุดใดชุดหนึ่งแล้วโหลดหน้าเว็บใหม่",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "เปิดการตั้งค่าส่วนขยาย",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }
