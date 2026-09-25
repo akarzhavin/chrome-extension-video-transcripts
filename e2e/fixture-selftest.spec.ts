@@ -51,9 +51,17 @@ async function dirtyEveryWay(page: import('@playwright/test').Page): Promise<voi
         (document.getElementById('vtt-feedback-link') as HTMLElement | null)?.click();
     });
 
-    // A word card, opened the way a reader opens one.
+    // A word card, opened the way a reader opens one — by selecting the word,
+    // which is the transcript's only lookup gesture (a click there seeks).
     await page.evaluate(() => {
-        (document.querySelector('.vtt-main-text span[data-word]') as HTMLElement | null)?.click();
+        const w = document.querySelector('.vtt-main-text span[data-word]');
+        if (!w) return;
+        const r = document.createRange();
+        r.selectNodeContents(w);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(r);
+        w.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     });
 
     // A live selection, which is what re-opens the card if the cleanup clears

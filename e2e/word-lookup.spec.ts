@@ -22,17 +22,26 @@ const STRIP = '#lingogram-lookup-strip';
 for (const site of SITES) {
     test.describe(`${site.name}: looking a word up`, () => {
         /**
-         * The card opens on a CLICK in the transcript and on HOVER over the video —
-         * two surfaces, two gestures, by design. Four earlier attempts failed by
-         * using the wrong gesture on the wrong surface.
+         * The card opens on a SELECTION in the transcript and on HOVER over the
+         * video — two surfaces, two gestures, by design. Four earlier attempts
+         * failed by using the wrong gesture on the wrong surface.
+         *
+         * The transcript used to answer a click too, which took the gesture away
+         * from what the line is for: a click there seeks to the line, and in
+         * guess mode uncovers a word. The click belongs to the commoner intent;
+         * asking about a word is the deliberate one, so it takes the deliberate
+         * gesture.
          */
-        test('clicking a word in the transcript opens a card with content', async ({ pageFor }) => {
+        test('selecting a word in the transcript opens a card with content', async ({ pageFor }) => {
             const reason = site.skipReason();
             test.skip(reason !== null, reason ?? '');
             const page = await pageFor(site);
 
             await waitForLines(page);
 
+            // A plain click must NOT open the card — the half that broke, and
+            // the reason it is asserted before the selection rather than after:
+            // a card opened by the selection would mask it.
             const clicked = await page.evaluate(() => {
                 const w = document.querySelector('.vtt-main-text span[data-word]') as HTMLElement | null;
                 if (!w) return false;
@@ -40,6 +49,25 @@ for (const site of SITES) {
                 return true;
             });
             expect(clicked, 'no clickable word in the transcript').toBe(true);
+            await page.waitForTimeout(1500);
+            expect(
+                await page.evaluate((s) => !!document.querySelector(s), STRIP),
+                'a click in the transcript belongs to the line, not to the dictionary',
+            ).toBe(false);
+
+            const selected = await page.evaluate(() => {
+                const w = document.querySelector('.vtt-main-text span[data-word]') as HTMLElement | null;
+                if (!w) return false;
+                // What a double-click on the word produces.
+                const r = document.createRange();
+                r.selectNodeContents(w);
+                const s = window.getSelection();
+                s?.removeAllRanges();
+                s?.addRange(r);
+                w.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                return true;
+            });
+            expect(selected, 'no selectable word in the transcript').toBe(true);
 
             await expect.poll(() => page.evaluate((s) => !!document.querySelector(s), STRIP), { timeout: 30_000 }).toBe(
                 true,
@@ -113,10 +141,10 @@ for (const site of SITES) {
 for (const site of SITES) {
     test.describe(`${site.name}: selecting and copying`, () => {
         /**
-         * Behaviour map §40. A dragged phrase opens the same card a clicked word
-         * does, but only when the selection lies inside the language being learned.
-         * The translation row is deliberately not a valid source, so a phrase can
-         * never be saved out of it.
+         * Behaviour map §40. A dragged phrase opens the same card a single
+         * selected word does, but only when the selection lies inside the
+         * language being learned. The translation row is deliberately not a
+         * valid source, so a phrase can never be saved out of it.
          *
          * Asserted against the product's actual rule, not a guess: an earlier
          * version of this check looked for a "+ Lingogram" pill, which the card

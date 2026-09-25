@@ -7,9 +7,16 @@
 //  - The trigger differs per surface. Over the video, hovering a caption word
 //    opens the strip AND pauses playback — the line is about to scroll away,
 //    and reading a translation while it does is impossible. In the sidebar the
-//    transcript is already static, so hover would fire on every word the
-//    cursor crosses while scrolling; there the strip opens on CLICK instead,
-//    and playback is left alone.
+//    only trigger is a SELECTION, and playback is left alone.
+//
+//    Neither hover nor click will do there. Hover would fire on every word the
+//    cursor crosses while scrolling. Click is the transcript's own gesture:
+//    pressing a line seeks to it, and in guess mode pressing it also uncovers a
+//    word — so a word that opened a card instead was the surface answering a
+//    question about the word when the user had asked to go to the line. That is
+//    the commoner intent by far, and it now gets the click. Asking about a word
+//    is the rarer, deliberate act, so it gets the deliberate gesture: select it
+//    (drag across it, or double-click it) and the same card opens.
 //
 //  - The request fires 220ms AFTER the cursor stops. The endpoint allows 30
 //    requests/min per client; a cursor sweeping across a ten-word line would
@@ -35,6 +42,7 @@ import type { LookupResult } from './types';
 import { MAX_LOOKUP_TERM_LEN } from './types';
 import {
     hasLookupContent,
+    isPhrase,
     posTags,
     showsLemma,
     stripDefinition,
@@ -51,16 +59,6 @@ import {
 } from '../content/quick-add-overlay';
 
 const STRIP_ID = 'lingogram-lookup-strip';
-
-// Word spans inside our own subtitle surfaces only. data-word excludes masked
-// guess-mode words by construction — those carry data-hidden instead, and a
-// word the user has not uncovered is not a lookup candidate either.
-//
-// Split by surface because the trigger differs: hover over the video (which
-// also pauses), click in the sidebar transcript.
-const OVERLAY_WORD_SELECTOR = '.vtt-overlay-main span[data-word]';
-const SIDEBAR_WORD_SELECTOR = '.vtt-main-text span[data-word]';
-const WORD_SELECTOR = `${OVERLAY_WORD_SELECTOR}, ${SIDEBAR_WORD_SELECTOR}`;
 
 // What the cursor may open a card on over the video: revealed words, and also
 // the masked capsules of guess mode, which park their word in data-hidden.
@@ -461,8 +459,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         let acts = '<div class="vtt-lookup-acts">' +
             `<button type="button" class="vtt-lookup-btn vtt-lookup-heart${saved ? ' saved' : ''}" data-act="save">` +
             `${HEART_SVG}<span>${escapeHtml(saveLabel)}</span></button>`;
-        // Nothing to expand on an empty answer, so "More" is not offered.
-        if (!empty && opts.openDetail) {
+        // Nothing to expand on an empty answer, so "More" is not offered. Nor
+        // on a phrase: its answer is one translation of the whole selection
+        // (the service's `google` source), and the word screen has no parts of
+        // speech, senses or examples to put around it.
+        if (!empty && !isPhrase(word) && opts.openDetail) {
             // The icon balances the heart's: without one, "More" read as the
             // lesser button, though it opens the richer half of the feature.
             acts += `<button type="button" class="vtt-lookup-btn" data-act="more">${
@@ -632,7 +633,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         if (dragging) return;
         // Overlay only. In the sidebar the cursor crosses dozens of words on
         // the way anywhere, and each one would open a strip nobody asked for;
-        // that surface opens on click instead (see onClick).
+        // that surface opens on a selection instead (see onSelectionMouseUp).
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
         // The word came to the cursor rather than the cursor to the word: the
@@ -685,33 +686,6 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         if (span === dismissed) dismissed = null;
         clearTimeout(hoverTimer);
         scheduleHide();
-    };
-
-    /**
-     * The sidebar's trigger. Click, not hover: the transcript is a list the
-     * cursor travels across, and hovering it would fire a lookup per word.
-     *
-     * Runs in the CAPTURE phase and stops the event, because the cue's own
-     * click handler seeks the video (SidebarUI.buildPlainItem) — a word click
-     * means "what is this", not "replay from here". Clicking anywhere else in
-     * the cue still seeks, since only a [data-word] span is intercepted.
-     */
-    const onClick = (e: MouseEvent): void => {
-        const span = (e.target as Element | null)?.closest?.<HTMLElement>(SIDEBAR_WORD_SELECTOR);
-        if (!span) return;
-        // A click that ends a drag is a selection, and it carries the whole
-        // phrase — onSelectionMouseUp owns that, with the wider term.
-        if (!window.getSelection()?.isCollapsed) return;
-        e.stopPropagation();
-        e.preventDefault();
-        clearTimeout(hoverTimer);
-        if (span === current?.key && strip()) {
-            // Second click on the open word closes it.
-            removeStrip();
-            return;
-        }
-        removeStrip();
-        void show(spanAnchor(span));
     };
 
     /**
@@ -783,11 +757,6 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         dragging = true;
         const el = strip();
         if (!el || el.contains(e.target as Node)) return;
-        // A press on a sidebar word is the open/close toggle, and mousedown
-        // runs BEFORE click — tearing the strip down here would make every
-        // second click re-open the word instead of closing it. onClick owns
-        // that case; this only dismisses presses landing somewhere else.
-        if ((e.target as Element | null)?.closest?.(SIDEBAR_WORD_SELECTOR)) return;
         // Remember the overlay word the press landed in, if any, so the nudge
         // that follows the click does not re-open what the click dismissed.
         dismissed = (e.target as Element | null)
@@ -805,8 +774,6 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     document.addEventListener('mouseout', onMouseOut);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
-    // Capture, so the word is intercepted before the cue's seek handler.
-    document.addEventListener('click', onClick, true);
 
     return () => {
         unsubscribeMirror();
@@ -815,7 +782,6 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         document.removeEventListener('mouseout', onMouseOut);
         document.removeEventListener('mousedown', onMouseDown);
         document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('click', onClick, true);
         clearInterval(anchorWatch);
         releaseLayout?.();
         releaseLayout = null;

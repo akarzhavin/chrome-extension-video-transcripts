@@ -534,7 +534,11 @@ describe('hover strip debounce — the 30/min budget', () => {
         jest.useRealTimers();
     });
 
-    it('opens on a sidebar CLICK, and stops the cue handler that would seek', async () => {
+    it('a sidebar CLICK is the cue\'s own — it seeks, and opens no card', async () => {
+        // The transcript's gesture is "take me to this line", and in guess mode
+        // it also uncovers a word. Intercepting it to answer "what is this
+        // word" spent the click on the rarer of the two intents; asking about a
+        // word is a selection now (see the selection describe below).
         jest.useFakeTimers();
         const teardown = installLookupStrip();
         const main = buildLine(['transcript'], 'sidebar');
@@ -542,10 +546,9 @@ describe('hover strip debounce — the 30/min budget', () => {
         // Mirrors SidebarUI.buildPlainItem: the cue seeks when clicked.
         main.closest('.vtt-item')!.addEventListener('click', seek);
         click(main.querySelector('span[data-word]')!);
-        await jest.advanceTimersByTimeAsync(50);
-        expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
-        expect((chrome.runtime.sendMessage as jest.Mock).mock.calls[0][0].term).toBe('transcript');
-        expect(seek).not.toHaveBeenCalled();
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(seek).toHaveBeenCalledTimes(1);
         teardown();
         jest.useRealTimers();
     });
@@ -726,11 +729,30 @@ describe('playback — the overlay pauses, the sidebar does not', () => {
         item.appendChild(main);
         document.body.appendChild(item);
 
-        span.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        // jsdom lays nothing out, so a range and a span both measure zeros —
+        // and zeros are how the card reads "this anchor is gone".
+        const RECT = { width: 50, height: 10, top: 40, left: 20, bottom: 50, right: 70 };
+        const priorRangeRect = (Range.prototype as any).getBoundingClientRect;
+        (Range.prototype as any).getBoundingClientRect = () => RECT;
+        span.getBoundingClientRect = () => RECT as DOMRect;
+
+        // Selecting the word is the sidebar's trigger — double-clicking it is
+        // what the browser turns into exactly this range.
+        const range = document.createRange();
+        range.setStartBefore(span);
+        range.setEndAfter(span);
+        const sel = window.getSelection()!;
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
         await jest.advanceTimersByTimeAsync(300);
         expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
         expect(pauseSpy).not.toHaveBeenCalled();
         teardown();
+        // Both outlive document.body.innerHTML = '': a leftover Range is a live
+        // selection under every test that follows, and the prototype is global.
+        sel.removeAllRanges();
+        (Range.prototype as any).getBoundingClientRect = priorRangeRect;
         jest.useRealTimers();
     });
 });
@@ -948,6 +970,42 @@ describe('selection — dragging a phrase opens the same card', () => {
         const second = await pressHeart();
         expect(second.remove).toBeDefined();
         expect(second.remove.term).toBe(first.add.term);
+    });
+
+    /**
+     * A phrase is answered by the service's `google` source: one translation
+     * of the whole selection, lemma = the phrase, no parts of speech. The card
+     * shows that translation and the heart, and no Details — the word screen
+     * has nothing to put around a single translation.
+     */
+    it('a phrase card shows its translation and a heart, and no Details', async () => {
+        teardown();
+        teardown = installLookupStrip({ openDetail: jest.fn() });
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_msg, cb) => {
+            cb({ ok: true, result: {
+                term: 'a0 b0 a1 b1', lemma: 'a0 b0 a1 b1',
+                translations: ['перевод всей фразы'], parts_of_speech: [],
+            } });
+        });
+        const list = buildList(4);
+        selectAcross(list, 0, 1);
+        await release();
+
+        expect(card()?.textContent).toContain('перевод всей фразы');
+        expect(card()?.querySelector('[data-act="save"]')).not.toBeNull();
+        expect(card()?.querySelector('[data-act="more"]')).toBeNull();
+    });
+
+    it('a single selected word keeps its Details', async () => {
+        // The control half: without it the check above would also pass if
+        // Details were gone everywhere.
+        teardown();
+        teardown = installLookupStrip({ openDetail: jest.fn() });
+        const list = buildList(2);
+        selectSpans(wordSpans(list, 0)[0], wordSpans(list, 0)[0]);
+        await release();
+
+        expect(card()?.querySelector('[data-act="more"]')).not.toBeNull();
     });
 
     it('saves the dragged phrase, not just the word under the cursor', async () => {

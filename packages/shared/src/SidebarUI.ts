@@ -2438,8 +2438,15 @@ export class SidebarUI {
         // and the resulting selection then blocks our click→seek handler.
         // Drag-select still fires with detail === 1, so this only kills the
         // multi-click auto-selection.
+        //
+        // Guess mode only, matching createOverlayElement. There a run of quick
+        // clicks in one spot is how you uncover a line, so the auto-selection
+        // is pure interference. Outside it a double-click is how you select a
+        // word — and since the word lookup is now reached ONLY through a
+        // selection (lookup/strip.ts), suppressing it here would leave a drag
+        // as the only way to ask about a single word.
         item.addEventListener('mousedown', (e) => {
-            if (e.detail > 1) e.preventDefault();
+            if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
         });
         return item;
     }

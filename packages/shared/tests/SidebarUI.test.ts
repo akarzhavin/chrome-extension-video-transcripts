@@ -3324,10 +3324,14 @@ describe('the transcript list', () => {
         });
     });
 
-    // §40.4, T5.17. A rapid replay-click would otherwise trip the browser's
+    // §40.4, T5.17. A rapid replay-click trips the browser's
     // double-click-selects-word behaviour, and the resulting selection blocks
-    // the click→seek handler outright: the line stops responding.
-    describe('a double-click on a line selects nothing', () => {
+    // the click→seek handler outright: the line stops responding. That is a
+    // problem only where quick repeated clicks are the gesture — guess mode,
+    // where each one uncovers a word. Outside it the auto-selection is not
+    // interference but the FEATURE: a word lookup is reached only through a
+    // selection (lookup/strip.ts), and double-click is how you make one.
+    describe('a double-click on a line: suppressed in guess mode, a selection elsewhere', () => {
         beforeEach(() => {
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' }]);
             ui.renderSubtitles();
@@ -3339,18 +3343,33 @@ describe('the transcript list', () => {
             return e;
         };
 
-        test('the second click of a pair is prevented', () => {
+        const inGuessMode = (): void => {
+            state.displayMode = 'guess';
+            ui.renderSubtitles();
+        };
+
+        test('the second click of a pair is prevented in guess mode', () => {
+            inGuessMode();
             expect(mousedown(2).defaultPrevented).toBe(true);
         });
 
-        test('a triple click is prevented too', () => {
+        test('a triple click is prevented too in guess mode', () => {
+            inGuessMode();
             expect(mousedown(3).defaultPrevented).toBe(true);
         });
 
-        // The other side, and the reason the guard reads detail rather than
-        // blocking mousedown outright: a drag-select fires with detail === 1,
-        // and selecting a phrase to look up is a thing the user does here.
+        // The counter-half, and the whole point of the rule changing: outside
+        // guess mode a double-click must reach the browser, or a single word
+        // could be asked about only by dragging across it.
+        test('a double-click survives outside guess mode, so one word can be selected', () => {
+            expect(mousedown(2).defaultPrevented).toBe(false);
+        });
+
+        // The reason the guard reads detail rather than blocking mousedown
+        // outright: a drag-select fires with detail === 1, and selecting a
+        // phrase to look up is a thing the user does on either surface.
         test('a single click is left alone, so a drag-select still works', () => {
+            inGuessMode();
             expect(mousedown(1).defaultPrevented).toBe(false);
         });
     });
