@@ -161,6 +161,18 @@ const buildDefines = {
 
 export default defineConfig(({ command, mode }) => {
   if (command === 'build') {
+    // Builds go through scripts/build-with-analytics.sh and nothing else. A
+    // bare `vite build` reads no .env: it comes out green with the dictionary
+    // (EXT_API_BASE_URL) and analytics silently off — twice on 2026-09-25, and
+    // how 1.0.15/1.0.16 shipped without analytics. The script sets this mark;
+    // `npm run build`, `build:dev` and `build:capture` all call the script.
+    if (process.env.LINGOGRAM_BUILD_VIA_WRAPPER !== '1') {
+      throw new Error(
+        'Build through the wrapper, not vite directly:\n' +
+          '  scripts/build-with-analytics.sh dev|prod|capture [youtube|rezka]\n' +
+          '  (or npm run build / build:dev / build:capture in the app)',
+      );
+    }
     const isBackground = mode === 'background';
     const isContent = mode === 'content';
     const isInterceptor = mode === 'interceptor';

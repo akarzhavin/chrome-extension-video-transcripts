@@ -23,7 +23,7 @@
         "live-demo-settings-en.png"
       ],
       "recapture": "node apps/youtube/screenshots/capture-backdrop.mjs --locale en --learn es --native en --modes sidebar,guess,settings --class vtt-light",
-      "note": "Shared by every pipeline (~345 MB, 2560x1600 PNG) and therefore referenced, not vendored. render.mjs verifies these exist before launching a browser. Captured in the extension's OWN light theme (--class vtt-light puts the shipped vtt-light class on <html>) — NOT the legacy screenshots/light-theme.capture.css override, which predates the product having a light theme. Capture from a PROD build (plain `vite build`, no EXT_ENV=dev): a dev build paints a lime 'backend: env' switch across the top of the panel."
+      "note": "Shared by every pipeline (~345 MB, 2560x1600 PNG) and therefore referenced, not vendored. render.mjs verifies these exist before launching a browser. Captured in the extension's OWN light theme (--class vtt-light puts the shipped vtt-light class on <html>) — NOT the legacy screenshots/light-theme.capture.css override, which predates the product having a light theme. Capture from a capture build (`npm run build:capture`: production backends, no analytics): a dev build paints a lime 'backend: env' switch across the top of the panel."
     }
   },
   "outputs": {
