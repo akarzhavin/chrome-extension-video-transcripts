@@ -3,8 +3,12 @@
   "version": "1.0.22",
   "private": true,
   "scripts": {
-    "build": "vite build --mode background && vite build --mode content && vite build --mode interceptor && vite build --mode popup && npm run zip",
-    "build:dev": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode interceptor && EXT_ENV=dev vite build --mode popup",
+    "build": "../../scripts/build-with-analytics.sh prod rezka",
+    "build:dev": "../../scripts/build-with-analytics.sh dev rezka",
+    "build:capture": "../../scripts/build-with-analytics.sh capture rezka",
+    "build:raw": "npm run build:vite:raw && npm run zip",
+    "build:vite:raw": "vite build --mode background && vite build --mode content && vite build --mode interceptor && vite build --mode popup",
+    "build:dev:raw": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode interceptor && EXT_ENV=dev vite build --mode popup",
     "zip": "node ../../packages/shared/zip-build.mjs --label rezka --version $npm_package_version",
     "dev": "vite",
     "type-check": "tsc --noEmit"

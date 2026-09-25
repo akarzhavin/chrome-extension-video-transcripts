@@ -141,7 +141,9 @@ Two things that quietly ruin a capture:
   product had a light theme — it now drifts from what users actually see.
 - **Capture from a PROD build.** `EXT_ENV=dev` (i.e. `npm run build:dev`) compiles in
   the backend switch, which paints a lime `backend: env?` bar across the top of the
-  panel. Plain `npx vite build --mode background|content|page-script|popup` drops it.
+  panel. `npm run build:capture` (i.e. `scripts/build-with-analytics.sh capture`)
+  drops it and also sends nothing to the production GA4 property, so capture
+  sessions never reach the funnel. A bare `vite build` is refused.
 
 The panel-crop slides scale the full capture **1.125×** and shift it left by
 `1080px` so the sidebar — orig x 960→1280, exactly 320 css px — fills the 360px
