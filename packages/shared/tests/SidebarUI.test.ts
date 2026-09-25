@@ -2452,6 +2452,29 @@ describe('SidebarUI', () => {
             expect(document.querySelectorAll('#vtt-sidebar')).toHaveLength(1);
         });
 
+        // Yielding keeps the panel whole, but both copies still act on the page
+        // (one Save press = two saves), and only the yielding copy knows. It
+        // must say so — see duplicate-copy-notice.ts.
+        test('says so when it yields to another live copy', () => {
+            jest.useFakeTimers();
+            try {
+                const foreign = document.createElement('div');
+                foreign.id = 'vtt-sidebar';
+                foreign.dataset.vttOwner = 'pkoibjilnaeadmcnmfkgcjhalljbmfan';
+                foreign.innerHTML = '<div id="vtt-subheader"></div><div id="vtt-list"></div>';
+                document.body.appendChild(foreign);
+
+                const ui = new SidebarUI(new AppState(), mockApp);
+                expect(ui.init()).toBe(false);
+                const notice = document.getElementById('vtt-duplicate-notice');
+                expect(notice).not.toBeNull();
+                expect(document.getElementById('vtt-subheader')!.nextElementSibling).toBe(notice);
+            } finally {
+                jest.clearAllTimers();
+                jest.useRealTimers();
+            }
+        });
+
         // An unstamped panel predates this mechanism. Deleting it is the
         // destructive reading (it could be a live rival's), so the build is
         // still yielded — but the id is claimed, which is what makes a LATER

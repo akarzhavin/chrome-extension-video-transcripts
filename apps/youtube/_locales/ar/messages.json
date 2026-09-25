@@ -610,5 +610,17 @@
   "ytLookupSrcAi": {
     "message": "الذكاء الاصطناعي",
     "description": "Word screen source badge: the answer came from the language model."
+  },
+  "dupCopyTitle": {
+    "message": "Lingogram يعمل مرتين",
+    "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
+  },
+  "dupCopyText": {
+    "message": "نسختان من الإضافة مفعّلتان، لذا تُحفظ كل كلمة مرتين وتفشل إحدى عمليتي الحفظ بخطأ. أوقف تشغيل إحدى النسختين وأعد تحميل الصفحة.",
+    "description": "Body of the 'running twice' banner: what goes wrong (every save is sent twice, one fails) and the way out (turn one copy off, reload)."
+  },
+  "dupCopyAction": {
+    "message": "فتح إعدادات الإضافة",
+    "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
   }
 }

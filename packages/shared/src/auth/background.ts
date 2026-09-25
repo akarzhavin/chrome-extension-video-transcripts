@@ -39,6 +39,7 @@ export type AuthAction =
     | 'AUTH_SIGN_IN_VIA_LINGOGRAM'
     | 'AUTH_SIGN_OUT'
     | 'OPEN_LINGOGRAM'
+    | 'OPEN_EXTENSION_PAGE'
     | 'ADD_WORD'
     | 'REMOVE_WORD'
     | 'SYNC_WORDS'
@@ -62,6 +63,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
     'AUTH_SIGN_OUT',
     'OPEN_LINGOGRAM',
+    'OPEN_EXTENSION_PAGE',
     'ADD_WORD',
     // Both here AND in the union above. A name in one only passes
     // type-checking and is then dropped by isAuthAction with no error: the
@@ -324,6 +326,16 @@ export async function handleAuthMessage(
             // Lives here because chrome.tabs is background-only; the player menu
             // is a content script and can't open a tab itself.
             await chrome.tabs.create({ url: config.frontendBaseUrl });
+            return { ok: true };
+        }
+        case 'OPEN_EXTENSION_PAGE': {
+            // The "running twice" banner's way out: the other copy's details
+            // page, where its on/off switch is. A page cannot open chrome://
+            // URLs; the worker can. The id comes from the page's DOM, so it is
+            // checked to be an extension id before it goes into a URL.
+            const id = String(request.id ?? '');
+            if (!/^[a-p]{32}$/.test(id)) throw new Error('bad extension id');
+            await chrome.tabs.create({ url: `chrome://extensions/?id=${id}` });
             return { ok: true };
         }
         case 'AUTH_SIGN_OUT': {
