@@ -56,7 +56,7 @@ npx playwright test e2e/subtitles.spec.ts e2e/word-lookup.spec.ts \
 npx playwright test e2e/reading-modes.spec.ts e2e/settings-and-export.spec.ts \
     e2e/settings-detail.spec.ts e2e/display.spec.ts e2e/accessibility.spec.ts \
     e2e/account-and-prompts.spec.ts e2e/player-modes.spec.ts \
-    e2e/fixture-selftest.spec.ts
+    e2e/fixture-selftest.spec.ts e2e/cue-nav.spec.ts
 ```
 
 Expect roughly six minutes for the first half and **thirty-five** for the

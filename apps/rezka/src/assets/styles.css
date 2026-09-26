@@ -1994,9 +1994,19 @@
        setting was only alive in fullscreen, where the same percentages clear the
        bar. Clamping the preset and then adding the nudge keeps the bar covered
        while leaving every notch above it distinguishable. */
-    bottom: calc(
-        max(var(--vtt-overlay-bottom, 7.4%), var(--vtt-overlay-floor, 0px))
-        + var(--vtt-overlay-nudge, 0%)
+    /* --vtt-cue-nav-min-bottom is the lowest the captions may sit while the
+       line-step controls (.vtt-cue-nav) hang under them: the bar's floor plus
+       the controls' own height. It is compared with where the caption ACTUALLY
+       is — preset, floor and the user's own nudge together — so a caption
+       already high enough keeps its place, and one too low rises by exactly
+       what is missing, no more. Without the controls it is a value that never
+       wins, and the expression is the one above unchanged. */
+    bottom: max(
+        calc(
+            max(var(--vtt-overlay-bottom, 7.4%), var(--vtt-overlay-floor, 0px))
+            + var(--vtt-overlay-nudge, 0%)
+        ),
+        var(--vtt-cue-nav-min-bottom, -100000px)
     );
     left: 0;
     width: 100%;
@@ -2091,6 +2101,35 @@
     transition: opacity 0.2s, bottom 0.1s cubic-bezier(0.4, 0, 1, 1);
 }
 
+/* Fullscreen with the panel open: the panel is re-parented into the player
+   (setupFullscreenHandling) and lies OVER the right of the frame, below the
+   captions' layer — it has to stay low there, or it would bury the site's own
+   menus that open in that corner. So the captions keep out of it instead: their
+   frame ends where the panel begins, and they centre on the part of the video
+   that is actually visible. Collapsing the panel gives the width back. The
+   embed already does the same (embed-css.ts). 320px is #vtt-sidebar's width.
+
+   Narrowing the frame must not shrink the captions: their size is read from
+   this box's width (cqw, see .vtt-overlay-main), and the size law is "relative
+   to the VIDEO". --vtt-overlay-frame-cut hands the cut back to every cqw-based
+   size, so opening or collapsing the panel moves the captions, never resizes
+   them. */
+:fullscreen:has(> #vtt-sidebar.fullscreen:not(.collapsed)) #vtt-video-overlay {
+    --vtt-overlay-frame-cut: 320px;
+    width: calc(100% - var(--vtt-overlay-frame-cut));
+}
+
+/* Except while the line-step controls are in use. YouTube hides its bar after
+   ~3s of a still cursor, and a cursor resting on ↺ IS still: the captions
+   dropped out from under it, ↺ with them, and the row folded shut mid-aim. The
+   next nudge brought the bar back and threw everything up again. Measured live.
+   So while the cursor is near, the captions keep the raised position; they
+   settle once it leaves. */
+#movie_player.ytp-autohide #vtt-video-overlay.vtt-cue-nav-near,
+#movie_player.ytp-hide-controls #vtt-video-overlay.vtt-cue-nav-near {
+    --vtt-overlay-floor: var(--vtt-yt-controls-floor, 61px);
+}
+
 .vtt-overlay-main {
     /* Background color and its opacity are separate controls (color picker +
        backdrop level), so the box color-mixes them rather than hardcoding
@@ -2137,8 +2176,10 @@
 
        cqw is 1% of the container width, so `1cqw / 19.2` is width/1920 as a
        ratio; dividing by 1px strips the unit, since a scale must be a plain
-       number. The container is #vtt-video-overlay (see there). */
-    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
+       number. The container is #vtt-video-overlay (see there); the frame-cut
+       term adds back the width it gives up to the panel in fullscreen, so the
+       sum is always the PLAYER's 1%. */
+    --vtt-overlay-scale: max(0.33, calc((1cqw + var(--vtt-overlay-frame-cut, 0px) / 100) / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-font-size, 24px) * var(--vtt-overlay-scale));
     font-weight: 600;
     /* em, not px: padding and radius have to shrink with the glyphs, or a
@@ -2199,7 +2240,7 @@
        fullscreen one, a grown main line over a stunted translation). Keep this
        expression identical to the main line's; see there for why there is no
        ceiling and why the floor is 0.33. */
-    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
+    --vtt-overlay-scale: max(0.33, calc((1cqw + var(--vtt-overlay-frame-cut, 0px) / 100) / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * var(--vtt-overlay-scale));
     font-weight: 400;
     padding: 0.22em 0.67em;
@@ -2267,62 +2308,36 @@
        adjustment already lives, so that is where this one appears too.
 
        display, not just opacity: an invisible button still takes a click, and
-       this one sits over the video. The reveal rule restores `display: flex`,
-       which is what lays the icon out inside the tab. */
+       this one sits over the video. The reveal rule restores `display: grid`,
+       which is what centres the icon. */
     display: none;
-    opacity: 0;
-    transition: opacity 0.15s ease, background-color 0.15s ease;
     /* The container sets pointer-events: none so the video stays clickable —
        the grip has to opt back in, like the caption boxes do. */
     pointer-events: auto;
     cursor: grab;
-    /* Sized in em so it tracks the caption scale: on a small player the grip
-       shrinks with the text instead of dwarfing it. The px floors keep it
-       clickable when the caption is tiny. */
-    width: max(2.4em, 40px);
-    height: max(1em, 16px);
+    /* Drawn like the line-step bar under the captions (.vtt-cue-nav): a bare
+       icon, no tab body and no outline, in the caption's own text colour with
+       a shadow in its box colour for contrast over a bright frame. The two
+       controls frame the captions from above and below and read as one set.
+       (It was a tab fused to the caption's top edge; next to the bare bar that
+       read as a different product.)
+
+       Same size law as the bar: tracks the player, floor for a clickable
+       target. Wider than tall, because the six dots are. */
+    --vtt-handle-size: clamp(22px, calc(1.9cqw + var(--vtt-overlay-frame-cut, 0px) * 0.019), 32px);
+    width: calc(var(--vtt-handle-size) * 1.4);
+    height: var(--vtt-handle-size);
     flex: none;
-    align-items: center;
-    justify-content: center;
-    /* An outline, so the tab reads as a control rather than as a stray notch of
-       caption background — the two share a colour by design, and on a caption
-       whose backdrop is set to 'off' the tab would otherwise have no shape at
-       all. Drawn in the caption's own text colour at low alpha rather than in
-       the accent: it borders the subtitles, and a brand-coloured line there
-       would pull the eye off the text being read. `border`, not `outline`,
-       because it has to follow the rounded top corners; no bottom edge, since
-       that side is the seam the tab shares with the caption. Sized in em so it
-       tracks the caption scale like every other dimension here, with a 1px
-       floor so it never rounds away on a small player. */
-    border: max(1px, 0.055em) solid color-mix(in srgb, var(--vtt-overlay-color, #fff) 55%, transparent);
-    border-bottom: 0;
-    /* The border must eat into the tab, not grow it: the width and height above
-       are the whole target. */
-    box-sizing: border-box;
-    padding: 0.12em 0.3em;
-    /* Rounded on top only, square where it meets the caption — the shared edge
-       is what fuses the two into one shape. */
-    border-radius: 0.34em 0.34em 0 0;
-    /* The caption's own box colour, so the tab reads as the caption's material
-       rather than as a control laid over it — but with a FLOOR under the
-       opacity rather than the caption's value copied outright. The caption's
-       backdrop is the user's to turn off; the grip's is not, because at 'off'
-       (and at 'low' over a bright frame) the tab lost its body entirely and
-       six dots were left floating on raw video with nothing to grab.
-       max() picks the caption's level whenever that is the denser of the two,
-       so a Solid caption still gets a solid tab and the two never disagree. */
-    --vtt-handle-bg-opacity: max(var(--vtt-overlay-bg-opacity, 0.7), 0.55);
-    background: color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) calc(var(--vtt-handle-bg-opacity) * 100%), transparent);
+    place-items: center;
+    margin: 0 0 4px; /* the same gap the bar keeps below the captions */
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--vtt-overlay-color, #fff);
-    /* Blur what shows through, so the dots keep their contrast over a bright or
-       busy frame instead of relying on the wash alone. Progressive: browsers
-       without it simply get the flat wash above. */
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    /* Overlap the caption's top edge by a hair: at fractional device pixel
-       ratios a seam of video shows through between two abutting boxes. */
-    margin-bottom: -1px;
-    text-shadow: var(--vtt-overlay-edge, 0.04em 0.04em 0.13em #000);
+    filter:
+        drop-shadow(0 1px 1px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 90%, transparent))
+        drop-shadow(0 0 4px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 75%, transparent));
+    transition: color 0.12s ease;
     line-height: 1;
     user-select: none;
     -webkit-user-select: none;
@@ -2333,24 +2348,23 @@
 /* The reveal. .vtt-overlay-adjusting is on the overlay for exactly as long as
    the settings panel is open (see setOverlayAdjusting), which is also what puts
    a stand-in caption on screen between cues — so the grip always has a body to
-   sit on while the panel is up, and never appears attached to nothing. */
+   sit on while the panel is up, and never appears attached to nothing. Full
+   strength whenever shown: unlike the step bar, it only appears when asked
+   for (the panel is open), so there is nothing to be quiet about. */
 #vtt-video-overlay.vtt-overlay-adjusting .vtt-overlay-handle,
 .vtt-overlay-handle.vtt-dragging {
-    display: flex;
-    opacity: 0.8;
+    display: grid;
 }
 
-/* Full strength under the pointer or while being dragged. A drag survives the
-   panel closing mid-gesture, hence .vtt-dragging standing on its own above. */
 #vtt-video-overlay.vtt-overlay-adjusting .vtt-overlay-handle:hover,
-.vtt-overlay-handle:focus-visible,
 .vtt-overlay-handle.vtt-dragging {
-    opacity: 1;
+    color: var(--vtt-accent, #7c8dff);
 }
 
 .vtt-overlay-handle:focus-visible {
     outline: 2px solid var(--vtt-accent, #7c5cff);
     outline-offset: 2px;
+    border-radius: 4px;
 }
 
 .vtt-overlay-handle.vtt-dragging {
@@ -2359,8 +2373,8 @@
 
 .vtt-overlay-handle svg {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 80%;
+    height: 80%;
 }
 
 /* While a drag is live the pointer is captured, but the caption text underneath
@@ -2403,6 +2417,162 @@
 .vtt-overlay-sub.vtt-overlay-placeholder {
     font-style: italic;
     opacity: 0.72;
+}
+
+/* ── Line-step controls: previous / replay / next ───────────────────────── */
+/* Hang under the LOWEST caption box (updateOverlay appends them last), centred,
+   out of the overlay's flow: in flow they would lengthen the block, and since
+   the block is anchored at the bottom the captions would jump up every time the
+   cursor came near. Absolute, they cost the caption nothing — except the reserve
+   above, and only where the bar or the frame edge leaves no room.
+
+   Bare icons in the caption's own text colour, with a shadow in its box colour
+   for contrast over a bright frame: nothing on screen but the buttons, which is
+   the one constraint every rejected variant broke.
+
+   Invisible and click-through until the cursor comes near the captions
+   (.vtt-cue-nav-near, set by overlay-cue-nav.ts) or a button has keyboard focus.
+   Only ↺ shows then; ‹ › unfold when the cursor reaches ↺. */
+.vtt-cue-nav {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    /* No gap: a gap is a strip of the container, which lets the pointer through
+       to the video — crossing it from ↺ to ‹ would un-hover and fold the row. */
+    gap: 0;
+    /* Tracks the player like the caption does, with a floor for a clickable
+       target and a ceiling within the reserve the overlay keeps. */
+    --vtt-cue-nav-size: clamp(22px, calc(1.9cqw + var(--vtt-overlay-frame-cut, 0px) * 0.019), 32px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near {
+    /* --vtt-cue-nav-space is the controls' measured height plus the 4px they
+       hang below the box, written by overlay-cue-nav.ts; 36px is the largest
+       size, for the moment before the first measurement. */
+    --vtt-cue-nav-min-bottom: calc(var(--vtt-overlay-floor, 0px) + var(--vtt-cue-nav-space, 36px));
+}
+
+/* Except once the captions are moved by hand (drag or grip arrows), until the
+   cursor leaves: the drag has the cursor on the captions throughout, so the
+   reserve would stop them ~36px above the bar while the stored position went
+   on lower — and the caption would drop there only after the cursor left. The
+   user's placement wins; the controls may overlap the bar for that moment.
+   Class set by overlay-cue-nav.ts (suspendPin / setNear). */
+#vtt-video-overlay.vtt-cue-nav-near.vtt-cue-nav-placed {
+    --vtt-cue-nav-min-bottom: -100000px;
+}
+
+/* Near the captions but not on the bar: half-strength, a hint of where it is
+   rather than a control competing with the text being read. Full strength once
+   the cursor is on the bar (↺'s hover area or the unfolded ‹ ›) or a button
+   has keyboard focus. */
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav {
+    opacity: 0.5;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav:hover,
+.vtt-cue-nav:has(:focus-visible) {
+    opacity: 1;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav-btn,
+.vtt-cue-nav:has(:focus-visible) .vtt-cue-nav-btn {
+    pointer-events: auto;
+}
+
+.vtt-cue-nav-btn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--vtt-cue-nav-size);
+    height: var(--vtt-cue-nav-size);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--vtt-overlay-color, #fff);
+    cursor: pointer;
+    filter:
+        drop-shadow(0 1px 1px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 90%, transparent))
+        drop-shadow(0 0 4px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 75%, transparent));
+    /* Folding waits a moment: a hand crossing from ↺ to ‹ that clips the
+       edge of the row should not see ‹ collapse from under it. Unfolding is
+       immediate (transition-delay: 0s in the rule below). */
+    transition: opacity 0.12s ease, width 0.18s cubic-bezier(0.2, 0, 0, 1) 0.25s, color 0.12s ease;
+}
+
+.vtt-cue-nav-btn svg {
+    display: block;
+    width: 72%;
+    height: 72%;
+}
+
+.vtt-cue-nav-btn:hover {
+    color: var(--vtt-accent, #7c8dff);
+}
+
+.vtt-cue-nav-btn:active svg {
+    transform: scale(0.9);
+}
+
+.vtt-cue-nav-btn:focus-visible {
+    outline: 2px solid var(--vtt-accent, #7c8dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.vtt-cue-nav-prev,
+.vtt-cue-nav-next {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    /* Above ↺'s hover area (the ::before below), which is wider than ↺ and
+       spills over both neighbours. Without this, ‹ — painted before ↺ — sat
+       under that area, and a press on ‹ replayed the line instead: found live,
+       where hit-testing happens and jsdom's does not. */
+    z-index: 1;
+}
+
+.vtt-cue-nav:hover .vtt-cue-nav-prev,
+.vtt-cue-nav:hover .vtt-cue-nav-next,
+.vtt-cue-nav:has(:focus-visible) .vtt-cue-nav-btn {
+    width: var(--vtt-cue-nav-size);
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+/* The hover area around ↺ is larger than the icon: a 44px target, invisible.
+   It is what unfolds ‹ ›, and a bare icon has no visible edge to aim at. */
+.vtt-cue-nav-replay::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+/* The line that just ended, kept up between lines while the cursor is near —
+   see updateOverlay. Dimmed so it does not read as the line playing now. */
+.vtt-overlay-main.vtt-overlay-held,
+.vtt-overlay-sub.vtt-overlay-held {
+    opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-cue-nav,
+    .vtt-cue-nav-btn {
+        transition: none;
+    }
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */
