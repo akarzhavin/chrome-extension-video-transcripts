@@ -30,6 +30,7 @@ import {
 } from '@video-transcripts/shared';
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
+import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
 // the English default when a key is missing (or outside an extension context).
@@ -1029,6 +1030,17 @@ export class VttApp implements AppInterface {
         document.getElementById('vtt-status')?.remove();
     }
 
+    /**
+     * The diagnostics rows under the settings switch. HDrezka has no subtitle
+     * recorder, so its diagnostics are the word-save log alone
+     * (packages/shared/src/debug/save-log.ts). Null in production: the
+     * __EXT_ENV__ literal folds the body, and the sidebar renders no rows.
+     */
+    traceActions(): ReturnType<typeof saveLogActions> | null {
+        if (__EXT_ENV__ !== 'dev') return null;
+        return saveLogActions();
+    }
+
     seekVideo(time: number): void {
         if (chrome?.runtime?.id) {
             try {
@@ -1252,6 +1264,10 @@ function bootstrap(): void {
     // every load. initTheme also owns the 'auto' media-query subscription.
     void initTheme();
     const app = new VttApp();
+    // The diagnostics readout counts word saves synchronously; start loading
+    // that count now, not on the first settings open, or the first open reads
+    // it before storage has answered and shows nothing recorded.
+    if (__EXT_ENV__ === 'dev') saveLogCount();
     installQuickAddOverlay();
     // (b) Page open. HDrezka is not a SPA for this purpose — one page is one
     // title — so the load itself is the event, and no navigation hook exists to

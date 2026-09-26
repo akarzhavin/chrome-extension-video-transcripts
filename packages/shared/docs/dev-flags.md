@@ -416,7 +416,9 @@ looks exactly like coverage.
 containing any marker in `DEBUG_TRACE_MARKERS`: the three wire messages
 (`LG_TRACE_HELLO`, `LG_TRACE_BATCH`, `LG_TRACE_STATE`), the storage key
 (`debug.trace.v1`), and the DOM names (`vtt-debug-toggle`, plus `vtt-trace-row`
-and `vtt-trace-rows` for the rows inside the toggle's row).
+and `vtt-trace-rows` for the rows inside the toggle's row). The word-save log
+that shares the switch adds its storage key (`debug.saves.v1`) and the property
+a failed save carries its worker snapshot on (`__lingogramSaveDiag`).
 
 That list is the single source of truth, and the count above is deliberately
 not restated as a number: `vtt-debug-panel` was in it until the recorder's

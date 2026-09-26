@@ -157,6 +157,8 @@ export interface AppInterface {
    */
   traceActions?(): {
     sessions(): number;
+    /** Word Save / Remove presses in the save log (debug/save-log.ts). */
+    saves?(): number;
     download(): void;
     copy(): Promise<boolean>;
     clear(): Promise<void>;

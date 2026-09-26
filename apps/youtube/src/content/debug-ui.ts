@@ -13,26 +13,29 @@
 //
 // The download is deliberately permission-free: a Blob URL on an <a download>,
 // which needs nothing in the manifest — the same primitive subs-export.ts uses.
+import {
+    downloadText,
+    fileStamp as stamp,
+    loadSaveLog,
+    saveLogReport,
+} from '../../../../packages/shared/src/debug/save-log';
 import type { TraceRecorder } from './debug-recorder';
 
-/** Filename-safe timestamp: 20260912-174233. */
-function stamp(d = new Date()): string {
-    const p = (n: number): string => String(n).padStart(2, '0');
-    return (
-        `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-` +
-        `${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
-    );
-}
-
-/** The recording as pretty JSON, stamped with the build it came from. */
-export function traceReportText(rec: TraceRecorder): string {
+/**
+ * The recording as pretty JSON, stamped with the build it came from.
+ *
+ * Carries the word-save log as `saves` (debug/save-log.ts): one switch, one
+ * file. Async because that log lives in storage, not in the recorder.
+ */
+export async function traceReportText(rec: TraceRecorder): Promise<string> {
     let version = 'unknown';
     try {
         version = chrome.runtime.getManifest().version;
     } catch {
         // Orphaned context — the trace is still worth reading.
     }
-    return JSON.stringify(rec.report({ version, ua: navigator.userAgent }), null, 2);
+    const saves = saveLogReport(await loadSaveLog());
+    return JSON.stringify(rec.report({ version, ua: navigator.userAgent, saves }), null, 2);
 }
 
 /**
@@ -41,16 +44,11 @@ export function traceReportText(rec: TraceRecorder): string {
  * Caller flushes first: the ring buffer debounces its writes, and the last
  * events are usually the interesting ones.
  */
-export function downloadTrace(rec: TraceRecorder): void {
+export async function downloadTrace(rec: TraceRecorder): Promise<void> {
     const sessions = rec.sessions();
-    if (sessions.length === 0) return;
+    // No video recorded is no longer an empty file: word saves may be in it.
     const current = sessions[sessions.length - 1];
-    const text = traceReportText(rec);
-
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lingogram-trace-${current.videoId}-${stamp()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const text = await traceReportText(rec);
+    const name = current ? `lingogram-trace-${current.videoId}` : 'lingogram-trace';
+    downloadText(text, `${name}-${stamp()}.json`);
 }

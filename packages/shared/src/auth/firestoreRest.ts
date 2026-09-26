@@ -2,6 +2,12 @@ import { AuthConfig } from './config';
 import { displayForm, normalizeTerm, wordKey } from '../word-key';
 import { refreshIdToken } from './firebaseRest';
 import { AuthState, getAuthState, setAuthState } from './storage';
+import type { WorkerDiag } from '../debug/save-diag-worker';
+
+// Save diagnostics (debug/save-diag-worker.ts) are dev-only. Every report below
+// is gated `DIAG_BUILD && diag`: a module-level constant from the __EXT_ENV__
+// literal is what the minifier folds, so production keeps none of it.
+const DIAG_BUILD = __EXT_ENV__ === 'dev';
 
 // Injected at build time from infrastructure/lingogram-limits.json — the same
 // file the Firestore rule generator consumes. Single source of truth.
@@ -12,14 +18,31 @@ const MAX_FEEDBACK_TEXT_BYTES = __LIMIT_MAX_FEEDBACK_TEXT_BYTES__;
 
 const REFRESH_LEEWAY_MS = 60_000;
 
-async function ensureFreshToken(cfg: AuthConfig): Promise<AuthState> {
+async function ensureFreshToken(cfg: AuthConfig, diag?: WorkerDiag): Promise<AuthState> {
     const state = await getAuthState();
     if (!state) throw new Error('Not signed in');
     if (state.expiresAt > Date.now() + REFRESH_LEEWAY_MS) return state;
-    const refreshed = await refreshIdToken(cfg, state.refreshToken);
+    const refreshed = await refreshTracked(cfg, state.refreshToken, diag);
     const next: AuthState = { ...state, ...refreshed };
     await setAuthState(next);
     return next;
+}
+
+/** refreshIdToken, reported to the save diagnostics when there are any. */
+async function refreshTracked(
+    cfg: AuthConfig,
+    refreshToken: string,
+    diag?: WorkerDiag,
+): ReturnType<typeof refreshIdToken> {
+    const t = Date.now();
+    try {
+        const r = await refreshIdToken(cfg, refreshToken);
+        if (DIAG_BUILD && diag) diag.tokenRefreshed(t);
+        return r;
+    } catch (err) {
+        if (DIAG_BUILD && diag) diag.failed('token-refresh', err, t);
+        throw err;
+    }
 }
 
 function todayBucket(): number {
@@ -31,22 +54,34 @@ function todayBucket(): number {
 interface SentinelState {
     dailyCount: number;
     dayBucket: number;
+    /** Server time of the last save — the timestamp the one-per-second rule reads. */
+    lastAddedAt?: string;
 }
 
 interface FirestoreDocument {
     name: string;
-    fields?: Record<string, { integerValue?: string }>;
+    fields?: Record<string, { integerValue?: string; timestampValue?: string }>;
 }
 
 function sentinelDocPath(cfg: AuthConfig, uid: string): string {
     return `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents/inbox/${encodeURIComponent(uid)}`;
 }
 
-async function getSentinel(cfg: AuthConfig, idToken: string, uid: string): Promise<SentinelState | null> {
+async function getSentinel(
+    cfg: AuthConfig,
+    idToken: string,
+    uid: string,
+    diag?: WorkerDiag,
+): Promise<SentinelState | null> {
+    const t = Date.now();
     const res = await fetch(sentinelDocPath(cfg, uid), {
         headers: { 'Authorization': `Bearer ${idToken}` },
     });
-    if (res.status === 404) return null;
+    if (DIAG_BUILD && diag) await diag.response('sentinel', res, t);
+    if (res.status === 404) {
+        if (DIAG_BUILD && diag) diag.sentinel({ exists: false });
+        return null;
+    }
     if (res.status === 401) {
         // Caller catches this sentinel to trigger a token refresh.
         throw new Error('Firestore sentinel 401');
@@ -59,7 +94,9 @@ async function getSentinel(cfg: AuthConfig, idToken: string, uid: string): Promi
     const fields = doc.fields ?? {};
     const dailyCount = parseInt(fields.dailyCount?.integerValue ?? '0', 10);
     const dayBucket = parseInt(fields.dayBucket?.integerValue ?? '0', 10);
-    return { dailyCount, dayBucket };
+    const lastAddedAt = fields.lastAddedAt?.timestampValue;
+    if (DIAG_BUILD && diag) diag.sentinel({ exists: true, dailyCount, dayBucket, lastAddedAt });
+    return { dailyCount, dayBucket, lastAddedAt };
 }
 
 interface CommitWrite {
@@ -399,8 +436,9 @@ export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput)
 export async function addInboxWord(
     cfg: AuthConfig,
     input: AddInboxWordInput,
-    opts: { reactivate?: boolean } = {},
+    opts: { reactivate?: boolean; diag?: WorkerDiag } = {},
 ): Promise<AddInboxWordResult> {
+    const diag = opts.diag;
     const termBytes = utf8Bytes(input.term);
     if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
         throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
@@ -411,19 +449,19 @@ export async function addInboxWord(
         input = { ...input, context: truncateBytes(input.context, MAX_CONTEXT_BYTES) };
     }
 
-    let state = await ensureFreshToken(cfg);
+    let state = await ensureFreshToken(cfg, diag);
 
     let sentinel: SentinelState | null;
     try {
-        sentinel = await getSentinel(cfg, state.idToken, state.uid);
+        sentinel = await getSentinel(cfg, state.idToken, state.uid, diag);
     } catch (err) {
         // The proactive ensureFreshToken usually prevents 401s on the read,
         // but if Firestore disagrees about token expiry we retry once.
         if (err instanceof Error && err.message === 'Firestore sentinel 401') {
-            const refreshed = await refreshIdToken(cfg, state.refreshToken);
+            const refreshed = await refreshTracked(cfg, state.refreshToken, diag);
             state = { ...state, ...refreshed };
             await setAuthState(state);
-            sentinel = await getSentinel(cfg, state.idToken, state.uid);
+            sentinel = await getSentinel(cfg, state.idToken, state.uid, diag);
         } else {
             throw err;
         }
@@ -433,6 +471,7 @@ export async function addInboxWord(
     const commitUrl = `${cfg.firestoreUrl}/v1/projects/${cfg.projectId}/databases/(default)/documents:commit`;
     const body = JSON.stringify({ writes });
 
+    let t = Date.now();
     let res = await fetch(commitUrl, {
         method: 'POST',
         headers: {
@@ -441,11 +480,13 @@ export async function addInboxWord(
         },
         body,
     });
+    if (DIAG_BUILD && diag) await diag.response('commit', res, t);
 
     if (res.status === 401) {
-        const refreshed = await refreshIdToken(cfg, state.refreshToken);
+        const refreshed = await refreshTracked(cfg, state.refreshToken, diag);
         state = { ...state, ...refreshed };
         await setAuthState(state);
+        t = Date.now();
         res = await fetch(commitUrl, {
             method: 'POST',
             headers: {
@@ -454,6 +495,7 @@ export async function addInboxWord(
             },
             body,
         });
+        if (DIAG_BUILD && diag) await diag.response('commit-refreshed', res, t);
     }
 
     // THE SEAM. A device that has never synced cannot know whether this word
@@ -492,6 +534,7 @@ export async function addInboxWord(
     // an already-saved word.
     if (!res.ok && (res.status === 403 || res.status === 409) && !opts.reactivate) {
         const retry = buildWrites(cfg, state.uid, input, sentinel, true);
+        t = Date.now();
         res = await fetch(commitUrl, {
             method: 'POST',
             headers: {
@@ -500,6 +543,7 @@ export async function addInboxWord(
             },
             body: JSON.stringify({ writes: retry.writes }),
         });
+        if (DIAG_BUILD && diag) await diag.response('commit-reactivate', res, t);
     }
 
     if (!res.ok) {
@@ -630,13 +674,15 @@ export async function listInboxWords(cfg: AuthConfig, sinceMs: number): Promise<
 export async function removeInboxWord(
     cfg: AuthConfig,
     input: { term: string },
+    opts: { diag?: WorkerDiag } = {},
 ): Promise<{ wordId: string; documentPath: string; state: 'removed' }> {
+    const diag = opts.diag;
     const termBytes = utf8Bytes(input.term);
     if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
         throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
     }
 
-    let state = await ensureFreshToken(cfg);
+    let state = await ensureFreshToken(cfg, diag);
     const wordId = wordKey(input.term);
     const documentPath =
         `projects/${cfg.projectId}/databases/(default)/documents/inbox/${state.uid}/words/${wordId}`;
@@ -678,12 +724,16 @@ export async function removeInboxWord(
         body,
     });
 
+    let t = Date.now();
     let res = await post();
+    if (DIAG_BUILD && diag) await diag.response('commit', res, t);
     if (res.status === 401) {
-        const refreshed = await refreshIdToken(cfg, state.refreshToken);
+        const refreshed = await refreshTracked(cfg, state.refreshToken, diag);
         state = { ...state, ...refreshed };
         await setAuthState(state);
+        t = Date.now();
         res = await post();
+        if (DIAG_BUILD && diag) await diag.response('commit-refreshed', res, t);
     }
     // TWO REFUSALS THAT ARE NOT FAILURES, from the contract's own table.
     //
@@ -706,6 +756,7 @@ export async function removeInboxWord(
     // the learner otherwise. That one is a retry, and it lives in
     // `addInboxWord`. The two paths are separate for exactly this reason.
     if (!res.ok && res.status === 403) {
+        if (DIAG_BUILD && diag) diag.refusalTreatedAsSuccess();
         return { wordId, documentPath, state: 'removed' };
     }
 
