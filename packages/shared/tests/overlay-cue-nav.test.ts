@@ -272,6 +272,26 @@ describe('CueNav', () => {
             expect(nav.el.style.top).toBe('104px');
         });
 
+        test('controls that are not laid out are not pinned to the corner', () => {
+            const real = (Element.prototype.getBoundingClientRect as jest.Mock).getMockImplementation()!;
+            (Element.prototype.getBoundingClientRect as jest.Mock).mockImplementation(function (this: Element) {
+                if (this === nav.el) return { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 } as DOMRect;
+                return real.call(this);
+            });
+            move(200, 420);
+            jest.advanceTimersByTime(400);
+            expect(nav.isNear()).toBe(true);
+            expect(nav.el.style.top).toBe('');
+        });
+
+        test('letting go of a drag away from the captions does not pin', () => {
+            nav.suspendPin();
+            nav.resumePin();
+            jest.advanceTimersByTime(400);
+            expect(nav.isNear()).toBe(false);
+            expect(nav.el.style.top).toBe('');
+        });
+
         test('arriving near the captions in the middle of a drag does not pin', () => {
             nav.suspendPin(); // the drag began with the cursor elsewhere
             move(200, 420);

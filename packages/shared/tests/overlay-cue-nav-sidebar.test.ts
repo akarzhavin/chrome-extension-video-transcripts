@@ -165,6 +165,12 @@ describe('overlay line-step controls', () => {
         expect(seekVideo).toHaveBeenLastCalledWith(15.01);
     });
 
+    test('the line landed on is painted at once, before the player reports back', () => {
+        ui.highlightSubtitle(13);
+        press('prev');
+        expect(overlay().querySelector('.vtt-overlay-main')?.textContent).toBe('One small step');
+    });
+
     test('a second ‹ before the player reports back counts from where the first landed', () => {
         ui.highlightSubtitle(16);
         press('prev');
@@ -202,6 +208,24 @@ describe('overlay line-step controls', () => {
         ui.highlightSubtitle(14.5);
         leave();
         expect(overlay().querySelector('.vtt-overlay-main')).toBeNull();
+    });
+
+    test('with the settings panel open the gap belongs to the preview, not to a held line', () => {
+        ui.highlightSubtitle(13);
+        approach();
+        ui.setOverlayAdjusting(true);
+        ui.highlightSubtitle(14.5);
+        expect(overlay().querySelector('.vtt-overlay-main')).not.toBeNull();
+        expect(overlay().querySelector('.vtt-overlay-held')).toBeNull();
+    });
+
+    test('tearing the sidebar down takes the controls and their page listener with it', () => {
+        ui.highlightSubtitle(13);
+        const nav = overlay().querySelector('.vtt-cue-nav') as HTMLElement;
+        const off = jest.spyOn(document, 'removeEventListener');
+        ui.destroy();
+        expect(nav.isConnected).toBe(false);
+        expect(off.mock.calls.map(c => c[0])).toEqual(expect.arrayContaining(['pointermove', 'mouseout']));
     });
 
     test('a line playing is never marked held', () => {
