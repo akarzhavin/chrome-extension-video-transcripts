@@ -3110,18 +3110,18 @@ describe('the panel as it is built', () => {
         });
     });
 
-    // On YouTube and rezka captions start at 200/150 stored points (48/36px),
+    // On YouTube, Netflix and rezka captions start at 200/150 stored points (48/36px),
     // and the sliders show them as 100/75 — the same "default" every other
     // site shows. Stored points do not change, so nobody's captions move; only
     // the panel divides by two, and the range shrinks with it so the pixel
     // range (12-96px) is what it is everywhere else.
-    describe('on YouTube the size sliders read in half-size points', () => {
+    describe.each(['youtube', 'netflix'] as const)('on %s the size sliders read in half-size points', (site) => {
         const slider = (id: string) => document.getElementById(id) as HTMLInputElement;
         const readout = (id: string) =>
             slider(id).parentElement?.querySelector('.vtt-slider-val')?.textContent;
 
         beforeEach(async () => {
-            jest.spyOn(analytics, 'platformOf').mockReturnValue('youtube');
+            jest.spyOn(analytics, 'platformOf').mockReturnValue(site);
             build();
             await new Promise((r) => setTimeout(r, 0));
         });
@@ -3148,7 +3148,7 @@ describe('the panel as it is built', () => {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             await new Promise((r) => setTimeout(r, 0));
 
-            expect((prefsStore['prefs.v1'] as any).byPlatform.youtube.overlayFontSize).toBe(300);
+            expect((prefsStore['prefs.v1'] as any).byPlatform[site].overlayFontSize).toBe(300);
             expect(readout('vtt-slider-size')).toBe('150%');
         });
 
@@ -3156,7 +3156,7 @@ describe('the panel as it is built', () => {
         // stored number is untouched — and the panel shows it as 80/55.
         test('a size saved before this change keeps its pixels and reads as half', async () => {
             document.body.innerHTML = '';
-            prefsStore['prefs.v1'] = { byPlatform: { youtube: { overlayFontSize: 160, overlaySubFontSize: 110 } } };
+            prefsStore['prefs.v1'] = { byPlatform: { [site]: { overlayFontSize: 160, overlaySubFontSize: 110 } } };
             ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
             expect(ui.init()).toBe(true);
             await new Promise((r) => setTimeout(r, 0));

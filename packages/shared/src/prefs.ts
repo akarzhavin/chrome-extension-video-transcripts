@@ -262,22 +262,24 @@ function coerceSize(v: unknown, fallback: number): number {
 // preference at all -- see resolve(). On a video player the caption is the
 // thing being read, not chrome around it, and the 100/75 baseline (inherited
 // from the generic web-page overlay) lands too small to read from couch
-// distance on these two. Netflix and the generic web scope keep the baseline:
-// changing them was not asked for, and a silent resize is a regression to
-// anyone already happy with what they see.
+// distance on the three video sites. The generic web scope keeps the baseline:
+// changing it was not asked for, and a silent resize is a regression to anyone
+// already happy with what they see.
 export const PLATFORM_SIZE_DEFAULTS: Partial<
     Record<PrefScope, Pick<Prefs, 'overlayFontSize' | 'overlaySubFontSize'>>
 > = {
+    netflix: { overlayFontSize: 200, overlaySubFontSize: 150 },
     rezka: { overlayFontSize: 200, overlaySubFontSize: 150 },
     youtube: { overlayFontSize: 200, overlaySubFontSize: 150 },
 };
 
 // How many stored size points make one point on the slider, per site. Stored
 // sizes stay a percentage of the 24px base on every site, so nobody's captions
-// move and Netflix, which shares the top-level baseline, reads the same numbers.
-// Only the sidebar divides: on these two the starting 200/150 reads as 100/75,
-// the same "default" every other site shows.
+// move and every scope reads the shared top-level baseline the same way. Only
+// the sidebar divides: on the video sites the starting 200/150 reads as 100/75,
+// the same "default" the generic web scope shows.
 export const SIZE_DISPLAY_SCALE: Partial<Record<PrefScope, number>> = {
+    netflix: 2,
     rezka: 2,
     youtube: 2,
 };

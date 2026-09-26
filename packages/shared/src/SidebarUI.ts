@@ -1682,8 +1682,8 @@ export class SidebarUI {
     // only the fields the user was just looking at.
     private resetTextStyle(): void {
         // Reset has to land on the same sizes a fresh install sees on THIS
-        // site, or the button would shrink captions on rezka/youtube to a
-        // baseline those two never start from.
+        // site, or the button would shrink captions on the video sites to a
+        // baseline they never start from.
         const defaults = { ...OVERLAY_TEXT_DEFAULTS, ...(PLATFORM_SIZE_DEFAULTS[this.scope] ?? {}) };
         Object.assign(this.overlayStyle, defaults);
         this.applyOverlayStyle();

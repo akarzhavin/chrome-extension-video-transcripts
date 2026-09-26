@@ -279,18 +279,18 @@ describe('prefs', () => {
     // ---------------------------------------------------------------------
     // Per-platform default sizes
     //
-    // rezka and youtube start at 200%/150% instead of the 100%/75% baseline.
+    // netflix, rezka and youtube start at 200%/150% instead of the 100%/75% baseline.
     // The whole point is that this is a STARTING value, not an override: it
     // must never move a size the user has already chosen, on either level.
     // ---------------------------------------------------------------------
 
-    test('rezka and youtube start at 200/150; netflix and web keep the baseline', async () => {
-        for (const scope of ['rezka', 'youtube'] as const) {
+    test('netflix, rezka and youtube start at 200/150; web keeps the baseline', async () => {
+        for (const scope of ['netflix', 'rezka', 'youtube'] as const) {
             const p = await loadPrefs(scope);
             expect(p.overlayFontSize).toBe(200);
             expect(p.overlaySubFontSize).toBe(150);
         }
-        for (const scope of ['netflix', 'web', 'other'] as const) {
+        for (const scope of ['web', 'other'] as const) {
             const p = await loadPrefs(scope);
             expect(p.overlayFontSize).toBe(100);
             expect(p.overlaySubFontSize).toBe(75);
