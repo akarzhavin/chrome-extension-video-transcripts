@@ -530,7 +530,9 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         }
     }
 
-    async function show(anchor: Anchor): Promise<void> {
+    // `wanted` is asked again once the storage reads are done: a gesture can
+    // be withdrawn while they run, before there is a card to close.
+    async function show(anchor: Anchor, wanted?: () => boolean): Promise<void> {
         const word = anchor.term;
         if (!word) return;
         const prefs = await loadLanguagePrefs();
@@ -540,6 +542,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // No native language chosen yet means no language to translate into —
         // the same gate that keeps subtitles from rendering pre-onboarding.
         if (!prefs?.native) return;
+        if (wanted && !wanted()) return;
 
         current = anchor;
         markAnchor(anchor);
@@ -691,8 +694,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         hoverTimer = setTimeout(() => {
             dwellSpan = null;
             dwellFrom = null;
-            dwellAnchor = spanAnchor(span);
-            void show(dwellAnchor);
+            const anchor = spanAnchor(span);
+            dwellAnchor = anchor;
+            // Leaving the word while show() is still reading storage clears
+            // dwellAnchor (see onMouseOut) — nothing is up yet to hide.
+            void show(anchor, () => dwellAnchor === anchor);
         }, SIDEBAR_DWELL_MS);
     };
     const stopDwell = (): void => {
@@ -721,6 +727,8 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             // card opened on a selection is not tied to any word the pointer
             // crosses afterwards — not even a one-word selection's own word.
             if (current && current === dwellAnchor && current.key === word) scheduleHide();
+            // A rest on this word that is still opening: withdraw it.
+            else if (dwellAnchor && dwellAnchor !== current && dwellAnchor.key === word) dwellAnchor = null;
             return;
         }
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);

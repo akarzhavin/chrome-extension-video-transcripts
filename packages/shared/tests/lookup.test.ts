@@ -612,6 +612,26 @@ describe('hover strip debounce — the 30/min budget', () => {
             expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
         });
 
+        // The rest ends, then the card still reads the language pair before it
+        // exists. A pointer that leaves during that read has nothing to close
+        // yet — the card must not open on a word it has already left.
+        it('leaving the word while the rest is still opening opens nothing', async () => {
+            let release!: () => void;
+            const get = chromeStorage.local.get as jest.Mock;
+            const real = get.getMockImplementation()!;
+            get.mockImplementationOnce((key: string) =>
+                new Promise((r) => { release = () => r(real(key)); }));
+
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(550);
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            release();
+            await jest.advanceTimersByTimeAsync(2000);
+
+            expect(lookups()).toBe(0);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
         // Reported live: rest on a word, then leave the panel. On its way out
         // the pointer crossed other transcript words, and passing over one of
         // them cancelled the pending hide — the card, and the transcript hold

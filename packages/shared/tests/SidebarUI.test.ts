@@ -3166,6 +3166,24 @@ describe('the panel as it is built', () => {
             expect((ui as any).overlayStyle.overlayFontSize).toBe(160);
             expect((ui as any).overlayStyle.overlaySubFontSize).toBe(110);
         });
+
+        // 105 and 155 were steps on the old slider; halved they fall between
+        // this one's steps. The readout names the step the thumb stands on, so
+        // the number and the thumb agree, and the first touch starts from it.
+        test('an old size between steps reads as the step the thumb shows', async () => {
+            document.body.innerHTML = '';
+            prefsStore['prefs.v1'] = { byPlatform: { [site]: { overlayFontSize: 105, overlaySubFontSize: 155 } } };
+            ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+            expect(ui.init()).toBe(true);
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect(slider('vtt-slider-size').value).toBe('55');
+            expect(readout('vtt-slider-size')).toBe('55%');
+            expect(slider('vtt-slider-sub-size').value).toBe('80');
+            expect(readout('vtt-slider-sub-size')).toBe('80%');
+            // Nothing is rewritten until the user moves the slider.
+            expect((ui as any).overlayStyle.overlayFontSize).toBe(105);
+        });
     });
 
     // §19.3, §19.5, §19.7 and §19 as corrected by T0.4 — the download control.

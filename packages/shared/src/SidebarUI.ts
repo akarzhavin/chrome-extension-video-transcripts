@@ -1586,7 +1586,11 @@ export class SidebarUI {
         };
         const markSlider = (sl: SliderRowElements | undefined, stored: number) => {
             if (!sl) return;
-            const pct = Math.round(stored / this.sizeScale);
+            // Snapped to the slider's step: the browser parks the thumb on a
+            // step anyway, and a stored size between steps (105 on a site that
+            // halves it) would otherwise read 53% over a thumb standing at 55.
+            const step = Number(sl.input.step) || 1;
+            const pct = Math.round(stored / this.sizeScale / step) * step;
             if (Number(sl.input.value) !== pct) sl.input.value = String(pct);
             sl.val.textContent = `${pct}%`;
             const min = Number(sl.input.min);
