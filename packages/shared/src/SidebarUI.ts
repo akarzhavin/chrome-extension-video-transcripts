@@ -152,11 +152,64 @@ function shouldReveal(e: MouseEvent, container: Element): boolean {
     return !hasSelectionInside(container);
 }
 
+/**
+ * Put the word into a revealed span behind the reading-order wipe
+ * (styles.css, "The reveal"). The glyphs sit in a temporary .vtt-reveal-ink
+ * child so the clip can take the text without taking the pane, which is the
+ * span's own ::before. When the wipe ends the child is unwrapped and the pane
+ * dropped, so the span is plain text again, exactly as a word revealed without
+ * animation — textContent is the word throughout.
+ */
+function revealWithWipe(span: HTMLElement, word: string): void {
+    const ink = document.createElement('span');
+    ink.className = 'vtt-reveal-ink';
+    ink.textContent = word;
+    span.replaceChildren(ink);
+    ink.addEventListener('animationend', () => {
+        // The span may have been re-masked mid-wipe; that path rewrote its
+        // text and class already, and must not be undone here.
+        if (!span.classList.contains('vtt-just-revealed')) return;
+        // The pane goes regardless; the unwrap waits if a selection reaches
+        // into the word — replacing its text node would collapse the Range,
+        // the same reason updateGuessItem patches spans in place.
+        span.classList.add('vtt-reveal-done');
+        const sel = window.getSelection();
+        // A bare caret is not a selection: the click that revealed the word
+        // leaves one in it, and holding for that kept every word wrapped.
+        if (sel && !sel.isCollapsed && sel.rangeCount > 0 && sel.getRangeAt(0).intersectsNode(span)) return;
+        span.textContent = word;
+    }, { once: true });
+}
+
+// Upper bound on settleScroll's corrections for one scroll. Placeholders are
+// replaced as lines render, so the error shrinks fast; the cap only guards
+// against a layout that never converges.
+const SETTLE_MAX_PASSES = 6;
+
+function afterTwoFrames(fn: () => void): void {
+    requestAnimationFrame(() => requestAnimationFrame(fn));
+}
+
+/**
+ * How far `item` sits from the vertical centre of `list`, in px. Measured, not
+ * offsetTop: #vtt-list is not a positioned ancestor, so offsetTop would be
+ * relative to something further up the tree.
+ */
+function centreDelta(list: HTMLElement, item: HTMLElement): number {
+    const listBox = list.getBoundingClientRect();
+    const itemBox = item.getBoundingClientRect();
+    return itemBox.top - listBox.top - (listBox.height - itemBox.height) / 2;
+}
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
     elements: SidebarElements;
     hoverStartIndex: number = -1;
+    // Open holds on the transcript's auto-scroll (see holdAutoScroll), and the
+    // active line when the first one was taken, to pick the catch-up scroll.
+    private autoScrollHolds = 0;
+    private holdStartIndex = -1;
     // Presentation-only overlay style prefs. Held locally (AppState owns
     // playback/track state); mirrored to chrome.storage.local via savePrefs.
     private overlayStyle = { ...OVERLAY_STYLE_DEFAULTS };
@@ -714,6 +767,11 @@ export class SidebarUI {
         });
         sidebar.addEventListener('mouseleave', () => {
             this.state.isHovering = false;
+            // Not while a word card is open: the card sits outside the panel,
+            // so moving the pointer onto it is exactly what fires this, and
+            // catching up here scrolled the word out from under the card being
+            // read. The release of the hold catches up instead.
+            if (this.autoScrollHolds > 0) return;
             this.scrollActiveIntoView(this.pickScrollMode(this.state.currentIndex, this.hoverStartIndex));
         });
 
@@ -1880,6 +1938,29 @@ export class SidebarUI {
     // that keep their old names because two apps and the hover strip call them.
     private readonly wordScreen?: WordScreen;
 
+    /**
+     * Stop the transcript following the video until the returned release is
+     * called. Taken by the word card for as long as it is open: the card is
+     * placed once, next to its word, and a list that keeps scrolling to the
+     * active line carries the word away and leaves the card over another one.
+     *
+     * The active-line highlight keeps moving, exactly as it does while the
+     * pointer rests on the panel; on the last release the list catches up —
+     * unless the pointer is on the panel, where mouseleave will.
+     */
+    holdAutoScroll(): () => void {
+        if (this.autoScrollHolds === 0) this.holdStartIndex = this.state.currentIndex;
+        this.autoScrollHolds++;
+        let released = false;
+        return () => {
+            if (released) return;
+            released = true;
+            this.autoScrollHolds--;
+            if (this.autoScrollHolds > 0 || this.state.isHovering) return;
+            this.scrollActiveIntoView(this.pickScrollMode(this.state.currentIndex, this.holdStartIndex));
+        };
+    }
+
     openLookupScreen(term: string, context: string): void {
         this.wordScreen?.open(term, context);
     }
@@ -2127,12 +2208,50 @@ export class SidebarUI {
         const list = this.elements.list;
         const active = list?.querySelector<HTMLElement>('.vtt-item.active-sub');
         if (!list || !active) return;
-        // Measured, not offsetTop: #vtt-list is not a positioned ancestor, so
-        // offsetTop would be relative to something further up the tree.
-        const listBox = list.getBoundingClientRect();
-        const itemBox = active.getBoundingClientRect();
-        const delta = itemBox.top - listBox.top - (listBox.height - itemBox.height) / 2;
-        list.scrollTo({ top: list.scrollTop + delta, behavior: mode as ScrollBehavior });
+        list.scrollTo({ top: list.scrollTop + centreDelta(list, active), behavior: mode as ScrollBehavior });
+        this.settleScroll(list, mode);
+    }
+
+    // Bumped by every scroll to the active line, so only the latest one's
+    // correction runs.
+    private settleToken = 0;
+
+    /**
+     * Put the active line back in the centre once the lines it scrolled past
+     * have their real heights.
+     *
+     * The lines carry content-visibility: auto (styles.css, #vtt-list
+     * .vtt-item), so a line that has never been on screen is laid out at a
+     * placeholder height. A jump across unrendered lines is therefore aimed
+     * with estimates, and the line lands off-centre by however much they were
+     * wrong. After the scroll the lines around it are rendered and measure
+     * true; one instant nudge corrects it.
+     *
+     * Not while the reader has the list: hovering, or a word card open (see
+     * holdAutoScroll) — the follow is paused there on purpose.
+     */
+    private settleScroll(list: HTMLElement, mode: ScrollMode): void {
+        const my = ++this.settleToken;
+        // More than one pass: a nudge brings new lines on screen, their real
+        // heights replace more placeholders, and the line moves again. Measured
+        // live on a 3128-line transcript: one pass left a 25-minute jump 607px
+        // off-centre. Each pass waits two frames for the lines it uncovered.
+        let passes = 0;
+        const correct = (): void => {
+            if (my !== this.settleToken) return;
+            if (this.state.isHovering || this.autoScrollHolds > 0) return;
+            const active = list.querySelector<HTMLElement>('.vtt-item.active-sub');
+            if (!active) return;
+            const delta = centreDelta(list, active);
+            if (Math.abs(delta) <= 2) return;
+            list.scrollTo({ top: list.scrollTop + delta, behavior: 'instant' as ScrollBehavior });
+            if (++passes < SETTLE_MAX_PASSES) afterTwoFrames(correct);
+        };
+        if (mode === 'smooth') {
+            list.addEventListener('scrollend', correct, { once: true });
+        } else {
+            afterTwoFrames(correct);
+        }
     }
 
     private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
@@ -2376,7 +2495,11 @@ export class SidebarUI {
                 delete span.dataset.hidden;
                 // Only this transition animates: the pane clearing is the
                 // reveal. Words already out must not re-focus on every repaint.
+                // Read before className is replaced: the pane that wipes away
+                // is the lit one if this was the word marked as next.
+                const wasNext = span.classList.contains('vtt-next-word');
                 span.className = 'vtt-revealed-word vtt-just-revealed';
+                if (wasNext) span.classList.add('vtt-was-next');
                 // A word coming out of the mask earns its saved mark at this
                 // moment, and it has to be re-applied by hand: the line above
                 // replaces className wholesale, so a mark set when the span was
@@ -2387,7 +2510,7 @@ export class SidebarUI {
                 // A word that is out is ordinary text again, so it drops the
                 // no-translate guard the mask put on it.
                 span.translate = true;
-                span.textContent = word;
+                revealWithWipe(span, word);
             } else if (!shouldReveal && !span.classList.contains('vtt-masked-word')) {
                 span.dataset.hidden = span.dataset.hidden ?? span.dataset.word ?? '';
                 delete span.dataset.word;
@@ -2446,14 +2569,13 @@ export class SidebarUI {
         // Drag-select still fires with detail === 1, so this only kills the
         // multi-click auto-selection.
         //
-        // Guess mode only, matching createOverlayElement. There a run of quick
-        // clicks in one spot is how you uncover a line, so the auto-selection
-        // is pure interference. Outside it a double-click is how you select a
-        // word — and since the word lookup is now reached ONLY through a
-        // selection (lookup/strip.ts), suppressing it here would leave a drag
-        // as the only way to ask about a single word.
+        // In every mode. A double-click is not a way to ask about a word: the
+        // lookup opens on a selection (lookup/strip.ts), and the one gesture
+        // that makes it is a drag. Letting the browser select on a double-click
+        // would open the card on what is, to the user, two clicks — each of
+        // which also seeks.
         item.addEventListener('mousedown', (e) => {
-            if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
+            if (e.detail > 1) e.preventDefault();
         });
         return item;
     }
@@ -2594,7 +2716,27 @@ export class SidebarUI {
         window.getSelection()?.removeAllRanges();
         this.updateGuessItem(index);
         this.updateOverlay(index);
-        this.seekTo(sub.startTime);
+        this.seekAfterPaint(sub.startTime);
+    }
+
+    /**
+     * Seek, but only once the reveal has reached the screen.
+     *
+     * A seek sets YouTube to work on the main thread for 100-250ms, and a
+     * compositor animation cannot start until the main thread commits the
+     * frame that holds it. Seeking in the same task as the reveal therefore
+     * held that frame back: filmed live, the screen did not change for ~280ms
+     * after the click, and the 280ms wipe was already over when it first
+     * showed — the learner saw only its end. Two frames later the wipe is on
+     * the compositor and runs through the seek untouched.
+     *
+     * playbackTime moves NOW, not with the seek: the next click is judged
+     * against it (isNavigationClick), and a click inside these two frames
+     * must see the line it just revealed as the line it is on.
+     */
+    private seekAfterPaint(time: number): void {
+        this.playbackTime = time;
+        requestAnimationFrame(() => requestAnimationFrame(() => this.app.seekVideo(time)));
     }
 
     private seekTo(time: number): void {
@@ -2671,7 +2813,7 @@ export class SidebarUI {
         if (!newActive) return;
 
         newActive.classList.add('active-sub');
-        if (!this.state.isHovering) {
+        if (!this.state.isHovering && this.autoScrollHolds === 0) {
             // Via scrollActiveIntoView, which scrolls the list alone: this runs
             // on every subtitle change, so scrollIntoView here would drag the
             // whole page back to the player throughout playback.
@@ -3228,10 +3370,11 @@ export class SidebarUI {
         // reads as a double-click and turns into a word selection — that
         // selection then blocked the next reveal. The sidebar has always
         // suppressed this (see createSubtitleItem); the overlay never did, which
-        // is why it was the surface that felt broken. Guess mode only: elsewhere
-        // a double-click is a fair way to select a word for the dictionary.
+        // is why it was the surface that felt broken. In every mode, as in the
+        // sidebar: a double-click is not a way to open the word card — hover
+        // is, here, and a drag selects a phrase.
         overlay.addEventListener('mousedown', (e) => {
-            if (this.state.displayMode === 'guess' && e.detail > 1) e.preventDefault();
+            if (e.detail > 1) e.preventDefault();
         });
         // Masked words reveal on pointerdown, not click. updateOverlay rebuilds
         // this element's children on every timeupdate (~4×/sec), and when that

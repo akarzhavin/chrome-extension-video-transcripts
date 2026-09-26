@@ -1262,7 +1262,13 @@ function bootstrap(): void {
     // Hover strip: point at a word, see its translations; "More" opens the
     // sidebar's word screen. Selection saving above stays — it is still the
     // only way to grab a multi-word phrase.
-    installLookupStrip({ openDetail: (term, ctx) => app.ui.openLookupScreen(term, ctx) });
+    installLookupStrip({
+        openDetail: (term, ctx) => app.ui.openLookupScreen(term, ctx),
+        // Hold the transcript still while a card is open: the card is placed
+        // once, next to its word, and a list still following the video carries
+        // the word out from under it (SidebarUI.holdAutoScroll).
+        holdLayout: () => app.ui.holdAutoScroll(),
+    });
     // The badge self-attaches to any #vtt-header-top (with an observer retry),
     // so gate it on owning the sidebar — otherwise it grafts into a sidebar
     // built by another installed copy of the extension.

@@ -523,15 +523,152 @@ describe('hover strip debounce — the 30/min budget', () => {
         jest.useRealTimers();
     });
 
-    it('ignores hover in the sidebar — the cursor crosses it on the way anywhere', async () => {
-        jest.useFakeTimers();
-        const teardown = installLookupStrip();
-        const main = buildLine(['transcript'], 'sidebar');
-        hover(main.querySelector('span[data-word]')!);
-        await jest.advanceTimersByTimeAsync(2000);
-        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
-        teardown();
-        jest.useRealTimers();
+    // The sidebar opens on a REST of half a second, not on a pass: the cursor
+    // crosses dozens of transcript words on the way anywhere.
+    describe('sidebar: the card opens when the pointer rests on a word', () => {
+        const at = (type: string, el: Element, x: number, y: number, extra: MouseEventInit = {}): void => {
+            el.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, ...extra }));
+        };
+        const lookups = (): number =>
+            (chrome.runtime.sendMessage as jest.Mock).mock.calls.filter(([m]) => m.action === 'LOOKUP_WORD').length;
+
+        let teardown: () => void;
+        let word: HTMLElement;
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            teardown = installLookupStrip();
+            word = buildLine(['transcript'], 'sidebar').querySelector('span[data-word]') as HTMLElement;
+            // jsdom lays nothing out; the card needs a box to stand next to.
+            word.getBoundingClientRect = () =>
+                ({ width: 60, height: 16, top: 100, left: 10, bottom: 116, right: 70, x: 10, y: 100 }) as DOMRect;
+        });
+
+        afterEach(() => {
+            teardown();
+            jest.useRealTimers();
+        });
+
+        it('opens after half a second at rest, not before', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(450);
+            expect(lookups()).toBe(0);
+            await jest.advanceTimersByTimeAsync(100);
+            expect(lookups()).toBe(1);
+            const [msg] = (chrome.runtime.sendMessage as jest.Mock).mock.calls[0];
+            expect(msg.term).toBe('transcript');
+        });
+
+        it('a pointer still moving over the word restarts the wait', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mousemove', word, 40, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            expect(lookups()).toBe(0);
+            await jest.advanceTimersByTimeAsync(250);
+            expect(lookups()).toBe(1);
+        });
+
+        it('a trembling hand is still at rest', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mousemove', word, 22, 109);
+            await jest.advanceTimersByTimeAsync(250);
+            expect(lookups()).toBe(1);
+        });
+
+        it('passing over the word opens nothing', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(2000);
+            expect(lookups()).toBe(0);
+        });
+
+        // Pressing a line seeks, and the hand that pressed stays on the word.
+        // Without the press counting as "not this", every click on a line would
+        // open a card half a second later.
+        it('a press on the word switches it off until the pointer leaves', async () => {
+            at('mouseover', word, 20, 108);
+            at('mousedown', word, 20, 108, { buttons: 1 });
+            at('mouseup', word, 20, 108);
+            at('mousemove', word, 21, 108);
+            await jest.advanceTimersByTimeAsync(2000);
+            expect(lookups()).toBe(0);
+
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            at('mouseover', word, 30, 108);
+            await jest.advanceTimersByTimeAsync(550);
+            expect(lookups()).toBe(1);
+        });
+
+        it('a card opened by resting closes when the pointer leaves the word', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(300);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
+        // Reported live: rest on a word, then leave the panel. On its way out
+        // the pointer crossed other transcript words, and passing over one of
+        // them cancelled the pending hide — the card, and the transcript hold
+        // it carries, stayed up for good while the video played on.
+        it('crossing other words on the way out does not keep the card up', async () => {
+            const line = word.parentElement!;
+            const other = document.createElement('span');
+            other.dataset.word = 'passing';
+            other.textContent = 'passing';
+            line.appendChild(other);
+
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+            at('mouseout', word, 75, 108, { relatedTarget: other });
+            at('mouseover', other, 80, 108);
+            at('mouseout', other, 140, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(300);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
+        // A phrase card belongs to the selection, not to a word the pointer
+        // crosses on its way to the card.
+        it('a card opened on a selection does not close when the pointer leaves a word', async () => {
+            const RECT = { width: 60, height: 16, top: 100, left: 10, bottom: 116, right: 70 };
+            const prior = (Range.prototype as any).getBoundingClientRect;
+            (Range.prototype as any).getBoundingClientRect = () => RECT;
+            const range = document.createRange();
+            range.setStartBefore(word);
+            range.setEndAfter(word);
+            const sel = window.getSelection()!;
+            sel.removeAllRanges();
+            sel.addRange(range);
+            try {
+                document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                await jest.advanceTimersByTimeAsync(300);
+                expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+                at('mouseout', word, 80, 108, { relatedTarget: document.body });
+                await jest.advanceTimersByTimeAsync(600);
+                expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+            } finally {
+                sel.removeAllRanges();
+                (Range.prototype as any).getBoundingClientRect = prior;
+            }
+        });
+
+        it('does not pause the video', async () => {
+            const video = document.createElement('video');
+            document.body.appendChild(video);
+            const pause = jest.spyOn(video, 'pause').mockImplementation(() => {});
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(lookups()).toBe(1);
+            expect(pause).not.toHaveBeenCalled();
+        });
     });
 
     it('a sidebar CLICK is the cue\'s own — it seeks, and opens no card', async () => {
@@ -736,7 +873,7 @@ describe('playback — the overlay pauses, the sidebar does not', () => {
         (Range.prototype as any).getBoundingClientRect = () => RECT;
         span.getBoundingClientRect = () => RECT as DOMRect;
 
-        // Selecting the word is the sidebar's trigger — double-clicking it is
+        // Selecting the word is the sidebar's trigger — a drag across it is
         // what the browser turns into exactly this range.
         const range = document.createRange();
         range.setStartBefore(span);

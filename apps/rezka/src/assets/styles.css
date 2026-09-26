@@ -1424,6 +1424,15 @@
         transition: none !important;
         animation: none !important;
     }
+    /* No wipe: the word is simply there. The pane has no animation to carry
+       it away, so it must not be drawn at all. */
+    .vtt-reveal-ink {
+        animation: none !important;
+        clip-path: none !important;
+    }
+    .vtt-just-revealed::before {
+        content: none !important;
+    }
 }
 
 #vtt-list {
@@ -1445,6 +1454,19 @@
 #vtt-list::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
+}
+
+/* Lines off screen are not styled, laid out or painted until they come near
+   the viewport. A long video's transcript runs to thousands of lines (3128 on a
+   2-hour YouTube talk, ~18k words in guess mode), and without this every one of
+   them was re-layered after each reveal click: the reveal's first frame reached
+   the screen 204ms late. With it: 32ms.
+   The placeholder height is a typical dual line; `auto` keeps a line's real
+   height once it has been rendered. A jump across never-rendered lines is
+   aimed with the placeholder and then corrected by SidebarUI.settleScroll. */
+#vtt-list .vtt-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 96px;
 }
 
 .vtt-item {
@@ -1579,13 +1601,16 @@
     text-shadow: none;
     -webkit-user-select: none;
     user-select: none;
-    /* Depth for the peek's turn, which happens on the inner .vtt-peek-face —
-       this element must never transform itself. A rotating span leaves the
-       cursor's hit area at 90deg, and Chrome then fires mouseout / mouseover
-       forever against a mouse that never moved. Modest depth on purpose: a
-       capsule is small, and a short focal length throws its far edge into a
-       distorted wedge. */
-    perspective: 320px;
+    /* No `perspective` here. The peek's depth lives in the face's own
+       transform (.vtt-peek-face, `perspective(320px)`), which exists only
+       while a word is being peeked. As a property on every capsule it made
+       each of them a 3D context: on a 3128-line transcript (~18k capsules)
+       the browser spent 96ms re-layering the page after a reveal click and
+       ~28ms on every frame after, and the reveal's first frame reached the
+       screen 204ms late. Without it: 4-5ms per frame, first frame at 95ms.
+       This element must still never transform itself — a rotating span
+       leaves the cursor's hit area at 90deg, and Chrome then fires mouseout /
+       mouseover forever against a mouse that never moved. */
     /* Width transitions even though both faces are now the same size: the mask
        holds the real word (see maskGlyphs), so a peek measures the same box it
        started from and this animates nothing. It stays as the safety net for
@@ -1694,7 +1719,10 @@
    land in the frame where nothing is visible. */
 .vtt-peek-face {
     display: inline-block;
-    transform: rotateX(0deg);
+    /* The depth is part of the transform, not a property of the capsule (see
+       .vtt-masked-word). Modest on purpose: a capsule is small, and a short
+       focal length throws its far edge into a distorted wedge. */
+    transform: perspective(320px) rotateX(0deg);
     /* ease-OUT is the second half of the turn, settling back to flat; the
        .vtt-flipping rule below overrides it with ease-in for the first half, so
        the two halves read as one continuous move. */
@@ -1704,7 +1732,7 @@
 /* Edge-on: the halfway pose, and the only frame in which the swap from frosted
    pane to legible word is invisible. */
 .vtt-flipping > .vtt-peek-face {
-    transform: rotateX(90deg);
+    transform: perspective(320px) rotateX(90deg);
     transition: transform 0.18s ease-in;
 }
 
@@ -1754,22 +1782,80 @@
     line-height: 1.6;
 }
 
-/* Coming into focus is the reveal, so it is the one moment worth animating:
-   the word resolves out of the blur rather than simply appearing. */
-@keyframes vtt-word-focus {
-    from {
-        filter: blur(0.2em);
-        opacity: 0.5;
-    }
-    to {
-        filter: blur(0);
-        opacity: 1;
-    }
+/* The reveal: a wipe in reading order. The pane slides off to the right and
+   the word is uncovered behind its edge, left to right.
+
+   Both halves animate clip-path and nothing else, which Chrome runs on the
+   compositor — verified by trace (ElementAnimations::SetRunState, 3-4 commits
+   for the whole run). The blur this replaced could not go there: Chrome
+   refuses to composite a filter that moves pixels, so it was painted on the
+   main thread, and next to the seek that follows every reveal it ran at 7-10
+   fps on a long YouTube transcript.
+
+   The word's glyphs sit in a temporary .vtt-reveal-ink child for the run
+   (SidebarUI.updateGuessItem), so the clip can take the text without taking
+   the pane, which is this span's ::before. ::after stays free for the saved
+   mark. On animationend the child is unwrapped and .vtt-reveal-done drops the
+   pane, leaving plain text again. */
+@keyframes vtt-ink-wipe {
+    from { clip-path: inset(-0.2em 100% -0.2em -0.1em); }
+    to   { clip-path: inset(-0.2em -0.1em -0.2em -0.1em); }
+}
+
+@keyframes vtt-pane-wipe {
+    from { clip-path: inset(0 0 0 0); }
+    to   { clip-path: inset(0 0 0 100%); }
 }
 
 .vtt-revealed-word.vtt-just-revealed {
+    position: relative;
     display: inline-block;
-    animation: vtt-word-focus 0.42s ease-out;
+}
+
+.vtt-reveal-ink {
+    display: inline-block;
+    animation: vtt-ink-wipe 0.28s cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+
+/* The pane it came out of, redrawn at the capsule's size: the capsule was
+   0.3em wider on each side and 1.2em tall, centred on the text. */
+.vtt-revealed-word.vtt-just-revealed::before {
+    content: "";
+    position: absolute;
+    left: -0.3em;
+    right: -0.3em;
+    top: 50%;
+    height: 1.2em;
+    margin-top: -0.6em;
+    border-radius: 5px;
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 70%),
+        rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+    animation: vtt-pane-wipe 0.28s cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+
+/* The word that was lit as "next" leaves in the lit pane, not a plain one. */
+.vtt-revealed-word.vtt-just-revealed.vtt-was-next::before {
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 255, 255, 0.14) 0%, transparent 70%),
+        var(--vtt-accent-quiet);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
+}
+
+.vtt-light #vtt-list .vtt-revealed-word.vtt-just-revealed::before {
+    background: rgba(17, 17, 17, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.14);
+}
+
+.vtt-light #vtt-list .vtt-revealed-word.vtt-just-revealed.vtt-was-next::before {
+    background: var(--vtt-accent-quiet);
+    box-shadow: inset 0 0 0 1px var(--vtt-accent-border-strong);
+}
+
+.vtt-revealed-word.vtt-just-revealed.vtt-reveal-done::before {
+    content: none;
 }
 
 

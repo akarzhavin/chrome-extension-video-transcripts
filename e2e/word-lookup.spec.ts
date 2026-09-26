@@ -58,7 +58,7 @@ for (const site of SITES) {
             const selected = await page.evaluate(() => {
                 const w = document.querySelector('.vtt-main-text span[data-word]') as HTMLElement | null;
                 if (!w) return false;
-                // What a double-click on the word produces.
+                // What a drag across the word produces.
                 const r = document.createRange();
                 r.selectNodeContents(w);
                 const s = window.getSelection();

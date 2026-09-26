@@ -7,16 +7,17 @@
 //  - The trigger differs per surface. Over the video, hovering a caption word
 //    opens the strip AND pauses playback — the line is about to scroll away,
 //    and reading a translation while it does is impossible. In the sidebar the
-//    only trigger is a SELECTION, and playback is left alone.
+//    pointer has to REST on a word for half a second (SIDEBAR_DWELL_MS), a
+//    dragged selection opens a phrase, and playback is left alone.
 //
-//    Neither hover nor click will do there. Hover would fire on every word the
-//    cursor crosses while scrolling. Click is the transcript's own gesture:
-//    pressing a line seeks to it, and in guess mode pressing it also uncovers a
-//    word — so a word that opened a card instead was the surface answering a
-//    question about the word when the user had asked to go to the line. That is
-//    the commoner intent by far, and it now gets the click. Asking about a word
-//    is the rarer, deliberate act, so it gets the deliberate gesture: select it
-//    (drag across it, or double-click it) and the same card opens.
+//    A plain hover will not do there: the cursor crosses dozens of transcript
+//    words on its way anywhere, and at the overlay's delay each word it slowed
+//    over would open a card. Nor will a click: pressing a line seeks to it, and
+//    in guess mode pressing it also uncovers a word — the commoner intent by
+//    far, so it keeps the click, and a press also switches the dwell off for
+//    that word until the pointer leaves it. Not a double-click either: that is
+//    two clicks, each of which seeks, and SidebarUI suppresses the selection it
+//    would make.
 //
 //  - The request fires 220ms AFTER the cursor stops. The endpoint allows 30
 //    requests/min per client; a cursor sweeping across a ten-word line would
@@ -66,11 +67,21 @@ const STRIP_ID = 'lingogram-lookup-strip';
 // A capsule is a legitimate lookup target even though it is not a SAVEABLE
 // one — the card answers "what is this word", which is a different question
 // from "add it to my list", and quick-add's span[data-word] queries still skip
-// it. Over the video only: the sidebar is a transcript the cursor crosses on
-// the way anywhere, and it has no peek for the same reason.
+// it. Over the video only: the sidebar has no peek, and its hover is the
+// slower dwell on revealed words (SIDEBAR_HOVER_SELECTOR).
 const OVERLAY_HOVER_SELECTOR = '.vtt-overlay-main span[data-word], .vtt-overlay-main span[data-hidden]';
 
+// Revealed words in the sidebar transcript. Not the masked capsules: there is
+// no peek there, and a word the user has not uncovered is not asked about.
+const SIDEBAR_HOVER_SELECTOR = '.vtt-main-text span[data-word]';
+
 const HOVER_DELAY_MS = 220;   // the rate-limit debounce — see the header
+// The sidebar asks for a REST, not a pass. The cursor crosses the transcript
+// on its way anywhere, and at the overlay's 220ms every word it slowed over
+// would open a card. Half a second on one word is a pause nobody makes by
+// accident; a hand that trembles within DWELL_SLOP_PX is still resting.
+const SIDEBAR_DWELL_MS = 500;
+const DWELL_SLOP_PX = 4;
 const SPINNER_AFTER_MS = 400; // warm answers land in ~270ms; no flicker for them
 const HIDE_DELAY_MS = 140;    // long enough to travel word → card
 const ERROR_HIDE_MS = 2000;
@@ -97,8 +108,10 @@ export interface LookupStripOptions {
      * to read than it is to describe. Holding the layout means nothing moves
      * at all — not the caption, not the card, not the gap between them.
      *
-     * Optional: a site with no such behaviour (the sidebar transcript, HDrezka)
-     * simply does not pass one.
+     * The sidebar transcript has the same problem in another form: it keeps
+     * scrolling to the active line, carrying a selected word away from its
+     * card. Both editions therefore also hold the transcript's auto-scroll
+     * here (SidebarUI.holdAutoScroll).
      */
     holdLayout?: () => () => void;
 }
@@ -631,16 +644,61 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // non-zero mask and still suppresses the card.
         if (dragging && e.buttons === 0) dragging = false;
         if (dragging) return;
-        // Overlay only. In the sidebar the cursor crosses dozens of words on
-        // the way anywhere, and each one would open a strip nobody asked for;
-        // that surface opens on a selection instead (see onSelectionMouseUp).
-        const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
-        if (!span) return;
         // The word came to the cursor rather than the cursor to the word: the
         // pointer is exactly where it was last seen, so this hover is the
-        // overlay's repaint, not a question anybody asked.
-        if (restingAt && e.clientX === restingAt.x && e.clientY === restingAt.y) return;
-        aimAt(span);
+        // overlay's repaint — or, in the sidebar, the list scrolling a new word
+        // under a still cursor — not a question anybody asked.
+        const still = !!restingAt && e.clientX === restingAt.x && e.clientY === restingAt.y;
+        const target = e.target as Element | null;
+        const span = target?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
+        if (span) {
+            if (!still) aimAt(span);
+            return;
+        }
+        // The sidebar opens on a rest of SIDEBAR_DWELL_MS, not on a pass: the
+        // cursor crosses dozens of its words on the way anywhere.
+        const word = target?.closest?.<HTMLElement>(SIDEBAR_HOVER_SELECTOR);
+        if (!word || still || word === dismissed) return;
+        dwellOn(word, e.clientX, e.clientY);
+    };
+
+    /**
+     * The sidebar's hover: the pointer must come to rest on a word. Every
+     * movement beyond DWELL_SLOP_PX restarts the wait, measured from where the
+     * pointer settled, so sweeping across the transcript never opens anything.
+     */
+    let dwellSpan: HTMLElement | null = null;
+    let dwellFrom: { x: number; y: number } | null = null;
+    // The anchor a rest opened, so leaving the word closes THAT card only. A
+    // one-word selection opens a card on the very same span, and that one is
+    // the deliberate gesture: it stays until dismissed, as before.
+    let dwellAnchor: Anchor | null = null;
+    const dwellOn = (span: HTMLElement, x: number, y: number): void => {
+        // Only coming back to the card's OWN word cancels a pending hide.
+        // Passing over any other transcript word must not: the pointer crosses
+        // several on its way out of the panel, and cancelling here left the
+        // card — and the transcript hold it carries — up for good.
+        if (span === current?.key) {
+            clearTimeout(hideTimer);
+            return;
+        }
+        if (span === dwellSpan && dwellFrom
+            && Math.abs(x - dwellFrom.x) <= DWELL_SLOP_PX
+            && Math.abs(y - dwellFrom.y) <= DWELL_SLOP_PX) return;
+        clearTimeout(hoverTimer);
+        dwellSpan = span;
+        dwellFrom = { x, y };
+        hoverTimer = setTimeout(() => {
+            dwellSpan = null;
+            dwellFrom = null;
+            dwellAnchor = spanAnchor(span);
+            void show(dwellAnchor);
+        }, SIDEBAR_DWELL_MS);
+    };
+    const stopDwell = (): void => {
+        clearTimeout(hoverTimer);
+        dwellSpan = null;
+        dwellFrom = null;
     };
 
     /** Arm the debounce for a word the user has genuinely pointed at. */
@@ -652,9 +710,19 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     };
 
     const onMouseOut = (e: MouseEvent): void => {
-        // Matches onMouseOver: only the overlay opens on hover, so only the
-        // overlay closes on leaving. A sidebar strip stays until it is
-        // dismissed by a click elsewhere or another word.
+        const word = (e.target as Element | null)?.closest?.<HTMLElement>(SIDEBAR_HOVER_SELECTOR);
+        if (word) {
+            const to = e.relatedTarget as Node | null;
+            if (to && (word.contains(to) || strip()?.contains(to))) return;
+            if (!to && word.isConnected && stillOnSpan(word, e)) return;
+            if (word === dismissed) dismissed = null;
+            if (word === dwellSpan) stopDwell();
+            // Only a card this word opened by resting closes on leaving it. A
+            // card opened on a selection is not tied to any word the pointer
+            // crosses afterwards — not even a one-word selection's own word.
+            if (current && current === dwellAnchor && current.key === word) scheduleHide();
+            return;
+        }
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
         const to = e.relatedTarget as Node | null;
@@ -740,6 +808,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // reaches us only here, and it is the one that says "yes, this word, I
         // mean it". Measured in Chrome: park on a word, let the cue rebuild
         // (suppressed), then nudge 3px; without this the card never opens.
+        const word = (e.target as Element | null)?.closest?.<HTMLElement>(SIDEBAR_HOVER_SELECTOR);
+        if (word) {
+            if (word !== dismissed) dwellOn(word, e.clientX, e.clientY);
+            return;
+        }
         const span = (e.target as Element | null)?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR);
         if (!span) return;
         // A card the user just dismissed stays dismissed while the pointer is
@@ -755,12 +828,21 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
     const onMouseDown = (e: MouseEvent): void => {
         dragging = true;
+        // A press on a sidebar word is a seek (or the start of a drag), never a
+        // request for its card: the pointer that pressed is resting on the
+        // word, and without this the dwell would open the card half a second
+        // after every click on a line. It stays off until the pointer leaves.
+        const pressedWord = (e.target as Element | null)?.closest?.<HTMLElement>(SIDEBAR_HOVER_SELECTOR);
+        if (pressedWord) {
+            stopDwell();
+            dismissed = pressedWord;
+        }
         const el = strip();
         if (!el || el.contains(e.target as Node)) return;
         // Remember the overlay word the press landed in, if any, so the nudge
         // that follows the click does not re-open what the click dismissed.
         dismissed = (e.target as Element | null)
-            ?.closest?.<HTMLElement>(OVERLAY_HOVER_SELECTOR) ?? null;
+            ?.closest?.<HTMLElement>(`${OVERLAY_HOVER_SELECTOR}, ${SIDEBAR_HOVER_SELECTOR}`) ?? null;
         removeStrip();
     };
     const onMouseUp = (): void => {
