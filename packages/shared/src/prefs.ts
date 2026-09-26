@@ -268,8 +268,18 @@ function coerceSize(v: unknown, fallback: number): number {
 export const PLATFORM_SIZE_DEFAULTS: Partial<
     Record<PrefScope, Pick<Prefs, 'overlayFontSize' | 'overlaySubFontSize'>>
 > = {
-    rezka: { overlayFontSize: 160, overlaySubFontSize: 110 },
-    youtube: { overlayFontSize: 160, overlaySubFontSize: 110 },
+    rezka: { overlayFontSize: 200, overlaySubFontSize: 150 },
+    youtube: { overlayFontSize: 200, overlaySubFontSize: 150 },
+};
+
+// How many stored size points make one point on the slider, per site. Stored
+// sizes stay a percentage of the 24px base on every site, so nobody's captions
+// move and Netflix, which shares the top-level baseline, reads the same numbers.
+// Only the sidebar divides: on these two the starting 200/150 reads as 100/75,
+// the same "default" every other site shows.
+export const SIZE_DISPLAY_SCALE: Partial<Record<PrefScope, number>> = {
+    rezka: 2,
+    youtube: 2,
 };
 
 /**

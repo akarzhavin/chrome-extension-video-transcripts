@@ -15,6 +15,7 @@ import {
     PrefScope,
     ThemeToken,
     PLATFORM_SIZE_DEFAULTS,
+    SIZE_DISPLAY_SCALE,
 } from './prefs';
 import { OverlayPosition, OverlayMetrics, OVERLAY_BOTTOM_PCT } from './overlay-position';
 import {
@@ -223,6 +224,8 @@ export class SidebarUI {
     // passed in: the class has 9 construction sites across 3 apps and the
     // tests, none of which would otherwise care.
     private readonly scope: PrefScope = platformOf(location.hostname);
+    // Stored size points per slider point on this site (see SIZE_DISPLAY_SCALE).
+    private readonly sizeScale: number = SIZE_DISPLAY_SCALE[this.scope] ?? 1;
     // Where the sidebar lives outside fullscreen; captured on the way in so it
     // can be put back exactly there (see setupFullscreenHandling).
     private homeParent: HTMLElement | null = null;
@@ -1417,6 +1420,9 @@ export class SidebarUI {
     // A fine-grained size control: a 50-400% range slider (step 5) with a
     // live percent readout. Replaces an earlier 3-way small/medium/large
     // preset, which left the 100-150% range most people land in unreachable.
+    // The slider speaks in display points: on a site with a size scale the
+    // range shrinks by it and onInput gets stored points back, so the pixel
+    // range is the same on every site.
     // Returns both the input and its readout — markActiveStyleButtons needs
     // to keep the readout's text and the track's fill in sync with state.
     private buildSliderRow(
@@ -1439,13 +1445,13 @@ export class SidebarUI {
         input.type = 'range';
         input.className = 'vtt-slider';
         input.id = id;
-        input.min = '50';
-        input.max = '400';
+        input.min = String(50 / this.sizeScale);
+        input.max = String(400 / this.sizeScale);
         input.step = '5';
         labelEl.htmlFor = input.id;
         const val = document.createElement('span');
         val.className = 'vtt-slider-val';
-        input.addEventListener('input', () => onInput(Number(input.value)));
+        input.addEventListener('input', () => onInput(Number(input.value) * this.sizeScale));
         wrap.appendChild(input);
         wrap.appendChild(val);
         row.appendChild(wrap);
@@ -1578,11 +1584,13 @@ export class SidebarUI {
                 }
             }
         };
-        const markSlider = (sl: SliderRowElements | undefined, pct: number) => {
+        const markSlider = (sl: SliderRowElements | undefined, stored: number) => {
             if (!sl) return;
+            const pct = Math.round(stored / this.sizeScale);
             if (Number(sl.input.value) !== pct) sl.input.value = String(pct);
             sl.val.textContent = `${pct}%`;
-            const fill = ((pct - 50) / (400 - 50)) * 100;
+            const min = Number(sl.input.min);
+            const fill = ((pct - min) / (Number(sl.input.max) - min)) * 100;
             sl.input.style.setProperty('--vtt-slider-fill', `${fill}%`);
         };
         if (this.elements.styleFontSelect) this.elements.styleFontSelect.value = this.overlayStyle.overlayFontFamily;

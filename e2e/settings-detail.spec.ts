@@ -15,7 +15,7 @@ import { preservingUiPrefs, readUiPrefs, writeUiPrefs } from './fixtures/uiprefs
  *  - "being offline" and "the caption stand-in" drive the diagnostic flag,
  *    which is read once per page load from a YouTube URL;
  *  - "resetting the text appearance" asserts the sizes a fresh install sees ON
- *    THIS SITE (160%/110%). Those numbers are per-site by design, so the check
+ *    THIS SITE (48px/36px, shown as 100%/75%). Those numbers are per-site by design, so the check
  *    is genuinely about YouTube rather than about the reset.
  */
 
@@ -583,7 +583,7 @@ test.describe('the caption stand-in while styling', () => {
 test.describe('resetting the text appearance', () => {
     /**
      * §10.26. Reset restores the sizes a fresh install sees ON THIS SITE —
-     * 160% and 110% on YouTube, not the generic 100/75. An audit reported this
+     * 48px and 36px on YouTube, not the generic 24/18. An audit reported this
      * as a defect; it is not, and the reason the report was believable is that
      * every unit test of the reset ran in the scope where the two numbers
      * coincide. Its twin now runs in the youtube scope
@@ -592,7 +592,9 @@ test.describe('resetting the text appearance', () => {
      *
      * The sliders are the reader's view of those numbers, so they are what is
      * read — a stored value nobody rendered would still leave the panel
-     * showing 90%.
+     * showing 90%. On YouTube they read in half-size points, so the site's
+     * sizes show as 100/75 like everywhere else; the caption's pixel size is
+     * read too, because only it tells the site's sizes from the generic ones.
      */
     test('reset restores the site\'s larger starting sizes, not the generic ones', async ({ ext, page }) => {
         await preservingUiPrefs(ext, async () => {
@@ -657,7 +659,15 @@ test.describe('resetting the text appearance', () => {
             });
             expect(pressed, 'no Reset button in the Text group').toBe(true);
 
-            await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '160', sub: '110' });
+            await expect.poll(sizes, { timeout: 20_000 }).toEqual({ main: '100', sub: '75' });
+            const px = await page.evaluate(() => {
+                const o = document.getElementById('vtt-video-overlay');
+                return {
+                    main: o?.style.getPropertyValue('--vtt-overlay-font-size') ?? null,
+                    sub: o?.style.getPropertyValue('--vtt-overlay-sub-font-size') ?? null,
+                };
+            });
+            expect(px).toEqual({ main: '48px', sub: '36px' });
 
             await ensureSettingsClosed(page);
         });

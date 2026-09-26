@@ -97,7 +97,7 @@ check then runs on it without being edited.
 
 | Check | Why it does not travel |
 |---|---|
-| `resetting the text appearance` | Asserts the sizes a fresh install sees ON THIS SITE (160%/110%). Per-site by design. |
+| `resetting the text appearance` | Asserts the sizes a fresh install sees ON THIS SITE (48px/36px, shown as 100%/75%). Per-site by design. |
 | `being offline`, `the caption stand-in` | Drive `#lingogram_http=`, read once per load from a YouTube URL. |
 | `while an advert plays`, `other player layouts` | Netflix has no advert clock and no theatre mode. |
 | the home and search pages | "Every page of the site" is a claim about YouTube's shape. |

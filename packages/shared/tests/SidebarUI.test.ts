@@ -7,6 +7,7 @@ import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
 import { WordScreen } from '../src/lookup/word-screen';
+import * as analytics from '../src/analytics';
 // The stylesheet is read directly for the one claim whose product half lives
 // in CSS rather than in the module under test (the collapse chevron).
 import { readFileSync } from 'fs';
@@ -1342,7 +1343,7 @@ describe('SidebarUI', () => {
          * §10.26. Reset restores the site's OWN starting sizes, not the
          * generic ones — and every check above runs in the 'other' scope,
          * where those two are the same number. On YouTube and rezka they are
-         * not: a fresh install starts at 160/110 there, because captions sized
+         * not: a fresh install starts at 200/150 there, because captions sized
          * for a web page read too small over a video player.
          *
          * So the whole point of the rule — the `PLATFORM_SIZE_DEFAULTS` merge
@@ -1363,8 +1364,8 @@ describe('SidebarUI', () => {
             await new Promise((r) => setTimeout(r, 0));
 
             const stored = (prefsStore['prefs.v1'] as any).byPlatform.youtube;
-            expect(stored.overlayFontSize).toBe(160);
-            expect(stored.overlaySubFontSize).toBe(110);
+            expect(stored.overlayFontSize).toBe(200);
+            expect(stored.overlaySubFontSize).toBe(150);
             // Everything else still comes from the generic text defaults: the
             // site override is two sizes, not a second palette.
             expect(stored).toMatchObject({
@@ -1373,10 +1374,10 @@ describe('SidebarUI', () => {
                 overlaySubColor: '#ffd700',
                 overlayTextOpacity: 1,
             });
-            // And the captions on screen actually move: 160% and 110% of the
+            // And the captions on screen actually move: 200% and 150% of the
             // 24px base. A write nobody applied would leave them at 90%.
-            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('38.4px');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('26.4px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('48px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('36px');
         });
     });
 
@@ -3106,6 +3107,64 @@ describe('the panel as it is built', () => {
             expect(slider.min).toBe('50');
             expect(slider.max).toBe('400');
             expect(slider.step).toBe('5');
+        });
+    });
+
+    // On YouTube and rezka captions start at 200/150 stored points (48/36px),
+    // and the sliders show them as 100/75 — the same "default" every other
+    // site shows. Stored points do not change, so nobody's captions move; only
+    // the panel divides by two, and the range shrinks with it so the pixel
+    // range (12-96px) is what it is everywhere else.
+    describe('on YouTube the size sliders read in half-size points', () => {
+        const slider = (id: string) => document.getElementById(id) as HTMLInputElement;
+        const readout = (id: string) =>
+            slider(id).parentElement?.querySelector('.vtt-slider-val')?.textContent;
+
+        beforeEach(async () => {
+            jest.spyOn(analytics, 'platformOf').mockReturnValue('youtube');
+            build();
+            await new Promise((r) => setTimeout(r, 0));
+        });
+        afterEach(() => jest.restoreAllMocks());
+
+        test('a fresh install reads 100% and 75%', () => {
+            expect(slider('vtt-slider-size').value).toBe('100');
+            expect(readout('vtt-slider-size')).toBe('100%');
+            expect(slider('vtt-slider-sub-size').value).toBe('75');
+            expect(readout('vtt-slider-sub-size')).toBe('75%');
+        });
+
+        test('the range is 25-200 in steps of 5', () => {
+            for (const id of ['vtt-slider-size', 'vtt-slider-sub-size']) {
+                expect(slider(id).min).toBe('25');
+                expect(slider(id).max).toBe('200');
+                expect(slider(id).step).toBe('5');
+            }
+        });
+
+        test('moving the slider stores twice the number it shows', async () => {
+            const el = slider('vtt-slider-size');
+            el.value = '150';
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect((prefsStore['prefs.v1'] as any).byPlatform.youtube.overlayFontSize).toBe(300);
+            expect(readout('vtt-slider-size')).toBe('150%');
+        });
+
+        // Someone who set 160/110 before this change still gets 38.4px — the
+        // stored number is untouched — and the panel shows it as 80/55.
+        test('a size saved before this change keeps its pixels and reads as half', async () => {
+            document.body.innerHTML = '';
+            prefsStore['prefs.v1'] = { byPlatform: { youtube: { overlayFontSize: 160, overlaySubFontSize: 110 } } };
+            ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+            expect(ui.init()).toBe(true);
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect(readout('vtt-slider-size')).toBe('80%');
+            expect(readout('vtt-slider-sub-size')).toBe('55%');
+            expect((ui as any).overlayStyle.overlayFontSize).toBe(160);
+            expect((ui as any).overlayStyle.overlaySubFontSize).toBe(110);
         });
     });
 
