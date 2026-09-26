@@ -16,18 +16,21 @@ request, so a clean profile cannot observe subtitle loading at all.
 
 2. It must be signed in to YouTube.
 
-3. `apps/youtube/build` **in the main checkout** must be a dev build, made with
-   the dictionary address in its environment:
+3. `apps/youtube/build` **in the main checkout** must be a dev build, with
+   `EXT_API_BASE_URL` (the dictionary address) filled in `.env`:
 
    ```bash
-   (cd apps/youtube && EXT_API_BASE_URL="<gateway url>" npm run build:dev)
+   (cd apps/youtube && npm run build:dev)
    ```
 
-   Without that variable the build is silent about it, and every word lookup
-   answers "not configured" — the card simply never appears, which looks exactly
-   like a broken lookup. A plain `npm run build:dev` during unrelated work
-   already caused that once. The fixture checks for it and fails with this
-   command rather than letting the checks report a phantom regression.
+   `build:dev` runs `scripts/build-with-analytics.sh dev`, which reads `.env` and
+   refuses to build without the address. A value passed inline on the command
+   line is overwritten by the one in `.env`. Without the address every word
+   lookup answers "not configured" — the card simply never appears, which looks
+   exactly like a broken lookup. The fixture still checks the LOADED build for
+   it (that build can predate this rule, or be a hand-made hybrid) and fails
+   with this command rather than letting the checks report a phantom
+   regression.
 
    Chrome loads unpacked extensions from the main checkout, never from a
    worktree — a suite run from a worktree otherwise verifies stale code and
@@ -94,7 +97,7 @@ check then runs on it without being edited.
 
 | Check | Why it does not travel |
 |---|---|
-| `resetting the text appearance` | Asserts the sizes a fresh install sees ON THIS SITE (160%/110%). Per-site by design. |
+| `resetting the text appearance` | Asserts the sizes a fresh install sees ON THIS SITE (48px/36px, shown as 100%/75%). Per-site by design. |
 | `being offline`, `the caption stand-in` | Drive `#lingogram_http=`, read once per load from a YouTube URL. |
 | `while an advert plays`, `other player layouts` | Netflix has no advert clock and no theatre mode. |
 | the home and search pages | "Every page of the site" is a claim about YouTube's shape. |

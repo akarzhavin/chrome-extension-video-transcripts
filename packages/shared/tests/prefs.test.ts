@@ -211,7 +211,7 @@ describe('prefs', () => {
             overlayFontFamily: 'propSans',   // from DEFAULT_PREFS
             overlayFontSize: 150,            // the actual edit
             overlayColor: '#ffd700',         // inherited from the baseline
-            overlaySubFontSize: 110,         // youtube's platform default (see PLATFORM_SIZE_DEFAULTS)
+            overlaySubFontSize: 150,         // youtube's platform default (see PLATFORM_SIZE_DEFAULTS)
             overlaySubColor: '#ffd700',
             overlayTextOpacity: 1,
             overlayBgColor: '#000000',
@@ -254,16 +254,16 @@ describe('prefs', () => {
         // through YouTube's scope the values are unchanged, which is what makes
         // the sidebar's update a no-op instead of a repaint.
         expect(yt).toHaveBeenCalledTimes(1);
-        // 160, not 100: YouTube has never been written to here, so it still
+        // 200, not 100: YouTube has never been written to here, so it still
         // resolves to its platform default rather than the generic baseline.
-        expect(yt.mock.calls[0][0].overlayFontSize).toBe(160);
+        expect(yt.mock.calls[0][0].overlayFontSize).toBe(200);
         off();
     });
 
     test('a malformed byPlatform is ignored and cannot override a global', async () => {
         (chromeStorage.local as any)._store['prefs.v1'] = { displayMode: 'dual', byPlatform: 'nope' };
         // Falls through to YouTube's platform default: nothing valid was stored.
-        expect((await loadPrefs('youtube')).overlayFontSize).toBe(160);
+        expect((await loadPrefs('youtube')).overlayFontSize).toBe(200);
 
         (chromeStorage.local as any)._store['prefs.v1'] = {
             byPlatform: { youtube: { displayMode: 'single', overlayFontSize: 150 } },
@@ -279,18 +279,18 @@ describe('prefs', () => {
     // ---------------------------------------------------------------------
     // Per-platform default sizes
     //
-    // rezka and youtube start at 160%/110% instead of the 100%/75% baseline.
+    // netflix, rezka and youtube start at 200%/150% instead of the 100%/75% baseline.
     // The whole point is that this is a STARTING value, not an override: it
     // must never move a size the user has already chosen, on either level.
     // ---------------------------------------------------------------------
 
-    test('rezka and youtube start at 160/110; netflix and web keep the baseline', async () => {
-        for (const scope of ['rezka', 'youtube'] as const) {
+    test('netflix, rezka and youtube start at 200/150; web keeps the baseline', async () => {
+        for (const scope of ['netflix', 'rezka', 'youtube'] as const) {
             const p = await loadPrefs(scope);
-            expect(p.overlayFontSize).toBe(160);
-            expect(p.overlaySubFontSize).toBe(110);
+            expect(p.overlayFontSize).toBe(200);
+            expect(p.overlaySubFontSize).toBe(150);
         }
-        for (const scope of ['netflix', 'web', 'other'] as const) {
+        for (const scope of ['web', 'other'] as const) {
             const p = await loadPrefs(scope);
             expect(p.overlayFontSize).toBe(100);
             expect(p.overlaySubFontSize).toBe(75);
@@ -318,7 +318,7 @@ describe('prefs', () => {
 
     test('the platform default does not leak into the stored baseline', async () => {
         // Nothing has been written, so storage must still be empty: the default
-        // is applied at read time only. A write here would pin 160 as the
+        // is applied at read time only. A write here would pin 200 as the
         // top-level baseline and every other site would inherit it.
         await loadPrefs('youtube');
         expect((chromeStorage.local as any)._store['prefs.v1']).toBeUndefined();

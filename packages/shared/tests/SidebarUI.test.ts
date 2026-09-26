@@ -7,6 +7,7 @@ import { AppState } from '../src/AppState';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
 import { WordScreen } from '../src/lookup/word-screen';
+import * as analytics from '../src/analytics';
 // The stylesheet is read directly for the one claim whose product half lives
 // in CSS rather than in the module under test (the collapse chevron).
 import { readFileSync } from 'fs';
@@ -613,12 +614,29 @@ describe('SidebarUI', () => {
                 expect(state.getRevealedCount(1)).toBe(1); // untouched
             });
 
-            test('a click on the line you are already on still reveals', () => {
+            const twoFrames = (): Promise<void> =>
+                new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+            test('a click on the line you are already on still reveals', async () => {
                 const list = buildList(0);
                 itemAt(list, 0).dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-                expect(mockApp.seekVideo).toHaveBeenCalledWith(0);
                 expect(state.getRevealedCount(0)).toBe(2);
+                await twoFrames();
+                expect(mockApp.seekVideo).toHaveBeenCalledWith(0);
+            });
+
+            // Filmed live: a seek in the reveal's own task held the screen still
+            // for ~280ms, and the wipe was over before its first frame showed.
+            // The seek waits two frames so the wipe reaches the compositor first.
+            test('the reveal reaches the screen before the seek', async () => {
+                const list = buildList(0);
+                itemAt(list, 0).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+                expect(itemAt(list, 0).querySelector('.vtt-just-revealed')).not.toBeNull();
+                expect(mockApp.seekVideo).not.toHaveBeenCalled();
+                await twoFrames();
+                expect(mockApp.seekVideo).toHaveBeenCalledTimes(1);
             });
 
             test('the reach is time, not line count — a neighbour far in time only seeks', () => {
@@ -719,7 +737,7 @@ describe('SidebarUI', () => {
             expect(item.querySelector('button')).toBeNull();
         });
 
-        test('double-click is suppressed in guess mode but not in dual', () => {
+        test('double-click is suppressed in guess mode and in dual', () => {
             const overlay = buildGuessOverlay();
             const dbl = () => {
                 const e = new MouseEvent('mousedown', { bubbles: true, cancelable: true, detail: 2 });
@@ -728,10 +746,10 @@ describe('SidebarUI', () => {
             };
             expect(dbl()).toBe(true);
 
-            // Elsewhere a double-click is a fair way to grab a word for the
-            // dictionary, so it must survive.
+            // Not a way to open the word card anywhere: over the video that is
+            // hover, and a phrase is a drag.
             state.displayMode = 'dual';
-            expect(dbl()).toBe(false);
+            expect(dbl()).toBe(true);
         });
 
         describe('peek: hovering a masked word holds it open', () => {
@@ -1325,7 +1343,7 @@ describe('SidebarUI', () => {
          * §10.26. Reset restores the site's OWN starting sizes, not the
          * generic ones — and every check above runs in the 'other' scope,
          * where those two are the same number. On YouTube and rezka they are
-         * not: a fresh install starts at 160/110 there, because captions sized
+         * not: a fresh install starts at 200/150 there, because captions sized
          * for a web page read too small over a video player.
          *
          * So the whole point of the rule — the `PLATFORM_SIZE_DEFAULTS` merge
@@ -1346,8 +1364,8 @@ describe('SidebarUI', () => {
             await new Promise((r) => setTimeout(r, 0));
 
             const stored = (prefsStore['prefs.v1'] as any).byPlatform.youtube;
-            expect(stored.overlayFontSize).toBe(160);
-            expect(stored.overlaySubFontSize).toBe(110);
+            expect(stored.overlayFontSize).toBe(200);
+            expect(stored.overlaySubFontSize).toBe(150);
             // Everything else still comes from the generic text defaults: the
             // site override is two sizes, not a second palette.
             expect(stored).toMatchObject({
@@ -1356,10 +1374,10 @@ describe('SidebarUI', () => {
                 overlaySubColor: '#ffd700',
                 overlayTextOpacity: 1,
             });
-            // And the captions on screen actually move: 160% and 110% of the
+            // And the captions on screen actually move: 200% and 150% of the
             // 24px base. A write nobody applied would leave them at 90%.
-            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('38.4px');
-            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('26.4px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-font-size')).toBe('48px');
+            expect(overlay.style.getPropertyValue('--vtt-overlay-sub-font-size')).toBe('36px');
         });
     });
 
@@ -1495,6 +1513,119 @@ describe('SidebarUI', () => {
             // Now visible, so quick-add may offer it.
             expect(sameBeta.dataset.word).toBe('beta');
             expect(sameBeta.dataset.hidden).toBeUndefined();
+        });
+
+        // The reading-order wipe (styles.css, "The reveal"): the glyphs ride in
+        // a temporary child so the clip takes the text and not the pane.
+        describe('the reveal wipe', () => {
+            const setup = (): { item: HTMLElement; words: () => HTMLSpanElement[] } => {
+                state.addTrack('English', [{ startTime: 0, endTime: 1, text: 'alpha beta gamma' }]);
+                state.displayMode = 'guess';
+                ui.renderSubtitles();
+                const item = ui.elements.list!.querySelector('.vtt-item[data-index="0"]') as HTMLElement;
+                return {
+                    item,
+                    words: () => Array.from(item.querySelectorAll<HTMLSpanElement>('.vtt-masked-word, .vtt-revealed-word')),
+                };
+            };
+            const endWipe = (span: HTMLElement): void => {
+                span.querySelector('.vtt-reveal-ink')!.dispatchEvent(new Event('animationend'));
+            };
+
+            test('the word being revealed rides in the ink child, and reads as the word', () => {
+                const { words } = setup();
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                const beta = words()[1];
+                expect(beta.querySelector('.vtt-reveal-ink')?.textContent).toBe('beta');
+                expect(beta.textContent).toBe('beta');
+                expect(beta.classList.contains('vtt-just-revealed')).toBe(true);
+            });
+
+            test('the word that was lit as next leaves in the lit pane', () => {
+                const { words } = setup();
+                expect(words()[1].classList.contains('vtt-next-word')).toBe(true);
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                expect(words()[1].classList.contains('vtt-was-next')).toBe(true);
+            });
+
+            test('a word picked out of order leaves in a plain pane', () => {
+                const { words } = setup();
+                state.revealWordAt(0, 2);
+                ui.updateGuessItem(0);
+                expect(words()[2].classList.contains('vtt-just-revealed')).toBe(true);
+                expect(words()[2].classList.contains('vtt-was-next')).toBe(false);
+            });
+
+            test('when the wipe ends the word is plain text again and the pane is dropped', () => {
+                const { words } = setup();
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                const beta = words()[1];
+                endWipe(beta);
+                expect(beta.querySelector('.vtt-reveal-ink')).toBeNull();
+                expect(beta.childNodes).toHaveLength(1);
+                expect(beta.firstChild!.nodeType).toBe(Node.TEXT_NODE);
+                expect(beta.textContent).toBe('beta');
+                expect(beta.classList.contains('vtt-reveal-done')).toBe(true);
+            });
+
+            test('a selection reaching into the word keeps its text node until it lets go', () => {
+                const { words } = setup();
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                const beta = words()[1];
+                const ink = beta.querySelector('.vtt-reveal-ink')!;
+                const range = document.createRange();
+                range.selectNodeContents(ink);
+                const sel = window.getSelection()!;
+                sel.removeAllRanges();
+                sel.addRange(range);
+                try {
+                    endWipe(beta);
+                    expect(beta.querySelector('.vtt-reveal-ink')).toBe(ink);
+                    expect(beta.classList.contains('vtt-reveal-done')).toBe(true);
+                } finally {
+                    sel.removeAllRanges();
+                }
+            });
+
+            // Found live: the click that reveals a word leaves a collapsed caret
+            // in it. A caret is not a selection anyone could lose, and taking it
+            // for one left every revealed word wrapped for good.
+            test('a bare caret in the word does not hold the unwrap', () => {
+                const { words } = setup();
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                const beta = words()[1];
+                const caret = document.createRange();
+                caret.setStart(beta.querySelector('.vtt-reveal-ink')!.firstChild!, 1);
+                caret.collapse(true);
+                const sel = window.getSelection()!;
+                sel.removeAllRanges();
+                sel.addRange(caret);
+                try {
+                    endWipe(beta);
+                    expect(beta.querySelector('.vtt-reveal-ink')).toBeNull();
+                    expect(beta.textContent).toBe('beta');
+                } finally {
+                    sel.removeAllRanges();
+                }
+            });
+
+            test('a word masked again mid-wipe stays masked when the wipe ends', () => {
+                const { words } = setup();
+                state.revealNextWord(0);
+                ui.updateGuessItem(0);
+                const beta = words()[1];
+                const ink = beta.querySelector('.vtt-reveal-ink')!;
+                state.resetGuessState();
+                ui.updateGuessItem(0);
+                ink.dispatchEvent(new Event('animationend'));
+                expect(beta.classList.contains('vtt-masked-word')).toBe(true);
+                expect(beta.classList.contains('vtt-reveal-done')).toBe(false);
+            });
         });
 
         test('updateGuessItem re-masks, hiding data-word again', () => {
@@ -2979,6 +3110,82 @@ describe('the panel as it is built', () => {
         });
     });
 
+    // On YouTube, Netflix and rezka captions start at 200/150 stored points (48/36px),
+    // and the sliders show them as 100/75 — the same "default" every other
+    // site shows. Stored points do not change, so nobody's captions move; only
+    // the panel divides by two, and the range shrinks with it so the pixel
+    // range (12-96px) is what it is everywhere else.
+    describe.each(['youtube', 'netflix'] as const)('on %s the size sliders read in half-size points', (site) => {
+        const slider = (id: string) => document.getElementById(id) as HTMLInputElement;
+        const readout = (id: string) =>
+            slider(id).parentElement?.querySelector('.vtt-slider-val')?.textContent;
+
+        beforeEach(async () => {
+            jest.spyOn(analytics, 'platformOf').mockReturnValue(site);
+            build();
+            await new Promise((r) => setTimeout(r, 0));
+        });
+        afterEach(() => jest.restoreAllMocks());
+
+        test('a fresh install reads 100% and 75%', () => {
+            expect(slider('vtt-slider-size').value).toBe('100');
+            expect(readout('vtt-slider-size')).toBe('100%');
+            expect(slider('vtt-slider-sub-size').value).toBe('75');
+            expect(readout('vtt-slider-sub-size')).toBe('75%');
+        });
+
+        test('the range is 25-200 in steps of 5', () => {
+            for (const id of ['vtt-slider-size', 'vtt-slider-sub-size']) {
+                expect(slider(id).min).toBe('25');
+                expect(slider(id).max).toBe('200');
+                expect(slider(id).step).toBe('5');
+            }
+        });
+
+        test('moving the slider stores twice the number it shows', async () => {
+            const el = slider('vtt-slider-size');
+            el.value = '150';
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect((prefsStore['prefs.v1'] as any).byPlatform[site].overlayFontSize).toBe(300);
+            expect(readout('vtt-slider-size')).toBe('150%');
+        });
+
+        // Someone who set 160/110 before this change still gets 38.4px — the
+        // stored number is untouched — and the panel shows it as 80/55.
+        test('a size saved before this change keeps its pixels and reads as half', async () => {
+            document.body.innerHTML = '';
+            prefsStore['prefs.v1'] = { byPlatform: { [site]: { overlayFontSize: 160, overlaySubFontSize: 110 } } };
+            ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+            expect(ui.init()).toBe(true);
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect(readout('vtt-slider-size')).toBe('80%');
+            expect(readout('vtt-slider-sub-size')).toBe('55%');
+            expect((ui as any).overlayStyle.overlayFontSize).toBe(160);
+            expect((ui as any).overlayStyle.overlaySubFontSize).toBe(110);
+        });
+
+        // 105 and 155 were steps on the old slider; halved they fall between
+        // this one's steps. The readout names the step the thumb stands on, so
+        // the number and the thumb agree, and the first touch starts from it.
+        test('an old size between steps reads as the step the thumb shows', async () => {
+            document.body.innerHTML = '';
+            prefsStore['prefs.v1'] = { byPlatform: { [site]: { overlayFontSize: 105, overlaySubFontSize: 155 } } };
+            ui = new SidebarUI(new AppState(), { seekVideo: jest.fn(), updateHighlight: jest.fn() });
+            expect(ui.init()).toBe(true);
+            await new Promise((r) => setTimeout(r, 0));
+
+            expect(slider('vtt-slider-size').value).toBe('55');
+            expect(readout('vtt-slider-size')).toBe('55%');
+            expect(slider('vtt-slider-sub-size').value).toBe('80');
+            expect(readout('vtt-slider-sub-size')).toBe('80%');
+            // Nothing is rewritten until the user moves the slider.
+            expect((ui as any).overlayStyle.overlayFontSize).toBe(105);
+        });
+    });
+
     // §19.3, §19.5, §19.7 and §19 as corrected by T0.4 — the download control.
     describe('the download control', () => {
         const btn = (): HTMLButtonElement =>
@@ -3347,10 +3554,211 @@ describe('the transcript list', () => {
         });
     });
 
-    // §40.4, T5.17. A rapid replay-click would otherwise trip the browser's
+    // Lines are content-visibility: auto, so a jump across lines that were
+    // never on screen is aimed with placeholder heights and lands off-centre.
+    // Once they have rendered, one instant nudge puts the line back.
+    describe('the follow corrects itself once the lines have real heights', () => {
+        let scrollTo: jest.SpyInstance;
+        // How far below the list's centre the active line sits. Scrolling by N
+        // moves it up by N, unless `stuck` models a layout that never settles.
+        let off = 0;
+        let stuck = false;
+
+        const twoFrames = (): Promise<void> =>
+            new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+        // A 400px list, and the active line `off` px below its centre. Set on
+        // the elements themselves: a stand-in on the prototype reached other
+        // tests' panels too and put their scrolls in this count.
+        const measure = (offBy: number): void => {
+            off = offBy;
+            list().getBoundingClientRect = () => ({ top: 0, height: 400, bottom: 400, left: 0, right: 300, width: 300, x: 0, y: 0 }) as DOMRect;
+            const active = list().querySelector<HTMLElement>('.active-sub')!;
+            active.getBoundingClientRect = () =>
+                ({ top: 150 + off, height: 100, bottom: 250 + off, left: 0, right: 300, width: 300, x: 0, y: 150 + off }) as DOMRect;
+        };
+        const tops = (): number[] => scrollTo.mock.calls.slice(1).map(([o]) => o.top);
+
+        beforeEach(async () => {
+            await twoFrames();
+            off = 0;
+            stuck = false;
+            const subs = Array.from({ length: 40 }, (_, i) => ({ startTime: i * 3, endTime: i * 3 + 2, text: `line ${i}` }));
+            state.addTrack('English', subs);
+            ui.renderSubtitles();
+            scrollTo = jest.spyOn(list(), 'scrollTo').mockImplementation(((o: ScrollToOptions) => {
+                if (!stuck) off -= o.top ?? 0; // jsdom's scrollTop stays 0, so top is the delta
+            }) as any);
+        });
+
+        afterEach(async () => {
+            for (let i = 0; i < 8; i++) await twoFrames();
+            scrollTo.mockRestore();
+        });
+
+        test('after a jump the line that landed off-centre is nudged back, instantly', async () => {
+            ui.highlightSubtitle(90); // index 30: far from 0, an instant jump
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+            measure(37); // what the placeholders got wrong
+            for (let i = 0; i < 4; i++) await twoFrames();
+            expect(scrollTo.mock.calls[1][0]).toEqual({ top: 37, behavior: 'instant' });
+            expect(tops()).toEqual([37]);
+        });
+
+        // Live, one pass left a 25-minute jump 607px off-centre: each nudge
+        // renders new lines, and their real heights move the line again.
+        test('it keeps correcting while the line keeps moving, and stops once it is centred', async () => {
+            ui.highlightSubtitle(90);
+            measure(300);
+            await twoFrames();
+            off = 120; // the nudge uncovered lines, and they were taller
+            for (let i = 0; i < 4; i++) await twoFrames();
+            expect(tops()).toEqual([300, 120]);
+        });
+
+        test('it gives up after a bounded number of passes', async () => {
+            ui.highlightSubtitle(90);
+            measure(50);
+            stuck = true; // a layout that never converges
+            for (let i = 0; i < 12; i++) await twoFrames();
+            expect(tops()).toHaveLength(6);
+        });
+
+        test('a line already centred is left alone', async () => {
+            ui.highlightSubtitle(90);
+            measure(0);
+            for (let i = 0; i < 3; i++) await twoFrames();
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        test('a smooth scroll is corrected when it ends, not before', async () => {
+            ui.highlightSubtitle(90);
+            measure(0);
+            await twoFrames();
+            scrollTo.mockClear();
+            ui.highlightSubtitle(93); // the next line: a smooth scroll
+            measure(20);
+            await twoFrames();
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+            list().dispatchEvent(new Event('scrollend'));
+            expect(scrollTo).toHaveBeenCalledTimes(2);
+            expect(scrollTo.mock.calls[1][0]).toEqual({ top: 20, behavior: 'instant' });
+        });
+
+        test('it does not pull the list from under a reader', async () => {
+            ui.highlightSubtitle(90);
+            measure(37);
+            document.getElementById('vtt-sidebar')!.dispatchEvent(new MouseEvent('mouseenter'));
+            for (let i = 0; i < 3; i++) await twoFrames();
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        test('only the latest scroll is corrected', async () => {
+            ui.highlightSubtitle(90);
+            ui.highlightSubtitle(0); // a newer far jump before the first settles
+            measure(37);
+            for (let i = 0; i < 4; i++) await twoFrames();
+            // two jumps, one correction
+            expect(scrollTo).toHaveBeenCalledTimes(3);
+        });
+    });
+
+    // The word card is placed once, next to its word, and sits OUTSIDE the
+    // panel. Reported live: select a word, move to the card, and the list
+    // scrolled to the playing line — the pointer leaving the panel for the
+    // card is itself the mouseleave that triggered the catch-up — carrying the
+    // word away and leaving the card over another line.
+    describe('a word card holds the follow', () => {
+        const sidebar = (): HTMLElement => document.getElementById('vtt-sidebar')!;
+        const enter = (): boolean =>
+            sidebar().dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+        const leave = (): boolean =>
+            sidebar().dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+
+        let scrollTo: jest.SpyInstance;
+
+        beforeEach(() => {
+            state.addTrack('English', [
+                { startTime: 0, endTime: 2, text: 'first' },
+                { startTime: 3, endTime: 5, text: 'second' },
+                { startTime: 6, endTime: 8, text: 'third' },
+            ]);
+            ui.renderSubtitles();
+            scrollTo = jest.spyOn(list(), 'scrollTo');
+        });
+
+        afterEach(() => scrollTo.mockRestore());
+
+        test('the playing line moves on, the list does not scroll', () => {
+            ui.holdAutoScroll();
+            scrollTo.mockClear();
+
+            ui.highlightSubtitle(4);
+
+            expect(itemAt(1).classList.contains('active-sub')).toBe(true);
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        // The reported path, exactly: the pointer selects inside the panel,
+        // then crosses its edge to reach the card.
+        test('leaving the panel for the card does not scroll', () => {
+            enter();
+            ui.holdAutoScroll();
+            ui.highlightSubtitle(4);
+            scrollTo.mockClear();
+
+            leave();
+
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        test('closing the card catches the list up', () => {
+            const release = ui.holdAutoScroll();
+            ui.highlightSubtitle(4);
+            scrollTo.mockClear();
+
+            release();
+
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        // With the pointer on the panel the follow is still paused for the
+        // hover; its own mouseleave will catch up, so the release must not.
+        test('closing the card with the pointer on the panel leaves it to mouseleave', () => {
+            enter();
+            const release = ui.holdAutoScroll();
+            ui.highlightSubtitle(4);
+            scrollTo.mockClear();
+
+            release();
+            expect(scrollTo).not.toHaveBeenCalled();
+            leave();
+            expect(scrollTo).toHaveBeenCalledTimes(1);
+        });
+
+        test('the follow resumes only when the last hold is released, and once', () => {
+            const a = ui.holdAutoScroll();
+            const b = ui.holdAutoScroll();
+            scrollTo.mockClear();
+
+            a();
+            a(); // a second call is not a second release
+            ui.highlightSubtitle(4);
+            expect(scrollTo).not.toHaveBeenCalled();
+
+            b();
+            ui.highlightSubtitle(7);
+            expect(scrollTo).toHaveBeenCalled();
+        });
+    });
+
+    // §40.4, T5.17. A rapid replay-click trips the browser's
     // double-click-selects-word behaviour, and the resulting selection blocks
-    // the click→seek handler outright: the line stops responding.
-    describe('a double-click on a line selects nothing', () => {
+    // the click→seek handler outright: the line stops responding. Suppressed in
+    // every mode: a double-click is also not a way to open the word card — the
+    // card opens on a selection (lookup/strip.ts), and the gesture that makes
+    // one is a drag.
+    describe('a double-click on a line: suppressed in every mode', () => {
         beforeEach(() => {
             state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha beta gamma' }]);
             ui.renderSubtitles();
@@ -3362,18 +3770,32 @@ describe('the transcript list', () => {
             return e;
         };
 
-        test('the second click of a pair is prevented', () => {
+        const inGuessMode = (): void => {
+            state.displayMode = 'guess';
+            ui.renderSubtitles();
+        };
+
+        test('the second click of a pair is prevented in guess mode', () => {
+            inGuessMode();
             expect(mousedown(2).defaultPrevented).toBe(true);
         });
 
-        test('a triple click is prevented too', () => {
+        test('a triple click is prevented too in guess mode', () => {
+            inGuessMode();
             expect(mousedown(3).defaultPrevented).toBe(true);
         });
 
-        // The other side, and the reason the guard reads detail rather than
-        // blocking mousedown outright: a drag-select fires with detail === 1,
-        // and selecting a phrase to look up is a thing the user does here.
+        // Outside guess mode too: a double-click must not select a word and
+        // open the card on what is, to the user, two seeking clicks.
+        test('a double-click is prevented outside guess mode too', () => {
+            expect(mousedown(2).defaultPrevented).toBe(true);
+        });
+
+        // The reason the guard reads detail rather than blocking mousedown
+        // outright: a drag-select fires with detail === 1, and selecting a
+        // phrase to look up is a thing the user does on either surface.
         test('a single click is left alone, so a drag-select still works', () => {
+            inGuessMode();
             expect(mousedown(1).defaultPrevented).toBe(false);
         });
     });
@@ -3444,16 +3866,56 @@ describe('reduced motion drops the reveal animation', () => {
         }
     };
 
+    /** The body of `@keyframes name { … }`, braces balanced. */
+    const keyframes = (name: string): string => {
+        const start = CSS.indexOf(`@keyframes ${name} {`);
+        expect(start).toBeGreaterThan(-1);
+        let depth = 0;
+        let i = CSS.indexOf('{', start);
+        const open = i;
+        for (; i < CSS.length; i++) {
+            if (CSS[i] === '{') depth++;
+            else if (CSS[i] === '}' && --depth === 0) break;
+        }
+        return CSS.slice(open + 1, i);
+    };
+
     test('the reveal really is an animation, so there is something to drop', () => {
-        const rule = /\.vtt-revealed-word\.vtt-just-revealed\s*\{([^}]*)\}/.exec(CSS);
-        expect(rule).not.toBeNull();
-        expect(rule![1]).toMatch(/animation:\s*vtt-word-focus/);
+        // Every rule for the selector, not the first: the reduced-motion block
+        // names the same selectors to cancel them.
+        const bodies = (sel: RegExp): string[] =>
+            [...CSS.matchAll(new RegExp(`${sel.source}\\s*\\{([^}]*)\\}`, 'g'))].map((m) => m[1]);
+        expect(bodies(/\.vtt-reveal-ink/).some((b) => /animation:\s*vtt-ink-wipe/.test(b))).toBe(true);
+        expect(bodies(/\.vtt-revealed-word\.vtt-just-revealed::before/).some((b) => /animation:\s*vtt-pane-wipe/.test(b))).toBe(true);
     });
 
-    test('a reduced-motion block cancels animation on the revealed word', () => {
-        const covering = reducedMotionBlocks().filter((b) => b.includes('.vtt-revealed-word'));
-        expect(covering.length).toBeGreaterThan(0);
-        expect(covering.some((b) => /animation:\s*none/.test(b))).toBe(true);
+    // The wipe runs on the compositor only while its keyframes touch clip-path
+    // and nothing else. A blur put back "for softness" would move it to the
+    // main thread again, where it ran at 7-10 fps next to the reveal's seek.
+    test('the wipe animates clip-path and nothing else', () => {
+        for (const name of ['vtt-ink-wipe', 'vtt-pane-wipe']) {
+            const props = [...keyframes(name).matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]);
+            expect(props.length).toBeGreaterThan(0);
+            expect(new Set(props)).toEqual(new Set(['clip-path']));
+        }
+    });
+
+    // Every capsule used to carry `perspective`, which made each of ~18k of
+    // them a 3D context on a long transcript: 96ms of re-layering after a
+    // reveal click and ~28ms on every frame, and the reveal's first frame
+    // reached the screen 204ms late. The depth belongs to the peek face alone.
+    test('no capsule carries perspective; the peek face brings its own', () => {
+        const capsuleRules = [...CSS.matchAll(/(^|\n)([^{}\n]*\.vtt-masked-word[^{}\n]*)\{([^}]*)\}/g)];
+        expect(capsuleRules.length).toBeGreaterThan(0);
+        for (const [, , , body] of capsuleRules) expect(body).not.toMatch(/(^|[;\s])perspective\s*:/);
+        const face = /\.vtt-peek-face\s*\{([^}]*)\}/.exec(CSS);
+        expect(face![1]).toMatch(/transform:\s*perspective\(320px\)/);
+    });
+
+    test('a reduced-motion block cancels the wipe and never draws its pane', () => {
+        const blocks = reducedMotionBlocks();
+        expect(blocks.some((b) => /\.vtt-reveal-ink\s*\{[^}]*animation:\s*none/.test(b))).toBe(true);
+        expect(blocks.some((b) => /\.vtt-just-revealed::before\s*\{[^}]*content:\s*none/.test(b))).toBe(true);
     });
 
     // The peek is the covered half; naming it here keeps the pair readable and

@@ -3,6 +3,16 @@
 // answer through these, so the two can never disagree about what it says.
 import { LookupResult } from './types';
 
+/**
+ * More than one word. The service answers such a term with one translation of
+ * the whole selection rather than a dictionary entry, so the card treats it
+ * differently. Same rule as the service's IsPhrase: a hyphenated compound is
+ * one word.
+ */
+export function isPhrase(term: string): boolean {
+    return term.trim().split(/\s+/).length > 1;
+}
+
 /** Whether the answer says anything — an unknown word is a 200 with none of this. */
 export function hasLookupContent(r: LookupResult): boolean {
     if (r.translations.length > 0) return true;

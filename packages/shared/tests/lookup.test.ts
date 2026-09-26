@@ -523,18 +523,179 @@ describe('hover strip debounce — the 30/min budget', () => {
         jest.useRealTimers();
     });
 
-    it('ignores hover in the sidebar — the cursor crosses it on the way anywhere', async () => {
-        jest.useFakeTimers();
-        const teardown = installLookupStrip();
-        const main = buildLine(['transcript'], 'sidebar');
-        hover(main.querySelector('span[data-word]')!);
-        await jest.advanceTimersByTimeAsync(2000);
-        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
-        teardown();
-        jest.useRealTimers();
+    // The sidebar opens on a REST of half a second, not on a pass: the cursor
+    // crosses dozens of transcript words on the way anywhere.
+    describe('sidebar: the card opens when the pointer rests on a word', () => {
+        const at = (type: string, el: Element, x: number, y: number, extra: MouseEventInit = {}): void => {
+            el.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, ...extra }));
+        };
+        const lookups = (): number =>
+            (chrome.runtime.sendMessage as jest.Mock).mock.calls.filter(([m]) => m.action === 'LOOKUP_WORD').length;
+
+        let teardown: () => void;
+        let word: HTMLElement;
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            teardown = installLookupStrip();
+            word = buildLine(['transcript'], 'sidebar').querySelector('span[data-word]') as HTMLElement;
+            // jsdom lays nothing out; the card needs a box to stand next to.
+            word.getBoundingClientRect = () =>
+                ({ width: 60, height: 16, top: 100, left: 10, bottom: 116, right: 70, x: 10, y: 100 }) as DOMRect;
+        });
+
+        afterEach(() => {
+            teardown();
+            jest.useRealTimers();
+        });
+
+        it('opens after half a second at rest, not before', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(450);
+            expect(lookups()).toBe(0);
+            await jest.advanceTimersByTimeAsync(100);
+            expect(lookups()).toBe(1);
+            const [msg] = (chrome.runtime.sendMessage as jest.Mock).mock.calls[0];
+            expect(msg.term).toBe('transcript');
+        });
+
+        it('a pointer still moving over the word restarts the wait', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mousemove', word, 40, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            expect(lookups()).toBe(0);
+            await jest.advanceTimersByTimeAsync(250);
+            expect(lookups()).toBe(1);
+        });
+
+        it('a trembling hand is still at rest', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mousemove', word, 22, 109);
+            await jest.advanceTimersByTimeAsync(250);
+            expect(lookups()).toBe(1);
+        });
+
+        it('passing over the word opens nothing', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(300);
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(2000);
+            expect(lookups()).toBe(0);
+        });
+
+        // Pressing a line seeks, and the hand that pressed stays on the word.
+        // Without the press counting as "not this", every click on a line would
+        // open a card half a second later.
+        it('a press on the word switches it off until the pointer leaves', async () => {
+            at('mouseover', word, 20, 108);
+            at('mousedown', word, 20, 108, { buttons: 1 });
+            at('mouseup', word, 20, 108);
+            at('mousemove', word, 21, 108);
+            await jest.advanceTimersByTimeAsync(2000);
+            expect(lookups()).toBe(0);
+
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            at('mouseover', word, 30, 108);
+            await jest.advanceTimersByTimeAsync(550);
+            expect(lookups()).toBe(1);
+        });
+
+        it('a card opened by resting closes when the pointer leaves the word', async () => {
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(300);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
+        // The rest ends, then the card still reads the language pair before it
+        // exists. A pointer that leaves during that read has nothing to close
+        // yet — the card must not open on a word it has already left.
+        it('leaving the word while the rest is still opening opens nothing', async () => {
+            let release!: () => void;
+            const get = chromeStorage.local.get as jest.Mock;
+            const real = get.getMockImplementation()!;
+            get.mockImplementationOnce((key: string) =>
+                new Promise((r) => { release = () => r(real(key)); }));
+
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(550);
+            at('mouseout', word, 80, 108, { relatedTarget: document.body });
+            release();
+            await jest.advanceTimersByTimeAsync(2000);
+
+            expect(lookups()).toBe(0);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
+        // Reported live: rest on a word, then leave the panel. On its way out
+        // the pointer crossed other transcript words, and passing over one of
+        // them cancelled the pending hide — the card, and the transcript hold
+        // it carries, stayed up for good while the video played on.
+        it('crossing other words on the way out does not keep the card up', async () => {
+            const line = word.parentElement!;
+            const other = document.createElement('span');
+            other.dataset.word = 'passing';
+            other.textContent = 'passing';
+            line.appendChild(other);
+
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+            at('mouseout', word, 75, 108, { relatedTarget: other });
+            at('mouseover', other, 80, 108);
+            at('mouseout', other, 140, 108, { relatedTarget: document.body });
+            await jest.advanceTimersByTimeAsync(300);
+            expect(document.querySelector('#lingogram-lookup-strip')).toBeNull();
+        });
+
+        // A phrase card belongs to the selection, not to a word the pointer
+        // crosses on its way to the card.
+        it('a card opened on a selection does not close when the pointer leaves a word', async () => {
+            const RECT = { width: 60, height: 16, top: 100, left: 10, bottom: 116, right: 70 };
+            const prior = (Range.prototype as any).getBoundingClientRect;
+            (Range.prototype as any).getBoundingClientRect = () => RECT;
+            const range = document.createRange();
+            range.setStartBefore(word);
+            range.setEndAfter(word);
+            const sel = window.getSelection()!;
+            sel.removeAllRanges();
+            sel.addRange(range);
+            try {
+                document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                await jest.advanceTimersByTimeAsync(300);
+                expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+
+                at('mouseout', word, 80, 108, { relatedTarget: document.body });
+                await jest.advanceTimersByTimeAsync(600);
+                expect(document.querySelector('#lingogram-lookup-strip')).not.toBeNull();
+            } finally {
+                sel.removeAllRanges();
+                (Range.prototype as any).getBoundingClientRect = prior;
+            }
+        });
+
+        it('does not pause the video', async () => {
+            const video = document.createElement('video');
+            document.body.appendChild(video);
+            const pause = jest.spyOn(video, 'pause').mockImplementation(() => {});
+            at('mouseover', word, 20, 108);
+            await jest.advanceTimersByTimeAsync(600);
+            expect(lookups()).toBe(1);
+            expect(pause).not.toHaveBeenCalled();
+        });
     });
 
-    it('opens on a sidebar CLICK, and stops the cue handler that would seek', async () => {
+    it('a sidebar CLICK is the cue\'s own — it seeks, and opens no card', async () => {
+        // The transcript's gesture is "take me to this line", and in guess mode
+        // it also uncovers a word. Intercepting it to answer "what is this
+        // word" spent the click on the rarer of the two intents; asking about a
+        // word is a selection now (see the selection describe below).
         jest.useFakeTimers();
         const teardown = installLookupStrip();
         const main = buildLine(['transcript'], 'sidebar');
@@ -542,10 +703,9 @@ describe('hover strip debounce — the 30/min budget', () => {
         // Mirrors SidebarUI.buildPlainItem: the cue seeks when clicked.
         main.closest('.vtt-item')!.addEventListener('click', seek);
         click(main.querySelector('span[data-word]')!);
-        await jest.advanceTimersByTimeAsync(50);
-        expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
-        expect((chrome.runtime.sendMessage as jest.Mock).mock.calls[0][0].term).toBe('transcript');
-        expect(seek).not.toHaveBeenCalled();
+        await jest.advanceTimersByTimeAsync(2000);
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+        expect(seek).toHaveBeenCalledTimes(1);
         teardown();
         jest.useRealTimers();
     });
@@ -726,11 +886,30 @@ describe('playback — the overlay pauses, the sidebar does not', () => {
         item.appendChild(main);
         document.body.appendChild(item);
 
-        span.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        // jsdom lays nothing out, so a range and a span both measure zeros —
+        // and zeros are how the card reads "this anchor is gone".
+        const RECT = { width: 50, height: 10, top: 40, left: 20, bottom: 50, right: 70 };
+        const priorRangeRect = (Range.prototype as any).getBoundingClientRect;
+        (Range.prototype as any).getBoundingClientRect = () => RECT;
+        span.getBoundingClientRect = () => RECT as DOMRect;
+
+        // Selecting the word is the sidebar's trigger — a drag across it is
+        // what the browser turns into exactly this range.
+        const range = document.createRange();
+        range.setStartBefore(span);
+        range.setEndAfter(span);
+        const sel = window.getSelection()!;
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
         await jest.advanceTimersByTimeAsync(300);
         expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
         expect(pauseSpy).not.toHaveBeenCalled();
         teardown();
+        // Both outlive document.body.innerHTML = '': a leftover Range is a live
+        // selection under every test that follows, and the prototype is global.
+        sel.removeAllRanges();
+        (Range.prototype as any).getBoundingClientRect = priorRangeRect;
         jest.useRealTimers();
     });
 });
@@ -948,6 +1127,42 @@ describe('selection — dragging a phrase opens the same card', () => {
         const second = await pressHeart();
         expect(second.remove).toBeDefined();
         expect(second.remove.term).toBe(first.add.term);
+    });
+
+    /**
+     * A phrase is answered by the service's `google` source: one translation
+     * of the whole selection, lemma = the phrase, no parts of speech. The card
+     * shows that translation and the heart, and no Details — the word screen
+     * has nothing to put around a single translation.
+     */
+    it('a phrase card shows its translation and a heart, and no Details', async () => {
+        teardown();
+        teardown = installLookupStrip({ openDetail: jest.fn() });
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_msg, cb) => {
+            cb({ ok: true, result: {
+                term: 'a0 b0 a1 b1', lemma: 'a0 b0 a1 b1',
+                translations: ['перевод всей фразы'], parts_of_speech: [],
+            } });
+        });
+        const list = buildList(4);
+        selectAcross(list, 0, 1);
+        await release();
+
+        expect(card()?.textContent).toContain('перевод всей фразы');
+        expect(card()?.querySelector('[data-act="save"]')).not.toBeNull();
+        expect(card()?.querySelector('[data-act="more"]')).toBeNull();
+    });
+
+    it('a single selected word keeps its Details', async () => {
+        // The control half: without it the check above would also pass if
+        // Details were gone everywhere.
+        teardown();
+        teardown = installLookupStrip({ openDetail: jest.fn() });
+        const list = buildList(2);
+        selectSpans(wordSpans(list, 0)[0], wordSpans(list, 0)[0]);
+        await release();
+
+        expect(card()?.querySelector('[data-act="more"]')).not.toBeNull();
     });
 
     it('saves the dragged phrase, not just the word under the cursor', async () => {

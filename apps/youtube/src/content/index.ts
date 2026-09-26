@@ -1049,11 +1049,19 @@ function bootstrap(): void {
         // uses: the player's own wakeUpControls(), relayed through page-script
         // because the API lives in the MAIN world, re-poked because one wake
         // only buys a single timeout.
+        //
+        // And hold the transcript still: a card opened on a sidebar word is
+        // placed once, and a list still following the video carries the word
+        // out from under it (SidebarUI.holdAutoScroll).
         holdLayout: () => {
             const wake = (): void => window.postMessage({ type: 'YT_WAKE_CONTROLS' }, '*');
             wake();
             const timer = window.setInterval(wake, LOOKUP_WAKE_MS);
-            return () => clearInterval(timer);
+            const releaseTranscript = app.ui.holdAutoScroll();
+            return () => {
+                clearInterval(timer);
+                releaseTranscript();
+            };
         },
     });
     // The badge self-attaches to any #vtt-header-top (with an observer retry),
