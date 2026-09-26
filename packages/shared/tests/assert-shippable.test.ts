@@ -410,7 +410,7 @@ describe('assert-shippable', () => {
             for (const [, inner] of paragraph.matchAll(/`([^`\n]+)`/g)) {
                 // Only names that look like trace markers: the paragraph also
                 // backticks a filename and the array's own name.
-                if (/^(LG_TRACE_|vtt-(debug|trace)-|debug\.trace\.)/.test(inner)) named.add(inner);
+                if (/^(LG_TRACE_|vtt-(debug|trace)-|debug\.(trace|saves)\.|__lingogram)/.test(inner)) named.add(inner);
             }
             return [...named].sort();
         }

@@ -13,6 +13,7 @@ import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
 import { applySyncedDocs, loadMirror } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import { loadLanguagePrefs } from '../languages';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
@@ -85,6 +86,12 @@ export function isAuthAction(action: unknown): action is AuthAction {
     // string appears in a prod bundle. Folds away entirely in prod builds.
     return __EXT_ENV__ === 'dev' && action.startsWith('DEV_');
 }
+
+// Save diagnostics (debug/save-diag-worker.ts): a collector per ADD_WORD /
+// REMOVE_WORD, only when the content script asks (`diag: true`, its
+// diagnostics switch is on) and only in a dev build. Module-level so the
+// minifier folds every `DIAG_BUILD && …` below out of production.
+const DIAG_BUILD = __EXT_ENV__ === 'dev';
 
 export interface AuthMessage {
     action: string;
@@ -380,8 +387,9 @@ export async function handleAuthMessage(
             // taken after the response would lose exactly the race it exists
             // for: the sync that started while this write was in flight.
             stampLocalWrite(term);
+            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
             try {
-                const r = await addInboxWord(config, input);
+                const r = await addInboxWord(config, input, { diag });
                 const inboxCount = await bumpInboxCount();
                 // Value-moment rating prompt (P1.8): once this install crosses
                 // the saved-word threshold, ask for a store rating — exactly
@@ -403,8 +411,15 @@ export async function handleAuthMessage(
                     learning,
                     native,
                 });
-                return { ok: true, wordId: r.wordId, inboxCount, promptRate };
+                return {
+                    ok: true,
+                    wordId: r.wordId,
+                    inboxCount,
+                    promptRate,
+                    ...(DIAG_BUILD && diag ? { diag: diag.done() } : {}),
+                };
             } catch (err) {
+                if (DIAG_BUILD && diag) attachDiag(err, diag.done(err));
                 // Refresh-token revoked / Firestore rejected the token —
                 // wipe state and prompt the user to re-authorize via a
                 // normal visible tab. No silent recovery: the scoped
@@ -425,16 +440,23 @@ export async function handleAuthMessage(
             const learning = prefs?.learning ?? '';
             const native = prefs?.native ?? '';
             stampLocalWrite(term);
+            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
             try {
-                const r = await removeInboxWord(config, { term });
+                const r = await removeInboxWord(config, { term }, { diag });
                 // The inbox count is the learner's own tally of saved words, so
                 // a removal walks it back. It never goes below zero: a removal
                 // of a word this install never counted (saved on another
                 // device) would otherwise leave a negative badge.
                 const inboxCount = await bumpInboxCount(-1);
                 void track('word_removed', { site, signed_in: signedIn, learning, native });
-                return { ok: true, state: r.state, inboxCount };
+                return {
+                    ok: true,
+                    state: r.state,
+                    inboxCount,
+                    ...(DIAG_BUILD && diag ? { diag: diag.done() } : {}),
+                };
             } catch (err) {
+                if (DIAG_BUILD && diag) attachDiag(err, diag.done(err));
                 // Deliberately NOT the ADD_WORD catch. A removal has no benign
                 // 403 left to interpret — removeInboxWord already reports the
                 // two "already not saved" refusals as success — so anything
@@ -725,7 +747,11 @@ export function installAuthMessageHandler(): void {
                 sendResponse(result);
             } catch (err) {
                 console.error('Background auth handler error:', err);
-                sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
+                sendResponse({
+                    ok: false,
+                    error: String(err instanceof Error ? err.message : err),
+                    ...(DIAG_BUILD ? diagOf(err) : {}),
+                });
             }
         })();
         return true;

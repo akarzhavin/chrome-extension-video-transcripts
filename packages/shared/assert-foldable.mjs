@@ -148,6 +148,8 @@ const fail = (why) => findings.push(why);
         'apps/youtube/src/content/debug-recorder.ts',
         'apps/youtube/src/content/debug-ui.ts',
         'packages/shared/src/SidebarUI.ts',
+        'packages/shared/src/debug/save-log.ts',
+        'packages/shared/src/debug/save-diag-worker.ts',
     ];
     const found = new Set();
     for (const rel of files) {
@@ -173,7 +175,7 @@ const fail = (why) => findings.push(why);
         // feature and reports on the sample is the failure mode being guarded
         // against here, so the pattern matches the family, not one member.
         for (const m of src.matchAll(
-            /['"`\s](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|vtt-trace-[a-z-]+|debug\.trace\.v\d+)['"`\s]/g,
+            /['"`\s](LG_TRACE[A-Z_]*|vtt-debug-[a-z-]+|vtt-trace-[a-z-]+|debug\.[a-z]+\.v\d+|__lingogram[A-Za-z]+)['"`\s]/g,
         )) {
             found.add(m[1]);
         }
@@ -196,6 +198,39 @@ const fail = (why) => findings.push(why);
             '      A rule matching a string that cannot appear looks like coverage and is\n' +
             '      not. Remove them, or restore the code that used them.',
         );
+    }
+}
+
+// ── 4. Word-save diagnostics fold with the same shape ───────────────────────
+//
+// The save log's call sites live in three shared modules that production runs
+// for real work (the worker's save handler, the Firestore client, the content
+// script's saveTerm). Each must hold the module-level constant, and every call
+// into the diagnostics must be gated on it — `diag?.x()` alone is a runtime
+// check the minifier keeps, along with the module it calls into.
+{
+    const sites = [
+        'packages/shared/src/auth/background.ts',
+        'packages/shared/src/auth/firestoreRest.ts',
+        'packages/shared/src/content/quick-add-overlay.ts',
+    ];
+    const CALL = /\b(diag\.[a-zA-Z]+\(|noteSave\(|attachDiag\(|createWorkerDiag\(|diagOf\()/;
+    for (const rel of sites) {
+        const src = read(rel);
+        if (!src) {
+            fail(`${rel} is missing — the save-diagnostics fold check has nothing to read`);
+            continue;
+        }
+        if (!/^const DIAG_BUILD = __EXT_ENV__ === 'dev';$/m.test(src)) {
+            fail(`${rel}: no module-level \`const DIAG_BUILD = __EXT_ENV__ === 'dev';\``);
+        }
+        src.split('\n').forEach((line, i) => {
+            const code = line.replace(/\/\/.*$/, '');
+            if (!CALL.test(code)) return;
+            if (/^\s*(function|async function|export)/.test(code)) return; // a definition
+            if (code.includes('DIAG_BUILD')) return;
+            fail(`${rel}:${i + 1}: save-diagnostics call not gated on DIAG_BUILD\n        ${line.trim()}`);
+        });
     }
 }
 

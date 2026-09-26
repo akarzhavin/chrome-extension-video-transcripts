@@ -86,6 +86,12 @@ export const DEBUG_TRACE_MARKERS = [
     'vtt-debug-toggle',
     'vtt-trace-row',
     'vtt-trace-rows',
+    // Word-save diagnostics (packages/shared/src/debug/save-log.ts and
+    // save-diag-worker.ts): the storage key of the save log in the content
+    // bundle, and the property a failed save carries its snapshot on in the
+    // worker. (No apostrophes in this list: the tests read it as text.)
+    'debug.saves.v1',
+    '__lingogramSaveDiag',
 ];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the

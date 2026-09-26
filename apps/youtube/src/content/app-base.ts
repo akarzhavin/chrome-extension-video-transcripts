@@ -98,6 +98,7 @@ export interface ReprocessOptions {
  */
 import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
+import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 
 export const STALLED_REQUEST_MS = 12_000;
 
@@ -1474,6 +1475,7 @@ export abstract class BaseVttApp implements AppInterface {
      */
     traceActions(): {
         sessions(): number;
+        saves(): number;
         download(): void;
         copy(): Promise<boolean>;
         clear(): Promise<void>;
@@ -1483,18 +1485,24 @@ export abstract class BaseVttApp implements AppInterface {
         if (!rec) return null;
         return {
             sessions: () => rec.sessions().length,
+            // Word Save / Remove presses: the same switch, the same file.
+            saves: () => saveLogCount(),
             download: () => {
                 void rec.flush();
-                downloadTrace(rec);
+                void downloadTrace(rec);
             },
-            copy: () => navigator.clipboard
-                ?.writeText(traceReportText(rec))
+            copy: () => traceReportText(rec)
+                .then((text) => {
+                    if (!navigator.clipboard) throw new Error('no clipboard');
+                    return navigator.clipboard.writeText(text);
+                })
                 .then(() => true)
                 // writeText rejects on a page without focus, and there is
                 // nothing to do about it here — report it rather than
                 // appearing to succeed.
-                .catch(() => false) ?? Promise.resolve(false),
-            clear: () => rec.clear(),
+                .catch(() => false),
+            // One Discard for one switch: both recordings go.
+            clear: () => Promise.all([rec.clear(), clearSaveLog()]).then(() => undefined),
         };
     }
 

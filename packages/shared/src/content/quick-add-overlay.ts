@@ -4,6 +4,56 @@ import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feed
 import { sendMessageGuarded as sendMessage } from '../messaging';
 import { deleteMirrorEntry, loadMirror, setMirrorEntry } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { loadPrefs } from '../prefs';
+import {
+    copyIdentity,
+    panelOwner,
+    recordSaveAttempt,
+    type WorkerSaveDiag,
+} from '../debug/save-log';
+
+// Save diagnostics — part of the dev-only "Subtitle diagnostics" switch. A
+// module-level constant from the __EXT_ENV__ literal, so every
+// `DIAG_BUILD && …` below, and the save-log module with it, folds out of a
+// production bundle (see apps/youtube/tests/debug-fold.test.ts).
+const DIAG_BUILD = __EXT_ENV__ === 'dev';
+
+/** Whether the diagnostics switch is on. Never rejects. */
+async function saveDiagOn(): Promise<boolean> {
+    try {
+        return (await loadPrefs()).debugMode === true;
+    } catch {
+        return false;
+    }
+}
+
+/** File one press in the save log. Fire-and-forget; never throws. */
+function noteSave(
+    op: 'save' | 'remove',
+    term: string,
+    mirrorBefore: string | undefined,
+    startedAt: number,
+    res: { ok?: boolean; diag?: WorkerSaveDiag } | undefined,
+    error: string | undefined,
+    shown: string | undefined,
+): void {
+    const at = Date.now();
+    void recordSaveAttempt({
+        at: startedAt,
+        iso: new Date(startedAt).toISOString(),
+        op,
+        term,
+        mirrorBefore: mirrorBefore ?? null,
+        site: platformOf(location.hostname),
+        copy: copyIdentity(),
+        panelOwner: panelOwner(),
+        outcome: error === undefined ? 'ok' : 'failed',
+        error,
+        shown,
+        roundTripMs: at - startedAt,
+        worker: res?.diag,
+    });
+}
 
 const TOAST_ID = 'lingogram-quick-add-toast';
 export const MAX_TERM_LEN = 256;
@@ -655,6 +705,9 @@ export async function saveTerm(
     spans: HTMLElement[] = [],
 ): Promise<boolean> {
     console.log('[Lingogram] ADD_WORD →', term);
+    const startedAt = Date.now();
+    // Started now, awaited just before the message: the heart must not wait on it.
+    const diagOn = DIAG_BUILD ? saveDiagOn() : null;
     // Write the mirror BEFORE the message goes out, so the heart fills the
     // instant it is pressed rather than after a round trip. The exact previous
     // value is captured first — including "absent" — because a rollback that
@@ -670,8 +723,10 @@ export async function saveTerm(
         if (previous === undefined) await deleteMirrorEntry(term);
         else await setMirrorEntry(term, previous);
     };
+    const recording = DIAG_BUILD && (await diagOn) === true;
+    let res: { ok: boolean; error?: string; wordId?: string; promptRate?: boolean; diag?: WorkerSaveDiag } | undefined;
     try {
-        const res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean }>({
+        res = await sendMessage<{ ok: boolean; error?: string; wordId?: string; promptRate?: boolean; diag?: WorkerSaveDiag }>({
             action: 'ADD_WORD',
             term,
             context,
@@ -679,11 +734,14 @@ export async function saveTerm(
             // page. Never the hostname or URL: the deny-list in analytics.ts
             // would strip those anyway.
             site: platformOf(location.hostname),
+            ...(recording ? { diag: true } : {}),
         });
         console.log('[Lingogram] ADD_WORD ←', res);
         if (!res.ok) throw new Error(res.error ?? 'add failed');
         // The commit landed; the optimistic entry above is now the truth.
-        showToast(i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
+        const saved = i18nMsg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term);
+        showToast(saved, true);
+        if (DIAG_BUILD && recording) noteSave('save', term, previous, startedAt, res, undefined, saved);
         // The word itself is not painted here: the mirror entry written above
         // is what `vtt-saved-mark` reads, and it paints the word on this very
         // frame. Highlighting it a second time from this side put two marks on
@@ -703,6 +761,7 @@ export async function saveTerm(
         const friendly = friendlyError(msg, (raw) =>
             i18nMsg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', raw));
         showToast(friendly, false);
+        if (DIAG_BUILD && recording) noteSave('save', term, previous, startedAt, res, msg, friendly);
         console.warn('[Lingogram] add failed:', err);
         return false;
     }
@@ -723,6 +782,8 @@ export async function saveTerm(
  */
 export async function removeTerm(term: string, spans: HTMLElement[] = []): Promise<boolean> {
     console.log('[Lingogram] REMOVE_WORD →', term);
+    const startedAt = Date.now();
+    const diagOn = DIAG_BUILD ? saveDiagOn() : null;
     // Read under the mirror's own key, not a lowercase of it: a phrase with a
     // double space or an NBSP hashes to the entry `setMirrorEntry` is about to
     // write, and reading a different one here would report "absent" for a word
@@ -733,14 +794,18 @@ export async function removeTerm(term: string, spans: HTMLElement[] = []): Promi
         if (previous === undefined) await deleteMirrorEntry(term);
         else await setMirrorEntry(term, previous);
     };
+    const recording = DIAG_BUILD && (await diagOn) === true;
+    let res: { ok: boolean; error?: string; state?: string; diag?: WorkerSaveDiag } | undefined;
     try {
-        const res = await sendMessage<{ ok: boolean; error?: string; state?: string }>({
+        res = await sendMessage<{ ok: boolean; error?: string; state?: string; diag?: WorkerSaveDiag }>({
             action: 'REMOVE_WORD',
             term,
             site: platformOf(location.hostname),
+            ...(recording ? { diag: true } : {}),
         });
         console.log('[Lingogram] REMOVE_WORD ←', res);
         if (!res.ok) throw new Error(res.error ?? 'remove failed');
+        if (DIAG_BUILD && recording) noteSave('remove', term, previous, startedAt, res, undefined, undefined);
         // Nothing to unpaint: the mark follows the mirror, and deleting the
         // entry clears it on the next frame.
         return true;
@@ -763,6 +828,7 @@ export async function removeTerm(term: string, spans: HTMLElement[] = []): Promi
         const friendly = friendlyError(msg, (raw) =>
             i18nMsg('ytQuickAddRemoveFailed', "Couldn't remove: {error}").replace('{error}', raw));
         showToast(friendly, false);
+        if (DIAG_BUILD && recording) noteSave('remove', term, previous, startedAt, res, msg, friendly);
         console.warn('[Lingogram] remove failed:', err);
         return false;
     }

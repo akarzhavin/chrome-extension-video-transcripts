@@ -948,7 +948,8 @@ export class SidebarUI {
         label.innerHTML = `${ICONS.record}<span class="vtt-privacy-text">Subtitle diagnostics</span>`;
         label.title =
             'Dev build only. Records the whole subtitle load — every request, ' +
-            'status, header and retry — for the last few videos, downloadable as JSON. ' +
+            'status, header and retry — for the last few videos, and every word ' +
+            'Save / Remove with the Firestore requests behind it, downloadable as JSON. ' +
             'The file contains signed caption URLs and pot tokens: do not share it.';
 
         const box = document.createElement('input');
@@ -1076,11 +1077,21 @@ export class SidebarUI {
             'font-size:11px;opacity:0.75;font-variant-numeric:tabular-nums;'
             + 'white-space:nowrap;margin-right:2px;';
 
+        // Two recordings behind one switch: videos (the subtitle trace, YouTube
+        // only) and word Save / Remove presses (♥, both editions).
+        const recorded = (): number => actions.sessions() + (actions.saves?.() ?? 0);
         const relabel = (): void => {
             const n = actions.sessions();
+            const s = actions.saves?.() ?? 0;
             status.style.removeProperty('color');
-            status.textContent = n ? String(n) : '—';
-            status.title = n ? `${n} video${n === 1 ? '' : 's'} recorded` : 'nothing recorded yet';
+            const parts: string[] = [];
+            if (n) parts.push(String(n));
+            if (s) parts.push(`♥${s}`);
+            status.textContent = parts.length ? parts.join(' ') : '—';
+            const said: string[] = [];
+            if (n) said.push(`${n} video${n === 1 ? '' : 's'}`);
+            if (s) said.push(`${s} word save${s === 1 ? '' : 's'}`);
+            status.title = said.length ? `${said.join(', ')} recorded` : 'nothing recorded yet';
         };
         relabel();
         // A message in place of the count for a moment, then the count back.
@@ -1097,7 +1108,7 @@ export class SidebarUI {
         const dl = btn(ICONS.download, 'Download trace. The file contains signed caption URLs '
             + 'and pot tokens: do not share it.');
         dl.addEventListener('click', () => {
-            if (actions.sessions() === 0) {
+            if (recorded() === 0) {
                 flash('none', false);
                 return;
             }

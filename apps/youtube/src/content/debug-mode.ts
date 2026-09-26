@@ -14,6 +14,7 @@ import { loadPrefs, onPrefsChanged } from '@video-transcripts/shared';
 import type { BaseVttApp } from './app-base';
 import { chromeStorage, TraceRecorder } from './debug-recorder';
 import { DEBUG_HELLO, DEBUG_STATE, isDebugBatch } from './debug-bridge';
+import { saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 
 /**
  * The live recorder, or null when this is not a dev build.
@@ -43,6 +44,10 @@ export function installDebugMode(app: BaseVttApp): void {
 
     const storage = chromeStorage();
     if (!storage) return; // not an extension context (tests, embed)
+
+    // The word-save count the settings readout shows: loaded now so the first
+    // open of the panel does not read it before storage has answered.
+    saveLogCount();
 
     // Tell the MAIN world whether to record, and which epoch to stamp against.
     // It cannot read storage itself — it has no chrome.* at all.

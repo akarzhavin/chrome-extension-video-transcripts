@@ -285,7 +285,9 @@ describe('which failures are treated as a dead session', () => {
         // again. With the retry hoisted here there would be a second call
         // carrying { reactivate: true }.
         expect(addInboxWord).toHaveBeenCalledTimes(1);
-        expect(addInboxWord.mock.calls[0][2]).toBeUndefined();
+        // The third argument carries the dev-only save diagnostics sink; what
+        // must never be on it here is the re-activation form.
+        expect(addInboxWord.mock.calls[0][2]?.reactivate).toBeUndefined();
         // And the 403 that reaches this level is treated as what it is — a
         // dead session. That is the same assertion as the REVOKED table above,
         // and it is why the create-refusal must be resolved below this point:

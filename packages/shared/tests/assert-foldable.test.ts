@@ -225,6 +225,8 @@ describe('the marker list itself', () => {
             'LG_TRACE_BATCH',
             'LG_TRACE_HELLO',
             'LG_TRACE_STATE',
+            '__lingogramSaveDiag',
+            'debug.saves.v1',
             'debug.trace.v1',
             'vtt-debug-toggle',
             'vtt-trace-row',

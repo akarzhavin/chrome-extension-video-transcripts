@@ -243,3 +243,47 @@ describe('with a recorder, each row calls its own verb', () => {
         expect(status()?.textContent).toBe('none');
     });
 });
+
+// Word-save diagnostics (specs/save-diagnostics): the same rows also carry the
+// save log. HDrezka has no subtitle recorder, so its video count is always 0 —
+// a readout of videos alone would say "nothing recorded" over a log of saves,
+// and the Download row would refuse to hand it over.
+describe('word saves count as a recording', () => {
+    const app = (sessions: number, saves: number, calls = { download: 0 }): AppInterface => ({
+        ...baseApp,
+        traceActions: () => ({
+            sessions: () => sessions,
+            saves: () => saves,
+            download: () => { calls.download++; },
+            copy: () => Promise.resolve(true),
+            clear: () => Promise.resolve(),
+        }),
+    });
+
+    test('saves alone (HDrezka): the readout shows them', () => {
+        build(app(0, 4)).openSettings();
+        expect(status()?.textContent).toBe('♥4');
+        expect(status()?.title).toBe('4 word saves recorded');
+    });
+
+    test('videos and saves (YouTube): both are shown', () => {
+        build(app(2, 1)).openSettings();
+        expect(status()?.textContent).toBe('2 ♥1');
+        expect(status()?.title).toBe('2 videos, 1 word save recorded');
+    });
+
+    test('Download goes ahead with saves and no videos', () => {
+        const calls = { download: 0 };
+        build(app(0, 3, calls)).openSettings();
+        actionTitled('Download trace')?.click();
+        expect(calls.download).toBe(1);
+    });
+
+    test('Download still refuses when there is neither', () => {
+        const calls = { download: 0 };
+        build(app(0, 0, calls)).openSettings();
+        actionTitled('Download trace')?.click();
+        expect(calls.download).toBe(0);
+        expect(status()?.textContent).toBe('none');
+    });
+});
