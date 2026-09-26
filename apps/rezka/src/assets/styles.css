@@ -2107,9 +2107,16 @@
    menus that open in that corner. So the captions keep out of it instead: their
    frame ends where the panel begins, and they centre on the part of the video
    that is actually visible. Collapsing the panel gives the width back. The
-   embed already does the same (embed-css.ts). 320px is #vtt-sidebar's width. */
+   embed already does the same (embed-css.ts). 320px is #vtt-sidebar's width.
+
+   Narrowing the frame must not shrink the captions: their size is read from
+   this box's width (cqw, see .vtt-overlay-main), and the size law is "relative
+   to the VIDEO". --vtt-overlay-frame-cut hands the cut back to every cqw-based
+   size, so opening or collapsing the panel moves the captions, never resizes
+   them. */
 :fullscreen:has(> #vtt-sidebar.fullscreen:not(.collapsed)) #vtt-video-overlay {
-    width: calc(100% - 320px);
+    --vtt-overlay-frame-cut: 320px;
+    width: calc(100% - var(--vtt-overlay-frame-cut));
 }
 
 /* Except while the line-step controls are in use. YouTube hides its bar after
@@ -2169,8 +2176,10 @@
 
        cqw is 1% of the container width, so `1cqw / 19.2` is width/1920 as a
        ratio; dividing by 1px strips the unit, since a scale must be a plain
-       number. The container is #vtt-video-overlay (see there). */
-    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
+       number. The container is #vtt-video-overlay (see there); the frame-cut
+       term adds back the width it gives up to the panel in fullscreen, so the
+       sum is always the PLAYER's 1%. */
+    --vtt-overlay-scale: max(0.33, calc((1cqw + var(--vtt-overlay-frame-cut, 0px) / 100) / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-font-size, 24px) * var(--vtt-overlay-scale));
     font-weight: 600;
     /* em, not px: padding and radius have to shrink with the glyphs, or a
@@ -2231,7 +2240,7 @@
        fullscreen one, a grown main line over a stunted translation). Keep this
        expression identical to the main line's; see there for why there is no
        ceiling and why the floor is 0.33. */
-    --vtt-overlay-scale: max(0.33, calc(1cqw / 19.2 / 1px));
+    --vtt-overlay-scale: max(0.33, calc((1cqw + var(--vtt-overlay-frame-cut, 0px) / 100) / 19.2 / 1px));
     font-size: calc(var(--vtt-overlay-sub-font-size, 18px) * var(--vtt-overlay-scale));
     font-weight: 400;
     padding: 0.22em 0.67em;
@@ -2315,7 +2324,7 @@
 
        Same size law as the bar: tracks the player, floor for a clickable
        target. Wider than tall, because the six dots are. */
-    --vtt-handle-size: clamp(22px, 1.9cqw, 32px);
+    --vtt-handle-size: clamp(22px, calc(1.9cqw + var(--vtt-overlay-frame-cut, 0px) * 0.019), 32px);
     width: calc(var(--vtt-handle-size) * 1.4);
     height: var(--vtt-handle-size);
     flex: none;
@@ -2436,7 +2445,7 @@
     gap: 0;
     /* Tracks the player like the caption does, with a floor for a clickable
        target and a ceiling within the reserve the overlay keeps. */
-    --vtt-cue-nav-size: clamp(22px, 1.9cqw, 32px);
+    --vtt-cue-nav-size: clamp(22px, calc(1.9cqw + var(--vtt-overlay-frame-cut, 0px) * 0.019), 32px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.18s ease;
@@ -2447,6 +2456,16 @@
        hang below the box, written by overlay-cue-nav.ts; 36px is the largest
        size, for the moment before the first measurement. */
     --vtt-cue-nav-min-bottom: calc(var(--vtt-overlay-floor, 0px) + var(--vtt-cue-nav-space, 36px));
+}
+
+/* Except once the captions are moved by hand (drag or grip arrows), until the
+   cursor leaves: the drag has the cursor on the captions throughout, so the
+   reserve would stop them ~36px above the bar while the stored position went
+   on lower — and the caption would drop there only after the cursor left. The
+   user's placement wins; the controls may overlap the bar for that moment.
+   Class set by overlay-cue-nav.ts (suspendPin / setNear). */
+#vtt-video-overlay.vtt-cue-nav-near.vtt-cue-nav-placed {
+    --vtt-cue-nav-min-bottom: -100000px;
 }
 
 /* Near the captions but not on the bar: half-strength, a hint of where it is

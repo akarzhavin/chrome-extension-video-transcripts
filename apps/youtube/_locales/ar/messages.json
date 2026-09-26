@@ -575,6 +575,18 @@
     "message": "Drag to move the subtitles",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
+  "ytOverlayCuePrev": {
+    "message": "Previous line",
+    "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
+  },
+  "ytOverlayCueReplay": {
+    "message": "Replay line",
+    "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
+  },
+  "ytOverlayCueNext": {
+    "message": "Next line",
+    "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
+  },
   "ytLookupLoading": {
     "message": "جارٍ البحث…",
     "description": "Hover strip / word screen: shown while the dictionary lookup is in flight."

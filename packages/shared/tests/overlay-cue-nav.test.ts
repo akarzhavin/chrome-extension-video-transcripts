@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { CueNav, cueNavTarget, heldCueIndex } from '../src/overlay-cue-nav';
 
 // Three lines: the first two touch, a second of silence, then the last.
@@ -161,6 +163,30 @@ describe('CueNav', () => {
         expect(onNearChange).toHaveBeenLastCalledWith(false);
     });
 
+    // The reserve under the captions must not fight a hand placement: the drag
+    // has the cursor on the captions throughout, so with the reserve on the
+    // lowest stretch above the bar was unreachable and the caption dropped
+    // later, once the cursor left, to where the drag had actually stored it.
+    test('moving the captions by hand lifts the reserve until the cursor leaves', () => {
+        move(200, 420);
+        expect(overlay.classList.contains('vtt-cue-nav-placed')).toBe(false);
+        nav.suspendPin();
+        expect(overlay.classList.contains('vtt-cue-nav-placed')).toBe(true);
+        nav.resumePin();
+        jest.advanceTimersByTime(400);
+        expect(overlay.classList.contains('vtt-cue-nav-placed')).toBe(true); // released, still near
+        const rebuilt = document.createElement('div');
+        overlay.parentElement!.appendChild(rebuilt);
+        nav.attach(rebuilt); // an overlay rebuild keeps the state
+        expect(rebuilt.classList.contains('vtt-cue-nav-placed')).toBe(true);
+        nav.attach(overlay);
+        move(900, 900);
+        jest.advanceTimersByTime(700);
+        expect(nav.isNear()).toBe(false);
+        expect(overlay.classList.contains('vtt-cue-nav-placed')).toBe(false);
+        rebuilt.remove();
+    });
+
     test('coming back before the grace ends keeps them up', () => {
         move(200, 420);
         move(900, 900);
@@ -317,5 +343,32 @@ describe('CueNav', () => {
         move(200, 420);
         expect(nav.isNear()).toBe(false);
         expect(nav.el.isConnected).toBe(false);
+    });
+});
+
+// The stylesheet half. rezka owns the file; the YouTube build copies it.
+describe('cue-nav stylesheet', () => {
+    const CSS = readFileSync(join(__dirname, '../../../apps/rezka/src/assets/styles.css'), 'utf8');
+
+    test('a hand placement switches the reserve off', () => {
+        const rule = /#vtt-video-overlay\.vtt-cue-nav-near\.vtt-cue-nav-placed\s*\{([^}]*)\}/.exec(CSS);
+        expect(rule).not.toBeNull();
+        expect(rule![1]).toMatch(/--vtt-cue-nav-min-bottom:\s*-100000px/);
+        // Later than the rule it overrides: the two selectors differ by a class,
+        // but the order is what a future edit to either would silently break.
+        expect(CSS.indexOf(rule![0])).toBeGreaterThan(CSS.indexOf('#vtt-video-overlay.vtt-cue-nav-near {'));
+    });
+
+    // Fullscreen with the panel open narrows the caption frame by the panel's
+    // width. Every size read from that frame (cqw) has to add the cut back, or
+    // opening the panel shrinks the captions and their controls.
+    test('the fullscreen frame cut is handed back to every cqw-based size', () => {
+        const fs = /:fullscreen:has\(> #vtt-sidebar\.fullscreen:not\(\.collapsed\)\) #vtt-video-overlay\s*\{([^}]*)\}/.exec(CSS);
+        expect(fs).not.toBeNull();
+        expect(fs![1]).toMatch(/--vtt-overlay-frame-cut:\s*320px/);
+        expect(fs![1]).toMatch(/width:\s*calc\(100% - var\(--vtt-overlay-frame-cut\)\)/);
+        const decls = CSS.split('\n').filter(l => /\d(\.\d+)?cqw/.test(l) && !l.trim().startsWith('*') && /:/.test(l) && /;\s*$/.test(l));
+        expect(decls.length).toBe(4); // scale ×2 (main, sub), grip, step bar
+        for (const d of decls) expect(d).toContain('var(--vtt-overlay-frame-cut, 0px)');
     });
 });

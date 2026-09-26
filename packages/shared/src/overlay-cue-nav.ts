@@ -169,6 +169,12 @@ export class CueNav {
     // The captions are being moved by hand: the controls ride with them
     // instead of staying pinned where the drag began.
     private suspended = false;
+    // The captions were placed by hand while the controls were near. The
+    // reserve under them (--vtt-cue-nav-min-bottom) is off until the cursor
+    // leaves: during the drag it made the lowest stretch above the bar
+    // unreachable, and after the release it held the caption higher than
+    // where it was let go, then dropped it once the cursor left.
+    private placed = false;
     private pinTimer: ReturnType<typeof setTimeout> | null = null;
     private followFrame = 0;
     // Re-applied every frame while pinned: the overlay moves by transition
@@ -243,6 +249,7 @@ export class CueNav {
     attach(overlay: HTMLElement): void {
         this.overlay = overlay;
         overlay.classList.toggle('vtt-cue-nav-near', this.near);
+        overlay.classList.toggle('vtt-cue-nav-placed', this.placed);
     }
 
     /**
@@ -327,6 +334,7 @@ export class CueNav {
         if (near === this.near) return;
         this.near = near;
         this.overlay?.classList.toggle('vtt-cue-nav-near', near);
+        if (!near) this.setPlaced(false);
         this.clearPinTimer();
         if (near) {
             // Back within the unpin delay: still pinned, nothing to redo.
@@ -337,6 +345,11 @@ export class CueNav {
         this.host.onNearChange(near);
     }
 
+    private setPlaced(placed: boolean): void {
+        this.placed = placed;
+        this.overlay?.classList.toggle('vtt-cue-nav-placed', placed);
+    }
+
     private clearPinTimer(): void {
         if (this.pinTimer) { clearTimeout(this.pinTimer); this.pinTimer = null; }
     }
@@ -344,6 +357,7 @@ export class CueNav {
     /** The user started moving the captions: let go of the pin until they stop. */
     suspendPin(): void {
         this.suspended = true;
+        this.setPlaced(true);
         this.clearPinTimer();
         this.unpin();
     }
