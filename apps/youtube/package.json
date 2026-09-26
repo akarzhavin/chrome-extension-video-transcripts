@@ -1,6 +1,6 @@
 {
   "name": "@video-transcripts/youtube",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "private": true,
   "scripts": {
     "build": "../../scripts/build-with-analytics.sh prod youtube",
