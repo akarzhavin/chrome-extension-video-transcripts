@@ -1994,9 +1994,19 @@
        setting was only alive in fullscreen, where the same percentages clear the
        bar. Clamping the preset and then adding the nudge keeps the bar covered
        while leaving every notch above it distinguishable. */
-    bottom: calc(
-        max(var(--vtt-overlay-bottom, 7.4%), var(--vtt-overlay-floor, 0px))
-        + var(--vtt-overlay-nudge, 0%)
+    /* --vtt-cue-nav-min-bottom is the lowest the captions may sit while the
+       line-step controls (.vtt-cue-nav) hang under them: the bar's floor plus
+       the controls' own height. It is compared with where the caption ACTUALLY
+       is — preset, floor and the user's own nudge together — so a caption
+       already high enough keeps its place, and one too low rises by exactly
+       what is missing, no more. Without the controls it is a value that never
+       wins, and the expression is the one above unchanged. */
+    bottom: max(
+        calc(
+            max(var(--vtt-overlay-bottom, 7.4%), var(--vtt-overlay-floor, 0px))
+            + var(--vtt-overlay-nudge, 0%)
+        ),
+        var(--vtt-cue-nav-min-bottom, -100000px)
     );
     left: 0;
     width: 100%;
@@ -2089,6 +2099,17 @@
 #movie_player.ytp-hide-controls #vtt-video-overlay {
     --vtt-overlay-floor: 0px;
     transition: opacity 0.2s, bottom 0.1s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Except while the line-step controls are in use. YouTube hides its bar after
+   ~3s of a still cursor, and a cursor resting on ↺ IS still: the captions
+   dropped out from under it, ↺ with them, and the row folded shut mid-aim. The
+   next nudge brought the bar back and threw everything up again. Measured live.
+   So while the cursor is near, the captions keep the raised position; they
+   settle once it leaves. */
+#movie_player.ytp-autohide #vtt-video-overlay.vtt-cue-nav-near,
+#movie_player.ytp-hide-controls #vtt-video-overlay.vtt-cue-nav-near {
+    --vtt-overlay-floor: var(--vtt-yt-controls-floor, 61px);
 }
 
 .vtt-overlay-main {
@@ -2403,6 +2424,152 @@
 .vtt-overlay-sub.vtt-overlay-placeholder {
     font-style: italic;
     opacity: 0.72;
+}
+
+/* ── Line-step controls: previous / replay / next ───────────────────────── */
+/* Hang under the LOWEST caption box (updateOverlay appends them last), centred,
+   out of the overlay's flow: in flow they would lengthen the block, and since
+   the block is anchored at the bottom the captions would jump up every time the
+   cursor came near. Absolute, they cost the caption nothing — except the reserve
+   above, and only where the bar or the frame edge leaves no room.
+
+   Bare icons in the caption's own text colour, with a shadow in its box colour
+   for contrast over a bright frame: nothing on screen but the buttons, which is
+   the one constraint every rejected variant broke.
+
+   Invisible and click-through until the cursor comes near the captions
+   (.vtt-cue-nav-near, set by overlay-cue-nav.ts) or a button has keyboard focus.
+   Only ↺ shows then; ‹ › unfold when the cursor reaches ↺. */
+.vtt-cue-nav {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    /* No gap: a gap is a strip of the container, which lets the pointer through
+       to the video — crossing it from ↺ to ‹ would un-hover and fold the row. */
+    gap: 0;
+    /* Tracks the player like the caption does, with a floor for a clickable
+       target and a ceiling within the reserve the overlay keeps. */
+    --vtt-cue-nav-size: clamp(22px, 1.9cqw, 32px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near {
+    /* --vtt-cue-nav-space is the controls' measured height plus the 4px they
+       hang below the box, written by overlay-cue-nav.ts; 36px is the largest
+       size, for the moment before the first measurement. */
+    --vtt-cue-nav-min-bottom: calc(var(--vtt-overlay-floor, 0px) + var(--vtt-cue-nav-space, 36px));
+}
+
+/* Near the captions but not on the bar: half-strength, a hint of where it is
+   rather than a control competing with the text being read. Full strength once
+   the cursor is on the bar (↺'s hover area or the unfolded ‹ ›) or a button
+   has keyboard focus. */
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav {
+    opacity: 0.5;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav:hover,
+.vtt-cue-nav:has(:focus-visible) {
+    opacity: 1;
+}
+
+#vtt-video-overlay.vtt-cue-nav-near .vtt-cue-nav-btn,
+.vtt-cue-nav:has(:focus-visible) .vtt-cue-nav-btn {
+    pointer-events: auto;
+}
+
+.vtt-cue-nav-btn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--vtt-cue-nav-size);
+    height: var(--vtt-cue-nav-size);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--vtt-overlay-color, #fff);
+    cursor: pointer;
+    filter:
+        drop-shadow(0 1px 1px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 90%, transparent))
+        drop-shadow(0 0 4px color-mix(in srgb, var(--vtt-overlay-bg-color, #000000) 75%, transparent));
+    /* Folding waits a moment: a hand crossing from ↺ to ‹ that clips the
+       edge of the row should not see ‹ collapse from under it. Unfolding is
+       immediate (transition-delay: 0s in the rule below). */
+    transition: opacity 0.12s ease, width 0.18s cubic-bezier(0.2, 0, 0, 1) 0.25s, color 0.12s ease;
+}
+
+.vtt-cue-nav-btn svg {
+    display: block;
+    width: 72%;
+    height: 72%;
+}
+
+.vtt-cue-nav-btn:hover {
+    color: var(--vtt-accent, #7c8dff);
+}
+
+.vtt-cue-nav-btn:active svg {
+    transform: scale(0.9);
+}
+
+.vtt-cue-nav-btn:focus-visible {
+    outline: 2px solid var(--vtt-accent, #7c8dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.vtt-cue-nav-prev,
+.vtt-cue-nav-next {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    /* Above ↺'s hover area (the ::before below), which is wider than ↺ and
+       spills over both neighbours. Without this, ‹ — painted before ↺ — sat
+       under that area, and a press on ‹ replayed the line instead: found live,
+       where hit-testing happens and jsdom's does not. */
+    z-index: 1;
+}
+
+.vtt-cue-nav:hover .vtt-cue-nav-prev,
+.vtt-cue-nav:hover .vtt-cue-nav-next,
+.vtt-cue-nav:has(:focus-visible) .vtt-cue-nav-btn {
+    width: var(--vtt-cue-nav-size);
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+/* The hover area around ↺ is larger than the icon: a 44px target, invisible.
+   It is what unfolds ‹ ›, and a bare icon has no visible edge to aim at. */
+.vtt-cue-nav-replay::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+/* The line that just ended, kept up between lines while the cursor is near —
+   see updateOverlay. Dimmed so it does not read as the line playing now. */
+.vtt-overlay-main.vtt-overlay-held,
+.vtt-overlay-sub.vtt-overlay-held {
+    opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-cue-nav,
+    .vtt-cue-nav-btn {
+        transition: none;
+    }
 }
 
 /* ── Language-pair chip ─────────────────────────────────────────────────── */

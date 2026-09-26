@@ -18,6 +18,7 @@ import {
     SIZE_DISPLAY_SCALE,
 } from './prefs';
 import { OverlayPosition, OverlayMetrics, OVERLAY_BOTTOM_PCT } from './overlay-position';
+import { CueNav, CueNavAction, cueNavTarget, heldCueIndex, CUE_NAV_SEEK_PAD_S } from './overlay-cue-nav';
 import {
     overlaySizePx,
     NUDGE_STEP_PX,
@@ -2876,7 +2877,15 @@ export class SidebarUI {
 
         overlay.style.display = 'flex';
 
-        const sub = index === -1 ? null : this.state.getMainTrack()?.[index];
+        // Between lines, with the cursor near the captions, the line that just
+        // ended stays up, dimmed: the step controls hang from the caption box,
+        // and a learner reaching for ‹ would otherwise watch it vanish under the
+        // cursor. Not while adjusting — the settings preview owns that gap.
+        const held = index === -1 && !this.overlayAdjusting && this.cueNav?.isNear()
+            ? heldCueIndex(this.state.getMainTrack() ?? [], this.playbackTime)
+            : -1;
+        const lineIndex = held !== -1 ? held : index;
+        const sub = lineIndex === -1 ? null : this.state.getMainTrack()?.[lineIndex];
 
         // Rebuild only when the rendered content would differ. This runs on
         // every timeupdate (~4×/sec); unconditionally recreating the children
@@ -2895,12 +2904,12 @@ export class SidebarUI {
         // happened to be when the panel opened.
         const preview = !sub && this.overlayAdjusting ? this.previewSubtitleFor(index) : null;
         const sig = sub
-            ? [index, this.state.displayMode, this.state.getRevealedCount(index),
+            ? [lineIndex, held !== -1, this.state.displayMode, this.state.getRevealedCount(lineIndex),
                // Words opened out of order are not expressible as a count, so
                // the signature has to carry them too — otherwise picking one
                // leaves the signature identical and the rebuild below is
                // skipped, which looks exactly like a click that did nothing.
-               [...(this.state.pickedWords.get(index) ?? [])].sort((a, b) => a - b).join(','),
+               [...(this.state.pickedWords.get(lineIndex) ?? [])].sort((a, b) => a - b).join(','),
                this.state.activeTrackIndex, this.state.secondaryTrackIndex, this.state.swapped,
                this.overlayAdjusting].join('|')
             : preview
@@ -2919,7 +2928,17 @@ export class SidebarUI {
         // rebuilt with the text would be torn out from under the pointer
         // mid-drag (losing its capture). Detached first, re-appended after.
         this.overlayHandle?.remove();
-        overlay.innerHTML = '';
+        // The step controls survive the wipe too, and more strictly: they are
+        // never even detached while a line is up. Chrome does not recompute
+        // :hover for a node that leaves and re-enters the DOM until the mouse
+        // moves again, so a detach-and-reappend on each line change folded ‹ ›
+        // shut under a cursor resting on ↺ — measured live, not in jsdom.
+        const nav = this.cueNav?.el.parentElement === overlay ? this.cueNav.el : null;
+        for (const child of Array.from(overlay.childNodes)) {
+            if (child !== nav) child.remove();
+        }
+        // New content goes in front of the controls, which stay last.
+        const place = (el: HTMLElement) => nav ? overlay.insertBefore(el, nav) : overlay.appendChild(el);
 
         // With the settings panel open the caption block has a second job: it is
         // the thing being positioned, so it must stay on screen even at a moment
@@ -2933,6 +2952,8 @@ export class SidebarUI {
             // still in flight has just lost the element holding its capture.
             // End it here rather than leaving it flagged open forever.
             this.endOverlayDrag?.();
+            // Nor the step controls: with no line there is nothing to step from.
+            nav?.remove();
             return;
         }
 
@@ -2948,16 +2969,17 @@ export class SidebarUI {
         // already-solved line re-masked and unclickable. Preview text is shown
         // plain; only a real cue is a puzzle.
         const mainDiv = sub
-            ? this.buildOverlayMain(shown, index)
+            ? this.buildOverlayMain(shown, lineIndex)
             : this.buildPreviewMain(shown);
         if (placeholder) mainDiv.classList.add('vtt-overlay-placeholder');
+        if (held !== -1) mainDiv.classList.add('vtt-overlay-held');
         // Grip first, caption second: the row stacks vertically, so the grip
         // fuses to the caption's top edge — see .vtt-overlay-row.
         const row = document.createElement('div');
         row.className = 'vtt-overlay-row';
         row.appendChild(this.ensureOverlayHandle());
         row.appendChild(mainDiv);
-        overlay.appendChild(row);
+        place(row);
         // Deferred to after the translation row is appended below, so the
         // measurement covers the whole block. Repaint only — the stored position
         // is never touched here; see applyOverlayStyle.
@@ -2965,12 +2987,64 @@ export class SidebarUI {
         // A preview line is not the playing line, so it gets no guess-mode
         // translation gate — the point is to show the block's real shape,
         // which in dual mode means both rows.
-        if (sub ? this.shouldShowOverlayTranslation(index) : this.state.displayMode !== 'single') {
+        if (sub ? this.shouldShowOverlayTranslation(lineIndex) : this.state.displayMode !== 'single') {
             const subDiv = placeholder
                 ? this.buildPlaceholderSecondary()
                 : this.buildSecondaryTextElement(this.state.getPairedSecondary(shown), 'vtt-overlay-sub');
-            if (subDiv) overlay.appendChild(subDiv);
+            if (subDiv) {
+                if (held !== -1) subDiv.classList.add('vtt-overlay-held');
+                place(subDiv);
+            }
         }
+        // Last, so it hangs under whichever box is lowest: the translation, or
+        // the line itself when there is none.
+        if (this.cueNav) {
+            if (!nav) overlay.appendChild(this.cueNav.el);
+            this.cueNav.noteLayout();
+        }
+    }
+
+    // Previous / replay / next line under the captions. Created with the first
+    // overlay and kept for the life of this sidebar; see overlay-cue-nav.ts.
+    private cueNav: CueNav | null = null;
+
+    private ensureCueNav(): CueNav {
+        if (this.cueNav) return this.cueNav;
+        const nav = new CueNav({
+            onAction: (action) => this.stepCue(action),
+            // Entering or leaving the zone decides whether a just-ended line is
+            // held on screen; the signature carries it, so this repaints only
+            // when that actually changes something.
+            onNearChange: () => this.updateOverlay(this.state.currentIndex),
+        });
+        this.teardown.push(() => {
+            nav.destroy();
+            if (this.cueNav === nav) this.cueNav = null;
+        });
+        this.cueNav = nav;
+        return nav;
+    }
+
+    /**
+     * Jump to the start of a line and play on from there.
+     *
+     * Playback continues after every step, ↺ included: the learner hears the
+     * line again rather than being parked at its start. (A first cut paused
+     * after each jump; the user asked for playback to go on.)
+     *
+     * Judged from playbackTime, which a jump moves
+     * at once: a second press before the player reports back must count from
+     * where the first one landed, or two quick ‹ would land on the same line.
+     */
+    private stepCue(action: CueNavAction): void {
+        const track = this.state.getMainTrack();
+        if (!track) return;
+        const target = cueNavTarget(track, this.playbackTime, action);
+        if (target === null) return;
+        const time = track[target].startTime + CUE_NAV_SEEK_PAD_S;
+        this.app.seekVideo(time);
+        // Paint the landing line now rather than on the player's next report.
+        this.highlightSubtitle(time);
     }
 
     // What to show in the caption block while the settings panel is open and the
@@ -3203,6 +3277,9 @@ export class SidebarUI {
         };
         host.setPointerCapture?.(e.pointerId);
         document.getElementById('vtt-video-overlay')?.classList.add('vtt-drag-active');
+        // The step controls hang under the captions; pinned, they would stay
+        // behind while the captions are dragged away from them.
+        this.cueNav?.suspendPin();
     }
 
     /** Follow the pointer. Shared by both surfaces; no-op when nothing is held. */
@@ -3249,6 +3326,7 @@ export class SidebarUI {
         }
         from.host.classList.remove('vtt-dragging');
         document.getElementById('vtt-video-overlay')?.classList.remove('vtt-drag-active');
+        this.cueNav?.resumePin();
         savePrefs(
             {
                 overlayBottomNudge: this.position.bottom,
@@ -3290,13 +3368,17 @@ export class SidebarUI {
                 e.preventDefault();
                 const delta = e.key === 'ArrowUp' ? step : -step;
                 this.position.nudgeBy(this.overlayMetrics(), this.pxToPct(delta), 0);
+                this.cueNav?.suspendPin();
                 this.applyOverlayStyle();
+                this.cueNav?.resumePin();
                 savePrefs({ overlayBottomNudge: this.position.bottom }, this.scope);
             } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 e.preventDefault();
                 const delta = e.key === 'ArrowRight' ? step : -step;
                 this.position.nudgeBy(this.overlayMetrics(), 0, this.pxToPctX(delta));
+                this.cueNav?.suspendPin();
                 this.applyOverlayStyle();
+                this.cueNav?.resumePin();
                 savePrefs({ overlayInlineNudge: this.position.inline }, this.scope);
             }
         });
@@ -3464,6 +3546,7 @@ export class SidebarUI {
         }
         this.attachCaptionRingDrag(overlay);
         this.peek.attachPeek(overlay);
+        this.ensureCueNav().attach(overlay);
         parent.appendChild(overlay);
         this.applyOverlayStyle();
         return overlay;
