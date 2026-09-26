@@ -3414,9 +3414,14 @@ export class SidebarUI {
         return (px / this.playerHeight()) * 100;
     }
 
+    // The frame the captions are centred in and translated against — the
+    // overlay itself. It is the player's full width, except in fullscreen with
+    // the panel open, where it stops at the panel (see the stylesheet); taking
+    // the player there would let a sideways nudge carry the caption back under
+    // the panel. The player is the fallback for an overlay not laid out yet.
     private playerWidth(): number {
         const overlay = document.getElementById('vtt-video-overlay');
-        return overlay?.parentElement?.offsetWidth || REFERENCE_PLAYER_W;
+        return overlay?.offsetWidth || overlay?.parentElement?.offsetWidth || REFERENCE_PLAYER_W;
     }
 
     // The horizontal twin of pxToPct, against the player's WIDTH — which is what
@@ -3454,7 +3459,9 @@ export class SidebarUI {
         }
         return {
             playerHeight: player?.offsetHeight ?? 0,
-            playerWidth: player?.offsetWidth ?? 0,
+            // The overlay's own width, as in playerWidth(): the frame the
+            // caption can actually travel in.
+            playerWidth: overlay?.offsetWidth || player?.offsetWidth || 0,
             blockHeight: overlay?.offsetHeight ?? 0,
             blockWidth,
             presetPct: OVERLAY_BOTTOM_PCT[this.overlayStyle.overlayBottomOffset],

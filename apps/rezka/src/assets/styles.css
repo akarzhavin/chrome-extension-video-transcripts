@@ -2101,6 +2101,17 @@
     transition: opacity 0.2s, bottom 0.1s cubic-bezier(0.4, 0, 1, 1);
 }
 
+/* Fullscreen with the panel open: the panel is re-parented into the player
+   (setupFullscreenHandling) and lies OVER the right of the frame, below the
+   captions' layer — it has to stay low there, or it would bury the site's own
+   menus that open in that corner. So the captions keep out of it instead: their
+   frame ends where the panel begins, and they centre on the part of the video
+   that is actually visible. Collapsing the panel gives the width back. The
+   embed already does the same (embed-css.ts). 320px is #vtt-sidebar's width. */
+:fullscreen:has(> #vtt-sidebar.fullscreen:not(.collapsed)) #vtt-video-overlay {
+    width: calc(100% - 320px);
+}
+
 /* Except while the line-step controls are in use. YouTube hides its bar after
    ~3s of a still cursor, and a cursor resting on ↺ IS still: the captions
    dropped out from under it, ↺ with them, and the row folded shut mid-aim. The

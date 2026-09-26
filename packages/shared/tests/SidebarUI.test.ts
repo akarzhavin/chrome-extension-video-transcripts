@@ -2492,6 +2492,37 @@ describe('SidebarUI', () => {
             fire('pointerup', -9000);
         });
 
+        test('sideways travel is bounded by the overlay, which is narrower than the player beside the fullscreen panel', () => {
+            state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'Hello' } as Subtitle]);
+            ui.updateOverlay(0);
+
+            const overlay = document.getElementById('vtt-video-overlay') as HTMLElement;
+            const player = overlay.parentElement as HTMLElement;
+            Object.defineProperty(player, 'offsetWidth', { value: 1000, configurable: true });
+            Object.defineProperty(player, 'offsetHeight', { value: 400, configurable: true });
+            // Fullscreen with the panel open: the frame the captions live in
+            // stops at the panel, 320px short of the player's edge.
+            Object.defineProperty(overlay, 'offsetWidth', { value: 680, configurable: true });
+            const main = overlay.querySelector('.vtt-overlay-main') as HTMLElement;
+            Object.defineProperty(main, 'offsetWidth', { value: 340, configurable: true });
+            const row = overlay.querySelector('.vtt-overlay-row') as HTMLElement;
+            Object.defineProperty(row, 'offsetWidth', { value: 680, configurable: true });
+
+            const grip = overlay.querySelector('.vtt-overlay-handle') as HTMLElement;
+            grip.setPointerCapture = jest.fn();
+            grip.releasePointerCapture = jest.fn();
+            const fire = (type: string, x: number) =>
+                grip.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true, clientX: x, clientY: 200 }));
+
+            // A 50% caption in the 680px frame: (100 - 50) / 2 - 4 = 21% of it.
+            // Measured against the 1000px player it would be (100 - 34) / 2 - 4 = 29%,
+            // which carries the caption's edge 54px under the panel.
+            fire('pointerdown', 500);
+            fire('pointermove', 9000);
+            expect(parseFloat(overlay.style.getPropertyValue('--vtt-overlay-inline-nudge'))).toBeCloseTo(21, 2);
+            fire('pointerup', 9000);
+        });
+
         test('a stored sideways position is pulled back when the caption grows wider', () => {
             // The horizontal bound moves with the TEXT: a position that fits a
             // short line is out of frame for a long one, and nothing was
