@@ -12,7 +12,8 @@ import {
     LookupRequest,
     LookupResult,
 } from './types';
-import { hasLookupContent } from './shape';
+import { hasLookupContent, isPhrase } from './shape';
+import { fetchGooglePhrase } from './google-web';
 
 /**
  * One POST to the dictionary service. Resolves to the parsed answer; throws on
@@ -114,10 +115,62 @@ export async function lookupCached(
     req: LookupRequest,
     detail: boolean,
 ): Promise<{ result: LookupResult; cached: boolean }> {
+    return throughCache(detail, req, () => fetchLookup(baseUrl, req));
+}
+
+/**
+ * A phrase: Google first, from the user's own IP (google-web.ts), and
+ * /dictionary/lookup only when Google has nothing — no answer inside its
+ * budget, an error or 429, an empty page, or the phrase echoed back.
+ *
+ * Same cache, same key as a word: the key names what was asked, not who
+ * answered, so a phrase is fetched once whichever path produced it. With no
+ * API in the build (`baseUrl` empty) Google is the only path: an empty page is
+ * an empty answer, and a failed request is the failure.
+ */
+export async function lookupPhraseCached(
+    baseUrl: string,
+    req: LookupRequest,
+    detail: boolean,
+): Promise<{ result: LookupResult; cached: boolean }> {
+    return throughCache(detail, req, async () => {
+        let googleError: unknown = null;
+        try {
+            const answer = await fetchGooglePhrase(req.term, req.targetLang);
+            if (answer) return answer;
+        } catch (err) {
+            googleError = err;
+        }
+        const nothing = (source: string): LookupResult => ({
+            term: req.term,
+            lemma: req.term,
+            translations: [],
+            parts_of_speech: [],
+            source,
+        });
+        if (!baseUrl) {
+            if (googleError) throw googleError;
+            return nothing('google');
+        }
+        const fallback = await fetchLookup(baseUrl, req);
+        // The service reads a phrase as its first word more often than not —
+        // "defenses to intercept." came back as the entry for "defense", from
+        // the dictionary and the model alike. A card that shows one word's
+        // meaning under three selected words is worse than an honest "No
+        // translation", so only an answer about a phrase is kept.
+        return isPhrase(fallback.lemma) ? fallback : nothing(fallback.source);
+    });
+}
+
+async function throughCache(
+    detail: boolean,
+    req: LookupRequest,
+    fetchAnswer: () => Promise<LookupResult>,
+): Promise<{ result: LookupResult; cached: boolean }> {
     const key = cacheKey(detail, req.targetLang, req.term);
     const hit = cache.get(key);
     if (hit && !expired(hit)) return { result: hit.result, cached: true };
-    const result = await fetchLookup(baseUrl, req);
+    const result = await fetchAnswer();
     // An empty answer is cached too — re-asking on every hover would burn the
     // rate limit on typos — but only briefly. The service does NOT store one
     // (its own cache treats "no content" as a miss), because empty is not

@@ -410,6 +410,129 @@ describe('LOOKUP_WORD route', () => {
     });
 });
 
+describe('LOOKUP_WORD route — a phrase goes to Google first', () => {
+    const GTX = 'https://translate.googleapis.com/translate_a/single';
+    const PAGE = 'https://translate.google.com/m';
+    const reply = (body: string, status = 200): Response => ({
+        ok: status >= 200 && status < 300,
+        status,
+        text: async () => body,
+    } as unknown as Response);
+    const gtxReply = (t: string, status = 200): Response =>
+        reply(JSON.stringify([[[t, 'src', null, null, 3]], null, 'en']), status);
+    const pageReply = (t: string, status = 200): Response => reply(`<div class="t0">${t}</div>`, status);
+    const captcha = async (): Promise<Response> => reply('', 429);
+    const phraseFromService: LookupResult = {
+        term: 'give it a shot', lemma: 'give it a shot',
+        translations: ['попытаться'], parts_of_speech: [], source: 'llm',
+    };
+    // Measured live: the service answers "defenses to intercept." with the
+    // entry for "defense" — one word's meaning under a three-word selection.
+    const oneWordFromService: LookupResult = {
+        term: 'give it a shot', lemma: 'give', translations: ['давать'], parts_of_speech: [], source: 'wiktionary',
+    };
+
+    type Host = () => Promise<Response>;
+    /** Route each host to its own reply; record which were asked, in order. */
+    function network(gtx: Host, page: Host, service: Host): string[] {
+        const asked: string[] = [];
+        (global.fetch as jest.Mock).mockImplementation((url: string) => {
+            if (url.startsWith(GTX)) { asked.push('gtx'); return gtx(); }
+            if (url.startsWith(PAGE)) { asked.push('page'); return page(); }
+            asked.push('service');
+            return service();
+        });
+        return asked;
+    }
+
+    const ask = async (term: string): Promise<any> => handleAuthMessage({
+        action: 'LOOKUP_WORD', term, targetLang: 'ru', site: 'youtube',
+    });
+
+    it('a phrase is answered by Google\'s JSON endpoint, and nothing else is asked', async () => {
+        const asked = network(async () => gtxReply('попробовать'), captcha, async () => jsonResponse(phraseFromService));
+        const res = await ask('give it a shot');
+        expect(res.ok).toBe(true);
+        expect(res.result.translations).toEqual(['попробовать']);
+        expect(res.result.source).toBe('google');
+        expect(asked).toEqual(['gtx']);
+        expect((track as jest.Mock).mock.calls[0][1].source).toBe('google');
+    });
+
+    it('the /m page answers when the JSON endpoint fails', async () => {
+        const asked = network(captcha, async () => pageReply('попробовать'), async () => jsonResponse(phraseFromService));
+        const res = await ask('give it a shot');
+        expect(res.result.translations).toEqual(['попробовать']);
+        expect(asked).toEqual(['gtx', 'page']);
+    });
+
+    it.each([
+        ['429', async () => pageReply('', 429)],
+        ['a page with no translation', async () => reply('<html></html>')],
+        ['the phrase echoed back', async () => pageReply('give it a shot')],
+        ['a network failure', async () => { throw new Error('offline'); }],
+    ])('Google failing on both endpoints (%s) falls back to the service', async (_label, page) => {
+        const asked = network(captcha, page, async () => jsonResponse(phraseFromService));
+        const res = await ask('give it a shot');
+        expect(res.ok).toBe(true);
+        expect(res.result.translations).toEqual(['попытаться']);
+        expect(asked).toEqual(['gtx', 'page', 'service']);
+    });
+
+    it('a service answer about one word of the phrase is shown as no translation', async () => {
+        network(captcha, captcha, async () => jsonResponse(oneWordFromService));
+        const res = await ask('give it a shot');
+        expect(res.ok).toBe(true);
+        expect(res.result.translations).toEqual([]);
+        expect(res.result.parts_of_speech).toEqual([]);
+    });
+
+    it('a word never goes to Google', async () => {
+        const asked = network(async () => gtxReply('якорь'), async () => pageReply('якорь'), async () => jsonResponse(dictAnswer));
+        const res = await ask('anchor');
+        expect(res.ok).toBe(true);
+        expect(asked).toEqual(['service']);
+    });
+
+    it('a second sighting of the phrase is answered from memory', async () => {
+        const asked = network(async () => gtxReply('попробовать'), captcha, async () => jsonResponse(dictAnswer));
+        await ask('give it a shot');
+        await ask('Give it a shot');
+        expect(asked).toEqual(['gtx']);
+    });
+
+    describe('a build with no API', () => {
+        let prev: string;
+        beforeEach(() => { prev = config.apiBaseUrl; config.apiBaseUrl = ''; });
+        afterEach(() => { config.apiBaseUrl = prev; });
+
+        it('still translates a phrase through Google', async () => {
+            network(async () => gtxReply('попробовать'), captcha, async () => jsonResponse(dictAnswer));
+            const res = await ask('give it a shot');
+            expect(res.ok).toBe(true);
+            expect(res.result.translations).toEqual(['попробовать']);
+        });
+
+        it('answers an untranslatable phrase with an empty result, not "not configured"', async () => {
+            const asked = network(
+                async () => gtxReply('give it a shot'),
+                async () => pageReply('give it a shot'),
+                async () => jsonResponse(dictAnswer),
+            );
+            const res = await ask('give it a shot');
+            expect(res).toEqual({ ok: true, result: expect.objectContaining({ translations: [], parts_of_speech: [] }) });
+            expect(asked).toEqual(['gtx', 'page']);
+        });
+
+        it('Google unreachable on both endpoints is a failure — there is nothing to fall back to', async () => {
+            const asked = network(captcha, async () => pageReply('', 503), async () => jsonResponse(dictAnswer));
+            const res = await ask('give it a shot');
+            expect(res.ok).toBe(false);
+            expect(asked).toEqual(['gtx', 'page']);
+        });
+    });
+});
+
 describe('hover strip debounce — the 30/min budget', () => {
     // The overlay is the hover surface; the sidebar opens on click instead.
     function buildLine(words: string[], surface: 'overlay' | 'sidebar' = 'overlay'): HTMLElement {
@@ -1110,6 +1233,21 @@ describe('selection — dragging a phrase opens the same card', () => {
         expect(card()).not.toBeNull();
         const hits = list.querySelectorAll('.vtt-lookup-hit');
         expect(hits.length).toBe(4); // a0 b0 a1 b1
+        // One line under the phrase, not a bar per word: every word carries
+        // the run, and each cue's last word ends its piece at the cue's edge.
+        const words = (sel: string): string[] =>
+            [...list.querySelectorAll<HTMLElement>(sel)].map((s) => s.dataset.word ?? '');
+        expect(words('.vtt-lookup-run')).toEqual(['a0', 'b0', 'a1', 'b1']);
+        expect(words('.vtt-lookup-run-end')).toEqual(['b0', 'b1']);
+    });
+
+    it('a single selected word keeps the short bar, not a run', async () => {
+        const list = buildList(2);
+        stubSpanRects(list);
+        selectSpans(wordSpans(list, 0)[0], wordSpans(list, 0)[0]);
+        await release();
+        expect(list.querySelectorAll('.vtt-lookup-hit').length).toBe(1);
+        expect(list.querySelectorAll('.vtt-lookup-run').length).toBe(0);
     });
 
     it('a second press on the strip removes the word', async () => {
@@ -1159,10 +1297,15 @@ describe('selection — dragging a phrase opens the same card', () => {
         teardown();
         teardown = installLookupStrip({ openDetail: jest.fn() });
         const list = buildList(2);
+        stubSpanRects(list);
         selectSpans(wordSpans(list, 0)[0], wordSpans(list, 0)[0]);
         await release();
 
-        expect(card()?.querySelector('[data-act="more"]')).not.toBeNull();
+        // card()! rather than card()?.: on a missing card the optional chain
+        // yields undefined, which `.not.toBeNull()` accepts — this check passed
+        // for as long as the one-word drag opened nothing at all.
+        expect(card()).not.toBeNull();
+        expect(card()!.querySelector('[data-act="more"]')).not.toBeNull();
     });
 
     it('saves the dragged phrase, not just the word under the cursor', async () => {
@@ -1174,6 +1317,185 @@ describe('selection — dragging a phrase opens the same card', () => {
         const sent = await saveFromCard();
         expect(sent).toBeDefined();
         expect(sent.term).toBe('a0 b0 a1 b1');
+    });
+
+    /**
+     * A dragged phrase is the one thing a viewer picked to keep, and the
+     * dictionary rarely knows phrases. Until 1.0.21 the "+ Lingogram" pill saved
+     * it with no translation at all; the card that replaced it showed a fading
+     * error with no heart whenever the lookup failed — so the phrase could not
+     * be saved. Every way the translation can fail must still leave Save.
+     */
+    // Each case drags its own pair of cues: the mirror outlives a test, and a
+    // phrase an earlier test saved would turn this press into a removal.
+    it.each([
+        ['a failed lookup', { ok: false, error: 'lookup HTTP 429' }, 1, 'a1 b1 a2 b2'],
+        ['a build with no API', { ok: false, error: 'lookup not configured' }, 2, 'a2 b2 a3 b3'],
+    ])('%s still leaves the phrase card with "No translation" and a working heart', async (_label, reply, from, phrase) => {
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation((_msg, cb) => cb(reply));
+        const list = buildList(4);
+        selectAcross(list, from, from + 1);
+        await release();
+
+        expect(card()).not.toBeNull();
+        expect(card()!.textContent).toContain('No translation');
+        expect(card()!.querySelector('.vtt-lookup-error')).toBeNull();
+        expect(card()!.querySelector('[data-act="save"]')).not.toBeNull();
+
+        const sent = await saveFromCard();
+        expect(sent?.term).toBe(phrase);
+    });
+
+    /**
+     * Seen live: dragging "Bolkiah also paid" over the video ended with the
+     * pointer resting on "paid", and the hover that followed replaced the
+     * phrase card with the card for "paid" — Details, a part-of-speech tag, and
+     * a Save that would have saved the one word. The drag's own release is the
+     * gesture; the word the hand happens to stop on is not a new question.
+     */
+    it('the word the drag ends on does not replace the phrase card', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['Bolkiah', 'also', 'paid', 'millions']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        selectSpans(spans[0], spans[2]);
+        await release();
+        expect(card()?.dataset.word).toBe('Bolkiah also paid');
+
+        // The hand settles on the last word it dragged across.
+        spans[2].dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: 300, clientY: 20 }));
+        spans[2].dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 301, clientY: 20 }));
+        await new Promise((r) => setTimeout(r, 400));
+
+        expect(card()).not.toBeNull();
+        expect(card()!.dataset.word).toBe('Bolkiah also paid');
+
+        // Leaving the word for empty frame is not leaving the card: a phrase
+        // card has no word to be hovered, and stays until it is dismissed.
+        spans[2].dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body }));
+        await new Promise((r) => setTimeout(r, 400));
+        expect(card()?.dataset.word).toBe('Bolkiah also paid');
+    });
+
+    /**
+     * The live cause behind "Bolkiah also paid" opening the card for "paid".
+     * YouTube's player stops the mousedown from bubbling (measured over CDP:
+     * document saw mousedown only in the capture phase, mouseup in both), so a
+     * bubble-phase listener never learned a drag had begun. Every word the
+     * drag crossed then armed its hover card, and the last one fired after the
+     * release — on top of the phrase card.
+     */
+    it('a drag over the player, which swallows the press, still ends on the phrase card', async () => {
+        const player = document.createElement('div');
+        player.addEventListener('mousedown', (e) => e.stopPropagation());
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['Bolkiah', 'also', 'paid', 'millions']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        player.appendChild(box);
+        document.body.appendChild(player);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+
+        spans[0].dispatchEvent(new MouseEvent('mousedown', { bubbles: true, buttons: 1 }));
+        spans.slice(0, 3).forEach((sp, i) => {
+            sp.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, buttons: 1, clientX: 100 + i * 60, clientY: 20 }));
+            sp.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, buttons: 1, clientX: 101 + i * 60, clientY: 20 }));
+        });
+        selectSpans(spans[0], spans[2]);
+        spans[2].dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 500));
+
+        expect(card()).not.toBeNull();
+        expect(card()!.dataset.word).toBe('Bolkiah also paid');
+    });
+
+    it('a slow drag over the player asks nothing about the words it crosses', async () => {
+        // The other half of the swallowed press: with `dragging` unknown, a
+        // hand that lingers on a word mid-drag opened that word's card — a
+        // request each, against the 30/min budget, and the film paused
+        // under a selection still being drawn.
+        const player = document.createElement('div');
+        player.addEventListener('mousedown', (e) => e.stopPropagation());
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['Bolkiah', 'also', 'paid']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        player.appendChild(box);
+        document.body.appendChild(player);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+
+        spans[0].dispatchEvent(new MouseEvent('mousedown', { bubbles: true, buttons: 1 }));
+        for (const [i, sp] of spans.entries()) {
+            sp.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, buttons: 1, clientX: 100 + i * 60, clientY: 20 }));
+            await new Promise((r) => setTimeout(r, 300));
+        }
+        const asked = (chrome.runtime.sendMessage as jest.Mock).mock.calls
+            .map((c) => c[0]).filter((m: any) => m?.action === 'LOOKUP_WORD');
+        expect(asked).toEqual([]);
+        spans[2].dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    });
+
+    it('a drag whose release was lost still opens its phrase card on the next move', async () => {
+        // Seen live, 1 run in 4: the mouseup of a drag over the video reached
+        // nothing — not even the capture phase — as happens when it is sent
+        // to a node the overlay has just rebuilt. The selection was there and
+        // no card ever came.
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['Bolkiah', 'also', 'paid']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+
+        spans[0].dispatchEvent(new MouseEvent('mousedown', { bubbles: true, buttons: 1 }));
+        selectSpans(spans[0], spans[2]);
+        // No mouseup. The hand moves on with the button already up.
+        document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, buttons: 0, clientX: 400, clientY: 90 }));
+        await new Promise((r) => setTimeout(r, 50));
+
+        expect(card()).not.toBeNull();
+        expect(card()!.dataset.word).toBe('Bolkiah also paid');
+    });
+
+    it('a worker that never answers still leaves the heart on a selected word', async () => {
+        (chrome.runtime.sendMessage as jest.Mock).mockImplementation(() => {
+            throw new Error('Extension context invalidated.');
+        });
+        const list = buildList(2);
+        stubSpanRects(list);
+        selectSpans(wordSpans(list, 0)[0], wordSpans(list, 0)[0]);
+        await release();
+
+        expect(card()).not.toBeNull();
+        expect(card()!.textContent).toContain('No translation');
+        expect(card()!.querySelector('[data-act="save"]')).not.toBeNull();
+        expect(card()!.querySelector('.vtt-lookup-error')).toBeNull();
     });
 
     it('offers nothing for a selection longer than the term cap', async () => {

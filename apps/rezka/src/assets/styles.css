@@ -1939,6 +1939,35 @@
     background: var(--vtt-heart);
 }
 
+/* A saved PHRASE: one unbroken line under all of its words, not a bar per
+   word — three bars read as three words (transcript/saved-marks.ts). Each word
+   draws its piece and reaches across the space to its right; the last word on
+   a line stops at its own edge. `span.` outranks lookup.css's
+   `.vtt-lookup-hit::after`, which loads later and would otherwise shrink the
+   piece back to a bar while the card is open over the phrase. */
+span.vtt-saved-run {
+    position: relative;
+}
+
+span.vtt-saved-run::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: -0.3em;
+    bottom: -0.14em;
+    width: auto;
+    height: 0.12em;
+    min-height: 2px;
+    transform: none;
+    border-radius: 0;
+    background: var(--vtt-heart);
+    pointer-events: none;
+}
+
+span.vtt-saved-run.vtt-saved-run-end::after {
+    right: 0;
+}
+
 /* "Every word uncovered" in guess mode. Carried by the border colour rather
    than a 4px bar, for the same layout-stability reason as .active-sub above —
    a solved line must not resize. The border alone is enough: this marks a line

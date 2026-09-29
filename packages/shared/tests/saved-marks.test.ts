@@ -59,6 +59,9 @@ const chromeStub = {
 import { MIRROR_KEY, setMirrorEntry } from '../src/word-mirror';
 import {
     SAVED_MARK_CLASS,
+    SAVED_RUN_CLASS,
+    SAVED_RUN_END_CLASS,
+    markSavedPhrasesIn,
     isSaved,
     markSavedIn,
     onSavedWordsChanged,
@@ -476,5 +479,77 @@ describe('the mark answers the press, not the round trip', () => {
 
         expect(span.classList.contains(SAVED_MARK_CLASS)).toBe(true);
         expect(span.classList.contains('vtt-lookup-hit')).toBe(true);
+    });
+});
+
+describe('a saved phrase is one line under all of its words', () => {
+    // A phrase is saved as the words joined by single spaces — exactly what
+    // the selection hands saveTerm — and read back the same way here.
+    async function seed(...terms: string[]): Promise<void> {
+        for (const t of terms) await setMirrorEntry(t, 'active');
+        stop = startSavedMarks();
+        await Promise.resolve();
+        await Promise.resolve();
+    }
+    const run = (root: ParentNode = document): string[] =>
+        [...root.querySelectorAll<HTMLElement>(`.${SAVED_RUN_CLASS}`)].map((s) => s.dataset.word ?? '');
+    const ends = (root: ParentNode = document): string[] =>
+        [...root.querySelectorAll<HTMLElement>(`.${SAVED_RUN_END_CLASS}`)].map((s) => s.dataset.word ?? '');
+
+    test('the words of a saved phrase carry the run; the last one ends it', async () => {
+        await seed('defenses to intercept.');
+        markSavedIn(line('harder', 'defenses', 'to', 'intercept.'));
+        expect(run()).toEqual(['defenses', 'to', 'intercept.']);
+        expect(ends()).toEqual(['intercept.']);
+    });
+
+    test('the same words not in that order, or only part of them, carry nothing', async () => {
+        await seed('defenses to intercept.');
+        markSavedIn(line('to', 'intercept.', 'defenses'));
+        markSavedIn(line('defenses', 'to', 'block'));
+        expect(run()).toEqual([]);
+    });
+
+    test('matched the way the dictionary keys it — case and spacing do not matter', async () => {
+        await seed('Give  it a SHOT');
+        markSavedIn(line('just', 'give', 'it', 'a', 'shot'));
+        expect(run()).toEqual(['give', 'it', 'a', 'shot']);
+    });
+
+    test('a phrase running into the next cue is marked on both, each line ending on its own', async () => {
+        await seed('we were young');
+        const list = document.createElement('div');
+        const a = line('when', 'we');
+        const b = line('were', 'young');
+        list.append(a, b);
+        document.body.appendChild(list);
+        markSavedPhrasesIn(list);
+        expect(run(list)).toEqual(['we', 'were', 'young']);
+        // "we" ends its line: a line must not reach past the edge of a cue.
+        expect(ends(list)).toEqual(['we', 'young']);
+    });
+
+    test('a hidden word in the middle breaks the phrase — the mark must not give it away', async () => {
+        await seed('give it a shot');
+        const el = line('give', 'it', 'a', 'shot');
+        const masked = el.querySelectorAll<HTMLElement>('span')[1];
+        masked.dataset.hidden = masked.dataset.word!;
+        delete masked.dataset.word;
+        markSavedPhrasesIn(el);
+        expect(run(el)).toEqual([]);
+    });
+
+    test('a removed phrase loses its line on the next repaint', async () => {
+        await seed('give it a shot');
+        const el = line('give', 'it', 'a', 'shot');
+        markSavedIn(el);
+        expect(run(el)).toHaveLength(4);
+
+        await setMirrorEntry('give it a shot', 'removed');
+        await Promise.resolve();
+        await Promise.resolve();
+        markSavedIn(el);
+        expect(run(el)).toEqual([]);
+        expect(ends(el)).toEqual([]);
     });
 });

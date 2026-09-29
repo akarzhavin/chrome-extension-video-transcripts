@@ -50,6 +50,7 @@ import {
 import {
     isSaved,
     markSavedIn,
+    markSavedPhrasesIn,
     markSavedSpan,
     onSavedWordsChanged,
     startSavedMarks,
@@ -2555,6 +2556,8 @@ export class SidebarUI {
             if (lit === -1 && !this.state.isWordRevealed(index, i)) lit = i;
         });
         spans.forEach((span, i) => span.classList.toggle('vtt-next-word', i === lit));
+        // A reveal can complete a saved phrase — or, re-masking, break one.
+        markSavedPhrasesIn(this.elements.list);
 
         if (this.state.isFullyRevealed(index)) {
             item.classList.add('fully-revealed');
@@ -2581,6 +2584,9 @@ export class SidebarUI {
         });
 
         this.elements.list.appendChild(df);
+        // Words are marked as each line is built; a saved phrase needs the
+        // whole list, because it may run from one cue into the next.
+        markSavedPhrasesIn(this.elements.list);
     }
 
     private createSubtitleItem(index: number): HTMLDivElement {
@@ -2971,6 +2977,7 @@ export class SidebarUI {
         const mainDiv = sub
             ? this.buildOverlayMain(shown, lineIndex)
             : this.buildPreviewMain(shown);
+        markSavedPhrasesIn(mainDiv);
         if (placeholder) mainDiv.classList.add('vtt-overlay-placeholder');
         if (held !== -1) mainDiv.classList.add('vtt-overlay-held');
         // Grip first, caption second: the row stacks vertically, so the grip

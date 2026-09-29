@@ -27,10 +27,10 @@ export { MAX_LOOKUP_TERM_LEN } from './types';
 // ── Network + cache (service worker only) ──────────────────────────────────
 // fetchLookup is not here on purpose: everything outside goes through the
 // cache, and exposing the uncached call invites spending the rate limit.
-export { lookupCached, clearLookupCache } from './client';
+export { lookupCached, lookupPhraseCached, clearLookupCache } from './client';
 
 // ── Answer inspection (the message handler reports on both) ────────────────
-export { hasLookupContent, latencyBucket } from './shape';
+export { hasLookupContent, isPhrase, latencyBucket } from './shape';
 
 // ── UI surfaces ────────────────────────────────────────────────────────────
 export { installLookupStrip } from './strip';

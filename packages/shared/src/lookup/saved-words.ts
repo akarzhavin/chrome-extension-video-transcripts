@@ -35,6 +35,8 @@ export interface SavedWords {
     reset(words: Record<string, WordState>): void;
     /** How many terms read as saved. Exposed for tests and diagnostics. */
     readonly size: number;
+    /** Every saved term, normalized. For finding saved phrases in a line. */
+    terms(): Iterable<string>;
 }
 
 /**
@@ -65,5 +67,6 @@ export function createSavedWords(): SavedWords {
         get size() {
             return active.size;
         },
+        terms: () => active.values(),
     };
 }

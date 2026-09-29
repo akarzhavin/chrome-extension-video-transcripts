@@ -26,6 +26,7 @@
 // that configuration; an import that degrades to "nothing is saved" does not.
 import { createSavedWords, type SavedWords } from '../lookup/saved-words';
 import { loadMirror, onMirrorChanged } from '../word-mirror';
+import { normalizeTerm } from '../word-key';
 
 /**
  * The class a saved word carries.
@@ -40,6 +41,28 @@ export const SAVED_MARK_CLASS = 'vtt-saved-mark';
 
 /** Spans eligible for the mark: a word that is on screen and readable. */
 const WORD_SELECTOR = 'span[data-word]';
+
+/**
+ * A saved PHRASE: one unbroken line under all of its words.
+ *
+ * Not the word's short bar repeated. Three bars under three words read as
+ * three words, which is exactly what a phrase is not — the learner saved the
+ * words together, and the line says so. Drawn per span (each one reaching
+ * across the space to its right), because the words are separate elements
+ * and a phrase may wrap onto the next line or into the next cue.
+ */
+export const SAVED_RUN_CLASS = 'vtt-saved-run';
+/** The last word of a run on its line: its line stops at the word's edge. */
+export const SAVED_RUN_END_CLASS = 'vtt-saved-run-end';
+
+/** Where a phrase can be read: the line itself, never its translation. */
+const LINE_SCOPE = '.vtt-main-text, .vtt-overlay-main';
+/**
+ * Every token a line renders, in order. A masked capsule and a filler token
+ * are in the stream so they BREAK a run: a phrase whose middle word is still
+ * hidden is not on screen, and marking its ends would give the word away.
+ */
+const TOKEN_SELECTOR = 'span[data-word], span[data-hidden], span.vtt-guess-filler';
 
 const view: SavedWords = createSavedWords();
 const subscribers = new Set<() => void>();
@@ -70,6 +93,100 @@ export function markSavedIn(container: HTMLElement): void {
     container.querySelectorAll<HTMLElement>(WORD_SELECTOR).forEach((span) => {
         const term = span.dataset.word ?? '';
         span.classList.toggle(SAVED_MARK_CLASS, term !== '' && view.has(term));
+    });
+    markSavedPhrasesIn(container);
+}
+
+/** A saved phrase as it stands on screen: its term and the words drawing it. */
+export interface SavedPhraseRun {
+    term: string;
+    spans: HTMLElement[];
+}
+
+/**
+ * Which run each marked word belongs to, so a pointer on any one word can be
+ * answered with the whole phrase. Written by markSavedPhrasesIn alongside the
+ * classes and cleared with them; weak, so a line torn down takes its entries.
+ */
+const runOf = new WeakMap<HTMLElement, SavedPhraseRun>();
+
+/**
+ * The saved phrase this word is drawn as part of, or null. Pointing at a word
+ * of a saved phrase is asking about the phrase — the learner saved the words
+ * together, and a card for one of them answers a question nobody asked.
+ */
+export function savedPhraseAt(span: HTMLElement): SavedPhraseRun | null {
+    if (!span.classList.contains(SAVED_RUN_CLASS)) return null;
+    const run = runOf.get(span);
+    return run && run.spans.every((s) => s.isConnected) ? run : null;
+}
+
+interface Token {
+    span: HTMLElement;
+    /** Normalized word, or null for a token no phrase may pass through. */
+    word: string | null;
+    /** Which line it sits on, counted within the painted container. */
+    line: number;
+}
+
+/** Saved multi-word terms, indexed by their first word. */
+function savedPhrases(): Map<string, string[][]> {
+    const byFirst = new Map<string, string[][]>();
+    for (const term of view.terms()) {
+        const words = term.split(' ');
+        if (words.length < 2) continue;
+        const list = byFirst.get(words[0]);
+        if (list) list.push(words);
+        else byFirst.set(words[0], [words]);
+    }
+    return byFirst;
+}
+
+/**
+ * Draw the unbroken line under every saved phrase on screen in `container`.
+ *
+ * A full re-decide, like markSavedIn: a phrase just removed loses its line.
+ * A phrase may run from one line into the next — the selection that saves it
+ * accepts two adjacent cues — but no further.
+ */
+export function markSavedPhrasesIn(container: HTMLElement): void {
+    container.querySelectorAll<HTMLElement>(`.${SAVED_RUN_CLASS}`).forEach((s) => {
+        s.classList.remove(SAVED_RUN_CLASS, SAVED_RUN_END_CLASS);
+        runOf.delete(s);
+    });
+    const phrases = savedPhrases();
+    if (phrases.size === 0) return;
+
+    const lines = container.matches(LINE_SCOPE)
+        ? [container]
+        : Array.from(container.querySelectorAll<HTMLElement>(LINE_SCOPE));
+    const stream: Token[] = [];
+    lines.forEach((lineEl, line) => {
+        lineEl.querySelectorAll<HTMLElement>(TOKEN_SELECTOR).forEach((span) => {
+            const raw = span.dataset.word;
+            stream.push({ span, word: raw === undefined ? null : normalizeTerm(raw), line });
+        });
+    });
+
+    stream.forEach((token, i) => {
+        if (!token.word) return;
+        for (const words of phrases.get(token.word) ?? []) {
+            const run = stream.slice(i, i + words.length);
+            if (run.length !== words.length) continue;
+            if (!run.every((t, k) => t.word === words[k])) continue;
+            if (run[run.length - 1].line - token.line > 1) continue;
+            const entry: SavedPhraseRun = { term: words.join(' '), spans: run.map((t) => t.span) };
+            run.forEach((t, k) => {
+                // The longest phrase a word belongs to answers for it: a
+                // saved "track down" inside a saved "to track down" is the
+                // smaller claim.
+                const prior = runOf.get(t.span);
+                if (!prior || prior.spans.length < entry.spans.length) runOf.set(t.span, entry);
+                t.span.classList.add(SAVED_RUN_CLASS);
+                const next = run[k + 1];
+                if (!next || next.line !== t.line) t.span.classList.add(SAVED_RUN_END_CLASS);
+            });
+        }
     });
 }
 
