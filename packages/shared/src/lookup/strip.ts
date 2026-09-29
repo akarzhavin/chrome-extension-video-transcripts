@@ -38,6 +38,7 @@ import { msg } from '../i18n';
 import { HEART_SVG, MORE_SVG, posLabel } from './icons';
 import { createSavedWords } from './saved-words';
 import { loadMirror, onMirrorChanged } from '../word-mirror';
+import { savedPhraseAt, type SavedPhraseRun } from '../transcript/saved-marks';
 import { loadLanguagePrefs } from '../languages';
 import type { LookupResult } from './types';
 import { MAX_LOOKUP_TERM_LEN } from './types';
@@ -60,6 +61,11 @@ import {
 } from '../content/quick-add-overlay';
 
 const STRIP_ID = 'lingogram-lookup-strip';
+
+// The open card's phrase: one unbroken line under all its words (lookup.css).
+const LOOKUP_RUN = 'vtt-lookup-run';
+const LOOKUP_RUN_END = 'vtt-lookup-run-end';
+const LINE_SCOPE = '.vtt-main-text, .vtt-overlay-main';
 
 // What the cursor may open a card on over the video: revealed words, and also
 // the masked capsules of guess mode, which park their word in data-hidden.
@@ -144,6 +150,13 @@ interface Anchor {
     context(): string;
     /** Overlay anchors pause the video; sidebar and selection ones do not. */
     pauses(): boolean;
+    /**
+     * Opened by a drag, i.e. by someone who picked this text to keep. Such a
+     * card never goes without its Save button: a failed or missing translation
+     * shows "No translation" above the heart instead of the error that fades
+     * away. Saving never needed the translation — only the card made it wait.
+     */
+    selected: boolean;
 }
 
 /**
@@ -166,8 +179,9 @@ function stillOnSpan(span: HTMLElement, e: MouseEvent): boolean {
         && e.clientY >= r.top && e.clientY <= r.bottom;
 }
 
-function spanAnchor(span: HTMLElement): Anchor {
+function spanAnchor(span: HTMLElement, selected = false): Anchor {
     return {
+        selected,
         // A masked guess-mode capsule keeps its word in data-hidden instead —
         // see makeMaskedSpan. Reading both is what lets the card open over a
         // word the user has not uncovered yet.
@@ -214,6 +228,42 @@ function selectionAnchor(payload: SelectionPayload, spans: HTMLElement[]): Ancho
         spans: () => spans,
         context: () => payload.context,
         pauses: () => spans.some((s) => s.closest('.vtt-overlay-main')),
+        selected: true,
+    };
+}
+
+/**
+ * A saved phrase the pointer is on. Hover-driven like a word — it closes when
+ * the pointer leaves all of its words — but it answers for the phrase, and its
+ * `key` is the phrase's first word so re-pointing anywhere in it is recognised
+ * as the same question.
+ */
+function runAnchor(run: SavedPhraseRun): Anchor {
+    const first = run.spans[0];
+    return {
+        selected: false,
+        term: run.term,
+        key: first,
+        rect: () => {
+            if (!run.spans.every((s) => s.isConnected)) return null;
+            // The phrase's first line: a run carried into the next cue still
+            // gets its card over where it starts.
+            const line = first.closest('.vtt-main-text, .vtt-overlay-main');
+            const rects = run.spans
+                .filter((s) => s.closest('.vtt-main-text, .vtt-overlay-main') === line)
+                .map((s) => s.getBoundingClientRect())
+                .filter((r) => r.width > 0 || r.height > 0);
+            if (rects.length === 0) return null;
+            const left = Math.min(...rects.map((r) => r.left));
+            const right = Math.max(...rects.map((r) => r.right));
+            const top = Math.min(...rects.map((r) => r.top));
+            const bottom = Math.max(...rects.map((r) => r.bottom));
+            return new DOMRect(left, top, right - left, bottom - top);
+        },
+        hovered: () => run.spans.some((s) => s.isConnected && s.matches(':hover')),
+        spans: () => run.spans,
+        context: () => spanAnchor(first).context(),
+        pauses: () => !!first.closest('.vtt-overlay-main'),
     };
 }
 
@@ -319,9 +369,18 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     // together (the approved mock had it; the first build lost it).
     let markedSpans: HTMLElement[] = [];
     function markAnchor(anchor: Anchor | null): void {
-        for (const el of markedSpans) el.classList.remove('vtt-lookup-hit');
+        for (const el of markedSpans) el.classList.remove('vtt-lookup-hit', LOOKUP_RUN, LOOKUP_RUN_END);
         markedSpans = anchor ? anchor.spans().filter((el) => el.isConnected) : [];
         for (const el of markedSpans) el.classList.add('vtt-lookup-hit');
+        // A phrase is one thing, so it gets one line, not a bar per word —
+        // the same shape its saved mark takes (transcript/saved-marks.ts).
+        if (markedSpans.length > 1) {
+            markedSpans.forEach((el, i) => {
+                el.classList.add(LOOKUP_RUN);
+                const next = markedSpans[i + 1];
+                if (!next || next.closest(LINE_SCOPE) !== el.closest(LINE_SCOPE)) el.classList.add(LOOKUP_RUN_END);
+            });
+        }
     }
 
     function removeStrip(): void {
@@ -501,6 +560,22 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         place(el, anchor);
     }
 
+    /**
+     * A selection whose translation did not arrive: the empty-answer card,
+     * "No translation" over the heart. Before this a failure here showed the
+     * fading error with no button at all, and a dragged phrase — which the
+     * dictionary rarely knows — could not be saved.
+     */
+    function renderUntranslated(anchor: Anchor, word: string, context: string): void {
+        renderResult(anchor, word, context, {
+            term: word,
+            lemma: word,
+            translations: [],
+            parts_of_speech: [],
+            source: '',
+        });
+    }
+
     async function handleSave(btn: HTMLElement, word: string, context: string, anchor: Anchor): Promise<void> {
         const term = word.toLowerCase();
         // A TOGGLE since US2. The guard that used to stand here — "saving again
@@ -572,6 +647,8 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             clearTimeout(spinTimer);
             if (res?.ok && res.result) {
                 renderResult(anchor, word, context, res.result);
+            } else if (anchor.selected) {
+                renderUntranslated(anchor, word, context);
             } else if (res?.error === 'lookup not configured') {
                 // A build without an API is not broken — the strip simply
                 // does not exist there.
@@ -582,7 +659,8 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         } catch {
             if (my !== token) return;
             clearTimeout(spinTimer);
-            renderError(anchor);
+            if (anchor.selected) renderUntranslated(anchor, word, context);
+            else renderError(anchor);
         }
     }
 
@@ -629,6 +707,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
     const anchorWatch = setInterval(dropIfAnchorGone, 500);
 
+    const hasSelection = (): boolean => {
+        const sel = window.getSelection();
+        return !!sel && !sel.isCollapsed && sel.rangeCount > 0;
+    };
+
     const onMouseOver = (e: MouseEvent): void => {
         // Mid-drag the cursor sweeps the words being selected; opening a card
         // for each would fight the phrase the user is still drawing. The
@@ -645,7 +728,18 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // what is held down right now, so a stale flag is corrected the moment
         // the cursor moves with nothing pressed. A genuine drag still reports a
         // non-zero mask and still suppresses the card.
-        if (dragging && e.buttons === 0) dragging = false;
+        if (dragging && e.buttons === 0) {
+            dragging = false;
+            // The release was never heard (see above). When it ended a drag —
+            // one that let go over a node the overlay had just rebuilt — the
+            // selection is still there, and this move is its release. With
+            // nothing selected it was a press (a guess reveal), and the hover
+            // goes on as usual.
+            if (hasSelection()) {
+                onSelectionMouseUp();
+                return;
+            }
+        }
         if (dragging) return;
         // The word came to the cursor rather than the cursor to the word: the
         // pointer is exactly where it was last seen, so this hover is the
@@ -681,7 +775,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // Passing over any other transcript word must not: the pointer crosses
         // several on its way out of the panel, and cancelling here left the
         // card — and the transcript hold it carries — up for good.
-        if (span === current?.key) {
+        if (span === current?.key || insideSelection(span) || insideCurrentRun(span)) {
             clearTimeout(hideTimer);
             return;
         }
@@ -694,7 +788,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         hoverTimer = setTimeout(() => {
             dwellSpan = null;
             dwellFrom = null;
-            const anchor = spanAnchor(span);
+            const anchor = anchorFor(span);
             dwellAnchor = anchor;
             // Leaving the word while show() is still reading storage clears
             // dwellAnchor (see onMouseOut) — nothing is up yet to hide.
@@ -707,12 +801,39 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         dwellFrom = null;
     };
 
+    /**
+     * A word inside the phrase card's own selection is not a new question. The
+     * drag ends with the hand resting on its last word, and the hover that
+     * followed replaced "Bolkiah also paid" with the card for "paid" — whose
+     * Save would have kept one word of the three.
+     */
+    const insideSelection = (span: HTMLElement): boolean =>
+        !!current?.selected && current.spans().includes(span);
+
+    /**
+     * The card a pointer on this word asks for: the whole saved phrase when the
+     * word is drawn as part of one, the word itself otherwise. Seen live: "To
+     * track down", saved and underlined, answered a hover on "track" with the
+     * card for "track" — the phrase's own translation and its filled heart were
+     * nowhere, so it looked as if the save had not happened.
+     */
+    const anchorFor = (span: HTMLElement): Anchor => {
+        const run = savedPhraseAt(span);
+        return run ? runAnchor(run) : spanAnchor(span);
+    };
+
+    /** Already showing the phrase this word belongs to — nothing new asked. */
+    const insideCurrentRun = (span: HTMLElement): boolean => {
+        const run = savedPhraseAt(span);
+        return !!run && !!current && current.key === run.spans[0];
+    };
+
     /** Arm the debounce for a word the user has genuinely pointed at. */
     const aimAt = (span: HTMLElement): void => {
         clearTimeout(hideTimer);
-        if (span === current?.key) return;
+        if (span === current?.key || insideSelection(span) || insideCurrentRun(span)) return;
         clearTimeout(hoverTimer);
-        hoverTimer = setTimeout(() => void show(spanAnchor(span)), HOVER_DELAY_MS);
+        hoverTimer = setTimeout(() => void show(anchorFor(span)), HOVER_DELAY_MS);
     };
 
     const onMouseOut = (e: MouseEvent): void => {
@@ -726,7 +847,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             // Only a card this word opened by resting closes on leaving it. A
             // card opened on a selection is not tied to any word the pointer
             // crosses afterwards — not even a one-word selection's own word.
-            if (current && current === dwellAnchor && current.key === word) scheduleHide();
+            if (current && current === dwellAnchor && current.spans().includes(word)) scheduleHide();
             // A rest on this word that is still opening: withdraw it.
             else if (dwellAnchor && dwellAnchor !== current && dwellAnchor.key === word) dwellAnchor = null;
             return;
@@ -761,6 +882,9 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // for as long as it stays on screen.
         if (span === dismissed) dismissed = null;
         clearTimeout(hoverTimer);
+        // A card opened by a drag is not held up by the pointer, so leaving a
+        // word is no reason to close it: it stays until it is dismissed.
+        if (current?.selected) return;
         scheduleHide();
     };
 
@@ -783,9 +907,12 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             // One word dragged over is the word itself — let the span path own
             // it, so hovering it again finds the card already open on it.
             const spans = selectionWordSpans();
+            // A hover armed on the way — before the press was heard, or on the
+            // word the hand stops on — must not land on top of this card.
+            clearTimeout(hoverTimer);
             removeStrip();
             void show(spans.length === 1
-                ? spanAnchor(spans[0])
+                ? spanAnchor(spans[0], true)
                 : selectionAnchor(payload, spans));
         }, 0);
     };
@@ -808,7 +935,18 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // so continuously: without this, drawing a two-word phrase spends a
         // request per word on the way and pauses the film mid-selection, and
         // then onSelectionMouseUp spends a third on the phrase itself.
-        if (dragging && e.buttons === 0) dragging = false;
+        if (dragging && e.buttons === 0) {
+            dragging = false;
+            // The release was never heard (see above). When it ended a drag —
+            // one that let go over a node the overlay had just rebuilt — the
+            // selection is still there, and this move is its release. With
+            // nothing selected it was a press (a guess reveal), and the hover
+            // goes on as usual.
+            if (hasSelection()) {
+                onSelectionMouseUp();
+                return;
+            }
+        }
         if (dragging) return;
         // A word suppressed above must not stay dead until the cue changes
         // again. Moving the pointer WITHIN the word it already rests on fires
@@ -862,16 +1000,21 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     document.addEventListener('mouseover', onMouseOver);
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseout', onMouseOut);
-    document.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('mouseup', onMouseUp);
+    // Capture phase for the press and the release: YouTube's player stops
+    // the mousedown from bubbling (measured over CDP — document saw it only
+    // while capturing). Heard in the bubble phase, a drag over the video never
+    // set `dragging`, every word it crossed armed its own card, and the last
+    // one replaced the phrase card after the release.
+    document.addEventListener('mousedown', onMouseDown, true);
+    document.addEventListener('mouseup', onMouseUp, true);
 
     return () => {
         unsubscribeMirror();
         document.removeEventListener('mouseover', onMouseOver);
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseout', onMouseOut);
-        document.removeEventListener('mousedown', onMouseDown);
-        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mousedown', onMouseDown, true);
+        document.removeEventListener('mouseup', onMouseUp, true);
         clearInterval(anchorWatch);
         releaseLayout?.();
         releaseLayout = null;

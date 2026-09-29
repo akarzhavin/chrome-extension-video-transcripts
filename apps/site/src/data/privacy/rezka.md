@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** September 18, 2026
+**Last updated:** September 28, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -17,8 +17,9 @@ used, where it is stored, and the choices you have.
   transcript, listening challenge, dual subtitles, and local word saving all run
   entirely inside your browser, and so does downloading a subtitle track as a
   file. Three things do leave it, with or without an account: **looking a word
-  up** sends that word and its subtitle line to our dictionary service (Section
-  1e); a **feedback message you choose to send** reaches us with the text you
+  up** sends that word and its subtitle line to our dictionary service, and a
+  **phrase you select** goes first to Google Translate, without the subtitle line
+  (Section 1e); a **feedback message you choose to send** reaches us with the text you
   typed (Section 1g); and the anonymous usage counting described below, which
   you can turn off. None of them is tied to your identity unless you put it
   there yourself, by typing a reply address into your feedback.
@@ -238,6 +239,18 @@ lookups is not to look words up: the transcript, dual subtitles, listening
 challenge and local word saving all work without it. If the Extension was built
 without a dictionary endpoint configured, the feature is off entirely.
 
+**Phrases you select go to Google Translate first.** When you drag across more than
+one word, the Extension first asks Google's public web translator
+(translate.googleapis.com, then translate.google.com) for that phrase, directly
+from your browser. That request
+contains only the **selected phrase** and the **language you want it in**. It does
+not contain the subtitle line, and it carries no account identifier, no email, no
+analytics identifier and no cookies. Like any web request, it reaches Google from
+your IP address, and Google processes it under its own Privacy Policy
+(https://policies.google.com/privacy). The dictionary service is asked about the
+phrase, as described above, only when Google gives no answer. Hovering or clicking
+a single word never goes to Google Translate.
+
 Answers are cached briefly on your device so the same word is not asked twice.
 
 ### f. The welcome and farewell pages
@@ -360,11 +373,17 @@ These requests:
 * contain no account data or saved words;
 * are subject to the privacy policies of those platforms.
 
+A **phrase you select** is sent to **Google Translate** (translate.googleapis.com
+and translate.google.com) directly from your browser, as described in Section 1e: the phrase and your
+language only, without cookies or any identifier of ours. Google handles those
+requests under its own Privacy Policy and terms.
+
 ## 5. Data Sharing and Sale
 
 We do **not** sell, rent, or trade your personal data. We do not share it with any
 third party except Google Firebase and Google Analytics as the infrastructure and
-analytics providers described in Section 4, or where required by law. The dictionary
+analytics providers described in Section 4, and Google Translate, which receives
+the text of a phrase you select (Section 1e), or where required by law. The dictionary
 service of Section 1e is our own, not a third party. We do not use your data for
 advertising.
 

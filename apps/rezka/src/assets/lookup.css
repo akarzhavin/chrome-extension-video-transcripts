@@ -125,6 +125,25 @@
     pointer-events: none;
 }
 
+/* The open card's PHRASE: the same unbroken line a saved phrase gets
+   (styles.css, span.vtt-saved-run), in the accent. Once the phrase is saved
+   the line turns to the heart without changing shape. */
+span.vtt-lookup-run::after {
+    left: 0;
+    right: -0.3em;
+    width: auto;
+    transform: none;
+    border-radius: 0;
+}
+
+span.vtt-lookup-run.vtt-lookup-run-end::after {
+    right: 0;
+}
+
+span.vtt-lookup-run.vtt-saved-run::after {
+    background: var(--vtt-heart);
+}
+
 .vtt-lookup-muted {
     color: var(--vtt-text-dim);
     font-size: 12.5px;

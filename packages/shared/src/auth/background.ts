@@ -8,7 +8,14 @@ import { config } from './config';
 import { handleDevAction, restoreEnv, switchableFrontendBaseUrls } from './devEnvSwitch';
 // Relative for the same reason as analytics-bg: the worker imports by path,
 // and lookup.ts is deliberately absent from the package barrel.
-import { MAX_LOOKUP_TERM_LEN, hasLookupContent, latencyBucket, lookupCached } from '../lookup';
+import {
+    MAX_LOOKUP_TERM_LEN,
+    hasLookupContent,
+    isPhrase,
+    latencyBucket,
+    lookupCached,
+    lookupPhraseCached,
+} from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
 import { applySyncedDocs, loadMirror } from '../word-mirror';
@@ -568,7 +575,11 @@ export async function handleAuthMessage(
             // third-party subtitle track sets that. Refuse here too, where
             // every caller passes, rather than trusting each call site.
             if (term.length > MAX_LOOKUP_TERM_LEN) return { ok: false, error: 'term too long' };
-            if (!config.apiBaseUrl) return { ok: false, error: 'lookup not configured' };
+            // A phrase goes to Google first, from the user's own IP, and only
+            // falls back to the service (lookupPhraseCached) — so a build with
+            // no API still translates phrases. A word has no path without it.
+            const phrase = isPhrase(term);
+            if (!phrase && !config.apiBaseUrl) return { ok: false, error: 'lookup not configured' };
             const context = typeof request.context === 'string' ? request.context : '';
             // Two sizes: the strip wants one sense (~2 KB, not the 41 KB a
             // full "running" entry weighs), the word screen wants a readable
@@ -580,7 +591,7 @@ export async function handleAuthMessage(
             const site = String(request.site ?? '');
             const started = Date.now();
             try {
-                const { result, cached } = await lookupCached(
+                const { result, cached } = await (phrase ? lookupPhraseCached : lookupCached)(
                     config.apiBaseUrl,
                     { term, targetLang, context, ...limits },
                     level !== 'strip',

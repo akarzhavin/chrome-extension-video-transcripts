@@ -21,6 +21,8 @@
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
     "https://firestore.googleapis.com/*",
+    "https://translate.google.com/*",
+    "https://translate.googleapis.com/*",
     "http://localhost:9099/*",
     "http://localhost:8080/*"
   ],
