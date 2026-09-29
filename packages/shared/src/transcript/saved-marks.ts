@@ -168,6 +168,11 @@ export function markSavedPhrasesIn(container: HTMLElement): void {
         });
     });
 
+    // "Longest wins" is judged within this pass only. runOf is cleared above
+    // through the class, and guess mode strips the class by replacing
+    // className when it re-masks a word — so a record left from an earlier
+    // pass can outlive its phrase and would outrank the shorter one still saved.
+    const claimed = new Map<HTMLElement, SavedPhraseRun>();
     stream.forEach((token, i) => {
         if (!token.word) return;
         for (const words of phrases.get(token.word) ?? []) {
@@ -180,14 +185,15 @@ export function markSavedPhrasesIn(container: HTMLElement): void {
                 // The longest phrase a word belongs to answers for it: a
                 // saved "track down" inside a saved "to track down" is the
                 // smaller claim.
-                const prior = runOf.get(t.span);
-                if (!prior || prior.spans.length < entry.spans.length) runOf.set(t.span, entry);
+                const prior = claimed.get(t.span);
+                if (!prior || prior.spans.length < entry.spans.length) claimed.set(t.span, entry);
                 t.span.classList.add(SAVED_RUN_CLASS);
                 const next = run[k + 1];
                 if (!next || next.line !== t.line) t.span.classList.add(SAVED_RUN_END_CLASS);
             });
         }
     });
+    claimed.forEach((entry, span) => runOf.set(span, entry));
 }
 
 /**

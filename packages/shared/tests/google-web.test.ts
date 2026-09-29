@@ -168,6 +168,26 @@ describe('fetchGooglePhrase', () => {
         await expect(fetchGooglePhrase('give it a shot', 'ru')).rejects.toThrow('google HTTP 429');
     });
 
+    it('gives both endpoints one 3 s budget, not 3 s each', async () => {
+        jest.useFakeTimers();
+        try {
+            (global.fetch as jest.Mock).mockImplementation((_url, init: RequestInit) =>
+                new Promise((_resolve, reject) => {
+                    (init.signal as AbortSignal).addEventListener('abort', () => {
+                        const err = new Error('aborted');
+                        (err as any).name = 'AbortError';
+                        reject(err);
+                    });
+                }));
+            const p = fetchGooglePhrase('give it a shot', 'ru');
+            const guarded = expect(p).rejects.toThrow('google timeout');
+            await jest.advanceTimersByTimeAsync(3001);
+            await guarded;
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('is null when an endpoint answered with nothing and the other failed', async () => {
         (global.fetch as jest.Mock)
             .mockResolvedValueOnce(gtxOk('give it a shot'))

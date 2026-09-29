@@ -54,6 +54,7 @@ const listeners: Array<(changes: Record<string, chrome.storage.StorageChange>, a
 import { setMirrorEntry } from '../src/word-mirror';
 import {
     markSavedPhrasesIn,
+    savedPhraseAt,
     startSavedMarks,
     __resetSavedMarksForTest,
 } from '../src/transcript/saved-marks';
@@ -152,4 +153,27 @@ test('in the sidebar: resting on a word of a saved phrase opens the phrase', asy
 
     expect(lookups()).toEqual(['to track down']);
     expect(card()?.dataset.word).toBe('to track down');
+});
+
+test('a phrase removed while its word was masked does not answer for it once revealed', async () => {
+    // Guess mode re-masks and reveals by replacing className wholesale, so a
+    // word leaves and re-enters the underline without the pass that clears
+    // its phrase record ever seeing it.
+    await setMirrorEntry('track down', 'active');
+    const spans = line('overlay', 'To', 'track', 'down', '12', 'of');
+    const track = spans[1];
+
+    track.dataset.hidden = 'track';
+    delete track.dataset.word;
+    track.className = 'vtt-masked-word';
+    markSavedPhrasesIn(track.parentElement!);
+    await setMirrorEntry('to track down', 'removed');
+    await new Promise((r) => setTimeout(r, 0));
+
+    track.dataset.word = 'track';
+    delete track.dataset.hidden;
+    track.className = 'vtt-revealed-word';
+    markSavedPhrasesIn(track.parentElement!);
+
+    expect(savedPhraseAt(track)?.term).toBe('track down');
 });

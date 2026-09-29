@@ -23,8 +23,16 @@ const GOOGLE_WEB_URL = 'https://translate.google.com/m';
 const GOOGLE_GTX_URL = 'https://translate.googleapis.com/translate_a/single';
 
 // The strip has already waited for a mouseup; a phrase that takes longer than
-// this is better answered by the fallback than by a spinner.
+// this is better answered by the fallback than by a spinner. One budget for
+// the whole Google leg, not per request: fetchGooglePhrase asks two endpoints
+// in turn, and 3 s each would hold a paused video for 6 s before the fallback
+// even starts.
 export const GOOGLE_WEB_TIMEOUT_MS = 3000;
+
+/** When a Google request started now has to give up, as a Date.now() value. */
+function freshDeadline(): number {
+    return Date.now() + GOOGLE_WEB_TIMEOUT_MS;
+}
 
 // deep-translator reads div.t0 first and falls back to div.result-container;
 // the page has carried each at different times.
@@ -70,10 +78,12 @@ function phraseAnswer(phrase: string, translation: string): LookupResult | null 
     };
 }
 
-/** GET with the budget and without cookies; throws on timeout or a non-2xx. */
-async function getText(url: string): Promise<string> {
+/** GET without cookies until `deadline`; throws on timeout or a non-2xx. */
+async function getText(url: string, deadline: number): Promise<string> {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw new Error('google timeout');
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), GOOGLE_WEB_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), remaining);
     try {
         // No cookies: the request must not carry the user's Google session,
         // which is also what the privacy policy promises (Section 1e).
@@ -109,24 +119,29 @@ export function parseGoogleGtx(body: string): string {
 }
 
 /** One phrase through Google's JSON endpoint. Same contract as fetchGoogleWeb. */
-export async function fetchGoogleGtx(term: string, targetLang: string): Promise<LookupResult | null> {
+export async function fetchGoogleGtx(
+    term: string,
+    targetLang: string,
+    deadline = freshDeadline(),
+): Promise<LookupResult | null> {
     const phrase = term.trim();
     const params = new URLSearchParams({ client: 'gtx', sl: 'auto', tl: targetLang, dt: 't', q: phrase });
-    return phraseAnswer(phrase, parseGoogleGtx(await getText(`${GOOGLE_GTX_URL}?${params.toString()}`)));
+    return phraseAnswer(phrase, parseGoogleGtx(await getText(`${GOOGLE_GTX_URL}?${params.toString()}`, deadline)));
 }
 
 /**
- * A phrase through Google: the JSON endpoint, then the /m page. The first
- * translation wins. Null when both answered with nothing; when neither
+ * A phrase through Google: the JSON endpoint, then the /m page, both inside
+ * one GOOGLE_WEB_TIMEOUT_MS budget. The first translation wins. Null when both answered with nothing; when neither
  * answered at all, the last failure is thrown, so a caller with no fallback
  * can tell "untranslatable" from "unreachable".
  */
 export async function fetchGooglePhrase(term: string, targetLang: string): Promise<LookupResult | null> {
     let failure: unknown = null;
     let answered = false;
+    const deadline = freshDeadline();
     for (const attempt of [fetchGoogleGtx, fetchGoogleWeb]) {
         try {
-            const answer = await attempt(term, targetLang);
+            const answer = await attempt(term, targetLang, deadline);
             if (answer) return answer;
             answered = true;
         } catch (err) {
@@ -143,8 +158,12 @@ export async function fetchGooglePhrase(term: string, targetLang: string): Promi
  * timeout, transport failure or a non-2xx (429 included) — every one of which
  * the caller answers with the fallback.
  */
-export async function fetchGoogleWeb(term: string, targetLang: string): Promise<LookupResult | null> {
+export async function fetchGoogleWeb(
+    term: string,
+    targetLang: string,
+    deadline = freshDeadline(),
+): Promise<LookupResult | null> {
     const phrase = term.trim();
     const params = new URLSearchParams({ sl: 'auto', tl: targetLang, q: phrase });
-    return phraseAnswer(phrase, parseGoogleWebHtml(await getText(`${GOOGLE_WEB_URL}?${params.toString()}`)));
+    return phraseAnswer(phrase, parseGoogleWebHtml(await getText(`${GOOGLE_WEB_URL}?${params.toString()}`, deadline)));
 }
