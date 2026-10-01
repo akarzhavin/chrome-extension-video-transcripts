@@ -14,7 +14,7 @@
     "default_title": "Lingogram",
     "default_popup": "popup.html"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "contextMenus", "scripting", "activeTab"],
   "host_permissions": [
     "*://*.youtube.com/*",
     "*://*.netflix.com/*",
@@ -27,6 +27,7 @@
     "http://localhost:8080/*"
   ],
   "externally_connectable": {
+    "ids": ["hmdkmkimdbomemfcjmgeclchbcdbhabj"],
     "matches": [
       "http://localhost:5173/*",
       "https://lingogram.ai/*"

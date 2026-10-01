@@ -43,9 +43,12 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         // background.ts calls installOnboarding at import time; without these
         // the whole suite failed to load on `onInstalled.addListener`.
         onInstalled: { addListener: jest.fn() },
+        // background.ts also installs the right-click menu at import time.
+        onStartup: { addListener: jest.fn() },
         OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
         setUninstallURL: jest.fn(),
     },
+    contextMenus: { removeAll: jest.fn(), create: jest.fn(), onClicked: { addListener: jest.fn() } },
     tabs: {
         get: jest.fn(),
         sendMessage: jest.fn(),
@@ -341,6 +344,19 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         expect(res.error).toMatch(/unauthorized/);
         const state = await getAuthState();
         expect(state).toBeNull();
+    });
+
+    test('leaves the other edition\'s menu ping unanswered, for the menu listener to answer', () => {
+        // Answering here would win the race to sendResponse with a refusal,
+        // and the other edition would read its sibling as absent.
+        const respond = jest.fn();
+        const ret = capturedExternalListener!(
+            { type: 'lingogram-sibling', op: 'ping' },
+            { id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan' },
+            respond,
+        );
+        expect(ret).toBe(false);
+        expect(respond).not.toHaveBeenCalled();
     });
 
     test('rejects unknown message type', async () => {

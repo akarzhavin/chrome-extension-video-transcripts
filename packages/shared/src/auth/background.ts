@@ -20,6 +20,7 @@ import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
 import { applySyncedDocs, loadMirror } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import { loadLanguagePrefs } from '../languages';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
@@ -404,7 +405,14 @@ export async function handleAuthMessage(
                 // it sees promptRate; here we only decide + burn the one-shot.
                 const savedWordCount = await bumpSavedWordCount();
                 let promptRate = false;
-                if (savedWordCount >= RATE_PROMPT_WORD_THRESHOLD && !(await getRatePromptShown())) {
+                // `silent` = the caller has no page UI to render the banner (the
+                // context-menu save): burning the one-shot there would spend
+                // the only ask on a save nobody saw it on.
+                if (
+                    request.silent !== true &&
+                    savedWordCount >= RATE_PROMPT_WORD_THRESHOLD &&
+                    !(await getRatePromptShown())
+                ) {
                     await markRatePromptShown();
                     promptRate = true;
                 }
@@ -691,6 +699,9 @@ function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean 
 
 export function installExternalAuthHandoff(): void {
     chrome.runtime.onMessageExternal.addListener((message: ExternalAuthMessage, sender, sendResponse) => {
+        // The other edition's menu ping has its own listener (context-menu-save.ts).
+        // Answering it here would beat that listener to sendResponse with a refusal.
+        if (isSiblingMessage(message)) return false;
         if (!isAllowedExternalSender(sender)) {
             sendResponse({ ok: false, error: 'unauthorized origin' });
             return false;

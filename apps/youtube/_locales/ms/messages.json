@@ -634,5 +634,9 @@
   "dupCopyAction": {
     "message": "Buka tetapan sambungan",
     "description": "Button on the 'running twice' banner: opens the other copy's page in chrome://extensions, where its on/off switch is."
+  },
+  "ctxMenuSave": {
+    "message": "Simpan ke Lingogram",
+    "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   }
 }

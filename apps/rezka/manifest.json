@@ -15,7 +15,10 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "contextMenus",
+    "scripting",
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.rezka-ua.tv/*",
@@ -282,6 +285,7 @@
     "http://localhost:8080/*"
   ],
   "externally_connectable": {
+    "ids": ["pkoibjilnaeadmcnmfkgcjhalljbmfan"],
     "matches": [
       "http://localhost:5173/*",
       "https://lingogram.ai/*"

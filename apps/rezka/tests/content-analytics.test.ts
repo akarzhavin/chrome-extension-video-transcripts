@@ -38,10 +38,13 @@ let messageListener: ((req: any) => void) | null = null;
         // though this suite only exercises classifyStatus().
         onMessageExternal: { addListener: jest.fn() },
         onInstalled: { addListener: jest.fn() },
+        // background.ts also installs the right-click menu at import time.
+        onStartup: { addListener: jest.fn() },
         OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
         setUninstallURL: jest.fn(),
         lastError: undefined,
     },
+    contextMenus: { removeAll: jest.fn(), create: jest.fn(), onClicked: { addListener: jest.fn() } },
     tabs: { create: jest.fn(), sendMessage: jest.fn() },
     action: { setBadgeText: jest.fn(), setBadgeBackgroundColor: jest.fn() },
     i18n: { getMessage: () => '', getUILanguage: () => 'en' },
