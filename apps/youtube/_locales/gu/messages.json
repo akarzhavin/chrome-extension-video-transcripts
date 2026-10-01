@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Lingogram માં સાચવો",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "વેબસાઇટ પર",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "વેબસાઇટ પર મારા શબ્દો હાઇલાઇટ કરો",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "તમે સાચવેલા શબ્દો તમે વાંચો છો તે કોઈપણ પેજ પર ચિહ્નિત થાય છે. મેળ તમારા ઉપકરણ પર જ તપાસાય છે; કંઈ મોકલાતું નથી.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

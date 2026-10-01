@@ -14,7 +14,7 @@
 
 import { track } from './analytics-bg';
 import { handleAuthMessage } from './auth/background';
-import { AUTH_UID_KEY, getAuthState } from './auth/storage';
+import { AUTH_UID_KEY, getAuthState, SIBLING_KEYS } from './auth/storage';
 import { msg } from './i18n';
 import {
     editionOf,
@@ -93,6 +93,13 @@ function tellSibling(): void {
 async function decideAndApply(): Promise<void> {
     const signedIn = !!(await getAuthState());
     const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, await siblingStatus());
+    // The same answer decides who paints saved words on web pages: a content
+    // script cannot message another extension, so it reads the worker's answer.
+    try {
+        await chrome.storage?.local?.set({ [SIBLING_KEYS.otherOwns]: !owns });
+    } catch {
+        // storage unavailable — the page script then paints, a duplicate at worst.
+    }
     await (owns ? showItem() : hideItem());
 }
 

@@ -17,6 +17,7 @@ jest.mock('../src/auth/background', () => ({
 }));
 jest.mock('../src/auth/storage', () => ({
     AUTH_UID_KEY: 'auth.uid',
+    SIBLING_KEYS: { otherOwns: 'sibling.otherOwns' },
     getAuthState: () => getAuthState(),
 }));
 jest.mock('../src/word-mirror', () => ({
@@ -72,7 +73,10 @@ const DEV_ID = 'abcdefghijklmnopabcdefghijklmnop';
         onMessageExternal: { addListener: (f: any) => (listeners.external = f) },
         lastError: undefined as unknown,
     },
-    storage: { onChanged: { addListener: (f: any) => (listeners.storage = f) } },
+    storage: {
+        local: { set: jest.fn(async (_o: Record<string, unknown>) => {}) },
+        onChanged: { addListener: (f: any) => (listeners.storage = f) },
+    },
     contextMenus: {
         removeAll,
         create,
@@ -274,7 +278,13 @@ describe('two editions installed side by side', () => {
         siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: yt });
         await asEdition(EDITION_IDS.rezka, rz);
         const rezkaShows = live.length === 1;
-        expect({ youtubeShows, rezkaShows }).toEqual({ youtubeShows: owner === 'youtube', rezkaShows: owner === 'rezka' });
+        // The page highlighter of this edition reads the same answer.
+        const rezkaYields = (global as any).chrome.storage.local.set.mock.calls.at(-1)[0]['sibling.otherOwns'];
+        expect({ youtubeShows, rezkaShows, rezkaYields }).toEqual({
+            youtubeShows: owner === 'youtube',
+            rezkaShows: owner === 'rezka',
+            rezkaYields: owner === 'youtube',
+        });
     });
 
     it('keeps the item when the other edition is absent', async () => {

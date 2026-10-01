@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "I-save sa Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "Sa mga website",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "I-highlight ang aking mga salita sa mga website",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "Minamarkahan ang mga salitang na-save mo sa anumang pahinang binabasa mo. Sa device mo ginagawa ang pagtutugma; walang ipinapadala.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

@@ -183,6 +183,7 @@ export default defineConfig(({ command, mode }) => {
     const isContent = mode === 'content';
     const isPageScript = mode === 'page-script';
     const isPopup = mode === 'popup';
+    const isHighlight = mode === 'highlight';
 
     return {
       ...commonConfig,
@@ -198,13 +199,16 @@ export default defineConfig(({ command, mode }) => {
               ? resolve(__dirname, 'src/content/index.ts')
               : isPopup
                 ? resolve(__dirname, 'src/popup/popup.ts')
+                : isHighlight
+                ? resolve(__dirname, 'src/content/page-highlight.ts')
                 : resolve(__dirname, 'src/content/page-script.ts'),
           formats: [isBackground ? 'es' : 'iife'],
-          name: isContent ? 'YtVttContent' : isPageScript ? 'YtPageScript' : isPopup ? 'YtPopup' : undefined,
+          name: isContent ? 'YtVttContent' : isHighlight ? 'LgPageHighlight' : isPageScript ? 'YtPageScript' : isPopup ? 'YtPopup' : undefined,
           fileName: () => {
             if (isBackground) return 'src/background/background.js';
             if (isContent) return 'src/content/index.js';
             if (isPopup) return 'src/popup/popup.js';
+            if (isHighlight) return 'src/content/page-highlight.js';
             if (isPageScript) return 'src/content/page-script.js';
             return 'bundle.js';
           },
@@ -296,6 +300,11 @@ export default defineConfig(({ command, mode }) => {
               // Loaded after styles.css (see the manifest) — it consumes that
               // file's tokens and defines none of its own.
               src: '../rezka/src/assets/lookup.css',
+              dest: 'src/assets',
+              rename: { stripBase: true },
+            },
+            {
+              src: '../rezka/src/assets/page-highlight.css',
               dest: 'src/assets',
               rename: { stripBase: true },
             },

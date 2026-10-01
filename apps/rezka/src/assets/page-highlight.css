@@ -1,0 +1,16 @@
+/* Saved words in the text of any web page (packages/shared/src/page-highlight).
+
+   Painted with the CSS Custom Highlight API, so this is the whole stylesheet:
+   a ::highlight() rule may only set colours, text-decoration and text-shadow,
+   and it cannot touch the host page's layout. Literal colours, not --vtt-*
+   tokens: those are defined on the extension's own panel, not on someone
+   else's page. */
+::highlight(lingogram-saved) {
+    /* A line in the heart colour and nothing else: no wash over the text, so a
+       dense page stays readable and the mark never looks like a selection. */
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-color: #e8577a;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+}

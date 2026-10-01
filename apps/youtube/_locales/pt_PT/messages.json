@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Guardar no Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "Em sites",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "Destacar as minhas palavras em sites",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "As palavras que guardou são destacadas em qualquer página que ler. A verificação é feita no seu dispositivo; nada é enviado.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

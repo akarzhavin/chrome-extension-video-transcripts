@@ -86,7 +86,7 @@ describe('privacy toggle', () => {
         });
 
     const checkbox = () =>
-        document.querySelector<HTMLInputElement>('.toggle-row input[type="checkbox"]');
+        document.querySelector<HTMLInputElement>('input[data-pref="analyticsEnabled"]');
 
     test('renders checked by default', async () => {
         // Analytics is on unless turned off, and a privacy control that flashes

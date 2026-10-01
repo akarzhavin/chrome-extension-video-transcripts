@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Lưu vào Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "Trên trang web",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "Đánh dấu từ của tôi trên trang web",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "Những từ bạn đã lưu được đánh dấu trên mọi trang bạn đọc. Việc đối chiếu diễn ra trên thiết bị của bạn, không có gì được gửi đi.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

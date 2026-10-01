@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Lingogram-இல் சேமி",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "இணையதளங்களில்",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "இணையதளங்களில் என் சொற்களை முன்னிலைப்படுத்து",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "நீங்கள் சேமித்த சொற்கள் நீங்கள் படிக்கும் எந்தப் பக்கத்திலும் குறிக்கப்படும். பொருத்தம் பார்ப்பது உங்கள் சாதனத்திலேயே நடக்கும்; எதுவும் அனுப்பப்படாது.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

@@ -53,6 +53,15 @@ export const NOTIFICATION_KEYS = {
     dismissed: 'notif.dismissed',
 } as const;
 
+// Sibling-edition state. Written only by context-menu-save.ts, read by
+// page-highlight: whether the OTHER edition owns the shared features (the menu
+// item and the page marks) by the rule in sibling.ts, so only one of two
+// installed editions paints saved words on web pages. A boolean about the
+// other extension, nothing about the user.
+export const SIBLING_KEYS = {
+    otherOwns: 'sibling.otherOwns',
+} as const;
+
 // Anonymous-analytics storage keys. Read/written only by analytics-bg.ts;
 // declared here so this file stays the single inventory of extension storage
 // keys that the privacy policy's "Local Storage" section documents. None of

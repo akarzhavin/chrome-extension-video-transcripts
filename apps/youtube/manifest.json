@@ -35,6 +35,13 @@
   },
   "content_scripts": [
     {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/page-highlight.js"],
+      "css": ["src/assets/page-highlight.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
       "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"],
       "js": ["src/content/page-script.js"],
       "run_at": "document_start",
