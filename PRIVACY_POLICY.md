@@ -146,8 +146,12 @@ and compares it with the local list of your saved words described in Section 3.
 The page text, the words found in it, and the address of the page are **never
 sent anywhere** — not to us, not to Google, not to anyone — and nothing about
 them is stored. The marks are drawn by the browser over the text and do not change
-the page. This requires Chrome's permission to run on all websites, which is the
-only thing the Extension uses that permission for. If you are not signed in or have
+the page's content. Because they are drawn on the page, **the website's own
+scripts can see which of its words are marked**, and through that, some of the words on
+your list. To limit this, only text that is actually shown on the page is
+marked, never hidden text. This requires Chrome's permission to run on all
+websites, which is the only thing the Extension uses that permission for; it
+does not run on Lingogram's own website. If you are not signed in or have
 saved no words, nothing is marked. You can switch it off in the toolbar popup →
 **On websites** → **"Highlight my words on websites"**. If both editions are
 installed, only the one that shows the menu item marks words.

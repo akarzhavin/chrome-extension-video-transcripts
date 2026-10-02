@@ -42,7 +42,7 @@ const changeListeners: Array<(c: Record<string, chrome.storage.StorageChange>, a
     },
 };
 
-import { HIGHLIGHT_NAME, createPageHighlighter, findSaved, installPageHighlight } from '../src/page-highlight';
+import { HIGHLIGHT_NAME, createPageHighlighter, findSaved, indexSaved, installPageHighlight } from '../src/page-highlight';
 import { PREFS_KEY } from '../src/prefs';
 import { setMirrorEntry } from '../src/word-mirror';
 import { SIBLING_KEYS } from '../src/auth/storage';
@@ -52,8 +52,11 @@ const wait = (ms = 0) => new Promise((r) => setTimeout(r, ms));
 const settle = async () => {
     for (let i = 0; i < 5; i++) await wait(20);
 };
+/** The text under every mark, as the reader sees it. Works for StaticRange too. */
 const painted = (): string[] =>
-    [...(registry.get(HIGHLIGHT_NAME) ?? [])].map((r) => r.toString()).sort();
+    [...(registry.get(HIGHLIGHT_NAME) ?? [])]
+        .map((r: AbstractRange) => (r.startContainer as Text).data.slice(r.startOffset, r.endOffset))
+        .sort();
 
 const words = (...terms: string[]) => Object.fromEntries(terms.map((t) => [t, 'active' as const]));
 
@@ -65,15 +68,9 @@ beforeEach(() => {
 });
 
 describe('findSaved', () => {
-    const run = (text: string, saved: string[]) => {
-        const has = (k: string) => saved.includes(k);
-        const phrases = new Map<string, string[][]>();
-        for (const t of saved.filter((t) => t.includes(' '))) {
-            const w = t.split(' ');
-            phrases.set(w[0], [...(phrases.get(w[0]) ?? []), w]);
-        }
-        return findSaved(text, has, phrases).map(([a, b]) => text.slice(a, b));
-    };
+    // Through the real index, so the phrase index is under test as well.
+    const run = (text: string, saved: string[]) =>
+        findSaved(text, indexSaved(words(...saved))).map(([a, b]) => text.slice(a, b));
 
     it('finds a saved word whatever its case, and not inside another word', () => {
         expect(run('Run! Then run again, rerun.', ['run'])).toEqual(['Run', 'run']);
@@ -91,6 +88,19 @@ describe('findSaved', () => {
         expect(run('run, away', ['run away'])).toEqual([]);
     });
 
+    it('matches a curly apostrophe on the page to a straight one saved, and back', () => {
+        expect(run('I don’t know', ["don't"])).toEqual(['don’t']);
+        expect(run("I don't know", ['don’t'])).toEqual(["don't"]);
+    });
+
+    it('ignores punctuation saved at the ends of a selection', () => {
+        expect(run('A word here, and by the way more', ['word.', 'by the way,'])).toEqual(['word', 'by the way']);
+    });
+
+    it('prefers the longest saved phrase that starts at a word', () => {
+        expect(run('take it for granted', ['take it', 'take it for granted'])).toEqual(['take it for granted']);
+    });
+
     it('finds words in other scripts', () => {
         expect(run('Это слово, а не другое', ['слово'])).toEqual(['слово']);
     });
@@ -105,12 +115,18 @@ describe('the painter', () => {
             <code>cat</code>
             <div contenteditable="true">cat</div>
             <div id="vtt-sidebar"><span>cat</span></div>
-            <div class="vtt-overlay-main">cat</div>`;
+            <div class="vtt-overlay-main">cat</div>
+            <div style="display:none">cat</div>
+            <div style="visibility:hidden">cat</div>
+            <div hidden>cat</div>
+            <div aria-hidden="true">cat</div>
+            <div class="webvtt-cue">cat</div>`;
         const p = createPageHighlighter(document);
         p.setWords(words('cat', 'mat'));
         p.start();
         await settle();
-        expect(painted()).toEqual(['cat', 'mat']);
+        // The page's own `webvtt-cue` is not ours and is shown: marked.
+        expect(painted()).toEqual(['cat', 'cat', 'mat']);
     });
 
     it('takes the mark away when the word is removed', async () => {
@@ -175,6 +191,70 @@ describe('the painter', () => {
         yielding.stop();
         expect(painted()).toEqual(['cat']);
         painting.stop();
+    });
+
+    it('a saved phrase is one mark on the page', async () => {
+        document.body.innerHTML = '<p>We had to run away fast.</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('run', 'run away'));
+        p.start();
+        await settle();
+        expect(painted()).toEqual(['run away']);
+        p.stop();
+    });
+
+    it('a removed word loses its marks at once, without reading the page again', async () => {
+        document.body.innerHTML = '<p>cat and dog</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat', 'dog'));
+        p.start();
+        await settle();
+        const walk = jest.spyOn(document, 'createTreeWalker');
+        p.setWords({ cat: 'removed', dog: 'active' });
+        expect(painted()).toEqual(['dog']);
+        expect(walk).not.toHaveBeenCalled();
+        walk.mockRestore();
+        p.stop();
+    });
+
+    it('an added word keeps the existing marks on screen while the page is read again', async () => {
+        document.body.innerHTML = '<p>cat and dog</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat'));
+        p.start();
+        await settle();
+        p.setWords(words('cat', 'dog'));
+        expect(painted()).toEqual(['cat']); // not cleared first
+        await settle();
+        expect(painted()).toEqual(['cat', 'dog']);
+        p.stop();
+    });
+
+    it('a background tab is read when it is shown, not on every save', async () => {
+        document.body.innerHTML = '<p>cat and dog</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat'));
+        p.start();
+        await settle();
+        Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+        p.setWords(words('cat', 'dog'));
+        await settle();
+        expect(painted()).toEqual(['cat']);
+        Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+        await settle();
+        expect(painted()).toEqual(['cat', 'dog']);
+        p.stop();
+    });
+
+    it('a long page is read in slices, and all of it', async () => {
+        document.body.innerHTML = Array.from({ length: 3000 }, (_, i) => `<p>line ${i} cat</p>`).join('');
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat'));
+        p.start();
+        for (let i = 0; i < 200 && p.size < 3000; i++) await wait(20);
+        expect(p.size).toBe(3000);
+        p.stop();
     });
 
     it('never changes the page itself', async () => {
