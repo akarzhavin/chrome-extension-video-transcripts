@@ -31,9 +31,6 @@ export const MAX_TERM_LEN = 256;
 export const MAX_CONTEXT_LEN = 1000;
 const TOAST_MS = 2500;
 
-/** Auth failures that mean "sign in again", not "try later". */
-const SIGN_IN_ERROR = /Not signed in|sign in|INVALID_REFRESH_TOKEN|TOKEN_EXPIRED|40[013]/i;
-
 /** Reads chrome.runtime.lastError so Chrome does not log it as unchecked. */
 const quiet = (): void => {
     void chrome.runtime.lastError;
@@ -158,8 +155,7 @@ export async function saveSelection(
     if (!term || term.length > MAX_TERM_LEN) return;
     const tabId = tab?.id;
 
-    // Signed out: show the sign-in popup rather than failing silently. The click
-    // is a user gesture, which openPopup() needs, so nothing async comes first.
+    // Signed out: show the sign-in popup rather than failing silently.
     if (!(await getAuthState())) {
         await promptSignIn(tab);
         return;
@@ -171,7 +167,9 @@ export async function saveSelection(
     if (tabId != null) {
         try {
             const [res] = await chrome.scripting.executeScript({
-                target: { tabId },
+                // The frame the selection is in: the top frame's getSelection()
+                // knows nothing about a selection inside an iframe.
+                target: typeof info.frameId === 'number' ? { tabId, frameIds: [info.frameId] } : { tabId },
                 func: grabSelectionContext,
                 args: [MAX_CONTEXT_LEN],
             });
@@ -200,9 +198,12 @@ export async function saveSelection(
         await toast(tabId, msg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
     } catch (err) {
         const message = String(err instanceof Error ? err.message : err);
-        // Token revoked mid-save: handleAuthMessage already wiped the cached
-        // state and raised the badge; the popup is the way back in.
-        if (SIGN_IN_ERROR.test(message)) {
+        // Whether the session is gone is answered by storage, not by the error
+        // text: handleAuthMessage clears the session itself exactly when the
+        // failure means it is dead (isAuthFailure). A refusal by the rules (a
+        // save within a second of another, the daily cap) also says "403", and
+        // must not send a signed-in learner to sign in.
+        if (!(await getAuthState())) {
             await promptSignIn(tab);
             return;
         }
@@ -246,14 +247,58 @@ async function toast(tabId: number | undefined, text: string, ok: boolean): Prom
 
 // --- Injected into the page: self-contained, no references to the module ---
 
-function grabSelectionContext(limit: number): string {
+/**
+ * The text around the selection, at most `limit` characters, for the inbox.
+ *
+ * The prose block the selection starts in: a paragraph, list item, cell or
+ * heading. Never a generic wrapper (div, section, article), which can hold a
+ * whole page. Read without scripts and styles, and when the block is longer
+ * than `limit`, a window centred on the selection rather than its first
+ * `limit` characters, which would often not contain the word at all.
+ *
+ * Exported for tests; injected into the page, so it must stay self-contained.
+ */
+export function grabSelectionContext(limit: number): string {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return '';
-    const node: Node = sel.getRangeAt(0).commonAncestorContainer;
-    const el = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+    const range = sel.getRangeAt(0);
+    const picked = sel.toString().replace(/\s+/g, ' ').trim();
+    const start = range.startContainer;
+    const startEl = start.nodeType === Node.ELEMENT_NODE ? (start as Element) : start.parentElement;
     const block =
-        el?.closest('p, li, td, blockquote, h1, h2, h3, h4, h5, h6, article, section, div') ?? el;
-    return (block?.textContent ?? sel.toString()).replace(/\s+/g, ' ').trim().slice(0, limit);
+        startEl?.closest('p, li, dd, dt, td, th, blockquote, figcaption, caption, h1, h2, h3, h4, h5, h6') ??
+        startEl;
+    if (!block) return picked.slice(0, limit);
+
+    const clone = block.cloneNode(true) as Element;
+    clone.querySelectorAll('script, style, noscript, template').forEach((n) => n.remove());
+    const text = (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (text.length <= limit) return text;
+
+    // Where the selection starts within the block, approximately (whitespace is
+    // collapsed differently), then the occurrence of the selected text nearest
+    // to that point.
+    const before = document.createRange();
+    before.selectNodeContents(block);
+    before.setEnd(range.startContainer, range.startOffset);
+    const approx = before.toString().replace(/\s+/g, ' ').trimStart().length;
+    let at = -1;
+    if (picked) {
+        for (let i = text.indexOf(picked); i !== -1; i = text.indexOf(picked, i + 1)) {
+            if (at === -1 || Math.abs(i - approx) < Math.abs(at - approx)) at = i;
+        }
+    }
+    if (at === -1) at = Math.min(approx, text.length);
+
+    const room = Math.max(0, limit - picked.length);
+    let from = Math.max(0, at - Math.floor(room / 2));
+    const to = Math.min(text.length, from + limit);
+    from = Math.max(0, to - limit);
+    let out = text.slice(from, to);
+    // Whole words only at a cut edge.
+    if (from > 0) out = out.replace(/^\S*\s/, '');
+    if (to < text.length) out = out.replace(/\s\S*$/, '');
+    return out.trim();
 }
 
 function showToastInPage(text: string, ok: boolean, ms: number): void {

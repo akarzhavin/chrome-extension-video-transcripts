@@ -117,7 +117,8 @@ browser grants the Extension temporary access to the tab you clicked in
 paragraph it sits in, saves them as described above, and shows a short
 confirmation on the page. It does not run on other pages, does not read pages in
 the background, and does not record the page's address or title. If you are not
-signed in, pressing the item opens the sign-in window and nothing is sent. The
+signed in, pressing the item opens the sign-in window and nothing is saved; only
+the anonymous usage count of Section 1c notes that a sign-in was started. The
 analytics in Section 1c count such a save under the platform label `web`. The
 saved word carries the source tag of the edition whose menu item you pressed.
 If both editions are installed, only one shows the item: the one you are signed in

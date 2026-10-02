@@ -199,13 +199,37 @@ describe('signed out', () => {
 
 describe('failures', () => {
     it('sends a revoked session to the sign-in popup, not to an error toast', async () => {
+        // What handleAuthMessage does on a dead session: clears it, then throws.
         handleAuthMessage.mockImplementationOnce(async () => {
+            getAuthState.mockImplementation(async () => null);
             throw new Error('INVALID_REFRESH_TOKEN');
         });
         await click('word');
         await flush();
         expect(openPopup).toHaveBeenCalled();
         expect(setMirrorEntry).not.toHaveBeenCalled();
+    });
+
+    it('a refusal by the rules keeps a signed-in learner where they are', async () => {
+        // A save within a second of another one: the session is fine, so
+        // handleAuthMessage leaves it in place, but the message says 403.
+        handleAuthMessage.mockImplementationOnce(async () => {
+            throw new Error('Firestore rules 403: PERMISSION_DENIED');
+        });
+        await click('word');
+        await flush();
+        expect(openPopup).not.toHaveBeenCalled();
+        expect((global as any).chrome.action.setBadgeText).not.toHaveBeenCalled();
+        const toastCall = executeScript.mock.calls.find((c) => Array.isArray(c[0].args) && c[0].args.length === 3);
+        expect(toastCall?.[0].args[0]).toBe("Couldn't save: Firestore rules 403: PERMISSION_DENIED");
+    });
+
+    it('reads the context from the frame the selection is in', async () => {
+        (listeners.clicked as any)({ menuItemId: 'lingogram-add-to-inbox', selectionText: 'word', frameId: 4 }, TAB);
+        await flush();
+        const grab = executeScript.mock.calls.find((c) => Array.isArray(c[0].args) && c[0].args.length === 1);
+        expect(grab?.[0].target).toEqual({ tabId: 7, frameIds: [4] });
+        expect(grab?.[0].args).toEqual([1000]);
     });
 
     it('reports any other failure in a toast and leaves the mirror alone', async () => {
