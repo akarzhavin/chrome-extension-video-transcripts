@@ -129,9 +129,11 @@ the background, and does not record the page's address or title. If you are not
 signed in, pressing the item opens the sign-in window and nothing is sent. The
 analytics in Section 1c count such a save under the platform label `web`. The
 saved word carries the source tag of the edition whose menu item you pressed.
-If both editions are installed, only the YouTube edition shows the item; to know
-whether it is there, the HDrezka edition sends it a presence check that carries no
-data about you or the page.
+If both editions are installed, only one shows the item: the one you are signed in
+to, or the YouTube edition when you are signed in to both or to neither. To agree
+on this, each edition asks the other, inside your browser, whether it is installed
+and signed in; the answer is a yes or no and carries no other data about you or
+the page.
 
 ### c. Anonymous usage analytics (on by default, one click to turn off)
 

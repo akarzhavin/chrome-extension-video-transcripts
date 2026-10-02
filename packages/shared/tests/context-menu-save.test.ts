@@ -15,7 +15,10 @@ const track = jest.fn(async () => {});
 jest.mock('../src/auth/background', () => ({
     handleAuthMessage: (req: Record<string, unknown>) => handleAuthMessage(req),
 }));
-jest.mock('../src/auth/storage', () => ({ getAuthState: () => getAuthState() }));
+jest.mock('../src/auth/storage', () => ({
+    AUTH_UID_KEY: 'auth.uid',
+    getAuthState: () => getAuthState(),
+}));
 jest.mock('../src/word-mirror', () => ({
     setMirrorEntry: (t: string, s: string) => setMirrorEntry(t, s),
 }));
@@ -26,14 +29,33 @@ const listeners: {
     startup?: () => void;
     clicked?: (i: any, t: any) => void;
     external?: (m: any, sender: any, respond: (r: unknown) => void) => boolean;
+    storage?: (changes: Record<string, unknown>, area: string) => void;
 } = {};
-// The menu as Chrome holds it: removeAll empties it, create adds one item.
+// The menu as Chrome holds it. Calls are queued and answered later, in order,
+// as Chrome does; a create with an id already present fails with lastError.
 const live: any[] = [];
+const duplicateErrors: string[] = [];
+const later = (f: () => void) => setTimeout(f, 0);
 const removeAll = jest.fn((cb?: () => void) => {
-    live.length = 0;
-    cb?.();
+    later(() => {
+        live.length = 0;
+        cb?.();
+    });
 });
-const create = jest.fn((o: any) => live.push(o));
+const create = jest.fn((o: any, cb?: () => void) => {
+    later(() => {
+        const runtime = (global as any).chrome.runtime;
+        if (live.some((i) => i.id === o.id)) {
+            runtime.lastError = { message: `Cannot create item with duplicate id ${o.id}` };
+            duplicateErrors.push(o.id); // a create that lost a race, checked or not
+            cb?.();
+            runtime.lastError = undefined;
+            return;
+        }
+        live.push(o);
+        cb?.();
+    });
+});
 const executeScript = jest.fn(async (_opts: any): Promise<any[]> => [{ result: 'the paragraph around it' }]);
 const openPopup = jest.fn(async (_opts?: any) => {});
 const sendMessage = jest.fn(async (_id: string, _msg: unknown): Promise<unknown> => {
@@ -48,7 +70,9 @@ const DEV_ID = 'abcdefghijklmnopabcdefghijklmnop';
         onInstalled: { addListener: (f: () => void) => (listeners.installed = f) },
         onStartup: { addListener: (f: () => void) => (listeners.startup = f) },
         onMessageExternal: { addListener: (f: any) => (listeners.external = f) },
+        lastError: undefined as unknown,
     },
+    storage: { onChanged: { addListener: (f: any) => (listeners.storage = f) } },
     contextMenus: {
         removeAll,
         create,
@@ -66,12 +90,13 @@ const TAB = { id: 7, windowId: 3, url: 'https://example.com/a', title: 'A page' 
 const click = (selectionText: string, menuItemId = 'lingogram-add-to-inbox') =>
     (listeners.clicked as any)({ menuItemId, selectionText, pageUrl: 'https://example.com/a' }, TAB);
 const flush = async () => {
-    for (let i = 0; i < 10; i++) await Promise.resolve();
+    for (let i = 0; i < 20; i++) await new Promise((r) => setTimeout(r, 0));
 };
 
-beforeEach(() => {
+beforeEach(async () => {
     jest.clearAllMocks();
     live.length = 0;
+    duplicateErrors.length = 0;
     delete listeners.external;
     (global as any).chrome.runtime.id = DEV_ID;
     sendMessage.mockImplementation(async () => {
@@ -80,16 +105,20 @@ beforeEach(() => {
     getAuthState.mockImplementation(async () => ({ uid: 'u' }));
     executeScript.mockImplementation(async () => [{ result: 'the paragraph around it' }]);
     installContextMenuSave();
+    // Let the wake sync settle, so a test sees only what its own action does.
+    await flush();
+    getAuthState.mockClear();
+    sendMessage.mockClear();
 });
 
 describe('menu', () => {
-    it('holds exactly one item for selections, however many times it is synced', async () => {
-        await flush(); // the sync every worker start runs
+    it('holds exactly one item, with no duplicate-id error, when install and startup race the wake sync', async () => {
         listeners.installed!();
         listeners.startup!();
         await flush();
         expect(live).toHaveLength(1);
         expect(live[0]).toEqual({ id: 'lingogram-add-to-inbox', contexts: ['selection'], title: 'Save to Lingogram' });
+        expect(duplicateErrors).toEqual([]);
     });
 
     it('ignores a click on someone else’s item', async () => {
@@ -192,75 +221,87 @@ describe('failures', () => {
 });
 
 describe('two editions installed side by side', () => {
-    const asEdition = async (id: string) => {
+    const asEdition = async (id: string, signedIn: boolean) => {
         (global as any).chrome.runtime.id = id;
+        getAuthState.mockImplementation(async () => (signedIn ? { uid: 'u' } : null));
         live.length = 0;
         installContextMenuSave();
         await flush();
     };
-    const youtubeAnswers = (reply: unknown) =>
+    /** The other edition answers `status` with this sign-in state. */
+    const siblingAnswers = (otherId: string, reply: unknown) =>
         sendMessage.mockImplementation(async (id: string) => {
-            if (id === EDITION_IDS.youtube) return reply;
+            if (id === otherId) return reply;
             throw new Error('Receiving end does not exist.');
         });
 
-    it('the HDrezka edition hides its item while the YouTube edition answers', async () => {
-        youtubeAnswers({ ok: true });
-        await asEdition(EDITION_IDS.rezka);
-        expect(sendMessage).toHaveBeenCalledWith(EDITION_IDS.youtube, { type: 'lingogram-sibling', op: 'ping' });
-        expect(live).toHaveLength(0);
+    // Who keeps the item, by who is signed in. Both editions evaluate the same
+    // rule, so each row is checked from both sides: exactly one item overall.
+    const matrix: Array<[boolean, boolean, 'youtube' | 'rezka']> = [
+        [true, false, 'youtube'],
+        [false, true, 'rezka'],
+        [true, true, 'youtube'],
+        [false, false, 'youtube'],
+    ];
+    it.each(matrix)('YouTube signed in %s, HDrezka signed in %s: the %s edition keeps the item', async (yt, rz, owner) => {
+        siblingAnswers(EDITION_IDS.rezka, { ok: true, signedIn: rz });
+        await asEdition(EDITION_IDS.youtube, yt);
+        const youtubeShows = live.length === 1;
+        siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: yt });
+        await asEdition(EDITION_IDS.rezka, rz);
+        const rezkaShows = live.length === 1;
+        expect({ youtubeShows, rezkaShows }).toEqual({ youtubeShows: owner === 'youtube', rezkaShows: owner === 'rezka' });
     });
 
-    it('the HDrezka edition keeps its item when the YouTube edition is absent', async () => {
-        await asEdition(EDITION_IDS.rezka);
+    it('keeps the item when the other edition is absent', async () => {
+        await asEdition(EDITION_IDS.rezka, false);
         expect(live).toHaveLength(1);
     });
 
-    it('a refusal is not an answer: an old YouTube edition still leaves the item in place', async () => {
-        // What the sign-in listener of a version without the handshake replies.
-        youtubeAnswers({ ok: false, error: 'unauthorized origin' });
-        await asEdition(EDITION_IDS.rezka);
+    it('a refusal is not an answer: an older other edition leaves the item in place', async () => {
+        // What the sign-in listener of a version without this message replies.
+        siblingAnswers(EDITION_IDS.youtube, { ok: false, error: 'unauthorized origin' });
+        await asEdition(EDITION_IDS.rezka, false);
         expect(live).toHaveLength(1);
     });
 
-    it('the YouTube edition never asks and always keeps its item', async () => {
-        youtubeAnswers({ ok: true });
-        await asEdition(EDITION_IDS.youtube);
-        expect(sendMessage).not.toHaveBeenCalled();
-        expect(live).toHaveLength(1);
-    });
-
-    it('the YouTube edition, once installed, tells HDrezka to look again', async () => {
-        await asEdition(EDITION_IDS.youtube);
-        sendMessage.mockImplementation(async () => ({ ok: true }));
-        listeners.installed!();
-        await flush();
-        expect(sendMessage).toHaveBeenCalledWith(EDITION_IDS.rezka, { type: 'lingogram-sibling', op: 'sync' });
-    });
-
-    it('HDrezka drops its item when told to look again', async () => {
-        await asEdition(EDITION_IDS.rezka);
-        expect(live).toHaveLength(1);
-        youtubeAnswers({ ok: true });
-        const respond = jest.fn();
-        listeners.external!({ type: 'lingogram-sibling', op: 'sync' }, { id: EDITION_IDS.youtube }, respond);
-        await flush();
-        expect(live).toHaveLength(0);
-        expect(respond).toHaveBeenCalledWith({ ok: true });
-    });
-
-    it('answers the ping from its sibling only', async () => {
-        await asEdition(EDITION_IDS.youtube);
-        const fromSibling = jest.fn();
-        listeners.external!({ type: 'lingogram-sibling', op: 'ping' }, { id: EDITION_IDS.rezka }, fromSibling);
-        expect(fromSibling).toHaveBeenCalledWith({ ok: true });
+    it('answers `status` with its own sign-in state, to its sibling only', async () => {
+        await asEdition(EDITION_IDS.youtube, true);
+        const fromSibling = await new Promise((resolve) => {
+            const async = listeners.external!({ type: 'lingogram-sibling', op: 'status' }, { id: EDITION_IDS.rezka }, resolve);
+            expect(async).toBe(true);
+        });
+        expect(fromSibling).toEqual({ ok: true, signedIn: true });
         const fromStranger = jest.fn();
-        listeners.external!({ type: 'lingogram-sibling', op: 'ping' }, { id: DEV_ID }, fromStranger);
+        expect(listeners.external!({ type: 'lingogram-sibling', op: 'status' }, { id: DEV_ID }, fromStranger)).toBe(false);
         expect(fromStranger).not.toHaveBeenCalled();
     });
 
-    it('a dev build has no sibling and listens for none', async () => {
-        await asEdition(DEV_ID);
+    it('signing in moves the item here, and tells the other edition', async () => {
+        siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: true });
+        await asEdition(EDITION_IDS.rezka, false);
+        expect(live).toHaveLength(0);
+        // Signed in here; signed out there.
+        getAuthState.mockImplementation(async () => ({ uid: 'u' }));
+        siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: false });
+        listeners.storage!({ 'auth.uid': { newValue: 'u' } }, 'local');
+        await flush();
+        expect(live).toHaveLength(1);
+        expect(sendMessage).toHaveBeenCalledWith(EDITION_IDS.youtube, { type: 'lingogram-sibling', op: 'sync' });
+    });
+
+    it('decides again when the other edition says its sign-in changed', async () => {
+        siblingAnswers(EDITION_IDS.rezka, { ok: true, signedIn: false });
+        await asEdition(EDITION_IDS.youtube, false);
+        expect(live).toHaveLength(1);
+        siblingAnswers(EDITION_IDS.rezka, { ok: true, signedIn: true });
+        listeners.external!({ type: 'lingogram-sibling', op: 'sync' }, { id: EDITION_IDS.rezka }, jest.fn());
+        await flush();
+        expect(live).toHaveLength(0);
+    });
+
+    it('a build that is neither edition has no sibling and listens for none', async () => {
+        await asEdition(DEV_ID, false);
         expect(listeners.external).toBeUndefined();
         expect(live).toHaveLength(1);
     });

@@ -1,26 +1,54 @@
-// The two published editions, and the one message they exchange with each other.
+// The two editions, and the one message they exchange with each other.
 //
 // Both put "Save to Lingogram" in the right-click menu, and with both installed
-// Chrome would list it twice. The YouTube edition keeps the item; the HDrezka
-// edition asks whether its sibling is there and stands down if it answers.
+// Chrome would list it twice. They agree on one owner instead: the edition the
+// learner is signed in to keeps the item. Signed in to both, or to neither, the
+// YouTube edition keeps it. See ownsSharedFeatures.
 //
-// Store ids, not names: they are what chrome.runtime.sendMessage addresses and
-// what sender.id carries. An unpacked dev build has a different id, matches
-// neither, and keeps its own item — a dev session never hides anything.
+// Addressed by extension id. A store build's id comes from its signing key and
+// is fixed here; an unpacked dev build's id comes from the folder it is loaded
+// from, and the build computes both editions' dev ids (vite-sibling-ids.mjs).
 
-export const EDITION_IDS = {
+export type Edition = 'youtube' | 'rezka';
+
+const STORE_IDS: Record<Edition, string> = {
     youtube: 'pkoibjilnaeadmcnmfkgcjhalljbmfan',
     rezka: 'hmdkmkimdbomemfcjmgeclchbcdbhabj',
-} as const;
+};
+
+// Replaced by the build (see apps/*/vite.config.ts); absent under jest.
+declare const __SIBLING_DEV_IDS__: Partial<Record<Edition, string>>;
+const DEV_IDS: Partial<Record<Edition, string>> =
+    typeof __SIBLING_DEV_IDS__ === 'object' && __SIBLING_DEV_IDS__ !== null ? __SIBLING_DEV_IDS__ : {};
+
+/** Store ids, for code and tests that need to name one edition. */
+export const EDITION_IDS = STORE_IDS;
+
+/** Which edition an extension id belongs to, or null for any other build. */
+export function editionOf(id: string): Edition | null {
+    for (const e of ['youtube', 'rezka'] as const) {
+        if (id === STORE_IDS[e] || (DEV_IDS[e] !== undefined && id === DEV_IDS[e])) return e;
+    }
+    return null;
+}
+
+/** Every id the other edition may have: its store id, and its dev id in a dev build. */
+export function siblingIdsOf(selfId: string): string[] {
+    const self = editionOf(selfId);
+    if (!self) return [];
+    const other: Edition = self === 'youtube' ? 'rezka' : 'youtube';
+    return [STORE_IDS[other], DEV_IDS[other]].filter((id): id is string => !!id && id !== selfId);
+}
 
 /**
- * The only message one edition sends the other. `ping` asks "are you there?";
- * `sync` tells the yielding edition to look again (sent when the keeper is
- * installed or updated, so the duplicate disappears without a browser restart).
+ * The only message one edition sends the other. `status` asks whether it is
+ * there and signed in; `sync` tells it the asker's sign-in changed (or it was
+ * just installed), so it should decide again now rather than at its next wake.
  */
 export const SIBLING_MESSAGE_TYPE = 'lingogram-sibling';
 
-export type SiblingMessage = { type: typeof SIBLING_MESSAGE_TYPE; op: 'ping' | 'sync' };
+export type SiblingMessage = { type: typeof SIBLING_MESSAGE_TYPE; op: 'status' | 'sync' };
+export type SiblingStatus = { ok: true; signedIn: boolean };
 
 export function isSiblingMessage(message: unknown): message is SiblingMessage {
     return (
@@ -30,9 +58,17 @@ export function isSiblingMessage(message: unknown): message is SiblingMessage {
     );
 }
 
-/** The other published edition's id, or null for a build that is neither (dev). */
-export function siblingOf(selfId: string): string | null {
-    if (selfId === EDITION_IDS.youtube) return EDITION_IDS.rezka;
-    if (selfId === EDITION_IDS.rezka) return EDITION_IDS.youtube;
-    return null;
+/**
+ * Whether this edition shows the shared features (the menu item, page marks).
+ * Both editions evaluate the same rule on the same two facts, so they always
+ * agree on exactly one owner.
+ */
+export function ownsSharedFeatures(
+    self: Edition | null,
+    selfSignedIn: boolean,
+    sibling: { signedIn: boolean } | null,
+): boolean {
+    if (!self || !sibling) return true;
+    if (selfSignedIn !== sibling.signedIn) return selfSignedIn;
+    return self === 'youtube';
 }

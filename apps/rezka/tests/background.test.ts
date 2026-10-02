@@ -21,8 +21,9 @@ function makeStorageArea(): any {
     };
 }
 
-function makeChromeStorage(): { local: any; session: any } {
-    return { local: makeStorageArea(), session: makeStorageArea() };
+function makeChromeStorage(): { local: any; session: any; onChanged: any } {
+    // onChanged: background.ts follows sign-in changes for the menu owner.
+    return { local: makeStorageArea(), session: makeStorageArea(), onChanged: { addListener: jest.fn() } };
 }
 
 // Capture the onMessageExternal listener so we can invoke it directly in tests.

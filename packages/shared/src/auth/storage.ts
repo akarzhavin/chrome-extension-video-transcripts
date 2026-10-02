@@ -78,6 +78,9 @@ export const ANALYTICS_SESSION_KEYS = {
     sessionAt: 'analytics.sessionAt',
 } as const;
 
+/** Written on sign-in and removed on sign-out: a change to it is a change of who is signed in. */
+export const AUTH_UID_KEY = KEYS.uid;
+
 export async function getAuthState(): Promise<AuthState | null> {
     const v = (await chrome.storage.local.get([
         KEYS.idToken,

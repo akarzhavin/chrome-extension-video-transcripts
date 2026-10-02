@@ -9,14 +9,21 @@
 // Two editions can be installed side by side, and Chrome lists each extension's
 // menu item separately. A click only ever reaches the extension whose item was
 // pressed, so the same selection is never saved twice; the problem is purely two
-// identical items. The YouTube edition keeps its item, and the HDrezka edition
-// hides its own while the YouTube one answers a ping (see sibling.ts).
+// identical items. The two agree on one owner, the edition the learner is signed
+// in to (sibling.ts, ownsSharedFeatures), and the other hides its item.
 
 import { track } from './analytics-bg';
 import { handleAuthMessage } from './auth/background';
-import { getAuthState } from './auth/storage';
+import { AUTH_UID_KEY, getAuthState } from './auth/storage';
 import { msg } from './i18n';
-import { EDITION_IDS, isSiblingMessage, siblingOf, SIBLING_MESSAGE_TYPE } from './sibling';
+import {
+    editionOf,
+    isSiblingMessage,
+    ownsSharedFeatures,
+    siblingIdsOf,
+    SIBLING_MESSAGE_TYPE,
+    type SiblingStatus,
+} from './sibling';
 import { setMirrorEntry } from './word-mirror';
 
 const MENU_ID = 'lingogram-add-to-inbox';
@@ -27,77 +34,113 @@ const TOAST_MS = 2500;
 /** Auth failures that mean "sign in again", not "try later". */
 const SIGN_IN_ERROR = /Not signed in|sign in|INVALID_REFRESH_TOKEN|TOKEN_EXPIRED|40[013]/i;
 
-// Recreated from scratch every time, so a renamed title or changed contexts can
-// never leave a stale duplicate behind.
-function createMenu(): void {
-    chrome.contextMenus.removeAll(() => {
-        chrome.contextMenus.create({
-            id: MENU_ID,
-            title: msg('ctxMenuSave', 'Save to Lingogram'),
-            contexts: ['selection'],
+/** Reads chrome.runtime.lastError so Chrome does not log it as unchecked. */
+const quiet = (): void => {
+    void chrome.runtime.lastError;
+};
+
+function showItem(): Promise<void> {
+    return new Promise((done) => {
+        // Recreated from scratch every time, so a renamed title or changed
+        // contexts can never leave a stale duplicate behind.
+        chrome.contextMenus.removeAll(() => {
+            quiet();
+            chrome.contextMenus.create(
+                { id: MENU_ID, title: msg('ctxMenuSave', 'Save to Lingogram'), contexts: ['selection'] },
+                () => {
+                    quiet();
+                    done();
+                },
+            );
         });
     });
 }
 
-/**
- * True when the YouTube edition is installed, enabled and answers. Anything
- * else — not installed, disabled, an old version that does not accept messages
- * from this edition — rejects, and this edition shows its own item: a duplicate
- * is a nuisance, a missing item is a broken feature.
- */
-async function keeperAnswers(): Promise<boolean> {
-    try {
-        const res = (await chrome.runtime.sendMessage(EDITION_IDS.youtube, {
-            type: SIBLING_MESSAGE_TYPE,
-            op: 'ping',
-        })) as { ok?: unknown } | undefined;
-        return res?.ok === true;
-    } catch {
-        return false;
-    }
+function hideItem(): Promise<void> {
+    return new Promise((done) =>
+        chrome.contextMenus.removeAll(() => {
+            quiet();
+            done();
+        }),
+    );
 }
 
 /**
- * Shows or hides this edition's item. Only the HDrezka edition ever hides it.
- * Exported for tests.
+ * The other edition's answer, or null when it is not installed, disabled, or an
+ * old version that does not accept this message. Null makes this edition show
+ * its item: a duplicate is a nuisance, a missing item is a broken feature.
  */
-export async function syncMenu(): Promise<void> {
-    if (chrome.runtime.id === EDITION_IDS.rezka && (await keeperAnswers())) {
-        chrome.contextMenus.removeAll();
-        return;
+async function siblingStatus(): Promise<{ signedIn: boolean } | null> {
+    for (const id of siblingIdsOf(chrome.runtime.id)) {
+        try {
+            const res = (await chrome.runtime.sendMessage(id, {
+                type: SIBLING_MESSAGE_TYPE,
+                op: 'status',
+            })) as Partial<SiblingStatus> | undefined;
+            if (res?.ok === true && typeof res.signedIn === 'boolean') return { signedIn: res.signedIn };
+        } catch {
+            // that id is not installed — try the next one.
+        }
     }
-    createMenu();
+    return null;
+}
+
+function tellSibling(): void {
+    for (const id of siblingIdsOf(chrome.runtime.id)) {
+        chrome.runtime.sendMessage(id, { type: SIBLING_MESSAGE_TYPE, op: 'sync' }).catch(() => {
+            // not installed — nothing to tell.
+        });
+    }
+}
+
+async function decideAndApply(): Promise<void> {
+    const signedIn = !!(await getAuthState());
+    const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, await siblingStatus());
+    await (owns ? showItem() : hideItem());
+}
+
+// One decision at a time. A worker wakes on install/startup and also runs the
+// top-level sync, and two overlapping removeAll/create pairs would interleave
+// into a duplicate-id error.
+let chain: Promise<void> = Promise.resolve();
+
+/** Shows or hides this edition's item. Exported for tests. */
+export function syncMenu(): Promise<void> {
+    chain = chain.then(decideAndApply, decideAndApply);
+    return chain;
 }
 
 export function installContextMenuSave(): void {
-    const sibling = siblingOf(chrome.runtime.id);
+    const siblings = siblingIdsOf(chrome.runtime.id);
 
     // Every worker start, not only install/startup: the worker wakes many times
-    // a day, so an uninstalled YouTube edition gives this one its item back
-    // within one wake instead of at the next browser restart.
+    // a day, so a removed or signed-out sibling is noticed within one wake.
     void syncMenu();
     chrome.runtime.onInstalled.addListener(() => {
         void syncMenu();
-        // The keeper, freshly installed or updated: tell the other edition to
-        // look again, so the duplicate goes now rather than at its next wake.
-        if (chrome.runtime.id === EDITION_IDS.youtube) {
-            chrome.runtime
-                .sendMessage(EDITION_IDS.rezka, { type: SIBLING_MESSAGE_TYPE, op: 'sync' })
-                .catch(() => {
-                    // not installed — nothing to tell.
-                });
-        }
+        tellSibling();
     });
     chrome.runtime.onStartup.addListener(() => void syncMenu());
 
-    if (sibling) {
+    // Signing in or out here can move the item to or from the other edition.
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'local' || !(AUTH_UID_KEY in changes)) return;
+        void syncMenu();
+        tellSibling();
+    });
+
+    if (siblings.length > 0) {
         chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-            // Only the other published edition, and only this one message; the
-            // sign-in handoff listener answers everything else.
-            if (sender.id !== sibling || !isSiblingMessage(message)) return false;
-            if (message.op === 'sync') void syncMenu();
-            sendResponse({ ok: true });
-            return false;
+            // Only the other edition, and only this one message; the sign-in
+            // handoff listener answers everything else.
+            if (!sender.id || !siblings.includes(sender.id) || !isSiblingMessage(message)) return false;
+            if (message.op === 'sync') {
+                void syncMenu();
+                sendResponse({ ok: true });
+                return false;
+            }
+            void getAuthState().then((state) => sendResponse({ ok: true, signedIn: !!state } satisfies SiblingStatus));
+            return true; // answered asynchronously
         });
     }
 
