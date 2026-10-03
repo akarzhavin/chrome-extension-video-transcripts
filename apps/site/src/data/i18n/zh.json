@@ -319,7 +319,8 @@
       "highlightHint": "你保存的单词会在你阅读的任何页面上被标出。检查在你的设备上完成，不会发送任何内容。",
       "finishYoutube": "完成并打开 YouTube",
       "finish": "完成",
-      "needsExtension": "这些设置位于 Lingogram 扩展程序中。安装后即可开启或关闭。"
+      "needsExtension": "这些设置位于 Lingogram 扩展程序中。安装后即可开启或关闭。",
+      "retryConnect": "重新连接扩展程序"
     }
   },
   "uninstall": {

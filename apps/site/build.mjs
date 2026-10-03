@@ -1440,7 +1440,28 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
   <p class="wl-signoff">${t('welcome.signoff', { link: `<a href="mailto:${SITE.supportEmail}">${esc(t('welcome.signoffLink'))}</a>` })}</p>
 </main>
 ${footer(t, root)}
-<script>window.__WELCOME_STEPS = ${scriptJSON({ lang, i18n: strings.welcome.steps })};</script>
+<script>window.__WELCOME_STEPS = ${scriptJSON({
+  lang,
+  i18n: strings.welcome.steps,
+  // The Account step is a sign-up / log-in form: the site's own auth copy.
+  auth: {
+    or: t('auth.or'),
+    emailLabel: t('auth.register.emailLabel'),
+    passwordLabel: t('auth.register.passwordLabel'),
+    registerPasswordPlaceholder: t('auth.register.passwordPlaceholder'),
+    registerSubmit: t('auth.register.submit'),
+    registerBusy: t('auth.register.submitBusy'),
+    registerGoogle: t('auth.register.googleCta'),
+    registerAltPrefix: t('auth.register.altPrefix'),
+    registerAltLink: t('auth.register.altLink'),
+    loginSubmit: t('auth.login.submit'),
+    loginBusy: t('auth.login.submitBusy'),
+    loginGoogle: t('auth.login.googleCta'),
+    loginAltPrefix: t('auth.login.altPrefix'),
+    loginAltLink: t('auth.login.altLink'),
+  },
+})};</script>
+<script src="/auth-config.js?v=${BUST}"></script>
 <script type="module" src="/welcome-steps.js?v=${BUST}"></script>
 <script>window.__EDITIONS = ${editionsMap};
 window.__WELCOME = ${scriptJSON({

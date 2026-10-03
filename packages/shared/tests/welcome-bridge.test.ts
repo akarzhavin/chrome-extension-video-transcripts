@@ -6,6 +6,7 @@
  */
 
 const store: Record<string, unknown> = {};
+const session: Record<string, unknown> = {};
 let externalListener: ((m: any, s: any, r: any) => boolean | void) | null = null;
 let siblingAnswers = false;
 
@@ -21,6 +22,10 @@ let siblingAnswers = false;
             set: jest.fn(async (items: Record<string, unknown>) => {
                 for (const [k, v] of Object.entries(items)) store[k] = JSON.parse(JSON.stringify(v));
             }),
+        },
+        session: {
+            get: jest.fn(async () => ({ ...session })),
+            set: jest.fn(async (items: Record<string, unknown>) => Object.assign(session, items)),
         },
         onChanged: { addListener: jest.fn() },
     },
@@ -100,9 +105,14 @@ describe('writes are validated', () => {
         expect(p.pageHighlight).toBe(false);
     });
 
-    test('sign-in is started by the worker (its own nonce), not by the page', async () => {
-        await handleWelcomeMessage(msg('signIn', { url: 'https://evil.example' }), yt);
-        expect(handleAuthMessage).toHaveBeenCalledWith({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'welcome' });
+    test('beginSignIn issues a fresh one-shot challenge and stores it for the handoff check', async () => {
+        const a: any = await handleWelcomeMessage(msg('beginSignIn'), yt);
+        const b: any = await handleWelcomeMessage(msg('beginSignIn'), yt);
+        expect(a.ok).toBe(true);
+        expect(a.nonce).toMatch(/^[0-9a-f-]{36}$/);
+        expect(b.nonce).not.toBe(a.nonce);
+        // The handoff validates against the LAST one issued.
+        expect(session['auth.pendingNonce']).toBe(b.nonce);
     });
 
     test('progress only ever sets the two flags', async () => {

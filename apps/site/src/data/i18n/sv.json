@@ -320,7 +320,8 @@
       "highlightHint": "Ord du sparat markeras på varje sida du läser. Det kontrolleras på din enhet, ingenting skickas.",
       "finishYoutube": "Slutför och öppna YouTube",
       "finish": "Slutför",
-      "needsExtension": "De här inställningarna finns i Lingogram-tillägget. Installera det för att slå på eller stänga av dem."
+      "needsExtension": "De här inställningarna finns i Lingogram-tillägget. Installera det för att slå på eller stänga av dem.",
+      "retryConnect": "Anslut tillägget igen"
     }
   },
   "uninstall": {

@@ -2098,6 +2098,16 @@ label.ws-row { cursor: pointer; }
 .ws-row-title { font-size: 16px; font-weight: 600; }
 .ws-row-sub { font-size: 13px; line-height: 1.45; color: var(--muted); }
 .ws-add { min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; text-decoration: none; }
+.ws-form { display: flex; flex-direction: column; gap: 14px; }
+.ws-input {
+  height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.ws-error { font-size: 14px; color: #c0392b; }
+.ws-error[hidden] { display: none; }
+.ws-or { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+.ws-or::before, .ws-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.ws-linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .ws-link { display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .ws-note {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px;

@@ -320,7 +320,8 @@
       "highlightHint": "Gespeicherte Wörter werden auf jeder Seite markiert, die Sie lesen. Der Abgleich läuft auf Ihrem Gerät, es wird nichts gesendet.",
       "finishYoutube": "Fertigstellen und YouTube öffnen",
       "finish": "Fertig",
-      "needsExtension": "Diese Einstellungen gibt es in der Lingogram-Erweiterung. Installieren Sie sie, um sie ein- oder auszuschalten."
+      "needsExtension": "Diese Einstellungen gibt es in der Lingogram-Erweiterung. Installieren Sie sie, um sie ein- oder auszuschalten.",
+      "retryConnect": "Erweiterung erneut verbinden"
     }
   },
   "uninstall": {

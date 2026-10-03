@@ -319,7 +319,8 @@
       "highlightHint": "Namamarkahan ang mga salitang na-save mo sa anumang pahinang binabasa mo. Sinusuri ito sa device mo; walang ipinapadala.",
       "finishYoutube": "Tapusin at buksan ang YouTube",
       "finish": "Tapusin",
-      "needsExtension": "Nasa Lingogram extension ang mga setting na ito. I-install ito para i-on o i-off ang mga ito."
+      "needsExtension": "Nasa Lingogram extension ang mga setting na ito. I-install ito para i-on o i-off ang mga ito.",
+      "retryConnect": "Ikonekta ulit ang extension"
     }
   },
   "uninstall": {

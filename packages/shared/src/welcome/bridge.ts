@@ -7,10 +7,11 @@
 //
 // Nothing the page sends is trusted as-is: language codes must be ones this
 // edition offers, prefs must be booleans for this edition's own sites or the
-// highlighting switch, and sign-in is started HERE (fresh nonce, the existing
-// /extension-auth tab) rather than by the page.
+// highlighting switch, and the sign-in challenge (nonce) is issued HERE; the
+// token itself still arrives through the existing handoff message and check.
 
 import { handleAuthMessage, isAllowedExternalSender } from '../auth/background';
+import { setPendingAuthNonce } from '../auth/storage';
 import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from '../languages';
 import { loadPrefs, savePrefs, sitePrefKey } from '../prefs';
 import { askSiblingStatus, type Edition } from '../sibling';
@@ -18,7 +19,7 @@ import { loadWelcomeState, saveWelcomeState, sitesOf } from './welcome';
 
 export const WELCOME_MESSAGE_TYPE = 'lingogram-welcome';
 
-export type WelcomeOp = 'state' | 'setLanguages' | 'setPrefs' | 'signIn' | 'progress';
+export type WelcomeOp = 'state' | 'setLanguages' | 'setPrefs' | 'beginSignIn' | 'progress';
 
 export interface WelcomeMessage {
     type: typeof WELCOME_MESSAGE_TYPE;
@@ -87,7 +88,7 @@ async function snapshot(opts: BridgeOptions): Promise<WelcomeSnapshot> {
     };
 }
 
-type Reply = { ok: boolean; error?: string } | WelcomeSnapshot;
+type Reply = { ok: boolean; error?: string; nonce?: string } | WelcomeSnapshot;
 
 /** One message, validated and applied. Exported for tests. */
 export async function handleWelcomeMessage(msg: WelcomeMessage, opts: BridgeOptions): Promise<Reply> {
@@ -115,8 +116,16 @@ export async function handleWelcomeMessage(msg: WelcomeMessage, opts: BridgeOpti
             await savePrefs(patch);
             return { ok: true };
         }
-        case 'signIn':
-            return (await handleAuthMessage({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'welcome' })) as Reply;
+        case 'beginSignIn': {
+            // The page signs the learner in itself (its Account step is the
+            // sign-up form) and then sends the usual handoff. The one-shot
+            // challenge that handoff must carry is issued here, exactly as
+            // AUTH_SIGN_IN_VIA_LINGOGRAM issues it for the /extension-auth tab;
+            // only a trusted frontend origin ever receives it.
+            const nonce = crypto.randomUUID();
+            await setPendingAuthNonce(nonce);
+            return { ok: true, nonce };
+        }
         case 'progress': {
             const w = await loadWelcomeState();
             if (msg.skippedAccount === true) w.skippedAccount = true;

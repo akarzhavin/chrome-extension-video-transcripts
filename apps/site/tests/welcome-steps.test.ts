@@ -9,6 +9,8 @@
 // the protocol cannot drift apart without a test going red.
 
 const store: Record<string, unknown> = {};
+const session: Record<string, unknown> = {};
+const handoffs: any[] = [];
 let authStatus: { signedIn: boolean; email?: string } = { signedIn: false };
 let extensionAnswers = true;
 let extensionRefuses = false;
@@ -28,6 +30,10 @@ const signIns: unknown[] = [];
                 for (const [k, v] of Object.entries(items)) store[k] = JSON.parse(JSON.stringify(v));
             }),
         },
+        session: {
+            get: jest.fn(async () => ({ ...session })),
+            set: jest.fn(async (items: Record<string, unknown>) => Object.assign(session, items)),
+        },
         onChanged: { addListener: jest.fn() },
     },
     runtime: {
@@ -39,6 +45,15 @@ const signIns: unknown[] = [];
         sendMessage: jest.fn((id: string, message: any, cb?: (r: unknown) => void) => {
             if (message?.type === 'lingogram-sibling') return Promise.reject(new Error('absent'));
             if (!extensionAnswers) return undefined; // never calls back: no extension
+            if (message?.type === 'lingogram-extension-auth') {
+                // The existing handoff check: the nonce must be the one the
+                // extension issued through beginSignIn.
+                handoffs.push(message.payload);
+                const ok = message.payload.nonce === session['auth.pendingNonce'];
+                if (ok) authStatus = { signedIn: true, email: message.payload.email };
+                cb?.(ok ? { ok: true } : { ok: false, error: 'invalid or expired auth challenge' });
+                return undefined;
+            }
             if (extensionRefuses) {
                 cb?.({ ok: false, error: 'unauthorized origin' });
                 return undefined;
@@ -63,13 +78,48 @@ import * as bridge from '../../../packages/shared/src/welcome/bridge';
 import { extensionIdFrom, initSteps, languageLabel } from '../src/welcome/steps';
 import EN from '../src/data/i18n/en.json';
 
+const en = EN as any;
+const AUTH = {
+    or: en.auth.or,
+    emailLabel: en.auth.register.emailLabel,
+    passwordLabel: en.auth.register.passwordLabel,
+    registerPasswordPlaceholder: en.auth.register.passwordPlaceholder,
+    registerSubmit: en.auth.register.submit,
+    registerBusy: en.auth.register.submitBusy,
+    registerGoogle: en.auth.register.googleCta,
+    registerAltPrefix: en.auth.register.altPrefix,
+    registerAltLink: en.auth.register.altLink,
+    loginSubmit: en.auth.login.submit,
+    loginBusy: en.auth.login.submitBusy,
+    loginGoogle: en.auth.login.googleCta,
+    loginAltPrefix: en.auth.login.altPrefix,
+    loginAltLink: en.auth.login.altLink,
+};
+
+// The site's Firebase sign-up / log-in, faked at the seam steps.ts reads.
+const deps = {
+    register: jest.fn(async (email: string) => ({ uid: 'u1', email, idToken: 'id-token' })),
+    login: jest.fn(async (email: string) => ({ uid: 'u1', email, idToken: 'id-token' })),
+    google: jest.fn(),
+    extensionToken: jest.fn(async () => 'custom-token'),
+};
+(window as any).__WS_DEPS__ = deps;
+
+async function fillAndSubmit(email: string, password: string): Promise<void> {
+    const [e, p] = Array.from(ws().querySelectorAll<HTMLInputElement>('.ws-input'));
+    e.value = email;
+    p.value = password;
+    ws().querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await flush();
+}
+
 const flush = async () => {
     for (let i = 0; i < 12; i++) await new Promise((r) => setTimeout(r, 0));
 };
 
 async function mount(): Promise<boolean> {
     document.body.innerHTML = '<div class="ws" id="ws" hidden></div><main class="wl"><h1>Thanks for installing</h1></main>';
-    (window as any).__WELCOME_STEPS = { lang: 'en', i18n: (EN as any).welcome.steps };
+    (window as any).__WELCOME_STEPS = { lang: 'en', i18n: (EN as any).welcome.steps, auth: AUTH };
     const shown = await initSteps(document, window);
     await flush();
     return shown;
@@ -85,13 +135,16 @@ beforeEach(() => {
     extensionAnswers = true;
     extensionRefuses = false;
     signIns.length = 0;
+    handoffs.length = 0;
+    for (const k of Object.keys(session)) delete session[k];
+    Object.values(deps).forEach((f) => f.mockClear());
 });
 
 test('no answer from the extension: the steps still show, nothing is switchable', async () => {
     extensionAnswers = false;
     jest.useFakeTimers();
     document.body.innerHTML = '<div class="ws" id="ws" hidden></div><main class="wl"></main>';
-    (window as any).__WELCOME_STEPS = { lang: 'en', i18n: (EN as any).welcome.steps };
+    (window as any).__WELCOME_STEPS = { lang: 'en', i18n: (EN as any).welcome.steps, auth: AUTH };
     const p = initSteps(document, window);
     jest.advanceTimersByTime(2000);
     jest.useRealTimers();
@@ -116,11 +169,13 @@ test('the extension refuses (not lingogram.ai, an old build): the steps show wit
     // Nothing was written anywhere: there is no extension to write to.
     expect(store['lang.v1']).toBeUndefined();
     expect(current()).toBe('Account');
-    // Sign-in is the site's own page, in a new tab.
-    const signIn = btn('Sign in or create an account') as HTMLAnchorElement;
-    expect(signIn.tagName).toBe('A');
-    expect(new URL(signIn.href).pathname).toBe('/login/');
-    btn('Skip for now').click();
+    // The account can still be made here; there is just no extension to hand it to.
+    await fillAndSubmit('new@b.c', 'longpassword');
+    expect(deps.register).toHaveBeenCalledWith('new@b.c', 'longpassword');
+    expect(deps.extensionToken).not.toHaveBeenCalled();
+    expect(ws().querySelector('.ws-ok')!.textContent).toBe('Signed in as new@b.c on lingogram.ai and in the extension');
+    btn('Continue').click();
+    await flush();
     await flush();
     expect(current()).toBe('Settings');
     expect(Array.from(ws().querySelectorAll<HTMLInputElement>('.ws-switch')).every((x) => x.disabled)).toBe(true);
@@ -154,14 +209,55 @@ test('Language → saved in the extension; Account: skip is remembered there', a
     await flush();
     expect(store['lang.v1']).toEqual({ learning: 'en', native: 'ru' });
     expect(current()).toBe('Account');
-    btn('Sign in or create an account').click();
-    await flush();
-    expect(signIns).toEqual([{ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'welcome' }]);
     btn('Skip for now').click();
     await flush();
     expect(store['welcome.v1']).toEqual({ skippedAccount: true, finished: false });
     expect(current()).toBe('Settings');
     expect(ws().querySelectorAll('.ws-step-status')[1].textContent).toBe('Skipped');
+});
+
+test('Account is the sign-up form: the account is made on the site and handed to the extension', async () => {
+    store['lang.v1'] = { learning: 'en', native: 'ru' };
+    await mount();
+    expect(current()).toBe('Account');
+    expect(btn(AUTH.registerSubmit).textContent).toBe('Create account');
+    await fillAndSubmit('a@b.c', 'longpassword');
+    expect(deps.register).toHaveBeenCalledWith('a@b.c', 'longpassword');
+    expect(deps.extensionToken).toHaveBeenCalledWith('id-token');
+    // The handoff carried the nonce the extension issued just before it.
+    expect(handoffs).toEqual([{ customToken: 'custom-token', uid: 'u1', email: 'a@b.c', nonce: session['auth.pendingNonce'] }]);
+    expect(ws().querySelector('.ws-ok')!.textContent).toBe('Signed in as a@b.c on lingogram.ai and in the extension');
+    expect(ws().querySelector('.ws-progress-text')!.textContent).toBe('2 of 3 done');
+});
+
+test('the form switches to log-in for an existing account', async () => {
+    store['lang.v1'] = { learning: 'en', native: 'ru' };
+    await mount();
+    btn(AUTH.registerAltLink).click();
+    await flush();
+    expect(btn(AUTH.loginSubmit)).toBeDefined();
+    await fillAndSubmit('a@b.c', 'pw');
+    expect(deps.login).toHaveBeenCalledWith('a@b.c', 'pw');
+    expect(deps.register).not.toHaveBeenCalled();
+    expect(handoffs).toHaveLength(1);
+});
+
+test('a sign-up error is shown on the form, and nothing is handed over', async () => {
+    store['lang.v1'] = { learning: 'en', native: 'ru' };
+    await mount();
+    deps.register.mockRejectedValueOnce(new Error('An account with this email already exists. Try logging in.'));
+    await fillAndSubmit('a@b.c', 'longpassword');
+    expect(ws().querySelector('.ws-error')!.textContent).toBe('An account with this email already exists. Try logging in.');
+    expect(handoffs).toHaveLength(0);
+});
+
+test('the account is made but the extension token fails: the error is shown, not swallowed', async () => {
+    store['lang.v1'] = { learning: 'en', native: 'ru' };
+    await mount();
+    deps.extensionToken.mockRejectedValueOnce(new Error('Could not connect the extension (500).'));
+    await fillAndSubmit('a@b.c', 'longpassword');
+    expect(handoffs).toHaveLength(0);
+    expect(ws().querySelector('.ws-error')!.textContent).toBe('Could not connect the extension (500).');
 });
 
 test('a sign-in finished in the other tab shows when this tab is looked at again', async () => {

@@ -321,7 +321,8 @@
       "highlightHint": "Saglabātie vārdi tiek atzīmēti katrā lapā, ko lasi. Pārbaude notiek tavā ierīcē, nekas netiek sūtīts.",
       "finishYoutube": "Pabeigt un atvērt YouTube",
       "finish": "Pabeigt",
-      "needsExtension": "Šie iestatījumi ir Lingogram paplašinājumā. Instalē to, lai tos ieslēgtu vai izslēgtu."
+      "needsExtension": "Šie iestatījumi ir Lingogram paplašinājumā. Instalē to, lai tos ieslēgtu vai izslēgtu.",
+      "retryConnect": "Savieno paplašinājumu vēlreiz"
     }
   },
   "uninstall": {

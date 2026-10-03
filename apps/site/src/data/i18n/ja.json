@@ -319,7 +319,8 @@
       "highlightHint": "保存した単語は、読んでいるどのページでも目印が付きます。確認はお使いの端末内で行われ、何も送信されません。",
       "finishYoutube": "完了してYouTubeを開く",
       "finish": "完了",
-      "needsExtension": "これらの設定は Lingogram 拡張機能の中にあります。インストールすると、オン・オフを切り替えられます。"
+      "needsExtension": "これらの設定は Lingogram 拡張機能の中にあります。インストールすると、オン・オフを切り替えられます。",
+      "retryConnect": "拡張機能をもう一度接続する"
     }
   },
   "uninstall": {

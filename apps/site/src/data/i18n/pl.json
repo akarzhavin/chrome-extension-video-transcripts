@@ -322,7 +322,8 @@
       "highlightHint": "Zapisane słowa są zaznaczane na każdej czytanej stronie. Sprawdzanie odbywa się na twoim urządzeniu, nic nie jest wysyłane.",
       "finishYoutube": "Zakończ i otwórz YouTube",
       "finish": "Zakończ",
-      "needsExtension": "Te ustawienia są w rozszerzeniu Lingogram. Zainstaluj je, aby je włączać i wyłączać."
+      "needsExtension": "Te ustawienia są w rozszerzeniu Lingogram. Zainstaluj je, aby je włączać i wyłączać.",
+      "retryConnect": "Połącz rozszerzenie ponownie"
     }
   },
   "uninstall": {

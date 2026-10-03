@@ -320,7 +320,8 @@
       "highlightHint": "As palavras que guardou são marcadas em qualquer página que leia. A verificação é feita no seu dispositivo; nada é enviado.",
       "finishYoutube": "Concluir e abrir o YouTube",
       "finish": "Concluir",
-      "needsExtension": "Estas definições estão na extensão Lingogram. Instale-a para as ativar ou desativar."
+      "needsExtension": "Estas definições estão na extensão Lingogram. Instale-a para as ativar ou desativar.",
+      "retryConnect": "Ligue a extensão novamente"
     }
   },
   "uninstall": {

@@ -321,7 +321,8 @@
       "highlightHint": "Išsaugoti žodžiai pažymimi kiekviename skaitomame puslapyje. Tikrinama jūsų įrenginyje, niekas nesiunčiama.",
       "finishYoutube": "Baigti ir atidaryti YouTube",
       "finish": "Baigti",
-      "needsExtension": "Šie nustatymai yra „Lingogram“ plėtinyje. Įdiekite jį, kad galėtumėte juos įjungti ar išjungti."
+      "needsExtension": "Šie nustatymai yra „Lingogram“ plėtinyje. Įdiekite jį, kad galėtumėte juos įjungti ar išjungti.",
+      "retryConnect": "Prijungti plėtinį iš naujo"
     }
   },
   "uninstall": {

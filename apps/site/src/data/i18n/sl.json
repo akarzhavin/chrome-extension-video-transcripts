@@ -322,7 +322,8 @@
       "highlightHint": "Shranjene besede so označene na vsaki strani, ki jo berete. Preverjanje poteka na vaši napravi, nič se ne pošilja.",
       "finishYoutube": "Končaj in odpri YouTube",
       "finish": "Končaj",
-      "needsExtension": "Te nastavitve so v razširitvi Lingogram. Namestite jo, da jih lahko vklopite ali izklopite."
+      "needsExtension": "Te nastavitve so v razširitvi Lingogram. Namestite jo, da jih lahko vklopite ali izklopite.",
+      "retryConnect": "Znova povežite razširitev"
     }
   },
   "uninstall": {

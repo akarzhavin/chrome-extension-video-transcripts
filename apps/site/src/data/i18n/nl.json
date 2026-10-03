@@ -320,7 +320,8 @@
       "highlightHint": "Woorden die je hebt opgeslagen worden op elke pagina die je leest gemarkeerd. Dit wordt op je apparaat gecontroleerd; er wordt niets verstuurd.",
       "finishYoutube": "Afronden en YouTube openen",
       "finish": "Afronden",
-      "needsExtension": "Deze instellingen zitten in de Lingogram-extensie. Installeer die om ze aan of uit te zetten."
+      "needsExtension": "Deze instellingen zitten in de Lingogram-extensie. Installeer die om ze aan of uit te zetten.",
+      "retryConnect": "Verbind de extensie opnieuw"
     }
   },
   "uninstall": {

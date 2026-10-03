@@ -320,7 +320,8 @@
       "highlightHint": "Tallentamasi sanat merkitään jokaisella lukemallasi sivulla. Tarkistus tehdään laitteellasi, mitään ei lähetetä.",
       "finishYoutube": "Valmis, avaa YouTube",
       "finish": "Valmis",
-      "needsExtension": "Nämä asetukset ovat Lingogram-laajennuksessa. Asenna se, niin voit ottaa ne käyttöön tai poistaa käytöstä."
+      "needsExtension": "Nämä asetukset ovat Lingogram-laajennuksessa. Asenna se, niin voit ottaa ne käyttöön tai poistaa käytöstä.",
+      "retryConnect": "Yhdistä laajennus uudelleen"
     }
   },
   "uninstall": {

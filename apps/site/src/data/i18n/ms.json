@@ -319,7 +319,8 @@
       "highlightHint": "Perkataan yang anda simpan ditanda pada mana-mana halaman yang anda baca. Disemak pada peranti anda, tiada apa yang dihantar.",
       "finishYoutube": "Selesai dan buka YouTube",
       "finish": "Selesai",
-      "needsExtension": "Tetapan ini terdapat dalam sambungan Lingogram. Pasangnya untuk menghidupkan atau mematikannya."
+      "needsExtension": "Tetapan ini terdapat dalam sambungan Lingogram. Pasangnya untuk menghidupkan atau mematikannya.",
+      "retryConnect": "Sambungkan sambungan sekali lagi"
     }
   },
   "uninstall": {

@@ -322,7 +322,8 @@
       "highlightHint": "Uložená slova se označí na každé stránce, kterou čtete. Kontrola probíhá ve vašem zařízení, nic se neodesílá.",
       "finishYoutube": "Dokončit a otevřít YouTube",
       "finish": "Dokončit",
-      "needsExtension": "Tato nastavení najdete v rozšíření Lingogram. Nainstalujte si ho a můžete je zapínat a vypínat."
+      "needsExtension": "Tato nastavení najdete v rozšíření Lingogram. Nainstalujte si ho a můžete je zapínat a vypínat.",
+      "retryConnect": "Připojit rozšíření znovu"
     }
   },
   "uninstall": {

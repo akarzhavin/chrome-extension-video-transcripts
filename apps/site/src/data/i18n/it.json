@@ -320,7 +320,8 @@
       "highlightHint": "Le parole che hai salvato vengono segnate in ogni pagina che leggi. Il controllo avviene sul tuo dispositivo; non viene inviato nulla.",
       "finishYoutube": "Fine e apri YouTube",
       "finish": "Fine",
-      "needsExtension": "Queste impostazioni si trovano nell'estensione Lingogram. Installala per attivarle o disattivarle."
+      "needsExtension": "Queste impostazioni si trovano nell'estensione Lingogram. Installala per attivarle o disattivarle.",
+      "retryConnect": "Ricollega l'estensione"
     }
   },
   "uninstall": {

@@ -319,7 +319,8 @@
       "highlightHint": "Kaydettiğiniz kelimeler okuduğunuz her sayfada işaretlenir. Kontrol cihazınızda yapılır, hiçbir şey gönderilmez.",
       "finishYoutube": "Bitir ve YouTube'u aç",
       "finish": "Bitir",
-      "needsExtension": "Bu ayarlar Lingogram eklentisinde bulunur. Açıp kapatmak için eklentiyi yükleyin."
+      "needsExtension": "Bu ayarlar Lingogram eklentisinde bulunur. Açıp kapatmak için eklentiyi yükleyin.",
+      "retryConnect": "Eklentiyi yeniden bağlayın"
     }
   },
   "uninstall": {

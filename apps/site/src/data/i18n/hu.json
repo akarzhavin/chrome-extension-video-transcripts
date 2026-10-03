@@ -319,7 +319,8 @@
       "highlightHint": "A mentett szavak minden olvasott oldalon meg vannak jelölve. Az ellenőrzés az eszközödön történik, semmi sem kerül elküldésre.",
       "finishYoutube": "Befejezés és a YouTube megnyitása",
       "finish": "Befejezés",
-      "needsExtension": "Ezek a beállítások a Lingogram bővítményben vannak. Telepítsd, hogy be- vagy kikapcsolhasd őket."
+      "needsExtension": "Ezek a beállítások a Lingogram bővítményben vannak. Telepítsd, hogy be- vagy kikapcsolhasd őket.",
+      "retryConnect": "Kapcsold újra össze a bővítményt"
     }
   },
   "uninstall": {

@@ -16,6 +16,8 @@
 // The extensions' language list, for a visitor whose extension did not answer.
 // HDrezka's subset mirrors apps/rezka/src/config.ts SUBTITLE_LANGUAGES.
 import { SUPPORTED_LANGUAGES } from '../../../../packages/shared/src/languages';
+import type { AccountDeps } from './account';
+import type { RuntimeAuthConfig } from '../auth/core';
 const REZKA_LANGUAGES = ['en', 'ru', 'uk'];
 
 export interface StepsI18n {
@@ -54,6 +56,7 @@ export interface StepsI18n {
   finishYoutube: string;
   finish: string;
   needsExtension: string;
+  retryConnect: string;
 }
 
 export interface Snapshot {
@@ -71,9 +74,29 @@ export interface Snapshot {
   finished: boolean;
 }
 
+/** The site's own sign-up / log-in copy (i18n auth.*), reused on the Account step. */
+export interface AuthI18n {
+  or: string;
+  emailLabel: string;
+  passwordLabel: string;
+  registerPasswordPlaceholder: string;
+  registerSubmit: string;
+  registerBusy: string;
+  registerGoogle: string;
+  registerAltPrefix: string;
+  registerAltLink: string;
+  loginSubmit: string;
+  loginBusy: string;
+  loginGoogle: string;
+  loginAltPrefix: string;
+  loginAltLink: string;
+}
+
 declare global {
   interface Window {
-    __WELCOME_STEPS?: { i18n: StepsI18n; lang: string };
+    __WELCOME_STEPS?: { i18n: StepsI18n; auth: AuthI18n; lang: string };
+    __WS_DEPS__?: AccountDeps;
+    LINGOGRAM_AUTH?: RuntimeAuthConfig;
     lgTrack?: (name: string, params?: Record<string, unknown>) => void;
   }
 }
@@ -144,9 +167,9 @@ export function offlineSnapshot(search: string): Snapshot {
 export type Status = 'done' | 'skipped' | 'optional' | 'required';
 
 /** The menu row of each step. Pure, for the tests. */
-export function statuses(s: Snapshot): Status[] {
+export function statuses(s: Snapshot, siteSignedIn = false): Status[] {
   const lang: Status = s.learning && s.native ? 'done' : 'required';
-  const account: Status = s.signedIn ? 'done' : s.skippedAccount ? 'skipped' : 'optional';
+  const account: Status = s.signedIn || siteSignedIn ? 'done' : s.skippedAccount ? 'skipped' : 'optional';
   return [lang, account, s.finished ? 'done' : 'optional'];
 }
 
@@ -180,6 +203,15 @@ interface View {
   doc: Document;
   win: Window;
   t: StepsI18n;
+  a: AuthI18n;
+  /** Sign-up or log-in, on the Account step. */
+  mode: 'register' | 'login';
+  /** Signed in on the site during this visit (with or without the extension). */
+  siteEmail: string;
+  /** Why the extension could not be connected after a site sign-in, if it failed. */
+  connectError: string;
+  /** Retries that connection (set once a site sign-in has happened). */
+  retryConnect: (() => Promise<void>) | null;
   lang: string;
   /** Null when no extension answered: choices stay on this page. */
   send: Send | null;
@@ -206,6 +238,11 @@ export async function initSteps(doc: Document = document, win: Window = window):
     doc,
     win,
     t: cfg.i18n,
+    a: cfg.auth,
+    mode: 'register',
+    siteEmail: '',
+    connectError: '',
+    retryConnect: null,
     lang: cfg.lang,
     send,
     root_: cfg.lang === 'en' ? '' : `/${cfg.lang}`,
@@ -246,7 +283,7 @@ function menu(v: View): HTMLElement {
   const { doc, t } = v;
   const nav = el(doc, 'nav', 'ws-menu');
   nav.setAttribute('aria-label', t.menuLabel);
-  const st = statuses(v.s);
+  const st = statuses(v.s, !!v.siteEmail);
   const done = st.filter((x) => x === 'done').length;
 
   const progress = el(doc, 'div', 'ws-progress');
@@ -344,12 +381,50 @@ function languageStep(v: View, box: HTMLElement): void {
   box.append(learning.row, native.row, el(doc, 'span', 'ws-hint', t.langHint), next);
 }
 
+async function accountDeps(v: View): Promise<AccountDeps | null> {
+  if (v.win.__WS_DEPS__) return v.win.__WS_DEPS__;
+  const cfg = v.win.LINGOGRAM_AUTH;
+  if (!cfg) return null;
+  // The Firebase SDK is fetched only now, when someone signs in.
+  const { realDeps } = await import('./account');
+  return realDeps(cfg);
+}
+
+/**
+ * After the site sign-in: hand the extension its own session, through the
+ * same message the /extension-auth page sends. The one-shot nonce comes from
+ * the extension itself, asked for just now.
+ */
+async function connectExtension(v: View, deps: AccountDeps, idToken: string, uid: string, email: string): Promise<boolean> {
+  if (!v.send) return false;
+  const begun = await v.send({ op: 'beginSignIn' });
+  if (begun?.ok !== true || typeof begun.nonce !== 'string') return false;
+  const customToken = await deps.extensionToken(idToken);
+  const res = await v.send({ type: 'lingogram-extension-auth', payload: { customToken, uid, email, nonce: begun.nonce } });
+  return res?.ok === true;
+}
+
 function accountStep(v: View, box: HTMLElement): void {
-  const { doc, t, s } = v;
+  const { doc, t, a, s } = v;
   heading(v, box, t.accountTitle, t.accountLead);
-  if (s.signedIn) {
-    box.append(
-      el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', s.email)),
+  const email = s.signedIn ? s.email : v.siteEmail;
+  if (email) {
+    box.appendChild(el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', email)));
+    // Signed in on the site, but the extension did not take the session: say
+    // so and offer another try, rather than a "signed in" that is half true.
+    if (v.connectError && !s.signedIn) {
+      const err = el(doc, 'div', 'ws-error', v.connectError);
+      err.setAttribute('role', 'alert');
+      box.appendChild(err);
+      if (v.retryConnect) {
+        const retry = v.retryConnect;
+        box.appendChild(button(v, 'ws-secondary', t.retryConnect, async (b) => {
+          b.disabled = true;
+          await retry();
+        }));
+      }
+    }
+    box.appendChild(
       button(v, 'ws-primary', t.continue, () => {
         v.step = 2;
         paint(v);
@@ -357,23 +432,103 @@ function accountStep(v: View, box: HTMLElement): void {
     );
     return;
   }
-  const signIn = v.send
-    ? button(v, 'ws-primary', t.signIn, async (b) => {
-        b.disabled = true;
-        await v.send!({ op: 'signIn' });
-        b.disabled = false;
-        track(v.win, 'sign_in', 'account');
-      })
-    : (() => {
-        // No extension to hand a token to: the site's own sign-in, in a new tab.
-        const a = el(doc, 'a', 'ws-primary ws-link', t.signIn);
-        a.href = `${v.root_}/login/`;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        return a;
-      })();
+
+  const reg = v.mode === 'register';
+  const error = el(doc, 'div', 'ws-error');
+  error.setAttribute('role', 'alert');
+  error.hidden = true;
+  const fail = (err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    error.textContent = msg;
+    error.hidden = !msg;
+  };
+  const done = async (deps: AccountDeps, who: { uid: string; email: string; idToken: string }) => {
+    v.siteEmail = who.email;
+    track(v.win, reg ? 'registered' : 'signed_in', 'account');
+    const connect = async () => {
+      v.connectError = '';
+      const connected = await connectExtension(v, deps, who.idToken, who.uid, who.email).catch((e) => {
+        v.connectError = e instanceof Error ? e.message : String(e);
+        return false;
+      });
+      if (connected && v.send) {
+        const next = (await v.send({ op: 'state' })) as Snapshot | null;
+        if (next?.ok === true) v.s = next;
+      }
+      paint(v);
+    };
+    v.retryConnect = v.send ? connect : null;
+    await connect();
+  };
+
+  const google = el(doc, 'button', 'ws-secondary ws-google', reg ? a.registerGoogle : a.loginGoogle);
+  google.type = 'button';
+  google.addEventListener('click', async () => {
+    google.disabled = true;
+    fail('');
+    try {
+      const deps = await accountDeps(v);
+      if (!deps) throw new Error('Sign-in is unavailable on this page.');
+      await done(deps, await deps.google());
+    } catch (err) {
+      // Closing the Google popup is a choice, not an error.
+      if (!/popup-closed|cancelled-popup/.test(String((err as { code?: string })?.code ?? ''))) fail(err);
+    } finally {
+      google.disabled = false;
+    }
+  });
+
+  const form = el(doc, 'form', 'ws-form');
+  form.noValidate = true;
+  const field = (label: string, type: string, auto: string, placeholder = '') => {
+    const row = el(doc, 'label', 'ws-field');
+    row.appendChild(el(doc, 'span', 'ws-field-label', label));
+    const input = el(doc, 'input', 'ws-input');
+    input.type = type;
+    input.autocomplete = auto;
+    input.required = true;
+    if (placeholder) input.placeholder = placeholder;
+    row.appendChild(input);
+    return { row, input };
+  };
+  const emailF = field(a.emailLabel, 'email', 'email');
+  const passF = field(a.passwordLabel, 'password', reg ? 'new-password' : 'current-password', reg ? a.registerPasswordPlaceholder : '');
+  const submit = el(doc, 'button', 'ws-primary', reg ? a.registerSubmit : a.loginSubmit);
+  submit.type = 'submit';
+  form.append(emailF.row, passF.row, error, submit);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const em = emailF.input.value.trim();
+    const pw = passF.input.value;
+    if (!em || !pw) return fail(reg ? a.registerPasswordPlaceholder : a.passwordLabel);
+    submit.disabled = true;
+    submit.textContent = reg ? a.registerBusy : a.loginBusy;
+    fail('');
+    try {
+      const deps = await accountDeps(v);
+      if (!deps) throw new Error('Sign-in is unavailable on this page.');
+      await done(deps, reg ? await deps.register(em, pw) : await deps.login(em, pw));
+    } catch (err) {
+      fail(err);
+      submit.disabled = false;
+      submit.textContent = reg ? a.registerSubmit : a.loginSubmit;
+    }
+  });
+
+  const switcher = el(doc, 'p', 'ws-hint');
+  const link = el(doc, 'button', 'ws-linkbtn', reg ? a.registerAltLink : a.loginAltLink);
+  link.type = 'button';
+  link.addEventListener('click', () => {
+    v.mode = reg ? 'login' : 'register';
+    paint(v);
+  });
+  switcher.append(doc.createTextNode(`${reg ? a.registerAltPrefix : a.loginAltPrefix} `), link);
+
   box.append(
-    signIn,
+    google,
+    el(doc, 'div', 'ws-or', a.or),
+    form,
+    switcher,
     button(v, 'ws-secondary', t.skip, async () => {
       await v.send?.({ op: 'progress', skippedAccount: true });
       v.s = { ...v.s, skippedAccount: true };

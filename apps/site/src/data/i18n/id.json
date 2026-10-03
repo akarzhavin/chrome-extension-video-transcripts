@@ -319,7 +319,8 @@
       "highlightHint": "Kata yang kamu simpan ditandai di halaman mana pun yang kamu baca. Dicek di perangkatmu, tidak ada yang dikirim.",
       "finishYoutube": "Selesai dan buka YouTube",
       "finish": "Selesai",
-      "needsExtension": "Pengaturan ini ada di ekstensi Lingogram. Pasang ekstensinya untuk mengaktifkan atau menonaktifkannya."
+      "needsExtension": "Pengaturan ini ada di ekstensi Lingogram. Pasang ekstensinya untuk mengaktifkan atau menonaktifkannya.",
+      "retryConnect": "Hubungkan ekstensi lagi"
     }
   },
   "uninstall": {
