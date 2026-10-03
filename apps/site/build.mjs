@@ -1264,6 +1264,9 @@ const WELCOME_VIDEO = 't2oye9CA7Vw';
 const WELCOME_FIRST_VIDEOS = {
   en: { id: (EDITIONS.primary.demoUrl.match(/[?&]v=([\w-]{11})/) || [])[1], title: 'Cosmic Dawn (Official NASA Trailer)' },
 };
+for (const [lang, v] of Object.entries(WELCOME_FIRST_VIDEOS)) {
+  if (!v.id) throw new Error(`/welcome/: no video id for "${lang}" — editions.json primary.demoUrl has no ?v= (the last setup step would open the YouTube home page)`);
+}
 
 // Per-edition page shape, keyed by editions.json slug.
 //
@@ -1472,18 +1475,15 @@ ${slimFooter(t)}
   i18n: strings.welcome.steps,
   // The Account step is a sign-up / log-in form: the site's own auth copy.
   auth: {
-    or: t('auth.or'),
     emailLabel: t('auth.register.emailLabel'),
     passwordLabel: t('auth.register.passwordLabel'),
     registerPasswordPlaceholder: t('auth.register.passwordPlaceholder'),
     registerSubmit: t('auth.register.submit'),
     registerBusy: t('auth.register.submitBusy'),
-    registerGoogle: t('auth.register.googleCta'),
     registerAltPrefix: t('auth.register.altPrefix'),
     registerAltLink: t('auth.register.altLink'),
     loginSubmit: t('auth.login.submit'),
     loginBusy: t('auth.login.submitBusy'),
-    loginGoogle: t('auth.login.googleCta'),
     loginAltPrefix: t('auth.login.altPrefix'),
     loginAltLink: t('auth.login.altLink'),
   },

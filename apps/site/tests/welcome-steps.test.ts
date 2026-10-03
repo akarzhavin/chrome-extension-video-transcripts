@@ -16,6 +16,7 @@ let extensionAnswers = true;
 let extensionRefuses = false;
 let edition: 'youtube' | 'rezka' = 'youtube';
 let gtImport = false;
+let refuseBegin = false;
 const importAsks: unknown[] = [];
 const signIns: unknown[] = [];
 
@@ -61,6 +62,10 @@ const signIns: unknown[] = [];
                 cb?.({ ok: false, error: 'unauthorized origin' });
                 return undefined;
             }
+            if (message?.op === 'beginSignIn' && refuseBegin) {
+                cb?.({ ok: false, error: 'no' });
+                return undefined;
+            }
             if (message?.op === 'openGtImport') {
                 importAsks.push(message);
                 cb?.({ ok: true });
@@ -89,18 +94,15 @@ import EN from '../src/data/i18n/en.json';
 
 const en = EN as any;
 const AUTH = {
-    or: en.auth.or,
     emailLabel: en.auth.register.emailLabel,
     passwordLabel: en.auth.register.passwordLabel,
     registerPasswordPlaceholder: en.auth.register.passwordPlaceholder,
     registerSubmit: en.auth.register.submit,
     registerBusy: en.auth.register.submitBusy,
-    registerGoogle: en.auth.register.googleCta,
     registerAltPrefix: en.auth.register.altPrefix,
     registerAltLink: en.auth.register.altLink,
     loginSubmit: en.auth.login.submit,
     loginBusy: en.auth.login.submitBusy,
-    loginGoogle: en.auth.login.googleCta,
     loginAltPrefix: en.auth.login.altPrefix,
     loginAltLink: en.auth.login.altLink,
 };
@@ -169,6 +171,7 @@ beforeEach(() => {
     extensionRefuses = false;
     edition = 'youtube';
     gtImport = false;
+    refuseBegin = false;
     importAsks.length = 0;
     signIns.length = 0;
     handoffs.length = 0;
@@ -299,13 +302,32 @@ describe('Language', () => {
         tile('es').click();
         await flush();
         setNative('de');
-        expect(went).toEqual([pageFor('de', EXT_URL.slice(EXT_URL.indexOf('?')))]);
-        expect(went[0]).toMatch(/^\/de\/welcome\/\?.*hl=1/);
-        // The page that opens next remembers it.
-        went.length = 0;
-        await mount({ lang: 'de', locales: ['en', 'de', 'ru'], search: went[0] ?? '/de/welcome/?hl=1&ext=youtube&id=pkoibjilnaeadmcnmfkgcjhalljbmfan' });
+        expect(went).toHaveLength(1);
+        expect(went[0]).toBe('/de/welcome/?ext=youtube&id=pkoibjilnaeadmcnmfkgcjhalljbmfan&hl=1');
+        // The page that opens next is that language, and remembers the pick.
+        await mount({ lang: 'de', locales: ['en', 'de', 'ru'], search: went[0] });
         expect(pressed()).toEqual(['es']);
         expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('de');
+    });
+
+    test('a returning visitor who changes the native language gets that language, not the saved one', async () => {
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
+        store['welcome.v1'] = { skippedAccount: false, finished: false };
+        // The visitor was on /ru/, chose Spanish as native and moved on with Italian picked.
+        sessionStorage.setItem('ws.learning', 'it');
+        await mount({ lang: 'es', locales: ['en', 'es', 'ru'], search: '/es/welcome/?ext=youtube&id=pkoibjilnaeadmcnmfkgcjhalljbmfan&hl=1' });
+        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('es');
+        expect(pressed()).toEqual(['it']);
+    });
+
+    test('without a deliberate choice the saved languages lead', async () => {
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
+        await mount({ lang: 'es', locales: ['en', 'es', 'ru'] });
+        // Step is Account (languages saved); go back to Language to see them.
+        ws().querySelectorAll<HTMLElement>('.ws-step')[0].click();
+        await flush();
+        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('ru');
+        expect(pressed()).toEqual(['en']);
     });
 
     test('a native language without its own page changes the choice only', async () => {
@@ -457,6 +479,69 @@ describe('Account', () => {
         expect(current()).toBe('Start');
     });
 
+    test('looking at the tab again does not wipe what is being typed', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        await mount();
+        btn(T.emailLink).click();
+        await flush();
+        const email = ws().querySelector<HTMLInputElement>('.ws-input')!;
+        email.value = 'half@typed';
+        window.dispatchEvent(new Event('focus'));
+        document.dispatchEvent(new Event('visibilitychange'));
+        await flush();
+        // Nothing changed in the extension, so the same field is still there, still filled.
+        expect(ws().querySelector<HTMLInputElement>('.ws-input')).toBe(email);
+        expect(email.value).toBe('half@typed');
+    });
+
+    test('while Google sign-in is open, coming back to the tab does not offer a second one', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        await mount();
+        let finish!: (u: { uid: string; email: string; idToken: string }) => void;
+        deps.google.mockImplementationOnce(() => new Promise((r) => (finish = r)));
+        const google = btn('Continue with Google') as HTMLButtonElement;
+        google.click();
+        await flush();
+        authStatus = { signedIn: true, email: 'other@b.c' };
+        window.dispatchEvent(new Event('focus'));
+        await flush();
+        expect(btn('Continue with Google')).toBe(google);
+        expect((btn('Continue with Google') as HTMLButtonElement).disabled).toBe(true);
+        finish({ uid: 'g1', email: 'g@b.c', idToken: 't' });
+        await flush();
+        expect(deps.google).toHaveBeenCalledTimes(1);
+    });
+
+    test('the extension refuses to start the sign-in: that is said, with a retry, not a bare "signed in"', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        refuseBegin = true;
+        await mount();
+        btn('Continue with Google').click();
+        await flush();
+        expect(handoffs).toHaveLength(0);
+        expect(current()).toBe('Account');
+        expect(ws().querySelector('.ws-error')!.textContent).toBe('Could not connect the extension.');
+        refuseBegin = false;
+        btn(T.retryConnect).click();
+        await flush();
+        expect(handoffs).toHaveLength(1);
+        expect(current()).toBe('Start');
+    });
+
+    test('a visitor who has moved to another step is not pulled back to Start by a late sign-in', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        await mount();
+        let finish!: (u: { uid: string; email: string; idToken: string }) => void;
+        deps.google.mockImplementationOnce(() => new Promise((r) => (finish = r)));
+        btn('Continue with Google').click();
+        await flush();
+        ws().querySelectorAll<HTMLElement>('.ws-step')[0].click(); // back to Language meanwhile
+        await flush();
+        finish({ uid: 'g1', email: 'g@b.c', idToken: 't' });
+        await flush();
+        expect(current()).toBe('Language');
+    });
+
     test('a sign-in finished in the other tab shows when this tab is looked at again', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
@@ -494,6 +579,19 @@ describe('Start', () => {
         btn(T.finishYoutube).click();
         await flush();
         expect(went).toEqual(['https://www.youtube.com/']);
+    });
+
+    test('with no extension there is no video to open: the button just finishes', async () => {
+        extensionRefuses = true;
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
+        await mount({ lang: 'ru', locales: [] });
+        ws().querySelectorAll<HTMLElement>('.ws-step')[2].click();
+        await flush();
+        expect(ws().querySelector('.ws-video')).toBeNull();
+        btn(T.finish).click();
+        await flush();
+        expect(went).toEqual([]);
+        expect(ws().hidden).toBe(true);
     });
 
     test('word highlighting is one switch that writes the extension prefs; the video sites have none', async () => {

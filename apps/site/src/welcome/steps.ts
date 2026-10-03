@@ -72,29 +72,24 @@ export interface Snapshot {
   learning: string;
   native: string;
   languages: Array<{ code: string; label: string; native: string }>;
-  sites: Record<string, boolean>;
   pageHighlight: boolean;
   /** The extension can import Google Translate words (not every build can). */
   gtImport?: boolean;
-  siblingInstalled: boolean;
   skippedAccount: boolean;
   finished: boolean;
 }
 
 /** The site's own sign-up / log-in copy (i18n auth.*), reused on the Account step. */
 export interface AuthI18n {
-  or: string;
   emailLabel: string;
   passwordLabel: string;
   registerPasswordPlaceholder: string;
   registerSubmit: string;
   registerBusy: string;
-  registerGoogle: string;
   registerAltPrefix: string;
   registerAltLink: string;
   loginSubmit: string;
   loginBusy: string;
-  loginGoogle: string;
   loginAltPrefix: string;
   loginAltLink: string;
 }
@@ -117,7 +112,6 @@ declare global {
   }
 }
 
-const SITE_NAME: Record<string, string> = { youtube: 'YouTube', netflix: 'Netflix', rezka: 'HDrezka' };
 // This edition's own store page, for a visitor without it.
 const OWN_STORE: Record<string, string> = {
   youtube: 'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
@@ -174,9 +168,7 @@ export function offlineSnapshot(search: string): Snapshot {
     learning: '',
     native: '',
     languages: langs.map(({ code, label, native }) => ({ code, label, native })),
-    sites: edition === 'rezka' ? { rezka: false } : { youtube: false, netflix: false },
     pageHighlight: false,
-    siblingInstalled: false,
     skippedAccount: false,
     finished: false,
   };
@@ -276,6 +268,8 @@ interface View {
   siteEmail: string;
   /** Why the extension could not be connected after a site sign-in, if it failed. */
   connectError: string;
+  /** A sign-in is in flight: the page must not be rebuilt under it. */
+  busy: boolean;
   /** Retries that connection (set once a site sign-in has happened). */
   retryConnect: (() => Promise<void>) | null;
   lang: string;
@@ -317,9 +311,16 @@ export async function initSteps(doc: Document = document, win: Window = window):
   }
 
   const offered = s.languages.map((l) => l.code);
-  const native = s.native || (offered.includes(cfg.lang) ? cfg.lang : offered.includes(browserLanguage(win)) ? browserLanguage(win) : '');
+  // A page opened by choosing a native language (`hl`) is that language; the
+  // pick made just before moving here comes with it. Otherwise what the
+  // extension saved leads, then the page language, then the browser's.
+  const chose = new URLSearchParams(win.location.search).has('hl');
+  const native =
+    chose && offered.includes(cfg.lang)
+      ? cfg.lang
+      : s.native || (offered.includes(cfg.lang) ? cfg.lang : offered.includes(browserLanguage(win)) ? browserLanguage(win) : '');
   const kept = stash(win);
-  let learning = s.learning || (offered.includes(kept) ? kept : '');
+  let learning = offered.includes(kept) ? kept : s.learning;
   if (!learning && native !== 'en' && offered.includes('en')) learning = 'en';
   if (learning === native) learning = '';
 
@@ -332,6 +333,7 @@ export async function initSteps(doc: Document = document, win: Window = window):
     emailOpen: false,
     siteEmail: '',
     connectError: '',
+    busy: false,
     retryConnect: null,
     lang: cfg.lang,
     locales: cfg.locales ?? [],
@@ -339,14 +341,16 @@ export async function initSteps(doc: Document = document, win: Window = window):
     send,
     s,
     draft: { learning, native },
-    step: s.learning && s.native ? (s.signedIn || s.skippedAccount ? 2 : 1) : 0,
+    // Back on the Language step after choosing a native language, even when
+    // languages were saved before: the choice is not finished until Continue.
+    step: !chose && s.learning && s.native ? (s.signedIn || s.skippedAccount ? 2 : 1) : 0,
     root,
     ordinary: doc.querySelector('main.wl'),
   };
   if (v.ordinary) v.ordinary.hidden = true;
   root.hidden = false;
   paint(v);
-  track(win, 'shown', 'language');
+  track(win, 'shown', ['language', 'account', 'start'][v.step]);
 
   // A sign-in finishes in the /extension-auth tab the extension opened; pick it
   // up when this tab is looked at again.
@@ -354,7 +358,9 @@ export async function initSteps(doc: Document = document, win: Window = window):
     const live = send;
     const refresh = async () => {
       const next = (await live({ op: 'state' })) as Snapshot | null;
-      if (next?.ok === true) {
+      // Looking at the tab again must not wipe what is being typed: repaint
+      // only when the extension's answer differs from what is shown.
+      if (next?.ok === true && !v.busy && JSON.stringify(next) !== JSON.stringify(v.s)) {
         v.s = next;
         paint(v);
       }
@@ -561,7 +567,7 @@ function accountStep(v: View, box: HTMLElement): void {
   box.append(el(doc, 'h1', 'ws-title', t.accountTitle), el(doc, 'p', 'ws-works', t.accountHint), el(doc, 'p', 'ws-lead', t.accountLead));
   const email = s.signedIn ? s.email : v.siteEmail;
   if (email) {
-    box.appendChild(el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', email)));
+    box.appendChild(el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', () => email)));
     // Signed in on the site, but the extension did not take the session: say
     // so and offer another try, rather than a "signed in" that is half true.
     if (v.connectError && !s.signedIn) {
@@ -603,13 +609,15 @@ function accountStep(v: View, box: HTMLElement): void {
         v.connectError = e instanceof Error ? e.message : String(e);
         return false;
       });
+      if (!connected && v.send && !v.connectError) v.connectError = 'Could not connect the extension.';
       if (connected && v.send) {
         const next = (await v.send({ op: 'state' })) as Snapshot | null;
         if (next?.ok === true) v.s = next;
       }
-      // Signed in everywhere it can be: straight on to the last step. A
-      // half-done connection stays here, with its message and the retry.
-      if (!v.connectError && (connected || !v.send)) v.step = 2;
+      // Signed in everywhere it can be: straight on to the last step (unless
+      // the visitor has gone to another step meanwhile). A half-done
+      // connection stays here, with its message and the retry.
+      if (!v.connectError && v.step === 1) v.step = 2;
       paint(v);
     };
     v.retryConnect = v.send ? connect : null;
@@ -620,6 +628,7 @@ function accountStep(v: View, box: HTMLElement): void {
   google.type = 'button';
   google.addEventListener('click', async () => {
     google.disabled = true;
+    v.busy = true;
     fail('');
     try {
       const deps = await accountDeps(v);
@@ -629,6 +638,7 @@ function accountStep(v: View, box: HTMLElement): void {
       // Closing the Google popup is a choice, not an error.
       if (!/popup-closed|cancelled-popup/.test(String((err as { code?: string })?.code ?? ''))) fail(err);
     } finally {
+      v.busy = false;
       google.disabled = false;
     }
   });
@@ -679,6 +689,7 @@ function accountStep(v: View, box: HTMLElement): void {
     if (!em || !pw) return fail(reg ? a.registerPasswordPlaceholder : a.passwordLabel);
     submit.disabled = true;
     submit.textContent = reg ? a.registerBusy : a.loginBusy;
+    v.busy = true;
     fail('');
     try {
       const deps = await accountDeps(v);
@@ -688,6 +699,8 @@ function accountStep(v: View, box: HTMLElement): void {
       fail(err);
       submit.disabled = false;
       submit.textContent = reg ? a.registerSubmit : a.loginSubmit;
+    } finally {
+      v.busy = false;
     }
   });
 
@@ -740,19 +753,19 @@ function startStep(v: View, box: HTMLElement): void {
 
   // The first video: one we checked, for the language being learned.
   const learning = s.learning || v.draft.learning;
-  const video = rezka ? undefined : v.videos[learning];
+  const video = rezka || !v.send ? undefined : v.videos[learning];
   const videoUrl = video?.id ? `https://www.youtube.com/watch?v=${video.id}` : '';
   if (video && videoUrl) {
     const card = el(doc, 'div', 'ws-video');
     const thumb = el(doc, 'span', 'ws-video-thumb');
     thumb.innerHTML = PLAY; // constant markup
     const body = el(doc, 'span', 'ws-video-body');
-    body.append(el(doc, 'span', 'ws-row-title', video.title), el(doc, 'span', 'ws-row-sub', SITE_NAME.youtube));
+    body.append(el(doc, 'span', 'ws-row-title', video.title), el(doc, 'span', 'ws-row-sub', 'YouTube'));
     card.append(thumb, body);
     box.appendChild(card);
   }
   box.appendChild(
-    button(v, 'ws-primary ws-go', rezka ? t.finish : video && videoUrl ? t.watchFirst : t.finishYoutube, async () => {
+    button(v, 'ws-primary ws-go', rezka || !v.send ? t.finish : video && videoUrl ? t.watchFirst : t.finishYoutube, async () => {
       await v.send?.({ op: 'progress', finished: true });
       track(v.win, 'finished', 'start');
       if (!rezka && v.send) {

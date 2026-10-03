@@ -6,8 +6,9 @@
 // the language. All markup below is constant, written here, never built from
 // anything the extension or the URL supplies.
 
-const svg = (label: string, inner: string) =>
-  `<svg width="36" height="24" viewBox="0 0 36 24" role="img" aria-label="${label}">${inner}</svg>`;
+// Decoration: the tile's own text names the language, so a screen reader skips the picture.
+const svg = (_country: string, inner: string) =>
+  `<svg width="36" height="24" viewBox="0 0 36 24" aria-hidden="true" focusable="false">${inner}</svg>`;
 const outline = '<rect x="0.5" y="0.5" width="35" height="23" fill="none" stroke="#d4cfe6"/>';
 
 export const FLAGS: Record<string, string> = {
@@ -25,5 +26,7 @@ export const FLAGS: Record<string, string> = {
     'South Korea',
     `<rect width="36" height="24" fill="#fff"/><path d="M12 12a6 6 0 0 1 12 0z" fill="#cd2e3a"/><path d="M12 12a6 6 0 0 0 12 0z" fill="#0047a0"/><rect x="4" y="3" width="5" height="1.5" fill="#1a1a1a"/><rect x="27" y="3" width="5" height="1.5" fill="#1a1a1a"/><rect x="4" y="19.5" width="5" height="1.5" fill="#1a1a1a"/><rect x="27" y="19.5" width="5" height="1.5" fill="#1a1a1a"/>${outline}`,
   ),
+  ru: svg('Russia', `<rect width="36" height="8" fill="#fff"/><rect y="8" width="36" height="8" fill="#0039a6"/><rect y="16" width="36" height="8" fill="#d52b1e"/>${outline}`),
+  uk: svg('Ukraine', '<rect width="36" height="12" fill="#0057b7"/><rect y="12" width="36" height="12" fill="#ffd700"/>'),
   zh: svg('China', '<rect width="36" height="24" fill="#de2910"/><polygon points="7,3 8,5.8 11,5.8 8.6,7.6 9.5,10.5 7,8.8 4.5,10.5 5.4,7.6 3,5.8 6,5.8" fill="#ffde00"/>'),
 };
