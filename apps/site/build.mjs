@@ -369,7 +369,13 @@ const navLinks = (t, root) => `
 // button can be dropped: offering "Log in" on /login/ is a link back to the
 // page you are already reading, and following it wipes anything typed into
 // the form. Dropping one also frees header room on narrow screens.
-const header = (t, root, here) => `
+const header = (t, root, here) => here === 'welcome' ? `
+<header class="site wrap">
+  <a class="logo" href="${root}/">
+    <span class="logo-mark">${CHAMELEON(24)}</span>
+    <span class="logo-name">Lingogram</span>
+  </a>
+</header>` : `
 <header class="site wrap">
   <a class="logo" href="${root}/">
     <span class="logo-mark">${CHAMELEON(24)}</span>
@@ -439,6 +445,15 @@ const footer = (t, root) => `
     <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
     ${GA4 ? `<button type="button" data-consent-reopen>${esc(t('consent.settings'))}</button>` : ''}
   </div>
+</footer>${consentBanner(t)}`;
+
+// The setup page is a tunnel: no product or help links to wander off through,
+// only what the law wants within reach — the privacy policy and the cookie
+// choice — plus the banner itself.
+const slimFooter = (t) => `
+<footer class="site wrap slim">
+  <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
+  ${GA4 ? `<button type="button" data-consent-reopen>${esc(t('consent.settings'))}</button>` : ''}
 </footer>${consentBanner(t)}`;
 
 // Cookie banner. Server-rendered but `hidden`: main.js reveals it only when
@@ -1242,6 +1257,14 @@ const editionsMap = scriptJSON(
 //     only in the footer.
 const WELCOME_VIDEO = 't2oye9CA7Vw';
 
+// The video the last setup step opens, by the language being learned: one we
+// have checked has captions and works with the extension. A language with no
+// entry here gets the YouTube home page instead — never an unchecked guess.
+// The id is the one editions.json already names as the working example.
+const WELCOME_FIRST_VIDEOS = {
+  en: { id: (EDITIONS.primary.demoUrl.match(/[?&]v=([\w-]{11})/) || [])[1], title: 'Cosmic Dawn (Official NASA Trailer)' },
+};
+
 // Per-edition page shape, keyed by editions.json slug.
 //
 // `covers` and `order` are deliberately NOT the same list:
@@ -1334,7 +1357,7 @@ const welcomePage = (locale, hrefLang) => {
     description: t('welcome.description'),
     pathName: `${root}/welcome/`,
     body: `
-${header(t, root)}
+${header(t, root, 'welcome')}
 ${''/* The setup steps (src/welcome/steps.ts). Empty and hidden: the script fills
 it only when the extension that opened this page answers, and then hides the
 ordinary content below. With no answer the page is exactly what it was. */}
@@ -1439,9 +1462,13 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
 
   <p class="wl-signoff">${t('welcome.signoff', { link: `<a href="mailto:${SITE.supportEmail}">${esc(t('welcome.signoffLink'))}</a>` })}</p>
 </main>
-${footer(t, root)}
+${slimFooter(t)}
 <script>window.__WELCOME_STEPS = ${scriptJSON({
   lang,
+  // The page speaks the visitor's native language, so choosing one switches
+  // to its page; this is the list of languages that have one.
+  locales: LOCALES.map((l) => l.code),
+  videos: WELCOME_FIRST_VIDEOS,
   i18n: strings.welcome.steps,
   // The Account step is a sign-up / log-in form: the site's own auth copy.
   auth: {

@@ -313,8 +313,8 @@ the Extension that opened it answers, the page shows three setup steps: choose y
 languages, create an account or sign in (optional; on that same page, with the
 email and password or Google sign-in described in Section 1b — the account is made
 on our website, and the Extension is then handed its own sign-in exactly as from the
-sign-in page), and switch the Extension on or off for each video site and for
-marking your words on web pages. The page passes your choices straight to the Extension inside
+sign-in page), and start with a first video, with a switch for marking your
+words on web pages. The page passes your choices straight to the Extension inside
 your browser, which stores them on your device (Section 3); they are not sent to our
 servers. To show the steps, the page asks the Extension for its current settings,
 whether you are signed in (and with which email address), and whether the other

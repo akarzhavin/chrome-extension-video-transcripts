@@ -2131,3 +2131,44 @@ label.ws-row { cursor: pointer; }
   .ws { gap: 20px; }
   .ws-menu { max-width: none; flex-basis: 100%; }
 }
+
+/* Language step: popular languages as tiles, the rest in one list. */
+.ws-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ws-tile {
+  display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 48px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink);
+  font: inherit; font-size: 15px; cursor: pointer; text-align: start;
+}
+.ws-tile:hover { border-color: var(--accent); }
+.ws-tile[aria-pressed="true"] { border: 2px solid var(--accent); padding: 7px 11px; background: var(--accent-soft, var(--panel)); font-weight: 600; }
+.ws-flag { flex: none; display: inline-flex; line-height: 0; }
+.ws-flag svg { display: block; width: 28px; height: auto; border-radius: 3px; }
+.ws-tile-name { min-width: 0; overflow-wrap: anywhere; }
+.ws-other { height: auto; min-height: 48px; font-size: 15px; border-style: dashed; color: var(--accent); }
+.ws-other.is-chosen { border: 2px solid var(--accent); border-style: solid; color: var(--ink); font-weight: 600; }
+@media (max-width: 520px) { .ws-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Account step: one main way in, the email form one link away. */
+.ws-works { margin: 0; font-size: 15px; font-weight: 600; color: var(--teal-deep); }
+.ws-google, .ws-go { width: 100%; }
+.ws-email-toggle { align-self: flex-start; }
+
+/* Start step: the first video. */
+.ws-video {
+  display: flex; align-items: center; gap: 14px; padding: 12px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+}
+.ws-video-thumb {
+  flex: none; width: 128px; aspect-ratio: 16 / 9; display: grid; place-items: center; line-height: 0;
+  border-radius: 9px; background: linear-gradient(135deg, #2e2466, #0e8f80);
+}
+.ws-video-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+/* The setup page has no product links to leave by: only the legal ones. And
+   the full-width consent bar must not sit on the last button of a step. */
+footer.site.slim {
+  display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: center;
+  padding-block: 24px 96px; font-size: 13px;
+}
+footer.site.slim a, footer.site.slim button { color: var(--muted); }
+footer.site.slim button { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; text-align: left; }
