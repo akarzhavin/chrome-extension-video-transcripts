@@ -320,7 +320,8 @@
       "highlightLabel": "Istakni moje riječi na web-stranicama",
       "highlightHint": "Spremljene riječi označene su na svakoj stranici koju čitate. Provjera se odvija na vašem uređaju, ništa se ne šalje.",
       "finishYoutube": "Završi i otvori YouTube",
-      "finish": "Završi"
+      "finish": "Završi",
+      "needsExtension": "Ove postavke nalaze se u proširenju Lingogram. Instalirajte ga da biste ih uključili ili isključili."
     }
   },
   "uninstall": {

@@ -319,7 +319,8 @@
       "highlightLabel": "Resaltar mis palabras en sitios web",
       "highlightHint": "Las palabras que guardaste se marcan en cualquier página que leas. Se comprueban en tu dispositivo; no se envía nada.",
       "finishYoutube": "Terminar y abrir YouTube",
-      "finish": "Terminar"
+      "finish": "Terminar",
+      "needsExtension": "Estos ajustes están en la extensión de Lingogram. Instálala para activarlos o desactivarlos."
     }
   },
   "uninstall": {

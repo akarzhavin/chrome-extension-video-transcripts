@@ -319,7 +319,8 @@
       "highlightLabel": "Tõsta mu sõnad veebisaitidel esile",
       "highlightHint": "Sinu salvestatud sõnad märgitakse igal loetaval lehel. Kontroll toimub sinu seadmes, midagi ei saadeta.",
       "finishYoutube": "Lõpeta ja ava YouTube",
-      "finish": "Lõpeta"
+      "finish": "Lõpeta",
+      "needsExtension": "Need sätted asuvad Lingogrami laienduses. Paigalda see, et neid sisse või välja lülitada."
     }
   },
   "uninstall": {

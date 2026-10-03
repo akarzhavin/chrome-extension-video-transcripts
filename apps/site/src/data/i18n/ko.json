@@ -318,7 +318,8 @@
       "highlightLabel": "웹사이트에서 내 단어 강조하기",
       "highlightHint": "저장한 단어는 읽고 있는 모든 페이지에 표시돼요. 확인은 기기 안에서만 이뤄지며 아무것도 전송되지 않아요.",
       "finishYoutube": "완료하고 YouTube 열기",
-      "finish": "완료"
+      "finish": "완료",
+      "needsExtension": "이 설정은 Lingogram 확장 프로그램에 있어요. 설치하면 켜거나 끌 수 있어요."
     }
   },
   "uninstall": {

@@ -318,7 +318,8 @@
       "highlightLabel": "Đánh dấu từ của tôi trên trang web",
       "highlightHint": "Những từ bạn đã lưu được đánh dấu trên mọi trang bạn đọc. Việc kiểm tra diễn ra trên thiết bị của bạn, không gửi gì đi.",
       "finishYoutube": "Hoàn tất và mở YouTube",
-      "finish": "Hoàn tất"
+      "finish": "Hoàn tất",
+      "needsExtension": "Các cài đặt này nằm trong tiện ích Lingogram. Hãy cài đặt tiện ích để bật hoặc tắt chúng."
     }
   },
   "uninstall": {

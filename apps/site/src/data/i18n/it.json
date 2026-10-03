@@ -319,7 +319,8 @@
       "highlightLabel": "Evidenzia le mie parole sui siti web",
       "highlightHint": "Le parole che hai salvato vengono segnate in ogni pagina che leggi. Il controllo avviene sul tuo dispositivo; non viene inviato nulla.",
       "finishYoutube": "Fine e apri YouTube",
-      "finish": "Fine"
+      "finish": "Fine",
+      "needsExtension": "Queste impostazioni si trovano nell'estensione Lingogram. Installala per attivarle o disattivarle."
     }
   },
   "uninstall": {

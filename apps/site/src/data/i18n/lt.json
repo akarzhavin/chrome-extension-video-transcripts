@@ -320,7 +320,8 @@
       "highlightLabel": "Paryškinti mano žodžius svetainėse",
       "highlightHint": "Išsaugoti žodžiai pažymimi kiekviename skaitomame puslapyje. Tikrinama jūsų įrenginyje, niekas nesiunčiama.",
       "finishYoutube": "Baigti ir atidaryti YouTube",
-      "finish": "Baigti"
+      "finish": "Baigti",
+      "needsExtension": "Šie nustatymai yra „Lingogram“ plėtinyje. Įdiekite jį, kad galėtumėte juos įjungti ar išjungti."
     }
   },
   "uninstall": {

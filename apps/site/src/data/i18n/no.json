@@ -319,7 +319,8 @@
       "highlightLabel": "Uthev ordene mine på nettsteder",
       "highlightHint": "Ord du har lagret markeres på alle sider du leser. Det sjekkes på enheten din, og ingenting sendes.",
       "finishYoutube": "Fullfør og åpne YouTube",
-      "finish": "Fullfør"
+      "finish": "Fullfør",
+      "needsExtension": "Disse innstillingene finnes i Lingogram-utvidelsen. Installer den for å slå dem av eller på."
     }
   },
   "uninstall": {

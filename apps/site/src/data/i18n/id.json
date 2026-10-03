@@ -318,7 +318,8 @@
       "highlightLabel": "Sorot kata saya di situs web",
       "highlightHint": "Kata yang kamu simpan ditandai di halaman mana pun yang kamu baca. Dicek di perangkatmu, tidak ada yang dikirim.",
       "finishYoutube": "Selesai dan buka YouTube",
-      "finish": "Selesai"
+      "finish": "Selesai",
+      "needsExtension": "Pengaturan ini ada di ekstensi Lingogram. Pasang ekstensinya untuk mengaktifkan atau menonaktifkannya."
     }
   },
   "uninstall": {

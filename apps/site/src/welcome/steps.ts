@@ -1,15 +1,22 @@
 // The setup steps on /welcome/: Language, Account, Settings, in a left menu.
 //
-// Bundled by vite.auth.config.ts to build/welcome-steps.js. The extension opens
-// this page on install with ?id=<its extension id>; the page asks that
-// extension for its state over externally_connectable and, only if it answers,
-// replaces the ordinary welcome content with the steps. No answer (opened by
-// hand, extension disabled, another browser) leaves the ordinary page as it is.
+// Bundled by vite.auth.config.ts to build/welcome-steps.js. The steps are THE
+// /welcome/ page: shown to every visitor, in place of the ordinary welcome
+// content (which comes back after "Finish" when there is nowhere else to go).
 //
-// Everything is written back through the extension (packages/shared/src/
-// welcome/bridge.ts), which validates it; this page stores nothing itself.
+// The extension opens this page on install with ?id=<its extension id>. When
+// that extension answers over externally_connectable, every choice is written
+// to it (packages/shared/src/welcome/bridge.ts validates each one). When it
+// does not (opened by hand, extension not installed or disabled) the steps
+// still show: languages from the list below, sign-in through the site's own
+// page, and the switches shown off-limits with a pointer to install.
 // All text comes from window.__WELCOME_STEPS, built per locale by build.mjs,
 // and is set with textContent — nothing from the extension becomes markup.
+
+// The extensions' language list, for a visitor whose extension did not answer.
+// HDrezka's subset mirrors apps/rezka/src/config.ts SUBTITLE_LANGUAGES.
+import { SUPPORTED_LANGUAGES } from '../../../../packages/shared/src/languages';
+const REZKA_LANGUAGES = ['en', 'ru', 'uk'];
 
 export interface StepsI18n {
   menuLabel: string;
@@ -46,6 +53,7 @@ export interface StepsI18n {
   highlightHint: string;
   finishYoutube: string;
   finish: string;
+  needsExtension: string;
 }
 
 export interface Snapshot {
@@ -77,7 +85,13 @@ const OTHER_STORE: Record<string, string> = {
   youtube: 'https://chromewebstore.google.com/detail/hmdkmkimdbomemfcjmgeclchbcdbhabj',
   rezka: 'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
 };
+// This edition's own store page, for a visitor without it.
+const OWN_STORE: Record<string, string> = {
+  youtube: 'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
+  rezka: 'https://chromewebstore.google.com/detail/hmdkmkimdbomemfcjmgeclchbcdbhabj',
+};
 const ANSWER_TIMEOUT_MS = 1500;
+
 
 /** The extension id from ?id=, or null. Chrome ids are 32 letters a–p. */
 export function extensionIdFrom(search: string): string | null {
@@ -105,6 +119,26 @@ export function messenger(id: string, win: Window = window): Send | null {
         resolve(null);
       }
     });
+}
+
+/** What the steps show when no extension answered: nothing set, nothing switchable. */
+export function offlineSnapshot(search: string): Snapshot {
+  const edition = new URLSearchParams(search).get('ext') === 'rezka' ? 'rezka' : 'youtube';
+  const langs = edition === 'rezka' ? SUPPORTED_LANGUAGES.filter((l) => REZKA_LANGUAGES.includes(l.code)) : SUPPORTED_LANGUAGES;
+  return {
+    ok: true,
+    edition,
+    signedIn: false,
+    email: '',
+    learning: '',
+    native: '',
+    languages: langs.map(({ code, label, native }) => ({ code, label, native })),
+    sites: edition === 'rezka' ? { rezka: false } : { youtube: false, netflix: false },
+    pageHighlight: false,
+    siblingInstalled: false,
+    skippedAccount: false,
+    finished: false,
+  };
 }
 
 export type Status = 'done' | 'skipped' | 'optional' | 'required';
@@ -147,7 +181,9 @@ interface View {
   win: Window;
   t: StepsI18n;
   lang: string;
-  send: Send;
+  /** Null when no extension answered: choices stay on this page. */
+  send: Send | null;
+  root_: string;
   s: Snapshot;
   step: 0 | 1 | 2;
   root: HTMLElement;
@@ -157,12 +193,14 @@ interface View {
 export async function initSteps(doc: Document = document, win: Window = window): Promise<boolean> {
   const cfg = win.__WELCOME_STEPS;
   const root = doc.getElementById('ws');
+  if (!cfg || !root) return false;
   const id = extensionIdFrom(win.location.search);
-  if (!cfg || !root || !id) return false;
-  const send = messenger(id, win);
-  if (!send) return false;
-  const s = (await send({ op: 'state' })) as Snapshot | null;
-  if (!s || s.ok !== true) return false;
+  let send: Send | null = id ? messenger(id, win) : null;
+  let s = send ? ((await send({ op: 'state' })) as Snapshot | null) : null;
+  if (!s || s.ok !== true) {
+    send = null;
+    s = offlineSnapshot(win.location.search);
+  }
 
   const v: View = {
     doc,
@@ -170,6 +208,7 @@ export async function initSteps(doc: Document = document, win: Window = window):
     t: cfg.i18n,
     lang: cfg.lang,
     send,
+    root_: cfg.lang === 'en' ? '' : `/${cfg.lang}`,
     s,
     step: s.learning && s.native ? (s.signedIn || s.skippedAccount ? 2 : 1) : 0,
     root,
@@ -182,17 +221,20 @@ export async function initSteps(doc: Document = document, win: Window = window):
 
   // A sign-in finishes in the /extension-auth tab the extension opened; pick it
   // up when this tab is looked at again.
-  const refresh = async () => {
-    const next = (await send({ op: 'state' })) as Snapshot | null;
-    if (next?.ok === true) {
-      v.s = next;
-      paint(v);
-    }
-  };
-  doc.addEventListener('visibilitychange', () => {
-    if (doc.visibilityState === 'visible') void refresh();
-  });
-  win.addEventListener('focus', () => void refresh());
+  if (send) {
+    const live = send;
+    const refresh = async () => {
+      const next = (await live({ op: 'state' })) as Snapshot | null;
+      if (next?.ok === true) {
+        v.s = next;
+        paint(v);
+      }
+    };
+    doc.addEventListener('visibilitychange', () => {
+      if (doc.visibilityState === 'visible') void refresh();
+    });
+    win.addEventListener('focus', () => void refresh());
+  }
   return true;
 }
 
@@ -282,10 +324,12 @@ function languageStep(v: View, box: HTMLElement): void {
   const learning = pick(t.learning, s.learning || (offered.includes('en') ? 'en' : ''));
   const native = pick(t.native, s.native || (offered.includes(guessed) && guessed !== learning.select.value ? guessed : ''));
   const next = button(v, 'ws-primary', t.continue, async (b) => {
-    b.disabled = true;
-    const res = await v.send({ op: 'setLanguages', learning: learning.select.value, native: native.select.value });
-    b.disabled = false;
-    if (res?.ok !== true) return;
+    if (v.send) {
+      b.disabled = true;
+      const res = await v.send({ op: 'setLanguages', learning: learning.select.value, native: native.select.value });
+      b.disabled = false;
+      if (res?.ok !== true) return;
+    }
     v.s = { ...v.s, learning: learning.select.value, native: native.select.value };
     track(v.win, 'done', 'language');
     v.step = 1;
@@ -313,15 +357,25 @@ function accountStep(v: View, box: HTMLElement): void {
     );
     return;
   }
+  const signIn = v.send
+    ? button(v, 'ws-primary', t.signIn, async (b) => {
+        b.disabled = true;
+        await v.send!({ op: 'signIn' });
+        b.disabled = false;
+        track(v.win, 'sign_in', 'account');
+      })
+    : (() => {
+        // No extension to hand a token to: the site's own sign-in, in a new tab.
+        const a = el(doc, 'a', 'ws-primary ws-link', t.signIn);
+        a.href = `${v.root_}/login/`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        return a;
+      })();
   box.append(
-    button(v, 'ws-primary', t.signIn, async (b) => {
-      b.disabled = true;
-      await v.send({ op: 'signIn' });
-      b.disabled = false;
-      track(v.win, 'sign_in', 'account');
-    }),
+    signIn,
     button(v, 'ws-secondary', t.skip, async () => {
-      await v.send({ op: 'progress', skippedAccount: true });
+      await v.send?.({ op: 'progress', skippedAccount: true });
       v.s = { ...v.s, skippedAccount: true };
       track(v.win, 'skipped', 'account');
       v.step = 2;
@@ -339,6 +393,7 @@ function switchRow(v: View, title: string, sub: string, checked: boolean, onChan
   const box = el(doc, 'input', 'ws-switch');
   box.type = 'checkbox';
   box.checked = checked;
+  box.disabled = !v.send;
   box.addEventListener('change', async () => {
     const want = box.checked;
     // Shown as the extension stored it: a refused write flips the switch back.
@@ -351,7 +406,18 @@ function switchRow(v: View, title: string, sub: string, checked: boolean, onChan
 function settingsStep(v: View, box: HTMLElement): void {
   const { doc, t, s } = v;
   heading(v, box, t.settingsTitle, t.settingsLead);
-  const setPref = async (key: string, on: boolean) => (await v.send({ op: 'setPrefs', prefs: { [key]: on } }))?.ok === true;
+  const setPref = async (key: string, on: boolean) =>
+    !!v.send && (await v.send({ op: 'setPrefs', prefs: { [key]: on } }))?.ok === true;
+  if (!v.send) {
+    // Nothing to switch without the extension: say so, and where to get it.
+    const note = el(doc, 'div', 'ws-note');
+    const add = el(doc, 'a', 'ws-secondary ws-add', t.addToChrome);
+    add.href = OWN_STORE[s.edition];
+    add.target = '_blank';
+    add.rel = 'noopener';
+    note.append(el(doc, 'span', undefined, t.needsExtension), add);
+    box.appendChild(note);
+  }
 
   box.appendChild(el(doc, 'div', 'ws-group-title', t.videoSites));
   const group = el(doc, 'div', 'ws-group');
@@ -397,14 +463,14 @@ function settingsStep(v: View, box: HTMLElement): void {
 
   box.appendChild(
     button(v, 'ws-primary', s.edition === 'youtube' ? t.finishYoutube : t.finish, async () => {
-      await v.send({ op: 'progress', finished: true });
+      await v.send?.({ op: 'progress', finished: true });
       track(v.win, 'finished', 'settings');
-      if (s.edition === 'youtube') {
+      if (s.edition === 'youtube' && v.send) {
         v.win.location.href = 'https://www.youtube.com/';
         return;
       }
-      // HDrezka: back to the ordinary welcome content, which tells the learner
-      // to reload the film tab they already have open.
+      // HDrezka, or no extension: back to the ordinary welcome content (the
+      // reload-your-film-tab advice, the tour, the buttons to open a site).
       v.root.hidden = true;
       if (v.ordinary) v.ordinary.hidden = false;
     }),

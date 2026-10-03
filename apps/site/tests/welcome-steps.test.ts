@@ -87,7 +87,7 @@ beforeEach(() => {
     signIns.length = 0;
 });
 
-test('no answer from the extension: the ordinary welcome page stays', async () => {
+test('no answer from the extension: the steps still show, nothing is switchable', async () => {
     extensionAnswers = false;
     jest.useFakeTimers();
     document.body.innerHTML = '<div class="ws" id="ws" hidden></div><main class="wl"></main>';
@@ -95,16 +95,39 @@ test('no answer from the extension: the ordinary welcome page stays', async () =
     const p = initSteps(document, window);
     jest.advanceTimersByTime(2000);
     jest.useRealTimers();
-    expect(await p).toBe(false);
-    expect(ws().hidden).toBe(true);
-    expect(document.querySelector<HTMLElement>('main.wl')!.hidden).toBe(false);
+    expect(await p).toBe(true);
+    expect(ws().hidden).toBe(false);
+    expect(document.querySelector<HTMLElement>('main.wl')!.hidden).toBe(true);
+    expect(current()).toBe('Language');
+    // The language list is the page's own.
+    expect(ws().querySelectorAll('select')[0].querySelectorAll('option').length).toBeGreaterThan(10);
 });
 
-test('the extension refuses (not lingogram.ai, an old build): the ordinary page stays', async () => {
+test('the extension refuses (not lingogram.ai, an old build): the steps show without it', async () => {
     extensionRefuses = true;
-    expect(await mount()).toBe(false);
-    expect(ws().hidden).toBe(true);
-    expect(document.querySelector<HTMLElement>('main.wl')!.hidden).toBe(false);
+    expect(await mount()).toBe(true);
+    btn('Continue');
+    const [learning, native] = Array.from(ws().querySelectorAll('select'));
+    learning.value = 'en';
+    native.value = 'ru';
+    native.dispatchEvent(new Event('change'));
+    btn('Continue').click();
+    await flush();
+    // Nothing was written anywhere: there is no extension to write to.
+    expect(store['lang.v1']).toBeUndefined();
+    expect(current()).toBe('Account');
+    // Sign-in is the site's own page, in a new tab.
+    const signIn = btn('Sign in or create an account') as HTMLAnchorElement;
+    expect(signIn.tagName).toBe('A');
+    expect(new URL(signIn.href).pathname).toBe('/login/');
+    btn('Skip for now').click();
+    await flush();
+    expect(current()).toBe('Settings');
+    expect(Array.from(ws().querySelectorAll<HTMLInputElement>('.ws-switch')).every((x) => x.disabled)).toBe(true);
+    expect(ws().querySelector('.ws-note')!.textContent).toContain((EN as any).welcome.steps.needsExtension);
+    expect((btn('Add to Chrome') as HTMLAnchorElement).href).toBe(
+        'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
+    );
 });
 
 test('the id must look like a Chrome extension id', () => {

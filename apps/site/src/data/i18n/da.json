@@ -319,7 +319,8 @@
       "highlightLabel": "Fremhæv mine ord på websteder",
       "highlightHint": "Ord, du har gemt, markeres på alle sider, du læser. Det tjekkes på din enhed, og der sendes ikke noget.",
       "finishYoutube": "Afslut og åbn YouTube",
-      "finish": "Afslut"
+      "finish": "Afslut",
+      "needsExtension": "Disse indstillinger findes i Lingogram-udvidelsen. Installér den for at slå dem til eller fra."
     }
   },
   "uninstall": {

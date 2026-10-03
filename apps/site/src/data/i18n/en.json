@@ -319,7 +319,8 @@
       "highlightLabel": "Highlight my words on websites",
       "highlightHint": "Words you saved are marked on any page you read. Checked on your device; nothing is sent.",
       "finishYoutube": "Finish and open YouTube",
-      "finish": "Finish"
+      "finish": "Finish",
+      "needsExtension": "These settings live in the Lingogram extension. Install it to switch them on or off."
     }
   },
   "uninstall": {

@@ -318,7 +318,8 @@
       "highlightLabel": "Serlahkan perkataan saya di laman web",
       "highlightHint": "Perkataan yang anda simpan ditanda pada mana-mana halaman yang anda baca. Disemak pada peranti anda, tiada apa yang dihantar.",
       "finishYoutube": "Selesai dan buka YouTube",
-      "finish": "Selesai"
+      "finish": "Selesai",
+      "needsExtension": "Tetapan ini terdapat dalam sambungan Lingogram. Pasangnya untuk menghidupkan atau mematikannya."
     }
   },
   "uninstall": {

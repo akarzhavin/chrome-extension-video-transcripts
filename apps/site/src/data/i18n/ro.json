@@ -320,7 +320,8 @@
       "highlightLabel": "Evidențiază-mi cuvintele pe site-uri",
       "highlightHint": "Cuvintele salvate sunt marcate pe orice pagină citești. Verificarea se face pe dispozitivul tău, nu se trimite nimic.",
       "finishYoutube": "Termină și deschide YouTube",
-      "finish": "Termină"
+      "finish": "Termină",
+      "needsExtension": "Aceste setări se află în extensia Lingogram. Instal-o ca să le poți activa sau dezactiva."
     }
   },
   "uninstall": {

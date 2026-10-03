@@ -319,7 +319,8 @@
       "highlightLabel": "Surligner mes mots sur les sites web",
       "highlightHint": "Les mots enregistrés sont repérés sur toutes les pages que vous lisez. La vérification se fait sur votre appareil ; rien n'est envoyé.",
       "finishYoutube": "Terminer et ouvrir YouTube",
-      "finish": "Terminer"
+      "finish": "Terminer",
+      "needsExtension": "Ces réglages se trouvent dans l'extension Lingogram. Installez-la pour les activer ou les désactiver."
     }
   },
   "uninstall": {
