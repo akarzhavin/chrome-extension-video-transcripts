@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Slova, která jste si uložili, se označují na každé stránce, kterou čtete. Porovnání probíhá ve vašem zařízení, nic se neodesílá.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Vítejte v Lingogramu",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Jazyk",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Účet",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Nastavení",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Povinné",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "Volitelné",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Přeskočeno",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Kroky nastavení",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "Hotovo: {done} ze 3",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Jak Lingogram funguje",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Jakému jazyku se učíte?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Titulky v tomto jazyce se zobrazí nahoře a pod nimi překlad do vašeho jazyka.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Mateřský jazyk odhadnut podle vašeho prohlížeče.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Pokračovat",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Mějte svá slovíčka na jednom místě",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "S účtem zůstanou uložená slova v jednom seznamu na lingogram.ai i v každém prohlížeči. Jedno přihlášení platí pro web i rozšíření.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Přihlášeno jako {email} na lingogram.ai i v rozšíření",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Přihlásit se nebo vytvořit účet",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Zatím přeskočit",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Titulky a přepis fungují i bez účtu.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Vyberte, kde má Lingogram fungovat",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Vše můžete později změnit v nabídce rozšíření.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Video weby",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Dvojité titulky a přepis",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "Vlastní rozšíření Lingogram, už nainstalované",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "Vlastní rozšíření Lingogram z Chrome Web Store",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Nainstalováno",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Přidat do prohlížeče Chrome",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Jakýkoli web",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Dokončit a otevřít YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Dokončit",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Dokončit nastavení",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Platí od příštího otevření nebo obnovení stránky.",
+    "description": "Toolbar popup."
   }
 }

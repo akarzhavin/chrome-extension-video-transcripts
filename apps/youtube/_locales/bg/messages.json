@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Запазените думи се открояват във всяка страница, която четете. Съпоставянето става на вашето устройство, нищо не се изпраща.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Добре дошли в Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Език",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Профил",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Настройки",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Задължително",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "По избор",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Пропуснато",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Стъпки за настройване",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "Готово: {done} от 3",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Как работи Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Кой език учите?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Субтитрите на този език са отгоре, а под тях е преводът на вашия език.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Родният език е познат по браузъра ви.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Напред",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Всички ваши думи на едно място",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "С профил запазените думи остават в един списък в lingogram.ai и във всеки браузър. Един вход важи за сайта и за разширението.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Влезли сте като {email} в lingogram.ai и в разширението",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Вход или създаване на профил",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Пропускане засега",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Субтитрите и транскрипцията работят и без профил.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Изберете къде да работи Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Можете да промените всичко това по-късно от менюто на разширението.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Видео сайтове",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Двойни субтитри и транскрипция",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "Собствено разширение на Lingogram, вече инсталирано",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "Собствено разширение на Lingogram от Chrome Web Store",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Инсталирано",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Добавяне в Chrome",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Всеки уебсайт",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Готово и отваряне на YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Готово",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Завършване на настройката",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Важи от следващото отваряне или презареждане на страницата.",
+    "description": "Toolbar popup."
   }
 }

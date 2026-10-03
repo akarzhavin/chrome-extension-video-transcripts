@@ -78,6 +78,9 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            siteYoutube: true,
+            siteNetflix: true,
+            siteRezka: true,
             theme: 'dark',
         });
     });
@@ -159,6 +162,9 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            siteYoutube: true,
+            siteNetflix: true,
+            siteRezka: true,
             theme: 'dark',
         });
     });

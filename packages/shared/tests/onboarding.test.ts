@@ -18,6 +18,7 @@ const tabsCreate = jest.fn(() => Promise.resolve({} as any));
         OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
         setUninstallURL,
         getManifest: () => ({ version: '1.0.18' }),
+        getURL: (path: string) => `chrome-extension://ext-id/${path}`,
     },
     tabs: { create: tabsCreate },
 };
@@ -74,12 +75,10 @@ describe('setUninstallURL', () => {
 });
 
 describe('welcome tab', () => {
-    it('opens on install, carrying the same slug', () => {
+    it("opens the extension's own welcome page on install", () => {
         installOnboarding('rezka');
         fireInstalled({ reason: 'install' });
-        expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=rezka`,
-        });
+        expect(tabsCreate).toHaveBeenCalledWith({ url: 'chrome-extension://ext-id/welcome.html' });
     });
 
     it('does not reopen on update', () => {
@@ -145,13 +144,12 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
         expect(OPTED_OUT).not.toMatch(/^[0-9a-f-]{36}$/);
     });
 
-    it('puts the id on the welcome tab too', async () => {
+    it('opens the welcome page at once, without waiting for the id', () => {
+        // The page is the extension's own: nothing to join on the site, and a
+        // tab deferred behind a storage read can be lost with the worker.
         installOnboarding('youtube', { clientId: async () => 'cid-abc' });
         fireInstalled({ reason: 'install' });
-        await settle();
-        expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=youtube&cid=cid-abc`,
-        });
+        expect(tabsCreate).toHaveBeenCalledWith({ url: 'chrome-extension://ext-id/welcome.html' });
     });
 
     it('still hands off when the id cannot be read', async () => {
@@ -166,9 +164,7 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
         expect(setUninstallURL).toHaveBeenLastCalledWith(
             `${config.frontendBaseUrl}/uninstall/?ext=rezka`,
         );
-        expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=rezka`,
-        });
+        expect(tabsCreate).toHaveBeenCalledWith({ url: 'chrome-extension://ext-id/welcome.html' });
     });
 
     it('omits cid entirely for a build that passes no resolver', async () => {

@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Ord du har lagret, markeres på alle sider du leser. Sammenligningen skjer på enheten din, og ingenting sendes.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Velkommen til Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Språk",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Konto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Innstillinger",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Påkrevd",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "Valgfritt",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Hoppet over",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Oppsettstrinn",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "{done} av 3 fullført",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Slik fungerer Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Hvilket språk lærer du?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Undertekster på dette språket vises først, med oversettelsen til ditt språk under.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Morsmål gjettet fra nettleseren din.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Fortsett",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Ha alle ordene dine på ett sted",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "Med en konto havner ordene du lagrer i én liste på lingogram.ai og i alle nettlesere. Én pålogging gjelder både nettstedet og utvidelsen.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Logget inn som {email} på lingogram.ai og i utvidelsen",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Logg inn eller opprett konto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Hopp over for nå",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Undertekster og transkripsjon fungerer uten konto.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Velg hvor Lingogram skal fungere",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Du kan endre alt dette senere i utvidelsesmenyen.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Videonettsteder",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Doble undertekster og transkripsjon",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "Egen Lingogram-utvidelse, allerede installert",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "Egen Lingogram-utvidelse, fra Chrome Web Store",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Installert",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Legg til i Chrome",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Hvilket som helst nettsted",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Fullfør og åpne YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Fullfør",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Fullfør oppsettet",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Gjelder neste gang du åpner eller laster inn siden på nytt.",
+    "description": "Toolbar popup."
   }
 }

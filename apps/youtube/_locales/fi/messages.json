@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Tallentamasi sanat merkitään jokaisella lukemallasi sivulla. Vertailu tehdään laitteellasi, mitään ei lähetetä.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Tervetuloa Lingogramiin",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Kieli",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Tili",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Asetukset",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Pakollinen",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "Valinnainen",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Ohitettu",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Käyttöönoton vaiheet",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "{done}/3 valmis",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Näin Lingogram toimii",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Mitä kieltä opiskelet?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Tämän kielen tekstitys näkyy ensin, ja sen alla on käännös omalle kielellesi.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Äidinkieli arvattu selaimestasi.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Jatka",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Pidä sanasi yhdessä paikassa",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "Tilin avulla tallentamasi sanat pysyvät yhdessä listassa lingogram.ai-sivustolla ja kaikissa selaimissa. Yksi kirjautuminen kattaa sekä sivuston että laajennuksen.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Kirjautuneena tunnuksella {email} lingogram.ai-sivustolla ja laajennuksessa",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Kirjaudu sisään tai luo tili",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Ohita toistaiseksi",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Tekstitys ja transkriptio toimivat ilman tiliä.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Valitse, missä Lingogram toimii",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Voit muuttaa kaikkia näitä myöhemmin laajennuksen valikosta.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Videosivustot",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Kaksoistekstitys ja transkriptio",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "Oma Lingogram-laajennuksensa, jo asennettuna",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "Oma Lingogram-laajennuksensa, Chrome Web Storesta",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Asennettu",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Lisää Chromeen",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Mikä tahansa verkkosivusto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Valmis – avaa YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Valmis",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Viimeistele käyttöönotto",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Tulee voimaan, kun seuraavan kerran avaat sivun tai lataat sen uudelleen.",
+    "description": "Toolbar popup."
   }
 }

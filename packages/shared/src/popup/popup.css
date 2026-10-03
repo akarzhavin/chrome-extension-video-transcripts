@@ -223,3 +223,13 @@ input:focus-visible {
     color: var(--lg-text-dim);
     line-height: 1.4;
 }
+
+/* "Finish setup" (renderSetupLink): full width, above the language block. */
+.setup-link {
+    width: 100%;
+    margin-bottom: 12px;
+    background: var(--lg-surface);
+    color: var(--lg-text);
+}
+
+.setup-link:hover { background: var(--lg-surface-hover); }

@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Zapisane słowa są zaznaczane na każdej stronie, którą czytasz. Sprawdzanie odbywa się na Twoim urządzeniu, nic nie jest wysyłane.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Witaj w Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Język",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Konto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Ustawienia",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Wymagane",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "Opcjonalne",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Pominięto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Kroki konfiguracji",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "Gotowe: {done} z 3",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Jak działa Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Jakiego języka się uczysz?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Napisy w tym języku pojawiają się u góry, a pod nimi tłumaczenie na Twój język.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Język ojczysty odgadnięty na podstawie przeglądarki.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Dalej",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Trzymaj swoje słówka w jednym miejscu",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "Dzięki kontu zapisane słówka trafiają na jedną listę na lingogram.ai i we wszystkich przeglądarkach. Jedno logowanie działa na stronie i w rozszerzeniu.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Zalogowano jako {email} na lingogram.ai i w rozszerzeniu",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Zaloguj się lub utwórz konto",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Pomiń na razie",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Napisy i transkrypcja działają bez konta.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Wybierz, gdzie działa Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Wszystko możesz zmienić później w menu rozszerzenia.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Serwisy wideo",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Podwójne napisy i transkrypcja",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "Własne rozszerzenie Lingogram, już zainstalowane",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "Własne rozszerzenie Lingogram, ze sklepu Chrome Web Store",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Zainstalowano",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Dodaj do Chrome",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Dowolna strona",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Zakończ i otwórz YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Zakończ",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Dokończ konfigurację",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Obowiązuje po następnym otwarciu lub odświeżeniu strony.",
+    "description": "Toolbar popup."
   }
 }

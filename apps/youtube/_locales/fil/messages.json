@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "Minamarkahan ang mga salitang na-save mo sa anumang pahinang binabasa mo. Sa device mo ginagawa ang pagtutugma; walang ipinapadala.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Welcome sa Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "Wika",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "Account",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "Mga Setting",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "Kailangan",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "Opsyonal",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "Nilaktawan",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "Mga hakbang sa pag-set up",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "{done} sa 3 ang tapos na",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Paano gumagana ang Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "Anong wika ang pinag-aaralan mo?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "Mauuna ang mga subtitle sa wikang ito, at nasa ibaba ang salin sa wika mo.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "Hinulaan ang katutubong wika mula sa browser mo.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "Magpatuloy",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "Itago ang mga salita mo sa iisang lugar",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "Gamit ang account, mananatili sa iisang listahan ang mga salitang sine-save mo sa lingogram.ai at sa bawat browser. Iisang sign-in lang para sa site at sa extension.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "Naka-sign in bilang {email} sa lingogram.ai at sa extension",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "Mag-sign in o gumawa ng account",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "Laktawan muna",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "Gumagana ang mga subtitle at ang transcript kahit walang account.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Piliin kung saan gagana ang Lingogram",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "Maaari mong baguhin ang lahat ng ito sa ibang pagkakataon sa menu ng extension.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "Mga video site",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "Dual na subtitle at transcript",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "May sarili itong Lingogram extension, naka-install na",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "May sarili itong Lingogram extension, mula sa Chrome Web Store",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "Naka-install",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Idagdag sa Chrome",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "Anumang website",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "Tapusin at buksan ang YouTube",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "Tapusin",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "Tapusin ang pag-set up",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Mag-a-apply sa susunod na pagbukas o pag-reload mo ng page.",
+    "description": "Toolbar popup."
   }
 }

@@ -6,12 +6,17 @@ import {
     loadLanguagePrefs,
     saveLanguagePrefs,
 } from '../languages';
-import { loadPrefs, savePrefs } from '../prefs';
+import { loadPrefs, savePrefs, sitePrefKey, type VideoSite } from '../prefs';
+import type { Edition } from '../sibling';
+import { loadWelcomeState, sitesOf } from '../welcome/welcome';
 
 // Optional allow-list of language codes for the pickers. Set by initPopup; null
 // means "all supported languages". Used so apps whose source only ships a few
 // subtitle languages (e.g. Rezka) don't offer ones no title carries.
 let allowedLanguageCodes: string[] | null = null;
+// Which edition this popup belongs to; null = not told (tests, old callers),
+// and the edition-specific blocks (video sites, setup) are left out.
+let edition: Edition | null = null;
 
 function pickerLanguages(): SupportedLanguage[] {
     if (!allowedLanguageCodes) return SUPPORTED_LANGUAGES;
@@ -66,7 +71,9 @@ function render(root: HTMLElement, state: ViewState): void {
         renderSignedOut(root);
     }
 
+    renderSetupLink(root);
     renderLanguageSettings(root);
+    renderVideoSites(root);
     renderWebsiteSettings(root);
     renderPrivacySettings(root);
 
@@ -199,6 +206,65 @@ function renderLanguageSettings(root: HTMLElement): void {
 // `color-scheme: light dark`, and the platform's own accessibility semantics —
 // none of which a div reimplements for free.
 /** "Highlight my words on websites" — the page-highlight content script's switch. */
+// "Finish setup" while the welcome page has not been finished — the way back to
+// a skipped sign-in. Placed first and added only once storage answers.
+function renderSetupLink(root: HTMLElement): void {
+    if (!edition) return;
+    const slot = document.createElement('div');
+    root.appendChild(slot);
+    void loadWelcomeState().then((w) => {
+        if (w.finished) return;
+        const b = document.createElement('button');
+        // Its own class, not `secondary`: that one marks the auth fallback buttons.
+        b.className = 'setup-link';
+        b.textContent = i18nMsg('popupFinishSetup', 'Finish setup');
+        b.addEventListener('click', () => {
+            void chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+            window.close();
+        });
+        slot.appendChild(b);
+    });
+}
+
+const SITE_NAMES: Record<VideoSite, string> = { youtube: 'YouTube', netflix: 'Netflix', rezka: 'HDrezka' };
+
+// This edition's video sites, each a switch (the same prefs the welcome page
+// sets). A change applies on the next page load of that site.
+function renderVideoSites(root: HTMLElement): void {
+    if (!edition) return;
+    const section = document.createElement('div');
+    section.className = 'lang-settings';
+    const heading = document.createElement('div');
+    heading.className = 'lang-settings-title';
+    heading.textContent = i18nMsg('welcomeVideoSites', 'Video sites');
+    section.appendChild(heading);
+    const boxes: Array<{ site: VideoSite; box: HTMLInputElement }> = [];
+    for (const site of sitesOf(edition).own) {
+        const row = document.createElement('label');
+        row.className = 'toggle-row';
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.className = 'toggle-box';
+        box.checked = true;
+        box.dataset.pref = sitePrefKey(site);
+        box.addEventListener('change', () => void savePrefs({ [sitePrefKey(site)]: box.checked }));
+        const label = document.createElement('span');
+        label.className = 'toggle-label';
+        label.textContent = SITE_NAMES[site];
+        row.append(box, label);
+        section.appendChild(row);
+        boxes.push({ site, box });
+    }
+    const hint = document.createElement('div');
+    hint.className = 'toggle-hint';
+    hint.textContent = i18nMsg('popupSitesHint', 'Applies when you next open or reload the page.');
+    section.appendChild(hint);
+    root.appendChild(section);
+    void loadPrefs().then((p) => {
+        for (const { site, box } of boxes) box.checked = p[sitePrefKey(site)];
+    });
+}
+
 function renderWebsiteSettings(root: HTMLElement): void {
     const section = document.createElement('div');
     section.className = 'lang-settings';
@@ -295,8 +361,9 @@ function renderPrivacySettings(root: HTMLElement): void {
     });
 }
 
-export function initPopup(opts?: { languages?: string[] }): void {
+export function initPopup(opts?: { languages?: string[]; edition?: Edition }): void {
     allowedLanguageCodes = opts?.languages ?? null;
+    edition = opts?.edition ?? null;
     const root = document.getElementById('root');
     if (!root) {
         console.error('[Lingogram] popup: #root not found');

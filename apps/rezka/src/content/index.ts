@@ -27,6 +27,7 @@ import {
     isContextOrphaned,
     showOrphanNotice,
     type Subtitle,
+    isSiteEnabled,
 } from '@video-transcripts/shared';
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
@@ -1259,6 +1260,14 @@ function bootstrap(): void {
     }
 
     if (!isRezka) return;
+    // Switched off on the welcome page or in the popup: nothing is built.
+    // Read once; a change applies on the next page load.
+    void isSiteEnabled('rezka').then((on) => {
+        if (on) start();
+    });
+}
+
+function start(): void {
     // Panel theme before the panel: the light class goes on <html>, and
     // building the sidebar first means it paints dark and then repaints on
     // every load. initTheme also owns the 'auto' media-query subscription.

@@ -16,7 +16,6 @@
 // rather than bouncing the tester back to production.
 import { config } from './auth/config';
 
-const WELCOME_URL = `${config.frontendBaseUrl}/welcome/`;
 const UNINSTALL_URL = `${config.frontendBaseUrl}/uninstall/`;
 
 /**
@@ -74,23 +73,12 @@ export function installOnboarding(
             // the event most likely to be lost — treat installs as slightly
             // undercounted rather than engineering a queue for it.
             hooks?.onInstall?.();
-            // No resolver (apps/web, and any older caller): open synchronously,
-            // exactly as before. Deferring the tab behind a promise nobody
-            // needs would risk the worker dying first and swallowing the
-            // welcome page — the one thing this branch exists to deliver.
-            if (!hooks?.clientId) {
-                void chrome.tabs.create({ url: `${WELCOME_URL}?ext=${ext}` });
-                return;
-            }
-            // With a resolver, wait for it so /welcome/ carries the same id the
-            // install event reported under. onInstall mints it first, so this
-            // reads storage rather than racing the mint.
-            void (async () => {
-                const cid = await resolveCid(hooks);
-                void chrome.tabs.create({
-                    url: `${WELCOME_URL}?ext=${ext}${cid ? `&cid=${encodeURIComponent(cid)}` : ''}`,
-                });
-            })();
+            // The welcome page is the extension's own (welcome.html): it
+            // sets languages, the optional sign-in and the site switches
+            // directly. Opened synchronously, so a worker torn down right after
+            // install still delivers it. The site's /welcome/ stays reachable
+            // from the page's menu.
+            void chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
             return;
         }
         if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {

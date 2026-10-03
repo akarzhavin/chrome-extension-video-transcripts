@@ -323,6 +323,17 @@ export default defineConfig(({ command, mode }) => {
               dest: 'src/popup',
               rename: { stripBase: true },
             },
+            // The welcome page (opened on install) shares the popup bundle.
+            {
+              src: '../../packages/shared/src/welcome/welcome.html',
+              dest: '.',
+              rename: { stripBase: true },
+            },
+            {
+              src: '../../packages/shared/src/welcome/welcome.css',
+              dest: 'src/welcome',
+              rename: { stripBase: true },
+            },
             {
               // _locales/<lang>/messages.json — localizes the extension name
               // and store summary (referenced via __MSG_*__ in the manifest).

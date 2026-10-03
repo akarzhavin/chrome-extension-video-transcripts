@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "保存した単語は、読んでいるどのページでもマークされます。照合は端末内で行われ、何も送信されません。",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Lingogram へようこそ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "言語",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "アカウント",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "設定",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "必須",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "任意",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "スキップ済み",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "セットアップの手順",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "{done}/3 完了",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Lingogram の仕組み",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "どの言語を学習しますか？",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "この言語の字幕が上に表示され、その下にあなたの言語への翻訳が表示されます。",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "母国語はブラウザの設定から推測しています。",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "次へ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "単語を 1 か所にまとめよう",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "アカウントがあれば、保存した単語は lingogram.ai とすべてのブラウザで 1 つのリストにまとまります。1 回のログインでサイトと拡張機能の両方を使えます。",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "lingogram.ai と拡張機能で {email} としてログイン中",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "ログインまたはアカウントを作成",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "今はスキップ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "字幕とトランスクリプトはアカウントなしでも使えます。",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Lingogram を使う場所を選択",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "これらはあとから拡張機能のメニューでいつでも変更できます。",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "動画サイト",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "二重字幕とトランスクリプト",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "専用の Lingogram 拡張機能が導入済み",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "専用の Lingogram 拡張機能（Chrome Web Store）",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "インストール済み",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Chrome に追加",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "すべてのウェブサイト",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "完了して YouTube を開く",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "完了",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "セットアップを完了",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "次にページを開くか再読み込みしたときに反映されます。",
+    "description": "Toolbar popup."
   }
 }

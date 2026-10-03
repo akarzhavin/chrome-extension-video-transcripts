@@ -650,5 +650,137 @@
   "popupPageHighlightHint": {
     "message": "તમે સાચવેલા શબ્દો તમે વાંચો છો તે કોઈપણ પેજ પર ચિહ્નિત થાય છે. મેળ તમારા ઉપકરણ પર જ તપાસાય છે; કંઈ મોકલાતું નથી.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "welcomePageTitle": {
+    "message": "Lingogram માં આપનું સ્વાગત છે",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepLanguage": {
+    "message": "ભાષા",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepAccount": {
+    "message": "એકાઉન્ટ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStepSettings": {
+    "message": "સેટિંગ્સ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusRequired": {
+    "message": "જરૂરી",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusOptional": {
+    "message": "વૈકલ્પિક",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeStatusSkipped": {
+    "message": "છોડી દીધું",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeMenuLabel": {
+    "message": "સેટઅપના પગલાં",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeProgress": {
+    "message": "3 માંથી {done} પૂર્ણ",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeAbout": {
+    "message": "Lingogram કેવી રીતે કામ કરે છે",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangTitle": {
+    "message": "તમે કઈ ભાષા શીખી રહ્યા છો?",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangLead": {
+    "message": "આ ભાષાના સબટાઇટલ પહેલા દેખાય છે, અને તેની નીચે તમારી ભાષામાં અનુવાદ હોય છે.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeLangHint": {
+    "message": "તમારા બ્રાઉઝર પરથી માતૃભાષાનું અનુમાન લગાવ્યું છે.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeContinue": {
+    "message": "ચાલુ રાખો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountTitle": {
+    "message": "તમારા શબ્દો એક જ જગ્યાએ રાખો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountLead": {
+    "message": "એકાઉન્ટ હોય તો તમે સાચવેલા શબ્દો lingogram.ai પર અને દરેક બ્રાઉઝરમાં એક જ યાદીમાં રહે છે. એક વાર સાઇન ઇન કરવું સાઇટ અને એક્સ્ટેન્શન બંને માટે ચાલે છે.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSignedIn": {
+    "message": "lingogram.ai પર અને એક્સ્ટેન્શનમાં {email} તરીકે સાઇન ઇન કર્યું છે",
+    "description": "Welcome page opened on install. Keep the {placeholder} as is."
+  },
+  "welcomeSignIn": {
+    "message": "સાઇન ઇન કરો અથવા એકાઉન્ટ બનાવો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSkip": {
+    "message": "હમણાં છોડો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAccountHint": {
+    "message": "સબટાઇટલ અને ટ્રાન્સક્રિપ્ટ એકાઉન્ટ વગર પણ કામ કરે છે.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsTitle": {
+    "message": "Lingogram ક્યાં કામ કરે તે પસંદ કરો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSettingsLead": {
+    "message": "આ બધું તમે પછીથી એક્સ્ટેન્શન મેનૂમાં બદલી શકો છો.",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeVideoSites": {
+    "message": "વીડિયો સાઇટ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeSiteSub": {
+    "message": "ડ્યુઅલ સબટાઇટલ અને ટ્રાન્સક્રિપ્ટ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherInstalledSub": {
+    "message": "તેનું પોતાનું Lingogram એક્સ્ટેન્શન, પહેલેથી ઇન્સ્ટૉલ કરેલું",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeOtherSub": {
+    "message": "તેનું પોતાનું Lingogram એક્સ્ટેન્શન, Chrome Web Store પરથી",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeInstalled": {
+    "message": "ઇન્સ્ટૉલ કરેલું",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAddToChrome": {
+    "message": "Chrome માં ઉમેરો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeAnyWebsite": {
+    "message": "કોઈપણ વેબસાઇટ",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinishYoutube": {
+    "message": "પૂર્ણ કરો અને YouTube ખોલો",
+    "description": "Welcome page opened on install."
+  },
+  "welcomeFinish": {
+    "message": "પૂર્ણ કરો",
+    "description": "Welcome page opened on install."
+  },
+  "popupFinishSetup": {
+    "message": "સેટઅપ પૂર્ણ કરો",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "પેજ આગલી વાર ખોલશો અથવા રિલોડ કરશો ત્યારે લાગુ થશે.",
+    "description": "Toolbar popup."
   }
 }

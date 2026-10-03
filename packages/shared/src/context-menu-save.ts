@@ -22,6 +22,7 @@ import {
     ownsSharedFeatures,
     siblingIdsOf,
     SIBLING_MESSAGE_TYPE,
+    askSiblingStatus,
     type SiblingStatus,
 } from './sibling';
 import { setMirrorEntry } from './word-mirror';
@@ -62,26 +63,6 @@ function hideItem(): Promise<void> {
     );
 }
 
-/**
- * The other edition's answer, or null when it is not installed, disabled, or an
- * old version that does not accept this message. Null makes this edition show
- * its item: a duplicate is a nuisance, a missing item is a broken feature.
- */
-async function siblingStatus(): Promise<{ signedIn: boolean } | null> {
-    for (const id of siblingIdsOf(chrome.runtime.id)) {
-        try {
-            const res = (await chrome.runtime.sendMessage(id, {
-                type: SIBLING_MESSAGE_TYPE,
-                op: 'status',
-            })) as Partial<SiblingStatus> | undefined;
-            if (res?.ok === true && typeof res.signedIn === 'boolean') return { signedIn: res.signedIn };
-        } catch {
-            // that id is not installed — try the next one.
-        }
-    }
-    return null;
-}
-
 function tellSibling(): void {
     for (const id of siblingIdsOf(chrome.runtime.id)) {
         chrome.runtime.sendMessage(id, { type: SIBLING_MESSAGE_TYPE, op: 'sync' }).catch(() => {
@@ -92,7 +73,7 @@ function tellSibling(): void {
 
 async function decideAndApply(): Promise<void> {
     const signedIn = !!(await getAuthState());
-    const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, await siblingStatus());
+    const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, await askSiblingStatus());
     // The same answer decides who paints saved words on web pages: a content
     // script cannot message another extension, so it reads the worker's answer.
     try {
