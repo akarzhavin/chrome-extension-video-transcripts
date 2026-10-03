@@ -8,7 +8,6 @@
 const store: Record<string, unknown> = {};
 const session: Record<string, unknown> = {};
 let externalListener: ((m: any, s: any, r: any) => boolean | void) | null = null;
-let siblingAnswers = false;
 
 (global as any).chrome = {
     storage: {
@@ -32,9 +31,7 @@ let siblingAnswers = false;
     runtime: {
         id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan',
         getManifest: () => ({ version: '1.0.0' }),
-        sendMessage: jest.fn((id: string) =>
-            siblingAnswers ? Promise.resolve({ ok: true, signedIn: false }) : Promise.reject(new Error('absent')),
-        ),
+        sendMessage: jest.fn(),
         onMessageExternal: { addListener: (l: any) => (externalListener = l) },
     },
     i18n: { getMessage: () => '' },
@@ -61,25 +58,26 @@ beforeEach(() => {
     handleAuthMessage.mockImplementation(async (m: { action: string }) =>
         m.action === 'AUTH_STATUS' ? { signedIn: true, email: 'a@b.c' } : { ok: true },
     );
-    siblingAnswers = false;
+    (global as any).chrome.runtime.sendMessage.mockClear();
 });
 
 describe('state', () => {
-    test("names this edition's own sites only, and what is signed in", async () => {
-        store['prefs.v1'] = { siteNetflix: false, siteRezka: false };
+    test('says what is saved and who is signed in, and nothing about sites or the other edition', async () => {
+        store['prefs.v1'] = { pageHighlight: false };
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
         const s: any = await handleWelcomeMessage(msg('state'), yt);
-        expect(s.sites).toEqual({ youtube: true, netflix: false });
-        expect(s.signedIn).toBe(true);
-        expect(s.email).toBe('a@b.c');
-        expect(s.siblingInstalled).toBe(false);
+        expect(s).toMatchObject({ ok: true, edition: 'youtube', signedIn: true, email: 'a@b.c', learning: 'en', native: 'ru', pageHighlight: false });
+        expect(s.languages.length).toBeGreaterThan(10);
+        // The page does not use these; they must not be asked or answered.
+        expect(s).not.toHaveProperty('sites');
+        expect(s).not.toHaveProperty('siblingInstalled');
+        expect((global as any).chrome.runtime.sendMessage).not.toHaveBeenCalled();
     });
 
-    test('HDrezka edition offers its own language list; the other edition is seen when it answers', async () => {
-        siblingAnswers = true;
+    test('HDrezka edition offers its own language list', async () => {
         const s: any = await handleWelcomeMessage(msg('state'), rezka);
+        expect(s.edition).toBe('rezka');
         expect(s.languages.map((l: any) => l.code)).toEqual(['en', 'ru', 'uk']);
-        expect(s.sites).toEqual({ rezka: true });
-        expect(s.siblingInstalled).toBe(true);
     });
 });
 
@@ -94,15 +92,16 @@ describe('writes are validated', () => {
         expect(store['lang.v1']).toEqual({ learning: 'en', native: 'ru' });
     });
 
-    test("prefs: only booleans, only this edition's sites and highlighting", async () => {
+    test('prefs: word highlighting only, and only as a boolean', async () => {
+        // The video-site switches live in the popup; the page may not touch them.
+        expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteNetflix: false } }), yt)).toMatchObject({ ok: false });
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteRezka: false } }), yt)).toMatchObject({ ok: false });
-        expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteNetflix: 'no' } }), yt)).toMatchObject({ ok: false });
+        expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { pageHighlight: 'no' } }), yt)).toMatchObject({ ok: false });
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { analyticsEnabled: false } }), yt)).toMatchObject({ ok: false });
         expect((await loadPrefs()).analyticsEnabled).toBe(true);
-        expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteNetflix: false, pageHighlight: false } }), yt)).toEqual({ ok: true });
-        const p = await loadPrefs();
-        expect(p.siteNetflix).toBe(false);
-        expect(p.pageHighlight).toBe(false);
+        expect((await loadPrefs()).siteNetflix).toBe(true);
+        expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { pageHighlight: false } }), yt)).toEqual({ ok: true });
+        expect((await loadPrefs()).pageHighlight).toBe(false);
     });
 
     test('beginSignIn issues a fresh one-shot challenge and stores it for the handoff check', async () => {

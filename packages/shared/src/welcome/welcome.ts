@@ -1,7 +1,7 @@
 // The welcome page's state on the extension side.
 //
 // The page itself lives on lingogram.ai/welcome/ (apps/site): three steps in a
-// left menu — Language, Account, Settings — reached on install and from the
+// left menu — Language, Account, Start — reached on install and from the
 // popup's "Finish setup". It reads and writes everything through the worker
 // (bridge.ts); this module holds the bits both ends of that share.
 
@@ -40,11 +40,9 @@ export async function saveWelcomeState(s: WelcomeState): Promise<void> {
     }
 }
 
-/** The sites this edition runs on, and the ones that need the other edition. */
-export function sitesOf(edition: Edition): { own: VideoSite[]; other: VideoSite[] } {
-    return edition === 'youtube'
-        ? { own: ['youtube', 'netflix'], other: ['rezka'] }
-        : { own: ['rezka'], other: ['youtube', 'netflix'] };
+/** The video sites this edition runs on: the switches its popup shows. */
+export function ownSites(edition: Edition): VideoSite[] {
+    return edition === 'youtube' ? ['youtube', 'netflix'] : ['rezka'];
 }
 
 /**

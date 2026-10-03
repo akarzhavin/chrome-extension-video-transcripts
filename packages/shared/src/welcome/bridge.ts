@@ -6,16 +6,16 @@
 // type, and only from the frontend origins the handoff already trusts.
 //
 // Nothing the page sends is trusted as-is: language codes must be ones this
-// edition offers, prefs must be booleans for this edition's own sites or the
-// highlighting switch, and the sign-in challenge (nonce) is issued HERE; the
+// edition offers, the one pref the page may set (word highlighting) must be a
+// boolean, and the sign-in challenge (nonce) is issued HERE; the
 // token itself still arrives through the existing handoff message and check.
 
 import { handleAuthMessage, isAllowedExternalSender } from '../auth/background';
 import { setPendingAuthNonce } from '../auth/storage';
 import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from '../languages';
-import { loadPrefs, savePrefs, sitePrefKey } from '../prefs';
-import { askSiblingStatus, type Edition } from '../sibling';
-import { loadWelcomeState, saveWelcomeState, sitesOf } from './welcome';
+import { loadPrefs, savePrefs } from '../prefs';
+import type { Edition } from '../sibling';
+import { loadWelcomeState, saveWelcomeState } from './welcome';
 
 export const WELCOME_MESSAGE_TYPE = 'lingogram-welcome';
 
@@ -41,7 +41,7 @@ export interface BridgeOptions {
     languages?: readonly string[];
 }
 
-/** What the page needs to render all three steps. */
+/** What the page needs to render its steps. */
 export interface WelcomeSnapshot {
     ok: true;
     edition: Edition;
@@ -50,10 +50,7 @@ export interface WelcomeSnapshot {
     learning: string;
     native: string;
     languages: Array<{ code: string; label: string; native: string }>;
-    /** This edition's own sites only. */
-    sites: Record<string, boolean>;
     pageHighlight: boolean;
-    siblingInstalled: boolean;
     skippedAccount: boolean;
     finished: boolean;
 }
@@ -63,15 +60,12 @@ function offered(opts: BridgeOptions) {
 }
 
 async function snapshot(opts: BridgeOptions): Promise<WelcomeSnapshot> {
-    const [auth, langs, prefs, sibling, w] = await Promise.all([
+    const [auth, langs, prefs, w] = await Promise.all([
         handleAuthMessage({ action: 'AUTH_STATUS' }) as Promise<{ signedIn: boolean; email?: string }>,
         loadLanguagePrefs(),
         loadPrefs(),
-        askSiblingStatus(),
         loadWelcomeState(),
     ]);
-    const sites: Record<string, boolean> = {};
-    for (const s of sitesOf(opts.edition).own) sites[s] = prefs[sitePrefKey(s)];
     return {
         ok: true,
         edition: opts.edition,
@@ -80,9 +74,7 @@ async function snapshot(opts: BridgeOptions): Promise<WelcomeSnapshot> {
         learning: langs?.learning ?? '',
         native: langs?.native ?? '',
         languages: offered(opts).map(({ code, label, native }) => ({ code, label, native })),
-        sites,
         pageHighlight: prefs.pageHighlight,
-        siblingInstalled: sibling !== null,
         skippedAccount: w.skippedAccount,
         finished: w.finished,
     };
@@ -107,7 +99,7 @@ export async function handleWelcomeMessage(msg: WelcomeMessage, opts: BridgeOpti
         case 'setPrefs': {
             const raw = msg.prefs;
             if (typeof raw !== 'object' || raw === null) return { ok: false, error: 'prefs required' };
-            const allowed = new Set<string>([...sitesOf(opts.edition).own.map(sitePrefKey), 'pageHighlight']);
+            const allowed = new Set<string>(['pageHighlight']);
             const patch: Record<string, boolean> = {};
             for (const [k, v] of Object.entries(raw)) {
                 if (!allowed.has(k) || typeof v !== 'boolean') return { ok: false, error: `not settable: ${k}` };

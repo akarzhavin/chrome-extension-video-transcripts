@@ -8,7 +8,7 @@ import {
 } from '../languages';
 import { loadPrefs, savePrefs, sitePrefKey, type VideoSite } from '../prefs';
 import type { Edition } from '../sibling';
-import { loadWelcomeState, sitesOf, welcomeUrl } from '../welcome/welcome';
+import { loadWelcomeState, ownSites, welcomeUrl } from '../welcome/welcome';
 
 // Optional allow-list of language codes for the pickers. Set by initPopup; null
 // means "all supported languages". Used so apps whose source only ships a few
@@ -239,7 +239,7 @@ function renderVideoSites(root: HTMLElement): void {
     heading.textContent = i18nMsg('popupVideoSites', 'Video sites');
     section.appendChild(heading);
     const boxes: Array<{ site: VideoSite; box: HTMLInputElement }> = [];
-    for (const site of sitesOf(edition).own) {
+    for (const site of ownSites(edition)) {
         const row = document.createElement('label');
         row.className = 'toggle-row';
         const box = document.createElement('input');

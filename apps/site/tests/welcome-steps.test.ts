@@ -44,10 +44,8 @@ const signIns: unknown[] = [];
         id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan',
         lastError: undefined,
         getManifest: () => ({ version: '1.0.0' }),
-        // From the page: (extensionId, message, callback). From the bridge's
-        // own sibling ping: (extensionId, message) → promise.
+        // From the page: (extensionId, message, callback).
         sendMessage: jest.fn((id: string, message: any, cb?: (r: unknown) => void) => {
-            if (message?.type === 'lingogram-sibling') return Promise.reject(new Error('absent'));
             if (!extensionAnswers) return undefined; // never calls back: no extension
             if (message?.type === 'lingogram-extension-auth') {
                 // The existing handoff check: the nonce must be the one the
