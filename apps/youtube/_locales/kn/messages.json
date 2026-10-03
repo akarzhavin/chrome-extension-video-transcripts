@@ -651,130 +651,6 @@
     "message": "ನೀವು ಉಳಿಸಿದ ಪದಗಳು ನೀವು ಓದುವ ಯಾವುದೇ ಪುಟದಲ್ಲಿ ಗುರುತಾಗುತ್ತವೆ. ಹೊಂದಾಣಿಕೆ ನಿಮ್ಮ ಸಾಧನದಲ್ಲೇ ನಡೆಯುತ್ತದೆ; ಏನನ್ನೂ ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Lingogram ಗೆ ಸ್ವಾಗತ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "ಭಾಷೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "ಖಾತೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "ಅಗತ್ಯ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "ಐಚ್ಛಿಕ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "ಸೆಟಪ್ ಹಂತಗಳು",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "3 ರಲ್ಲಿ {done} ಪೂರ್ಣ",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "ನೀವು ಯಾವ ಭಾಷೆ ಕಲಿಯುತ್ತಿದ್ದೀರಿ?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "ಈ ಭಾಷೆಯ ಉಪಶೀರ್ಷಿಕೆಗಳು ಮೊದಲು ಕಾಣಿಸುತ್ತವೆ, ಅದರ ಕೆಳಗೆ ನಿಮ್ಮ ಭಾಷೆಯ ಅನುವಾದ ಇರುತ್ತದೆ.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಿಂದ ಮಾತೃಭಾಷೆಯನ್ನು ಊಹಿಸಲಾಗಿದೆ.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "ಮುಂದುವರಿಸಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "ನಿಮ್ಮ ಪದಗಳನ್ನು ಒಂದೇ ಕಡೆ ಇರಿಸಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "ಖಾತೆ ಇದ್ದರೆ, ನೀವು ಉಳಿಸಿದ ಪದಗಳು lingogram.ai ನಲ್ಲಿ ಮತ್ತು ಪ್ರತಿ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಒಂದೇ ಪಟ್ಟಿಯಲ್ಲಿರುತ್ತವೆ. ಒಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಿದರೆ ಸೈಟ್ ಮತ್ತು ಎಕ್ಸ್‌ಟೆನ್ಶನ್ ಎರಡಕ್ಕೂ ಸಾಕು.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "lingogram.ai ನಲ್ಲಿ ಮತ್ತು ಎಕ್ಸ್‌ಟೆನ್ಶನ್‌ನಲ್ಲಿ {email} ಆಗಿ ಸೈನ್ ಇನ್ ಆಗಿದ್ದೀರಿ",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ ಅಥವಾ ಖಾತೆ ರಚಿಸಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "ಈಗ ಬಿಟ್ಟುಬಿಡಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "ಖಾತೆ ಇಲ್ಲದೆಯೂ ಉಪಶೀರ್ಷಿಕೆಗಳು ಮತ್ತು ಟ್ರಾನ್ಸ್‌ಕ್ರಿಪ್ಟ್ ಕೆಲಸ ಮಾಡುತ್ತವೆ.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Lingogram ಎಲ್ಲಿ ಕೆಲಸ ಮಾಡಬೇಕೆಂದು ಆಯ್ಕೆಮಾಡಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "ಇವೆಲ್ಲವನ್ನೂ ನೀವು ನಂತರ ಎಕ್ಸ್‌ಟೆನ್ಶನ್ ಮೆನುವಿನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "ವೀಡಿಯೊ ಸೈಟ್‌ಗಳು",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "ಡ್ಯುಯಲ್ ಉಪಶೀರ್ಷಿಕೆಗಳು ಮತ್ತು ಟ್ರಾನ್ಸ್‌ಕ್ರಿಪ್ಟ್",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "ತನ್ನದೇ Lingogram ಎಕ್ಸ್‌ಟೆನ್ಶನ್, ಈಗಾಗಲೇ ಇನ್‌ಸ್ಟಾಲ್ ಆಗಿದೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "ತನ್ನದೇ Lingogram ಎಕ್ಸ್‌ಟೆನ್ಶನ್, Chrome Web Store ನಿಂದ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "ಇನ್‌ಸ್ಟಾಲ್ ಆಗಿದೆ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Chrome ಗೆ ಸೇರಿಸಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "ಯಾವುದೇ ವೆಬ್‌ಸೈಟ್",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "ಮುಗಿಸಿ ಮತ್ತು YouTube ತೆರೆಯಿರಿ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "ಮುಗಿಸಿ",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "ಸೆಟಪ್ ಮುಗಿಸಿ",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "ಮುಂದಿನ ಬಾರಿ ಪುಟವನ್ನು ತೆರೆದಾಗ ಅಥವಾ ಮರುಲೋಡ್ ಮಾಡಿದಾಗ ಅನ್ವಯಿಸುತ್ತದೆ.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "ವೀಡಿಯೊ ಸೈಟ್‌ಗಳು",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

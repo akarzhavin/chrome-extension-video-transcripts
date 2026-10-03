@@ -607,130 +607,6 @@
     "message": "Сохранённые слова отмечаются на любой странице, которую ты читаешь. Проверка идёт на твоём устройстве, ничего не отправляется.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Добро пожаловать в Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Язык",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Аккаунт",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Настройки",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Обязательно",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "По желанию",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Пропущено",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Шаги настройки",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "Готово: {done} из 3",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Как работает Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Какой язык вы изучаете?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Субтитры на этом языке идут первыми, а под ними перевод на ваш язык.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Родной язык определён по вашему браузеру.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Продолжить",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Храните слова в одном месте",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "С аккаунтом сохранённые слова собираются в один список на lingogram.ai и во всех браузерах. Один вход работает и на сайте, и в расширении.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Вы вошли как {email} на lingogram.ai и в расширении",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Войти или создать аккаунт",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Пропустить пока",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Субтитры и транскрипт работают и без аккаунта.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Выберите, где работает Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Всё это можно изменить позже в меню расширения.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Видеосайты",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Двойные субтитры и транскрипт",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Своё расширение Lingogram, уже установлено",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Своё расширение Lingogram, из Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Установлено",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Установить",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Любой сайт",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Готово, открыть YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Готово",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Завершить настройку",
     "description": "Toolbar popup."
@@ -738,5 +614,9 @@
   "popupSitesHint": {
     "message": "Применится при следующем открытии или перезагрузке страницы.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Видеосайты",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

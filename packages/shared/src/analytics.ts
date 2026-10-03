@@ -52,9 +52,6 @@ export type AnalyticsEvent =
     // shape (source, level, latency bucket) — the word itself is denied.
     | 'word_lookup'
     | 'signin_started'
-    // The welcome page opened on install: which step, and what the learner did
-    // there (shown, done, skipped, finished). No answers, no languages.
-    | 'welcome_step'
     // Consent
     | 'analytics_opt_out'
     // Remote notification channel. Only failures are tracked: a success happens
@@ -89,7 +86,6 @@ export const ALL_ANALYTICS_EVENTS: readonly AnalyticsEvent[] = [
     'word_removed',
     'word_lookup',
     'signin_started',
-    'welcome_step',
     'analytics_opt_out',
     'notification_fetch_failed',
     'retained_d2',

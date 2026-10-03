@@ -1075,8 +1075,9 @@ const privacySitePage = () => {
       read them in, where you arrived from, an approximate location derived from your IP
       address (Google discards the address itself and never stores it), your browser and
       device type, and a small number of actions on the site — clicking through to the
-      Chrome Web Store, trying the demo player on the home page, and signing in or
-      signing up. Sign-in events record only that one happened and by which method; your
+      Chrome Web Store, trying the demo player on the home page, signing in or
+      signing up, and which step of the setup page after installing the extension you
+      finished or skipped (never the languages or settings you chose there). Sign-in events record only that one happened and by which method; your
       email address and account identifier are deliberately never attached, so the
       analytics data and your account cannot be joined.</p>
       <p>We do not use these cookies for advertising, and advertising, remarketing and
@@ -1334,6 +1335,10 @@ const welcomePage = (locale, hrefLang) => {
     pathName: `${root}/welcome/`,
     body: `
 ${header(t, root)}
+${''/* The setup steps (src/welcome/steps.ts). Empty and hidden: the script fills
+it only when the extension that opened this page answers, and then hides the
+ordinary content below. With no answer the page is exactly what it was. */}
+<div class="ws" id="ws" hidden></div>
 <main class="wl">
   <div class="wl-hello">
     <span class="logo-mark" style="width:44px;height:44px;border-radius:14px">${CHAMELEON(28)}</span>
@@ -1435,6 +1440,8 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
   <p class="wl-signoff">${t('welcome.signoff', { link: `<a href="mailto:${SITE.supportEmail}">${esc(t('welcome.signoffLink'))}</a>` })}</p>
 </main>
 ${footer(t, root)}
+<script>window.__WELCOME_STEPS = ${scriptJSON({ lang, i18n: strings.welcome.steps })};</script>
+<script type="module" src="/welcome-steps.js?v=${BUST}"></script>
 <script>window.__EDITIONS = ${editionsMap};
 window.__WELCOME = ${scriptJSON({
   video: WELCOME_VIDEO,

@@ -76,7 +76,7 @@ test('"Finish setup" until the welcome page is finished, and it opens that page'
     const root = await mount('youtube');
     const b = Array.from(root.querySelectorAll('button')).find((x) => x.textContent === 'Finish setup')!;
     b.click();
-    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'chrome-extension://ext/welcome.html' });
+    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: expect.stringMatching(/\/welcome\/\?ext=youtube&id=ext$/) });
 
     store['welcome.v1'] = { step: 2, languageDone: true, skippedAccount: false, finished: true };
     const again = await mount('youtube');

@@ -30,7 +30,7 @@
   "externally_connectable": {
     "ids": ["hmdkmkimdbomemfcjmgeclchbcdbhabj"],
     "matches": [
-      "http://localhost:5173/*",
+      "http://localhost:5173/*", "http://localhost:8471/*",
       "https://lingogram.ai/*"
     ]
   },

@@ -651,130 +651,6 @@
     "message": "คำที่คุณบันทึกไว้จะถูกทำเครื่องหมายในทุกหน้าที่คุณอ่าน การจับคู่ทำงานบนอุปกรณ์ของคุณ และไม่มีการส่งข้อมูลใดออกไป",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "ยินดีต้อนรับสู่ Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "ภาษา",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "บัญชี",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "การตั้งค่า",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "จำเป็น",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "ไม่บังคับ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "ข้ามแล้ว",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "ขั้นตอนการตั้งค่า",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "เสร็จแล้ว {done} จาก 3",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram ทำงานอย่างไร",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "คุณกำลังเรียนภาษาอะไร",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "คำบรรยายภาษานี้จะแสดงก่อน และมีคำแปลเป็นภาษาของคุณอยู่ด้านล่าง",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "เดาภาษาแม่จากเบราว์เซอร์ของคุณ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "ต่อไป",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "เก็บคำศัพท์ไว้ในที่เดียว",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "เมื่อมีบัญชี คำที่คุณบันทึกจะอยู่ในรายการเดียวทั้งบน lingogram.ai และทุกเบราว์เซอร์ ลงชื่อเข้าใช้ครั้งเดียวก็ใช้ได้ทั้งเว็บไซต์และส่วนขยาย",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "ลงชื่อเข้าใช้เป็น {email} บน lingogram.ai และในส่วนขยายแล้ว",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "ลงชื่อเข้าใช้หรือสร้างบัญชี",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "ข้ามไปก่อน",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "คำบรรยายและบทถอดเสียงใช้งานได้โดยไม่ต้องมีบัญชี",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "เลือกที่ที่ Lingogram จะทำงาน",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "คุณเปลี่ยนทั้งหมดนี้ได้ภายหลังในเมนูของส่วนขยาย",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "เว็บไซต์วิดีโอ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "คำบรรยายสองภาษาและบทถอดเสียง",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "มีส่วนขยาย Lingogram ของตัวเอง ติดตั้งไว้แล้ว",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "มีส่วนขยาย Lingogram ของตัวเอง จาก Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "ติดตั้งแล้ว",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "เพิ่มลงใน Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "เว็บไซต์ใดก็ได้",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "เสร็จสิ้นและเปิด YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "เสร็จสิ้น",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "ตั้งค่าให้เสร็จ",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "มีผลเมื่อคุณเปิดหรือโหลดหน้านี้ใหม่ครั้งถัดไป",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "เว็บไซต์วิดีโอ",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

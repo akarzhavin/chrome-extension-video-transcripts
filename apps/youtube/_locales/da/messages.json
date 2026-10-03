@@ -651,130 +651,6 @@
     "message": "Ord, du har gemt, markeres på alle sider, du læser. Sammenligningen sker på din enhed, og der sendes ikke noget.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Velkommen til Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Sprog",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Konto",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Indstillinger",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Påkrævet",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Valgfrit",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Sprunget over",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Opsætningstrin",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done} af 3 gjort",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Sådan virker Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Hvilket sprog lærer du?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Undertekster på dette sprog vises først, med oversættelsen til dit sprog nedenunder.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Modersmål gættet ud fra din browser.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Fortsæt",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Hav alle dine ord ét sted",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "Med en konto ligger de ord, du gemmer, i én liste på lingogram.ai og i alle browsere. Ét login gælder både for webstedet og udvidelsen.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Logget ind som {email} på lingogram.ai og i udvidelsen",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Log ind eller opret en konto",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Spring over for nu",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Undertekster og udskrift virker uden en konto.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Vælg, hvor Lingogram skal virke",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Du kan ændre alt dette senere i udvidelsens menu.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Videosites",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Dobbelte undertekster og udskrift",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Egen Lingogram-udvidelse, allerede installeret",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Egen Lingogram-udvidelse, fra Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Installeret",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Føj til Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Et vilkårligt websted",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Afslut og åbn YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Afslut",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Afslut opsætningen",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Gælder, næste gang du åbner eller genindlæser siden.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosites",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

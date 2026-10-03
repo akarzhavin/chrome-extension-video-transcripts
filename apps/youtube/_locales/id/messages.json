@@ -651,130 +651,6 @@
     "message": "Kata yang Anda simpan ditandai di setiap halaman yang Anda baca. Pencocokan berlangsung di perangkat Anda; tidak ada yang dikirim.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Selamat datang di Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Bahasa",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Akun",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Setelan",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Wajib",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Opsional",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Dilewati",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Langkah penyiapan",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done} dari 3 selesai",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Cara kerja Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Bahasa apa yang Anda pelajari?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Subtitle dalam bahasa ini tampil lebih dulu, dengan terjemahan ke bahasa Anda di bawahnya.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Bahasa ibu ditebak dari browser Anda.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Lanjutkan",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Simpan kata-kata Anda di satu tempat",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "Dengan akun, kata yang Anda simpan tetap dalam satu daftar di lingogram.ai dan di semua browser. Satu kali masuk berlaku untuk situs dan ekstensi.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Masuk sebagai {email} di lingogram.ai dan di ekstensi",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Masuk atau buat akun",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Lewati dulu",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Subtitle dan transkrip tetap berfungsi tanpa akun.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Pilih tempat Lingogram bekerja",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Anda dapat mengubah semua ini nanti di menu ekstensi.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Situs video",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Subtitle ganda dan transkrip",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Ekstensi Lingogram tersendiri, sudah terpasang",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Ekstensi Lingogram tersendiri, dari Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Terpasang",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Tambahkan ke Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Situs web apa pun",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Selesai dan buka YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Selesai",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Selesaikan penyiapan",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Berlaku saat Anda membuka atau memuat ulang halaman berikutnya.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Situs video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

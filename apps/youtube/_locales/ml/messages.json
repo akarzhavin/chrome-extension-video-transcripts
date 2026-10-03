@@ -651,130 +651,6 @@
     "message": "നിങ്ങൾ സംരക്ഷിച്ച വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും അടയാളപ്പെടുത്തും. പൊരുത്തപ്പെടുത്തൽ നിങ്ങളുടെ ഉപകരണത്തിൽ തന്നെയാണ് നടക്കുന്നത്; ഒന്നും അയയ്ക്കുന്നില്ല.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Lingogram-ലേക്ക് സ്വാഗതം",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "ഭാഷ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "അക്കൗണ്ട്",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "ക്രമീകരണം",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "ആവശ്യമാണ്",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "ഓപ്ഷണൽ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "ഒഴിവാക്കി",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "സജ്ജീകരണ ഘട്ടങ്ങൾ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "3-ൽ {done} പൂർത്തിയായി",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram എങ്ങനെ പ്രവർത്തിക്കുന്നു",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "നിങ്ങൾ ഏത് ഭാഷയാണ് പഠിക്കുന്നത്?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "ഈ ഭാഷയിലെ സബ്ടൈറ്റിലുകൾ ആദ്യം കാണിക്കും, അതിന് താഴെ നിങ്ങളുടെ ഭാഷയിലെ വിവർത്തനവും.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "നിങ്ങളുടെ ബ്രൗസറിൽ നിന്ന് മാതൃഭാഷ ഊഹിച്ചതാണ്.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "തുടരുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "നിങ്ങളുടെ വാക്കുകൾ ഒരിടത്ത് സൂക്ഷിക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "അക്കൗണ്ട് ഉണ്ടെങ്കിൽ, നിങ്ങൾ സംരക്ഷിക്കുന്ന വാക്കുകൾ lingogram.ai-ലും എല്ലാ ബ്രൗസറിലും ഒറ്റ ലിസ്റ്റിൽ ഉണ്ടാകും. ഒരു തവണ സൈൻ ഇൻ ചെയ്താൽ സൈറ്റിനും എക്സ്റ്റൻഷനും മതി.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "lingogram.ai-ലും എക്സ്റ്റൻഷനിലും {email} ആയി സൈൻ ഇൻ ചെയ്തിരിക്കുന്നു",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "സൈൻ ഇൻ ചെയ്യുക അല്ലെങ്കിൽ അക്കൗണ്ട് ഉണ്ടാക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "ഇപ്പോൾ ഒഴിവാക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "അക്കൗണ്ട് ഇല്ലെങ്കിലും സബ്ടൈറ്റിലുകളും ട്രാൻസ്ക്രിപ്റ്റും പ്രവർത്തിക്കും.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Lingogram എവിടെ പ്രവർത്തിക്കണമെന്ന് തിരഞ്ഞെടുക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "ഇവയെല്ലാം പിന്നീട് എക്സ്റ്റൻഷൻ മെനുവിൽ മാറ്റാം.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "വീഡിയോ സൈറ്റുകൾ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "ഇരട്ട സബ്ടൈറ്റിലുകളും ട്രാൻസ്ക്രിപ്റ്റും",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "സ്വന്തം Lingogram എക്സ്റ്റൻഷൻ, ഇതിനകം ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ട്",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "സ്വന്തം Lingogram എക്സ്റ്റൻഷൻ, Chrome Web Store-ൽ നിന്ന്",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "ഇൻസ്റ്റാൾ ചെയ്തു",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Chrome-ലേക്ക് ചേർക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "ഏത് വെബ്സൈറ്റും",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "പൂർത്തിയാക്കി YouTube തുറക്കുക",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "പൂർത്തിയാക്കുക",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "സജ്ജീകരണം പൂർത്തിയാക്കുക",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "അടുത്ത തവണ പേജ് തുറക്കുമ്പോഴോ റീലോഡ് ചെയ്യുമ്പോഴോ ബാധകമാകും.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "വീഡിയോ സൈറ്റുകൾ",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

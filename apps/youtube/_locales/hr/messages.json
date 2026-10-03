@@ -651,130 +651,6 @@
     "message": "Riječi koje ste spremili označavaju se na svakoj stranici koju čitate. Provjera se odvija na vašem uređaju, ništa se ne šalje.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Dobro došli u Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Jezik",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Račun",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Postavke",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Obavezno",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Neobavezno",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Preskočeno",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Koraci postavljanja",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "Gotovo: {done} od 3",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Kako Lingogram radi",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Koji jezik učite?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Titlovi na ovom jeziku prikazuju se prvi, a ispod njih prijevod na vaš jezik.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Materinski jezik procijenjen prema vašem pregledniku.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Nastavi",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Imajte sve svoje riječi na jednom mjestu",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "S računom spremljene riječi ostaju na jednom popisu na lingogram.ai i u svakom pregledniku. Jedna prijava vrijedi za web-mjesto i proširenje.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Prijavljeni kao {email} na lingogram.ai i u proširenju",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Prijavite se ili izradite račun",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Preskoči za sada",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Titlovi i transkript rade i bez računa.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Odaberite gdje Lingogram radi",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Sve to možete promijeniti poslije u izborniku proširenja.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Videostranice",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Dvostruki titlovi i transkript",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Vlastito proširenje Lingogram, već instalirano",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Vlastito proširenje Lingogram iz Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Instalirano",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Dodaj u Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Bilo koja web-stranica",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Završi i otvori YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Završi",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Završi postavljanje",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Vrijedi pri sljedećem otvaranju ili osvježavanju stranice.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videostranice",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

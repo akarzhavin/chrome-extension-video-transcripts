@@ -2035,3 +2035,82 @@ footer.site {
 @media (prefers-reduced-motion: reduce) {
   .wl-priv-chev { transition: none; }
 }
+
+/* ---------------------------------------------------------------- welcome steps
+   The setup steps on /welcome/ (src/welcome/steps.ts), shown in place of the
+   ordinary welcome content when the extension that opened the page answers.
+   Layout G from the design lab: a compact step menu on the left with a
+   progress bar, the current step on the right. Prefixed ws- to stay clear of
+   the ordinary page's wl- classes. */
+
+.ws { display: flex; flex-wrap: wrap; max-width: 1080px; margin: 28px auto 80px; padding: 0 24px; gap: 40px; }
+.ws[hidden] { display: none; }
+
+.ws-menu {
+  flex: 1 1 220px; max-width: 250px; box-sizing: border-box; align-self: flex-start;
+  background: var(--chrome); border-radius: 18px; padding: 22px 14px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.ws-progress { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+.ws-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.ws-bar-fill { height: 100%; background: var(--accent); transition: width .2s; }
+.ws-progress-text { font-size: 12px; color: var(--muted); }
+.ws-steps { display: flex; flex-direction: column; gap: 2px; }
+.ws-step {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 500; text-align: start; cursor: pointer;
+}
+.ws-step.is-current { background: var(--panel); font-weight: 600; }
+.ws-dot {
+  width: 22px; height: 22px; flex: none; box-sizing: border-box; border-radius: 11px;
+  border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.ws-step.is-current .ws-dot { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.ws-dot.is-done, .ws-step.is-current .ws-dot.is-done { border-color: var(--teal); background: var(--teal); color: #fff; }
+.ws-step-label { flex: 1; min-width: 0; }
+.ws-step-status { font-size: 11px; font-weight: 500; color: var(--muted); }
+.ws-step-status.is-skipped { color: var(--star); }
+
+.ws-content { flex: 999 1 480px; min-width: 0; max-width: 560px; display: flex; flex-direction: column; gap: 18px; }
+.ws-title { font-size: clamp(27px, 4vw, 34px); line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+.ws-lead { font-size: 16.5px; line-height: 1.55; color: var(--muted); margin: 0 0 4px; }
+.ws-field { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 500; }
+.ws-select {
+  height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.ws-hint { font-size: 13px; color: var(--muted); }
+.ws-primary, .ws-secondary {
+  min-height: 48px; border-radius: 12px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.ws-primary { border: 0; background: var(--accent); color: var(--accent-ink); }
+.ws-secondary { border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-weight: 500; }
+.ws-primary:disabled, .ws-secondary:disabled { opacity: .55; cursor: not-allowed; }
+.ws-ok { font-size: 15px; font-weight: 600; color: var(--teal-deep); }
+.ws-group-title { margin-top: 4px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ws-group { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; }
+.ws-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+label.ws-row { cursor: pointer; }
+.ws-row + .ws-row { border-top: 1px solid var(--line); }
+.ws-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ws-row-title { font-size: 16px; font-weight: 600; }
+.ws-row-sub { font-size: 13px; line-height: 1.45; color: var(--muted); }
+.ws-add { min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; text-decoration: none; }
+.ws-installed { font-size: 14px; font-weight: 600; color: var(--teal-deep); }
+.ws-switch {
+  appearance: none; -webkit-appearance: none; width: 44px; height: 26px; flex: none; margin: 0;
+  border-radius: 13px; background: var(--line); position: relative; cursor: pointer; transition: background .15s;
+}
+.ws-switch::after {
+  content: ''; position: absolute; top: 3px; inset-inline-start: 3px; width: 20px; height: 20px;
+  border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: inset-inline-start .15s;
+}
+.ws-switch:checked { background: var(--accent); }
+.ws-switch:checked::after { inset-inline-start: 21px; }
+
+@media (max-width: 720px) {
+  .ws { gap: 20px; }
+  .ws-menu { max-width: none; flex-basis: 100%; }
+}

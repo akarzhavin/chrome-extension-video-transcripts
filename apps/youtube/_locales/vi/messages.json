@@ -651,130 +651,6 @@
     "message": "Những từ bạn đã lưu được đánh dấu trên mọi trang bạn đọc. Việc đối chiếu diễn ra trên thiết bị của bạn, không có gì được gửi đi.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Chào mừng đến với Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Ngôn ngữ",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Tài khoản",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Cài đặt",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Bắt buộc",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Tùy chọn",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Đã bỏ qua",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Các bước thiết lập",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "Đã xong {done}/3",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Cách Lingogram hoạt động",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Bạn đang học ngôn ngữ nào?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Phụ đề bằng ngôn ngữ này hiện trước, bản dịch sang ngôn ngữ của bạn nằm bên dưới.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Tiếng mẹ đẻ được đoán từ trình duyệt của bạn.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Tiếp tục",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Giữ mọi từ của bạn ở một nơi",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "Với tài khoản, các từ bạn lưu sẽ nằm trong một danh sách trên lingogram.ai và trên mọi trình duyệt. Chỉ cần đăng nhập một lần cho cả trang web lẫn tiện ích.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Đã đăng nhập bằng {email} trên lingogram.ai và trong tiện ích",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Đăng nhập hoặc tạo tài khoản",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Bỏ qua lúc này",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Phụ đề và bản chép lời hoạt động được cả khi không có tài khoản.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Chọn nơi Lingogram hoạt động",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Bạn có thể đổi tất cả những mục này sau trong menu của tiện ích.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Trang web video",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Phụ đề kép và bản chép lời",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Tiện ích Lingogram riêng, đã được cài",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Tiện ích Lingogram riêng, từ Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Đã cài đặt",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Thêm vào Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Bất kỳ trang web nào",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Hoàn tất và mở YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Hoàn tất",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Hoàn tất thiết lập",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Có hiệu lực vào lần bạn mở hoặc tải lại trang tiếp theo.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Trang web video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

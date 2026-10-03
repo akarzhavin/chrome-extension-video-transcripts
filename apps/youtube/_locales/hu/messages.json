@@ -651,130 +651,6 @@
     "message": "Az elmentett szavak minden olvasott oldalon meg vannak jelölve. Az egyeztetés az eszközén történik, semmi nem kerül elküldésre.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Üdvözli a Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Nyelv",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Fiók",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Beállítások",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Kötelező",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Nem kötelező",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Kihagyva",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Beállítási lépések",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done}/3 kész",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Így működik a Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Melyik nyelvet tanulja?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Az ezen a nyelven megjelenő feliratok kerülnek előre, alattuk pedig az Ön nyelvére fordított változat látható.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Az anyanyelv a böngészője alapján lett kitalálva.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Tovább",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Tartsa egy helyen a szavait",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "Fiókkal a mentett szavak egyetlen listában maradnak a lingogram.ai oldalon és minden böngészőben. Egyetlen bejelentkezés érvényes az oldalra és a bővítményre is.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Bejelentkezve mint {email} a lingogram.ai oldalon és a bővítményben",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Bejelentkezés vagy fiók létrehozása",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Kihagyás egyelőre",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "A feliratok és az átirat fiók nélkül is működnek.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Válassza ki, hol működjön a Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Mindezt később a bővítmény menüjében módosíthatja.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Videós oldalak",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Kettős feliratok és átirat",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Saját Lingogram-bővítmény, már telepítve",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Saját Lingogram-bővítmény a Chrome Web Store-ból",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Telepítve",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Hozzáadás a Chrome-hoz",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Bármely weboldal",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Befejezés és a YouTube megnyitása",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Befejezés",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Beállítás befejezése",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Az oldal következő megnyitásakor vagy újratöltésekor lép érvénybe.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videós oldalak",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

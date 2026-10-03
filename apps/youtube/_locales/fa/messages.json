@@ -651,130 +651,6 @@
     "message": "واژه‌هایی که ذخیره کرده‌اید در هر صفحه‌ای که می‌خوانید علامت‌گذاری می‌شوند. تطبیق روی دستگاه شما انجام می‌شود و چیزی ارسال نمی‌شود.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "به Lingogram خوش آمدید",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "زبان",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "حساب",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "تنظیمات",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "الزامی",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "اختیاری",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "رد شد",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "مراحل راه‌اندازی",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done} از ۳ انجام شد",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram چگونه کار می‌کند",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "چه زبانی یاد می‌گیرید؟",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "زیرنویس این زبان اول نمایش داده می‌شود و ترجمه به زبان شما زیر آن می‌آید.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "زبان مادری از روی مرورگرتان حدس زده شد.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "ادامه",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "واژه‌هایتان را یک‌جا نگه دارید",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "با حساب کاربری، واژه‌هایی که ذخیره می‌کنید در یک فهرست در lingogram.ai و در هر مرورگری می‌مانند. یک بار ورود برای سایت و افزونه کافی است.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "با {email} در lingogram.ai و در افزونه وارد شده‌اید",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "ورود یا ساخت حساب",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "فعلاً رد شو",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "زیرنویس و متن کامل بدون حساب هم کار می‌کنند.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "انتخاب کنید Lingogram کجا کار کند",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "همه این موارد را بعداً می‌توانید از منوی افزونه تغییر دهید.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "سایت‌های ویدیو",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "زیرنویس دوزبانه و متن کامل",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "افزونه Lingogram مخصوص خودش، از قبل نصب شده",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "افزونه Lingogram مخصوص خودش، از Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "نصب شد",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "افزودن به Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "هر وب‌سایت",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "پایان و باز کردن YouTube",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "پایان",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "پایان راه‌اندازی",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "دفعه بعد که صفحه را باز یا بارگذاری مجدد کنید اعمال می‌شود.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "سایت‌های ویدیو",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

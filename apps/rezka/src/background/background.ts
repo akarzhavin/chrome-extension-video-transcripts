@@ -8,6 +8,8 @@ import {
     track,
 } from '../../../../packages/shared/src/analytics-bg';
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/bridge';
+import { SUBTITLE_LANGUAGES } from '../config';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 
 // Tags every event with the backend it came from — a dev build can be switched
@@ -59,6 +61,8 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 }
 
 installAuthBackground();
+// The setup steps on lingogram.ai/welcome/ read and write through this.
+installWelcomeBridge({ edition: 'rezka', languages: SUBTITLE_LANGUAGES });
 installContextMenuSave();
 installOnboarding('rezka', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same

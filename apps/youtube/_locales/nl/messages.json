@@ -651,130 +651,6 @@
     "message": "Woorden die je hebt opgeslagen worden gemarkeerd op elke pagina die je leest. De vergelijking gebeurt op je apparaat; er wordt niets verzonden.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Welkom bij Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "Taal",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "Account",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "Instellingen",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "Vereist",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "Optioneel",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "Overgeslagen",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "Installatiestappen",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done} van 3 klaar",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Zo werkt Lingogram",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "Welke taal leer je?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "Ondertitels in deze taal staan bovenaan, met de vertaling in jouw taal eronder.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "Moedertaal afgeleid uit je browser.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "Doorgaan",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "Houd je woorden op één plek",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "Met een account blijven de woorden die je opslaat in één lijst op lingogram.ai en in elke browser. Eén keer inloggen geldt voor de site en de extensie.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "Ingelogd als {email} op lingogram.ai en in de extensie",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "Inloggen of een account maken",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "Nu overslaan",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "Ondertitels en transcript werken ook zonder account.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Kies waar Lingogram werkt",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "Je kunt dit later allemaal wijzigen in het menu van de extensie.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "Videosites",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "Dubbele ondertitels en transcript",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "Eigen Lingogram-extensie, al geïnstalleerd",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "Eigen Lingogram-extensie, uit de Chrome Web Store",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "Geïnstalleerd",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Toevoegen aan Chrome",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "Elke website",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "Afronden en YouTube openen",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "Afronden",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "Installatie afronden",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "Geldt vanaf de volgende keer dat je de pagina opent of herlaadt.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosites",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

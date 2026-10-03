@@ -651,130 +651,6 @@
     "message": "நீங்கள் சேமித்த சொற்கள் நீங்கள் படிக்கும் எந்தப் பக்கத்திலும் குறிக்கப்படும். பொருத்தம் பார்ப்பது உங்கள் சாதனத்திலேயே நடக்கும்; எதுவும் அனுப்பப்படாது.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Lingogram-க்கு வரவேற்கிறோம்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "மொழி",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "கணக்கு",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "அமைப்புகள்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "அவசியம்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "விருப்பத்திற்குரியது",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "தவிர்க்கப்பட்டது",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "அமைவு படிகள்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "3-இல் {done} முடிந்தது",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram எப்படி வேலை செய்கிறது",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "நீங்கள் எந்த மொழியைக் கற்கிறீர்கள்?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "இந்த மொழியின் வசனங்கள் முதலில் தோன்றும்; அவற்றின் கீழே உங்கள் மொழியில் மொழிபெயர்ப்பு இருக்கும்.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "உங்கள் உலாவியிலிருந்து தாய்மொழி ஊகிக்கப்பட்டது.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "தொடர்க",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "உங்கள் சொற்களை ஓரிடத்தில் வைத்திருங்கள்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "கணக்கு இருந்தால், நீங்கள் சேமிக்கும் சொற்கள் lingogram.ai-லும் ஒவ்வொரு உலாவியிலும் ஒரே பட்டியலில் இருக்கும். ஒருமுறை உள்நுழைந்தால் தளம், நீட்டிப்பு இரண்டுக்கும் போதும்.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "lingogram.ai-லும் நீட்டிப்பிலும் {email} ஆக உள்நுழைந்துள்ளீர்கள்",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "உள்நுழையவும் அல்லது கணக்கை உருவாக்கவும்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "இப்போது தவிர்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "கணக்கு இல்லாமலும் வசனங்களும் டிரான்ஸ்கிரிப்டும் வேலை செய்யும்.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Lingogram எங்கே செயல்பட வேண்டும் எனத் தேர்வுசெய்யுங்கள்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "இவை அனைத்தையும் பிறகு நீட்டிப்பு மெனுவில் மாற்றலாம்.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "வீடியோ தளங்கள்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "இரட்டை வசனங்களும் டிரான்ஸ்கிரிப்டும்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "தனக்கென Lingogram நீட்டிப்பு, ஏற்கனவே நிறுவப்பட்டுள்ளது",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "தனக்கென Lingogram நீட்டிப்பு, Chrome Web Store-இலிருந்து",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "நிறுவப்பட்டது",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Chrome-இல் சேர்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "எந்த இணையதளமும்",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "முடித்து YouTube-ஐத் திற",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "முடி",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "அமைவை முடி",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "அடுத்த முறை பக்கத்தைத் திறக்கும்போது அல்லது மீண்டும் ஏற்றும்போது செயல்படும்.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "வீடியோ தளங்கள்",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

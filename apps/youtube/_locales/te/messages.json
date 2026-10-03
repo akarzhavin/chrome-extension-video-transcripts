@@ -651,130 +651,6 @@
     "message": "మీరు సేవ్ చేసిన పదాలు మీరు చదివే ఏ పేజీలోనైనా గుర్తించబడతాయి. సరిపోల్చడం మీ పరికరంలోనే జరుగుతుంది; ఏదీ పంపబడదు.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Lingogram కు స్వాగతం",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "భాష",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "ఖాతా",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "సెట్టింగ్‌లు",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "తప్పనిసరి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "ఐచ్ఛికం",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "దాటవేయబడింది",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "సెటప్ దశలు",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "3 లో {done} పూర్తయ్యాయి",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram ఎలా పని చేస్తుంది",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "మీరు ఏ భాష నేర్చుకుంటున్నారు?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "ఈ భాషలోని సబ్‌టైటిళ్లు ముందుగా కనిపిస్తాయి, వాటి కింద మీ భాషలో అనువాదం ఉంటుంది.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "మీ బ్రౌజర్ ఆధారంగా మాతృభాషను ఊహించాము.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "కొనసాగించండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "మీ పదాలను ఒకే చోట ఉంచుకోండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "ఖాతా ఉంటే, మీరు సేవ్ చేసిన పదాలు lingogram.ai లో, ప్రతి బ్రౌజర్‌లో ఒకే జాబితాలో ఉంటాయి. ఒక్కసారి సైన్ ఇన్ చేస్తే సైట్‌కు, ఎక్స్‌టెన్షన్‌కు రెండింటికీ సరిపోతుంది.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "lingogram.ai లో, ఎక్స్‌టెన్షన్‌లో {email} గా సైన్ ఇన్ అయ్యారు",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "సైన్ ఇన్ చేయండి లేదా ఖాతా సృష్టించండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "ప్రస్తుతానికి దాటవేయండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "ఖాతా లేకుండానే సబ్‌టైటిళ్లు, ట్రాన్స్‌క్రిప్ట్ పని చేస్తాయి.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Lingogram ఎక్కడ పని చేయాలో ఎంచుకోండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "వీటన్నింటినీ తర్వాత ఎక్స్‌టెన్షన్ మెనూలో మార్చుకోవచ్చు.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "వీడియో సైట్‌లు",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "ద్వంద్వ సబ్‌టైటిళ్లు, ట్రాన్స్‌క్రిప్ట్",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "దానికంటూ సొంత Lingogram ఎక్స్‌టెన్షన్, ఇప్పటికే ఇన్‌స్టాల్ అయింది",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "దానికంటూ సొంత Lingogram ఎక్స్‌టెన్షన్, Chrome Web Store నుండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "ఇన్‌స్టాల్ అయింది",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Chromeకు జోడించండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "ఏదైనా వెబ్‌సైట్",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "పూర్తి చేసి YouTube తెరవండి",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "పూర్తి చేయండి",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "సెటప్ పూర్తి చేయండి",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "మీరు తదుపరిసారి పేజీని తెరిచినప్పుడు లేదా రీలోడ్ చేసినప్పుడు వర్తిస్తుంది.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "వీడియో సైట్‌లు",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

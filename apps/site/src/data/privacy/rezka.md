@@ -166,7 +166,7 @@ key that could join your analytics events to your account — the separation is
 structural, not just a promise. Clearing the Extension's storage or reinstalling
 produces a new, unrelated identifier.
 
-**The events we send** (22 in total):
+**The events we send** (21 in total):
 
 * `extension_installed`, `extension_updated` — the Extension was installed or
   updated;
@@ -184,9 +184,6 @@ produces a new, unrelated identifier.
   1e). The event carries the shape of the answer, never the word;
 * `signin_started` — you began the sign-in flow, and from where (the toolbar popup
   or the status badge);
-* `welcome_step` — on the setup page opened at install (Section 1f): which step
-  (languages, account, settings) and what you did there (finished it, skipped it).
-  Never your languages, your email, or your choices;
 * `analytics_opt_out` — you turned this analytics off (sent once, so we know how
   many people opt out);
 * `notification_fetch_failed` — the Extension could not reach our service-status
@@ -303,22 +300,23 @@ Answers are cached briefly on your device so the same word is not asked twice.
 
 ### f. The welcome and farewell pages
 
-**When you install the Extension**, it opens its own setup page — a page inside
-the Extension, not on our website. There you choose your languages, may sign in
-(optional; it opens the sign-in page on our website described in Section 1b), and
-switch the Extension on or off for each video site and for marking your words on
-web pages. Your choices are stored on your device (Section 3). If the other
-Lingogram edition is installed, the page asks it whether it is there, the same
-check described in Section 1b, and sends nothing else. The page links to a short
-welcome page on our website; opening it is up to you, and that visit carries no
-identifier.
+**When you install the Extension**, it opens a welcome page on our website. If
+the Extension that opened it answers, the page shows three setup steps: choose your
+languages, sign in (optional; the sign-in page on our website described in Section
+1b), and switch the Extension on or off for each video site and for marking your
+words on web pages. The page passes your choices straight to the Extension inside
+your browser, which stores them on your device (Section 3); they are not sent to our
+servers. To show the steps, the page asks the Extension for its current settings,
+whether you are signed in (and with which email address), and whether the other
+Lingogram edition is installed — the same check described in Section 1b. The page's
+address names the Extension so it can reach it.
 
 **When you uninstall it**, your browser opens a farewell page on our website.
 This is registered with the browser in advance, so the browser opens it on its own;
 the Extension is already gone at that point and cannot decide otherwise.
 
-The farewell address carries the **anonymous analytics identifier** of Section 1c,
-so that a visit can be counted against the install it belongs to rather than as an
+Both addresses carry the **anonymous analytics identifier** of Section 1c, so that
+a visit can be counted against the install it belongs to rather than as an
 unrelated stranger. If you have turned analytics off, the fixed placeholder
 `opted-out` is sent in place of the identifier — the same value for everyone who
 opted out, which identifies no one. The farewell page is opened by the browser
@@ -376,8 +374,8 @@ your device only:
 
 * your language and subtitle layout preferences, whether your saved words are
   marked on web pages, and which video sites the Extension is switched on for;
-* how far you got on the setup page (Section 1f): which step is open, whether you
-  skipped signing in, and whether you finished;
+* how far you got on the setup page (Section 1f): whether you skipped signing in,
+  and whether you finished;
 * whether the other Lingogram edition is the one that shows the menu item and
   marks words (a yes/no from the check between editions in Section 1b), so that
   only one of them does;

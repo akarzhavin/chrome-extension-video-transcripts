@@ -31,4 +31,3 @@ export * from './analytics';
 // so it carries the GA4 secret transitively. Service workers import it by
 // relative path; content scripts only ever need these types.
 export * from './notification-types';
-export { initWelcome } from './welcome/welcome';

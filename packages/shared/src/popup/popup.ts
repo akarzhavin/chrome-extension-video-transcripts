@@ -8,7 +8,7 @@ import {
 } from '../languages';
 import { loadPrefs, savePrefs, sitePrefKey, type VideoSite } from '../prefs';
 import type { Edition } from '../sibling';
-import { loadWelcomeState, sitesOf } from '../welcome/welcome';
+import { loadWelcomeState, sitesOf, welcomeUrl } from '../welcome/welcome';
 
 // Optional allow-list of language codes for the pickers. Set by initPopup; null
 // means "all supported languages". Used so apps whose source only ships a few
@@ -219,7 +219,7 @@ function renderSetupLink(root: HTMLElement): void {
         b.className = 'setup-link';
         b.textContent = i18nMsg('popupFinishSetup', 'Finish setup');
         b.addEventListener('click', () => {
-            void chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+            void chrome.tabs.create({ url: welcomeUrl(edition ?? '', chrome.runtime.id) });
             window.close();
         });
         slot.appendChild(b);
@@ -236,7 +236,7 @@ function renderVideoSites(root: HTMLElement): void {
     section.className = 'lang-settings';
     const heading = document.createElement('div');
     heading.className = 'lang-settings-title';
-    heading.textContent = i18nMsg('welcomeVideoSites', 'Video sites');
+    heading.textContent = i18nMsg('popupVideoSites', 'Video sites');
     section.appendChild(heading);
     const boxes: Array<{ site: VideoSite; box: HTMLInputElement }> = [];
     for (const site of sitesOf(edition).own) {

@@ -651,130 +651,6 @@
     "message": "저장한 단어는 읽고 있는 모든 페이지에서 표시됩니다. 일치 확인은 기기에서만 이루어지며 아무것도 전송되지 않습니다.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   },
-  "welcomePageTitle": {
-    "message": "Lingogram에 오신 것을 환영합니다",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepLanguage": {
-    "message": "언어",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepAccount": {
-    "message": "계정",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStepSettings": {
-    "message": "설정",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusRequired": {
-    "message": "필수",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusOptional": {
-    "message": "선택",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeStatusSkipped": {
-    "message": "건너뜀",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeMenuLabel": {
-    "message": "설정 단계",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeProgress": {
-    "message": "{done}/3 완료",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeAbout": {
-    "message": "Lingogram 사용 방법",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangTitle": {
-    "message": "어떤 언어를 배우고 있나요?",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangLead": {
-    "message": "이 언어의 자막이 먼저 나오고, 그 아래에 내 언어로 번역된 자막이 표시됩니다.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeLangHint": {
-    "message": "브라우저를 기준으로 모국어를 추정했어요.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeContinue": {
-    "message": "계속",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountTitle": {
-    "message": "단어를 한곳에 모아 두세요",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountLead": {
-    "message": "계정이 있으면 저장한 단어가 lingogram.ai와 모든 브라우저에서 하나의 목록으로 유지돼요. 한 번 로그인하면 사이트와 확장 프로그램에서 모두 사용할 수 있어요.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSignedIn": {
-    "message": "lingogram.ai와 확장 프로그램에서 {email} 계정으로 로그인됨",
-    "description": "Welcome page opened on install. Keep the {placeholder} as is."
-  },
-  "welcomeSignIn": {
-    "message": "로그인하거나 계정 만들기",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSkip": {
-    "message": "나중에 하기",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAccountHint": {
-    "message": "자막과 대본은 계정 없이도 사용할 수 있어요.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsTitle": {
-    "message": "Lingogram을 사용할 곳을 선택하세요",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSettingsLead": {
-    "message": "이 설정은 나중에 확장 프로그램 메뉴에서 언제든 바꿀 수 있어요.",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeVideoSites": {
-    "message": "동영상 사이트",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeSiteSub": {
-    "message": "이중 자막과 대본",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherInstalledSub": {
-    "message": "전용 Lingogram 확장 프로그램이 이미 설치됨",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeOtherSub": {
-    "message": "전용 Lingogram 확장 프로그램, Chrome Web Store 제공",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeInstalled": {
-    "message": "설치됨",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAddToChrome": {
-    "message": "Chrome에 추가",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeAnyWebsite": {
-    "message": "모든 웹사이트",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinishYoutube": {
-    "message": "완료하고 YouTube 열기",
-    "description": "Welcome page opened on install."
-  },
-  "welcomeFinish": {
-    "message": "완료",
-    "description": "Welcome page opened on install."
-  },
   "popupFinishSetup": {
     "message": "설정 완료",
     "description": "Toolbar popup."
@@ -782,5 +658,9 @@
   "popupSitesHint": {
     "message": "다음에 페이지를 열거나 새로고침할 때 적용돼요.",
     "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "동영상 사이트",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }
