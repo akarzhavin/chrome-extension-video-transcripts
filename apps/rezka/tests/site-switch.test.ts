@@ -8,6 +8,9 @@
 // module on a rezka URL, once off and once on, so the "on" run proves the
 // "off" run's empty page is the switch and not a bootstrap that never ran.
 
+// A module, not a script: the three site-switch files share names.
+export {};
+
 let stored: Record<string, unknown> = {};
 
 (global as any).chrome = {
