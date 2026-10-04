@@ -292,9 +292,12 @@
       "demoLine": "",
       "demoWord": "the first light of day",
       "demoSave": "Save",
-      "installTitle": "Install the extension and this will work",
-      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
-      "notNow": "Not now"
+      "notNow": "Not now",
+      "connectTitle": "Lingogram isn't connected to this page",
+      "connectLead": "Install the extension. Already have it? Click the Lingogram icon in the toolbar and choose Finish setup.",
+      "updateTitle": "Update Lingogram and this will work",
+      "updateLead": "Your version of the extension is too old for this page. Chrome updates it on its own; then choose Finish setup in the Lingogram menu.",
+      "signedInSite": "Signed in as {email} on lingogram.ai"
     }
   },
   "uninstall": {

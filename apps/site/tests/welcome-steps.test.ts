@@ -115,6 +115,8 @@ const deps = {
     login: jest.fn(async (email: string) => ({ uid: 'u1', email, idToken: 'id-token' })),
     google: jest.fn(async () => ({ uid: 'g1', email: 'g@b.c', idToken: 'g-token' })),
     extensionToken: jest.fn(async () => 'custom-token'),
+    // The site's stored session from an earlier visit: none unless a test says so.
+    session: jest.fn(async (): Promise<{ uid: string; email: string; idToken: string } | null> => null),
 };
 (window as any).__WS_DEPS__ = deps;
 
@@ -175,6 +177,8 @@ beforeEach(() => {
     went.length = 0;
     for (const k of Object.keys(session)) delete session[k];
     Object.values(deps).forEach((f) => f.mockClear());
+    deps.session.mockImplementation(async () => null);
+    localStorage.clear();
     try {
         sessionStorage.clear();
     } catch {
@@ -217,12 +221,24 @@ describe('before there is an extension', () => {
         expect(deps.register).toHaveBeenCalledWith('new@b.c', 'longpassword');
         expect(deps.extensionToken).not.toHaveBeenCalled();
         // Signed in on the site, no extension to hand it to: not the cabinet
-        // (it could not talk to the extension), the last step here, asking for the install.
+        // (it could not talk to the extension), the last step here. The
+        // extension opened this page (its id is in the link) and did not
+        // answer: it is installed and too old, so it is not offered again.
         expect(went).toEqual([]);
         expect(current()).toBe('Start');
-        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.installTitle);
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.updateTitle);
+        expect(ws().querySelector('.ws-install .ws-row-title')!.textContent).toBe(T.updateLead);
+        expect(btn('Add to Chrome')).toBeUndefined();
         expect(ws().querySelector('.ws-switch')).toBeNull();
         expect(ws().querySelector('.ws-go')).toBeNull();
+    });
+
+    test('opened by hand, with no extension link: it may or may not be installed, and both are said', async () => {
+        await mount({ search: '/welcome/' });
+        ws().querySelectorAll<HTMLElement>('.ws-step')[2].click();
+        await flush();
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.connectTitle);
+        expect(ws().querySelector('.ws-install .ws-row-title')!.textContent).toBe(T.connectLead);
         expect((btn('Add to Chrome') as HTMLAnchorElement).href).toBe(
             'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
         );
@@ -591,6 +607,91 @@ describe('Account', () => {
     });
 });
 
+describe('after a reload', () => {
+    const status = () => Array.from(ws().querySelectorAll('.ws-step')).map((x) => x.querySelector('.ws-dot.is-done') !== null);
+
+    test('without the extension, the languages are kept in the browser and the page comes back to Account', async () => {
+        extensionRefuses = true;
+        await mount();
+        setNative('ru');
+        tile('es').click();
+        await flush();
+        btn('Continue').click();
+        await flush();
+        expect(current()).toBe('Account');
+        await mount(); // the reload
+        expect(current()).toBe('Account');
+        expect(status()[0]).toBe(true);
+        expect(store['lang.v1']).toBeUndefined();
+    });
+
+    test('without the extension, a skipped account stays skipped', async () => {
+        extensionRefuses = true;
+        localStorage.setItem('ws.local', JSON.stringify({ learning: 'es', native: 'en' }));
+        await mount();
+        btn('Skip for now').click();
+        await flush();
+        await mount();
+        expect(current()).toBe('Start');
+        expect(ws().querySelectorAll('.ws-step-status')[1].textContent).toBe('Skipped');
+    });
+
+    test('a language the edition does not offer is not taken from the browser memory', async () => {
+        extensionRefuses = true;
+        localStorage.setItem('ws.local', JSON.stringify({ learning: 'xx', native: 'en' }));
+        await mount();
+        expect(current()).toBe('Language');
+    });
+
+    test('the extension\'s record wins over the browser memory, and the browser keeps nothing when it answers', async () => {
+        localStorage.setItem('ws.local', JSON.stringify({ learning: 'es', native: 'en', skippedAccount: true }));
+        await mount();
+        expect(current()).toBe('Language');
+        localStorage.clear();
+        tile('es').click();
+        await flush();
+        btn('Continue').click();
+        await flush();
+        expect(localStorage.getItem('ws.local')).toBeNull();
+    });
+
+    test('a site session from before is shown as signed in, not as a fresh form', async () => {
+        extensionRefuses = true;
+        localStorage.setItem('ws.local', JSON.stringify({ learning: 'es', native: 'en' }));
+        deps.session.mockImplementation(async () => ({ uid: 'u1', email: 'a@b.c', idToken: 'id-token' }));
+        await mount();
+        expect(current()).toBe('Account');
+        // Signed in on the site only: the line does not claim the extension.
+        expect(ws().querySelector('.ws-ok')!.textContent).toBe('Signed in as a@b.c on lingogram.ai');
+        expect(ws().querySelector('form')).toBeNull();
+        expect(status()[1]).toBe(true);
+        // No extension to hand it to: Continue is the last step here.
+        btn('Continue').click();
+        await flush();
+        expect(current()).toBe('Start');
+        expect(handoffs).toHaveLength(0);
+    });
+
+    test('with the extension, Continue hands that session over and goes on to the cabinet', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        deps.session.mockImplementation(async () => ({ uid: 'u1', email: 'a@b.c', idToken: 'id-token' }));
+        await mount();
+        expect(ws().querySelector('.ws-ok')).not.toBeNull();
+        expect(handoffs).toHaveLength(0);
+        btn('Continue').click();
+        await flush();
+        expect(handoffs).toEqual([{ customToken: 'custom-token', uid: 'u1', email: 'a@b.c', nonce: session['auth.pendingNonce'] }]);
+        expect(went).toEqual([CABINET]);
+    });
+
+    test('signed in in the extension already: the site session is not even asked for', async () => {
+        store['lang.v1'] = { learning: 'es', native: 'en' };
+        authStatus = { signedIn: true, email: 'a@b.c' };
+        await mount();
+        expect(deps.session).not.toHaveBeenCalled();
+    });
+});
+
 describe('Start', () => {
     const start = async () => {
         store['lang.v1'] = { learning: 'en', native: 'ru' };
@@ -648,9 +749,9 @@ describe('Start', () => {
         await mount({ lang: 'ru', locales: [] });
         ws().querySelectorAll<HTMLElement>('.ws-step')[2].click();
         await flush();
-        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.installTitle);
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.updateTitle);
         expect(ws().querySelector('.ws-frame')).not.toBeNull();
-        expect(ws().querySelector('.ws-install .ws-row-title')!.textContent).toBe(T.installLead);
+        expect(ws().querySelector('.ws-install .ws-row-title')!.textContent).toBe(T.updateLead);
         expect(ws().querySelector('.ws-switch')).toBeNull();
         expect(ws().querySelector('.ws-go')).toBeNull();
         btn(T.notNow).click();

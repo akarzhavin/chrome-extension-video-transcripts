@@ -24,6 +24,8 @@ export interface AccountDeps {
   google(): Promise<SignedIn>;
   /** A custom token the extension can exchange for its own session. */
   extensionToken(idToken: string): Promise<string>;
+  /** The site's own session from an earlier visit, if there is one. */
+  session?(): Promise<SignedIn | null>;
 }
 
 export function realDeps(cfg: RuntimeAuthConfig): AccountDeps {
@@ -53,6 +55,12 @@ export function realDeps(cfg: RuntimeAuthConfig): AccountDeps {
       const res = await fetchWithRetry(cfg.apiBase + '/auth/me', { headers: { Authorization: 'Bearer ' + me.idToken } });
       if (!res.ok) throw new AuthError('Could not reach your account (' + res.status + ').', 'backend/' + res.status);
       return me;
+    },
+    async session() {
+      // The SDK restores a stored session asynchronously; currentUser is null
+      // until it has.
+      await auth.authStateReady();
+      return auth.currentUser ? current() : null;
     },
     async extensionToken(idToken) {
       const res = await fetchWithRetry(cfg.apiBase + '/auth/extension-token', {

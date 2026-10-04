@@ -46,6 +46,7 @@ export interface StepsI18n {
   skip: string;
   accountHint: string;
   signedIn: string;
+  signedInSite: string;
   startTitle: string;
   startLead: string;
   startLeadRezka: string;
@@ -62,8 +63,10 @@ export interface StepsI18n {
   demoLine: string;
   demoWord: string;
   demoSave: string;
-  installTitle: string;
-  installLead: string;
+  connectTitle: string;
+  connectLead: string;
+  updateTitle: string;
+  updateLead: string;
   notNow: string;
   retryConnect: string;
 }
@@ -258,6 +261,34 @@ function stash(win: Window, code?: string): string {
   }
 }
 
+// Without the extension the page has nowhere else to keep the visitor's
+// answers: without this, a reload starts the setup over. The extension's own
+// record wins whenever it answers.
+const LOCAL_KEY = 'ws.local';
+
+interface LocalAnswers {
+  learning?: string;
+  native?: string;
+  skippedAccount?: boolean;
+}
+
+function readLocal(win: Window): LocalAnswers {
+  try {
+    const v = JSON.parse(win.localStorage.getItem(LOCAL_KEY) ?? '{}');
+    return v && typeof v === 'object' ? v : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeLocal(win: Window, patch: LocalAnswers): void {
+  try {
+    win.localStorage.setItem(LOCAL_KEY, JSON.stringify({ ...readLocal(win), ...patch }));
+  } catch {
+    // Storage blocked: the answers last as long as the tab.
+  }
+}
+
 function navigate(win: Window, url: string): void {
   if (win.__WS_NAVIGATE__) win.__WS_NAVIGATE__(url);
   else win.location.assign(url);
@@ -307,6 +338,12 @@ export async function initSteps(doc: Document = document, win: Window = window):
   if (!s || s.ok !== true) {
     send = null;
     s = offlineSnapshot(win.location.search);
+    const kept = readLocal(win);
+    const codes = s.languages.map((l) => l.code);
+    if (kept.learning && kept.native && codes.includes(kept.learning) && codes.includes(kept.native)) {
+      s = { ...s, learning: kept.learning, native: kept.native };
+    }
+    if (kept.skippedAccount === true) s = { ...s, skippedAccount: true };
   }
 
   // Speak the visitor's native language: the one saved in the extension, else the browser's.
@@ -355,6 +392,7 @@ export async function initSteps(doc: Document = document, win: Window = window):
   root.hidden = false;
   paint(v);
   track(win, 'shown', ['language', 'account', 'start'][v.step]);
+  void restoreSiteSession(v);
 
   // A sign-in finishes in the /extension-auth tab the extension opened; pick it
   // up when this tab is looked at again.
@@ -375,6 +413,21 @@ export async function initSteps(doc: Document = document, win: Window = window):
     win.addEventListener('focus', () => void refresh());
   }
   return true;
+}
+
+/**
+ * A visitor who signed in on the site earlier is still signed in there: the
+ * session survives a reload even when the extension never took it. Show it,
+ * and when there is an extension, let Continue hand it over.
+ */
+async function restoreSiteSession(v: View): Promise<void> {
+  if (v.s.signedIn) return;
+  const deps = await accountDeps(v).catch(() => null);
+  const who = deps?.session ? await deps.session().catch(() => null) : null;
+  if (!deps || !who || v.siteEmail || v.s.signedIn) return;
+  v.siteEmail = who.email;
+  if (v.send) v.retryConnect = makeConnect(v, deps, who);
+  if (!v.busy) paint(v);
 }
 
 function paint(v: View): void {
@@ -535,6 +588,7 @@ function languageStep(v: View, box: HTMLElement): void {
       if (res?.ok !== true) return;
     }
     v.s = { ...v.s, learning: v.draft.learning, native: v.draft.native };
+    if (!v.send) writeLocal(v.win, { learning: v.draft.learning, native: v.draft.native });
     track(v.win, 'done', 'language');
     v.step = 1;
     paint(v);
@@ -581,12 +635,43 @@ function toCabinet(v: View): void {
   navigate(v.win, cabinetUrl(extensionIdFrom(v.win.location.search), v.s.edition));
 }
 
+/** Hands the site session to the extension; on success, on to the cabinet. */
+function makeConnect(v: View, deps: AccountDeps, who: { uid: string; email: string; idToken: string }): () => Promise<void> {
+  return async () => {
+    v.connectError = '';
+    const connected = await connectExtension(v, deps, who.idToken, who.uid, who.email).catch((e) => {
+      v.connectError = e instanceof Error ? e.message : String(e);
+      return false;
+    });
+    if (!connected && v.send && !v.connectError) v.connectError = 'Could not connect the extension.';
+    if (connected && v.send) {
+      const next = (await v.send({ op: 'state' })) as Snapshot | null;
+      if (next?.ok === true) v.s = next;
+    }
+    // Signed in everywhere it can be: on to the cabinet, whose first screen
+    // is the introduction (unless the visitor has gone to another step
+    // meanwhile). A half-done connection stays here, with its message and
+    // the retry; signed in on the site with no extension, the last step here
+    // asks for the install.
+    if (!v.connectError && v.step === 1) {
+      if (connected && v.send) {
+        toCabinet(v);
+        return;
+      }
+      v.step = 2;
+    }
+    paint(v);
+  };
+}
+
 function accountStep(v: View, box: HTMLElement): void {
   const { doc, t, a, s } = v;
   box.appendChild(el(doc, 'h1', 'ws-title', t.accountTitle));
   const email = s.signedIn ? s.email : v.siteEmail;
   if (email) {
-    box.appendChild(el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', () => email)));
+    // "and in the extension" only when the extension says so.
+    const line = s.signedIn ? t.signedIn : t.signedInSite;
+    box.appendChild(el(doc, 'div', 'ws-ok', line.replace('{email}', () => email)));
     // Signed in on the site, but the extension did not take the session: say
     // so and offer another try, rather than a "signed in" that is half true.
     if (v.connectError && !s.signedIn) {
@@ -602,9 +687,15 @@ function accountStep(v: View, box: HTMLElement): void {
       }
     }
     box.appendChild(
-      button(v, 'ws-primary', t.continue, () => {
+      button(v, 'ws-primary', t.continue, async (b) => {
         if (s.signedIn && v.send) {
           toCabinet(v);
+          return;
+        }
+        // Signed in on the site only: hand the session over first.
+        if (v.send && v.retryConnect && !v.connectError) {
+          b.disabled = true;
+          await v.retryConnect();
           return;
         }
         v.step = 2;
@@ -626,31 +717,7 @@ function accountStep(v: View, box: HTMLElement): void {
   const done = async (deps: AccountDeps, who: { uid: string; email: string; idToken: string }) => {
     v.siteEmail = who.email;
     track(v.win, reg ? 'registered' : 'signed_in', 'account');
-    const connect = async () => {
-      v.connectError = '';
-      const connected = await connectExtension(v, deps, who.idToken, who.uid, who.email).catch((e) => {
-        v.connectError = e instanceof Error ? e.message : String(e);
-        return false;
-      });
-      if (!connected && v.send && !v.connectError) v.connectError = 'Could not connect the extension.';
-      if (connected && v.send) {
-        const next = (await v.send({ op: 'state' })) as Snapshot | null;
-        if (next?.ok === true) v.s = next;
-      }
-      // Signed in everywhere it can be: on to the cabinet, whose first screen
-      // is the introduction (unless the visitor has gone to another step
-      // meanwhile). A half-done connection stays here, with its message and
-      // the retry; signed in on the site with no extension, the last step here
-      // asks for the install.
-      if (!v.connectError && v.step === 1) {
-        if (connected && v.send) {
-          toCabinet(v);
-          return;
-        }
-        v.step = 2;
-      }
-      paint(v);
-    };
+    const connect = makeConnect(v, deps, who);
     v.retryConnect = v.send ? connect : null;
     await connect();
   };
@@ -741,6 +808,7 @@ function accountStep(v: View, box: HTMLElement): void {
   const skip = button(v, 'ws-linkbtn', t.skip, async () => {
     await v.send?.({ op: 'progress', skippedAccount: true });
     v.s = { ...v.s, skippedAccount: true };
+    if (!v.send) writeLocal(v.win, { skippedAccount: true });
     track(v.win, 'skipped', 'account');
     v.step = 2;
     paint(v);
@@ -824,19 +892,25 @@ function startStep(v: View, box: HTMLElement): void {
   };
 
   if (!v.send) {
-    // Nothing works without the extension: one message, the picture of what
-    // it does, and the install. No switches that cannot switch.
-    box.appendChild(el(doc, 'h1', 'ws-title', t.installTitle));
+    // No answer from the extension. The page cannot tell "not installed" from
+    // "installed, too old to answer" or "opened by hand": it says only what it
+    // knows. A link the extension opened carries its id, so the extension is
+    // there and only needs updating; without one, either may be true.
+    const openedByExtension = extensionIdFrom(v.win.location.search) !== null;
+    box.appendChild(el(doc, 'h1', 'ws-title', openedByExtension ? t.updateTitle : t.connectTitle));
     box.appendChild(demoFrame(v));
     const card = el(doc, 'div', 'ws-install');
     const text = el(doc, 'span', 'ws-row-text');
-    text.append(el(doc, 'span', 'ws-row-title', t.installLead));
-    const add = el(doc, 'a', 'ws-primary ws-add', t.addToChrome);
-    add.href = OWN_STORE[s.edition];
-    add.target = '_blank';
-    add.rel = 'noopener';
-    add.addEventListener('click', () => track(v.win, 'install', 'start'));
-    card.append(text, add);
+    text.append(el(doc, 'span', 'ws-row-title', openedByExtension ? t.updateLead : t.connectLead));
+    card.appendChild(text);
+    if (!openedByExtension) {
+      const add = el(doc, 'a', 'ws-primary ws-add', t.addToChrome);
+      add.href = OWN_STORE[s.edition];
+      add.target = '_blank';
+      add.rel = 'noopener';
+      add.addEventListener('click', () => track(v.win, 'install', 'start'));
+      card.appendChild(add);
+    }
     box.appendChild(card);
     const later = button(v, 'ws-linkbtn ws-later', t.notNow, leave);
     box.appendChild(later);
