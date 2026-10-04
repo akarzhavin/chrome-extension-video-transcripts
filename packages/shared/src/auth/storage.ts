@@ -18,7 +18,6 @@ const KEYS = {
     expiresAt: 'auth.expiresAt',
     email: 'auth.email',
     uid: 'auth.uid',
-    inboxCount: 'inbox.count',
     // Lifetime count of words saved on this install, and a one-shot flag set
     // once we've asked for a store rating. Both survive sign-out (the user is
     // the same person) and drive the value-moment rating prompt — see
@@ -285,23 +284,6 @@ export async function clearAuthState(): Promise<void> {
     ]);
 }
 
-export async function getInboxCount(): Promise<number> {
-    const v = (await chrome.storage.local.get(KEYS.inboxCount)) as Record<string, number | undefined>;
-    return v[KEYS.inboxCount] ?? 0;
-}
-
-/**
- * Move the inbox tally. `by` is +1 on a save and -1 on a removal.
- *
- * Clamped at zero: a learner can remove a word this install never counted —
- * saved on another device, or before this counter existed — and a negative
- * badge would be a visible artefact of bookkeeping the person never saw.
- */
-export async function bumpInboxCount(by = 1): Promise<number> {
-    const next = Math.max(0, (await getInboxCount()) + by);
-    await chrome.storage.local.set({ [KEYS.inboxCount]: next });
-    return next;
-}
 
 // Lifetime saved-word count driving the value-moment rating prompt. Bumped on
 // every successful save (background ADD_WORD handler); read to decide whether

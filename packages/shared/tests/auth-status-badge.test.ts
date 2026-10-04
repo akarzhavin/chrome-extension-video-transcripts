@@ -253,7 +253,7 @@ describe('the row follows changes made elsewhere', () => {
         expect(row()!.title).toContain('7 words saved');
 
         signedInAs('reader@example.com', 8);
-        await fireStorageChange({ 'inbox.count': { newValue: 8 } });
+        await fireStorageChange({ 'words.v1': { newValue: { v: 1, words: {}, cursor: 0 } } });
 
         expect(row()!.title).toContain('8 words saved');
     });
@@ -279,7 +279,7 @@ describe('the row follows changes made elsewhere', () => {
         sendMessage.mockClear();
 
         await fireStorageChange({ 'prefs.v1': { newValue: {} } });
-        await fireStorageChange({ 'inbox.count': { newValue: 9 } }, 'sync');
+        await fireStorageChange({ 'words.v1': { newValue: { v: 1, words: {}, cursor: 0 } } }, 'sync');
 
         expect(sendMessage).not.toHaveBeenCalled();
     });

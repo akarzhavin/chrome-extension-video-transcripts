@@ -131,6 +131,17 @@ async function write(next: WordMirror): Promise<void> {
 }
 
 /**
+ * How many words the learner has saved: the active entries. This is the
+ * account's number, not this install's — the sync fills the mirror with the
+ * whole dictionary, so a fresh install that has saved nothing yet still counts
+ * every word saved elsewhere.
+ */
+export async function activeWordCount(): Promise<number> {
+    const { words } = await loadMirror();
+    return Object.values(words).filter((s) => s === 'active').length;
+}
+
+/**
  * Record one word's state. Read-modify-write, like savePrefs, and with the same
  * absence of compare-and-swap: the worker is the only writer, so there is no
  * second party to race.
