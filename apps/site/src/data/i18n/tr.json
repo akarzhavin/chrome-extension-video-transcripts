@@ -269,9 +269,7 @@
       "addToChrome": "Chrome'a ekle",
       "highlightLabel": "Kelimelerimi sitelerde vurgula",
       "highlightHint": "Kaydettiğiniz kelimeler okuduğunuz her sayfada işaretlenir. Kontrol cihazınızda yapılır, hiçbir şey gönderilmez.",
-      "finishYoutube": "Bitir ve YouTube'u aç",
       "finish": "Bitir",
-      "needsExtension": "Bu ayarlar Lingogram eklentisinde bulunur. Açıp kapatmak için eklentiyi yükleyin.",
       "retryConnect": "Eklentiyi yeniden bağlayın",
       "stepStart": "Başlangıç",
       "otherLanguage": "Başka dil",
@@ -283,7 +281,15 @@
       "importLabel": "Google Çeviri'den kelimeler",
       "importHint": "Hemen vurgulanmaya başlarlar.",
       "importButton": "İçe aktar",
-      "orEmail": "veya e-posta ile"
+      "orEmail": "veya e-posta ile",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

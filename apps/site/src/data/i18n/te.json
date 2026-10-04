@@ -270,9 +270,7 @@
       "addToChrome": "Chromeకు జోడించండి",
       "highlightLabel": "వెబ్‌సైట్‌లలో నా పదాలను హైలైట్ చేయి",
       "highlightHint": "మీరు సేవ్ చేసిన పదాలు మీరు చదివే ప్రతి పేజీలో గుర్తించబడతాయి. తనిఖీ మీ పరికరంలోనే జరుగుతుంది; ఏదీ పంపబడదు.",
-      "finishYoutube": "పూర్తి చేసి YouTube తెరవండి",
       "finish": "పూర్తి చేయండి",
-      "needsExtension": "ఈ సెట్టింగ్‌లు Lingogram ఎక్స్‌టెన్షన్‌లో ఉన్నాయి. వాటిని ఆన్ లేదా ఆఫ్ చేయడానికి దాన్ని ఇన్‌స్టాల్ చేయండి.",
       "retryConnect": "ఎక్స్‌టెన్షన్‌ను మళ్లీ కనెక్ట్ చేయండి",
       "stepStart": "ప్రారంభం",
       "otherLanguage": "ఇతర భాష",
@@ -284,7 +282,15 @@
       "importLabel": "Google అనువాదం నుండి పదాలు",
       "importHint": "అవి వెంటనే హైలైట్ అవుతాయి.",
       "importButton": "దిగుమతి",
-      "orEmail": "లేదా ఇమెయిల్ ద్వారా"
+      "orEmail": "లేదా ఇమెయిల్ ద్వారా",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

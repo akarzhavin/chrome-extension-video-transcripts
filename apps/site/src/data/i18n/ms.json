@@ -269,9 +269,7 @@
       "addToChrome": "Tambah pada Chrome",
       "highlightLabel": "Serlahkan perkataan saya di laman web",
       "highlightHint": "Perkataan yang anda simpan ditanda pada mana-mana halaman yang anda baca. Disemak pada peranti anda, tiada apa yang dihantar.",
-      "finishYoutube": "Selesai dan buka YouTube",
       "finish": "Selesai",
-      "needsExtension": "Tetapan ini terdapat dalam sambungan Lingogram. Pasangnya untuk menghidupkan atau mematikannya.",
       "retryConnect": "Sambungkan sambungan sekali lagi",
       "stepStart": "Mula",
       "otherLanguage": "Bahasa lain",
@@ -283,7 +281,15 @@
       "importLabel": "Perkataan daripada Google Terjemah",
       "importHint": "Perkataan ini terus diserlahkan.",
       "importButton": "Import",
-      "orEmail": "atau dengan e-mel"
+      "orEmail": "atau dengan e-mel",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

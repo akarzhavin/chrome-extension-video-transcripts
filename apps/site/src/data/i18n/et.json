@@ -270,9 +270,7 @@
       "addToChrome": "Lisa Chrome'i",
       "highlightLabel": "Tõsta mu sõnad veebisaitidel esile",
       "highlightHint": "Sinu salvestatud sõnad märgitakse igal loetaval lehel. Kontroll toimub sinu seadmes, midagi ei saadeta.",
-      "finishYoutube": "Lõpeta ja ava YouTube",
       "finish": "Lõpeta",
-      "needsExtension": "Need sätted asuvad Lingogrami laienduses. Paigalda see, et neid sisse või välja lülitada.",
       "retryConnect": "Ühenda laiendus uuesti",
       "stepStart": "Algus",
       "otherLanguage": "Muu keel",
@@ -284,7 +282,15 @@
       "importLabel": "Sõnad Google'i tõlkest",
       "importHint": "Need hakkavad kohe esile tõusma.",
       "importButton": "Impordi",
-      "orEmail": "või e-postiga"
+      "orEmail": "või e-postiga",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

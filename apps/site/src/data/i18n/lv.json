@@ -271,9 +271,7 @@
       "addToChrome": "Pievienot pārlūkam Chrome",
       "highlightLabel": "Izcelt manus vārdus vietnēs",
       "highlightHint": "Saglabātie vārdi tiek atzīmēti katrā lapā, ko lasi. Pārbaude notiek tavā ierīcē, nekas netiek sūtīts.",
-      "finishYoutube": "Pabeigt un atvērt YouTube",
       "finish": "Pabeigt",
-      "needsExtension": "Šie iestatījumi ir Lingogram paplašinājumā. Instalē to, lai tos ieslēgtu vai izslēgtu.",
       "retryConnect": "Savieno paplašinājumu vēlreiz",
       "stepStart": "Sākums",
       "otherLanguage": "Cita valoda",
@@ -285,7 +283,15 @@
       "importLabel": "Vārdi no Google tulkotāja",
       "importHint": "Tie tiek izcelti uzreiz.",
       "importButton": "Importēt",
-      "orEmail": "vai ar e-pastu"
+      "orEmail": "vai ar e-pastu",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

@@ -271,9 +271,7 @@
       "addToChrome": "Adaugă în Chrome",
       "highlightLabel": "Evidențiază-mi cuvintele pe site-uri",
       "highlightHint": "Cuvintele salvate sunt marcate pe orice pagină citești. Verificarea se face pe dispozitivul tău, nu se trimite nimic.",
-      "finishYoutube": "Termină și deschide YouTube",
       "finish": "Termină",
-      "needsExtension": "Aceste setări se află în extensia Lingogram. Instal-o ca să le poți activa sau dezactiva.",
       "retryConnect": "Conectează din nou extensia",
       "stepStart": "Început",
       "otherLanguage": "Altă limbă",
@@ -285,7 +283,15 @@
       "importLabel": "Cuvinte din Google Traducere",
       "importHint": "Încep să fie evidențiate imediat.",
       "importButton": "Importă",
-      "orEmail": "sau cu email"
+      "orEmail": "sau cu email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

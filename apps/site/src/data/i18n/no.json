@@ -270,9 +270,7 @@
       "addToChrome": "Legg til i Chrome",
       "highlightLabel": "Uthev ordene mine på nettsteder",
       "highlightHint": "Ord du har lagret markeres på alle sider du leser. Det sjekkes på enheten din, og ingenting sendes.",
-      "finishYoutube": "Fullfør og åpne YouTube",
       "finish": "Fullfør",
-      "needsExtension": "Disse innstillingene finnes i Lingogram-utvidelsen. Installer den for å slå dem av eller på.",
       "retryConnect": "Koble til utvidelsen igjen",
       "stepStart": "Start",
       "otherLanguage": "Annet språk",
@@ -284,7 +282,15 @@
       "importLabel": "Ord fra Google Oversetter",
       "importHint": "De utheves med en gang.",
       "importButton": "Importer",
-      "orEmail": "eller med e-post"
+      "orEmail": "eller med e-post",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

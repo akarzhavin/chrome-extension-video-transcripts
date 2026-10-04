@@ -270,9 +270,7 @@
       "addToChrome": "Ajouter à Chrome",
       "highlightLabel": "Surligner mes mots sur les sites web",
       "highlightHint": "Les mots enregistrés sont repérés sur toutes les pages que vous lisez. La vérification se fait sur votre appareil ; rien n'est envoyé.",
-      "finishYoutube": "Terminer et ouvrir YouTube",
       "finish": "Terminer",
-      "needsExtension": "Ces réglages se trouvent dans l'extension Lingogram. Installez-la pour les activer ou les désactiver.",
       "retryConnect": "Reconnecter l'extension",
       "stepStart": "Démarrage",
       "otherLanguage": "Autre langue",
@@ -284,7 +282,15 @@
       "importLabel": "Mots de Google Traduction",
       "importHint": "Ils sont surlignés tout de suite.",
       "importButton": "Importer",
-      "orEmail": "ou par email"
+      "orEmail": "ou par email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

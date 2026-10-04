@@ -270,9 +270,7 @@
       "addToChrome": "Aggiungi a Chrome",
       "highlightLabel": "Evidenzia le mie parole sui siti web",
       "highlightHint": "Le parole che hai salvato vengono segnate in ogni pagina che leggi. Il controllo avviene sul tuo dispositivo; non viene inviato nulla.",
-      "finishYoutube": "Fine e apri YouTube",
       "finish": "Fine",
-      "needsExtension": "Queste impostazioni si trovano nell'estensione Lingogram. Installala per attivarle o disattivarle.",
       "retryConnect": "Ricollega l'estensione",
       "stepStart": "Inizio",
       "otherLanguage": "Altra lingua",
@@ -284,7 +282,15 @@
       "importLabel": "Parole da Google Traduttore",
       "importHint": "Iniziano a essere evidenziate subito.",
       "importButton": "Importa",
-      "orEmail": "oppure con email"
+      "orEmail": "oppure con email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

@@ -271,9 +271,7 @@
       "addToChrome": "הוספה ל-Chrome",
       "highlightLabel": "הדגשת המילים שלי באתרים",
       "highlightHint": "מילים ששמרתם מסומנות בכל עמוד שאתם קוראים. הבדיקה מתבצעת במכשיר שלכם, ושום דבר לא נשלח.",
-      "finishYoutube": "סיום ופתיחת YouTube",
       "finish": "סיום",
-      "needsExtension": "ההגדרות האלה נמצאות בתוסף Lingogram. התקינו אותו כדי להפעיל או לכבות אותן.",
       "retryConnect": "חברו את התוסף שוב",
       "stepStart": "התחלה",
       "otherLanguage": "שפה אחרת",
@@ -285,7 +283,15 @@
       "importLabel": "מילים מ-Google תרגום",
       "importHint": "הן מודגשות מיד.",
       "importButton": "ייבוא",
-      "orEmail": "או עם אימייל"
+      "orEmail": "או עם אימייל",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

@@ -271,9 +271,7 @@
       "addToChrome": "Додај у Chrome",
       "highlightLabel": "Истакни моје речи на сајтовима",
       "highlightHint": "Сачуване речи су означене на свакој страници коју читате. Провера се обавља на вашем уређају, ништа се не шаље.",
-      "finishYoutube": "Заврши и отвори YouTube",
       "finish": "Заврши",
-      "needsExtension": "Ова подешавања налазе се у проширењу Lingogram. Инсталирајте га да бисте их укључили или искључили.",
       "retryConnect": "Поново повежите проширење",
       "stepStart": "Почетак",
       "otherLanguage": "Други језик",
@@ -285,7 +283,15 @@
       "importLabel": "Речи из Google преводиоца",
       "importHint": "Одмах почињу да се истичу.",
       "importButton": "Увези",
-      "orEmail": "или преко имејла"
+      "orEmail": "или преко имејла",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

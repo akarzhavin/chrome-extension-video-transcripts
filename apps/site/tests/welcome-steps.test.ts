@@ -105,6 +105,9 @@ const AUTH = {
 const T = en.welcome.steps;
 const VIDEOS = { en: { id: 'Kk1vR7BdTno', title: 'Cosmic Dawn (Official NASA Trailer)' } };
 const EXT_URL = '/welcome/?ext=youtube&id=pkoibjilnaeadmcnmfkgcjhalljbmfan';
+// Where a signed-in visitor is sent: the cabinet's introduction, with the
+// extension id so it can talk to the extension. Written out, not built.
+const CABINET = '/app/vocab/start?ext=pkoibjilnaeadmcnmfkgcjhalljbmfan&edition=youtube&from=welcome';
 
 // The site's Firebase sign-up / log-in, faked at the seam steps.ts reads.
 const deps = {
@@ -213,10 +216,13 @@ describe('before there is an extension', () => {
         await fillAndSubmit('new@b.c', 'longpassword');
         expect(deps.register).toHaveBeenCalledWith('new@b.c', 'longpassword');
         expect(deps.extensionToken).not.toHaveBeenCalled();
-        // Signed in on the site: straight on to the last step, which says what is missing.
+        // Signed in on the site, no extension to hand it to: not the cabinet
+        // (it could not talk to the extension), the last step here, asking for the install.
+        expect(went).toEqual([]);
         expect(current()).toBe('Start');
-        expect((ws().querySelector('.ws-switch') as HTMLInputElement).disabled).toBe(true);
-        expect(ws().querySelector('.ws-note')!.textContent).toContain(T.needsExtension);
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.installTitle);
+        expect(ws().querySelector('.ws-switch')).toBeNull();
+        expect(ws().querySelector('.ws-go')).toBeNull();
         expect((btn('Add to Chrome') as HTMLAnchorElement).href).toBe(
             'https://chromewebstore.google.com/detail/pkoibjilnaeadmcnmfkgcjhalljbmfan',
         );
@@ -435,15 +441,23 @@ describe('Account', () => {
         expect(ws().querySelector<HTMLInputElement>('input[type=password]')!.autocomplete).toBe('current-password');
     });
 
-    test('Google sign-in is handed to the extension and goes straight on to the last step', async () => {
+    test('Google sign-in is handed to the extension and goes straight on to the cabinet', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
         btn(AUTH.registerGoogle).click();
         await flush();
         expect(deps.google).toHaveBeenCalled();
         expect(handoffs).toEqual([{ customToken: 'custom-token', uid: 'g1', email: 'g@b.c', nonce: session['auth.pendingNonce'] }]);
-        expect(current()).toBe('Start');
-        expect(ws().querySelector('.ws-progress-text')!.textContent).toBe('2 of 3 done');
+        expect(went).toEqual([CABINET]);
+    });
+
+    test('the HDrezka edition is named in the cabinet link', async () => {
+        edition = 'rezka';
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
+        await mount();
+        btn(AUTH.registerGoogle).click();
+        await flush();
+        expect(went).toEqual(['/app/vocab/start?ext=pkoibjilnaeadmcnmfkgcjhalljbmfan&edition=rezka&from=welcome']);
     });
 
     test('the account is made on the site and handed to the extension; the page moves on by itself', async () => {
@@ -454,8 +468,7 @@ describe('Account', () => {
         expect(deps.extensionToken).toHaveBeenCalledWith('id-token');
         // The handoff carried the nonce the extension issued just before it.
         expect(handoffs).toEqual([{ customToken: 'custom-token', uid: 'u1', email: 'a@b.c', nonce: session['auth.pendingNonce'] }]);
-        expect(current()).toBe('Start');
-        expect(ws().querySelector('.ws-progress-text')!.textContent).toBe('2 of 3 done');
+        expect(went).toEqual([CABINET]);
     });
 
     test('the form switches to log-in for an existing account', async () => {
@@ -492,10 +505,11 @@ describe('Account', () => {
         expect(handoffs).toHaveLength(0);
         expect(current()).toBe('Account');
         expect(ws().querySelector('.ws-error')!.textContent).toBe('Could not connect the extension (500).');
+        expect(went).toEqual([]);
         btn(T.retryConnect).click();
         await flush();
         expect(handoffs).toHaveLength(1);
-        expect(current()).toBe('Start');
+        expect(went).toEqual([CABINET]);
     });
 
     test('looking at the tab again does not wipe what is being typed', async () => {
@@ -538,11 +552,12 @@ describe('Account', () => {
         expect(handoffs).toHaveLength(0);
         expect(current()).toBe('Account');
         expect(ws().querySelector('.ws-error')!.textContent).toBe('Could not connect the extension.');
+        expect(went).toEqual([]);
         refuseBegin = false;
         btn(T.retryConnect).click();
         await flush();
         expect(handoffs).toHaveLength(1);
-        expect(current()).toBe('Start');
+        expect(went).toEqual([CABINET]);
     });
 
     test('a visitor who has moved to another step is not pulled back to Start by a late sign-in', async () => {
@@ -557,6 +572,7 @@ describe('Account', () => {
         finish({ uid: 'g1', email: 'g@b.c', idToken: 't' });
         await flush();
         expect(current()).toBe('Language');
+        expect(went).toEqual([]);
     });
 
     test('a sign-in finished in the other tab shows when this tab is looked at again', async () => {
@@ -568,6 +584,10 @@ describe('Account', () => {
         await flush();
         expect(ws().querySelector('.ws-ok')!.textContent).toBe('Signed in as a@b.c on lingogram.ai and in the extension');
         expect(ws().querySelector('.ws-progress-text')!.textContent).toBe('2 of 3 done');
+        // Continue from there is the cabinet too.
+        btn('Continue').click();
+        await flush();
+        expect(went).toEqual([CABINET]);
     });
 });
 
@@ -578,43 +598,71 @@ describe('Start', () => {
         await mount({ lang: 'ru', locales: [] });
         expect(current()).toBe('Start');
     };
+    const go = () => ws().querySelector<HTMLButtonElement>('.ws-go')!;
+
+    test('the still: the first video, a word clicked in its subtitles, its translation and Save', async () => {
+        await start();
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.startTitle);
+        expect(ws().querySelector<HTMLImageElement>('.ws-frame img')!.src).toBe('https://i.ytimg.com/vi/Kk1vR7BdTno/mqdefault.jpg');
+        expect(ws().querySelector('.ws-frame-l1')!.textContent).toBe('We are looking back at the cosmic dawn');
+        expect(ws().querySelector('.ws-frame-l1 mark')!.textContent).toBe('dawn');
+        expect(ws().querySelector('.ws-frame-tr')!.textContent).toBe(T.demoWord);
+        expect(ws().querySelector('.ws-frame-save')!.textContent).toBe(`\u2661 ${T.demoSave}`);
+        expect(ws().querySelector('.ws-frame-cap')!.textContent).toBe(T.frameCaption);
+    });
+
+    test('the translation line under the subtitle shows only when the page language has one', async () => {
+        await start();
+        expect(ws().querySelector('.ws-frame-l2')).toBeNull();
+        (window as any).__WELCOME_STEPS = { ...(window as any).__WELCOME_STEPS, i18n: { ...T, demoLine: 'Мы смотрим на рассвет Вселенной' } };
+        await initSteps(document, window);
+        await flush();
+        expect(ws().querySelector('.ws-frame-l2')!.textContent).toBe('Мы смотрим на рассвет Вселенной');
+    });
 
     test('opens a checked video for the language being learned, and remembers that setup is finished', async () => {
         await start();
-        expect(ws().querySelector('.ws-video .ws-row-title')!.textContent).toBe('Cosmic Dawn (Official NASA Trailer)');
-        btn('Watch the first video').click();
+        expect(go().firstChild!.textContent).toBe(T.watchFirst);
+        expect(ws().querySelector('.ws-go-sub')!.textContent).toBe('Cosmic Dawn (Official NASA Trailer) \u00b7 YouTube');
+        expect(ws().querySelector('.ws-after')!.textContent).toBe(T.startLead);
+        go().click();
         await flush();
         expect(went).toEqual(['https://www.youtube.com/watch?v=Kk1vR7BdTno']);
         expect(store['welcome.v1']).toEqual({ skippedAccount: true, finished: true });
     });
 
-    test('a language with no checked video goes to YouTube, with no card', async () => {
+    test('a language with no checked video searches YouTube in that language, subtitles only', async () => {
         store['lang.v1'] = { learning: 'ja', native: 'ru' };
         store['welcome.v1'] = { skippedAccount: true, finished: false };
         await mount({ lang: 'ru', locales: [] });
-        expect(ws().querySelector('.ws-video')).toBeNull();
-        btn(T.finishYoutube).click();
+        expect(go().textContent).toBe(T.findVideo);
+        expect(ws().querySelector('.ws-go-sub')).toBeNull();
+        go().click();
         await flush();
-        expect(went).toEqual(['https://www.youtube.com/']);
+        expect(went).toEqual(['https://www.youtube.com/results?search_query=%E6%97%A5%E6%9C%AC%E8%AA%9E&sp=EgIoAQ%3D%3D']);
     });
 
-    test('with no extension there is no video to open: the button just finishes', async () => {
+    test('with no extension: one message, the still, the install, and no switch that cannot switch', async () => {
         extensionRefuses = true;
         store['lang.v1'] = { learning: 'en', native: 'ru' };
         await mount({ lang: 'ru', locales: [] });
         ws().querySelectorAll<HTMLElement>('.ws-step')[2].click();
         await flush();
-        expect(ws().querySelector('.ws-video')).toBeNull();
-        btn(T.finish).click();
+        expect(ws().querySelector('.ws-title')!.textContent).toBe(T.installTitle);
+        expect(ws().querySelector('.ws-frame')).not.toBeNull();
+        expect(ws().querySelector('.ws-install .ws-row-title')!.textContent).toBe(T.installLead);
+        expect(ws().querySelector('.ws-switch')).toBeNull();
+        expect(ws().querySelector('.ws-go')).toBeNull();
+        btn(T.notNow).click();
         await flush();
         expect(went).toEqual([]);
         expect(ws().hidden).toBe(true);
+        expect(document.querySelector<HTMLElement>('main.wl')!.hidden).toBe(false);
     });
 
-    test('word highlighting is one switch that writes the extension prefs; the video sites have none', async () => {
+    test('word highlighting is one switch that writes the extension prefs', async () => {
         await start();
-        expect(Array.from(ws().querySelectorAll('.ws-row-title')).map((n) => n.textContent)).toEqual([
-            'Cosmic Dawn (Official NASA Trailer)',
+        expect(Array.from(ws().querySelectorAll('.ws-chips .ws-row-title')).map((n) => n.textContent)).toEqual([
             'Highlight my words on websites',
         ]);
         const sw = ws().querySelectorAll<HTMLInputElement>('.ws-switch');
@@ -635,18 +683,19 @@ describe('Start', () => {
         expect(importAsks).toEqual([{ type: 'lingogram-welcome', op: 'openGtImport' }]);
     });
 
-    test('HDrezka: no video card; the button goes back to the ordinary welcome content', async () => {
+    test('HDrezka: the button goes back to the ordinary welcome content, with how to start a film', async () => {
         edition = 'rezka';
         store['lang.v1'] = { learning: 'en', native: 'ru' };
         store['welcome.v1'] = { skippedAccount: true, finished: false };
         await mount({ lang: 'ru', locales: [] });
-        expect(ws().querySelector('.ws-video')).toBeNull();
-        expect(ws().querySelector('.ws-lead')!.textContent).toBe(T.startLeadRezka);
-        btn(T.finish).click();
+        expect(ws().querySelector('.ws-after')!.textContent).toBe(T.startLeadRezka);
+        expect(ws().querySelector('.ws-go-sub')).toBeNull();
+        go().click();
         await flush();
         expect(ws().hidden).toBe(true);
         expect(document.querySelector<HTMLElement>('main.wl')!.hidden).toBe(false);
         expect(went).toEqual([]);
+        expect(store['welcome.v1']).toEqual({ skippedAccount: true, finished: true });
     });
 });
 

@@ -270,9 +270,7 @@
       "addToChrome": "Toevoegen aan Chrome",
       "highlightLabel": "Mijn woorden markeren op websites",
       "highlightHint": "Woorden die je hebt opgeslagen worden op elke pagina die je leest gemarkeerd. Dit wordt op je apparaat gecontroleerd; er wordt niets verstuurd.",
-      "finishYoutube": "Afronden en YouTube openen",
       "finish": "Afronden",
-      "needsExtension": "Deze instellingen zitten in de Lingogram-extensie. Installeer die om ze aan of uit te zetten.",
       "retryConnect": "Verbind de extensie opnieuw",
       "stepStart": "Start",
       "otherLanguage": "Andere taal",
@@ -284,7 +282,15 @@
       "importLabel": "Woorden uit Google Translate",
       "importHint": "Ze worden meteen gemarkeerd.",
       "importButton": "Importeren",
-      "orEmail": "of met e-mail"
+      "orEmail": "of met e-mail",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

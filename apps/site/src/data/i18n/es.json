@@ -270,9 +270,7 @@
       "addToChrome": "Añadir a Chrome",
       "highlightLabel": "Resaltar mis palabras en sitios web",
       "highlightHint": "Las palabras que guardaste se marcan en cualquier página que leas. Se comprueban en tu dispositivo; no se envía nada.",
-      "finishYoutube": "Terminar y abrir YouTube",
       "finish": "Terminar",
-      "needsExtension": "Estos ajustes están en la extensión de Lingogram. Instálala para activarlos o desactivarlos.",
       "retryConnect": "Vuelve a conectar la extensión",
       "stepStart": "Inicio",
       "otherLanguage": "Otro idioma",
@@ -284,7 +282,15 @@
       "importLabel": "Palabras de Google Traductor",
       "importHint": "Se resaltan al instante.",
       "importButton": "Importar",
-      "orEmail": "o con correo electrónico"
+      "orEmail": "o con correo electrónico",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

@@ -271,9 +271,7 @@
       "addToChrome": "Pridėti prie „Chrome“",
       "highlightLabel": "Paryškinti mano žodžius svetainėse",
       "highlightHint": "Išsaugoti žodžiai pažymimi kiekviename skaitomame puslapyje. Tikrinama jūsų įrenginyje, niekas nesiunčiama.",
-      "finishYoutube": "Baigti ir atidaryti YouTube",
       "finish": "Baigti",
-      "needsExtension": "Šie nustatymai yra „Lingogram“ plėtinyje. Įdiekite jį, kad galėtumėte juos įjungti ar išjungti.",
       "retryConnect": "Prijungti plėtinį iš naujo",
       "stepStart": "Pradžia",
       "otherLanguage": "Kita kalba",
@@ -285,7 +283,15 @@
       "importLabel": "Žodžiai iš Google vertėjo",
       "importHint": "Jie paryškinami iš karto.",
       "importButton": "Importuoti",
-      "orEmail": "arba el. paštu"
+      "orEmail": "arba el. paštu",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

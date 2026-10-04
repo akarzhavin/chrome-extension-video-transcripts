@@ -269,9 +269,7 @@
       "addToChrome": "Hozzáadás a Chrome-hoz",
       "highlightLabel": "Szavaim kiemelése weboldalakon",
       "highlightHint": "A mentett szavak minden olvasott oldalon meg vannak jelölve. Az ellenőrzés az eszközödön történik, semmi sem kerül elküldésre.",
-      "finishYoutube": "Befejezés és a YouTube megnyitása",
       "finish": "Befejezés",
-      "needsExtension": "Ezek a beállítások a Lingogram bővítményben vannak. Telepítsd, hogy be- vagy kikapcsolhasd őket.",
       "retryConnect": "Kapcsold újra össze a bővítményt",
       "stepStart": "Kezdés",
       "otherLanguage": "Más nyelv",
@@ -283,7 +281,15 @@
       "importLabel": "Szavak a Google Fordítóból",
       "importHint": "Azonnal elkezdődik a kiemelésük.",
       "importButton": "Importálás",
-      "orEmail": "vagy e-maillel"
+      "orEmail": "vagy e-maillel",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

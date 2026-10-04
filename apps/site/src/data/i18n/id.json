@@ -269,9 +269,7 @@
       "addToChrome": "Tambahkan ke Chrome",
       "highlightLabel": "Sorot kata saya di situs web",
       "highlightHint": "Kata yang kamu simpan ditandai di halaman mana pun yang kamu baca. Dicek di perangkatmu, tidak ada yang dikirim.",
-      "finishYoutube": "Selesai dan buka YouTube",
       "finish": "Selesai",
-      "needsExtension": "Pengaturan ini ada di ekstensi Lingogram. Pasang ekstensinya untuk mengaktifkan atau menonaktifkannya.",
       "retryConnect": "Hubungkan ekstensi lagi",
       "stepStart": "Mulai",
       "otherLanguage": "Bahasa lain",
@@ -283,7 +281,15 @@
       "importLabel": "Kata dari Google Terjemahan",
       "importHint": "Kata-kata ini langsung disorot.",
       "importButton": "Impor",
-      "orEmail": "atau dengan email"
+      "orEmail": "atau dengan email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

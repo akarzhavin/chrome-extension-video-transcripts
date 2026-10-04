@@ -272,9 +272,7 @@
       "addToChrome": "Pridať do prehliadača Chrome",
       "highlightLabel": "Zvýrazňovať moje slová na weboch",
       "highlightHint": "Uložené slová sa označia na každej stránke, ktorú čítate. Kontrola prebieha vo vašom zariadení, nič sa neodosiela.",
-      "finishYoutube": "Dokončiť a otvoriť YouTube",
       "finish": "Dokončiť",
-      "needsExtension": "Tieto nastavenia nájdete v rozšírení Lingogram. Nainštalujte si ho a môžete ich zapínať a vypínať.",
       "retryConnect": "Pripojiť rozšírenie znova",
       "stepStart": "Začiatok",
       "otherLanguage": "Iný jazyk",
@@ -286,7 +284,15 @@
       "importLabel": "Slová z Prekladača Google",
       "importHint": "Zvýrazňujú sa hneď.",
       "importButton": "Importovať",
-      "orEmail": "alebo emailom"
+      "orEmail": "alebo emailom",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

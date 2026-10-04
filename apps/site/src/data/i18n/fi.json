@@ -270,9 +270,7 @@
       "addToChrome": "Lisää Chromeen",
       "highlightLabel": "Korosta sanani verkkosivuilla",
       "highlightHint": "Tallentamasi sanat merkitään jokaisella lukemallasi sivulla. Tarkistus tehdään laitteellasi, mitään ei lähetetä.",
-      "finishYoutube": "Valmis, avaa YouTube",
       "finish": "Valmis",
-      "needsExtension": "Nämä asetukset ovat Lingogram-laajennuksessa. Asenna se, niin voit ottaa ne käyttöön tai poistaa käytöstä.",
       "retryConnect": "Yhdistä laajennus uudelleen",
       "stepStart": "Aloitus",
       "otherLanguage": "Muu kieli",
@@ -284,7 +282,15 @@
       "importLabel": "Sanat Google Kääntäjästä",
       "importHint": "Ne alkavat korostua heti.",
       "importButton": "Tuo",
-      "orEmail": "tai sähköpostilla"
+      "orEmail": "tai sähköpostilla",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

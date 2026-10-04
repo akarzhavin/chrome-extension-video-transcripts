@@ -272,9 +272,7 @@
       "addToChrome": "Установить",
       "highlightLabel": "Подсвечивать мои слова на сайтах",
       "highlightHint": "Сохранённые слова отмечаются на любой странице, которую ты читаешь. Проверка идёт на твоём устройстве, ничего не отправляется.",
-      "finishYoutube": "Завершить и открыть YouTube",
       "finish": "Завершить",
-      "needsExtension": "Эти настройки находятся в расширении Lingogram. Установи его, чтобы включать и выключать их.",
       "retryConnect": "Подключи расширение ещё раз",
       "stepStart": "Начало",
       "otherLanguage": "Другой язык",
@@ -286,7 +284,15 @@
       "importLabel": "Слова из Google Translate",
       "importHint": "Сразу начнут подсвечиваться.",
       "importButton": "Перенести",
-      "orEmail": "или по почте"
+      "orEmail": "или по почте",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

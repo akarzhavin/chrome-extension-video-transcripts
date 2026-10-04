@@ -274,9 +274,7 @@
       "addToChrome": "إضافة إلى Chrome",
       "highlightLabel": "أبرِز كلماتي على المواقع",
       "highlightHint": "تُعلَّم الكلمات التي حفظتها في أي صفحة تقرؤها. يجري الفحص على جهازك ولا يُرسل شيء.",
-      "finishYoutube": "أنهِ وافتح YouTube",
       "finish": "إنهاء",
-      "needsExtension": "هذه الإعدادات موجودة في إضافة Lingogram. ثبّتها لتشغيلها أو إيقافها.",
       "retryConnect": "اربط الإضافة مرة أخرى",
       "stepStart": "البداية",
       "otherLanguage": "لغة أخرى",
@@ -288,7 +286,15 @@
       "importLabel": "كلمات من ترجمة Google",
       "importHint": "يبدأ إبرازها فورًا.",
       "importButton": "استيراد",
-      "orEmail": "أو عبر البريد الإلكتروني"
+      "orEmail": "أو عبر البريد الإلكتروني",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

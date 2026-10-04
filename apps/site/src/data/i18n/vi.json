@@ -269,9 +269,7 @@
       "addToChrome": "Thêm vào Chrome",
       "highlightLabel": "Đánh dấu từ của tôi trên trang web",
       "highlightHint": "Những từ bạn đã lưu được đánh dấu trên mọi trang bạn đọc. Việc kiểm tra diễn ra trên thiết bị của bạn, không gửi gì đi.",
-      "finishYoutube": "Hoàn tất và mở YouTube",
       "finish": "Hoàn tất",
-      "needsExtension": "Các cài đặt này nằm trong tiện ích Lingogram. Hãy cài đặt tiện ích để bật hoặc tắt chúng.",
       "retryConnect": "Kết nối lại tiện ích",
       "stepStart": "Bắt đầu",
       "otherLanguage": "Ngôn ngữ khác",
@@ -283,7 +281,15 @@
       "importLabel": "Từ vựng từ Google Dịch",
       "importHint": "Chúng được đánh dấu ngay lập tức.",
       "importButton": "Nhập",
-      "orEmail": "hoặc bằng email"
+      "orEmail": "hoặc bằng email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

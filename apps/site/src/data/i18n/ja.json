@@ -269,9 +269,7 @@
       "addToChrome": "Chrome に追加",
       "highlightLabel": "ウェブサイトで保存した単語を強調表示",
       "highlightHint": "保存した単語は、読んでいるどのページでも目印が付きます。確認はお使いの端末内で行われ、何も送信されません。",
-      "finishYoutube": "完了してYouTubeを開く",
       "finish": "完了",
-      "needsExtension": "これらの設定は Lingogram 拡張機能の中にあります。インストールすると、オン・オフを切り替えられます。",
       "retryConnect": "拡張機能をもう一度接続する",
       "stepStart": "スタート",
       "otherLanguage": "その他の言語",
@@ -283,7 +281,15 @@
       "importLabel": "Google 翻訳の単語",
       "importHint": "すぐにハイライト表示されます。",
       "importButton": "インポート",
-      "orEmail": "またはメールアドレスで"
+      "orEmail": "またはメールアドレスで",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

@@ -1850,8 +1850,6 @@ footer.site {
 .ws-secondary { border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-weight: 500; }
 .ws-primary:disabled, .ws-secondary:disabled { opacity: .55; cursor: not-allowed; }
 .ws-ok { font-size: 15px; font-weight: 600; color: var(--teal-deep); }
-.ws-group-title { margin-top: 4px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.ws-group { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; }
 .ws-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
 label.ws-row { cursor: pointer; }
 .ws-row + .ws-row { border-top: 1px solid var(--line); }
@@ -1870,13 +1868,7 @@ label.ws-row { cursor: pointer; }
 .ws-or::before, .ws-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .ws-linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .ws-link { display: flex; align-items: center; justify-content: center; text-decoration: none; }
-.ws-note {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px;
-  border-radius: 14px; background: var(--accent-soft); font-size: 14px; line-height: 1.45;
-}
-.ws-note > span { flex: 1 1 240px; }
 .ws-switch:disabled { opacity: .5; cursor: not-allowed; }
-.ws-installed { font-size: 14px; font-weight: 600; color: var(--teal-deep); }
 .ws-switch {
   appearance: none; -webkit-appearance: none; width: 44px; height: 26px; flex: none; margin: 0;
   border-radius: 13px; background: var(--line); position: relative; cursor: pointer; transition: background .15s;
@@ -1935,16 +1927,41 @@ label.ws-row { cursor: pointer; }
 .ws-google, .ws-go { width: 100%; }
 .ws-skip-line { margin: 0; }
 
-/* Start step: the first video. */
-.ws-video {
-  display: flex; align-items: center; gap: 14px; padding: 12px; min-width: 0;
-  border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+
+/* Start step: a still of the first video, a word clicked in its subtitles. */
+.ws-frame { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); }
+.ws-frame-pic {
+  position: relative; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden;
+  background: linear-gradient(135deg, #2e2466, #0e8f80);
 }
-.ws-video-thumb {
-  flex: none; width: 128px; aspect-ratio: 16 / 9; display: grid; place-items: center; line-height: 0;
-  border-radius: 9px; background: linear-gradient(135deg, #2e2466, #0e8f80);
+.ws-frame-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .5; }
+.ws-frame-pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)); }
+.ws-frame-subs {
+  position: absolute; z-index: 1; inset-inline: 12px; bottom: 74px; text-align: center; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
 }
-.ws-video-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ws-frame-l1 { margin: 0; font-size: clamp(16px, 2.6vw, 20px); font-weight: 600; line-height: 1.3; }
+.ws-frame-l1 mark { background: #ffd36b; color: #1c1a3a; border-radius: 4px; padding: 0 4px; text-shadow: none; }
+.ws-frame-l2 { margin: 4px 0 0; font-size: 14px; color: #e4e1f0; }
+.ws-frame-card {
+  position: absolute; z-index: 1; left: 50%; bottom: 16px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; max-width: calc(100% - 24px); white-space: nowrap;
+  padding: 8px 14px; border-radius: 12px; background: #fff; color: #1c1a3a; font-size: 14px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+.ws-frame-tr { color: #5b5873; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ws-frame-save { color: #5a3fb8; font-weight: 600; }
+.ws-frame-cap { padding: 12px 14px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.ws-go { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 16px; }
+.ws-go-sub { font-size: 12.5px; font-weight: 500; opacity: .85; }
+.ws-after { margin: 0; }
+.ws-chips { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.ws-install {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px;
+  border-radius: 14px; background: var(--accent-soft);
+}
+.ws-install .ws-row-text { flex: 1 1 220px; }
+.ws-later { align-self: center; }
 
 /* The setup page has no product links to leave by: only the legal ones. And
    the full-width consent bar must not sit on the last button of a step. */

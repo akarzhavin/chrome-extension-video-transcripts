@@ -270,9 +270,7 @@
       "addToChrome": "Προσθήκη στο Chrome",
       "highlightLabel": "Επισήμανση των λέξεών μου σε ιστοτόπους",
       "highlightHint": "Οι λέξεις που αποθηκεύσατε επισημαίνονται σε κάθε σελίδα που διαβάζετε. Ο έλεγχος γίνεται στη συσκευή σας, δεν στέλνεται τίποτα.",
-      "finishYoutube": "Τέλος και άνοιγμα του YouTube",
       "finish": "Τέλος",
-      "needsExtension": "Αυτές οι ρυθμίσεις βρίσκονται στην επέκταση Lingogram. Εγκαταστήστε την για να τις ενεργοποιείτε ή να τις απενεργοποιείτε.",
       "retryConnect": "Σύνδεση της επέκτασης ξανά",
       "stepStart": "Έναρξη",
       "otherLanguage": "Άλλη γλώσσα",
@@ -284,7 +282,15 @@
       "importLabel": "Λέξεις από το Google Μετάφραση",
       "importHint": "Αρχίζουν να επισημαίνονται αμέσως.",
       "importButton": "Εισαγωγή",
-      "orEmail": "ή με email"
+      "orEmail": "ή με email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

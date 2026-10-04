@@ -270,9 +270,7 @@
       "addToChrome": "Lägg till i Chrome",
       "highlightLabel": "Markera mina ord på webbplatser",
       "highlightHint": "Ord du sparat markeras på varje sida du läser. Det kontrolleras på din enhet, ingenting skickas.",
-      "finishYoutube": "Slutför och öppna YouTube",
       "finish": "Slutför",
-      "needsExtension": "De här inställningarna finns i Lingogram-tillägget. Installera det för att slå på eller stänga av dem.",
       "retryConnect": "Anslut tillägget igen",
       "stepStart": "Start",
       "otherLanguage": "Annat språk",
@@ -284,7 +282,15 @@
       "importLabel": "Ord från Google Översätt",
       "importHint": "De markeras direkt.",
       "importButton": "Importera",
-      "orEmail": "eller med e-post"
+      "orEmail": "eller med e-post",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

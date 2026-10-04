@@ -56,9 +56,15 @@ export interface StepsI18n {
   importLabel: string;
   importHint: string;
   importButton: string;
-  finishYoutube: string;
   finish: string;
-  needsExtension: string;
+  findVideo: string;
+  frameCaption: string;
+  demoLine: string;
+  demoWord: string;
+  demoSave: string;
+  installTitle: string;
+  installLead: string;
+  notNow: string;
   retryConnect: string;
 }
 
@@ -560,6 +566,21 @@ async function connectExtension(v: View, deps: AccountDeps, idToken: string, uid
   return res?.ok === true;
 }
 
+/**
+ * The signed-in learner's last step lives in the cabinet: /app/vocab/start
+ * shows the same introduction as step 3 here, and retires itself once a word
+ * is saved. The extension id goes along so the cabinet can talk to it.
+ */
+export function cabinetUrl(extId: string, edition: string): string {
+  const q = new URLSearchParams({ ext: extId, edition, from: 'welcome' });
+  return `/app/vocab/start?${q.toString()}`;
+}
+
+function toCabinet(v: View): void {
+  track(v.win, 'to_cabinet', 'account');
+  navigate(v.win, cabinetUrl(extensionIdFrom(v.win.location.search), v.s.edition));
+}
+
 function accountStep(v: View, box: HTMLElement): void {
   const { doc, t, a, s } = v;
   box.appendChild(el(doc, 'h1', 'ws-title', t.accountTitle));
@@ -582,6 +603,10 @@ function accountStep(v: View, box: HTMLElement): void {
     }
     box.appendChild(
       button(v, 'ws-primary', t.continue, () => {
+        if (s.signedIn && v.send) {
+          toCabinet(v);
+          return;
+        }
         v.step = 2;
         paint(v);
       }),
@@ -612,10 +637,18 @@ function accountStep(v: View, box: HTMLElement): void {
         const next = (await v.send({ op: 'state' })) as Snapshot | null;
         if (next?.ok === true) v.s = next;
       }
-      // Signed in everywhere it can be: straight on to the last step (unless
-      // the visitor has gone to another step meanwhile). A half-done
-      // connection stays here, with its message and the retry.
-      if (!v.connectError && v.step === 1) v.step = 2;
+      // Signed in everywhere it can be: on to the cabinet, whose first screen
+      // is the introduction (unless the visitor has gone to another step
+      // meanwhile). A half-done connection stays here, with its message and
+      // the retry; signed in on the site with no extension, the last step here
+      // asks for the install.
+      if (!v.connectError && v.step === 1) {
+        if (connected && v.send) {
+          toCabinet(v);
+          return;
+        }
+        v.step = 2;
+      }
       paint(v);
     };
     v.retryConnect = v.send ? connect : null;
@@ -739,62 +772,113 @@ const GOOGLE_G =
   '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
 
 const PLAY =
-  '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg>';
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg>';
+
+/** YouTube's own "Subtitles/CC" search filter. */
+const CC_FILTER = 'EgIoAQ%3D%3D';
+
+/** Videos with subtitles, for a language with no checked first video. */
+export function searchUrl(languageName: string): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(languageName)}&sp=${CC_FILTER}`;
+}
+
+// The still the step is built around: one subtitle line of the first video,
+// its translation into the page language, and the card a click on the marked
+// word opens. The subtitle line is English on every page, like the video.
+const DEMO_BEFORE = 'We are looking back at the cosmic ';
+const DEMO_WORD = 'dawn';
+
+function demoFrame(v: View): HTMLElement {
+  const { doc, t } = v;
+  const fig = el(doc, 'figure', 'ws-frame');
+  const pic = el(doc, 'div', 'ws-frame-pic');
+  const first = v.videos.en;
+  if (first?.id) {
+    const img = el(doc, 'img') as HTMLImageElement;
+    img.src = `https://i.ytimg.com/vi/${first.id}/mqdefault.jpg`;
+    img.alt = '';
+    pic.appendChild(img);
+  }
+  const subs = el(doc, 'div', 'ws-frame-subs');
+  const line = el(doc, 'p', 'ws-frame-l1');
+  line.append(doc.createTextNode(DEMO_BEFORE), el(doc, 'mark', undefined, DEMO_WORD));
+  subs.appendChild(line);
+  if (t.demoLine) subs.appendChild(el(doc, 'p', 'ws-frame-l2', t.demoLine));
+  const card = el(doc, 'div', 'ws-frame-card');
+  card.append(el(doc, 'b', undefined, DEMO_WORD), el(doc, 'span', 'ws-frame-tr', t.demoWord), el(doc, 'span', 'ws-frame-save', `\u2661 ${t.demoSave}`));
+  pic.append(subs, card);
+  fig.append(pic, el(doc, 'figcaption', 'ws-frame-cap', t.frameCaption));
+  return fig;
+}
 
 function startStep(v: View, box: HTMLElement): void {
   const { doc, t, s } = v;
   const rezka = s.edition === 'rezka';
-  heading(v, box, t.startTitle, rezka ? t.startLeadRezka : t.startLead);
+
+  // Back to the ordinary welcome content (HDrezka's reload-your-film advice).
+  const leave = async () => {
+    await v.send?.({ op: 'progress', finished: true });
+    track(v.win, 'finished', 'start');
+    v.root.hidden = true;
+    if (v.ordinary) v.ordinary.hidden = false;
+  };
+
   if (!v.send) {
-    // Nothing to switch without the extension: say so, and where to get it.
-    const note = el(doc, 'div', 'ws-note');
-    const add = el(doc, 'a', 'ws-secondary ws-add', t.addToChrome);
+    // Nothing works without the extension: one message, the picture of what
+    // it does, and the install. No switches that cannot switch.
+    box.appendChild(el(doc, 'h1', 'ws-title', t.installTitle));
+    box.appendChild(demoFrame(v));
+    const card = el(doc, 'div', 'ws-install');
+    const text = el(doc, 'span', 'ws-row-text');
+    text.append(el(doc, 'span', 'ws-row-title', t.installLead));
+    const add = el(doc, 'a', 'ws-primary ws-add', t.addToChrome);
     add.href = OWN_STORE[s.edition];
     add.target = '_blank';
     add.rel = 'noopener';
-    note.append(el(doc, 'span', undefined, t.needsExtension), add);
-    box.appendChild(note);
+    add.addEventListener('click', () => track(v.win, 'install', 'start'));
+    card.append(text, add);
+    box.appendChild(card);
+    const later = button(v, 'ws-linkbtn ws-later', t.notNow, leave);
+    box.appendChild(later);
+    return;
   }
 
-  // The first video: one we checked, for the language being learned.
+  box.appendChild(el(doc, 'h1', 'ws-title', t.startTitle));
+  box.appendChild(demoFrame(v));
+
+  // The first video: one we checked, for the language being learned; else a
+  // YouTube search in that language, subtitles only.
   const learning = s.learning || v.draft.learning;
-  const video = rezka || !v.send ? undefined : v.videos[learning];
+  const video = rezka ? undefined : v.videos[learning];
   const videoUrl = video?.id ? `https://www.youtube.com/watch?v=${video.id}` : '';
-  if (video && videoUrl) {
-    const card = el(doc, 'div', 'ws-video');
-    const thumb = el(doc, 'span', 'ws-video-thumb');
-    thumb.innerHTML = PLAY; // constant markup
-    const body = el(doc, 'span', 'ws-video-body');
-    body.append(el(doc, 'span', 'ws-row-title', video.title), el(doc, 'span', 'ws-row-sub', 'YouTube'));
-    card.append(thumb, body);
-    box.appendChild(card);
-  }
-  box.appendChild(
-    button(v, 'ws-primary ws-go', rezka || !v.send ? t.finish : video && videoUrl ? t.watchFirst : t.finishYoutube, async () => {
+  const name = s.languages.find((l) => l.code === learning)?.native || learning;
+  if (rezka) {
+    box.appendChild(button(v, 'ws-primary ws-go', t.finish, leave));
+    box.appendChild(el(doc, 'p', 'ws-hint ws-after', t.startLeadRezka));
+  } else {
+    const go = button(v, 'ws-primary ws-go', videoUrl ? t.watchFirst : t.findVideo, async () => {
       await v.send?.({ op: 'progress', finished: true });
       track(v.win, 'finished', 'start');
-      if (!rezka && v.send) {
-        navigate(v.win, videoUrl || 'https://www.youtube.com/');
-        return;
-      }
-      // HDrezka, or no extension: back to the ordinary welcome content (the
-      // reload-your-film-tab advice, the tour, the buttons to open a site).
-      v.root.hidden = true;
-      if (v.ordinary) v.ordinary.hidden = false;
-    }),
-  );
+      navigate(v.win, videoUrl || searchUrl(name));
+    });
+    if (video && videoUrl) {
+      go.appendChild(el(doc, 'small', 'ws-go-sub', `${video.title} \u00b7 YouTube`));
+    }
+    box.appendChild(go);
+    box.appendChild(el(doc, 'p', 'ws-hint ws-after', t.startLead));
+  }
 
-  // What else it does: highlight saved words on any site, and bring in the
-  // words already saved in Google Translate.
-  const group = el(doc, 'div', 'ws-group');
-  group.appendChild(
+  // What else it does, kept quiet: highlight saved words on any site, and
+  // bring in the words already saved in Google Translate.
+  const chips = el(doc, 'div', 'ws-chips');
+  chips.appendChild(
     switchRow(v, t.highlightLabel, t.highlightHint, s.pageHighlight, async (want) => {
-      const ok = !!v.send && (await v.send({ op: 'setPrefs', prefs: { pageHighlight: want } }))?.ok === true;
+      const ok = (await v.send?.({ op: 'setPrefs', prefs: { pageHighlight: want } }))?.ok === true;
       if (ok) v.s.pageHighlight = want;
       return ok;
     }),
   );
-  if (s.gtImport === true && v.send) {
+  if (s.gtImport === true) {
     const row = el(doc, 'div', 'ws-row');
     const text = el(doc, 'span', 'ws-row-text');
     text.append(el(doc, 'span', 'ws-row-title', t.importLabel), el(doc, 'span', 'ws-row-sub', t.importHint));
@@ -802,9 +886,9 @@ function startStep(v: View, box: HTMLElement): void {
       await v.send?.({ op: 'openGtImport' });
     });
     row.append(text, run);
-    group.appendChild(row);
+    chips.appendChild(row);
   }
-  box.appendChild(group);
+  box.appendChild(chips);
 }
 
 if (typeof window !== 'undefined' && !(window as unknown as { __WS_NO_AUTO__?: boolean }).__WS_NO_AUTO__) {

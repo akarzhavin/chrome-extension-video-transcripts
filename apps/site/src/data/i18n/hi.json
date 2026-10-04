@@ -270,9 +270,7 @@
       "addToChrome": "Chrome में जोड़ें",
       "highlightLabel": "वेबसाइटों पर मेरे शब्द हाइलाइट करें",
       "highlightHint": "आपके सेव किए शब्द आपके पढ़े हर पेज पर चिह्नित होते हैं। जाँच आपके डिवाइस पर होती है; कुछ भी भेजा नहीं जाता।",
-      "finishYoutube": "पूरा करें और YouTube खोलें",
       "finish": "पूरा करें",
-      "needsExtension": "ये सेटिंग Lingogram एक्सटेंशन में हैं। इन्हें चालू या बंद करने के लिए इसे इंस्टॉल करें।",
       "retryConnect": "एक्सटेंशन को फिर से कनेक्ट करें",
       "stepStart": "शुरुआत",
       "otherLanguage": "दूसरी भाषा",
@@ -284,7 +282,15 @@
       "importLabel": "Google अनुवाद से शब्द",
       "importHint": "ये तुरंत हाइलाइट होने लगते हैं।",
       "importButton": "इंपोर्ट करें",
-      "orEmail": "या ईमेल से"
+      "orEmail": "या ईमेल से",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

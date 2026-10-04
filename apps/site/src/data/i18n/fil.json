@@ -269,9 +269,7 @@
       "addToChrome": "Idagdag sa Chrome",
       "highlightLabel": "I-highlight ang mga salita ko sa mga website",
       "highlightHint": "Namamarkahan ang mga salitang na-save mo sa anumang pahinang binabasa mo. Sinusuri ito sa device mo; walang ipinapadala.",
-      "finishYoutube": "Tapusin at buksan ang YouTube",
       "finish": "Tapusin",
-      "needsExtension": "Nasa Lingogram extension ang mga setting na ito. I-install ito para i-on o i-off ang mga ito.",
       "retryConnect": "Ikonekta ulit ang extension",
       "stepStart": "Simula",
       "otherLanguage": "Ibang wika",
@@ -283,7 +281,15 @@
       "importLabel": "Mga salita mula sa Google Translate",
       "importHint": "Magsisimula agad silang ma-highlight.",
       "importButton": "I-import",
-      "orEmail": "o gamit ang email"
+      "orEmail": "o gamit ang email",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {

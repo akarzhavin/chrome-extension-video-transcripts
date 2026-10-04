@@ -272,9 +272,7 @@
       "addToChrome": "Додати в Chrome",
       "highlightLabel": "Підсвічувати мої слова на сайтах",
       "highlightHint": "Збережені слова позначаються на будь-якій сторінці, яку ви читаєте. Перевірка відбувається на вашому пристрої, нічого не надсилається.",
-      "finishYoutube": "Завершити й відкрити YouTube",
       "finish": "Завершити",
-      "needsExtension": "Ці налаштування є в розширенні Lingogram. Установіть його, щоб вмикати й вимикати їх.",
       "retryConnect": "Підключіть розширення ще раз",
       "stepStart": "Початок",
       "otherLanguage": "Інша мова",
@@ -286,7 +284,15 @@
       "importLabel": "Слова з Google Перекладача",
       "importHint": "Вони підсвічуються одразу.",
       "importButton": "Імпортувати",
-      "orEmail": "або через пошту"
+      "orEmail": "або через пошту",
+      "findVideo": "Find a video with subtitles",
+      "frameCaption": "This is how it looks in a video: click a word to see its translation, tap Save to keep it.",
+      "demoLine": "",
+      "demoWord": "the first light of day",
+      "demoSave": "Save",
+      "installTitle": "Install the extension and this will work",
+      "installLead": "Subtitles, translation and your saved words all work inside the Lingogram extension.",
+      "notNow": "Not now"
     }
   },
   "uninstall": {
