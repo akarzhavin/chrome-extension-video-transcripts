@@ -129,6 +129,22 @@ describe('the painter', () => {
         expect(painted()).toEqual(['cat', 'cat', 'mat']);
     });
 
+    // translate.google.com's Saved list repeats each phrase in a block whose
+    // text colour is fully transparent: invisible letters, but a highlight
+    // underline drawn under them showed as a stray red dash beside the card.
+    it('leaves text with a transparent colour alone, but not gradient text', async () => {
+        document.body.innerHTML = `
+            <p>cat</p>
+            <div style="color: rgba(0, 0, 0, 0)">cat</div>
+            <div style="color: transparent">cat</div>
+            <div style="color: transparent; background-clip: text; background-image: linear-gradient(red, blue)">mat</div>`;
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat', 'mat'));
+        p.start();
+        await settle();
+        expect(painted()).toEqual(['cat', 'mat']);
+    });
+
     it('takes the mark away when the word is removed', async () => {
         document.body.innerHTML = '<p>cat and dog</p>';
         const p = createPageHighlighter(document);

@@ -148,6 +148,25 @@ function isShown(el: Element): boolean {
     return style.display !== 'none' && style.visibility !== 'hidden';
 }
 
+/**
+ * Whether text in `el` is drawn in a colour with no alpha. Sites keep copies of
+ * text that way (translate.google.com's Saved list repeats every phrase in a
+ * transparent block): the letters are invisible but a highlight would still
+ * draw its underline. Gradient text is the exception — it is transparent text
+ * painted through `background-clip: text`, and it is what the reader sees.
+ *
+ * Asked only of text that already holds a saved word, so the walk over the rest
+ * of the page pays nothing for it.
+ */
+function hasInvisibleInk(el: Element): boolean {
+    const style = getComputedStyle(el);
+    const c = style.color.replace(/\s+/g, '');
+    const transparent = c === 'transparent' || /^rgba\([^)]*,0(\.0+)?\)$/.test(c) || /\/0(\.0+)?\)$/.test(c);
+    if (!transparent) return false;
+    const clip = style.getPropertyValue('background-clip') || style.getPropertyValue('-webkit-background-clip');
+    return !/\btext\b/.test(clip);
+}
+
 type Deadline = { timeRemaining(): number };
 const idle: (cb: (d: Deadline) => void) => void =
     typeof requestIdleCallback === 'function'
@@ -193,6 +212,7 @@ export function createPageHighlighter(doc: Document = document) {
         if (data.length < 2) return;
         const hits = findSaved(data, saved);
         if (hits.length === 0) return;
+        if (text.parentElement && hasInvisibleInk(text.parentElement)) return;
         // StaticRange: the browser does not have to keep it in step with every
         // DOM change on the page, which a live Range costs on each mutation.
         // A text node that changes is re-read anyway (see the observer).
