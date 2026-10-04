@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Videosaidid",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google'i tõlge",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Too Google'i tõlkes salvestatud fraasid rakendusse Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Impordi Google'i tõlkest",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Loen sinu Google'i tõlke nimekirja…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Lisatavaid uusi sõnu: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Juba sinu nimekirjas: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Varem kustutatud, neid tagasi ei too: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Vahele jäetud (muud keeled või liiga pikad): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Lisa sõnad: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Tühista",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Salvestan {done} / {total}. Selle akna võid sulgeda.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Lisatud sõnu: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Vahepeal juba salvestatud: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Salvestamine ebaõnnestus: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Logi esmalt rakendusse Lingogram sisse.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Salvestatud fraase ei leitud. Ava translate.google.com, logi oma Google'i kontole sisse ja vaata salvestatud fraaside nimekirja.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Päevane limiit on täis. Salvestatud {done} / {total}, ülejäänud saad lisada homme.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Midagi läks valesti. Salvestatud {done} / {total}. Proovi uuesti.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Impordi rakendusse Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Peida",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "เว็บไซต์วิดีโอ",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google แปลภาษา",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "นำวลีที่คุณบันทึกไว้ใน Google แปลภาษามาไว้ใน Lingogram ได้",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "นำเข้าจาก Google แปลภาษา",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "กำลังอ่านรายการใน Google แปลภาษาของคุณ…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "คำใหม่ที่จะเพิ่ม: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "มีอยู่ในรายการของคุณแล้ว: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "เคยลบไปแล้ว จะไม่เพิ่มกลับ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "ข้ามไป (ภาษาอื่นหรือยาวเกินไป): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "เพิ่มคำ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "ยกเลิก",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "กำลังบันทึก {done} จาก {total} ปิดหน้าต่างนี้ได้เลย",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "คำที่เพิ่มแล้ว: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "บันทึกไว้แล้วระหว่างนั้น: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "บันทึกไม่สำเร็จ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "ตกลง",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "โปรดเข้าสู่ระบบ Lingogram ก่อน",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "ไม่พบวลีที่บันทึกไว้ เปิด translate.google.com เข้าสู่ระบบบัญชี Google แล้วตรวจสอบรายการที่บันทึกไว้",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "ถึงขีดจำกัดของวันนี้แล้ว บันทึกไปแล้ว {done} จาก {total} ส่วนที่เหลือนำเข้าอีกครั้งได้ในวันพรุ่งนี้",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "เกิดข้อผิดพลาด บันทึกไปแล้ว {done} จาก {total} ลองอีกครั้ง",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "นำเข้าสู่ Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "ซ่อน",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

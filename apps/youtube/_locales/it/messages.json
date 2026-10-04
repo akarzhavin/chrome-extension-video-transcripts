@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Siti video",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Traduttore",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Porta in Lingogram le frasi che hai salvato in Google Traduttore.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importa da Google Traduttore",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Lettura della tua lista di Google Traduttore…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Parole nuove da aggiungere: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Già nella tua lista: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Eliminate in precedenza, non le riaggiungiamo: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Saltate (altre lingue o troppo lunghe): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Aggiungi parole: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Annulla",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Salvataggio di {done} su {total}. Puoi chiudere questa finestra.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Parole aggiunte: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Già salvate nel frattempo: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Non salvate: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Prima accedi a Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Nessuna frase salvata trovata. Apri translate.google.com, accedi al tuo account Google e controlla l'elenco Salvate.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Limite giornaliero raggiunto. Salvate {done} su {total}; il resto puoi aggiungerlo domani.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Qualcosa è andato storto. Salvate {done} su {total}. Riprova.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importa in Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Nascondi",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

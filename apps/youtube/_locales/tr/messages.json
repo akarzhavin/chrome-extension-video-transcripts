@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Video siteleri",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Çeviri",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google Çeviri'de kaydettiğiniz ifadeleri Lingogram'a aktarın.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google Çeviri'den içe aktar",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Google Çeviri listeniz okunuyor…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Eklenecek yeni kelimeler: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Listenizde zaten olanlar: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Daha önce silindi, geri eklenmeyecek: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Atlananlar (başka diller veya çok uzun): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Kelimeleri ekle: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "İptal",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total} kelimeden {done} tanesi kaydediliyor. Bu pencereyi kapatabilirsiniz.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Eklenen kelimeler: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Bu sırada zaten kaydedilmiş olanlar: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Kaydedilemeyenler: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "Tamam",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Önce Lingogram'da oturum açın.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Kayıtlı ifade bulunamadı. translate.google.com'u açın, Google hesabınızda oturum açın ve Kaydedilenler listesine bakın.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Günlük sınıra ulaşıldı. {total} kelimeden {done} tanesi kaydedildi; kalanları yarın içe aktarmayı yeniden çalıştırarak ekleyebilirsiniz.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Bir şeyler ters gitti. {total} kelimeden {done} tanesi kaydedildi. Lütfen tekrar deneyin.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram'a aktar",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Gizle",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

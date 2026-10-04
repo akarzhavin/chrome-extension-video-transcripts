@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Videostranice",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google prevoditelj",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Prebacite u Lingogram izraze koje ste spremili u Google prevoditelju.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Uvezi iz Google prevoditelja",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Čitam vaš popis iz Google prevoditelja…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Novih riječi za dodavanje: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Već na vašem popisu: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Ranije uklonjene, ne vraćamo ih: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Preskočeno (drugi jezici ili predugo): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Dodaj riječi: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Odustani",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Spremam {done} od {total}. Prozor možete zatvoriti.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Dodanih riječi: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "U međuvremenu već spremljeno: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Nije uspjelo spremanje: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "U redu",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Prvo se prijavite u Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Nema spremljenih izraza. Otvorite translate.google.com, prijavite se u svoj Google račun i provjerite popis spremljenih prijevoda.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Dnevno ograničenje je iskorišteno. Spremljeno je {done} od {total}, ostatak možete dodati sutra.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Nešto je pošlo po zlu. Spremljeno je {done} od {total}. Pokušajte ponovno.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Uvezi u Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Sakrij",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

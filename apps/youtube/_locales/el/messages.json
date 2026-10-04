@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Ιστότοποι βίντεο",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Μετάφραση Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Φέρε στο Lingogram τις φράσεις που έχεις αποθηκεύσει στη Μετάφραση Google.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Εισαγωγή από τη Μετάφραση Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Ανάγνωση της λίστας σου από τη Μετάφραση Google…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Νέες λέξεις προς προσθήκη: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Ήδη στη λίστα σου: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Διαγράφηκαν παλαιότερα, δεν θα επιστραφούν: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Παραλείφθηκαν (άλλες γλώσσες ή πολύ μεγάλες): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Προσθήκη λέξεων: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Ακύρωση",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Αποθήκευση {done} από {total}. Μπορείς να κλείσεις αυτό το παράθυρο.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Λέξεις που προστέθηκαν: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Αποθηκεύτηκαν στο μεταξύ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Δεν αποθηκεύτηκαν: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Συνδέσου πρώτα στο Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Δεν βρέθηκαν αποθηκευμένες φράσεις. Άνοιξε το translate.google.com, συνδέσου στον λογαριασμό σου Google και έλεγξε τη λίστα «Αποθηκευμένα».",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Συμπληρώθηκε το ημερήσιο όριο. Αποθηκεύτηκαν {done} από {total}· τις υπόλοιπες μπορείς να τις προσθέσεις αύριο.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Κάτι πήγε στραβά. Αποθηκεύτηκαν {done} από {total}. Δοκίμασε ξανά.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Εισαγωγή στο Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Απόκρυψη",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Situs video",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Terjemahan",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Bawa frasa yang Anda simpan di Google Terjemahan ke Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Impor dari Google Terjemahan",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Membaca daftar Google Terjemahan Anda…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Kata baru yang akan ditambahkan: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Sudah ada di daftar Anda: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Pernah dihapus, tidak ditambahkan lagi: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Dilewati (bahasa lain atau terlalu panjang): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Tambahkan kata: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Batal",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Menyimpan {done} dari {total}. Anda boleh menutup jendela ini.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Kata yang ditambahkan: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Sudah tersimpan saat impor berjalan: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Gagal disimpan: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Masuk ke Lingogram dulu.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Tidak ada frasa tersimpan. Buka translate.google.com, masuk ke akun Google Anda, lalu periksa daftar Tersimpan.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Batas harian tercapai. {done} dari {total} tersimpan; sisanya bisa ditambahkan besok dengan mengimpor lagi.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Terjadi kesalahan. {done} dari {total} tersimpan. Coba lagi.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Impor ke Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Sembunyikan",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

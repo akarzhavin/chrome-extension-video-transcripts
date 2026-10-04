@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Video weby",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Překladač Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Přeneste si do Lingogram fráze, které jste uložili v Překladači Google.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importovat z Překladače Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Čtu váš seznam z Překladače Google…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Nových slov k přidání: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Už je máte v seznamu: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Dříve smazaná, znovu je nepřidáme: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Vynecháno (jiné jazyky nebo příliš dlouhé): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Přidat slova: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Zrušit",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Ukládám {done} z {total}. Okno můžete zavřít.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Přidaných slov: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Mezitím už uloženo: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Nepodařilo se uložit: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Nejdřív se přihlaste do Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Nenašli jsme žádné uložené fráze. Otevřete translate.google.com, přihlaste se ke svému účtu Google a zkontrolujte uložené překlady.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Denní limit je vyčerpán. Uloženo {done} z {total}, zbytek můžete přidat zítra.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Něco se pokazilo. Uloženo {done} z {total}. Zkuste to znovu.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importovat do Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Skrýt",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

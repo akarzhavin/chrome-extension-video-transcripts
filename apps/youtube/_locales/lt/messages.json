@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Vaizdo svetainės",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "„Google“ vertėjas",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Perkelkite į Lingogram frazes, kurias išsaugojote „Google“ vertėjuje.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importuoti iš „Google“ vertėjo",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Skaitomas jūsų „Google“ vertėjo sąrašas…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Naujų žodžių, kuriuos pridėsime: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Jau yra jūsų sąraše: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Anksčiau ištrinti, negrąžinsime: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Praleista (kitos kalbos arba per ilgi): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Pridėti žodžius: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Atšaukti",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Saugoma: {done} iš {total}. Šį langą galite uždaryti.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Pridėta žodžių: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Per tą laiką jau išsaugota: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Nepavyko išsaugoti: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "Gerai",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Pirmiausia prisijunkite prie Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Išsaugotų frazių nerasta. Atidarykite translate.google.com, prisijunkite prie „Google“ paskyros ir patikrinkite sąrašą „Išsaugota“.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Pasiektas dienos limitas. Išsaugota {done} iš {total}, likusius galėsite pridėti rytoj.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Kažkas nepavyko. Išsaugota {done} iš {total}. Bandykite dar kartą.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importuoti į Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Slėpti",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

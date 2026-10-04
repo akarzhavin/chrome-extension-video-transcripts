@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "የቪዲዮ ጣቢያዎች",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google ትርጉም",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "በGoogle ትርጉም ያስቀመጧቸውን ሐረጎች ወደ Lingogram ማምጣት ይችላሉ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "ከGoogle ትርጉም አስመጣ",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "የGoogle ትርጉም ዝርዝርዎን በማንበብ ላይ…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "የሚታከሉ አዲስ ቃላት፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "አስቀድመው በዝርዝርዎ ያሉ፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "ቀደም ብለው የተወገዱ፣ አይመለሱም፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "የተዘለሉ (ሌላ ቋንቋ ወይም በጣም ረጅም)፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "ቃላትን አክል፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "ተወው",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{done} ከ{total} በማስቀመጥ ላይ። ይህን መስኮት መዝጋት ይችላሉ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "የታከሉ ቃላት፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "በዚህ ጊዜ አስቀድመው የተቀመጡ፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "ማስቀመጥ ያልተቻሉ፦ {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "እሺ",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "መጀመሪያ ወደ Lingogram ይግቡ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "የተቀመጡ ሐረጎች አልተገኙም። translate.google.com ይክፈቱ፣ ወደ Google መለያዎ ይግቡ እና የተቀመጡ ዝርዝሩን ይመልከቱ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "የዕለቱ ገደብ ደርሷል። {done} ከ{total} ተቀምጧል፤ የቀሩትን ነገ እንደገና በማስመጣት ማከል ይችላሉ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "የሆነ ችግር ተፈጥሯል። {done} ከ{total} ተቀምጧል። እንደገና ይሞክሩ።",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "ወደ Lingogram አስመጣ",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "ደብቅ",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

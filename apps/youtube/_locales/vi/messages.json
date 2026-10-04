@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Trang web video",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Dịch",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Đưa các cụm từ bạn đã lưu trong Google Dịch vào Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Nhập từ Google Dịch",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Đang đọc danh sách Google Dịch của bạn…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Từ mới sẽ thêm: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Đã có trong danh sách của bạn: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Đã xóa trước đó, sẽ không thêm lại: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Bỏ qua (ngôn ngữ khác hoặc quá dài): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Thêm từ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Hủy",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Đang lưu {done}/{total}. Bạn có thể đóng cửa sổ này.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Từ đã thêm: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Đã được lưu trong lúc đó: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Không lưu được: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Hãy đăng nhập Lingogram trước.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Không tìm thấy cụm từ đã lưu nào. Hãy mở translate.google.com, đăng nhập tài khoản Google và kiểm tra danh sách Đã lưu.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Đã đạt giới hạn hằng ngày. Đã lưu {done}/{total}, phần còn lại bạn có thể thêm vào ngày mai.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Đã xảy ra lỗi. Đã lưu {done}/{total}. Hãy thử lại.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Nhập vào Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Ẩn",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

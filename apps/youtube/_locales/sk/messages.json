@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Video weby",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Prekladač Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Preneste do Lingogram frázy, ktoré ste si uložili v Prekladači Google.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importovať z Prekladača Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Načítavam váš zoznam z Prekladača Google…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Nových slov na pridanie: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Už sú vo vašom zozname: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Skôr odstránené, nepridáme ich znova: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Preskočené (iné jazyky alebo príliš dlhé): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Pridať slová: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Zrušiť",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Ukladám {done} z {total}. Okno môžete zavrieť.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Pridané slová: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Medzitým už uložené: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Nepodarilo sa uložiť: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Najprv sa prihláste do Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Nenašli sa žiadne uložené frázy. Otvorte translate.google.com, prihláste sa do účtu Google a skontrolujte zoznam Uložené.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Denný limit je vyčerpaný. Uložených je {done} z {total}, zvyšok môžete pridať zajtra.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Niečo sa pokazilo. Uložených je {done} z {total}. Skúste to znova.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importovať do Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Skryť",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

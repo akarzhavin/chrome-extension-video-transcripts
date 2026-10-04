@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "வீடியோ தளங்கள்",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google மொழிபெயர்ப்பு",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google மொழிபெயர்ப்பில் சேமித்த சொற்றொடர்களை Lingogram-க்குக் கொண்டு வாருங்கள்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google மொழிபெயர்ப்பிலிருந்து இறக்குமதி",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "உங்கள் Google மொழிபெயர்ப்புப் பட்டியலைப் படிக்கிறது…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "சேர்க்கப்படும் புதிய சொற்கள்: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "ஏற்கெனவே உங்கள் பட்டியலில் உள்ளவை: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "முன்பே நீக்கியவை, மீண்டும் சேர்க்கப்படாது: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "தவிர்க்கப்பட்டவை (பிற மொழிகள் அல்லது மிக நீளமானவை): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "சொற்களைச் சேர்: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "ரத்துசெய்",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total} இல் {done} சேமிக்கப்படுகிறது. இந்தச் சாளரத்தை மூடலாம்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "சேர்க்கப்பட்ட சொற்கள்: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "இதற்கிடையில் ஏற்கெனவே சேமிக்கப்பட்டவை: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "சேமிக்க முடியாதவை: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "சரி",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "முதலில் Lingogram-இல் உள்நுழையுங்கள்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "சேமித்த சொற்றொடர்கள் எதுவும் கிடைக்கவில்லை. translate.google.com ஐத் திறந்து, உங்கள் Google கணக்கில் உள்நுழைந்து, சேமித்தவை பட்டியலைச் சரிபாருங்கள்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "இன்றைய வரம்பு முடிந்தது. {total} இல் {done} சேமிக்கப்பட்டன; மீதியை நாளை மீண்டும் இறக்குமதி செய்து சேர்க்கலாம்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "ஏதோ தவறு நடந்தது. {total} இல் {done} சேமிக்கப்பட்டன. மீண்டும் முயலுங்கள்.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram-க்கு இறக்குமதி",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "மறை",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

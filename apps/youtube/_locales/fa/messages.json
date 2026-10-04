@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "سایت‌های ویدیو",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "ترجمه Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "عبارت‌هایی را که در ترجمه Google ذخیره کرده‌اید به Lingogram بیاورید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "درون‌ریزی از ترجمه Google",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "در حال خواندن فهرست شما از ترجمه Google…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "واژه‌های جدید برای افزودن: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "از قبل در فهرست شما: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "قبلاً حذف کرده‌اید، برگردانده نمی‌شوند: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "ردشده (زبان‌های دیگر یا بسیار طولانی): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "افزودن واژه‌ها: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "لغو",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "ذخیره {done} از {total}. می‌توانید این پنجره را ببندید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "واژه‌های افزوده‌شده: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "در این فاصله ذخیره شده بودند: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "ذخیره نشد: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "تأیید",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "ابتدا وارد Lingogram شوید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "عبارت ذخیره‌شده‌ای پیدا نشد. translate.google.com را باز کنید، وارد حساب Google شوید و فهرست ذخیره‌شده‌ها را بررسی کنید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "سقف روزانه پر شد. {done} از {total} ذخیره شد؛ بقیه را فردا با اجرای دوباره درون‌ریزی اضافه کنید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "مشکلی پیش آمد. {done} از {total} ذخیره شد. دوباره تلاش کنید.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "درون‌ریزی به Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "پنهان کردن",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }
