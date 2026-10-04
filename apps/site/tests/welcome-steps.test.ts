@@ -243,7 +243,7 @@ describe('Language', () => {
         expect(current()).toBe('Language');
     });
 
-    test('the popular languages are tiles with a flag; the native language is never one', async () => {
+    test('the popular languages are tiles with a flag; the native language is never one (English apart)', async () => {
         await mount({ lang: 'ru', locales: ['en', 'ru'] });
         expect(tileCodes()).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
         expect(ws().querySelectorAll('.ws-tile .ws-flag svg')).toHaveLength(8);
@@ -258,15 +258,29 @@ describe('Language', () => {
         expect(Array.from(other.options).some((o) => o.value === 'es')).toBe(false);
     });
 
-    test('an English speaker gets no English tile and no pre-picked language', async () => {
+    test('an English speaker still sees English first, and nothing is pre-picked', async () => {
         await mount();
         expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('en');
-        expect(tileCodes()).toEqual(['es', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt']);
+        expect(tileCodes()).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
         expect(pressed()).toEqual([]);
         expect(btn('Continue').hasAttribute('disabled')).toBe(true);
         tile('de').click();
         await flush();
         expect(pressed()).toEqual(['de']);
+        expect(btn('Continue').hasAttribute('disabled')).toBe(false);
+        // English is a choice like any other, even for a native English speaker.
+        tile('en').click();
+        await flush();
+        expect(pressed()).toEqual(['en']);
+        expect(btn('Continue').hasAttribute('disabled')).toBe(false);
+    });
+
+    test('saved languages are shown as saved, even English for an English speaker', async () => {
+        store['lang.v1'] = { learning: 'en', native: 'en' };
+        await mount();
+        ws().querySelectorAll<HTMLElement>('.ws-step')[0].click();
+        await flush();
+        expect(pressed()).toEqual(['en']);
         expect(btn('Continue').hasAttribute('disabled')).toBe(false);
     });
 
@@ -290,7 +304,7 @@ describe('Language', () => {
         setNative('en');
         await flush();
         expect(pressed()).toEqual([]);
-        expect(tileCodes()).not.toContain('en');
+        expect(tileCodes()[0]).toBe('en');
         // Nothing is chosen any more, so there is nothing to continue with.
         expect(btn('Continue').hasAttribute('disabled')).toBe(true);
     });
@@ -377,8 +391,10 @@ describe('the page speaks the visitor language', () => {
     test('popularTiles: eight at most, the native language never among them', () => {
         const all = ['en', 'es', 'pt', 'fr', 'de', 'it', 'ja', 'ko', 'zh', 'ru', 'uk', 'nl'];
         expect(popularTiles(all, 'ru')).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
-        expect(popularTiles(all, 'en')).toEqual(['es', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt']);
+        expect(popularTiles(all, 'en')).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
+        expect(popularTiles(all, 'es')).toEqual(['en', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt']);
         expect(popularTiles(['en', 'ru', 'uk'], 'ru')).toEqual(['en', 'uk']);
+        expect(popularTiles(['de', 'fr'], 'fr')).toEqual(['de']); // English not offered: nothing to put first
     });
 });
 

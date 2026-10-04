@@ -118,8 +118,9 @@ const OWN_STORE: Record<string, string> = {
   rezka: 'https://chromewebstore.google.com/detail/hmdkmkimdbomemfcjmgeclchbcdbhabj',
 };
 // The languages offered as tiles, in this order: the ones this site's own
-// visitors learn most, then the most-studied languages in the world. The
-// native language is never a tile; the tile row is filled to TILE_COUNT from
+// visitors learn most, then the most-studied languages in the world. English
+// is always the first tile, whoever is looking; every other tile is dropped
+// when it is the native language, and the row is filled to TILE_COUNT from
 // what is left (a Spanish speaker sees English first and Portuguese last).
 const POPULAR = ['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt', 'ru', 'uk'];
 const TILE_COUNT = 8;
@@ -183,9 +184,14 @@ export function statuses(s: Snapshot, siteSignedIn = false): Status[] {
   return [lang, account, s.finished ? 'done' : 'todo'];
 }
 
-/** The popular-language tiles: never the native language, TILE_COUNT at most. Pure. */
+/**
+ * The popular-language tiles: English always first, then the rest of POPULAR
+ * without the native language, TILE_COUNT in all. Pure, for the tests.
+ */
 export function popularTiles(offered: string[], native: string): string[] {
-  return POPULAR.filter((c) => offered.includes(c) && c !== native).slice(0, TILE_COUNT);
+  const first = offered.includes('en') ? ['en'] : [];
+  const rest = POPULAR.filter((c) => c !== 'en' && offered.includes(c) && c !== native);
+  return [...first, ...rest].slice(0, TILE_COUNT);
 }
 
 /**
@@ -322,7 +328,6 @@ export async function initSteps(doc: Document = document, win: Window = window):
   const kept = stash(win);
   let learning = offered.includes(kept) ? kept : s.learning;
   if (!learning && native !== 'en' && offered.includes('en')) learning = 'en';
-  if (learning === native) learning = '';
 
   const v: View = {
     doc,
