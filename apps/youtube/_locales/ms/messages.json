@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Simpan ke Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "Di laman web",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "Serlahkan perkataan saya di laman web",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "Perkataan yang anda simpan ditanda pada mana-mana halaman yang anda baca. Padanan dibuat pada peranti anda; tiada apa-apa yang dihantar.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

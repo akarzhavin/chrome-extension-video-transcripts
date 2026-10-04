@@ -103,6 +103,10 @@ export interface Prefs {
     // "which scope's value did the isolated world send?" a real question on a
     // site whose overlay scope differs from the one the toggle was flipped in.
     debugMode: boolean;
+    // Mark saved words in the text of any web page (page-highlight). GLOBAL:
+    // it is about pages that are not one of the streaming sites, so a
+    // per-platform copy would have no scope to live in. On by default.
+    pageHighlight: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -359,6 +363,9 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     if (typeof resolved.debugMode !== 'boolean') {
         resolved.debugMode = DEFAULT_PREFS.debugMode;
     }
+    if (typeof resolved.pageHighlight !== 'boolean') {
+        resolved.pageHighlight = DEFAULT_PREFS.pageHighlight;
+    }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
     return resolved;
@@ -412,6 +419,7 @@ const DEFAULT_PREFS: Prefs = {
     // so that a shipped extension does not carry an enabled-by-default flag
     // for a feature it does not have.
     debugMode: DEFAULT_DEBUG_MODE,
+    pageHighlight: true,
 };
 
 function isPrefs(value: unknown): value is Partial<StoredPrefs> {

@@ -98,7 +98,7 @@ describe("the popup's switch writes the same preference", () => {
     // divergence here is invisible to the user until they check the other
     // surface and find their opt-out did not take.
     const checkbox = (): HTMLInputElement =>
-        document.querySelector('.toggle-row input[type="checkbox"]') as HTMLInputElement;
+        document.querySelector('input[data-pref="analyticsEnabled"]') as HTMLInputElement;
 
     beforeEach(() => withStatus({ signedIn: false, inboxCount: 0 }));
 
@@ -239,5 +239,31 @@ describe('the language pickers offer every supported language', () => {
         const same = SUPPORTED_LANGUAGES.find((l) => l.native === l.label)!;
 
         expect(byValue.get(same.code)).toBe(same.label);
+    });
+});
+
+describe('the "Highlight my words on websites" switch', () => {
+    const box = (): HTMLInputElement => document.querySelector('input[data-pref="pageHighlight"]') as HTMLInputElement;
+
+    beforeEach(() => withStatus({ signedIn: false, inboxCount: 0 }));
+
+    test('is on for an install that never touched it', async () => {
+        await mount();
+        expect(box().checked).toBe(true);
+    });
+
+    test('turning it off writes pageHighlight, and leaves analytics alone', async () => {
+        await mount();
+        box().checked = false;
+        box().dispatchEvent(new Event('change'));
+        await nextTick();
+        expect((prefsStore[PREFS_KEY] as any).pageHighlight).toBe(false);
+        expect((prefsStore[PREFS_KEY] as any).analyticsEnabled).not.toBe(false);
+    });
+
+    test('reads back a stored off', async () => {
+        prefsStore[PREFS_KEY] = { pageHighlight: false };
+        await mount();
+        expect(box().checked).toBe(false);
     });
 });

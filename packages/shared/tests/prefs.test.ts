@@ -77,6 +77,7 @@ describe('prefs', () => {
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
+            pageHighlight: true,
             theme: 'dark',
         });
     });
@@ -157,6 +158,7 @@ describe('prefs', () => {
             overlayEdgeStyle: 'shadow',
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
+            pageHighlight: true,
             theme: 'dark',
         });
     });

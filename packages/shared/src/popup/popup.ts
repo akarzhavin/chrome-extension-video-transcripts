@@ -67,6 +67,7 @@ function render(root: HTMLElement, state: ViewState): void {
     }
 
     renderLanguageSettings(root);
+    renderWebsiteSettings(root);
     renderPrivacySettings(root);
 
     if (state.error) {
@@ -197,6 +198,49 @@ function renderLanguageSettings(root: HTMLElement): void {
 // the focus ring already declared for `input`, correct dark-mode rendering via
 // `color-scheme: light dark`, and the platform's own accessibility semantics —
 // none of which a div reimplements for free.
+/** "Highlight my words on websites" — the page-highlight content script's switch. */
+function renderWebsiteSettings(root: HTMLElement): void {
+    const section = document.createElement('div');
+    section.className = 'lang-settings';
+
+    const heading = document.createElement('div');
+    heading.className = 'lang-settings-title';
+    heading.textContent = i18nMsg('popupGroupWebsites', 'On websites');
+    section.appendChild(heading);
+
+    const row = document.createElement('label');
+    row.className = 'toggle-row';
+
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'toggle-box';
+    // Matches DEFAULT_PREFS until storage answers.
+    box.checked = true;
+    box.dataset.pref = 'pageHighlight';
+
+    const label = document.createElement('span');
+    label.className = 'toggle-label';
+    label.textContent = i18nMsg('popupPageHighlightLabel', 'Highlight my words on websites');
+
+    const hint = document.createElement('div');
+    hint.className = 'toggle-hint';
+    hint.textContent = i18nMsg(
+        'popupPageHighlightHint',
+        'Words you saved are marked on any page you read. Checked on your device; nothing is sent.',
+    );
+
+    row.append(box, label);
+    section.append(row, hint);
+    root.appendChild(section);
+
+    void loadPrefs().then((p) => {
+        box.checked = p.pageHighlight;
+    });
+    box.addEventListener('change', () => {
+        void savePrefs({ pageHighlight: box.checked });
+    });
+}
+
 function renderPrivacySettings(root: HTMLElement): void {
     const section = document.createElement('div');
     // Reuses the language block's class for the same hairline + spacing.
@@ -217,6 +261,7 @@ function renderPrivacySettings(root: HTMLElement): void {
     // resolves. Rendering unchecked first would flash "off" on a privacy
     // control, which reads far worse than the reverse.
     box.checked = true;
+    box.dataset.pref = 'analyticsEnabled';
 
     const label = document.createElement('span');
     label.className = 'toggle-label';

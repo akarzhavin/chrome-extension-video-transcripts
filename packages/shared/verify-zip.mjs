@@ -92,6 +92,7 @@ function walk(dir, base = dir) {
 const PAGE_READABLE = [
     'src/content/index.js',
     'src/content/page-script.js',
+    'src/content/page-highlight.js',
     'src/popup/popup.js',
 ];
 

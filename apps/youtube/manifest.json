@@ -23,6 +23,7 @@
     "https://firestore.googleapis.com/*",
     "https://translate.google.com/*",
     "https://translate.googleapis.com/*",
+    "https://api.lingogram.ai/*",
     "http://localhost:9099/*",
     "http://localhost:8080/*"
   ],
@@ -34,6 +35,14 @@
     ]
   },
   "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": ["https://lingogram.ai/*", "https://*.lingogram.ai/*"],
+      "js": ["src/content/page-highlight.js"],
+      "css": ["src/assets/page-highlight.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
     {
       "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"],
       "js": ["src/content/page-script.js"],

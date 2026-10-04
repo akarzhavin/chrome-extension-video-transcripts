@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Opslaan in Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "Op websites",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "Mijn woorden markeren op websites",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "Woorden die je hebt opgeslagen worden gemarkeerd op elke pagina die je leest. De vergelijking gebeurt op je apparaat; er wordt niets verzonden.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

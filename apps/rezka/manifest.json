@@ -293,6 +293,14 @@
   },
   "content_scripts": [
     {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": ["https://lingogram.ai/*", "https://*.lingogram.ai/*"],
+      "js": ["src/content/page-highlight.js"],
+      "css": ["src/assets/page-highlight.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
       "matches": [
         "*://*.rezka-ua.tv/*",
         "*://*.rezka.ac/*",

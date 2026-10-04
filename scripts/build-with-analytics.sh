@@ -219,7 +219,8 @@ leaked=0
 for app in $APPS; do
     for bundle in "apps/$app/build/src/content/index.js" \
                   "apps/$app/build/src/popup/popup.js" \
-                  "apps/$app/build/src/content/page-script.js"; do
+                  "apps/$app/build/src/content/page-script.js" \
+                  "apps/$app/build/src/content/page-highlight.js"; do
         [[ -f "$bundle" ]] || continue
         if grep -qF "$API_SECRET" "$bundle"; then
             echo "  LEAK: $bundle" >&2

@@ -638,5 +638,17 @@
   "ctxMenuSave": {
     "message": "Lingogram에 저장",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
+  },
+  "popupGroupWebsites": {
+    "message": "웹사이트에서",
+    "description": "Popup settings group heading for features that work on ordinary websites."
+  },
+  "popupPageHighlightLabel": {
+    "message": "웹사이트에서 내 단어 강조 표시",
+    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
+  },
+  "popupPageHighlightHint": {
+    "message": "저장한 단어는 읽고 있는 모든 페이지에서 표시됩니다. 일치 확인은 기기에서만 이루어지며 아무것도 전송되지 않습니다.",
+    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
   }
 }

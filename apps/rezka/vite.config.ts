@@ -182,6 +182,7 @@ export default defineConfig(({ command, mode }) => {
     const isContent = mode === 'content';
     const isInterceptor = mode === 'interceptor';
     const isPopup = mode === 'popup';
+    const isHighlight = mode === 'highlight';
 
     return {
       ...commonConfig,
@@ -197,14 +198,17 @@ export default defineConfig(({ command, mode }) => {
               ? resolve(__dirname, 'src/content/index.ts')
               : isPopup
                 ? resolve(__dirname, 'src/popup/popup.ts')
+                : isHighlight
+                ? resolve(__dirname, 'src/content/page-highlight.ts')
                 : resolve(__dirname, 'src/content/network-interceptor.ts'),
           formats: [isBackground ? 'es' : 'iife'],
-          name: isContent ? 'VttContent' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : undefined,
+          name: isContent ? 'VttContent' : isHighlight ? 'LgPageHighlight' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : undefined,
           fileName: () => {
             if (isBackground) return 'src/background/background.js';
             if (isContent) return 'src/content/index.js';
             if (isInterceptor) return 'src/content/network-interceptor.js';
             if (isPopup) return 'src/popup/popup.js';
+            if (isHighlight) return 'src/content/page-highlight.js';
             return 'bundle.js';
           }
         },
@@ -295,6 +299,11 @@ export default defineConfig(({ command, mode }) => {
               // Loaded after styles.css (see the manifest) — it consumes that
               // file's tokens and defines none of its own.
               src: 'src/assets/lookup.css',
+              dest: 'src/assets',
+              rename: { stripBase: true }
+            },
+            {
+              src: 'src/assets/page-highlight.css',
               dest: 'src/assets',
               rename: { stripBase: true }
             },
