@@ -97,12 +97,10 @@ const AUTH = {
     registerPasswordPlaceholder: en.auth.register.passwordPlaceholder,
     registerSubmit: en.auth.register.submit,
     registerBusy: en.auth.register.submitBusy,
-    registerAltPrefix: en.auth.register.altPrefix,
-    registerAltLink: en.auth.register.altLink,
+    registerGoogle: en.auth.register.googleCta,
     loginSubmit: en.auth.login.submit,
     loginBusy: en.auth.login.submitBusy,
-    loginAltPrefix: en.auth.login.altPrefix,
-    loginAltLink: en.auth.login.altLink,
+    loginGoogle: en.auth.login.googleCta,
 };
 const T = en.welcome.steps;
 const VIDEOS = { en: { id: 'Kk1vR7BdTno', title: 'Cosmic Dawn (Official NASA Trailer)' } };
@@ -153,8 +151,6 @@ async function mount(opts: { lang?: string; locales?: string[]; search?: string 
 }
 
 async function fillAndSubmit(email: string, password: string): Promise<void> {
-    btn(T.emailLink).click();
-    await flush();
     const [e, p] = Array.from(ws().querySelectorAll<HTMLInputElement>('.ws-input'));
     e.value = email;
     p.value = password;
@@ -414,24 +410,35 @@ describe('Account', () => {
         expect(ws().querySelectorAll('.ws-step-status')[1].textContent).toBe('Skipped');
     });
 
-    test('Google is the way in; the email form is one link away', async () => {
+    test('Create account / Log in tabs over one form, Google first, skip in the closing line', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
         expect(current()).toBe('Account');
-        expect(ws().querySelector('.ws-works')!.textContent).toBe(T.accountHint);
-        expect(btn('Continue with Google').classList.contains('ws-primary')).toBe(true);
-        expect(btn('Skip for now').classList.contains('ws-secondary')).toBe(true);
-        expect(ws().querySelector('.ws-input')).toBeNull();
-        btn(T.emailLink).click();
-        await flush();
+        const tabs = Array.from(ws().querySelectorAll<HTMLElement>('.ws-mode'));
+        expect(tabs.map((x) => x.textContent)).toEqual(['Create account', 'Log in']);
+        expect(tabs.map((x) => x.getAttribute('aria-selected'))).toEqual(['true', 'false']);
+        // Google comes first, with its mark, then the email form, open from the start.
+        const google = ws().querySelector<HTMLElement>('.ws-google')!;
+        expect(google.textContent).toBe(AUTH.registerGoogle);
+        expect(google.querySelector('.ws-gmark svg')).not.toBeNull();
+        expect(ws().querySelector('.ws-or')!.textContent).toBe(T.orEmail);
         expect(ws().querySelectorAll('.ws-input')).toHaveLength(2);
-        expect(btn(AUTH.registerSubmit).textContent).toBe('Create account');
+        expect(ws().querySelector('form button[type=submit]')!.textContent).toBe(AUTH.registerSubmit);
+        // Skipping sits in the line that says why it is safe.
+        const foot = ws().querySelector('.ws-skip-line')!;
+        expect(foot.textContent).toBe(`${T.accountHint} ${T.skip}`);
+        // Log in: the same form, its own words.
+        tabs[1].click();
+        await flush();
+        expect(ws().querySelector('.ws-google')!.textContent).toBe(AUTH.loginGoogle);
+        expect(Array.from(ws().querySelectorAll<HTMLElement>('.ws-mode')).map((x) => x.getAttribute('aria-selected'))).toEqual(['false', 'true']);
+        expect(ws().querySelector<HTMLInputElement>('input[type=password]')!.autocomplete).toBe('current-password');
     });
 
     test('Google sign-in is handed to the extension and goes straight on to the last step', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
-        btn('Continue with Google').click();
+        btn(AUTH.registerGoogle).click();
         await flush();
         expect(deps.google).toHaveBeenCalled();
         expect(handoffs).toEqual([{ customToken: 'custom-token', uid: 'g1', email: 'g@b.c', nonce: session['auth.pendingNonce'] }]);
@@ -454,11 +461,9 @@ describe('Account', () => {
     test('the form switches to log-in for an existing account', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
-        btn(T.emailLink).click();
+        ws().querySelectorAll<HTMLElement>('.ws-mode')[1].click();
         await flush();
-        btn(AUTH.registerAltLink).click();
-        await flush();
-        expect(btn(AUTH.loginSubmit)).toBeDefined();
+        expect(ws().querySelector('form button[type=submit]')!.textContent).toBe(AUTH.loginSubmit);
         const [e, p] = Array.from(ws().querySelectorAll<HTMLInputElement>('.ws-input'));
         e.value = 'a@b.c';
         p.value = 'pw';
@@ -496,8 +501,6 @@ describe('Account', () => {
     test('looking at the tab again does not wipe what is being typed', async () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         await mount();
-        btn(T.emailLink).click();
-        await flush();
         const email = ws().querySelector<HTMLInputElement>('.ws-input')!;
         email.value = 'half@typed';
         window.dispatchEvent(new Event('focus'));
@@ -513,14 +516,14 @@ describe('Account', () => {
         await mount();
         let finish!: (u: { uid: string; email: string; idToken: string }) => void;
         deps.google.mockImplementationOnce(() => new Promise((r) => (finish = r)));
-        const google = btn('Continue with Google') as HTMLButtonElement;
+        const google = btn(AUTH.registerGoogle) as HTMLButtonElement;
         google.click();
         await flush();
         authStatus = { signedIn: true, email: 'other@b.c' };
         window.dispatchEvent(new Event('focus'));
         await flush();
-        expect(btn('Continue with Google')).toBe(google);
-        expect((btn('Continue with Google') as HTMLButtonElement).disabled).toBe(true);
+        expect(btn(AUTH.registerGoogle)).toBe(google);
+        expect((btn(AUTH.registerGoogle) as HTMLButtonElement).disabled).toBe(true);
         finish({ uid: 'g1', email: 'g@b.c', idToken: 't' });
         await flush();
         expect(deps.google).toHaveBeenCalledTimes(1);
@@ -530,7 +533,7 @@ describe('Account', () => {
         store['lang.v1'] = { learning: 'es', native: 'en' };
         refuseBegin = true;
         await mount();
-        btn('Continue with Google').click();
+        btn(AUTH.registerGoogle).click();
         await flush();
         expect(handoffs).toHaveLength(0);
         expect(current()).toBe('Account');
@@ -547,7 +550,7 @@ describe('Account', () => {
         await mount();
         let finish!: (u: { uid: string; email: string; idToken: string }) => void;
         deps.google.mockImplementationOnce(() => new Promise((r) => (finish = r)));
-        btn('Continue with Google').click();
+        btn(AUTH.registerGoogle).click();
         await flush();
         ws().querySelectorAll<HTMLElement>('.ws-step')[0].click(); // back to Language meanwhile
         await flush();

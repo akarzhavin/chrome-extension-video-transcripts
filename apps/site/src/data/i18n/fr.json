@@ -264,7 +264,6 @@
       "select": "Choisir…",
       "continue": "Continuer",
       "accountTitle": "Gardez vos mots au même endroit",
-      "accountLead": "Avec un compte, les mots enregistrés restent dans une seule liste sur lingogram.ai et dans chaque navigateur. Une seule connexion vaut pour le site et pour l'extension.",
       "skip": "Passer pour l'instant",
       "accountHint": "Les sous-titres et la transcription fonctionnent sans compte.",
       "signedIn": "Connecté en tant que {email} sur lingogram.ai et dans l'extension",
@@ -278,15 +277,14 @@
       "stepStart": "Démarrage",
       "otherLanguage": "Autre langue",
       "nativeHint": "C'est aussi la langue de la page.",
-      "withGoogle": "Continuer avec Google",
-      "emailLink": "Passer par l'e-mail",
       "startTitle": "Tout est prêt. Commencez par une vidéo",
       "startLead": "Fonctionne aussi sur Netflix et HDrezka. Cliquez sur un mot dans les sous-titres pour voir sa traduction.",
       "startLeadRezka": "Ouvrez un film sur HDrezka, rechargez son onglet et lancez la lecture. Cliquez sur un mot dans les sous-titres pour voir sa traduction.",
       "watchFirst": "Regarder la première vidéo",
       "importLabel": "Mots de Google Traduction",
       "importHint": "Ils sont surlignés tout de suite.",
-      "importButton": "Importer"
+      "importButton": "Importer",
+      "orEmail": "ou par email"
     }
   },
   "uninstall": {

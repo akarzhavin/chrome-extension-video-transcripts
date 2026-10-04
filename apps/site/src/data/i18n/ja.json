@@ -263,7 +263,6 @@
       "select": "選択…",
       "continue": "続ける",
       "accountTitle": "単語を一か所にまとめる",
-      "accountLead": "アカウントがあれば、保存した単語は lingogram.ai とすべてのブラウザで同じ一覧にまとまります。ログインは一度で、サイトにも拡張機能にも使えます。",
       "skip": "今はスキップ",
       "accountHint": "字幕とトランスクリプトは、アカウントなしでも使えます。",
       "signedIn": "{email} で lingogram.ai と拡張機能にログイン中",
@@ -277,15 +276,14 @@
       "stepStart": "スタート",
       "otherLanguage": "その他の言語",
       "nativeHint": "ページの表示言語にもなります。",
-      "withGoogle": "Google で続行",
-      "emailLink": "メールアドレスで続ける",
       "startTitle": "準備完了。まずは動画から始めましょう",
       "startLead": "Netflix と HDrezka でも使えます。字幕の単語をクリックすると、翻訳が表示されます。",
       "startLeadRezka": "HDrezka で映画を開き、そのタブを再読み込みして再生してください。字幕の単語をクリックすると、翻訳が表示されます。",
       "watchFirst": "最初の動画を見る",
       "importLabel": "Google 翻訳の単語",
       "importHint": "すぐにハイライト表示されます。",
-      "importButton": "インポート"
+      "importButton": "インポート",
+      "orEmail": "またはメールアドレスで"
     }
   },
   "uninstall": {

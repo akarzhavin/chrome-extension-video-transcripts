@@ -266,7 +266,6 @@
       "select": "Vybrať…",
       "continue": "Pokračovať",
       "accountTitle": "Majte svoje slová na jednom mieste",
-      "accountLead": "S účtom zostanú uložené slová v jednom zozname na lingogram.ai aj v každom prehliadači. Jedno prihlásenie platí pre web aj rozšírenie.",
       "skip": "Zatiaľ preskočiť",
       "accountHint": "Titulky a prepis fungujú aj bez účtu.",
       "signedIn": "Prihlásení ako {email} na lingogram.ai aj v rozšírení",
@@ -280,15 +279,14 @@
       "stepStart": "Začiatok",
       "otherLanguage": "Iný jazyk",
       "nativeHint": "Je to zároveň jazyk stránky.",
-      "withGoogle": "Pokračovať cez Google",
-      "emailLink": "Použiť radšej e-mail",
       "startTitle": "Všetko je hotové. Začnite videom",
       "startLead": "Funguje aj na službách Netflix a HDrezka. Kliknite na slovo v titulkoch a uvidíte jeho preklad.",
       "startLeadRezka": "Otvorte film na HDrezka, obnovte jeho kartu a spustite prehrávanie. Kliknite na slovo v titulkoch a uvidíte jeho preklad.",
       "watchFirst": "Pozrieť prvé video",
       "importLabel": "Slová z Prekladača Google",
       "importHint": "Zvýrazňujú sa hneď.",
-      "importButton": "Importovať"
+      "importButton": "Importovať",
+      "orEmail": "alebo emailom"
     }
   },
   "uninstall": {

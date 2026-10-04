@@ -263,7 +263,6 @@
       "select": "선택…",
       "continue": "계속",
       "accountTitle": "단어를 한곳에 모아 보세요",
-      "accountLead": "계정이 있으면 저장한 단어가 lingogram.ai와 모든 브라우저에서 하나의 목록으로 모여요. 한 번 로그인하면 사이트와 확장 프로그램 모두에서 쓸 수 있어요.",
       "skip": "나중에 하기",
       "accountHint": "계정 없이도 자막과 대본을 사용할 수 있어요.",
       "signedIn": "{email} 계정으로 lingogram.ai와 확장 프로그램에 로그인됨",
@@ -277,15 +276,14 @@
       "stepStart": "시작",
       "otherLanguage": "다른 언어",
       "nativeHint": "페이지 언어도 이걸로 바뀌어요.",
-      "withGoogle": "Google로 계속하기",
-      "emailLink": "이메일로 계속하기",
       "startTitle": "준비 완료. 영상으로 시작해 보세요",
       "startLead": "Netflix와 HDrezka에서도 쓸 수 있어요. 자막의 단어를 클릭하면 번역이 보여요.",
       "startLeadRezka": "HDrezka에서 영화를 열고 탭을 새로고침한 뒤 재생을 누르세요. 자막의 단어를 클릭하면 번역이 보여요.",
       "watchFirst": "첫 영상 보기",
       "importLabel": "Google 번역 단어",
       "importHint": "바로 강조 표시돼요.",
-      "importButton": "가져오기"
+      "importButton": "가져오기",
+      "orEmail": "또는 이메일로"
     }
   },
   "uninstall": {

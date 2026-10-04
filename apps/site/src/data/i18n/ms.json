@@ -263,7 +263,6 @@
       "select": "Pilih…",
       "continue": "Teruskan",
       "accountTitle": "Simpan perkataan anda di satu tempat",
-      "accountLead": "Dengan akaun, perkataan yang anda simpan kekal dalam satu senarai di lingogram.ai dan dalam setiap pelayar. Satu log masuk meliputi laman web dan sambungan.",
       "skip": "Langkau buat masa ini",
       "accountHint": "Sari kata dan transkrip berfungsi tanpa akaun.",
       "signedIn": "Log masuk sebagai {email} di lingogram.ai dan dalam sambungan",
@@ -277,15 +276,14 @@
       "stepStart": "Mula",
       "otherLanguage": "Bahasa lain",
       "nativeHint": "Ini juga bahasa halaman.",
-      "withGoogle": "Teruskan dengan Google",
-      "emailLink": "Guna e-mel sebaliknya",
       "startTitle": "Semua sudah siap. Mulakan dengan video",
       "startLead": "Berfungsi juga di Netflix dan HDrezka. Klik perkataan dalam sari kata untuk melihat terjemahannya.",
       "startLeadRezka": "Buka filem di HDrezka, muat semula tabnya dan tekan main. Klik perkataan dalam sari kata untuk melihat terjemahannya.",
       "watchFirst": "Tonton video pertama",
       "importLabel": "Perkataan daripada Google Terjemah",
       "importHint": "Perkataan ini terus diserlahkan.",
-      "importButton": "Import"
+      "importButton": "Import",
+      "orEmail": "atau dengan e-mel"
     }
   },
   "uninstall": {

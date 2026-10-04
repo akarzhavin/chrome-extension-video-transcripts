@@ -263,7 +263,6 @@
       "select": "Chọn…",
       "continue": "Tiếp tục",
       "accountTitle": "Giữ từ vựng của bạn ở một nơi",
-      "accountLead": "Với tài khoản, các từ bạn lưu nằm chung trong một danh sách trên lingogram.ai và ở mọi trình duyệt. Chỉ cần đăng nhập một lần cho cả trang web và tiện ích.",
       "skip": "Bỏ qua lúc này",
       "accountHint": "Phụ đề và bản chép lời vẫn hoạt động khi không có tài khoản.",
       "signedIn": "Đã đăng nhập với {email} trên lingogram.ai và trong tiện ích",
@@ -277,15 +276,14 @@
       "stepStart": "Bắt đầu",
       "otherLanguage": "Ngôn ngữ khác",
       "nativeHint": "Đây cũng là ngôn ngữ của trang.",
-      "withGoogle": "Tiếp tục với Google",
-      "emailLink": "Dùng email thay thế",
       "startTitle": "Mọi thứ đã sẵn sàng. Bắt đầu bằng một video",
       "startLead": "Cũng hoạt động trên Netflix và HDrezka. Nhấp vào một từ trong phụ đề để xem bản dịch.",
       "startLeadRezka": "Mở một bộ phim trên HDrezka, tải lại tab và nhấn phát. Nhấp vào một từ trong phụ đề để xem bản dịch.",
       "watchFirst": "Xem video đầu tiên",
       "importLabel": "Từ vựng từ Google Dịch",
       "importHint": "Chúng được đánh dấu ngay lập tức.",
-      "importButton": "Nhập"
+      "importButton": "Nhập",
+      "orEmail": "hoặc bằng email"
     }
   },
   "uninstall": {

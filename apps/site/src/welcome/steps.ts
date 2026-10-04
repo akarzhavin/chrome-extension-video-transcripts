@@ -42,9 +42,7 @@ export interface StepsI18n {
   nativeHint: string;
   continue: string;
   accountTitle: string;
-  accountLead: string;
-  withGoogle: string;
-  emailLink: string;
+  orEmail: string;
   skip: string;
   accountHint: string;
   signedIn: string;
@@ -86,12 +84,10 @@ export interface AuthI18n {
   registerPasswordPlaceholder: string;
   registerSubmit: string;
   registerBusy: string;
-  registerAltPrefix: string;
-  registerAltLink: string;
+  registerGoogle: string;
   loginSubmit: string;
   loginBusy: string;
-  loginAltPrefix: string;
-  loginAltLink: string;
+  loginGoogle: string;
 }
 
 declare global {
@@ -268,8 +264,6 @@ interface View {
   a: AuthI18n;
   /** Sign-up or log-in, on the Account step. */
   mode: 'register' | 'login';
-  /** The email form is open (it hides behind a link; Google is the main way in). */
-  emailOpen: boolean;
   /** Signed in on the site during this visit (with or without the extension). */
   siteEmail: string;
   /** Why the extension could not be connected after a site sign-in, if it failed. */
@@ -335,7 +329,6 @@ export async function initSteps(doc: Document = document, win: Window = window):
     t: cfg.i18n,
     a: cfg.auth,
     mode: 'register',
-    emailOpen: false,
     siteEmail: '',
     connectError: '',
     busy: false,
@@ -569,7 +562,7 @@ async function connectExtension(v: View, deps: AccountDeps, idToken: string, uid
 
 function accountStep(v: View, box: HTMLElement): void {
   const { doc, t, a, s } = v;
-  box.append(el(doc, 'h1', 'ws-title', t.accountTitle), el(doc, 'p', 'ws-works', t.accountHint), el(doc, 'p', 'ws-lead', t.accountLead));
+  box.appendChild(el(doc, 'h1', 'ws-title', t.accountTitle));
   const email = s.signedIn ? s.email : v.siteEmail;
   if (email) {
     box.appendChild(el(doc, 'div', 'ws-ok', t.signedIn.replace('{email}', () => email)));
@@ -629,8 +622,28 @@ function accountStep(v: View, box: HTMLElement): void {
     await connect();
   };
 
-  const google = el(doc, 'button', 'ws-primary ws-google', t.withGoogle);
+  // Create account / Log in: the same form either way, the mode picks the words.
+  const modes = el(doc, 'div', 'ws-modes');
+  modes.setAttribute('role', 'tablist');
+  for (const [mode, label] of [['register', a.registerSubmit], ['login', a.loginSubmit]] as const) {
+    const tab = el(doc, 'button', 'ws-mode', label);
+    tab.type = 'button';
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', String(v.mode === mode));
+    tab.addEventListener('click', () => {
+      if (v.mode === mode) return;
+      v.mode = mode;
+      paint(v);
+    });
+    modes.appendChild(tab);
+  }
+  box.appendChild(modes);
+
+  const google = el(doc, 'button', 'ws-secondary ws-google');
   google.type = 'button';
+  const mark = el(doc, 'span', 'ws-gmark');
+  mark.innerHTML = GOOGLE_G; // constant markup
+  google.append(mark, doc.createTextNode(reg ? a.registerGoogle : a.loginGoogle));
   google.addEventListener('click', async () => {
     google.disabled = true;
     v.busy = true;
@@ -648,26 +661,7 @@ function accountStep(v: View, box: HTMLElement): void {
     }
   });
 
-  const skip = button(v, 'ws-secondary', t.skip, async () => {
-    await v.send?.({ op: 'progress', skippedAccount: true });
-    v.s = { ...v.s, skippedAccount: true };
-    track(v.win, 'skipped', 'account');
-    v.step = 2;
-    paint(v);
-  });
-  box.append(google, skip);
-
-  // The email way in stays one link away, not a form in the face of everyone.
-  const emailToggle = button(v, 'ws-linkbtn ws-email-toggle', t.emailLink, () => {
-    v.emailOpen = !v.emailOpen;
-    paint(v);
-  });
-  emailToggle.setAttribute('aria-expanded', String(v.emailOpen));
-  box.appendChild(emailToggle);
-  if (!v.emailOpen) {
-    box.appendChild(error);
-    return;
-  }
+  box.append(google, el(doc, 'div', 'ws-or', t.orEmail));
 
   const form = el(doc, 'form', 'ws-form');
   form.noValidate = true;
@@ -709,15 +703,17 @@ function accountStep(v: View, box: HTMLElement): void {
     }
   });
 
-  const switcher = el(doc, 'p', 'ws-hint');
-  const link = el(doc, 'button', 'ws-linkbtn', reg ? a.registerAltLink : a.loginAltLink);
-  link.type = 'button';
-  link.addEventListener('click', () => {
-    v.mode = reg ? 'login' : 'register';
+  // Skipping is a link in the closing line, next to the reason it is safe.
+  const foot = el(doc, 'p', 'ws-hint ws-skip-line');
+  const skip = button(v, 'ws-linkbtn', t.skip, async () => {
+    await v.send?.({ op: 'progress', skippedAccount: true });
+    v.s = { ...v.s, skippedAccount: true };
+    track(v.win, 'skipped', 'account');
+    v.step = 2;
     paint(v);
   });
-  switcher.append(doc.createTextNode(`${reg ? a.registerAltPrefix : a.loginAltPrefix} `), link);
-  box.append(form, switcher);
+  foot.append(doc.createTextNode(`${t.accountHint} `), skip);
+  box.append(form, foot);
 }
 
 function switchRow(v: View, title: string, sub: string, checked: boolean, onChange: (on: boolean) => Promise<boolean>) {
@@ -737,6 +733,10 @@ function switchRow(v: View, title: string, sub: string, checked: boolean, onChan
   row.append(text, box);
   return row;
 }
+
+// Google's "G", as its sign-in buttons carry it. Constant markup.
+const GOOGLE_G =
+  '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
 
 const PLAY =
   '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg>';

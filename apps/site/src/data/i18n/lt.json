@@ -265,7 +265,6 @@
       "select": "Pasirinkti…",
       "continue": "Tęsti",
       "accountTitle": "Laikykite žodžius vienoje vietoje",
-      "accountLead": "Su paskyra išsaugoti žodžiai telpa viename sąraše lingogram.ai ir kiekvienoje naršyklėje. Vienas prisijungimas tinka ir svetainei, ir plėtiniui.",
       "skip": "Kol kas praleisti",
       "accountHint": "Subtitrai ir nuorašas veikia ir be paskyros.",
       "signedIn": "Prisijungta kaip {email} lingogram.ai ir plėtinyje",
@@ -279,15 +278,14 @@
       "stepStart": "Pradžia",
       "otherLanguage": "Kita kalba",
       "nativeHint": "Tai ir puslapio kalba.",
-      "withGoogle": "Tęsti su Google",
-      "emailLink": "Naudoti el. paštą",
       "startTitle": "Viskas paruošta. Pradėkite nuo vaizdo įrašo",
       "startLead": "Veikia ir Netflix, ir HDrezka. Spustelėkite žodį subtitruose, kad pamatytumėte jo vertimą.",
       "startLeadRezka": "Atidarykite filmą HDrezka svetainėje, iš naujo įkelkite jo skirtuką ir paspauskite paleisti. Spustelėkite žodį subtitruose, kad pamatytumėte jo vertimą.",
       "watchFirst": "Žiūrėti pirmą vaizdo įrašą",
       "importLabel": "Žodžiai iš Google vertėjo",
       "importHint": "Jie paryškinami iš karto.",
-      "importButton": "Importuoti"
+      "importButton": "Importuoti",
+      "orEmail": "arba el. paštu"
     }
   },
   "uninstall": {

@@ -266,7 +266,6 @@
       "select": "Izberi …",
       "continue": "Naprej",
       "accountTitle": "Imejte svoje besede na enem mestu",
-      "accountLead": "Z računom ostanejo shranjene besede na enem seznamu na lingogram.ai in v vsakem brskalniku. Ena prijava velja za spletno mesto in razširitev.",
       "skip": "Zaenkrat preskoči",
       "accountHint": "Podnapisi in prepis delujejo tudi brez računa.",
       "signedIn": "Prijavljeni kot {email} na lingogram.ai in v razširitvi",
@@ -280,15 +279,14 @@
       "stepStart": "Začetek",
       "otherLanguage": "Drug jezik",
       "nativeHint": "To je tudi jezik strani.",
-      "withGoogle": "Nadaljuj z Google",
-      "emailLink": "Raje uporabi e-pošto",
       "startTitle": "Vse je pripravljeno. Začnite z videom",
       "startLead": "Deluje tudi v storitvah Netflix in HDrezka. Kliknite besedo v podnapisih in oglejte si njen prevod.",
       "startLeadRezka": "Odprite film na HDrezka, znova naložite njegov zavihek in pritisnite predvajaj. Kliknite besedo v podnapisih in oglejte si njen prevod.",
       "watchFirst": "Oglejte si prvi video",
       "importLabel": "Besede iz Google Prevajalnika",
       "importHint": "Poudarjene bodo takoj.",
-      "importButton": "Uvozi"
+      "importButton": "Uvozi",
+      "orEmail": "ali z e-pošto"
     }
   },
   "uninstall": {

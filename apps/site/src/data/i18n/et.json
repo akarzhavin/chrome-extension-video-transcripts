@@ -264,7 +264,6 @@
       "select": "Vali…",
       "continue": "Jätka",
       "accountTitle": "Hoia oma sõnad ühes kohas",
-      "accountLead": "Kontoga jäävad salvestatud sõnad ühte nimekirja lingogram.ai-s ja igas brauseris. Üks sisselogimine kehtib nii saidile kui ka laiendusele.",
       "skip": "Jäta praegu vahele",
       "accountHint": "Subtiitrid ja transkriptsioon töötavad ka ilma kontota.",
       "signedIn": "Sisse logitud kui {email} saidil lingogram.ai ja laiendis",
@@ -278,15 +277,14 @@
       "stepStart": "Algus",
       "otherLanguage": "Muu keel",
       "nativeHint": "See on ka lehe keel.",
-      "withGoogle": "Jätka Google'iga",
-      "emailLink": "Kasuta hoopis e-posti",
       "startTitle": "Kõik valmis. Alusta videoga",
       "startLead": "Töötab ka teenustes Netflix ja HDrezka. Klõpsa subtiitrites sõnal, et näha selle tõlget.",
       "startLeadRezka": "Ava film saidil HDrezka, laadi selle vaheleht uuesti ja vajuta esitamisele. Klõpsa subtiitrites sõnal, et näha selle tõlget.",
       "watchFirst": "Vaata esimest videot",
       "importLabel": "Sõnad Google'i tõlkest",
       "importHint": "Need hakkavad kohe esile tõusma.",
-      "importButton": "Impordi"
+      "importButton": "Impordi",
+      "orEmail": "või e-postiga"
     }
   },
   "uninstall": {

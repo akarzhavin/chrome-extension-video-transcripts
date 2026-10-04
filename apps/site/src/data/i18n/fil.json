@@ -263,7 +263,6 @@
       "select": "Pumili…",
       "continue": "Magpatuloy",
       "accountTitle": "Itago ang mga salita mo sa iisang lugar",
-      "accountLead": "Sa account, nasa iisang listahan ang mga salitang sine-save mo sa lingogram.ai at sa bawat browser. Isang sign-in lang para sa site at sa extension.",
       "skip": "Laktawan muna",
       "accountHint": "Gumagana ang mga subtitle at transcript kahit walang account.",
       "signedIn": "Naka-sign in bilang {email} sa lingogram.ai at sa extension",
@@ -277,15 +276,14 @@
       "stepStart": "Simula",
       "otherLanguage": "Ibang wika",
       "nativeHint": "Ito rin ang wika ng page.",
-      "withGoogle": "Magpatuloy gamit ang Google",
-      "emailLink": "Gumamit na lang ng email",
       "startTitle": "Handa na. Magsimula sa isang video",
       "startLead": "Gumagana rin sa Netflix at HDrezka. Mag-click sa isang salita sa mga subtitle para makita ang salin nito.",
       "startLeadRezka": "Magbukas ng pelikula sa HDrezka, i-reload ang tab nito, at pindutin ang play. Mag-click sa isang salita sa mga subtitle para makita ang salin nito.",
       "watchFirst": "Panoorin ang unang video",
       "importLabel": "Mga salita mula sa Google Translate",
       "importHint": "Magsisimula agad silang ma-highlight.",
-      "importButton": "I-import"
+      "importButton": "I-import",
+      "orEmail": "o gamit ang email"
     }
   },
   "uninstall": {

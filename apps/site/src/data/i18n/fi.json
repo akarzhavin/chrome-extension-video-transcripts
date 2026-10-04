@@ -264,7 +264,6 @@
       "select": "Valitse…",
       "continue": "Jatka",
       "accountTitle": "Pidä sanasi samassa paikassa",
-      "accountLead": "Tilin avulla tallentamasi sanat pysyvät yhdessä listassa lingogram.ai:ssa ja jokaisessa selaimessa. Yksi kirjautuminen kattaa sekä sivuston että laajennuksen.",
       "skip": "Ohita toistaiseksi",
       "accountHint": "Tekstitys ja transkriptio toimivat myös ilman tiliä.",
       "signedIn": "Kirjautuneena tunnuksella {email} lingogram.ai:ssa ja laajennuksessa",
@@ -278,15 +277,14 @@
       "stepStart": "Aloitus",
       "otherLanguage": "Muu kieli",
       "nativeHint": "Tämä on myös sivun kieli.",
-      "withGoogle": "Jatka Googlella",
-      "emailLink": "Käytä sähköpostia",
       "startTitle": "Kaikki valmista. Aloita videolla",
       "startLead": "Toimii myös palveluissa Netflix ja HDrezka. Napsauta tekstityksen sanaa nähdäksesi sen käännöksen.",
       "startLeadRezka": "Avaa elokuva sivustolla HDrezka, lataa sen välilehti uudelleen ja paina toista. Napsauta tekstityksen sanaa nähdäksesi sen käännöksen.",
       "watchFirst": "Katso ensimmäinen video",
       "importLabel": "Sanat Google Kääntäjästä",
       "importHint": "Ne alkavat korostua heti.",
-      "importButton": "Tuo"
+      "importButton": "Tuo",
+      "orEmail": "tai sähköpostilla"
     }
   },
   "uninstall": {

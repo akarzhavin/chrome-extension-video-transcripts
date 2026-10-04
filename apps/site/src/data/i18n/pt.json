@@ -264,7 +264,6 @@
       "select": "Selecionar…",
       "continue": "Continuar",
       "accountTitle": "Guarde as suas palavras num só lugar",
-      "accountLead": "Com uma conta, as palavras que guarda ficam numa única lista em lingogram.ai e em todos os navegadores. Um só início de sessão serve para o site e para a extensão.",
       "skip": "Ignorar por agora",
       "accountHint": "As legendas e a transcrição funcionam sem conta.",
       "signedIn": "Sessão iniciada como {email} em lingogram.ai e na extensão",
@@ -278,15 +277,14 @@
       "stepStart": "Início",
       "otherLanguage": "Outro idioma",
       "nativeHint": "Este é também o idioma da página.",
-      "withGoogle": "Continuar com o Google",
-      "emailLink": "Usar o e-mail",
       "startTitle": "Tudo pronto. Comece por um vídeo",
       "startLead": "Também funciona na Netflix e no HDrezka. Clique numa palavra das legendas para ver a tradução.",
       "startLeadRezka": "Abra um filme no HDrezka, recarregue o separador e carregue em reproduzir. Clique numa palavra das legendas para ver a tradução.",
       "watchFirst": "Ver o primeiro vídeo",
       "importLabel": "Palavras do Google Tradutor",
       "importHint": "Passam a ser realçadas de imediato.",
-      "importButton": "Importar"
+      "importButton": "Importar",
+      "orEmail": "ou com email"
     }
   },
   "uninstall": {

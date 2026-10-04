@@ -264,7 +264,6 @@
       "select": "Velg…",
       "continue": "Fortsett",
       "accountTitle": "Ha ordene dine på ett sted",
-      "accountLead": "Med en konto havner ordene du lagrer i én liste på lingogram.ai og i alle nettlesere. Én innlogging gjelder både for nettstedet og utvidelsen.",
       "skip": "Hopp over for nå",
       "accountHint": "Undertekster og transkripsjon fungerer også uten konto.",
       "signedIn": "Logget inn som {email} på lingogram.ai og i utvidelsen",
@@ -278,15 +277,14 @@
       "stepStart": "Start",
       "otherLanguage": "Annet språk",
       "nativeHint": "Dette blir også språket på siden.",
-      "withGoogle": "Fortsett med Google",
-      "emailLink": "Bruk e-post i stedet",
       "startTitle": "Alt er klart. Start med en video",
       "startLead": "Fungerer også på Netflix og HDrezka. Klikk på et ord i undertekstene for å se oversettelsen.",
       "startLeadRezka": "Åpne en film på HDrezka, last inn fanen på nytt og trykk på spill av. Klikk på et ord i undertekstene for å se oversettelsen.",
       "watchFirst": "Se den første videoen",
       "importLabel": "Ord fra Google Oversetter",
       "importHint": "De utheves med en gang.",
-      "importButton": "Importer"
+      "importButton": "Importer",
+      "orEmail": "eller med e-post"
     }
   },
   "uninstall": {

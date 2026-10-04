@@ -1336,12 +1336,10 @@ ${slimFooter(t)}
     registerPasswordPlaceholder: t('auth.register.passwordPlaceholder'),
     registerSubmit: t('auth.register.submit'),
     registerBusy: t('auth.register.submitBusy'),
-    registerAltPrefix: t('auth.register.altPrefix'),
-    registerAltLink: t('auth.register.altLink'),
+    registerGoogle: t('auth.register.googleCta'),
     loginSubmit: t('auth.login.submit'),
     loginBusy: t('auth.login.submitBusy'),
-    loginAltPrefix: t('auth.login.altPrefix'),
-    loginAltLink: t('auth.login.altLink'),
+    loginGoogle: t('auth.login.googleCta'),
   },
 })};</script>
 <script src="/auth-config.js?v=${BUST}"></script>

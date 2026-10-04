@@ -266,7 +266,6 @@
       "select": "Wybierz…",
       "continue": "Dalej",
       "accountTitle": "Trzymaj swoje słowa w jednym miejscu",
-      "accountLead": "Z kontem zapisane słowa trafiają na jedną listę na lingogram.ai i w każdej przeglądarce. Jedno logowanie działa i na stronie, i w rozszerzeniu.",
       "skip": "Pomiń na razie",
       "accountHint": "Napisy i transkrypcja działają także bez konta.",
       "signedIn": "Zalogowano jako {email} na lingogram.ai i w rozszerzeniu",
@@ -280,15 +279,14 @@
       "stepStart": "Start",
       "otherLanguage": "Inny język",
       "nativeHint": "To także język strony.",
-      "withGoogle": "Kontynuuj z Google",
-      "emailLink": "Użyj e-maila",
       "startTitle": "Wszystko gotowe. Zacznij od filmu",
       "startLead": "Działa też w Netflix i HDrezka. Kliknij słowo w napisach, aby zobaczyć jego tłumaczenie.",
       "startLeadRezka": "Otwórz film w HDrezka, odśwież jego kartę i naciśnij odtwarzanie. Kliknij słowo w napisach, aby zobaczyć jego tłumaczenie.",
       "watchFirst": "Obejrzyj pierwszy film",
       "importLabel": "Słowa z Tłumacza Google",
       "importHint": "Podświetlają się od razu.",
-      "importButton": "Importuj"
+      "importButton": "Importuj",
+      "orEmail": "lub e-mailem"
     }
   },
   "uninstall": {

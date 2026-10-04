@@ -265,7 +265,6 @@
       "select": "Alege…",
       "continue": "Continuă",
       "accountTitle": "Ține-ți cuvintele într-un singur loc",
-      "accountLead": "Cu un cont, cuvintele salvate rămân într-o singură listă pe lingogram.ai și în fiecare browser. O singură conectare ține și pentru site, și pentru extensie.",
       "skip": "Omite deocamdată",
       "accountHint": "Subtitrările și transcrierea merg și fără cont.",
       "signedIn": "Conectat ca {email} pe lingogram.ai și în extensie",
@@ -279,15 +278,14 @@
       "stepStart": "Început",
       "otherLanguage": "Altă limbă",
       "nativeHint": "Aceasta este și limba paginii.",
-      "withGoogle": "Continuă cu Google",
-      "emailLink": "Folosește e-mailul",
       "startTitle": "Totul e gata. Începe cu un videoclip",
       "startLead": "Funcționează și pe Netflix, și pe HDrezka. Dă clic pe un cuvânt din subtitrări ca să vezi traducerea lui.",
       "startLeadRezka": "Deschide un film pe HDrezka, reîncarcă fila și apasă play. Dă clic pe un cuvânt din subtitrări ca să vezi traducerea lui.",
       "watchFirst": "Vezi primul videoclip",
       "importLabel": "Cuvinte din Google Traducere",
       "importHint": "Încep să fie evidențiate imediat.",
-      "importButton": "Importă"
+      "importButton": "Importă",
+      "orEmail": "sau cu email"
     }
   },
   "uninstall": {

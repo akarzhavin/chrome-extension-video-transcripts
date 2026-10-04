@@ -263,7 +263,6 @@
       "select": "请选择…",
       "continue": "继续",
       "accountTitle": "把你的单词放在一处",
-      "accountLead": "有了账号，你保存的单词会汇集在 lingogram.ai 和每个浏览器里的同一份列表中。登录一次，网站和扩展都通用。",
       "skip": "暂时跳过",
       "accountHint": "没有账号，字幕和文字稿也能使用。",
       "signedIn": "已用 {email} 登录 lingogram.ai 和扩展",
@@ -277,15 +276,14 @@
       "stepStart": "开始",
       "otherLanguage": "其他语言",
       "nativeHint": "这也是页面的显示语言。",
-      "withGoogle": "通过 Google 继续",
-      "emailLink": "改用邮箱",
       "startTitle": "全部就绪。先从一个视频开始吧",
       "startLead": "在 Netflix 和 HDrezka 上也能用。点击字幕中的单词，就能看到它的翻译。",
       "startLeadRezka": "在 HDrezka 打开一部影片，刷新其标签页并点击播放。点击字幕中的单词，就能看到它的翻译。",
       "watchFirst": "观看第一个视频",
       "importLabel": "来自 Google 翻译的单词",
       "importHint": "它们会立即开始高亮显示。",
-      "importButton": "导入"
+      "importButton": "导入",
+      "orEmail": "或使用邮箱"
     }
   },
   "uninstall": {

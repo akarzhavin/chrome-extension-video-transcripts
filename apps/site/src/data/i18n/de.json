@@ -264,7 +264,6 @@
       "select": "Auswählen…",
       "continue": "Weiter",
       "accountTitle": "Alle Wörter an einem Ort",
-      "accountLead": "Mit einem Konto landen die gespeicherten Wörter in einer Liste auf lingogram.ai und in jedem Browser. Eine Anmeldung gilt für Website und Erweiterung.",
       "skip": "Vorerst überspringen",
       "accountHint": "Untertitel und Transkript funktionieren auch ohne Konto.",
       "signedIn": "Angemeldet als {email} auf lingogram.ai und in der Erweiterung",
@@ -278,15 +277,14 @@
       "stepStart": "Start",
       "otherLanguage": "Andere Sprache",
       "nativeHint": "Das ist auch die Sprache der Seite.",
-      "withGoogle": "Weiter mit Google",
-      "emailLink": "Stattdessen E-Mail verwenden",
       "startTitle": "Alles bereit. Starten Sie mit einem Video",
       "startLead": "Funktioniert auch auf Netflix und HDrezka. Klicken Sie in den Untertiteln auf ein Wort, um die Übersetzung zu sehen.",
       "startLeadRezka": "Öffnen Sie einen Film auf HDrezka, laden Sie den Tab neu und starten Sie die Wiedergabe. Klicken Sie in den Untertiteln auf ein Wort, um die Übersetzung zu sehen.",
       "watchFirst": "Erstes Video ansehen",
       "importLabel": "Wörter aus Google Übersetzer",
       "importHint": "Sie werden sofort hervorgehoben.",
-      "importButton": "Importieren"
+      "importButton": "Importieren",
+      "orEmail": "oder mit E-Mail"
     }
   },
   "uninstall": {

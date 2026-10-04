@@ -263,7 +263,6 @@
       "select": "Pilih…",
       "continue": "Lanjutkan",
       "accountTitle": "Simpan kata-katamu di satu tempat",
-      "accountLead": "Dengan akun, kata yang kamu simpan tetap ada dalam satu daftar di lingogram.ai dan di setiap browser. Satu kali masuk berlaku untuk situs dan ekstensi.",
       "skip": "Lewati dulu",
       "accountHint": "Subtitle dan transkrip tetap berfungsi tanpa akun.",
       "signedIn": "Masuk sebagai {email} di lingogram.ai dan di ekstensi",
@@ -277,15 +276,14 @@
       "stepStart": "Mulai",
       "otherLanguage": "Bahasa lain",
       "nativeHint": "Ini juga menjadi bahasa halaman.",
-      "withGoogle": "Lanjutkan dengan Google",
-      "emailLink": "Pakai email saja",
       "startTitle": "Semua siap. Mulai dengan video",
       "startLead": "Juga berfungsi di Netflix dan HDrezka. Klik kata di subtitle untuk melihat terjemahannya.",
       "startLeadRezka": "Buka film di HDrezka, muat ulang tab-nya, lalu tekan putar. Klik kata di subtitle untuk melihat terjemahannya.",
       "watchFirst": "Tonton video pertama",
       "importLabel": "Kata dari Google Terjemahan",
       "importHint": "Kata-kata ini langsung disorot.",
-      "importButton": "Impor"
+      "importButton": "Impor",
+      "orEmail": "atau dengan email"
     }
   },
   "uninstall": {

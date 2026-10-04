@@ -263,7 +263,6 @@
       "select": "Seçin…",
       "continue": "Devam",
       "accountTitle": "Kelimelerinizi tek yerde tutun",
-      "accountLead": "Hesapla birlikte kaydettiğiniz kelimeler lingogram.ai'de ve her tarayıcıda tek bir listede durur. Tek bir giriş hem site hem uzantı için geçerlidir.",
       "skip": "Şimdilik atla",
       "accountHint": "Altyazılar ve transkript hesap olmadan da çalışır.",
       "signedIn": "{email} olarak lingogram.ai'de ve uzantıda giriş yapıldı",
@@ -277,15 +276,14 @@
       "stepStart": "Başlangıç",
       "otherLanguage": "Başka dil",
       "nativeHint": "Bu aynı zamanda sayfanın dilidir.",
-      "withGoogle": "Google ile devam et",
-      "emailLink": "Bunun yerine e-posta kullan",
       "startTitle": "Her şey hazır. Bir videoyla başlayın",
       "startLead": "Netflix ve HDrezka'da da çalışır. Altyazıdaki bir kelimeye tıklayın, çevirisini görün.",
       "startLeadRezka": "HDrezka'da bir film açın, sekmesini yenileyin ve oynat'a basın. Altyazıdaki bir kelimeye tıklayın, çevirisini görün.",
       "watchFirst": "İlk videoyu izle",
       "importLabel": "Google Çeviri'den kelimeler",
       "importHint": "Hemen vurgulanmaya başlarlar.",
-      "importButton": "İçe aktar"
+      "importButton": "İçe aktar",
+      "orEmail": "veya e-posta ile"
     }
   },
   "uninstall": {

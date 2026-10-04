@@ -265,7 +265,6 @@
       "select": "Izvēlies…",
       "continue": "Turpināt",
       "accountTitle": "Glabā savus vārdus vienuviet",
-      "accountLead": "Ar kontu saglabātie vārdi paliek vienā sarakstā vietnē lingogram.ai un katrā pārlūkprogrammā. Viena pieteikšanās der gan vietnei, gan paplašinājumam.",
       "skip": "Pagaidām izlaist",
       "accountHint": "Subtitri un transkripts darbojas arī bez konta.",
       "signedIn": "Pieteicies kā {email} vietnē lingogram.ai un paplašinājumā",
@@ -279,15 +278,14 @@
       "stepStart": "Sākums",
       "otherLanguage": "Cita valoda",
       "nativeHint": "Tā būs arī lapas valoda.",
-      "withGoogle": "Turpināt ar Google",
-      "emailLink": "Izmantot e-pastu",
       "startTitle": "Viss gatavs. Sāc ar video",
       "startLead": "Darbojas arī Netflix un HDrezka. Noklikšķini uz vārda subtitros, lai redzētu tā tulkojumu.",
       "startLeadRezka": "Atver filmu HDrezka, pārlādē tās cilni un nospied atskaņošanu. Noklikšķini uz vārda subtitros, lai redzētu tā tulkojumu.",
       "watchFirst": "Skatīties pirmo video",
       "importLabel": "Vārdi no Google tulkotāja",
       "importHint": "Tie tiek izcelti uzreiz.",
-      "importButton": "Importēt"
+      "importButton": "Importēt",
+      "orEmail": "vai ar e-pastu"
     }
   },
   "uninstall": {
