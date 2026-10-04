@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { siblingDevIds } from '../../packages/shared/vite-sibling-ids.mjs';
 import { resolve } from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { loadLingogramLimits, limitDefines, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
@@ -111,7 +112,11 @@ const EXT_SOURCE = 'youtube-extension';
 const limits = loadLingogramLimits();
 assertSourceAllowed(limits, EXT_SOURCE);
 
+// Dev builds' own extension ids, so the two editions find each other (sibling.ts).
+const SIBLING_DEV_IDS = siblingDevIds(isDev);
+
 const buildDefines = {
+  __SIBLING_DEV_IDS__: JSON.stringify(SIBLING_DEV_IDS),
   __EXT_ENV__: JSON.stringify(env),
   // Firebase project. Overridable so a build can target preprod, whose
   // /auth/extension-token mints a custom token signed by ITS project — and
@@ -219,6 +224,14 @@ export default defineConfig(({ command, mode }) => {
               transform: (content) => {
                 const manifest = JSON.parse(content);
                 manifest.version = process.env.npm_package_version || manifest.version;
+                // A dev build answers only its sibling's DEV build: add that id to
+                // the allow-list next to the store id the source manifest names.
+                if (SIBLING_DEV_IDS.rezka && manifest.externally_connectable) {
+                  const ids = manifest.externally_connectable.ids ?? [];
+                  if (!ids.includes(SIBLING_DEV_IDS.rezka)) {
+                    manifest.externally_connectable.ids = [...ids, SIBLING_DEV_IDS.rezka];
+                  }
+                }
                 // Strip prod-only placeholders in dev so Chrome can load unpacked.
                 if (isDev) {
                   delete manifest.key;

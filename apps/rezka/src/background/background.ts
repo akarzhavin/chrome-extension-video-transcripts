@@ -8,6 +8,7 @@ import {
     track,
 } from '../../../../packages/shared/src/analytics-bg';
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 
 // Tags every event with the backend it came from — a dev build can be switched
 // between its targets at runtime, and they must stay distinguishable.
@@ -58,6 +59,7 @@ export async function fetchWithRetry(url: string, retries: number = 3, delay: nu
 }
 
 installAuthBackground();
+installContextMenuSave();
 installOnboarding('rezka', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can

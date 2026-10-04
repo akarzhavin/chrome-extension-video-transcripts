@@ -4,7 +4,7 @@ Covers the **Lingogram: Dual Subtitles & Transcript for YouTube** extension, whi
 works on both YouTube and Netflix.
 
 **Effective date:** June 22, 2026
-**Last updated:** September 28, 2026
+**Last updated:** October 1, 2026
 
 This Privacy Policy explains what information the Extension collects, how it is used,
 where it is stored, and the choices you have. It applies to the Extension on both
@@ -28,7 +28,8 @@ where it is stored, and the choices you have. It applies to the Extension on bot
   there yourself, by typing a reply address into your feedback.
 * **Signing in is optional.** It exists only to sync your saved vocabulary across
   devices. If you choose to sign in, we collect your **email address** and store the
-  **words you explicitly save** (with the surrounding subtitle lines) in our cloud
+  **words you explicitly save** (with the surrounding subtitle lines, or the
+  paragraph around a word you save from the right-click menu on a web page) in our cloud
   database. A list of those words is also kept on your device, so the Extension
   can mark a word you already own without asking our servers (Section 3).
 * **Diagnostics are opt-in, one click.** If subtitles fail to load, an emergency
@@ -74,13 +75,18 @@ collect and process:
 
 * **Account data** — your **email address** and a Firebase-generated user ID. These
   identify your account and associate your saved words with you.
-* **Saved vocabulary** — only the items you explicitly choose to save while watching.
+* **Saved vocabulary** — only the items you explicitly choose to save, while watching
+  or from the right-click menu on any website.
   For each saved item we store:
   * the **word or phrase** you selected, both as you selected it and in a
     normalized form (trimmed, lower-cased) that lets your devices agree it is the
     same word;
   * a small amount of **subtitle context** — the saved subtitle line plus the line
     immediately before and after it, in the video's primary subtitle language only;
+  * for a word saved from the right-click menu on a web page, the **paragraph of
+    text around your selection** (up to 1,000 characters) in place of subtitle
+    context. The page's address and title are not stored (see "Saving from the
+    right-click menu" below);
   * a **source tag** indicating which edition saved it (YouTube or HDrezka; a word
     saved on Netflix carries the YouTube edition's tag, since it is the same
     Extension);
@@ -100,12 +106,31 @@ collect and process:
 * **Feedback** you send while signed in carries your user ID so we can reply — see
   Section 1g, which also covers feedback sent without an account.
 
-We do **not** collect: your browsing history, the videos you watch (beyond the
-subtitle text you explicitly save, the single video address included in a
+We do **not** collect: your browsing history, the videos you watch or the pages you
+read (beyond the subtitle text you explicitly save, the paragraph around a word you
+save from the right-click menu, the single video address included in a
 diagnostic report you explicitly trigger, and the site name attached to a feedback
 message you send; the analytics in Section 1c record only a coarse platform label
 such as `youtube` or `netflix`, never a video or a URL),
 IP-based location tracking, advertising identifiers, or cookies for tracking.
+
+**Saving from the right-click menu.** When you select text on any web page, the
+Extension adds a **"Save to Lingogram"** item to your browser's right-click menu.
+The page is read only when you press that item, and only that one page: the
+browser grants the Extension temporary access to the tab you clicked in
+(Chrome's `activeTab` permission), the Extension reads the selected text and the
+paragraph it sits in, saves them as described above, and shows a short
+confirmation on the page. It does not run on other pages, does not read pages in
+the background, and does not record the page's address or title. If you are not
+signed in, pressing the item opens the sign-in window and nothing is saved; only
+the anonymous usage count of Section 1c notes that a sign-in was started. The
+analytics in Section 1c count such a save under the platform label `web`. The
+saved word carries the source tag of the edition whose menu item you pressed.
+If both editions are installed, only one shows the item: the one you are signed in
+to, or the YouTube edition when you are signed in to both or to neither. To agree
+on this, each edition asks the other, inside your browser, whether it is installed
+and signed in; the answer is a yes or no and carries no other data about you or
+the page.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
 > with the same account, your saved vocabulary syncs together.
@@ -343,8 +368,9 @@ your device only:
   in its normalized form, whether it is currently saved or has been removed, and a
   marker of how far the list has been synced. It exists so the Extension can mark
   a word you already own the moment it appears in a subtitle, without a network
-  round-trip. It is filled from your cloud vocabulary (Section 4) and holds no
-  translations, subtitle context, or timestamps.
+  round-trip. It is filled from your cloud vocabulary (Section 4) and from the words
+  you save on this device, including from the right-click menu, and holds no
+  translations, subtitle context, page text, or timestamps.
 
 This local data never leaves your browser except where Section 4 describes (saved
 words synced to the cloud). Signing out removes the authentication tokens, email,

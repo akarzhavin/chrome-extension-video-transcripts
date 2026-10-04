@@ -9,6 +9,7 @@ import {
     track,
 } from '../../../../packages/shared/src/analytics-bg';
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
@@ -25,6 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
 setBackendResolver(() => currentSide());
 
 installAuthBackground();
+installContextMenuSave();
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can
