@@ -56,6 +56,12 @@
       "css": ["src/assets/styles.css", "src/assets/lookup.css"],
       "run_at": "document_idle",
       "all_frames": false
+    },
+    {
+      "matches": ["https://translate.google.com/*"],
+      "js": ["src/content/gt-button.js"],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "background": {

@@ -49,12 +49,13 @@ jest.mock('../src/auth/firestoreRest', () => ({
     listInboxWords: (...a: unknown[]) => listInboxWords(...a),
 }));
 jest.mock('../src/analytics-bg', () => ({ track: jest.fn(async () => {}) }));
-jest.mock('../src/auth/background', () => ({ stampLocalWrite: jest.fn() }));
+const devEnvReady = jest.fn(async () => {});
+jest.mock('../src/auth/background', () => ({ stampLocalWrite: jest.fn(), devEnvReady: () => devEnvReady() }));
 jest.mock('../src/auth/config', () => ({ config: {} }));
 
 import { readGoogleSaved, type SavedPair } from '../src/gt-import/read-saved';
 import { learningSide, planImport } from '../src/gt-import/plan';
-import { confirmImport, installGtImport, loadImportState, resetImport, resumeInterrupted, startImport } from '../src/gt-import/runner';
+import { confirmImport, importSenderAllowed, installGtImport, loadImportState, resetImport, resumeInterrupted, startImport } from '../src/gt-import/runner';
 import { loadMirror } from '../src/word-mirror';
 
 const pair = (srcLang: string, srcText: string, dstLang: string, dstText: string): SavedPair => ({
@@ -140,6 +141,21 @@ describe('planImport', () => {
     });
 });
 
+describe('who may drive the import', () => {
+    const tab = { id: 1 } as chrome.tabs.Tab;
+    test.each([
+        ['the popup', { id: 'ext' }, true],
+        ['its button on Google Translate', { id: 'ext', tab, frameId: 0, origin: 'https://translate.google.com' }, true],
+        ['the same, by url', { id: 'ext', tab, frameId: 0, url: 'https://translate.google.com/saved' }, true],
+        ['a frame inside Google Translate', { id: 'ext', tab, frameId: 3, origin: 'https://translate.google.com' }, false],
+        ['its content script on YouTube', { id: 'ext', tab, frameId: 0, origin: 'https://www.youtube.com' }, false],
+        ['a look-alike host', { id: 'ext', tab, frameId: 0, origin: 'https://translate.google.com.evil.test' }, false],
+        ['another extension', { id: 'other' }, false],
+    ])('%s', (_name, sender, ok) => {
+        expect(importSenderAllowed(sender as chrome.runtime.MessageSender)).toBe(ok);
+    });
+});
+
 describe('runner', () => {
     beforeEach(async () => {
         for (const k of Object.keys(local)) delete local[k];
@@ -183,9 +199,9 @@ describe('runner', () => {
         expect(s.phase).toBe('preview');
         expect(s.already).toBe(1);
         expect(s.removed).toBe(1);
-        // Dev build (jest.setup): at most two words per run.
-        expect(s.toAdd).toEqual(['one', 'two']);
-        expect(s.total).toBe(2);
+        // Every new word, in a dev build too (jest.setup): no cap per run.
+        expect(s.toAdd).toEqual(['one', 'two', 'three']);
+        expect(s.total).toBe(3);
         expect(removedTabs).toEqual([7]);
         expect(addInboxWord).not.toHaveBeenCalled();
     });
@@ -268,6 +284,28 @@ describe('runner', () => {
         return { p, release };
     };
 
+    test('the dev backend is restored before the list or a word goes to the server', async () => {
+        // A worker woken by the page button, not by an auth message, must not
+        // talk to the build's default target (the local emulators).
+        const order: string[] = [];
+        devEnvReady.mockImplementation(async () => {
+            order.push('env');
+        });
+        listInboxWords.mockImplementation(async () => {
+            order.push('list');
+            return [];
+        });
+        addInboxWord.mockImplementation(async () => {
+            order.push('write');
+            return { wordId: 'w', documentPath: 'p', state: 'active' };
+        });
+        pageResult = { via: 'data', pairs: [pair('en', 'alpha', 'ru', 'a')] };
+        await startImport();
+        await confirmImport();
+        expect(order).toEqual(['env', 'list', 'env', 'write']);
+        devEnvReady.mockImplementation(async () => {});
+    });
+
     test('a page that never finishes loading: the import gives up and the hidden tab is closed', async () => {
         jest.useFakeTimers();
         const add = chrome.tabs.onUpdated.addListener as jest.Mock;
@@ -322,11 +360,44 @@ describe('runner', () => {
         expect((await loadImportState())?.phase).toBe('done');
     });
 
+    test('the button on Google Translate gets the state by asking; YouTube gets nothing', async () => {
+        // A preview: nothing for the installer to resume, so no write is left running.
+        session['gtImport.v1'] = writingState({ phase: 'preview', done: 0, added: 0 });
+        (chrome.runtime.onMessage.addListener as jest.Mock).mockClear();
+        installGtImport();
+        const listener = (chrome.runtime.onMessage.addListener as jest.Mock).mock.calls[0][0];
+        const fromGt = jest.fn();
+        expect(listener({ action: 'GT_IMPORT_STATE' }, { id: 'ext', tab: { id: 1 }, frameId: 0, origin: 'https://translate.google.com' }, fromGt)).toBe(true);
+        await flush();
+        expect(fromGt).toHaveBeenCalledWith({ ok: true, state: expect.objectContaining({ phase: 'preview', total: 2 }) });
+        expect(listener({ action: 'GT_IMPORT_STATE' }, { id: 'ext', tab: { id: 1 }, frameId: 0, origin: 'https://www.youtube.com' }, jest.fn())).toBe(false);
+    });
+
     test('a worker that starts with nothing half written writes nothing', async () => {
         session['gtImport.v1'] = writingState({ phase: 'preview', done: 0, added: 0 });
         await resumeInterrupted();
         expect(addInboxWord).not.toHaveBeenCalled();
         expect((await loadImportState())?.phase).toBe('preview');
+    });
+
+    test('a worker whose session storage fails at start keeps running (no unhandled rejection)', async () => {
+        const get = chrome.storage.session.get as jest.Mock;
+        const before = get.getMockImplementation();
+        get.mockImplementationOnce(() => Promise.reject(new Error('storage gone')));
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const unhandled = jest.fn();
+        process.on('unhandledRejection', unhandled);
+        try {
+            installGtImport();
+            await flush();
+            await new Promise((r) => setTimeout(r, 0));
+            expect(unhandled).not.toHaveBeenCalled();
+            expect(warn).toHaveBeenCalledWith('[Lingogram] GT import resume failed:', expect.any(Error));
+        } finally {
+            process.off('unhandledRejection', unhandled);
+            warn.mockRestore();
+            if (before) get.mockImplementation(before);
+        }
     });
 
     test('a stopped worker resumes from `done`, not from the start', async () => {

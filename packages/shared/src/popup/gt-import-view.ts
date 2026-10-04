@@ -72,7 +72,8 @@ function notWritten(s: ImportState): string[] {
     return out;
 }
 
-function paint(box: HTMLElement, s: ImportState | null): void {
+/** Paints one import state into `box`; shared by the popup and the button on Google Translate. */
+export function paintImport(box: HTMLElement, s: ImportState | null): void {
     box.replaceChildren();
     const title = document.createElement('div');
     title.className = 'lang-settings-title';
@@ -145,7 +146,7 @@ function mount(root: HTMLElement): void {
 
     load().then(
         (s) => {
-            paint(box, s);
+            paintImport(box, s);
             // A 'writing' or 'reading' state left by a worker that was stopped
             // mid-step resumes here: the write from `done`, the read from the
             // start. With the worker still at it, either call is a no-op.
@@ -161,7 +162,7 @@ function mount(root: HTMLElement): void {
             chrome.storage.onChanged.removeListener(onChanged);
             return;
         }
-        paint(box, (changes[KEY].newValue as ImportState | undefined) ?? null);
+        paintImport(box, (changes[KEY].newValue as ImportState | undefined) ?? null);
     };
     chrome.storage.onChanged.addListener(onChanged);
 }

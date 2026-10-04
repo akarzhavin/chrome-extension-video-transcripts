@@ -183,6 +183,7 @@ export default defineConfig(({ command, mode }) => {
     const isInterceptor = mode === 'interceptor';
     const isPopup = mode === 'popup';
     const isHighlight = mode === 'highlight';
+    const isGtButton = mode === 'gt-button';
 
     return {
       ...commonConfig,
@@ -194,6 +195,8 @@ export default defineConfig(({ command, mode }) => {
         lib: {
           entry: isBackground
             ? resolve(__dirname, 'src/background/background.ts')
+            : isGtButton
+              ? resolve(__dirname, 'src/content/gt-button.ts')
             : isContent
               ? resolve(__dirname, 'src/content/index.ts')
               : isPopup
@@ -202,9 +205,10 @@ export default defineConfig(({ command, mode }) => {
                 ? resolve(__dirname, 'src/content/page-highlight.ts')
                 : resolve(__dirname, 'src/content/network-interceptor.ts'),
           formats: [isBackground ? 'es' : 'iife'],
-          name: isContent ? 'VttContent' : isHighlight ? 'LgPageHighlight' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : undefined,
+          name: isGtButton ? 'LgGtButton' : isContent ? 'VttContent' : isHighlight ? 'LgPageHighlight' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : undefined,
           fileName: () => {
             if (isBackground) return 'src/background/background.js';
+            if (isGtButton) return 'src/content/gt-button.js';
             if (isContent) return 'src/content/index.js';
             if (isInterceptor) return 'src/content/network-interceptor.js';
             if (isPopup) return 'src/popup/popup.js';

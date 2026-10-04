@@ -778,5 +778,13 @@
   "gtImportErrGeneric": {
     "message": "Something went wrong. Saved {done} of {total}. Try again.",
     "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Import to Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Hide",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -12,7 +12,7 @@
 
 import { track } from '../analytics-bg';
 import { config } from '../auth/config';
-import { stampLocalWrite } from '../auth/background';
+import { devEnvReady, stampLocalWrite } from '../auth/background';
 import { addInboxWord, listInboxWords } from '../auth/firestoreRest';
 import { bumpInboxCount, getAuthState, GT_IMPORT_KEYS } from '../auth/storage';
 import { loadLanguagePrefs } from '../languages';
@@ -22,11 +22,6 @@ import { planImport, type KnownState } from './plan';
 import { readGoogleSaved, type ReadResult } from './read-saved';
 
 export const SAVED_URL = 'https://translate.google.com/saved';
-
-// While the feature is built, a dev build writes at most two words per run, so
-// testing against a real account does not pour hundreds of words into it.
-// Module-level const: the minifier folds it to Infinity in prod.
-const WRITE_CAP = __EXT_ENV__ === 'dev' ? 2 : Infinity;
 
 // The rules' minimum gap between two saves. The import starts with no pause
 // (the planned rules value is 100 ms, shorter than one save takes) and falls
@@ -52,7 +47,7 @@ export interface ImportState {
     already: number;
     removed: number;
     skipped: number;
-    /** Words in the list to write, after the dev cap. */
+    /** Words in the list to write. */
     total: number;
     done: number;
     added: number;
@@ -125,6 +120,7 @@ export async function startImport(): Promise<ImportState> {
 }
 
 async function prepare(): Promise<ImportState> {
+    await devEnvReady();
     if (!(await getAuthState())) {
         const s = { ...blank('error'), error: 'not_signed_in' as const };
         await save(s);
@@ -164,14 +160,13 @@ async function prepare(): Promise<ImportState> {
 
     const learning = (await loadLanguagePrefs())?.learning ?? 'en';
     const plan = planImport(read.pairs, learning, known, __LIMIT_MAX_TERM_BYTES__);
-    const toAdd = plan.toAdd.slice(0, WRITE_CAP);
     const s: ImportState = {
         ...blank('preview'),
-        toAdd,
+        toAdd: plan.toAdd,
         already: plan.already,
         removed: plan.removed,
         skipped: plan.skipped,
-        total: toAdd.length,
+        total: plan.toAdd.length,
     };
     await save(s);
     void track('gt_import_preview', {
@@ -214,6 +209,7 @@ export async function confirmImport(): Promise<ImportState | null> {
 }
 
 async function write(start: ImportState): Promise<ImportState> {
+    await devEnvReady();
     const s: ImportState = { ...start, phase: 'writing' };
     await save(s);
     let gap = 0;
@@ -277,15 +273,28 @@ export async function resumeInterrupted(): Promise<void> {
     if (state?.phase === 'writing') await confirmImport();
 }
 
-export const GT_IMPORT_ACTIONS = ['GT_IMPORT_START', 'GT_IMPORT_CONFIRM', 'GT_IMPORT_RESET'] as const;
+export const GT_IMPORT_ACTIONS = ['GT_IMPORT_START', 'GT_IMPORT_CONFIRM', 'GT_IMPORT_RESET', 'GT_IMPORT_STATE'] as const;
+
+const GT_ORIGIN = 'https://translate.google.com';
+
+/** The popup (no tab), or this extension's own script in a Google Translate tab. */
+export function importSenderAllowed(sender: chrome.runtime.MessageSender): boolean {
+    if (sender.id !== chrome.runtime.id) return false;
+    if (!sender.tab) return true;
+    const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : '');
+    return origin === GT_ORIGIN && sender.frameId === 0;
+}
 
 /** Wire the popup's three messages. Called from each edition's worker. */
 export function installGtImport(): void {
-    void resumeInterrupted();
+    // Runs as the worker starts: a failure here must not become an unhandled
+    // rejection in the worker; the learner can start the import again.
+    resumeInterrupted().catch((err) => console.warn('[Lingogram] GT import resume failed:', err));
     chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-        // Only the extension's own pages: a content script runs in a page the
-        // learner did not choose for this.
-        if (sender.id !== chrome.runtime.id || sender.tab) return false;
+        // The extension's own pages, and its button on translate.google.com.
+        // Not a content script anywhere else: those run in pages the learner
+        // did not open for this.
+        if (!importSenderAllowed(sender)) return false;
         const action = (msg as { action?: unknown })?.action;
         let job: Promise<unknown>;
         if (action === 'GT_IMPORT_START') job = startImport();
@@ -296,6 +305,9 @@ export function installGtImport(): void {
             void confirmImport();
             job = loadImportState();
         } else if (action === 'GT_IMPORT_RESET') job = resetImport();
+        // The button on Google Translate cannot read session storage (content
+        // scripts are kept out of it); it asks for the state instead.
+        else if (action === 'GT_IMPORT_STATE') job = loadImportState();
         else return false;
         job.then(
             (r) => sendResponse({ ok: true, state: r ?? null }),
