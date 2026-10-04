@@ -1746,182 +1746,30 @@ footer.site {
 }
 
 /* ------------------------------------------------------------------- welcome
-   The post-install page (see welcomePage in build.mjs). Scoped under .wl, and
-   reuses the existing tokens plus the .mark-* badges from the editions section
-   rather than introducing a parallel design system. */
+   The closing page of /welcome/ (see welcomePage in build.mjs), shown after
+   the setup steps and, without the script, instead of them. Scoped under .wl. */
 
 .wl { max-width: 660px; margin: 34px auto 90px; padding: 0 24px; }
-
-.wl-hello { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-.wl-hello-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
 
 .wl-h1 {
   font-size: clamp(29px, 4.6vw, 40px);
   line-height: 1.14;
   letter-spacing: -0.03em;
-  margin: 0 0 14px;
+  margin: 0 0 22px;
   text-wrap: balance;
 }
-
-.wl-lede {
-  font-size: 18.5px;
-  line-height: 1.55;
-  color: var(--muted);
-  margin: 0 0 30px;
-  max-width: 40ch;
-}
-.wl-lede b { color: var(--ink); font-weight: 600; }
-
-/* --- the tour --- */
-
-.wl-tut {
-  margin: 0 0 14px;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  background: var(--player);
-  box-shadow: var(--shadow);
-}
-
-/* Click-to-play facade. The <img> is the whole page weight until the visitor
-   presses play; main.js swaps in the iframe on click. */
-.wl-facade {
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: 0;
-  padding: 0;
-  background: var(--player);
-  cursor: pointer;
-  overflow: hidden;
-}
-.wl-facade img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-.wl-facade::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(10,8,16,.05) 0%, rgba(10,8,16,.45) 100%);
-}
-
-.wl-play {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: 66px; height: 66px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.94);
-  color: #17131f;
-  display: grid; place-items: center;
-  z-index: 2;
-  box-shadow: 0 8px 28px -8px rgba(0,0,0,.55);
-  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), background 200ms ease;
-}
-.wl-play svg { width: 24px; height: 24px; margin-left: 3px; }
-
-.wl-facade-meta {
-  position: absolute;
-  /* Logical, not `left`: the card mirrors in Arabic and Hebrew, and a physical
-     offset left this caption alone in the bottom-left while the rest of the
-     card flipped. */
-  inset-inline-start: 16px; bottom: 14px;
-  z-index: 2;
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-shadow: 0 1px 6px rgba(0,0,0,.5);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .wl-facade:hover img { transform: scale(1.03); }
-  .wl-facade:hover .wl-play { transform: translate(-50%,-50%) scale(1.06); background: #fff; }
-}
-.wl-facade:active .wl-play { transform: translate(-50%,-50%) scale(0.97); }
-.wl-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
-
-.wl-frame { width: 100%; aspect-ratio: 16/9; border: 0; display: block; }
-
-.wl-tut-foot {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px;
-  padding: 11px 14px;
-  background: var(--player-panel);
-  border-top: 1px solid rgba(255,255,255,.07);
-  font-size: 12.5px;
-  /* The band tokens, not the page ones: this strip sits on the dark player
-     chrome and stays dark in both themes. */
-  color: var(--band-muted);
-}
-.wl-tut-foot a {
-  color: var(--band-ink);
-  font-weight: 600;
-  text-decoration: none;
-  background: rgba(255,255,255,.1);
-  border-radius: 7px;
-  padding: 7px 12px;
-  white-space: nowrap;
-}
-.wl-tut-foot a:hover { background: rgba(255,255,255,.18); }
-
-.wl-note { font-size: 12.5px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
-
-/* --- open a video --- */
-
-.wl-cta-h { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
-.wl-cta-s { font-size: 14.5px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
-
-.wl-opens { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-
-.wl-open {
-  display: flex; align-items: center; gap: 13px;
-  padding: 15px 17px;
-  border-radius: 13px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink);
-  text-decoration: none;
-  /* The rezka card is a <button> (see linkFor in build.mjs), so the row's
-     look cannot lean on anchor defaults: the font and start-alignment undo
-     the UA button styles, and the cursor is set for all three — an href-ed
-     anchor gets it from the UA, a button never does. */
-  font: inherit; text-align: start; cursor: pointer;
-  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease;
-}
-.wl-open b { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
-.wl-open-body { flex: 1; min-width: 0; }
-.wl-open-body span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-.wl-open-go { width: 16px; height: 16px; flex: none; opacity: .55; }
-
-.wl-open-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-.wl-open-primary .wl-open-body span { color: rgba(255,255,255,.75); }
-.wl-open-primary .wl-open-go { opacity: .85; }
-
-@media (hover: hover) and (pointer: fine) {
-  .wl-open:hover { border-color: var(--accent); }
-}
-.wl-open:active { transform: scale(0.985); }
-
-/* --- the asides --- */
+@media (max-width: 560px) { .wl-h1 { font-size: 27px; } }
 
 .wl-asides {
   border-top: 1px solid var(--line);
   padding-top: 24px;
   margin-bottom: 26px;
-  display: flex; flex-direction: column; gap: 18px;
 }
 .wl-asides p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.wl-asides b { color: var(--ink); font-weight: 600; }
 
-/* Coverage notice on /welcome/, one edition only, above the video: it is a
-   caveat about whether the thing will work at all, so it has to land before
-   someone spends a minute watching. Amber-tinted rather than red — nothing is
+/* Coverage notice, HDrezka install only: a caveat about whether the thing will
+   work on a given address at all. Amber-tinted rather than red — nothing is
    broken, and most visitors are already covered. */
 .wl-notice {
   display: flex; gap: 12px; align-items: flex-start;
@@ -1934,8 +1782,6 @@ footer.site {
 .wl-notice-body { flex: 1; min-width: 0; }
 .wl-notice-body > p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
 .wl-notice-body > p b { font-weight: 650; }
-
-.wl-asides b { color: var(--ink); font-weight: 600; }
 
 .wl-keys { border-top: 1px solid var(--line); padding-top: 24px; }
 .wl-keys > p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; }
@@ -1951,87 +1797,177 @@ footer.site {
 }
 .wl-signoff a { color: var(--accent); font-weight: 600; }
 
-@media (prefers-reduced-motion: reduce) {
-  .wl-facade img, .wl-play, .wl-open { transition: none; }
+/* ---------------------------------------------------------------- welcome steps
+   The setup steps on /welcome/ (src/welcome/steps.ts), shown in place of the
+   ordinary welcome content when the extension that opened the page answers.
+   Layout G from the design lab: a compact step menu on the left with a
+   progress bar, the current step on the right. Prefixed ws- to stay clear of
+   the ordinary page's wl- classes. */
+
+.ws { display: flex; flex-wrap: wrap; max-width: 1080px; margin: 28px auto 80px; padding: 0 24px; gap: 40px; }
+.ws[hidden] { display: none; }
+
+.ws-menu {
+  flex: 1 1 220px; max-width: 250px; box-sizing: border-box; align-self: flex-start;
+  background: var(--chrome); border-radius: 18px; padding: 22px 14px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.ws-progress { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+.ws-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.ws-bar-fill { height: 100%; background: var(--accent); transition: width .2s; }
+.ws-progress-text { font-size: 12px; color: var(--muted); }
+.ws-steps { display: flex; flex-direction: column; gap: 2px; }
+.ws-step {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 500; text-align: start; cursor: pointer;
+}
+.ws-step.is-current { background: var(--panel); font-weight: 600; }
+.ws-dot {
+  width: 22px; height: 22px; flex: none; box-sizing: border-box; border-radius: 11px;
+  border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.ws-step.is-current .ws-dot { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.ws-dot.is-done, .ws-step.is-current .ws-dot.is-done { border-color: var(--teal); background: var(--teal); color: #fff; }
+.ws-step-label { flex: 1; min-width: 0; }
+.ws-step-status { font-size: 11px; font-weight: 500; color: var(--muted); }
+.ws-step-status.is-skipped { color: var(--star); }
+
+.ws-content { flex: 999 1 480px; min-width: 0; max-width: 560px; display: flex; flex-direction: column; gap: 18px; }
+.ws-title { font-size: clamp(27px, 4vw, 34px); line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+.ws-lead { font-size: 16.5px; line-height: 1.55; color: var(--muted); margin: 0 0 4px; }
+.ws-field { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 500; }
+.ws-select {
+  height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.ws-hint { font-size: 13px; color: var(--muted); }
+.ws-primary, .ws-secondary {
+  min-height: 48px; border-radius: 12px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.ws-primary { border: 0; background: var(--accent); color: var(--accent-ink); }
+.ws-secondary { border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-weight: 500; }
+.ws-primary:disabled, .ws-secondary:disabled { opacity: .55; cursor: not-allowed; }
+.ws-ok { font-size: 15px; font-weight: 600; color: var(--teal-deep); }
+.ws-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+label.ws-row { cursor: pointer; }
+.ws-row + .ws-row { border-top: 1px solid var(--line); }
+.ws-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ws-row-title { font-size: 16px; font-weight: 600; }
+.ws-row-sub { font-size: 13px; line-height: 1.45; color: var(--muted); }
+.ws-add { min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; text-decoration: none; }
+.ws-form { display: flex; flex-direction: column; gap: 14px; }
+.ws-input {
+  height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.ws-error { font-size: 14px; color: #c0392b; }
+.ws-error[hidden] { display: none; }
+.ws-or { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+.ws-or::before, .ws-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.ws-linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+.ws-link { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.ws-switch:disabled { opacity: .5; cursor: not-allowed; }
+.ws-switch {
+  appearance: none; -webkit-appearance: none; width: 44px; height: 26px; flex: none; margin: 0;
+  border-radius: 13px; background: var(--line); position: relative; cursor: pointer; transition: background .15s;
+}
+.ws-switch::after {
+  content: ''; position: absolute; top: 3px; inset-inline-start: 3px; width: 20px; height: 20px;
+  border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: inset-inline-start .15s;
+}
+.ws-switch:checked { background: var(--accent); }
+.ws-switch:checked::after { inset-inline-start: 21px; }
+
+@media (max-width: 720px) {
+  .ws { gap: 20px; }
+  .ws-menu { max-width: none; flex-basis: 100%; }
 }
 
-@media (max-width: 560px) {
-  .wl-h1 { font-size: 27px; }
-  .wl-play { width: 54px; height: 54px; }
-  .wl-play svg { width: 20px; height: 20px; }
+/* Language step: popular languages as tiles, the rest in one list. */
+.ws-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ws-tile {
+  display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 48px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink);
+  font: inherit; font-size: 15px; cursor: pointer; text-align: start;
 }
+.ws-tile:hover { border-color: var(--accent); }
+.ws-tile[aria-pressed="true"] { border: 2px solid var(--accent); padding: 7px 11px; background: var(--accent-soft, var(--panel)); font-weight: 600; }
+.ws-flag { flex: none; display: inline-flex; line-height: 0; }
+.ws-flag svg { display: block; width: 28px; height: auto; border-radius: 3px; }
+.ws-tile-name { min-width: 0; overflow-wrap: anywhere; }
+.ws-other { height: auto; min-height: 48px; font-size: 15px; border-style: dashed; color: var(--accent); }
+.ws-other.is-chosen { border: 2px solid var(--accent); border-style: solid; color: var(--ink); font-weight: 600; }
+@media (max-width: 520px) { .ws-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* Privacy disclosure on /welcome/. Closed by default: it belongs next to the
-   sign-in ask, but it must not stand between someone and their first saved
-   word. The shield and the chevron carry the "this is about your data" and
-   "there is more here" signals without a paragraph of preamble. */
-.wl-priv {
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: var(--panel);
-  margin-bottom: 26px;
-  overflow: hidden;
+/* The drop-down arrow is drawn here: the browser's own sits hard against the
+   edge and differs by platform. A neutral grey reads on both themes. */
+.ws-select {
+  appearance: none; -webkit-appearance: none;
+  padding-inline-end: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238a86a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 12px 8px;
 }
+[dir="rtl"] .ws-select { background-position: left 18px center; }
+.ws-other:not(.is-chosen) { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235a3fb8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 
-.wl-priv summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  cursor: pointer;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--ink);
-  list-style: none;
-  user-select: none;
+/* Account step: Create account / Log in tabs over one form, Google first. */
+.ws-modes { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: color-mix(in srgb, var(--line) 70%, var(--ground)); }
+.ws-mode {
+  flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--muted); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
 }
-/* Safari still paints its own triangle without this. */
-.wl-priv summary::-webkit-details-marker { display: none; }
+.ws-mode[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(20, 16, 50, .12); }
+.ws-mode:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ws-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; }
+.ws-gmark { display: inline-flex; line-height: 0; }
+.ws-google, .ws-go { width: 100%; }
+.ws-skip-line { margin: 0; }
 
-.wl-priv summary > svg:first-child {
-  width: 17px; height: 17px;
-  flex: none;
-  color: var(--accent);
-}
 
-.wl-priv summary > span { flex: 1; }
+/* Start step: a still of the first video, a word clicked in its subtitles. */
+.ws-frame { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); }
+.ws-frame-pic {
+  position: relative; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden;
+  background: linear-gradient(135deg, #2e2466, #0e8f80);
+}
+.ws-frame-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .5; }
+.ws-frame-pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)); }
+.ws-frame-subs {
+  position: absolute; z-index: 1; inset-inline: 12px; bottom: 74px; text-align: center; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+}
+.ws-frame-l1 { margin: 0; font-size: clamp(16px, 2.6vw, 20px); font-weight: 600; line-height: 1.3; }
+.ws-frame-l1 mark { background: #ffd36b; color: #1c1a3a; border-radius: 4px; padding: 0 4px; text-shadow: none; }
+.ws-frame-l2 { margin: 4px 0 0; font-size: 14px; color: #e4e1f0; }
+.ws-frame-card {
+  position: absolute; z-index: 1; left: 50%; bottom: 16px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; max-width: calc(100% - 24px); white-space: nowrap;
+  padding: 8px 14px; border-radius: 12px; background: #fff; color: #1c1a3a; font-size: 14px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+.ws-frame-tr { color: #5b5873; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ws-frame-save { color: #5a3fb8; font-weight: 600; }
+.ws-frame-cap { padding: 12px 14px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.ws-go { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 16px; }
+.ws-go-sub { font-size: 12.5px; font-weight: 500; opacity: .85; }
+.ws-after { margin: 0; }
+.ws-chips { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.ws-install {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px;
+  border-radius: 14px; background: var(--accent-soft);
+}
+.ws-install .ws-row-text { flex: 1 1 220px; }
+.ws-later { align-self: center; }
 
-.wl-priv-chev {
-  width: 16px; height: 16px;
-  flex: none;
-  color: var(--muted);
-  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+/* The setup page has no product links to leave by: only the legal ones. And
+   the full-width consent bar must not sit on the last button of a step. */
+footer.site.slim {
+  display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: center;
+  padding-block: 24px 96px; font-size: 13px;
 }
-.wl-priv[open] .wl-priv-chev { transform: rotate(180deg); }
-
-@media (hover: hover) and (pointer: fine) {
-  .wl-priv summary:hover { background: var(--ground); }
-}
-.wl-priv summary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.wl-priv-body {
-  padding: 2px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.wl-priv-body p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-.wl-priv-body b { color: var(--ink); font-weight: 600; }
-
-.wl-priv-more a {
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 13.5px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wl-priv-chev { transition: none; }
-}
+footer.site.slim a, footer.site.slim button { color: var(--muted); }
+footer.site.slim button { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; text-align: start; }

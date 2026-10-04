@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "מילים ששמרת מסומנות בכל עמוד שאתה קורא. ההתאמה מתבצעת במכשיר שלך, ושום דבר לא נשלח.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "סיום ההגדרה",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "יחול בפעם הבאה שתפתח את הדף או תרענן אותו.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "אתרי וידאו",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

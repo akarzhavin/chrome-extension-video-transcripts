@@ -9,6 +9,7 @@ import {
     track,
 } from '../../../../packages/shared/src/analytics-bg';
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
+import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -26,6 +27,8 @@ chrome.runtime.onInstalled.addListener(() => {
 setBackendResolver(() => currentSide());
 
 installAuthBackground();
+// The setup steps on lingogram.ai/welcome/ read and write through this.
+installWelcomeBridge({ edition: 'youtube' });
 installContextMenuSave();
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same

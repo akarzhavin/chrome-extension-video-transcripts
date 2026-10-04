@@ -1,3 +1,3 @@
 import { initPopup } from '@video-transcripts/shared';
 
-initPopup();
+initPopup({ edition: 'youtube' });

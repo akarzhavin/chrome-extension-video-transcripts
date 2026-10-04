@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Kata yang Anda simpan ditandai di setiap halaman yang Anda baca. Pencocokan berlangsung di perangkat Anda; tidak ada yang dikirim.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Selesaikan penyiapan",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Berlaku saat Anda membuka atau memuat ulang halaman berikutnya.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Situs video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

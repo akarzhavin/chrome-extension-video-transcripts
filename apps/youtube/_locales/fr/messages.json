@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Les mots que vous avez enregistrés sont surlignés sur toutes les pages que vous lisez. La détection se fait sur votre appareil ; rien n'est envoyé.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Terminer la configuration",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "S'applique à la prochaine ouverture ou au prochain rechargement de la page.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Sites vidéo",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

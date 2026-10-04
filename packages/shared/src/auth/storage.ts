@@ -58,6 +58,13 @@ export const NOTIFICATION_KEYS = {
 // item and the page marks) by the rule in sibling.ts, so only one of two
 // installed editions paints saved words on web pages. A boolean about the
 // other extension, nothing about the user.
+// The welcome page's progress (../welcome/welcome.ts): which step is open,
+// whether the account step was skipped, whether setup was finished. No account
+// data: the signed-in state is read from the auth keys above.
+export const WELCOME_KEYS = {
+    state: 'welcome.v1',
+} as const;
+
 export const SIBLING_KEYS = {
     otherOwns: 'sibling.otherOwns',
 } as const;

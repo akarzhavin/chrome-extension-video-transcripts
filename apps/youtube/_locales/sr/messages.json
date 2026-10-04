@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Речи које сте сачували означавају се на свакој страници коју читате. Провера се обавља на вашем уређају, ништа се не шаље.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Заврши подешавање",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Важи од следећег отварања или освежавања странице.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Видео сајтови",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

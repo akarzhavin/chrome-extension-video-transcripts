@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Išsaugoti žodžiai pažymimi kiekviename jūsų skaitomame puslapyje. Atitikimas tikrinamas jūsų įrenginyje, nieko nesiunčiama.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Baigti sąranką",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Taikoma kitą kartą atidarius ar iš naujo įkėlus puslapį.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Vaizdo svetainės",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

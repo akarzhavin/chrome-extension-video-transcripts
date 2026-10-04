@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "நீங்கள் சேமித்த சொற்கள் நீங்கள் படிக்கும் எந்தப் பக்கத்திலும் குறிக்கப்படும். பொருத்தம் பார்ப்பது உங்கள் சாதனத்திலேயே நடக்கும்; எதுவும் அனுப்பப்படாது.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "அமைவை முடி",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "அடுத்த முறை பக்கத்தைத் திறக்கும்போது அல்லது மீண்டும் ஏற்றும்போது செயல்படும்.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "வீடியோ தளங்கள்",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "आप जो पेज पढ़ते हैं, उन सब पर आपके सहेजे गए शब्द चिह्नित होते हैं। मिलान आपके डिवाइस पर ही होता है; कुछ भी भेजा नहीं जाता।",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "सेटअप पूरा करें",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "पेज को अगली बार खोलने या रीलोड करने पर लागू होगा।",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "वीडियो साइट",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

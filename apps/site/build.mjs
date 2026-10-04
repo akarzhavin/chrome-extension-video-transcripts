@@ -20,7 +20,9 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(HERE, 'src');
-const OUT = path.join(HERE, 'build');
+// SITE_BUILD_DIR lets a test build into a directory of its own instead of
+// replacing the one a developer may be serving.
+const OUT = process.env.SITE_BUILD_DIR ? path.resolve(process.env.SITE_BUILD_DIR) : path.join(HERE, 'build');
 
 const SITE = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'site.json'), 'utf8'));
 const EDITIONS = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'editions.json'), 'utf8'));
@@ -369,7 +371,13 @@ const navLinks = (t, root) => `
 // button can be dropped: offering "Log in" on /login/ is a link back to the
 // page you are already reading, and following it wipes anything typed into
 // the form. Dropping one also frees header room on narrow screens.
-const header = (t, root, here) => `
+const header = (t, root, here) => here === 'welcome' ? `
+<header class="site wrap">
+  <a class="logo" href="${root}/">
+    <span class="logo-mark">${CHAMELEON(24)}</span>
+    <span class="logo-name">Lingogram</span>
+  </a>
+</header>` : `
 <header class="site wrap">
   <a class="logo" href="${root}/">
     <span class="logo-mark">${CHAMELEON(24)}</span>
@@ -439,6 +447,15 @@ const footer = (t, root) => `
     <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
     ${GA4 ? `<button type="button" data-consent-reopen>${esc(t('consent.settings'))}</button>` : ''}
   </div>
+</footer>${consentBanner(t)}`;
+
+// The setup page is a tunnel: no product or help links to wander off through,
+// only what the law wants within reach — the privacy policy and the cookie
+// choice — plus the banner itself.
+const slimFooter = (t) => `
+<footer class="site wrap slim">
+  <a href="/privacy/">${esc(t('footer.privacyPolicy'))}</a>
+  ${GA4 ? `<button type="button" data-consent-reopen>${esc(t('consent.settings'))}</button>` : ''}
 </footer>${consentBanner(t)}`;
 
 // Cookie banner. Server-rendered but `hidden`: main.js reveals it only when
@@ -1075,8 +1092,9 @@ const privacySitePage = () => {
       read them in, where you arrived from, an approximate location derived from your IP
       address (Google discards the address itself and never stores it), your browser and
       device type, and a small number of actions on the site — clicking through to the
-      Chrome Web Store, trying the demo player on the home page, and signing in or
-      signing up. Sign-in events record only that one happened and by which method; your
+      Chrome Web Store, trying the demo player on the home page, signing in or
+      signing up, and which step of the setup page after installing the extension you
+      finished or skipped (never the languages or settings you chose there). Sign-in events record only that one happened and by which method; your
       email address and account identifier are deliberately never attached, so the
       analytics data and your account cannot be joined.</p>
       <p>We do not use these cookies for advertising, and advertising, remarketing and
@@ -1209,9 +1227,9 @@ ${footer(t, root)}`,
 // and an HTML parser closes the block at the first `</script` inside it no
 // matter how deeply quoted the JSON is — so a string carrying that sequence
 // would end the script early and have its remainder parsed as markup. The
-// welcome payload already ships literal markup (the <b> in welcome.ledeFor),
-// which is exactly the kind of value that grows a closing tag later, so the
-// escape belongs here rather than at each call site. < is inert inside a
+// welcome steps payload ships whole translated strings, exactly the kind of
+// value that grows a closing tag later, so the escape belongs here rather
+// than at each call site. < is inert inside a
 // JSON string literal and parses back to "<".
 const scriptJSON = (value) => JSON.stringify(value).replaceAll('<', '\\u003c');
 
@@ -1221,108 +1239,27 @@ const editionsMap = scriptJSON(
 
 // ----------------------------------------------------------------- welcome
 //
-// Reached from the extension right after install (chrome.runtime.onInstalled —
-// not wired up in any of the three extensions yet, but the page is
-// edition-aware via ?ext=<slug> for when they are), so it renders per locale
-// exactly like the home page.
-//
-// This replaced a page that opened with three numbered steps. Those steps
-// restated the home page's "How it works" almost verbatim — a re-pitch aimed at
-// someone who had just installed and was already sold — and step 2 ("open a
-// video with captions") was homework with no link attached, so the moment
-// someone was most likely to try the thing was the moment they were left to
-// figure out where. What replaced it:
-//   - Thanks first, then a one-minute video instead of the steps.
-//   - A real destination: the demoUrl already in editions.json.
-//   - Edition-awareness that actually shows. ?ext= and the `data-ext-name` span
-//     both predate this page and always worked, but the copy they fed named no
-//     site at all, so every edition read identically. See EXT_SITES below.
-//   - Privacy next to the sign-in ask, where the decision is made, rather than
-//     only in the footer.
-const WELCOME_VIDEO = 't2oye9CA7Vw';
-
-// Per-edition page shape, keyed by editions.json slug.
-//
-// `covers` and `order` are deliberately NOT the same list:
-//
-//   covers — the sites this install actually works on, named in the headline
-//     and the lede. The YouTube extension matches netflix.com too (one store
-//     listing, both sites), so its visitors are Netflix visitors as often as
-//     not and both names belong there. The HDrezka extension is a separate
-//     listing that matches hdrezka only, so naming YouTube in ITS headline
-//     would promise something the install cannot do.
-//
-//   order — the buttons, first one primary. HDrezka gets a YouTube button
-//     anyway: not because the extension works there, but because it is the
-//     one place we can guarantee a video with subtitles to check against.
-//
-// `covers` holds slugs rather than display names because the list that joins
-// them is language-specific — "YouTube and Netflix" has to become "YouTube и
-// Netflix" in Russian — so the pair is assembled per locale through
-// welcome.sitesPair. Hardcoding the English "and" here leaked it into all 41
-// translations once already.
-const EXT_PAGES = {
-  youtube: { covers: ['youtube', 'netflix'], order: ['youtube', 'netflix'] },
-  netflix: { covers: ['netflix', 'youtube'], order: ['netflix', 'youtube'] },
-  rezka: { covers: ['rezka'], order: ['rezka', 'youtube'] },
+// Opened by the extension right after install, per locale like the home page.
+// The setup steps (src/welcome/steps.ts) are the page; what is server-rendered
+// here is the short closing page they end on (and the whole page when the
+// script does not run): thanks, the one tip that makes a just-installed
+// extension work on an already open tab, the keys, and for the HDrezka
+// install the note on which of its addresses are covered.
+// The video the last setup step opens, by the language being learned: one we
+// have checked has captions and works with the extension. A language with no
+// entry here gets the YouTube home page instead — never an unchecked guess.
+// The id is the one editions.json already names as the working example.
+const WELCOME_FIRST_VIDEOS = {
+  en: { id: (EDITIONS.primary.demoUrl.match(/[?&]v=([\w-]{11})/) || [])[1], title: 'Cosmic Dawn (Official NASA Trailer)' },
 };
+for (const [lang, v] of Object.entries(WELCOME_FIRST_VIDEOS)) {
+  if (!v.id) throw new Error(`/welcome/: no video id for "${lang}" — editions.json primary.demoUrl has no ?v= (the last setup step would open the YouTube home page)`);
+}
 
 const welcomePage = (locale, hrefLang) => {
   const { code: lang, strings } = locale;
   const t = makeT(strings);
   const root = lang === 'en' ? '' : `/${lang}`;
-  const bySlug = Object.fromEntries(EDITIONS.editions.map((e) => [e.slug, e]));
-
-  // One "open it now" button per edition, primary first.
-  //
-  // The whole point of this page is that nobody leaves it wondering where to
-  // try the thing, so a link that 404s would be worse than no link at all.
-  // Only youtube's demoUrl in editions.json is still the `road-movie`
-  // placeholder — it falls back to primary.demoUrl, which is a real video;
-  // netflix has its own. Rezka's demoUrl is deliberately "" (documented in
-  // editions.json): the empty string routes it to the deferred path below.
-  // Point an edition's demoUrl at something real and it is used as-is.
-  //
-  // The third edition's control carries NO address in the markup, and no
-  // joined address is stored anywhere on this site. It is a <button> marked
-  // data-open-rezka, and main.js builds the address at click time by joining
-  // the name and ending REZKA_MATCH ships as two separate fields. The button
-  // behaves like the other two for the visitor; what the site ships is still
-  // only the halves.
-  const PLACEHOLDER = /road-movie/;
-  const homeOf = { youtube: 'youtube.com', netflix: 'netflix.com' };
-  const openUrl = (e) => {
-    if (e.demoUrl && !PLACEHOLDER.test(e.demoUrl)) return e.demoUrl;
-    if (e.slug === 'youtube' && EDITIONS.primary?.demoUrl &&
-        !PLACEHOLDER.test(EDITIONS.primary.demoUrl)) return EDITIONS.primary.demoUrl;
-    return homeOf[e.slug] || '';
-  };
-
-  const linkFor = (slug, primary) => {
-    const e = bySlug[slug];
-    if (!e) return '';
-    const url = openUrl(e);
-    const deferred = !url && slug === 'rezka';
-    if (!url && !deferred) return '';
-    // e.site is a brand name (YouTube / Netflix / HDrezka), so it is injected
-    // into the localized "Open {site}" frame rather than translated.
-    const note = t(`welcome.note.${slug}`);
-    const cls = `wl-open${primary ? ' wl-open-primary' : ''}`;
-    const inner = `
-        ${mark(e.mark, true)}
-        <span class="wl-open-body"><b>${esc(t('welcome.open', { site: e.site }))}</b><span>${esc(note)}</span></span>
-        <svg class="wl-open-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      `;
-    // The deferred one is a real <button>, not an href-less <a>: native focus
-    // and Enter/Space activation with no role/tabindex/keydown shims. The
-    // handler's own window.open is what carries the assembled address.
-    return deferred
-      ? `      <button type="button" class="${cls}" data-open-rezka>${inner}</button>`
-      : `      <a class="${cls}" href="https://${esc(url)}" target="_blank" rel="noopener">${inner}</a>`;
-  };
-
-  const defaultOrder = ['youtube', 'netflix', 'rezka'];
-
   // The one pair REZKA_MATCH chose — the same one the button opens, joined
   // here only for display in the notice.
   const rezkaExample = `${REZKA_MATCH.example.name}.${REZKA_MATCH.example.zone}`;
@@ -1333,21 +1270,18 @@ const welcomePage = (locale, hrefLang) => {
     description: t('welcome.description'),
     pathName: `${root}/welcome/`,
     body: `
-${header(t, root)}
+${header(t, root, 'welcome')}
+${''/* The setup steps (src/welcome/steps.ts). Empty and hidden: the script fills
+it and hides the closing page below until "Finish" brings it back. Without the
+script the closing page is all there is. */}
+<div class="ws" id="ws" hidden></div>
 <main class="wl">
-  <div class="wl-hello">
-    <span class="logo-mark" style="width:44px;height:44px;border-radius:14px">${CHAMELEON(28)}</span>
-    <span class="wl-hello-note">${t('welcome.hello')}</span>
-  </div>
-
   <h1 class="wl-h1">${t('welcome.h1', { ext: '<span data-ext-name>Lingogram</span>' })}</h1>
 
-  <p class="wl-lede">${t('welcome.lede', { b: `<b>${esc(t('welcome.ledeBold'))}</b>` })}</p>
-
-  ${''/* Inside an inert <template>, not merely [hidden]: only the third
-  edition's variant of this page should carry the notice at all, so main.js
-  stamps it out for ?ext=rezka and every other variant keeps it out of the
-  DOM — out of find-in-page, reader mode, and the no-JS render alike. */}
+  ${''/* Inside an inert <template>, not merely [hidden]: only the HDrezka
+  install should carry the notice at all, so main.js stamps it out for
+  ?ext=rezka and every other variant keeps it out of the DOM — out of
+  find-in-page, reader mode, and the no-JS render alike. */}
   <template id="wl-cover-tpl">
   <div class="wl-notice" id="wl-cover">
     <svg class="wl-notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
@@ -1360,10 +1294,9 @@ ${header(t, root)}
         names: REZKA_MATCH.prefixes.map((p) => `<b>${esc(p)}</b>`)
           .join(` ${esc(t('welcome.coverageOr'))} `),
         // One address that works and one that does not — both plain text,
-        // neither a link, both assembled from the two lists with the same
-        // pairing main.js uses for the button. The counter-example is the
-        // same pair with a suffix bolted onto the name: a near-miss, and its
-        // job is to show the name has to match exactly, not approximately.
+        // neither a link. The counter-example is the same pair with a suffix
+        // bolted onto the name: a near-miss, and its job is to show the name
+        // has to match exactly, not approximately.
         yes: `<b>${esc(rezkaExample)}</b>`,
         no: `<b>${esc(rezkaExample.replace('.', '-1234.'))}</b>`,
         link: `<a href="${root}/help/addresses/">${esc(t('welcome.coverageLink'))}</a>`,
@@ -1372,55 +1305,9 @@ ${header(t, root)}
   </div>
   </template>
 
-  <div class="wl-tut">
-    <div id="wl-video">
-      <button type="button" class="wl-facade" id="wl-facade" aria-label="${esc(t('welcome.playAria'))}">
-        <img src="https://i.ytimg.com/vi/${WELCOME_VIDEO}/maxresdefault.jpg" alt="" width="1280" height="720" loading="lazy">
-        <span class="wl-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-        <span class="wl-facade-meta"><span>${esc(t('welcome.seeHow'))}</span></span>
-      </button>
-    </div>
-    <div class="wl-tut-foot">
-      <span>${esc(t('welcome.oneMinute'))}</span>
-      <a href="https://www.youtube.com/watch?v=${WELCOME_VIDEO}" target="_blank" rel="noopener">${esc(t('welcome.watchOnYt'))}</a>
-    </div>
-  </div>
-  <p class="wl-note">${esc(t('welcome.playerNote'))}</p>
-
-  <p class="wl-cta-h" id="wl-cta-h">${esc(t('welcome.ctaH'))}</p>
-  <p class="wl-cta-s" id="wl-cta-s">${esc(t('welcome.ctaS'))}</p>
-  <div class="wl-opens" id="wl-opens">
-${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
-  </div>
-
   <div class="wl-asides">
     <p id="wl-refresh">${t('welcome.reload', { b: `<b>${esc(t('welcome.reloadBold'))}</b>` })}</p>
-    <p>${t('welcome.signIn', { b: `<b>${esc(t('welcome.signInBold'))}</b>` })}</p>
-    <p>${t('welcome.langs', { b: `<b>${esc(t('welcome.langsBold'))}</b>` })}</p>
   </div>
-
-  <!-- Privacy sits directly under the sign-in ask, because that is the moment
-       someone is deciding whether to hand us anything. The three lines are the
-       policy's own TL;DR, not marketing copy: without an account nothing
-       leaves the device; signing in stores an email and the words you chose to
-       save; nothing is sold. Kept as a <details> so it informs without
-       becoming a wall in front of the first saved word. -->
-  <details class="wl-priv">
-    <summary>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>${esc(t('welcome.privSummary'))}</span>
-      <svg class="wl-priv-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-    </summary>
-    <div class="wl-priv-body">
-      <p>${t('welcome.priv1', {
-        b: `<b>${esc(t('welcome.priv1Bold'))}</b>`,
-        link: `<a href="${root}/help/analytics/">${esc(t('welcome.priv1Link'))}</a>`,
-      })}</p>
-      <p>${t('welcome.priv2', { b: `<b>${esc(t('welcome.priv2Bold'))}</b>` })}</p>
-      <p>${t('welcome.priv3', { b: `<b>${esc(t('welcome.priv3Bold'))}</b>` })}</p>
-      <p class="wl-priv-more"><a href="/privacy/">${esc(t('welcome.privLink'))}</a></p>
-    </div>
-  </details>
 
   <div class="wl-keys">
     <p>${esc(t('welcome.keysIntro'))}</p>
@@ -1434,55 +1321,37 @@ ${defaultOrder.map((s, i) => linkFor(s, i === 0)).filter(Boolean).join('\n')}
 
   <p class="wl-signoff">${t('welcome.signoff', { link: `<a href="mailto:${SITE.supportEmail}">${esc(t('welcome.signoffLink'))}</a>` })}</p>
 </main>
-${footer(t, root)}
-<script>window.__EDITIONS = ${editionsMap};
-window.__WELCOME = ${scriptJSON({
-  video: WELCOME_VIDEO,
-  // Per-slug: the covered-site list already joined in this locale's own words,
-  // plus the button order. Joining here rather than in main.js keeps that file
-  // free of language rules — it ships once for all 42 locales.
-  //
-  // Every slug is resolved through editions.json and dropped if it isn't there,
-  // so removing a record from that file (which its own comment invites) drops
-  // the edition from this page instead of crashing the build.
-  copy: Object.fromEntries(
-    Object.entries(EXT_PAGES)
-      .map(([slug, { covers, order }]) => {
-        // The edition itself must exist, not just something it covers —
-        // otherwise a removed record leaves a ?ext= entry pointing at a page
-        // variant for an extension that no longer ships.
-        if (!bySlug[slug]) return null;
-        const names = covers.map((s) => bySlug[s]?.site).filter(Boolean);
-        if (names.length === 0) return null;
-        return [slug, {
-          sites: names.length > 1
-            ? t('welcome.sitesPair', { a: names[0], b: names[1] })
-            : names[0],
-          order: order.filter((s) => bySlug[s]),
-        }];
-      })
-      .filter(Boolean),
-  ),
-  // Strings main.js swaps in for ?ext=. Passed from here so that file — one
-  // bundle shared by all 42 locales — never holds English of its own.
-  i18n: {
-    // `{sites}` is filled client-side from copy[slug].sites above.
-    h1: t('welcome.h1For'),
-    lede: t('welcome.ledeFor', { b: `<b>${esc(t('welcome.ledeBold'))}</b>` }),
-    rezkaCtaH: t('welcome.rezkaCtaH'),
-    rezkaCtaS: t('welcome.rezkaCtaS'),
+${slimFooter(t)}
+<script>window.__WELCOME_STEPS = ${scriptJSON({
+  lang,
+  // The page speaks the visitor's native language, so choosing one switches
+  // to its page; this is the list of languages that have one.
+  locales: LOCALES.map((l) => l.code),
+  videos: WELCOME_FIRST_VIDEOS,
+  i18n: strings.welcome.steps,
+  // The Account step is a sign-up / log-in form: the site's own auth copy.
+  auth: {
+    emailLabel: t('auth.register.emailLabel'),
+    passwordLabel: t('auth.register.passwordLabel'),
+    registerPasswordPlaceholder: t('auth.register.passwordPlaceholder'),
+    registerSubmit: t('auth.register.submit'),
+    registerBusy: t('auth.register.submitBusy'),
+    registerGoogle: t('auth.register.googleCta'),
+    loginSubmit: t('auth.login.submit'),
+    loginBusy: t('auth.login.submitBusy'),
+    loginGoogle: t('auth.login.googleCta'),
   },
-  // The one chosen pair, kept as two fields main.js joins at click time —
-  // see REZKA_MATCH.
-  rezka: REZKA_MATCH.example,
-})};</script>`,
+})};</script>
+<script src="/auth-config.js?v=${BUST}"></script>
+<script type="module" src="/welcome-steps.js?v=${BUST}"></script>
+<script>window.__EDITIONS = ${editionsMap};</script>`,
   });
 };
 
 // ------------------------------------------------------- /help/analytics/
 //
-// The "how do I turn this off" page. Both places that admit we collect
-// anonymous stats — welcome.priv1 and home.priv1 — link here rather than
+// The "how do I turn this off" page. The place that admits we collect
+// anonymous stats — home.priv1 — links here rather than
 // spelling out the steps inline: a privacy claim that says "you can turn it
 // off" without saying HOW is the kind of promise that reads as evasion.
 //

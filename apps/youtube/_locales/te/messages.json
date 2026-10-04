@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "మీరు సేవ్ చేసిన పదాలు మీరు చదివే ఏ పేజీలోనైనా గుర్తించబడతాయి. సరిపోల్చడం మీ పరికరంలోనే జరుగుతుంది; ఏదీ పంపబడదు.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "సెటప్ పూర్తి చేయండి",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "మీరు తదుపరిసారి పేజీని తెరిచినప్పుడు లేదా రీలోడ్ చేసినప్పుడు వర్తిస్తుంది.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "వీడియో సైట్‌లు",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

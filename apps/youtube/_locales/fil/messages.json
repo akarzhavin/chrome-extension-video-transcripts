@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Minamarkahan ang mga salitang na-save mo sa anumang pahinang binabasa mo. Sa device mo ginagawa ang pagtutugma; walang ipinapadala.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Tapusin ang pag-set up",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Mag-a-apply sa susunod na pagbukas o pag-reload mo ng page.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Mga video site",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

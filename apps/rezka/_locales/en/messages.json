@@ -606,5 +606,17 @@
   "popupPageHighlightHint": {
     "message": "Words you saved are marked on any page you read. Checked on your device; nothing is sent.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Finish setup",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Applies when you next open or reload the page.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Video sites",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

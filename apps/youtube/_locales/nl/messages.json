@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Woorden die je hebt opgeslagen worden gemarkeerd op elke pagina die je leest. De vergelijking gebeurt op je apparaat; er wordt niets verzonden.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Installatie afronden",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Geldt vanaf de volgende keer dat je de pagina opent of herlaadt.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosites",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

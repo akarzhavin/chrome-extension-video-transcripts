@@ -15,8 +15,8 @@
 // aimed at preprod or a local server sends its onboarding tabs there too
 // rather than bouncing the tester back to production.
 import { config } from './auth/config';
+import { welcomeUrl } from './welcome/welcome';
 
-const WELCOME_URL = `${config.frontendBaseUrl}/welcome/`;
 const UNINSTALL_URL = `${config.frontendBaseUrl}/uninstall/`;
 
 /**
@@ -79,7 +79,7 @@ export function installOnboarding(
             // needs would risk the worker dying first and swallowing the
             // welcome page — the one thing this branch exists to deliver.
             if (!hooks?.clientId) {
-                void chrome.tabs.create({ url: `${WELCOME_URL}?ext=${ext}` });
+                void chrome.tabs.create({ url: welcomeUrl(ext, chrome.runtime.id) });
                 return;
             }
             // With a resolver, wait for it so /welcome/ carries the same id the
@@ -87,9 +87,9 @@ export function installOnboarding(
             // reads storage rather than racing the mint.
             void (async () => {
                 const cid = await resolveCid(hooks);
-                void chrome.tabs.create({
-                    url: `${WELCOME_URL}?ext=${ext}${cid ? `&cid=${encodeURIComponent(cid)}` : ''}`,
-                });
+                // `id` names this extension, so the page's three setup steps
+                // can talk to it (welcome/bridge.ts).
+                void chrome.tabs.create({ url: welcomeUrl(ext, chrome.runtime.id, cid) });
             })();
             return;
         }

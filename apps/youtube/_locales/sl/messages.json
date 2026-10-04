@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Shranjene besede so označene na vsaki strani, ki jo berete. Preverjanje poteka na vaši napravi, nič se ne pošilja.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Dokončaj nastavitev",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Velja ob naslednjem odprtju ali osvežitvi strani.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Video strani",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

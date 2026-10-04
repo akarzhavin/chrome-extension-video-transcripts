@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Az elmentett szavak minden olvasott oldalon meg vannak jelölve. Az egyeztetés az eszközén történik, semmi nem kerül elküldésre.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Beállítás befejezése",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Az oldal következő megnyitásakor vagy újratöltésekor lép érvénybe.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videós oldalak",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

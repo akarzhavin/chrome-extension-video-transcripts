@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Οι λέξεις που αποθηκεύσατε επισημαίνονται σε κάθε σελίδα που διαβάζετε. Ο έλεγχος γίνεται στη συσκευή σας και δεν στέλνεται τίποτα.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Ολοκλήρωση ρύθμισης",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Ισχύει την επόμενη φορά που θα ανοίξετε ή θα φορτώσετε ξανά τη σελίδα.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Ιστότοποι βίντεο",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

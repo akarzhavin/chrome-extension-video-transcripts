@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Salvestatud sõnad märgitakse igal lehel, mida loete. Võrdlus toimub teie seadmes, midagi ei saadeta.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Lõpeta seadistamine",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Kehtib järgmisel lehe avamisel või uuesti laadimisel.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosaidid",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

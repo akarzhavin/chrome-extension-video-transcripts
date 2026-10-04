@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Ord, du har gemt, markeres på alle sider, du læser. Sammenligningen sker på din enhed, og der sendes ikke noget.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Afslut opsætningen",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Gælder, næste gang du åbner eller genindlæser siden.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosites",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

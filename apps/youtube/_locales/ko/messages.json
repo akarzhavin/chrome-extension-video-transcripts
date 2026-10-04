@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "저장한 단어는 읽고 있는 모든 페이지에서 표시됩니다. 일치 확인은 기기에서만 이루어지며 아무것도 전송되지 않습니다.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "설정 완료",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "다음에 페이지를 열거나 새로고침할 때 적용돼요.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "동영상 사이트",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

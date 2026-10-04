@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "ನೀವು ಉಳಿಸಿದ ಪದಗಳು ನೀವು ಓದುವ ಯಾವುದೇ ಪುಟದಲ್ಲಿ ಗುರುತಾಗುತ್ತವೆ. ಹೊಂದಾಣಿಕೆ ನಿಮ್ಮ ಸಾಧನದಲ್ಲೇ ನಡೆಯುತ್ತದೆ; ಏನನ್ನೂ ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "ಸೆಟಪ್ ಮುಗಿಸಿ",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "ಮುಂದಿನ ಬಾರಿ ಪುಟವನ್ನು ತೆರೆದಾಗ ಅಥವಾ ಮರುಲೋಡ್ ಮಾಡಿದಾಗ ಅನ್ವಯಿಸುತ್ತದೆ.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "ವೀಡಿಯೊ ಸೈಟ್‌ಗಳು",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

@@ -10,6 +10,7 @@ import {
     setMirrorEntry,
     msg as i18nMsg,
     initTheme,
+    isSiteEnabled,
     setI18nOverride,
     Subtitle,
 } from '@video-transcripts/shared';
@@ -1010,6 +1011,15 @@ function watchSidebarState(): void {
     setTimeout(fire, 500);
 }
 
+// The learner can switch a site off (welcome page, popup). Read once, before
+// anything is built: a switched-off site gets no sidebar, no overlay and no
+// subtitle fetching. A change applies on the next page load.
+async function start(): Promise<void> {
+    const site = isNetflix() ? 'netflix' : isYouTube() ? 'youtube' : null;
+    if (!site || !(await isSiteEnabled(site))) return;
+    bootstrap();
+}
+
 function bootstrap(): void {
     let app: BaseVttApp;
     if (isNetflix()) {
@@ -1077,4 +1087,4 @@ function bootstrap(): void {
     installDebugMode(app);
 }
 
-bootstrap();
+void start();

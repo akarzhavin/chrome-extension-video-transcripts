@@ -72,3 +72,23 @@ export function ownsSharedFeatures(
     if (selfSignedIn !== sibling.signedIn) return selfSignedIn;
     return self === 'youtube';
 }
+
+/**
+ * The other edition's answer, or null when it is not installed, disabled, or an
+ * old version that does not accept this message. Null makes this edition show
+ * its item: a duplicate is a nuisance, a missing item is a broken feature.
+ */
+export async function askSiblingStatus(): Promise<{ signedIn: boolean } | null> {
+    for (const id of siblingIdsOf(chrome.runtime.id)) {
+        try {
+            const res = (await chrome.runtime.sendMessage(id, {
+                type: SIBLING_MESSAGE_TYPE,
+                op: 'status',
+            })) as Partial<SiblingStatus> | undefined;
+            if (res?.ok === true && typeof res.signedIn === 'boolean') return { signedIn: res.signedIn };
+        } catch {
+            // that id is not installed — try the next one.
+        }
+    }
+    return null;
+}

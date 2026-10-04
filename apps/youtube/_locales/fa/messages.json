@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "واژه‌هایی که ذخیره کرده‌اید در هر صفحه‌ای که می‌خوانید علامت‌گذاری می‌شوند. تطبیق روی دستگاه شما انجام می‌شود و چیزی ارسال نمی‌شود.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "پایان راه‌اندازی",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "دفعه بعد که صفحه را باز یا بارگذاری مجدد کنید اعمال می‌شود.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "سایت‌های ویدیو",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

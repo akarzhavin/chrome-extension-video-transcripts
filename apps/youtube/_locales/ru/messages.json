@@ -690,5 +690,17 @@
   "popupPageHighlightHint": {
     "message": "Сохранённые слова отмечаются на любой странице, которую ты читаешь. Проверка идёт на твоём устройстве, ничего не отправляется.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Завершить настройку",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Применится при следующем открытии или перезагрузке страницы.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Видеосайты",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

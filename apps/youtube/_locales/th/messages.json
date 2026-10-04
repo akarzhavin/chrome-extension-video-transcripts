@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "คำที่คุณบันทึกไว้จะถูกทำเครื่องหมายในทุกหน้าที่คุณอ่าน การจับคู่ทำงานบนอุปกรณ์ของคุณ และไม่มีการส่งข้อมูลใดออกไป",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "ตั้งค่าให้เสร็จ",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "มีผลเมื่อคุณเปิดหรือโหลดหน้านี้ใหม่ครั้งถัดไป",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "เว็บไซต์วิดีโอ",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

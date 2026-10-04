@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Slova, která jste si uložili, se označují na každé stránce, kterou čtete. Porovnání probíhá ve vašem zařízení, nic se neodesílá.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Dokončit nastavení",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Platí od příštího otevření nebo obnovení stránky.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Video weby",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

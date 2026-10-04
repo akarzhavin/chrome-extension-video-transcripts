@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Ord du har lagret, markeres på alle sider du leser. Sammenligningen skjer på enheten din, og ingenting sendes.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Fullfør oppsettet",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Gjelder neste gang du åpner eller laster inn siden på nytt.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videonettsteder",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Cuvintele pe care le-ai salvat sunt marcate pe orice pagină pe care o citești. Verificarea se face pe dispozitivul tău; nu se trimite nimic.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Termină configurarea",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Se aplică la următoarea deschidere sau reîncărcare a paginii.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Site-uri video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

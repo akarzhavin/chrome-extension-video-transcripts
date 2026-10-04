@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "तुम्ही जतन केलेले शब्द तुम्ही वाचत असलेल्या कोणत्याही पानावर चिन्हांकित होतात. जुळवणी तुमच्या डिव्हाइसवरच होते; काहीही पाठवले जात नाही.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "सेटअप पूर्ण करा",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "पुढच्या वेळी पेज उघडल्यावर किंवा रीलोड केल्यावर लागू होईल.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "व्हिडिओ साइट",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

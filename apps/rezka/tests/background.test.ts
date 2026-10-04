@@ -26,8 +26,23 @@ function makeChromeStorage(): { local: any; session: any; onChanged: any } {
     return { local: makeStorageArea(), session: makeStorageArea(), onChanged: { addListener: jest.fn() } };
 }
 
-// Capture the onMessageExternal listener so we can invoke it directly in tests.
-let capturedExternalListener: ((message: any, sender: any, sendResponse: any) => boolean | void) | null = null;
+// Capture every onMessageExternal listener and deliver like Chrome does: each
+// listener sees the message, the first sendResponse wins. The worker has
+// several (sign-in handoff, the other edition's ping, the welcome page), and a
+// test that kept only the last one would be testing whichever registered last.
+type ExternalListener = (message: any, sender: any, sendResponse: any) => boolean | void;
+const externalListeners: ExternalListener[] = [];
+const capturedExternalListener: ExternalListener = (message, sender, sendResponse) => {
+    let answered = false;
+    const once = (r: unknown) => {
+        if (answered) return;
+        answered = true;
+        sendResponse(r);
+    };
+    let keepOpen = false;
+    for (const l of externalListeners) if (l(message, sender, once) === true) keepOpen = true;
+    return keepOpen || answered ? keepOpen : false;
+};
 
 (global as any).chrome = {
     webRequest: { onCompleted: { addListener: jest.fn() } },
@@ -36,7 +51,7 @@ let capturedExternalListener: ((message: any, sender: any, sendResponse: any) =>
         onMessage: { addListener: jest.fn() },
         onMessageExternal: {
             addListener: jest.fn((listener: any) => {
-                capturedExternalListener = listener;
+                externalListeners.push(listener);
             }),
         },
         sendMessage: jest.fn(),
@@ -187,7 +202,7 @@ describe('background script', () => {
 
 function invokeExternal(message: any, sender: any): Promise<any> {
     return new Promise((resolve) => {
-        const ret = capturedExternalListener!(message, sender, resolve);
+        const ret = capturedExternalListener(message, sender, resolve);
         if (ret !== true) {
             // No async, resolve already happened or there was a sync return — but
             // we always either resolved already or returned true with async work.
@@ -351,13 +366,21 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         // Answering here would win the race to sendResponse with a refusal,
         // and the other edition would read its sibling as absent.
         const respond = jest.fn();
-        const ret = capturedExternalListener!(
+        const ret = capturedExternalListener(
             { type: 'lingogram-sibling', op: 'ping' },
             { id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan' },
             respond,
         );
         expect(ret).toBe(false);
         expect(respond).not.toHaveBeenCalled();
+    });
+
+    test('the welcome page gets an answer from its own listener, not a refusal from the handoff', async () => {
+        // The handoff listener answers every message it does not know with
+        // "unknown message type". Registered first, it would win the race and
+        // the page on lingogram.ai/welcome/ would never get its state.
+        const res = await invokeExternal({ type: 'lingogram-welcome', op: 'progress', finished: true }, { origin: 'http://localhost:5173' });
+        expect(res).toEqual({ ok: true });
     });
 
     test('rejects unknown message type', async () => {

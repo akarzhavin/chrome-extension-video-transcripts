@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "你保存的单词会在你阅读的任何网页上被标出。匹配在你的设备上完成，不会发送任何内容。",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "完成设置",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "下次打开或刷新页面时生效。",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "视频网站",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

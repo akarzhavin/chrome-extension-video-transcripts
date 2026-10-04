@@ -5,7 +5,9 @@
 // from the hostname:
 //   localhost               → local dev stack (Firebase Auth Emulator + nginx
 //                             gateway from the `english` repo's `make up`)
-//   preprod.lingogram.ai    → preprod project (lingogram-preprod + preprod gateway)
+//   preprod.lingogram.ai,
+//   lingogram-preprod.web.app (and its firebaseapp.com twin)
+//                           → preprod project (lingogram-preprod + preprod gateway)
 //   anything else           → prod (lingogram-prod + api.lingogram.ai)
 //
 // The Firebase apiKey is public by design — it identifies the project, it does
@@ -29,17 +31,23 @@
       identityToolkitUrl: 'http://localhost:9099/identitytoolkit.googleapis.com',
       apiBase: 'http://localhost:8000',
     };
-  } else if (host === 'preprod.lingogram.ai') {
+  } else if (
+    host === 'preprod.lingogram.ai' ||
+    // Where preprod is actually served. Without it the forms on preprod
+    // signed in against PROD Firebase while the SPA beside them used preprod.
+    host === 'lingogram-preprod.web.app' ||
+    host === 'lingogram-preprod.firebaseapp.com'
+  ) {
     config = {
       env: 'preprod',
       apiKey: 'AIzaSyBmSrf73K03PYNv1F197fNpvVZE-_E6eMI',
       projectId: 'lingogram-preprod',
       firestoreUrl: 'https://firestore.googleapis.com',
       identityToolkitUrl: 'https://identitytoolkit.googleapis.com',
-      // Preprod edge gateway: the Go edge-gateway (feature 014 replaced ESPv2,
-      // which has been deleted). Mirrors english/frontend/.env.preprod
-      // VITE_API_URL — keep the two in step.
-      apiBase: 'https://edge-gateway-1079463543331.europe-west1.run.app',
+      // Preprod edge gateway, by name (feature 019 moved it off the Cloud Run
+      // URL). Mirrors english/frontend/.env.preprod VITE_API_URL — keep the
+      // two in step.
+      apiBase: 'https://api-preprod.lingogram.ai',
     };
   } else {
     config = {

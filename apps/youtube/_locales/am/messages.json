@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "የተቀመጡ ቃላትዎ በሚያነቧቸው ማንኛውም ገጽ ላይ ይደምቃሉ። ፍለጋው የሚካሄደው በመሣሪያዎ ላይ ነው፤ ምንም ነገር አይላክም።",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "ማዋቀሩን ጨርስ",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "ገጹን በሚቀጥለው ጊዜ ሲከፍቱ ወይም ሲያድሱ ይተገበራል።",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "የቪዲዮ ጣቢያዎች",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Saglabātie vārdi tiek atzīmēti katrā lapā, ko lasāt. Salīdzināšana notiek jūsu ierīcē, nekas netiek sūtīts.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Pabeigt iestatīšanu",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Stājas spēkā nākamreiz, kad atvērsiet vai pārlādēsiet lapu.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Video vietnes",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

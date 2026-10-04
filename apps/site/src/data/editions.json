@@ -1,5 +1,5 @@
 {
-  "_comment": "One record per edition PAGE. Two extensions ship today, so two distinct storeUrls: the YouTube listing also covers Netflix (one install, both sites — see its manifest matches), which is why the netflix record points at the same URL and says so. Adding a record here creates the card on the home page and the /<slug>/ landing page. storeUrl empty renders a disabled '#' link. rezka's demoUrl is deliberately the empty string, and it is load-bearing: it routes that edition's /welcome/ button to the deferred click-time open (linkFor/openUrl in build.mjs), so no joined HDrezka address is stored on the site — pointing it at a real URL disables that path.",
+  "_comment": "One record per edition PAGE. Two extensions ship today, so two distinct storeUrls: the YouTube listing also covers Netflix (one install, both sites — see its manifest matches), which is why the netflix record points at the same URL and says so. Adding a record here creates the card on the home page and the /<slug>/ landing page. storeUrl empty renders a disabled '#' link. primary.demoUrl is the checked English video the last setup step on /welcome/ opens.",
   "primary": {
     "demoUrl": "youtube.com/watch?v=Kk1vR7BdTno",
     "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan"
@@ -12,7 +12,6 @@
       "mark": "yt",
       "card": "Fills the missing second track with YouTube's auto-translation.",
       "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan",
-      "demoUrl": "youtube.com/watch?v=road-movie",
       "heroLead": "Dual subtitles",
       "heroPop": "on every YouTube video",
       "sub": "Your target language and your own together on any YouTube video that has captions — including auto-generated ones. Tap a word to keep it in your personal dictionary.",
@@ -33,7 +32,6 @@
       "mark": "nf",
       "card": "Original subtitle tracks, no machine translation.",
       "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-%E2%80%94-lingogra/pkoibjilnaeadmcnmfkgcjhalljbmfan",
-      "demoUrl": "netflix.com/watch/80100172",
       "heroLead": "Dual subtitles",
       "heroPop": "for your Netflix nights",
       "sub": "Lingogram pairs the subtitle tracks a title actually has — the original plus a translation — and shows them side by side. No machine translation, ever.",
@@ -54,7 +52,6 @@
       "mark": "hd",
       "card": "Dual tracks when a title carries them.",
       "storeUrl": "https://chromewebstore.google.com/detail/dual-subtitles-for-hdrezk/hmdkmkimdbomemfcjmgeclchbcdbhabj",
-      "demoUrl": "",
       "heroLead": "Watch HDrezka in the original,",
       "heroPop": "learn as you watch",
       "sub": "The interactive transcript, listening challenge and one-tap word saving work on any HDrezka title with a subtitle track. When a title carries two tracks — the original plus a translation — you get dual subtitles.",

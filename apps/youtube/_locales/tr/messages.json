@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Kaydettiğiniz kelimeler okuduğunuz her sayfada işaretlenir. Eşleştirme cihazınızda yapılır; hiçbir şey gönderilmez.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Kurulumu bitir",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Sayfayı bir sonraki açışınızda veya yenilediğinizde geçerli olur.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Video siteleri",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

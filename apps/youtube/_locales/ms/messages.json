@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Perkataan yang anda simpan ditanda pada mana-mana halaman yang anda baca. Padanan dibuat pada peranti anda; tiada apa-apa yang dihantar.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Selesaikan persediaan",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Berkuat kuasa apabila anda membuka atau memuat semula halaman seterusnya.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Tapak video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

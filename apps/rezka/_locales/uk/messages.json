@@ -606,5 +606,17 @@
   "popupPageHighlightHint": {
     "message": "Збережені слова позначаються на будь-якій сторінці, яку ти читаєш. Перевірка йде на твоєму пристрої, нічого не надсилається.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Завершити налаштування",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Застосується під час наступного відкриття або перезавантаження сторінки.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Відеосайти",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

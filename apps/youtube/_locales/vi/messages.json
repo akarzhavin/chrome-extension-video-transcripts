@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Những từ bạn đã lưu được đánh dấu trên mọi trang bạn đọc. Việc đối chiếu diễn ra trên thiết bị của bạn, không có gì được gửi đi.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Hoàn tất thiết lập",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Có hiệu lực vào lần bạn mở hoặc tải lại trang tiếp theo.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Trang web video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

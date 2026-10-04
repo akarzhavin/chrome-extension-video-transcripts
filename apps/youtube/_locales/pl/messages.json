@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Zapisane słowa są zaznaczane na każdej stronie, którą czytasz. Sprawdzanie odbywa się na Twoim urządzeniu, nic nie jest wysyłane.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Dokończ konfigurację",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Obowiązuje po następnym otwarciu lub odświeżeniu strony.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Serwisy wideo",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

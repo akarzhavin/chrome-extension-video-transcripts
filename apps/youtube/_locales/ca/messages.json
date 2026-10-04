@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Les paraules que has desat es marquen a qualsevol pàgina que llegeixis. La comprovació es fa al teu dispositiu; no s'envia res.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Acaba la configuració",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "S'aplica la propera vegada que obris o tornis a carregar la pàgina.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Llocs de vídeo",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

@@ -107,6 +107,14 @@ export interface Prefs {
     // it is about pages that are not one of the streaming sites, so a
     // per-platform copy would have no scope to live in. On by default.
     pageHighlight: boolean;
+    // Whether the extension starts on each video site at all (sidebar,
+    // overlay, subtitle fetching). Set on the welcome page and in the popup.
+    // GLOBAL: they ARE the per-site switch, a per-site copy would be circular.
+    // Read once by the content script at start: a change applies on the next
+    // page load. On by default, so every existing install keeps working.
+    siteYoutube: boolean;
+    siteNetflix: boolean;
+    siteRezka: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -363,8 +371,8 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     if (typeof resolved.debugMode !== 'boolean') {
         resolved.debugMode = DEFAULT_PREFS.debugMode;
     }
-    if (typeof resolved.pageHighlight !== 'boolean') {
-        resolved.pageHighlight = DEFAULT_PREFS.pageHighlight;
+    for (const key of ['pageHighlight', 'siteYoutube', 'siteNetflix', 'siteRezka'] as const) {
+        if (typeof resolved[key] !== 'boolean') resolved[key] = DEFAULT_PREFS[key];
     }
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
@@ -420,7 +428,32 @@ const DEFAULT_PREFS: Prefs = {
     // for a feature it does not have.
     debugMode: DEFAULT_DEBUG_MODE,
     pageHighlight: true,
+    siteYoutube: true,
+    siteNetflix: true,
+    siteRezka: true,
 };
+
+export type VideoSite = 'youtube' | 'netflix' | 'rezka';
+
+const SITE_PREF: Record<VideoSite, 'siteYoutube' | 'siteNetflix' | 'siteRezka'> = {
+    youtube: 'siteYoutube',
+    netflix: 'siteNetflix',
+    rezka: 'siteRezka',
+};
+
+/** The pref key that switches a video site on or off. */
+export function sitePrefKey(site: VideoSite): 'siteYoutube' | 'siteNetflix' | 'siteRezka' {
+    return SITE_PREF[site];
+}
+
+/**
+ * Whether the content script should start on this site. Never throws: a
+ * storage failure resolves to the default (on), so a broken read cannot switch
+ * the extension off.
+ */
+export async function isSiteEnabled(site: VideoSite): Promise<boolean> {
+    return (await loadPrefs())[SITE_PREF[site]];
+}
 
 function isPrefs(value: unknown): value is Partial<StoredPrefs> {
     return typeof value === 'object' && value !== null;

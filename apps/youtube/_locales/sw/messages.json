@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Maneno uliyohifadhi huwekewa alama kwenye ukurasa wowote unaousoma. Ulinganishaji hufanyika kwenye kifaa chako; hakuna kinachotumwa.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Maliza usanidi",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Itatumika utakapofungua au kupakia upya ukurasa wakati ujao.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Tovuti za video",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

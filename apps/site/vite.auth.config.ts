@@ -20,6 +20,8 @@ export default defineConfig({
       input: {
         auth: path.resolve(__dirname, 'src/auth/entry.ts'),
         'auth-google': path.resolve(__dirname, 'src/auth/google.ts'),
+        // The setup steps on /welcome/ (src/welcome/steps.ts): ES module, same pass.
+        'welcome-steps': path.resolve(__dirname, 'src/welcome/steps.ts'),
       },
       output: {
         format: 'es',

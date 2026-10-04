@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "તમે સાચવેલા શબ્દો તમે વાંચો છો તે કોઈપણ પેજ પર ચિહ્નિત થાય છે. મેળ તમારા ઉપકરણ પર જ તપાસાય છે; કંઈ મોકલાતું નથી.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "સેટઅપ પૂર્ણ કરો",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "પેજ આગલી વાર ખોલશો અથવા રિલોડ કરશો ત્યારે લાગુ થશે.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "વીડિયો સાઇટ",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

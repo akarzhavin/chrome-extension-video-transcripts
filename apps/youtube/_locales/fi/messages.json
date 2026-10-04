@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "Tallentamasi sanat merkitään jokaisella lukemallasi sivulla. Vertailu tehdään laitteellasi, mitään ei lähetetä.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Viimeistele käyttöönotto",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Tulee voimaan, kun seuraavan kerran avaat sivun tai lataat sen uudelleen.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Videosivustot",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

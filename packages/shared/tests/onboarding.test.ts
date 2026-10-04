@@ -17,6 +17,7 @@ const tabsCreate = jest.fn(() => Promise.resolve({} as any));
         },
         OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
         setUninstallURL,
+        id: 'abcdefghijklmnopabcdefghijklmnop',
         getManifest: () => ({ version: '1.0.18' }),
     },
     tabs: { create: tabsCreate },
@@ -78,7 +79,7 @@ describe('welcome tab', () => {
         installOnboarding('rezka');
         fireInstalled({ reason: 'install' });
         expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=rezka`,
+            url: `${config.frontendBaseUrl}/welcome/?ext=rezka&id=abcdefghijklmnopabcdefghijklmnop`,
         });
     });
 
@@ -150,7 +151,7 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
         fireInstalled({ reason: 'install' });
         await settle();
         expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=youtube&cid=cid-abc`,
+            url: `${config.frontendBaseUrl}/welcome/?ext=youtube&id=abcdefghijklmnopabcdefghijklmnop&cid=cid-abc`,
         });
     });
 
@@ -167,7 +168,7 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
             `${config.frontendBaseUrl}/uninstall/?ext=rezka`,
         );
         expect(tabsCreate).toHaveBeenCalledWith({
-            url: `${config.frontendBaseUrl}/welcome/?ext=rezka`,
+            url: `${config.frontendBaseUrl}/welcome/?ext=rezka&id=abcdefghijklmnopabcdefghijklmnop`,
         });
     });
 

@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "تُميَّز الكلمات التي حفظتها في أي صفحة تقرؤها. تتم المطابقة على جهازك، ولا يُرسَل أي شيء.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "إنهاء الإعداد",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "يسري عند فتح الصفحة أو إعادة تحميلها في المرة القادمة.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "مواقع الفيديو",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

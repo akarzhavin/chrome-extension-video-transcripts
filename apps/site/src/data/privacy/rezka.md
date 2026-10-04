@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** October 1, 2026
+**Last updated:** October 3, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -300,10 +300,19 @@ Answers are cached briefly on your device so the same word is not asked twice.
 
 ### f. The welcome and farewell pages
 
-**When you install the Extension**, it opens a tab on our website — a short
-welcome page explaining how to start.
+**When you install the Extension**, it opens a welcome page on our website. If
+the Extension that opened it answers, the page shows three setup steps: choose your
+languages, create an account or sign in (optional; on that same page, with the
+email and password or Google sign-in described in Section 1b — the account is made
+on our website, and the Extension is then handed its own sign-in exactly as from the
+sign-in page), and start with a first video, with a switch for marking your
+words on web pages. The page passes your choices straight to the Extension inside
+your browser, which stores them on your device (Section 3); they are not sent to our
+servers. To show the steps, the page asks the Extension for its current settings
+and whether you are signed in (and with which email address). The page's
+address names the Extension so it can reach it.
 
-**When you uninstall it**, your browser opens a farewell page on the same website.
+**When you uninstall it**, your browser opens a farewell page on our website.
 This is registered with the browser in advance, so the browser opens it on its own;
 the Extension is already gone at that point and cannot decide otherwise.
 
@@ -314,8 +323,8 @@ unrelated stranger. If you have turned analytics off, the fixed placeholder
 opted out, which identifies no one. The farewell page is opened by the browser
 regardless of that setting; what changes is that it carries no identifier of yours.
 
-Both are ordinary visits to our website, and like any web request they reach our
-site with your IP address, which we do not store.
+Visits to our website are ordinary web requests and reach our site with your IP
+address, which we do not store.
 
 ### g. Feedback you send us
 
@@ -364,8 +373,10 @@ counting described here.
 The Extension uses your browser's extension storage (`chrome.storage`) to keep, on
 your device only:
 
-* your language and subtitle layout preferences, and whether your saved words are
-  marked on web pages;
+* your language and subtitle layout preferences, whether your saved words are
+  marked on web pages, and which video sites the Extension is switched on for;
+* how far you got on the setup page (Section 1f): whether you skipped signing in,
+  and whether you finished;
 * whether the other Lingogram edition is the one that shows the menu item and
   marks words (a yes/no from the check between editions in Section 1b), so that
   only one of them does;

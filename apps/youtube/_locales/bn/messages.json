@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "আপনার সংরক্ষিত শব্দগুলো আপনি যে কোনো পেজ পড়েন সেখানেই চিহ্নিত হয়। মিলিয়ে দেখা হয় আপনার ডিভাইসেই; কিছুই পাঠানো হয় না।",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "সেটআপ শেষ করুন",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "পরের বার পেজ খুললে বা রিলোড করলে কার্যকর হবে।",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "ভিডিও সাইট",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

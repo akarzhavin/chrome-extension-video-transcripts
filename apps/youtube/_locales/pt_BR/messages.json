@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "As palavras que você salvou são destacadas em qualquer página que você ler. A verificação acontece no seu dispositivo; nada é enviado.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "Concluir configuração",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "Vale na próxima vez que você abrir ou recarregar a página.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "Sites de vídeo",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

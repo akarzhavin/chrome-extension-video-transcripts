@@ -685,7 +685,7 @@ export function buildAllowedExternalOrigins(baseUrl: string): ReadonlySet<string
     return origins;
 }
 
-function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean {
+export function isAllowedExternalSender(sender: chrome.runtime.MessageSender): boolean {
     const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : undefined);
     if (!origin) return false;
     // Every frontend this build can be handed a token by, not just the side the
@@ -702,6 +702,8 @@ export function installExternalAuthHandoff(): void {
         // The other edition's menu ping has its own listener (context-menu-save.ts).
         // Answering it here would beat that listener to sendResponse with a refusal.
         if (isSiblingMessage(message)) return false;
+        // The welcome page on the site has its own listener (welcome/bridge.ts).
+        if ((message as { type?: unknown } | undefined)?.type === 'lingogram-welcome') return false;
         if (!isAllowedExternalSender(sender)) {
             sendResponse({ ok: false, error: 'unauthorized origin' });
             return false;

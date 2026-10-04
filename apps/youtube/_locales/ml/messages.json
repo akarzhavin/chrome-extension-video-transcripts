@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "നിങ്ങൾ സംരക്ഷിച്ച വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും അടയാളപ്പെടുത്തും. പൊരുത്തപ്പെടുത്തൽ നിങ്ങളുടെ ഉപകരണത്തിൽ തന്നെയാണ് നടക്കുന്നത്; ഒന്നും അയയ്ക്കുന്നില്ല.",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "സജ്ജീകരണം പൂർത്തിയാക്കുക",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "അടുത്ത തവണ പേജ് തുറക്കുമ്പോഴോ റീലോഡ് ചെയ്യുമ്പോഴോ ബാധകമാകും.",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "വീഡിയോ സൈറ്റുകൾ",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }

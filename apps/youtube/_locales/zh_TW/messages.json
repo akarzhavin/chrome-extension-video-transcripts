@@ -650,5 +650,17 @@
   "popupPageHighlightHint": {
     "message": "你儲存的單字會在你閱讀的任何網頁上被標出。比對在你的裝置上完成，不會傳送任何內容。",
     "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
+  },
+  "popupFinishSetup": {
+    "message": "完成設定",
+    "description": "Toolbar popup."
+  },
+  "popupSitesHint": {
+    "message": "下次開啟或重新載入頁面時生效。",
+    "description": "Toolbar popup."
+  },
+  "popupVideoSites": {
+    "message": "影片網站",
+    "description": "Toolbar popup: heading above the per-site on/off switches."
   }
 }
