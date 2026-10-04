@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** October 3, 2026
+**Last updated:** October 4, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -183,8 +183,7 @@ produces a new, unrelated identifier.
   saved, or you removed one;
 * `word_lookup` — the Extension asked our dictionary service about a word (Section
   1e). The event carries the shape of the answer, never the word;
-* `signin_started` — you began the sign-in flow, and from where (the toolbar popup
-  or the status badge);
+* `signin_started` — you began the sign-in flow, and from where (the toolbar popup, the status badge, or the right-click menu on a web page);
 * `gt_import_preview`, `gt_import_done` — you started an import from Google
   Translate (Section 1h) and it finished. They carry only counts (phrases found, new,
   already saved, removed earlier, skipped, added), never a word;
@@ -353,8 +352,11 @@ if it did.
 
 ### h. Importing your Google Translate saved phrases
 
-Only if you are signed in and press **Import from Google Translate** in the toolbar
-popup. The Extension then opens translate.google.com/saved in a background tab, reads
+Only if you are signed in and start it yourself: with **Import from Google Translate**
+in the toolbar popup, or with the Lingogram icon the Extension adds to the toolbar of
+the **Saved** panel on translate.google.com. To place that icon, the Extension looks
+only at the layout of the Google Translate page, never at its text, and sends nothing
+from it. When you start the import, the Extension opens translate.google.com/saved in a background tab, reads
 the list of phrases saved in the Google account you are signed in to there, and
 closes the tab. The list is read inside your browser; the page itself is not sent to
 us, and the Extension does nothing else with your Google account.
@@ -461,6 +463,11 @@ A **phrase you select** is sent to **Google Translate** (translate.googleapis.co
 and translate.google.com) directly from your browser, as described in Section 1e: the phrase and your
 language only, without cookies or any identifier of ours. Google handles those
 requests under its own Privacy Policy and terms.
+
+The import of Section 1h opens translate.google.com in a background tab. That is
+an ordinary visit to Google Translate in your browser, signed in to your Google
+account if you are, and Google handles it under its own Privacy Policy. Nothing
+from it reaches us except the new words you confirm.
 
 ## 5. Data Sharing and Sale
 
