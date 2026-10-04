@@ -763,9 +763,17 @@
     "message": "Готово",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Сначала войдите в Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Фраз для импорта: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Войдите — и они сохранятся в словаре Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Войти для импорта",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Сохранённых фраз не нашлось. Откройте translate.google.com, войдите в аккаунт Google и проверьте раздел «Сохраненное».",

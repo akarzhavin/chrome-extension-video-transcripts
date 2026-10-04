@@ -723,9 +723,17 @@
     "message": "Tamam",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Önce Lingogram'da oturum açın.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "İçe aktarılmaya hazır ifadeler: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Giriş yapın; ifadeler Lingogram kelime listesine eklensin.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "İçe aktarmak için giriş yapın",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Kayıtlı ifade bulunamadı. translate.google.com'u açın, Google hesabınızda oturum açın ve Kaydedilenler listesine bakın.",

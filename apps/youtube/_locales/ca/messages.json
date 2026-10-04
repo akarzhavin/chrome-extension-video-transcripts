@@ -723,9 +723,17 @@
     "message": "D'acord",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Primer inicia la sessió a Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Frases a punt per importar: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Inicia la sessió i passaran al teu vocabulari de Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Inicia la sessió per importar",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "No s'ha trobat cap frase desada. Obre translate.google.com, inicia la sessió al compte de Google i mira la llista de frases desades.",

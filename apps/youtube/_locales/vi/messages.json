@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Hãy đăng nhập Lingogram trước.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Cụm từ sẵn sàng nhập: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Đăng nhập để chúng được lưu vào từ vựng trong Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Đăng nhập để nhập",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Không tìm thấy cụm từ đã lưu nào. Hãy mở translate.google.com, đăng nhập tài khoản Google và kiểm tra danh sách Đã lưu.",

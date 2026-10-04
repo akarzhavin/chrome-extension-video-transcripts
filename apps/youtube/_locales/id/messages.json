@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Masuk ke Lingogram dulu.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Frasa siap diimpor: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Masuk, lalu frasa ini akan tersimpan di kosakata Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Masuk untuk mengimpor",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Tidak ada frasa tersimpan. Buka translate.google.com, masuk ke akun Google Anda, lalu periksa daftar Tersimpan.",

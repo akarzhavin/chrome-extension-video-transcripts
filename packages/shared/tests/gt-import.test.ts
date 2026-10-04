@@ -171,12 +171,23 @@ describe('runner', () => {
         await resetImport();
     });
 
-    test('signed out → error, the page is never opened', async () => {
+    test('signed out → the list is read first, so the card can say how many phrases wait', async () => {
         for (const k of Object.keys(local)) delete local[k];
+        pageResult = { via: 'data', pairs: [pair('en', 'one', 'ru', '1'), pair('en', 'two', 'ru', '2'), pair('ru', 'три', 'en', 'three')] };
         const s = await startImport();
         expect(s.phase).toBe('error');
         expect(s.error).toBe('not_signed_in');
-        expect((chrome.tabs.create as jest.Mock).mock.calls.length).toBe(0);
+        expect(s.found).toBe(3);
+        // Nothing of the account is touched without one.
+        expect(listInboxWords).not.toHaveBeenCalled();
+        expect(removedTabs).toEqual([7]);
+    });
+
+    test('signed out with no list on the page → the no-list error, not a sign-in', async () => {
+        for (const k of Object.keys(local)) delete local[k];
+        pageResult = { via: 'none', pairs: [] };
+        const s = await startImport();
+        expect(s.error).toBe('no_list');
     });
 
     test('preview counts come from the server list; the opened tab is closed', async () => {

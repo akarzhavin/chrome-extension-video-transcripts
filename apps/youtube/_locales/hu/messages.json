@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Előbb jelentkezzen be a Lingogram alkalmazásba.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Importálásra kész kifejezés: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Jelentkezz be, és bekerülnek a Lingogram szótáradba.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Jelentkezz be az importáláshoz",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Nem találtunk mentett kifejezéseket. Nyissa meg a translate.google.com oldalt, jelentkezzen be Google-fiókjába, és nézze meg a Mentett listát.",

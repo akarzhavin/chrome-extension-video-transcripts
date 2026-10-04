@@ -723,9 +723,17 @@
     "message": "Labi",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Vispirms pieraksties lietotnē Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Frāzes, ko var importēt: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Pierakstieties, un tās nonāks Lingogram vārdnīcā.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Pierakstīties importam",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Saglabātas frāzes nav atrastas. Atver translate.google.com, pieraksties savā Google kontā un pārbaudi sarakstu „Saglabātie“.",

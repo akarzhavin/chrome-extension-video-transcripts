@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Logg inn på Lingogram først.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Setninger klare for import: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Logg inn, så havner de i ordforrådet ditt i Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Logg inn for å importere",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Fant ingen lagrede setninger. Åpne translate.google.com, logg inn på Google-kontoen din og sjekk listen Lagret.",

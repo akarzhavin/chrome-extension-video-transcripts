@@ -17,7 +17,8 @@ let onChanged: ((c: Record<string, { newValue?: unknown }>, area: string) => voi
     i18n: { getMessage: () => '' },
 };
 
-import { renderGtImport } from '../src/popup/gt-import-view';
+import { paintImport, renderGtImport } from '../src/popup/gt-import-view';
+import type { ImportState } from '../src/gt-import/runner';
 
 const base = { toAdd: [], already: 0, removed: 0, skipped: 0, total: 0, done: 0, added: 0, existed: 0, refused: 0 };
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -86,4 +87,55 @@ test('daily limit: says how far it got', async () => {
     expect(root.querySelector('.error')!.textContent).toBe(
         'Daily limit reached. Saved 120 of 300; run the import again tomorrow for the rest.',
     );
+});
+
+/**
+ * Not signed in. The card used to say "Sign in to Lingogram first." in error
+ * red with an OK that only closed it: a dead end on translate.google.com, where
+ * the popup's sign-in button is out of sight. It now leads with what the
+ * learner came for, their phrases, and starts the sign-in itself. The card's
+ * own × closes it, so there is no OK.
+ */
+describe('not signed in', () => {
+    const signedOut = { ...base, phase: 'error', error: 'not_signed_in', found: 334 } as unknown as ImportState;
+    const paint = (s: ImportState): HTMLElement => {
+        const box = document.createElement('div');
+        paintImport(box, s);
+        return box;
+    };
+    const labels = (box: HTMLElement) => Array.from(box.querySelectorAll('button')).map((b) => b.textContent);
+
+    test('leads with the number of phrases waiting, then says why to sign in', () => {
+        const box = paint(signedOut);
+        const lines = Array.from(box.querySelectorAll('.gt-line')).map((d) => d.textContent);
+        expect(lines).toEqual(['Phrases ready to import: 334', 'Sign in to save them to your Lingogram vocabulary.']);
+    });
+
+    test('has one button, and it starts the sign-in flow', () => {
+        const box = paint(signedOut);
+        expect(labels(box)).toEqual(['Sign in to import']);
+        box.querySelector('button')!.click();
+        expect(sent).toContainEqual({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'gt_import' });
+    });
+
+    test('clears the refused import, so the next click starts a fresh one', () => {
+        paint(signedOut).querySelector('button')!.click();
+        expect(sent).toContainEqual({ action: 'GT_IMPORT_RESET' });
+    });
+
+    test('is not painted as an error', () => {
+        expect(paint(signedOut).querySelector('.error')).toBeNull();
+    });
+
+    test('without a count it still offers the sign-in', () => {
+        const box = paint({ ...signedOut, found: undefined } as unknown as ImportState);
+        expect(box.textContent).toContain('Sign in to save them to your Lingogram vocabulary.');
+        expect(labels(box)).toEqual(['Sign in to import']);
+    });
+
+    test('a real failure is still painted as an error, with OK only', () => {
+        const box = paint({ ...signedOut, error: 'write_failed' } as unknown as ImportState);
+        expect(box.querySelector('.error')).not.toBeNull();
+        expect(labels(box)).toEqual(['OK']);
+    });
 });

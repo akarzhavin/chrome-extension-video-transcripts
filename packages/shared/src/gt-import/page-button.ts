@@ -15,6 +15,7 @@
 // storage, so the card asks the worker for the state while it is open.
 
 import { msg as i18nMsg } from '../i18n';
+import { LOGO_DATA_URI } from './logo';
 import { paintImport } from '../popup/gt-import-view';
 import type { ImportState } from './runner';
 
@@ -54,7 +55,7 @@ const OVERLAY_CSS = `
   background: var(--accent); color: var(--accent-fg); box-shadow: 0 6px 20px rgba(28, 26, 58, .25);
 }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.dot { width: 18px; height: 18px; border-radius: 6px; background: linear-gradient(135deg, #2e2466, #0e8f80); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); flex: none; }
+.dot { width: 18px; height: 18px; border-radius: 5px; background: url("${LOGO_DATA_URI}") center / cover no-repeat; flex: none; }
 .panel {
   width: 300px; max-width: calc(100vw - 40px); box-sizing: border-box; padding: 14px 16px 16px;
   background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 14px;
@@ -67,6 +68,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lang-settings-title { display: none; }
 .gt-line, .toggle-hint { color: var(--muted); }
 .gt-strong { color: var(--fg); font-weight: 600; }
+.gt-big { font-size: 17px; line-height: 1.3; font-weight: 700; }
+.box > button.primary { width: 100%; }
 .error { color: var(--err); }
 .gt-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .gt-progress { width: 100%; accent-color: var(--accent); }

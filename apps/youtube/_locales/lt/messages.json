@@ -723,9 +723,17 @@
     "message": "Gerai",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Pirmiausia prisijunkite prie Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Frazių, paruoštų importuoti: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Prisijunkite – ir jos atsidurs Lingogram žodyne.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Prisijungti importavimui",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Išsaugotų frazių nerasta. Atidarykite translate.google.com, prisijunkite prie „Google“ paskyros ir patikrinkite sąrašą „Išsaugota“.",

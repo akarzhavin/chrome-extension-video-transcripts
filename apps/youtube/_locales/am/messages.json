@@ -723,9 +723,17 @@
     "message": "እሺ",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "መጀመሪያ ወደ Lingogram ይግቡ።",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "ለማስመጣት ዝግጁ የሆኑ ሐረጎች፦ {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "ይግቡ፣ ከዚያ በLingogram የቃላት ዝርዝር ውስጥ ይገባሉ።",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "ለማስመጣት ይግቡ",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "የተቀመጡ ሐረጎች አልተገኙም። translate.google.com ይክፈቱ፣ ወደ Google መለያዎ ይግቡ እና የተቀመጡ ዝርዝሩን ይመልከቱ።",

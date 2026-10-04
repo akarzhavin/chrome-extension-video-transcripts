@@ -723,9 +723,17 @@
     "message": "Sawa",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Ingia kwanza kwenye Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Misemo iliyo tayari kuingizwa: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Ingia, kisha itahifadhiwa kwenye msamiati wako wa Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Ingia ili kuingiza",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Hakuna misemo iliyohifadhiwa iliyopatikana. Fungua translate.google.com, ingia kwenye akaunti yako ya Google na uangalie orodha ya Vilivyohifadhiwa.",

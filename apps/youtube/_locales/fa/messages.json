@@ -723,9 +723,17 @@
     "message": "تأیید",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "ابتدا وارد Lingogram شوید.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "عبارت‌های آماده درون‌ریزی: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "وارد شوید تا در واژگان Lingogram ذخیره شوند.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "ورود برای درون‌ریزی",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "عبارت ذخیره‌شده‌ای پیدا نشد. translate.google.com را باز کنید، وارد حساب Google شوید و فهرست ذخیره‌شده‌ها را بررسی کنید.",

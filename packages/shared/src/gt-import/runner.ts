@@ -56,6 +56,8 @@ export interface ImportState {
     /** Refused by the rules twice, even after the one-second gap. */
     refused: number;
     error?: ImportError;
+    /** Phrases on the page, read before a signed-out learner is asked to sign in. */
+    found?: number;
 }
 
 const KEY = GT_IMPORT_KEYS.state;
@@ -121,11 +123,10 @@ export async function startImport(): Promise<ImportState> {
 
 async function prepare(): Promise<ImportState> {
     await devEnvReady();
-    if (!(await getAuthState())) {
-        const s = { ...blank('error'), error: 'not_signed_in' as const };
-        await save(s);
-        return s;
-    }
+    // Read before the sign-in check: the list is on Google's page and needs no
+    // Lingogram account, and a signed-out learner is asked to sign in with
+    // the number of their own phrases in front of them.
+    const signedIn = !!(await getAuthState());
     await save(blank('reading'));
 
     let read: ReadResult;
@@ -140,6 +141,11 @@ async function prepare(): Promise<ImportState> {
         const s = { ...blank('error'), error: 'no_list' as const };
         await save(s);
         void track('gt_import_preview', { found: 0 });
+        return s;
+    }
+    if (!signedIn) {
+        const s: ImportState = { ...blank('error'), error: 'not_signed_in', found: read.pairs.length };
+        await save(s);
         return s;
     }
 

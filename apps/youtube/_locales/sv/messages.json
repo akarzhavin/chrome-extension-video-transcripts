@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Logga in på Lingogram först.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Fraser redo att importeras: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Logga in, så hamnar de i ditt Lingogram-ordförråd.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Logga in för att importera",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Inga sparade fraser hittades. Öppna translate.google.com, logga in på ditt Google-konto och titta i listan Sparade.",

@@ -723,9 +723,17 @@
     "message": "V redu",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Najprej se prijavite v Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Fraz za uvoz: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Prijavite se in shranjene bodo v slovar v Lingogramu.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Prijava za uvoz",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Shranjenih fraz ni bilo mogoče najti. Odprite translate.google.com, se prijavite v svoj račun Google in preverite seznam Shranjeno.",

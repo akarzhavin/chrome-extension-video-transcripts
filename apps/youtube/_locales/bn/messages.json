@@ -723,9 +723,17 @@
     "message": "ঠিক আছে",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "আগে Lingogram-এ সাইন ইন করুন।",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "ইমপোর্টের জন্য প্রস্তুত বাক্যাংশ: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "সাইন ইন করুন, তাহলে এগুলো Lingogram-এর শব্দভান্ডারে জমা হবে।",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "ইমপোর্ট করতে সাইন ইন করুন",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "সংরক্ষিত কোনো বাক্যাংশ পাওয়া যায়নি। translate.google.com খুলুন, Google অ্যাকাউন্টে সাইন ইন করে সংরক্ষিত তালিকা দেখুন।",

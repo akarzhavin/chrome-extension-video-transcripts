@@ -723,9 +723,17 @@
     "message": "U redu",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Prvo se prijavite u Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Izraza spremnih za uvoz: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Prijavite se i spremit će se u rječnik u Lingogramu.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Prijava za uvoz",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Nema spremljenih izraza. Otvorite translate.google.com, prijavite se u svoj Google račun i provjerite popis spremljenih prijevoda.",
