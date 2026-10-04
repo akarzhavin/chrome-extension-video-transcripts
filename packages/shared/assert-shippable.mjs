@@ -321,6 +321,12 @@ const ALLOWED_INFRA_HOSTS = [
 // (infraMissing below), and a release without the lookup feature is shippable.
 const OPTIONAL_INFRA_HOSTS = [
     'https://api.lingogram.ai/*',
+    // Google's public web translator: a phrase selected in the transcript is
+    // translated there first (#95), and the import reads the learner's Saved
+    // list on translate.google.com (#99). Both are fixed production origins,
+    // the same in every build, so they are pinned here like the others.
+    'https://translate.google.com/*',
+    'https://translate.googleapis.com/*',
 ];
 
 // Content sites the extension reads subtitles on. Rezka ships ~250 entries, but

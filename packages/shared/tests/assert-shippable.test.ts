@@ -231,6 +231,30 @@ describe('assert-shippable', () => {
         });
     });
 
+    describe('host permissions', () => {
+        const withHosts = (...extra: string[]) => {
+            const m = healthyManifest();
+            m.host_permissions = [...(m.host_permissions as string[]), ...extra];
+            return m;
+        };
+
+        it("ships Google Translate's two origins (phrase translation, the import)", () => {
+            const { code, output } = runGate(
+                makeBuild({ manifest: withHosts('https://translate.google.com/*', 'https://translate.googleapis.com/*') }),
+            );
+            expect(output).toBe('');
+            expect(code).toBe(0);
+        });
+
+        it('still refuses an origin that only looks like them', () => {
+            const { code, output } = runGate(
+                makeBuild({ manifest: withHosts('https://translate.google.com.example.net/*') }),
+            );
+            expect(code).toBe(1);
+            expect(output).toContain('non-production or unknown origins: https://translate.google.com.example.net/*');
+        });
+    });
+
     describe('pre-existing rules still bite', () => {
         it('refuses a dev backend switch', () => {
             const { code, output } = runGate(
