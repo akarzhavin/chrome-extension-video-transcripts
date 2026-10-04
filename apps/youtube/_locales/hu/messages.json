@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Videós oldalak",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Fordító",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Vigye át a Lingogram alkalmazásba a Google Fordítóban mentett kifejezéseit.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importálás a Google Fordítóból",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "A Google Fordító listájának beolvasása…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Hozzáadandó új szavak: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Már a listán van: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Korábban törölve, nem kerülnek vissza: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Kihagyva (más nyelv vagy túl hosszú): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Szavak hozzáadása: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Mégse",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Mentés: {done} / {total}. Az ablak bezárható.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Hozzáadott szavak: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Közben már mentve volt: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Nem sikerült menteni: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Előbb jelentkezzen be a Lingogram alkalmazásba.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Nem találtunk mentett kifejezéseket. Nyissa meg a translate.google.com oldalt, jelentkezzen be Google-fiókjába, és nézze meg a Mentett listát.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Elérte a napi korlátot. {done} / {total} mentve, a többit holnap adhatja hozzá.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Hiba történt. {done} / {total} mentve. Próbálja újra.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importálás a Lingogram alkalmazásba",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Elrejtés",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

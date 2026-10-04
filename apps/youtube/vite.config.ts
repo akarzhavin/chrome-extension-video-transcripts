@@ -184,6 +184,7 @@ export default defineConfig(({ command, mode }) => {
     const isPageScript = mode === 'page-script';
     const isPopup = mode === 'popup';
     const isHighlight = mode === 'highlight';
+    const isGtButton = mode === 'gt-button';
 
     return {
       ...commonConfig,
@@ -195,6 +196,8 @@ export default defineConfig(({ command, mode }) => {
         lib: {
           entry: isBackground
             ? resolve(__dirname, 'src/background/background.ts')
+            : isGtButton
+              ? resolve(__dirname, 'src/content/gt-button.ts')
             : isContent
               ? resolve(__dirname, 'src/content/index.ts')
               : isPopup
@@ -203,9 +206,10 @@ export default defineConfig(({ command, mode }) => {
                 ? resolve(__dirname, 'src/content/page-highlight.ts')
                 : resolve(__dirname, 'src/content/page-script.ts'),
           formats: [isBackground ? 'es' : 'iife'],
-          name: isContent ? 'YtVttContent' : isHighlight ? 'LgPageHighlight' : isPageScript ? 'YtPageScript' : isPopup ? 'YtPopup' : undefined,
+          name: isGtButton ? 'LgGtButton' : isContent ? 'YtVttContent' : isHighlight ? 'LgPageHighlight' : isPageScript ? 'YtPageScript' : isPopup ? 'YtPopup' : undefined,
           fileName: () => {
             if (isBackground) return 'src/background/background.js';
+            if (isGtButton) return 'src/content/gt-button.js';
             if (isContent) return 'src/content/index.js';
             if (isPopup) return 'src/popup/popup.js';
             if (isHighlight) return 'src/content/page-highlight.js';

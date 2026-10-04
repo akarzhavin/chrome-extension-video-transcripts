@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Videosites",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Oversæt",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Hent de sætninger, du har gemt i Google Oversæt, over i Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importér fra Google Oversæt",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Læser din liste fra Google Oversæt…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Nye ord at tilføje: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Allerede på din liste: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Slettet tidligere, kommer ikke tilbage: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Sprunget over (andre sprog eller for lange): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Tilføj ord: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Annuller",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Gemmer {done} af {total}. Du kan lukke vinduet.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Tilføjede ord: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Allerede gemt undervejs: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Kunne ikke gemmes: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Log ind på Lingogram først.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Ingen gemte sætninger fundet. Åbn translate.google.com, log ind på din Google-konto, og tjek listen over gemte oversættelser.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Dagens grænse er nået. {done} af {total} er gemt – resten kan du tilføje i morgen ved at importere igen.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Noget gik galt. {done} af {total} er gemt. Prøv igen.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importér til Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Skjul",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "વીડિયો સાઇટ",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google અનુવાદ",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google અનુવાદમાં સાચવેલા શબ્દસમૂહો Lingogram માં લાવો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google અનુવાદમાંથી આયાત કરો",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "તમારી Google અનુવાદ યાદી વાંચી રહ્યા છીએ…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "ઉમેરવાના નવા શબ્દો: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "તમારી યાદીમાં પહેલેથી છે: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "પહેલાં કાઢી નાખેલા, પાછા નહીં ઉમેરાય: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "છોડી દીધેલા (અન્ય ભાષાઓ અથવા બહુ લાંબા): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "શબ્દો ઉમેરો: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "રદ કરો",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total} માંથી {done} સાચવી રહ્યા છીએ. તમે આ વિન્ડો બંધ કરી શકો છો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "ઉમેરાયેલા શબ્દો: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "દરમિયાન સાચવાઈ ગયેલા: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "સાચવી ન શકાયા: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "ઠીક છે",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "પહેલાં Lingogram માં સાઇન ઇન કરો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "કોઈ સાચવેલા શબ્દસમૂહો મળ્યા નથી. translate.google.com ખોલો, તમારા Google એકાઉન્ટમાં સાઇન ઇન કરો અને સાચવેલી યાદી તપાસો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "આજની મર્યાદા પૂરી થઈ. {total} માંથી {done} સાચવાયા; બાકીના આવતીકાલે ફરી આયાત ચલાવીને ઉમેરી શકો છો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "કંઈક ખોટું થયું. {total} માંથી {done} સાચવાયા. ફરી પ્રયાસ કરો.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram માં આયાત કરો",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "છુપાવો",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Video vietnes",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google tulkotājs",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Pārnes uz Lingogram frāzes, ko saglabāji Google tulkotājā.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Importēt no Google tulkotāja",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Lasām tavu Google tulkotāja sarakstu…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Jauni vārdi pievienošanai: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Jau ir tavā sarakstā: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Agrāk izdzēsti, neatgriezīsim: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Izlaisti (citas valodas vai pārāk gari): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Pievienot vārdus: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Atcelt",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Saglabā {done} no {total}. Šo logu vari aizvērt.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Pievienotie vārdi: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Pa to laiku jau saglabāti: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Neizdevās saglabāt: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "Labi",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Vispirms pieraksties lietotnē Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Saglabātas frāzes nav atrastas. Atver translate.google.com, pieraksties savā Google kontā un pārbaudi sarakstu „Saglabātie“.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Dienas limits sasniegts. Saglabāti {done} no {total}, pārējos vari pievienot rīt.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Kaut kas nogāja greizi. Saglabāti {done} no {total}. Mēģini vēlreiz.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Importēt lietotnē Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Paslēpt",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -36,6 +36,13 @@ export const WORD_KEYS = {
     mirror: 'words.v1',
 } as const;
 
+// The Google Translate import in progress. Read/written only by
+// ../gt-import/runner.ts, in chrome.storage.SESSION: it holds the terms about
+// to be saved and the progress counts, and is gone with the browser session.
+export const GT_IMPORT_KEYS = {
+    state: 'gtImport.v1',
+} as const;
+
 // Remote-notification storage keys. Read/written only by ../notifications.ts;
 // declared here so this file stays the single inventory the privacy policy's
 // "Local Storage" section documents. All four are extension-authored content

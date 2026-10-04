@@ -11,6 +11,7 @@ import {
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
 import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
+import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
@@ -30,6 +31,9 @@ installAuthBackground();
 // The setup steps on lingogram.ai/welcome/ read and write through this.
 installWelcomeBridge({ edition: 'youtube' });
 installContextMenuSave();
+// Relative: runner.ts imports analytics-bg (the GA4 secret), which stays out
+// of the package barrel that content scripts pull in.
+installGtImport();
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can

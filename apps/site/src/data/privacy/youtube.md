@@ -4,7 +4,7 @@ Covers the **Lingogram: Dual Subtitles & Transcript for YouTube** extension, whi
 works on both YouTube and Netflix.
 
 **Effective date:** June 22, 2026
-**Last updated:** October 3, 2026
+**Last updated:** October 4, 2026
 
 This Privacy Policy explains what information the Extension collects, how it is used,
 where it is stored, and the choices you have. It applies to the Extension on both
@@ -79,7 +79,8 @@ collect and process:
 * **Account data** — your **email address** and a Firebase-generated user ID. These
   identify your account and associate your saved words with you.
 * **Saved vocabulary** — only the items you explicitly choose to save, while watching
-  or from the right-click menu on any website.
+  or from the right-click menu on any website, or import from Google Translate
+  (Section 1h).
   For each saved item we store:
   * the **word or phrase** you selected, both as you selected it and in a
     normalized form (trimmed, lower-cased) that lets your devices agree it is the
@@ -171,7 +172,7 @@ key that could join your analytics events to your account — the separation is
 structural, not just a promise. Clearing the Extension's storage or reinstalling
 produces a new, unrelated identifier.
 
-**The events we send** (22 in total):
+**The events we send** (24 in total):
 
 * `extension_installed`, `extension_updated` — the Extension was installed or
   updated;
@@ -190,8 +191,11 @@ produces a new, unrelated identifier.
   saved, or you removed one;
 * `word_lookup` — the Extension asked our dictionary service about a word (Section
   1e). The event carries the shape of the answer, never the word;
-* `signin_started` — you began the sign-in flow, and from where (the toolbar popup
-  or the status badge);
+* `signin_started` — you began the sign-in flow, and from where (the toolbar popup, the status badge, the menu in the YouTube player, or the
+  right-click menu on a web page);
+* `gt_import_preview`, `gt_import_done` — you started an import from Google
+  Translate (Section 1h) and it finished. They carry only counts (phrases found, new,
+  already saved, removed earlier, skipped, added), never a word;
 * `analytics_opt_out` — you turned this analytics off (sent once, so we know how
   many people opt out);
 * `notification_fetch_failed` — the Extension could not reach our service-status
@@ -355,6 +359,25 @@ Sending is capped at a fixed number of messages per day across all users
 (currently 500), so a message can occasionally fail to send; the screen tells you
 if it did.
 
+### h. Importing your Google Translate saved phrases
+
+Only if you are signed in and start it yourself: with **Import from Google Translate**
+in the toolbar popup, or with the Lingogram icon the Extension adds to the toolbar of
+the **Saved** panel on translate.google.com. To place that icon, the Extension looks
+only at the layout of the Google Translate page, never at its text, and sends nothing
+from it. When you start the import, the Extension opens translate.google.com/saved in a background tab, reads
+the list of phrases saved in the Google account you are signed in to there, and
+closes the tab. The list is read inside your browser; the page itself is not sent to
+us, and the Extension does nothing else with your Google account.
+
+From each saved pair the Extension keeps only the side in the language you are
+learning, compares those words with your Lingogram list, and shows how many are new
+before anything is saved. When you confirm, each new word is saved exactly like a
+word you save while watching (Section 1b), without subtitle context. Google's
+translations, the other side of each pair, and phrases in other languages are not
+saved or sent anywhere. Words you removed from Lingogram earlier are not brought
+back.
+
 ## 2. How We Use Your Information
 
 We use the information above **only** to:
@@ -399,6 +422,9 @@ your device only:
 * if you are signed in: your authentication tokens, your email address, and your
   user ID (so you stay signed in), and a short-lived sign-in nonce in session
   storage;
+* while an import from Google Translate is running: the words about to be saved
+  and the progress, in session storage. It is removed when you close the import's
+  result, and with the browser session;
 * if you are signed in: a **local list of the words you have saved** — each word
   in its normalized form, whether it is currently saved or has been removed, and a
   marker of how far the list has been synced. It exists so the Extension can mark
@@ -451,6 +477,11 @@ A **phrase you select** is sent to **Google Translate** (translate.googleapis.co
 and translate.google.com) directly from your browser, as described in Section 1e: the phrase and your
 language only, without cookies or any identifier of ours. Google handles those
 requests under its own Privacy Policy and terms.
+
+The import of Section 1h opens translate.google.com in a background tab. That is
+an ordinary visit to Google Translate in your browser, signed in to your Google
+account if you are, and Google handles it under its own Privacy Policy. Nothing
+from it reaches us except the new words you confirm.
 
 ## 5. Data Sharing and Sale
 

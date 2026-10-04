@@ -2,12 +2,13 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * The interface is translated into 54 languages; the word card is not.
+ * The interface is translated into 54 languages; the word card's parts of
+ * speech are not.
  *
- * 51 of those locales are missing exactly the 18 pieces of text that make up
- * the word card, so a reader in one of them gets a fully translated sidebar and
- * then drops into English on the product's central learning surface, with no
- * error and nothing to indicate it.
+ * The card's own texts (loading, error, save, sources) were translated
+ * everywhere in 1.0.23. What is left: 51 locales miss exactly the ten
+ * part-of-speech labels the card can show, so a reader in one of them sees
+ * "noun" or "verb" in English on an otherwise translated card.
  *
  * This pins the gap rather than fixing it — the fix is a product decision. What
  * the test buys is that the gap cannot change size unnoticed, in either
@@ -20,23 +21,11 @@ import { join } from 'node:path';
 
 const LOCALES_DIR = join(__dirname, '..', '_locales');
 
-/** The three locales the word card is translated into. */
+/** The three locales the parts of speech are translated into. */
 const COMPLETE = ['en', 'ru', 'uk'];
 
-/**
- * The word card's own text: its loading and error states, its save control, the
- * two source labels, and the ten parts of speech it can name.
- */
+/** The ten parts of speech the word card can name. */
 const WORD_CARD_KEYS = [
-    'ytLookupError',
-    'ytLookupLoading',
-    'ytLookupMore',
-    'ytLookupNone',
-    'ytLookupRemove',
-    'ytLookupSave',
-    'ytLookupSaved',
-    'ytLookupSrcAi',
-    'ytLookupSrcDict',
     'ytPosAdj',
     'ytPosAdv',
     'ytPosConj',
@@ -86,7 +75,7 @@ describe('word-card translation coverage', () => {
         for (const locale of localeNames()) {
             if (COMPLETE.includes(locale)) continue;
             const present = WORD_CARD_KEYS.filter((k) => keysOf(locale).has(k));
-            // All 18 or none. A locale with some of them would mean a
+            // All ten or none. A locale with some of them would mean a
             // half-translated card, which is worse than a consistently English
             // one and would not show up in a plain count of missing keys.
             if (present.length !== 0) partial[locale] = present.length;
@@ -95,12 +84,12 @@ describe('word-card translation coverage', () => {
         expect(partial).toEqual({});
     });
 
-    test('the gap is 18 keys across 51 locales', () => {
+    test('the gap is ten keys across 51 locales', () => {
         const all = localeNames();
         expect(all.length).toBe(54);
         expect(all.length - COMPLETE.length).toBe(51);
         // The list itself is this file's literal, so its length compared
-        // with 18 proved nothing (Principle VII); the three checks above are
-        // where the 18 keys are load-bearing.
+        // with ten proved nothing (Principle VII); the three checks above are
+        // where the ten keys are load-bearing.
     });
 });

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "Tovuti za video",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Tafsiri",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Leta kwenye Lingogram misemo uliyohifadhi kwenye Google Tafsiri.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Ingiza kutoka Google Tafsiri",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Inasoma orodha yako ya Google Tafsiri…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "Maneno mapya ya kuongeza: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "Tayari yako kwenye orodha yako: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "Yalifutwa awali, hayarudishwi: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "Yaliyorukwa (lugha nyingine au marefu mno): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "Ongeza maneno: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "Ghairi",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "Inahifadhi {done} kati ya {total}. Unaweza kufunga dirisha hili.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "Maneno yaliyoongezwa: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "Yalikuwa yamehifadhiwa tayari: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "Hayakuweza kuhifadhiwa: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "Sawa",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "Ingia kwanza kwenye Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "Hakuna misemo iliyohifadhiwa iliyopatikana. Fungua translate.google.com, ingia kwenye akaunti yako ya Google na uangalie orodha ya Vilivyohifadhiwa.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "Kikomo cha leo kimefikiwa. {done} kati ya {total} vimehifadhiwa; vilivyobaki unaweza kuviongeza kesho.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "Hitilafu imetokea. {done} kati ya {total} vimehifadhiwa. Jaribu tena.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Ingiza kwenye Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "Ficha",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

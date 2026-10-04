@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "動画サイト",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google 翻訳",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google 翻訳に保存したフレーズを Lingogram に取り込めます。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google 翻訳からインポート",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "Google 翻訳のリストを読み込んでいます…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "追加する新しい単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "すでにリストにある単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "以前に削除したため再追加しない単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "スキップ (他の言語、または長すぎるもの): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "単語を追加: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "キャンセル",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total} 件中 {done} 件を保存中です。このウィンドウは閉じても大丈夫です。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "追加した単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "取り込み中に保存済みになった単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "保存できなかった単語: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "OK",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "先に Lingogram にログインしてください。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "保存済みのフレーズが見つかりません。translate.google.com を開き、Google アカウントにログインして「保存済み」を確認してください。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "1 日の上限に達しました。{total} 件中 {done} 件を保存しました。残りは明日もう一度インポートすると追加できます。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "問題が発生しました。{total} 件中 {done} 件を保存しました。もう一度お試しください。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram にインポート",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "隠す",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

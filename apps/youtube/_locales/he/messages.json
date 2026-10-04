@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "אתרי וידאו",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google Translate",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "אפשר להעביר ל-Lingogram את הביטויים השמורים שלך ב-Google Translate.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "ייבוא מ-Google Translate",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "קריאת הרשימה שלך ב-Google Translate…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "מילים חדשות להוספה: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "כבר ברשימה שלך: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "נמחקו בעבר ולא יוחזרו: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "דולגו (שפות אחרות או ארוכים מדי): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "הוספת מילים: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "ביטול",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "שמירה: {done} מתוך {total}. אפשר לסגור את החלון.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "מילים שנוספו: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "כבר נשמרו בינתיים: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "לא נשמרו: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "אישור",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "קודם צריך להתחבר ל-Lingogram.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "לא נמצאו ביטויים שמורים. אפשר לפתוח את translate.google.com, להתחבר לחשבון Google ולבדוק את הרשימה ״שמורים״.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "הגעת למגבלה היומית. נשמרו {done} מתוך {total}, ואת השאר אפשר להוסיף מחר.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "משהו השתבש. נשמרו {done} מתוך {total}. אפשר לנסות שוב.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "ייבוא ל-Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "הסתרה",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

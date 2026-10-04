@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "视频网站",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google 翻译",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "把你在 Google 翻译中保存的短语带进 Lingogram。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "从 Google 翻译导入",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "正在读取你的 Google 翻译列表…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "将添加的新单词：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "已在你的列表中：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "之前删除过，不会再加回：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "已跳过（其他语言或过长）：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "添加单词：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "取消",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "正在保存 {done}/{total}，可以关闭此窗口。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "已添加的单词：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "导入期间已被保存：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "未能保存：{n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "好的",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "请先登录 Lingogram。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "没有找到已保存的短语。请打开 translate.google.com，登录 Google 账号，查看“已保存”列表。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "已达到今日上限。已保存 {done}/{total}，其余的明天再次导入即可。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "出了点问题。已保存 {done}/{total}。请重试。",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "导入到 Lingogram",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "隐藏",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

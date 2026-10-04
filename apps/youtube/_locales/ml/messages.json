@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "വീഡിയോ സൈറ്റുകൾ",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google വിവർത്തനം",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google വിവർത്തനത്തിൽ സേവ് ചെയ്ത പദപ്രയോഗങ്ങൾ Lingogram-ലേക്ക് കൊണ്ടുവരൂ.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google വിവർത്തനത്തിൽ നിന്ന് ഇറക്കുമതി ചെയ്യുക",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "നിങ്ങളുടെ Google വിവർത്തന ലിസ്റ്റ് വായിക്കുന്നു…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "ചേർക്കാനുള്ള പുതിയ വാക്കുകൾ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "നിങ്ങളുടെ ലിസ്റ്റിൽ ഇതിനകം ഉള്ളവ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "നേരത്തേ നീക്കം ചെയ്തവ, തിരികെ ചേർക്കില്ല: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "ഒഴിവാക്കിയവ (മറ്റ് ഭാഷകൾ അല്ലെങ്കിൽ വളരെ നീളമുള്ളവ): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "വാക്കുകൾ ചേർക്കുക: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "റദ്ദാക്കുക",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total}-ൽ {done} സേവ് ചെയ്യുന്നു. ഈ വിൻഡോ അടയ്ക്കാം.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "ചേർത്ത വാക്കുകൾ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "ഇതിനിടെ സേവ് ആയവ: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "സേവ് ചെയ്യാനായില്ല: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "ശരി",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "ആദ്യം Lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "സേവ് ചെയ്ത പദപ്രയോഗങ്ങൾ കണ്ടെത്തിയില്ല. translate.google.com തുറന്ന് Google അക്കൗണ്ടിൽ സൈൻ ഇൻ ചെയ്ത് സേവ് ചെയ്തവയുടെ ലിസ്റ്റ് പരിശോധിക്കുക.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "ഇന്നത്തെ പരിധി എത്തി. {total}-ൽ {done} സേവ് ചെയ്തു; ബാക്കിയുള്ളവ നാളെ വീണ്ടും ഇറക്കുമതി ചെയ്ത് ചേർക്കാം.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "എന്തോ പിശക് സംഭവിച്ചു. {total}-ൽ {done} സേവ് ചെയ്തു. വീണ്ടും ശ്രമിക്കുക.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram-ലേക്ക് ഇറക്കുമതി ചെയ്യുക",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "മറയ്ക്കുക",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

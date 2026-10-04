@@ -436,7 +436,10 @@ export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput)
 export async function addInboxWord(
     cfg: AuthConfig,
     input: AddInboxWordInput,
-    opts: { reactivate?: boolean; diag?: WorkerDiag } = {},
+    // `createOnly` (the Google Translate import): a refused create is NOT
+    // retried as a re-activation. The import must never bring back a word the
+    // learner removed, and the re-activation form is exactly that.
+    opts: { reactivate?: boolean; createOnly?: boolean; diag?: WorkerDiag } = {},
 ): Promise<AddInboxWordResult> {
     const diag = opts.diag;
     const termBytes = utf8Bytes(input.term);
@@ -532,7 +535,11 @@ export async function addInboxWord(
     // permission table says only "refused", naming no code, which is how a
     // 403-only reading passed review and then failed on the first live save of
     // an already-saved word.
-    if (!res.ok && (res.status === 403 || res.status === 409) && !opts.reactivate) {
+    if (!res.ok && res.status === 409 && opts.createOnly) {
+        // The precondition, not the rules: the word already has a document.
+        throw new Error(`Firestore exists ${res.status}`);
+    }
+    if (!res.ok && (res.status === 403 || res.status === 409) && !opts.reactivate && !opts.createOnly) {
         const retry = buildWrites(cfg, state.uid, input, sentinel, true);
         t = Date.now();
         res = await fetch(commitUrl, {

@@ -662,5 +662,89 @@
   "popupVideoSites": {
     "message": "వీడియో సైట్‌లు",
     "description": "Toolbar popup: heading above the per-site on/off switches."
+  },
+  "gtImportTitle": {
+    "message": "Google అనువాదం",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportHint": {
+    "message": "Google అనువాదంలో సేవ్ చేసిన పదబంధాలను Lingogram లోకి తీసుకురండి.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportStart": {
+    "message": "Google అనువాదం నుండి దిగుమతి చేయండి",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportReading": {
+    "message": "మీ Google అనువాదం జాబితాను చదువుతోంది…",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportToAdd": {
+    "message": "చేర్చబోయే కొత్త పదాలు: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportAlready": {
+    "message": "ఇప్పటికే మీ జాబితాలో ఉన్నవి: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRemoved": {
+    "message": "ముందే తొలగించినవి, తిరిగి చేర్చం: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportSkipped": {
+    "message": "దాటవేసినవి (ఇతర భాషలు లేదా మరీ పొడవైనవి): {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportConfirm": {
+    "message": "పదాలను చేర్చండి: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportCancel": {
+    "message": "రద్దు చేయండి",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportProgress": {
+    "message": "{total} లో {done} సేవ్ అవుతున్నాయి. మీరు ఈ విండోను మూసివేయవచ్చు.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportDone": {
+    "message": "చేర్చిన పదాలు: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportExisted": {
+    "message": "ఈలోగా ఇప్పటికే సేవ్ అయినవి: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportRefused": {
+    "message": "సేవ్ చేయలేకపోయినవి: {n}",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportClose": {
+    "message": "సరే",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrSignIn": {
+    "message": "ముందుగా Lingogram లో సైన్ ఇన్ చేయండి.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrNoList": {
+    "message": "సేవ్ చేసిన పదబంధాలు కనిపించలేదు. translate.google.com తెరిచి, మీ Google ఖాతాలో సైన్ ఇన్ చేసి, సేవ్ చేసిన వాటి జాబితాను చూడండి.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrDaily": {
+    "message": "ఈ రోజు పరిమితి చేరుకుంది. {total} లో {done} సేవ్ అయ్యాయి; మిగతావి రేపు మళ్లీ దిగుమతి చేసి చేర్చవచ్చు.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportErrGeneric": {
+    "message": "ఏదో తప్పు జరిగింది. {total} లో {done} సేవ్ అయ్యాయి. మళ్లీ ప్రయత్నించండి.",
+    "description": "Popup: Google Translate import block."
+  },
+  "gtImportPageButton": {
+    "message": "Lingogram లోకి దిగుమతి చేయండి",
+    "description": "Button on translate.google.com that starts importing the saved phrases into Lingogram."
+  },
+  "gtImportHide": {
+    "message": "దాచండి",
+    "description": "Hides the import panel on translate.google.com; the import goes on."
   }
 }

@@ -299,14 +299,24 @@ export async function syncWords(): Promise<SyncResult> {
     return inFlight;
 }
 
+/**
+ * A dev build's chosen backend, restored once per worker. Every path that
+ * talks to Firebase awaits it: a worker woken by a message that is not an auth
+ * one (the Google Translate import, say) would otherwise run on the build's
+ * default target, the local emulators, until some auth message came along.
+ * Nothing in a release build.
+ */
+export function devEnvReady(): Promise<void> {
+    if (__EXT_ENV__ !== 'dev') return Promise.resolve();
+    envRestored ??= restoreEnv();
+    return envRestored;
+}
+
 export async function handleAuthMessage(
     request: AuthMessage,
     sender?: chrome.runtime.MessageSender,
 ): Promise<unknown> {
-    if (__EXT_ENV__ === 'dev') {
-        envRestored ??= restoreEnv();
-        await envRestored;
-    }
+    await devEnvReady();
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();
