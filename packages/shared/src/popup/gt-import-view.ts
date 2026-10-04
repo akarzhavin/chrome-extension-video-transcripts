@@ -43,8 +43,6 @@ function line(text: string, cls = 'gt-line'): HTMLElement {
 
 function errorText(s: ImportState): string {
     switch (s.error) {
-        case 'not_signed_in':
-            return t('gtImportErrSignIn', 'Sign in to Lingogram first.');
         case 'no_list':
             return t(
                 'gtImportErrNoList',
@@ -120,6 +118,26 @@ export function paintImport(box: HTMLElement, s: ImportState | null): void {
             return;
         }
         case 'error':
+            if (s.error === 'not_signed_in') {
+                // Not a failure: the learner has not signed in yet. The card
+                // leads with their phrases and starts the sign-in itself (on
+                // Google Translate the popup's button is out of sight). The
+                // refused import is cleared, so the next click on the icon
+                // starts a fresh one. No OK: the card's own × closes it.
+                if (s.found) {
+                    box.appendChild(line(t('gtImportFound', 'Phrases ready to import: {n}', { n: s.found }), 'gt-line gt-strong gt-big'));
+                }
+                box.appendChild(line(t('gtImportSignInWhy', 'Sign in to save them to your Lingogram vocabulary.')));
+                box.appendChild(
+                    button(t('gtImportSignIn', 'Sign in to import'), 'primary', () => {
+                        void send('GT_IMPORT_RESET');
+                        chrome.runtime.sendMessage({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'gt_import' }, () => {
+                            void chrome.runtime.lastError;
+                        });
+                    }),
+                );
+                return;
+            }
             box.appendChild(line(errorText(s), 'error'));
             box.appendChild(button(t('gtImportClose', 'OK'), 'secondary', () => void send('GT_IMPORT_RESET')));
             return;

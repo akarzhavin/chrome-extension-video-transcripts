@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Logi esmalt rakendusse Lingogram sisse.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Imporditavaid fraase: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Logi sisse, siis lisatakse need Lingogrami sõnavarasse.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Logi sisse importimiseks",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Salvestatud fraase ei leitud. Ava translate.google.com, logi oma Google'i kontole sisse ja vaata salvestatud fraaside nimekirja.",

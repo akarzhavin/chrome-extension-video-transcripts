@@ -723,9 +723,17 @@
     "message": "ಸರಿ",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "ಮೊದಲು Lingogram ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "ಆಮದಿಗೆ ಸಿದ್ಧ ನುಡಿಗಟ್ಟುಗಳು: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ, ಆಗ ಅವು Lingogram ಪದಸಂಗ್ರಹಕ್ಕೆ ಸೇರುತ್ತವೆ.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "ಆಮದು ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "ಉಳಿಸಿದ ನುಡಿಗಟ್ಟುಗಳು ಕಂಡುಬಂದಿಲ್ಲ. translate.google.com ತೆರೆಯಿರಿ, ನಿಮ್ಮ Google ಖಾತೆಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು ಉಳಿಸಿದ ಪಟ್ಟಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.",

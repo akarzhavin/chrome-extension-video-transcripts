@@ -723,9 +723,17 @@
     "message": "சரி",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "முதலில் Lingogram-இல் உள்நுழையுங்கள்.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "இறக்குமதிக்குத் தயாரான சொற்றொடர்கள்: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "உள்நுழையவும், அவை Lingogram சொற்களஞ்சியத்தில் சேர்ந்துவிடும்.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "இறக்குமதி செய்ய உள்நுழையவும்",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "சேமித்த சொற்றொடர்கள் எதுவும் கிடைக்கவில்லை. translate.google.com ஐத் திறந்து, உங்கள் Google கணக்கில் உள்நுழைந்து, சேமித்தவை பட்டியலைச் சரிபாருங்கள்.",

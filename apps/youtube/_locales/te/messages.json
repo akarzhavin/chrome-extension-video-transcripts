@@ -723,9 +723,17 @@
     "message": "సరే",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "ముందుగా Lingogram లో సైన్ ఇన్ చేయండి.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "దిగుమతికి సిద్ధంగా ఉన్న పదబంధాలు: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "సైన్ ఇన్ చేయండి, అవి Lingogram పదజాలంలో చేరిపోతాయి.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "దిగుమతి చేయడానికి సైన్ ఇన్ చేయండి",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "సేవ్ చేసిన పదబంధాలు కనిపించలేదు. translate.google.com తెరిచి, మీ Google ఖాతాలో సైన్ ఇన్ చేసి, సేవ్ చేసిన వాటి జాబితాను చూడండి.",

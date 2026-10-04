@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "先に Lingogram にログインしてください。",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "インポートできるフレーズ: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "ログインすると、Lingogram の単語帳に保存されます。",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "インポートするにはログイン",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "保存済みのフレーズが見つかりません。translate.google.com を開き、Google アカウントにログインして「保存済み」を確認してください。",

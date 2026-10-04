@@ -723,9 +723,17 @@
     "message": "ശരി",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "ആദ്യം Lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "ഇറക്കുമതിക്ക് തയ്യാറായ പദപ്രയോഗങ്ങൾ: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "സൈൻ ഇൻ ചെയ്യൂ, അവ Lingogram-ലെ പദാവലിയിൽ ചേരും.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "ഇറക്കുമതി ചെയ്യാൻ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "സേവ് ചെയ്ത പദപ്രയോഗങ്ങൾ കണ്ടെത്തിയില്ല. translate.google.com തുറന്ന് Google അക്കൗണ്ടിൽ സൈൻ ഇൻ ചെയ്ത് സേവ് ചെയ്തവയുടെ ലിസ്റ്റ് പരിശോധിക്കുക.",

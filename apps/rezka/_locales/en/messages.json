@@ -679,9 +679,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Sign in to Lingogram first.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Phrases ready to import: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Sign in to save them to your Lingogram vocabulary.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Sign in to import",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "No saved phrases found. Open translate.google.com, sign in to Google and check the Saved list.",

@@ -723,9 +723,17 @@
     "message": "حسنًا",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "سجّل الدخول إلى Lingogram أولًا.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "عبارات جاهزة للاستيراد: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "سجّل الدخول لتُضاف إلى مفردات Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "سجّل الدخول للاستيراد",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "لم يتم العثور على عبارات محفوظة. افتح translate.google.com وسجّل الدخول إلى حساب Google وتحقّق من قائمة المحفوظات.",

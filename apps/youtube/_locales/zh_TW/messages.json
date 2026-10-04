@@ -723,9 +723,17 @@
     "message": "好",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "請先登入 Lingogram。",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "可匯入的詞組：{n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "登入後，它們會存進你的 Lingogram 單字庫。",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "登入以匯入",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "找不到已儲存的詞組。請開啟 translate.google.com，登入 Google 帳戶，查看「已儲存」清單。",

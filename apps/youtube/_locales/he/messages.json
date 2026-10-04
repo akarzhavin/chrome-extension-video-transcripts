@@ -723,9 +723,17 @@
     "message": "אישור",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "קודם צריך להתחבר ל-Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "ביטויים מוכנים לייבוא: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "היכנסו והם יישמרו באוצר המילים ב-Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "היכנסו כדי לייבא",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "לא נמצאו ביטויים שמורים. אפשר לפתוח את translate.google.com, להתחבר לחשבון Google ולבדוק את הרשימה ״שמורים״.",

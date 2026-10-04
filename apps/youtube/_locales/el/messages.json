@@ -723,9 +723,17 @@
     "message": "OK",
     "description": "Popup: Google Translate import block."
   },
-  "gtImportErrSignIn": {
-    "message": "Συνδέσου πρώτα στο Lingogram.",
-    "description": "Popup: Google Translate import block."
+  "gtImportFound": {
+    "message": "Φράσεις έτοιμες για εισαγωγή: {n}",
+    "description": "Google Translate import card, signed out: how many saved phrases were found on the page. {n} is a number."
+  },
+  "gtImportSignInWhy": {
+    "message": "Συνδέσου και θα μπουν στο λεξιλόγιό σου στο Lingogram.",
+    "description": "Google Translate import card, signed out: the line under the count. 'them' = the saved phrases."
+  },
+  "gtImportSignIn": {
+    "message": "Σύνδεση για εισαγωγή",
+    "description": "Google Translate import card, signed out: the button that opens Lingogram sign-in."
   },
   "gtImportErrNoList": {
     "message": "Δεν βρέθηκαν αποθηκευμένες φράσεις. Άνοιξε το translate.google.com, συνδέσου στον λογαριασμό σου Google και έλεγξε τη λίστα «Αποθηκευμένα».",

@@ -193,7 +193,7 @@ produces a new, unrelated identifier.
 * `word_lookup` — the Extension asked our dictionary service about a word (Section
   1e). The event carries the shape of the answer, never the word;
 * `signin_started` — you began the sign-in flow, and from where (the toolbar popup, the status badge, the menu in the YouTube player (YouTube
-  edition), or the right-click menu on a web page);
+  edition), the right-click menu on a web page, or the Google Translate import);
 * `gt_import_preview`, `gt_import_done` — you started an import from Google
   Translate (Section 1h) and it finished. They carry only counts (phrases found, new,
   already saved, removed earlier, skipped, added), never a word;
