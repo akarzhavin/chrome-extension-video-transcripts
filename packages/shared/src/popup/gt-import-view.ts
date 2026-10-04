@@ -96,7 +96,7 @@ export function paintImport(box: HTMLElement, s: ImportState | null): void {
             const row = document.createElement('div');
             row.className = 'gt-actions';
             if (s.total > 0) {
-                row.appendChild(button(t('gtImportConfirm', 'Add {n} words', { n: s.total }), 'primary', () => void send('GT_IMPORT_CONFIRM')));
+                row.appendChild(button(t('gtImportConfirm', 'Add words: {n}', { n: s.total }), 'primary', () => void send('GT_IMPORT_CONFIRM')));
             }
             row.appendChild(button(t('gtImportCancel', 'Cancel'), 'secondary', () => void send('GT_IMPORT_RESET')));
             box.appendChild(row);
@@ -112,7 +112,7 @@ export function paintImport(box: HTMLElement, s: ImportState | null): void {
             return;
         }
         case 'done': {
-            box.appendChild(line(t('gtImportDone', 'Added {n} words.', { n: s.added }), 'gt-line gt-strong'));
+            box.appendChild(line(t('gtImportDone', 'Words added: {n}', { n: s.added }), 'gt-line gt-strong'));
             if (s.existed) box.appendChild(line(t('gtImportExisted', 'Already saved meanwhile: {n}', { n: s.existed })));
             if (s.refused) box.appendChild(line(t('gtImportRefused', "Couldn't save: {n}", { n: s.refused })));
             for (const l of notWritten(s)) box.appendChild(line(l));

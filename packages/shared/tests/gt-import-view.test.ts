@@ -51,7 +51,7 @@ test('preview: the counts, then Add / Cancel', async () => {
     expect(root.textContent).toContain('Removed earlier, not brought back: 3');
     expect(root.textContent).toContain('Skipped (other languages or too long): 32');
     const [add, cancel] = Array.from(root.querySelectorAll('button'));
-    expect(add.textContent).toBe('Add 2 words');
+    expect(add.textContent).toBe('Add words: 2');
     add.click();
     cancel.click();
     expect(sent).toEqual([{ action: 'GT_IMPORT_CONFIRM' }, { action: 'GT_IMPORT_RESET' }]);
@@ -63,7 +63,7 @@ test('writing: follows the worker live, and a reopened popup asks it to resume',
     expect(sent).toEqual([{ action: 'GT_IMPORT_CONFIRM' }]);
     expect((root.querySelector('progress') as HTMLProgressElement).value).toBe(136);
     onChanged!({ 'gtImport.v1': { newValue: { ...base, phase: 'done', total: 300, done: 300, added: 300 } } }, 'session');
-    expect(root.textContent).toContain('Added 300 words.');
+    expect(root.textContent).toContain('Words added: 300');
     expect(root.querySelector('progress')).toBeNull();
 });
 

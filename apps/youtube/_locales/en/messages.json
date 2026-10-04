@@ -736,7 +736,7 @@
     "description": "Popup: Google Translate import block."
   },
   "gtImportConfirm": {
-    "message": "Add {n} words",
+    "message": "Add words: {n}",
     "description": "Popup: Google Translate import block."
   },
   "gtImportCancel": {
@@ -748,7 +748,7 @@
     "description": "Popup: Google Translate import block."
   },
   "gtImportDone": {
-    "message": "Added {n} words.",
+    "message": "Words added: {n}",
     "description": "Popup: Google Translate import block."
   },
   "gtImportExisted": {

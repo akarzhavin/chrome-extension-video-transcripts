@@ -185,7 +185,7 @@ describe('what it does', () => {
             await jest.advanceTimersByTimeAsync(10);
             state = { ...base, phase: 'done', total: 3, done: 3, added: 3 };
             await jest.advanceTimersByTimeAsync(800);
-            expect(m!.overlay.textContent).toContain('Added 3 words.');
+            expect(m!.overlay.textContent).toContain('Words added: 3');
             state = null; // OK pressed, in the popup or here
             await jest.advanceTimersByTimeAsync(800);
             expect(m!.overlay.querySelector('.panel')).toBeNull();
