@@ -14,7 +14,7 @@ import { track } from '../analytics-bg';
 import { config } from '../auth/config';
 import { devEnvReady, stampLocalWrite } from '../auth/background';
 import { addInboxWord, listInboxWords } from '../auth/firestoreRest';
-import { bumpInboxCount, getAuthState, GT_IMPORT_KEYS } from '../auth/storage';
+import { getAuthState, GT_IMPORT_KEYS } from '../auth/storage';
 import { loadLanguagePrefs } from '../languages';
 import { normalizeTerm } from '../word-key';
 import { applySyncedDocs, setMirrorEntry } from '../word-mirror';
@@ -233,10 +233,10 @@ async function write(start: ImportState): Promise<ImportState> {
         }
         if (outcome === 'added') {
             s.added++;
+            // Marked as it lands: a worker stopped mid-import must not lose
+            // the words already written from the mirror, or from the count
+            // the popup reads off it.
             await setMirrorEntry(term, 'active');
-            // Counted as it lands: a worker stopped mid-import must not lose
-            // the words already written from the popup's count.
-            await bumpInboxCount(1);
         } else if (outcome === 'existed') {
             s.existed++;
         } else {

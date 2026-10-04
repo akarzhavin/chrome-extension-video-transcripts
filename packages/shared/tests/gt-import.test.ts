@@ -227,7 +227,6 @@ describe('runner', () => {
         expect(s?.existed).toBe(1);
         expect(s?.done).toBe(2);
         expect((await loadMirror()).words).toEqual({ alpha: 'active' });
-        expect(local['inbox.count']).toBe(1);
     });
 
     test('a rules refusal is retried once after the one-second gap', async () => {
@@ -329,7 +328,7 @@ describe('runner', () => {
         addInboxWord.mockResolvedValueOnce({ wordId: 'w', documentPath: 'p', state: 'active' }).mockImplementationOnce(() => stop.p);
         const run = confirmImport();
         await flush();
-        expect(local['inbox.count']).toBe(1);
+        expect((await loadMirror()).words).toEqual({ alpha: 'active' });
         stop.release();
         await run;
     });

@@ -18,7 +18,7 @@ import {
 } from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
-import { applySyncedDocs, loadMirror } from '../word-mirror';
+import { activeWordCount, applySyncedDocs, loadMirror, setMirrorEntry } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
@@ -28,13 +28,11 @@ import { loadLanguagePrefs } from '../languages';
 // transitively and must stay out of anything a content script can pull in.
 import { dismissNotification, getNotification } from '../notifications';
 import {
-    bumpInboxCount,
     bumpSavedWordCount,
     clearAuthState,
     clearParkedAuthStates,
     clearPendingAuthNonce,
     getAuthState,
-    getInboxCount,
     getRatePromptShown,
     markRatePromptShown,
     RATE_PROMPT_WORD_THRESHOLD,
@@ -320,7 +318,7 @@ export async function handleAuthMessage(
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();
-            const inboxCount = await getInboxCount();
+            const inboxCount = await activeWordCount();
             return state
                 ? { signedIn: true, email: state.email, uid: state.uid, inboxCount }
                 : { signedIn: false, inboxCount };
@@ -408,7 +406,11 @@ export async function handleAuthMessage(
             const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
             try {
                 const r = await addInboxWord(config, input, { diag });
-                const inboxCount = await bumpInboxCount();
+                // Marked here as well as by the caller: the quick-add overlay
+                // marks the word before asking, the context menu only after the
+                // reply, and the count in this reply must include it either way.
+                await setMirrorEntry(term, 'active');
+                const inboxCount = await activeWordCount();
                 // Value-moment rating prompt (P1.8): once this install crosses
                 // the saved-word threshold, ask for a store rating — exactly
                 // once, ever. The content script renders the actual banner when
@@ -468,11 +470,10 @@ export async function handleAuthMessage(
             const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
             try {
                 const r = await removeInboxWord(config, { term }, { diag });
-                // The inbox count is the learner's own tally of saved words, so
-                // a removal walks it back. It never goes below zero: a removal
-                // of a word this install never counted (saved on another
-                // device) would otherwise leave a negative badge.
-                const inboxCount = await bumpInboxCount(-1);
+                // Marked here as well as by the caller, so the count in this
+                // reply is what is left whoever sent the removal.
+                await setMirrorEntry(term, 'removed');
+                const inboxCount = await activeWordCount();
                 void track('word_removed', { site, signed_in: signedIn, learning, native });
                 return {
                     ok: true,

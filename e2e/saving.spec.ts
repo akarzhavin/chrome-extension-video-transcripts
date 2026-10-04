@@ -162,8 +162,8 @@ test.describe('saving a word', () => {
                 popup.evaluate(
                     () =>
                         new Promise<number>((r) =>
-                            (globalThis as any).chrome.storage.local.get('inbox.count', (v: any) =>
-                                r(Number(v?.['inbox.count'] ?? 0)),
+                            (globalThis as any).chrome.storage.local.get('words.v1', (v: any) =>
+                                r(Object.values(v?.['words.v1']?.words ?? {}).filter((s) => s === 'active').length),
                             ),
                         ),
                 );
@@ -272,8 +272,8 @@ test.describe('saving a word', () => {
                 popup.evaluate(
                     () =>
                         new Promise<number>((r) =>
-                            (globalThis as any).chrome.storage.local.get('inbox.count', (v: any) =>
-                                r(Number(v?.['inbox.count'] ?? 0)),
+                            (globalThis as any).chrome.storage.local.get('words.v1', (v: any) =>
+                                r(Object.values(v?.['words.v1']?.words ?? {}).filter((s) => s === 'active').length),
                             ),
                         ),
                 );
@@ -614,7 +614,7 @@ test.describe('signing out', () => {
                     () =>
                         new Promise<Record<string, unknown>>((r) =>
                             (globalThis as any).chrome.storage.local.get(
-                                ['rate.savedWordCount', 'rate.promptShown', 'inbox.count'],
+                                ['rate.savedWordCount', 'rate.promptShown'],
                                 (v: any) => r(v ?? {}),
                             ),
                         ),
@@ -637,7 +637,6 @@ test.describe('signing out', () => {
                 before['rate.savedWordCount'],
             );
             expect(after['rate.promptShown'], 'the review one-shot survives sign-out').toBe(before['rate.promptShown']);
-            expect(after['inbox.count'], 'the inbox total survives sign-out').toBe(before['inbox.count']);
         } finally {
             // As above: the profile goes back the way it was found, whatever
             // happened to the assertions.

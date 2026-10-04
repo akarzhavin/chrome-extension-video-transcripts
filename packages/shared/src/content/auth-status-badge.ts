@@ -1,5 +1,6 @@
 import { msg as i18nMsg } from '../i18n';
 import { sendMessage } from '../messaging';
+import { MIRROR_KEY } from '../word-mirror';
 
 const BADGE_ID = 'lingogram-auth-badge';
 const PANEL_ID = 'lingogram-auth-panel';
@@ -331,7 +332,8 @@ export function installAuthStatusBadge(): () => void {
     };
     document.addEventListener('mousedown', onMouseDown);
 
-    // React to background-side auth changes (sign-in from popup, sign-out, ADD_WORD counter).
+    // React to background-side auth changes (sign-in from popup, sign-out) and
+    // to the word mirror, which the saved-word count is read from.
     const onStorageChanged = (
         changes: Record<string, unknown>,
         areaName: string,
@@ -341,7 +343,7 @@ export function installAuthStatusBadge(): () => void {
             'auth.idToken' in changes ||
             'auth.email' in changes ||
             'auth.uid' in changes ||
-            'inbox.count' in changes
+            MIRROR_KEY in changes
         ) {
             const badge = document.getElementById(BADGE_ID);
             if (badge) render(badge);
