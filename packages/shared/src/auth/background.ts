@@ -287,9 +287,15 @@ export function __resetSyncStateForTests(): void {
     emptyFullSyncUid = null;
 }
 
-export async function syncWords(): Promise<SyncResult> {
+/**
+ * `force` skips the cooldown, for the one trigger that must not be swallowed by
+ * it: a sign-in. The worker wake that came just before it ran signed out and
+ * found nothing, and a cooldown counted from that pass would leave the new
+ * account's mirror empty until some later page woke another sync.
+ */
+export async function syncWords(opts: { force?: boolean } = {}): Promise<SyncResult> {
     if (inFlight) return inFlight;
-    if (Date.now() - lastFinishedAt < SYNC_COOLDOWN_MS) return { ok: true, applied: 0, full: false };
+    if (!opts.force && Date.now() - lastFinishedAt < SYNC_COOLDOWN_MS) return { ok: true, applied: 0, full: false };
     inFlight = runSync().finally(() => {
         inFlight = null;
         lastFinishedAt = Date.now();
@@ -765,6 +771,10 @@ export function installExternalAuthHandoff(): void {
                 await clearPendingAuthNonce();
                 clearNeedsReauthBadge();
                 sendResponse({ ok: true });
+                // Fill the mirror now: the popup's count and the page
+                // highlight read it, and nothing else would sync it until some
+                // page woke the worker. Never rejects, so no catch.
+                void syncWords({ force: true });
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }
