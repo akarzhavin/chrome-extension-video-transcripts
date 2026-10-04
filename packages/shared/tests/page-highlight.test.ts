@@ -145,6 +145,40 @@ describe('the painter', () => {
         expect(painted()).toEqual(['cat', 'mat']);
     });
 
+    // The hover card asks "which saved word is at this point of the text" —
+    // the answer comes from the marks already painted, never from the DOM.
+    it('names the mark at a point in the text, and nothing between marks', async () => {
+        document.body.innerHTML = '<p>the take it for granted cat</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('take it for granted', 'cat'));
+        p.start();
+        await settle();
+        const text = document.querySelector('p')!.firstChild as Text;
+        expect(p.markAt(text, 1)).toBeNull();
+        expect(p.markAt(text, 4)?.key).toBe('take it for granted');
+        expect(p.markAt(text, 12)?.key).toBe('take it for granted');
+        expect(p.markAt(text, 25)?.key).toBe('cat');
+        expect(p.markAt(document.body, 0)).toBeNull();
+        p.stop();
+        expect(p.markAt(text, 25)).toBeNull();
+    });
+
+    // The hover card's Remove then Save: the word leaves the list and comes
+    // back, and its underline has to come back with it. (In a tab that is not
+    // shown the walk waits until it is — see rewalk.)
+    it('paints a word again when it comes back after a removal', async () => {
+        document.body.innerHTML = '<p>cat and dog</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('cat', 'dog'));
+        p.start();
+        await settle();
+        p.setWords({ cat: 'removed', dog: 'active' });
+        await settle();
+        p.setWords({ cat: 'active', dog: 'active' });
+        await settle();
+        expect(painted()).toEqual(['cat', 'dog']);
+    });
+
     it('takes the mark away when the word is removed', async () => {
         document.body.innerHTML = '<p>cat and dog</p>';
         const p = createPageHighlighter(document);

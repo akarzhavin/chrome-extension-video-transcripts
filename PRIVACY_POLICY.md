@@ -48,7 +48,9 @@ describes what differs by platform, Netflix is covered by the YouTube edition.
   anonymous usage stats"** and collection stops immediately.
 * **Your saved words are marked on the web pages you read.** The page text is
   compared with your saved words inside your browser and is never sent or
-  stored; you can switch this off in the popup (Section 1b).
+  stored; you can switch this off in the popup (Section 1b). Resting the pointer
+  on a marked word shows its translation, and only that word is sent to look it up
+  (Section 1e).
 * We do **not** sell your data, show ads, run advertising trackers, build
   advertising profiles, or track your browsing history.
 
@@ -146,7 +148,13 @@ appear. To do this it reads the visible text of each page **inside your browser*
 and compares it with the local list of your saved words described in Section 3.
 The page text, the words found in it, and the address of the page are **never
 sent anywhere** — not to us, not to Google, not to anyone — and nothing about
-them is stored. The marks are drawn by the browser over the text and do not change
+them is stored. The one exception is a word you point at: resting the pointer on a
+marked word opens a card with its translation, and that word, only the word and
+not the sentence or the page, is sent to our dictionary service as described in
+Section 1e. Removing the word from that card, or saving it again, is an ordinary
+change to your saved words, as described above; saving it again sends the
+paragraph it is in as its context, as the right-click save does. The marks are
+drawn by the browser over the text and do not change
 the page's content. Because they are drawn on the page, **the website's own
 scripts can see which of its words are marked**, and through that, some of the words on
 your list. To limit this, only text that is actually shown on the page is
@@ -278,13 +286,16 @@ and carries only the reason for the failure.
 
 ### e. Word lookup (the dictionary service)
 
-When you hover or click a word in the subtitles to see what it means, the Extension
-asks our dictionary service for that meaning. The request contains:
+When you hover or click a word in the subtitles to see what it means, or rest the
+pointer on a word marked on a web page (Section 1b), the Extension asks our
+dictionary service for that meaning. The request contains:
 
 * the **word or phrase** you pointed at;
 * the **language you want it in** (your native language, as configured);
 * the **subtitle line it came from**, so the service can pick the sense that fits
-  the sentence rather than the most common one.
+  the sentence rather than the most common one. For a word marked on a web page
+  nothing is sent but the word and the language: not its sentence, not the page,
+  not the address.
 
 **This happens whether or not you are signed in**, and the request carries no
 account identifier, no email, no analytics identifier, and nothing that ties one
