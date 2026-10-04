@@ -87,7 +87,7 @@ jest.mock('../../../packages/shared/src/auth/background', () => ({
 }));
 
 import * as bridge from '../../../packages/shared/src/welcome/bridge';
-import { extensionIdFrom, initSteps, languageLabel, localeTarget, pageFor, popularTiles } from '../src/welcome/steps';
+import { extensionIdFrom, initSteps, languageLabel, localeTarget, nativeTiles, pageFor, popularTiles } from '../src/welcome/steps';
 import EN from '../src/data/i18n/en.json';
 
 const en = EN as any;
@@ -130,10 +130,22 @@ const flush = async () => {
 const ws = () => document.getElementById('ws')!;
 const btn = (text: string) => Array.from(ws().querySelectorAll<HTMLElement>('button, a')).find((b) => b.textContent === text)!;
 const current = () => ws().querySelector('.ws-step[aria-current="step"] .ws-step-label')!.textContent;
-const tile = (code: string) => ws().querySelector<HTMLButtonElement>(`.ws-tile[data-code="${code}"]`)!;
-const tileCodes = () => Array.from(ws().querySelectorAll<HTMLElement>('.ws-tile')).map((t) => t.dataset.code);
-const pressed = () => Array.from(ws().querySelectorAll<HTMLElement>('.ws-tile[aria-pressed="true"]')).map((t) => t.dataset.code);
+const tile = (code: string) => ws().querySelector<HTMLButtonElement>(`.ws-learn .ws-tile[data-code="${code}"]`)!;
+const tileCodes = () => Array.from(ws().querySelectorAll<HTMLElement>('.ws-learn .ws-tile')).map((t) => t.dataset.code);
+const pressed = () => Array.from(ws().querySelectorAll<HTMLElement>('.ws-learn .ws-tile[aria-pressed="true"]')).map((t) => t.dataset.code);
+const nativeTile = (code: string) => ws().querySelector<HTMLButtonElement>(`.ws-native-field .ws-tile[data-code="${code}"]`);
+const nativeCodes = () => Array.from(ws().querySelectorAll<HTMLElement>('.ws-native-field .ws-tile')).map((t) => t.dataset.code);
+// The native language as shown: its pressed tile, else what the list holds.
+const nativeValue = () =>
+    ws().querySelector<HTMLElement>('.ws-native-field .ws-tile[aria-pressed="true"]')?.dataset.code ??
+    ws().querySelector<HTMLSelectElement>('.ws-native')!.value;
+// Picks the native language the way a visitor would: its tile, or the list.
 const setNative = (code: string) => {
+    const t = nativeTile(code);
+    if (t) {
+        t.click();
+        return;
+    }
     const n = ws().querySelector<HTMLSelectElement>('.ws-native')!;
     n.value = code;
     n.dispatchEvent(new Event('change'));
@@ -264,9 +276,9 @@ describe('Language', () => {
     test('the popular languages are tiles with a flag; the native language is never one (English apart)', async () => {
         await mount({ lang: 'ru', locales: ['en', 'ru'] });
         expect(tileCodes()).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
-        expect(ws().querySelectorAll('.ws-tile .ws-flag svg')).toHaveLength(8);
+        expect(ws().querySelectorAll('.ws-learn .ws-tile .ws-flag svg')).toHaveLength(8);
         // The page is Russian, so Russian is the native language and English the default pick.
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('ru');
+        expect(nativeValue()).toBe('ru');
         expect(pressed()).toEqual(['en']);
         // A name in the page's language, not the code.
         expect(tile('es').textContent).toBe('Испанский');
@@ -278,7 +290,7 @@ describe('Language', () => {
 
     test('an English speaker still sees English first, and nothing is pre-picked', async () => {
         await mount();
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('en');
+        expect(nativeValue()).toBe('en');
         expect(tileCodes()).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
         expect(pressed()).toEqual([]);
         expect(btn('Continue').hasAttribute('disabled')).toBe(true);
@@ -337,7 +349,7 @@ describe('Language', () => {
         // The page that opens next is that language, and remembers the pick.
         await mount({ lang: 'de', locales: ['en', 'de', 'ru'], search: went[0] });
         expect(pressed()).toEqual(['es']);
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('de');
+        expect(nativeValue()).toBe('de');
     });
 
     test('a returning visitor who changes the native language gets that language, not the saved one', async () => {
@@ -346,7 +358,7 @@ describe('Language', () => {
         // The visitor was on /ru/, chose Spanish as native and moved on with Italian picked.
         sessionStorage.setItem('ws.learning', 'it');
         await mount({ lang: 'es', locales: ['en', 'es', 'ru'], search: '/es/welcome/?ext=youtube&id=pkoibjilnaeadmcnmfkgcjhalljbmfan&hl=1' });
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('es');
+        expect(nativeValue()).toBe('es');
         expect(pressed()).toEqual(['it']);
     });
 
@@ -356,7 +368,7 @@ describe('Language', () => {
         // Step is Account (languages saved); go back to Language to see them.
         ws().querySelectorAll<HTMLElement>('.ws-step')[0].click();
         await flush();
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('ru');
+        expect(nativeValue()).toBe('ru');
         expect(pressed()).toEqual(['en']);
     });
 
@@ -365,7 +377,7 @@ describe('Language', () => {
         setNative('ru');
         await flush();
         expect(went).toEqual([]);
-        expect((ws().querySelector('.ws-native') as HTMLSelectElement).value).toBe('ru');
+        expect(nativeValue()).toBe('ru');
     });
 
     test('HDrezka offers its three languages', async () => {
@@ -373,6 +385,46 @@ describe('Language', () => {
         await mount({ lang: 'ru', locales: [] });
         expect(tileCodes()).toEqual(['en', 'uk']);
         expect(ws().querySelector('.ws-other')).toBeNull();
+    });
+});
+
+describe('native language tiles', () => {
+    test('the native languages this site sees most, each named in its own language, with a flag', async () => {
+        await mount({ lang: 'ru', locales: [] });
+        expect(nativeCodes()).toEqual(['ru', 'zh', 'es', 'en', 'pt', 'vi', 'ko', 'ja']);
+        const names = Array.from(ws().querySelectorAll('.ws-native-field .ws-tile-name')).map((n) => n.textContent);
+        expect(names.slice(0, 3)).toEqual(['Русский', '中文', 'Español']);
+        expect(ws().querySelector('.ws-native-field .ws-tile[data-code="vi"] .ws-flag svg')).not.toBeNull();
+        // The page is Russian: Russian is pressed, the list holds nothing.
+        expect(nativeValue()).toBe('ru');
+        expect(ws().querySelector<HTMLSelectElement>('.ws-native')!.value).toBe('');
+    });
+
+    test('a native language outside the tiles comes first, pressed', async () => {
+        await mount({ lang: 'de', locales: [] });
+        expect(nativeCodes()[0]).toBe('de');
+        expect(nativeCodes()).toHaveLength(8);
+        expect(nativeTile('de')!.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    test('the tiles are the offered languages only, and the list holds the rest', () => {
+        expect(nativeTiles(['en', 'ru', 'uk'], 'ru')).toEqual(['ru', 'en', 'uk']);
+        expect(nativeTiles(['en', 'ru', 'de'], 'de')).toEqual(['de', 'ru', 'en']);
+        expect(nativeTiles(['en', 'ru'], '')).toEqual(['ru', 'en']);
+        expect(nativeTiles(['en', 'ru'], 'xx')).toEqual(['ru', 'en']);
+    });
+
+    test('a native language from the list is saved like a tile', async () => {
+        await mount({ lang: 'en', locales: [] });
+        setNative('de');
+        await flush();
+        expect(nativeValue()).toBe('de');
+        expect(nativeCodes()[0]).toBe('de');
+        tile('es').click();
+        await flush();
+        btn('Continue').click();
+        await flush();
+        expect(store['lang.v1']).toEqual({ learning: 'es', native: 'de' });
     });
 });
 

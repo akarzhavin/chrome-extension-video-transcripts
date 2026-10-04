@@ -129,6 +129,10 @@ const OWN_STORE: Record<string, string> = {
 // what is left (a Spanish speaker sees English first and Portuguese last).
 const POPULAR = ['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt', 'ru', 'uk'];
 const TILE_COUNT = 8;
+// Native languages as tiles, in the order this site's visitors have them
+// (GA4, native language by users). The current one is put first when it is
+// not among them, so the pressed tile is always in view.
+const NATIVE_POPULAR = ['ru', 'zh', 'es', 'en', 'pt', 'vi', 'ko', 'ja', 'tr', 'th', 'uk', 'ar', 'id'];
 // Browser codes that differ from the site's locale codes.
 const BROWSER_ALIAS: Record<string, string> = { nb: 'no', nn: 'no', tl: 'fil', iw: 'he' };
 const ANSWER_TIMEOUT_MS = 1500;
@@ -197,6 +201,17 @@ export function popularTiles(offered: string[], native: string): string[] {
   const first = offered.includes('en') ? ['en'] : [];
   const rest = POPULAR.filter((c) => c !== 'en' && offered.includes(c) && c !== native);
   return [...first, ...rest].slice(0, TILE_COUNT);
+}
+
+/**
+ * The native-language tiles: NATIVE_POPULAR as offered, TILE_COUNT in all,
+ * with the current choice put first when it is not among them. Pure, for the
+ * tests.
+ */
+export function nativeTiles(offered: string[], current: string): string[] {
+  const list = NATIVE_POPULAR.filter((c) => offered.includes(c)).slice(0, TILE_COUNT);
+  if (!current || !offered.includes(current) || list.includes(current)) return list;
+  return [current, ...list].slice(0, TILE_COUNT);
 }
 
 /**
@@ -501,6 +516,59 @@ function localName(code: string, english: string, pageLang: string): string {
   return name.charAt(0).toLocaleUpperCase(pageLang) + name.slice(1);
 }
 
+interface PickerOptions {
+  cls: string;
+  label: string;
+  tiles: string[];
+  chosen: string;
+  name: (code: string) => string;
+  rest: Array<{ code: string; label: string; native: string }>;
+  otherCls?: string;
+  pick: (code: string) => void;
+}
+
+/** Popular languages as flag tiles, and every other one in a list after them. */
+function tilePicker(v: View, o: PickerOptions): HTMLElement {
+  const { doc, t } = v;
+  const field = el(doc, 'div', `ws-field ${o.cls}`);
+  field.appendChild(el(doc, 'span', 'ws-field-label', o.label));
+  const grid = el(doc, 'div', 'ws-tiles');
+  grid.setAttribute('role', 'group');
+  grid.setAttribute('aria-label', o.label);
+  for (const code of o.tiles) {
+    const tile = el(doc, 'button', 'ws-tile');
+    tile.type = 'button';
+    tile.dataset.code = code;
+    tile.setAttribute('aria-pressed', String(o.chosen === code));
+    if (FLAGS[code]) {
+      const flag = el(doc, 'span', 'ws-flag');
+      flag.innerHTML = FLAGS[code]; // constant markup from flags.ts
+      tile.appendChild(flag);
+    }
+    tile.appendChild(el(doc, 'span', 'ws-tile-name', o.name(code)));
+    tile.addEventListener('click', () => o.pick(code));
+    grid.appendChild(tile);
+  }
+  if (o.rest.length) {
+    const other = el(doc, 'select', `ws-select ws-other${o.otherCls ? ` ${o.otherCls}` : ''}`);
+    other.setAttribute('aria-label', `${o.label}: ${t.otherLanguage}`);
+    const placeholder = el(doc, 'option', undefined, t.otherLanguage);
+    placeholder.value = '';
+    other.appendChild(placeholder);
+    for (const l of o.rest) {
+      const opt = el(doc, 'option', undefined, languageLabel(l.code, l.native, l.label, v.lang));
+      opt.value = l.code;
+      other.appendChild(opt);
+    }
+    other.value = o.tiles.includes(o.chosen) ? '' : o.chosen;
+    if (other.value) other.classList.add('is-chosen');
+    other.addEventListener('change', () => o.pick(other.value));
+    grid.appendChild(other);
+  }
+  field.appendChild(grid);
+  return field;
+}
+
 function languageStep(v: View, box: HTMLElement): void {
   const { doc, t, s } = v;
   heading(v, box, t.langTitle, t.langLead);
@@ -508,77 +576,43 @@ function languageStep(v: View, box: HTMLElement): void {
   const offered = s.languages.map((l) => l.code);
 
   // I'm learning: popular languages as tiles, everything else in a list.
-  const learn = el(doc, 'div', 'ws-field');
-  learn.appendChild(el(doc, 'span', 'ws-field-label', t.learning));
-  const tiles = popularTiles(offered, v.draft.native);
-  const grid = el(doc, 'div', 'ws-tiles');
-  grid.setAttribute('role', 'group');
-  grid.setAttribute('aria-label', t.learning);
-  for (const code of tiles) {
-    const tile = el(doc, 'button', 'ws-tile');
-    tile.type = 'button';
-    tile.dataset.code = code;
-    tile.setAttribute('aria-pressed', String(v.draft.learning === code));
-    if (FLAGS[code]) {
-      const flag = el(doc, 'span', 'ws-flag');
-      flag.innerHTML = FLAGS[code]; // constant markup from flags.ts
-      tile.appendChild(flag);
-    }
-    tile.appendChild(el(doc, 'span', 'ws-tile-name', localName(code, byCode.get(code)?.label ?? code, v.lang)));
-    tile.addEventListener('click', () => {
+  const learnTiles = popularTiles(offered, v.draft.native);
+  const learn = tilePicker(v, {
+    cls: 'ws-learn',
+    label: t.learning,
+    tiles: learnTiles,
+    chosen: v.draft.learning,
+    name: (code) => localName(code, byCode.get(code)?.label ?? code, v.lang),
+    rest: s.languages.filter((l) => !learnTiles.includes(l.code) && l.code !== v.draft.native),
+    pick: (code) => {
       v.draft.learning = code;
       paint(v);
-    });
-    grid.appendChild(tile);
-  }
-  const rest = s.languages.filter((l) => !tiles.includes(l.code) && l.code !== v.draft.native);
-  if (rest.length) {
-    const other = el(doc, 'select', 'ws-select ws-other');
-    other.setAttribute('aria-label', t.otherLanguage);
-    const placeholder = el(doc, 'option', undefined, t.otherLanguage);
-    placeholder.value = '';
-    other.appendChild(placeholder);
-    for (const l of rest) {
-      const o = el(doc, 'option', undefined, languageLabel(l.code, l.native, l.label, v.lang));
-      o.value = l.code;
-      other.appendChild(o);
-    }
-    other.value = tiles.includes(v.draft.learning) ? '' : v.draft.learning;
-    if (other.value) other.classList.add('is-chosen');
-    other.addEventListener('change', () => {
-      v.draft.learning = other.value;
-      paint(v);
-    });
-    grid.appendChild(other);
-  }
-  learn.appendChild(grid);
-
-  // My native language — also the language of this page.
-  const nativeRow = el(doc, 'label', 'ws-field');
-  nativeRow.appendChild(el(doc, 'span', 'ws-field-label', t.native));
-  const native = el(doc, 'select', 'ws-select ws-native');
-  const none = el(doc, 'option', undefined, t.select);
-  none.value = '';
-  none.disabled = true;
-  native.appendChild(none);
-  for (const l of s.languages) {
-    const o = el(doc, 'option', undefined, languageLabel(l.code, l.native, l.label, v.lang));
-    o.value = l.code;
-    native.appendChild(o);
-  }
-  native.value = v.draft.native;
-  native.addEventListener('change', () => {
-    v.draft.native = native.value;
-    if (v.draft.learning === native.value) v.draft.learning = '';
-    // The page follows: this language's page, with the learning pick carried over.
-    if (native.value !== v.lang && v.locales.includes(native.value)) {
-      stash(v.win, v.draft.learning);
-      navigate(v.win, pageFor(native.value, v.win.location.search));
-      return;
-    }
-    paint(v);
+    },
   });
-  nativeRow.appendChild(native);
+
+  // My native language, also the language of this page: the same tiles, each
+  // named in its own language so a speaker finds theirs on any page.
+  const nativeCodes = nativeTiles(offered, v.draft.native);
+  const nativeRow = tilePicker(v, {
+    cls: 'ws-native-field',
+    label: t.native,
+    tiles: nativeCodes,
+    chosen: v.draft.native,
+    name: (code) => byCode.get(code)?.native ?? code,
+    rest: s.languages.filter((l) => !nativeCodes.includes(l.code)),
+    otherCls: 'ws-native',
+    pick: (code) => {
+      v.draft.native = code;
+      if (v.draft.learning === code) v.draft.learning = '';
+      // The page follows: this language's page, with the learning pick carried over.
+      if (code !== v.lang && v.locales.includes(code)) {
+        stash(v.win, v.draft.learning);
+        navigate(v.win, pageFor(code, v.win.location.search));
+        return;
+      }
+      paint(v);
+    },
+  });
 
   const next = button(v, 'ws-primary', t.continue, async (b) => {
     if (v.send) {

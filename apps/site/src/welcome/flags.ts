@@ -28,5 +28,6 @@ export const FLAGS: Record<string, string> = {
   ),
   ru: svg('Russia', `<rect width="36" height="8" fill="#fff"/><rect y="8" width="36" height="8" fill="#0039a6"/><rect y="16" width="36" height="8" fill="#d52b1e"/>${outline}`),
   uk: svg('Ukraine', '<rect width="36" height="12" fill="#0057b7"/><rect y="12" width="36" height="12" fill="#ffd700"/>'),
+  vi: svg('Vietnam', '<rect width="36" height="24" fill="#da251d"/><polygon points="18,5 19.65,10.1 25,10.1 20.7,13.25 22.3,18.35 18,15.2 13.7,18.35 15.3,13.25 11,10.1 16.35,10.1" fill="#ffff00"/>'),
   zh: svg('China', '<rect width="36" height="24" fill="#de2910"/><polygon points="7,3 8,5.8 11,5.8 8.6,7.6 9.5,10.5 7,8.8 4.5,10.5 5.4,7.6 3,5.8 6,5.8" fill="#ffde00"/>'),
 };
