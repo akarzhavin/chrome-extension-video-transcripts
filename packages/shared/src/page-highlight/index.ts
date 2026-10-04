@@ -23,6 +23,8 @@ import { SIBLING_KEYS } from '../auth/storage';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import { loadMirror, onMirrorChanged, type WordState } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { loadLanguagePrefs } from '../languages';
+import { blockContext, installPageCard, type PageMark } from './card';
 
 /** The highlight name the stylesheet paints: `::highlight(lingogram-saved)`. */
 export const HIGHLIGHT_NAME = 'lingogram-saved';
@@ -399,6 +401,18 @@ export function createPageHighlighter(doc: Document = document) {
             // stands down must not wipe the marks the other one is painting.
             if (CSS.highlights.get(HIGHLIGHT_NAME) === highlight) CSS.highlights.delete(HIGHLIGHT_NAME);
         },
+        /**
+         * The saved word painted at `offset` in `node`, or null. Read from the
+         * marks already painted, so it costs a map lookup, and a word the walk
+         * skipped (hidden, ours, an editor) is never reported.
+         */
+        markAt(node: Node, offset: number): { key: string; range: AbstractRange } | null {
+            if (node.nodeType !== Node.TEXT_NODE) return null;
+            for (const m of marksOf.get(node as Text) ?? []) {
+                if (offset >= m.range.startOffset && offset <= m.range.endOffset) return { key: m.key, range: m.range };
+            }
+            return null;
+        },
         /** For tests: how many marks are painted now. */
         get size(): number {
             return highlight.size;
@@ -441,6 +455,15 @@ export async function installPageHighlight(): Promise<void> {
     painter.setWords((await loadMirror()).words);
     apply();
 
+    // The card over a marked word (card.ts). It reads only what the painter
+    // painted, so with the highlight off — or nothing saved — it never opens.
+    installPageCard({
+        markAtPoint: (x, y) => markAtPoint(painter, x, y),
+        active: () => painter.size > 0,
+        nativeLang: async () => (await loadLanguagePrefs())?.native,
+        send: (message) => chrome.runtime.sendMessage(message),
+    });
+
     onMirrorChanged((m) => painter.setWords(m.words));
     onPrefsChanged((p) => {
         if (p.pageHighlight === enabled) return;
@@ -452,4 +475,60 @@ export async function installPageHighlight(): Promise<void> {
         yields = changes[SIBLING_KEYS.otherOwns].newValue === true;
         apply();
     });
+}
+
+/** The text position under a viewport point, from whichever caret API the browser has. */
+function caretAt(x: number, y: number): { node: Node; offset: number } | null {
+    const d = document as Document & {
+        caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+        caretRangeFromPoint?: (x: number, y: number) => Range | null;
+    };
+    if (typeof d.caretPositionFromPoint === 'function') {
+        const p = d.caretPositionFromPoint(x, y);
+        return p ? { node: p.offsetNode, offset: p.offset } : null;
+    }
+    if (typeof d.caretRangeFromPoint === 'function') {
+        const r = d.caretRangeFromPoint(x, y);
+        return r ? { node: r.startContainer, offset: r.startOffset } : null;
+    }
+    return null;
+}
+
+/**
+ * The marked word under a viewport point. The caret API answers with the
+ * nearest text position even when the pointer is past the end of a line or in
+ * the gap between two, so the word's own boxes decide whether it is really
+ * under the pointer.
+ */
+function markAtPoint(painter: ReturnType<typeof createPageHighlighter>, x: number, y: number): PageMark | null {
+    const at = caretAt(x, y);
+    if (!at) return null;
+    const hit = painter.markAt(at.node, at.offset);
+    if (!hit) return null;
+    const { range, key } = hit;
+    const live = (): Range | null => {
+        if (!range.startContainer.isConnected) return null;
+        const r = document.createRange();
+        try {
+            r.setStart(range.startContainer, range.startOffset);
+            r.setEnd(range.endContainer, range.endOffset);
+        } catch {
+            return null;
+        }
+        return r;
+    };
+    const boxes = (): DOMRect[] => [...(live()?.getClientRects() ?? [])].filter((b) => b.width > 0);
+    const SLOP = 2;
+    const mark: PageMark = {
+        key,
+        rect: () => {
+            // The first line of a phrase that wraps: the card sits over where it starts.
+            const b = boxes();
+            return b.length ? b[0] : null;
+        },
+        contains: (px, py) =>
+            boxes().some((b) => px >= b.left - SLOP && px <= b.right + SLOP && py >= b.top - SLOP && py <= b.bottom + SLOP),
+        context: () => blockContext(range),
+    };
+    return mark.contains(x, y) ? mark : null;
 }
