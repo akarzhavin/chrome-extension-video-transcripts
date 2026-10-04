@@ -9,6 +9,7 @@ import {
 import { loadPrefs, savePrefs, sitePrefKey, type VideoSite } from '../prefs';
 import type { Edition } from '../sibling';
 import { loadWelcomeState, ownSites, welcomeUrl } from '../welcome/welcome';
+import { renderGtImport } from './gt-import-view';
 
 // Optional allow-list of language codes for the pickers. Set by initPopup; null
 // means "all supported languages". Used so apps whose source only ships a few
@@ -120,6 +121,8 @@ function renderSignedIn(root: HTMLElement, status: AuthStatus): void {
         await refresh(root);
     });
     root.appendChild(out);
+
+    renderGtImport(root);
 }
 
 function renderSignedOut(root: HTMLElement): void {

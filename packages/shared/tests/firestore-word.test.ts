@@ -697,6 +697,28 @@ describe('the three refusals that look alike', () => {
         expect(commits).toHaveLength(2);
     });
 
+    test.each([
+        [409, /^Firestore exists 409/],
+        [403, /^Firestore rules 403/],
+    ])('createOnly: a create refused with %i is NOT retried as a re-activation', async (status, message) => {
+        // The Google Translate import. A word the learner removed has a
+        // document in state 'removed'; the re-activation form would bring it
+        // back, which the import promised never to do. One commit, the create,
+        // and the refusal escapes under a name the import can sort.
+        (global as any).fetch = jest.fn(async (url: string, init?: RequestInit) => {
+            if (String(url).includes(':commit')) {
+                commits.push(JSON.parse(String(init?.body ?? '{}')));
+                return { ok: false, status, json: async () => ({}), text: async () => 'refused' } as any;
+            }
+            return { ok: false, status: 404, json: async () => ({}), text: async () => '' } as any;
+        });
+
+        await expect(addInboxWord(cfg, { term: 'x' }, { createOnly: true })).rejects.toThrow(message);
+        expect(commits).toHaveLength(1);
+        const only = commits[0].writes.find((w: any) => w.update.name.includes('/words/'));
+        expect(only.currentDocument).toEqual({ exists: false });
+    });
+
     test('a create refused twice reports the RULES, not a broken session', async () => {
         // The seam, asserted on the live function rather than on a mock.
         //
