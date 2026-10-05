@@ -11,10 +11,11 @@ import {
     loadLanguagePrefs,
     saveLanguagePrefs,
 } from '../languages';
-import { loadPrefs, savePrefs } from '../prefs';
+import { withHighlight } from '../highlight-hosts';
+import { loadPrefs, onPrefsChanged, savePrefs } from '../prefs';
 import type { Edition } from '../sibling';
 import { renderGtImport } from '../popup/gt-import-view';
-import { el, iconImage, send, startSignIn, WORDS_PAGE, type AuthStatus } from '../popup/shared';
+import { el, fill, iconImage, send, startSignIn, WORDS_PAGE, type AuthStatus } from '../popup/shared';
 import { makeSwitch, renderSwitches } from '../popup/switches';
 
 export interface SettingsOptions {
@@ -82,6 +83,39 @@ function languageGroup(allowed: string[] | undefined): HTMLElement {
     learning.select.addEventListener('change', persist);
     native.select.addEventListener('change', persist);
     return section;
+}
+
+/**
+ * "Not highlighted on:" and the sites turned off from the popup, each with the
+ * way back. Not there while the list is empty. Kept current when the list
+ * changes (a popup in another window, or a click here).
+ */
+function offHostsLine(): HTMLElement {
+    const line = el('div', 'off-hosts');
+    line.hidden = true;
+    const paint = (hosts: string[]) => {
+        line.replaceChildren();
+        line.hidden = hosts.length === 0;
+        if (hosts.length === 0) return;
+        line.appendChild(document.createTextNode(i18nMsg('settingsHighlightOffOn', 'Not highlighted on:')));
+        for (const host of hosts) {
+            const chip = el('span', 'off-host');
+            const remove = el('button', undefined, '×');
+            remove.type = 'button';
+            remove.setAttribute(
+                'aria-label',
+                fill(i18nMsg('settingsHighlightOnAgain', 'Highlight words on {site} again'), { site: host }),
+            );
+            remove.addEventListener('click', () => {
+                void loadPrefs().then((p) => savePrefs({ highlightOffHosts: withHighlight(p.highlightOffHosts, host, true) }));
+            });
+            chip.append(el('span', undefined, host), remove);
+            line.appendChild(chip);
+        }
+    };
+    void loadPrefs().then((p) => paint(p.highlightOffHosts));
+    onPrefsChanged((p) => paint(p.highlightOffHosts));
+    return line;
 }
 
 function privacyGroup(): HTMLElement {
@@ -211,6 +245,7 @@ export function initSettings(opts: SettingsOptions): void {
             'Words you saved are marked on any page you read. Point at one to see its translation.',
         ),
     });
+    works.appendChild(offHostsLine());
     page.appendChild(works);
 
     // The import paints its own small heading ("Google Translate"), styled like

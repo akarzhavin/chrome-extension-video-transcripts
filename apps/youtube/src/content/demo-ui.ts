@@ -6,7 +6,7 @@
 // header, onboarding labels AND the settings panel — localizes in screenshots,
 // independent of Chrome's extension-UI language (which --lang does not change).
 //
-// Covers every key SidebarUI.ts and auth-status-badge.ts render (143 keys,
+// Covers every key SidebarUI.ts and auth-status-badge.ts render (147 keys,
 // 54 locales). Not used outside demo mode.
 
 export type DemoUiStrings = Record<string, string>;
@@ -1326,6 +1326,8 @@ export const DEMO_UI_BY_LANG: Record<string, DemoUiStrings> = {
         "popupEmptyText": "Click a word in the subtitles, then Save. It is kept here, in this browser.",
         "popupEmptyTitle": "Save words as you watch",
         "popupFinishSetup": "Finish setup",
+        "popupHighlightOffEverywhere": "Highlighting is off on all websites. Turn it on in Settings.",
+        "popupHighlightOnSite": "Highlight words on {site}",
         "popupOpenMyWords": "Open my words",
         "popupOpenVocabulary": "Open my vocabulary",
         "popupPageHighlightLabel": "Highlight my words on websites",
@@ -1340,6 +1342,8 @@ export const DEMO_UI_BY_LANG: Record<string, DemoUiStrings> = {
         "popupWordsWaiting": "words waiting on this device",
         "settingsGroupAccount": "Account",
         "settingsGroupWorks": "Where Lingogram works",
+        "settingsHighlightOffOn": "Not highlighted on:",
+        "settingsHighlightOnAgain": "Highlight words on {site} again",
         "settingsMyWords": "My words",
         "settingsNotSignedIn": "Not signed in",
         "settingsNotSignedInHint": "Your words are kept in this browser. Sign in to keep them on every device.",

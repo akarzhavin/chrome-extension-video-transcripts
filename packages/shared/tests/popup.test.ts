@@ -3,8 +3,8 @@
  */
 
 /**
- * The toolbar popup: a header, one state block (four of them), the switches, a
- * hairline and a "Settings" link. The language pickers, the Google Translate
+ * The toolbar popup: a header, one state block (four of them), the per-site
+ * highlight switch, a hairline and a "Settings" link. The language pickers, the Google Translate
  * import, the privacy switch and the sign-out button are on the settings page
  * now (settings-page.test.ts).
  *
@@ -16,6 +16,7 @@
 const sendMessageMock = jest.fn();
 const openOptionsPageMock = jest.fn();
 const tabsCreateMock = jest.fn();
+const tabsQueryMock = jest.fn();
 
 const prefsStore: Record<string, unknown> = {};
 const storageLocal = {
@@ -41,7 +42,7 @@ const storageLocal = {
         openOptionsPage: openOptionsPageMock,
         lastError: undefined,
     },
-    tabs: { create: tabsCreateMock },
+    tabs: { create: tabsCreateMock, query: tabsQueryMock },
     i18n: { getMessage: () => '', getUILanguage: () => 'en' }, // English fallbacks
     storage: { local: storageLocal, onChanged: { addListener: jest.fn() } },
 };
@@ -66,6 +67,7 @@ beforeEach(() => {
     sendMessageMock.mockReset();
     openOptionsPageMock.mockReset().mockResolvedValue(undefined);
     tabsCreateMock.mockReset().mockResolvedValue({});
+    tabsQueryMock.mockReset().mockResolvedValue([]);
     window.close = jest.fn();
     for (const k of Object.keys(prefsStore)) delete prefsStore[k];
     storageLocal.get.mockClear();
@@ -81,6 +83,11 @@ function withStatus(status: Record<string, unknown>): void {
         if (typeof cb !== 'function') return;
         cb(msg?.action === 'AUTH_STATUS' ? status : {});
     });
+}
+
+/** The tab the popup was opened on. */
+function onTab(url: string): void {
+    tabsQueryMock.mockResolvedValue([{ id: 1, url }]);
 }
 
 /** Mount the popup and let its async prefills settle. */
@@ -378,120 +385,205 @@ describe('what left the popup', () => {
     });
 });
 
-describe('the switches', () => {
-    const box = (pref: string): HTMLInputElement => root().querySelector(`input[data-pref="${pref}"]`) as HTMLInputElement;
-
-    beforeEach(() => withStatus({ signedIn: false, inboxCount: 0 }));
-
-    test('are real accessible controls with the visible text as their name', async () => {
-        await mount('youtube');
-
-        const yt = box('siteYoutube');
-        expect(yt.type).toBe('checkbox');
-        expect(yt.getAttribute('role')).toBe('switch');
-        const name = document.getElementById(yt.getAttribute('aria-labelledby')!)!;
-        expect(name.textContent).toBe('Subtitles on YouTube');
-    });
-
-    test('YouTube edition: one per site, then the highlight, labelled in that order, with no hints', async () => {
-        await mount('youtube');
-
-        expect([...root().querySelectorAll('.switches .row-label')].map((n) => n.textContent)).toEqual([
-            'Subtitles on YouTube',
-            'Subtitles on Netflix',
-            'Highlight my words on websites',
-        ]);
-        expect(root().querySelector('.row-hint')).toBeNull();
-        expect([...root().querySelectorAll('.switches input')].map((i) => (i as HTMLElement).dataset.pref)).toEqual([
-            'siteYoutube',
-            'siteNetflix',
-            'pageHighlight',
-        ]);
-    });
-
-    test('HDrezka edition: HDrezka, then the highlight', async () => {
-        await mount('rezka');
-
-        expect([...root().querySelectorAll('.switches .row-label')].map((n) => n.textContent)).toEqual([
-            'Subtitles on HDrezka',
-            'Highlight my words on websites',
-        ]);
-    });
-
-    test('are on for an install that never touched them', async () => {
-        await mount('youtube');
-        expect(box('siteYoutube').checked).toBe(true);
-        expect(box('siteNetflix').checked).toBe(true);
-        expect(box('pageHighlight').checked).toBe(true);
-    });
-
-    test('read back what is stored', async () => {
-        prefsStore[PREFS_KEY] = { pageHighlight: false, siteNetflix: false };
-        await mount('youtube');
-        expect(box('pageHighlight').checked).toBe(false);
-        expect(box('siteNetflix').checked).toBe(false);
-        expect(box('siteYoutube').checked).toBe(true);
-    });
-
-    test('turning one off writes that pref under prefs.v1 and leaves the others alone', async () => {
-        await mount('youtube');
-
-        box('siteNetflix').checked = false;
-        box('siteNetflix').dispatchEvent(new Event('change'));
+describe('the per-site highlight switch', () => {
+    const site = (): HTMLInputElement => root().querySelector('.switches input') as HTMLInputElement;
+    const label = (): string => root().querySelector('.switches .row-label')!.textContent!;
+    const offHosts = (): unknown => (prefsStore[PREFS_KEY] as any)?.highlightOffHosts;
+    const flip = async (): Promise<void> => {
+        site().checked = !site().checked;
+        site().dispatchEvent(new Event('change'));
         await nextTick();
-
-        const stored = prefsStore[PREFS_KEY] as any;
-        expect(PREFS_KEY).toBe('prefs.v1');
-        expect(stored.siteNetflix).toBe(false);
-        expect(stored.siteYoutube).not.toBe(false);
-        expect(stored.pageHighlight).not.toBe(false);
-    });
-
-    test('the highlight switch writes pageHighlight', async () => {
-        await mount('youtube');
-
-        box('pageHighlight').checked = false;
-        box('pageHighlight').dispatchEvent(new Event('change'));
-        await nextTick();
-
-        expect((prefsStore[PREFS_KEY] as any).pageHighlight).toBe(false);
-        expect((prefsStore[PREFS_KEY] as any).siteYoutube).not.toBe(false);
-    });
-});
-
-describe('"Reload the page to apply."', () => {
-    const box = (pref: string): HTMLInputElement => root().querySelector(`input[data-pref="${pref}"]`) as HTMLInputElement;
-    const flip = async (pref: string): Promise<void> => {
-        box(pref).checked = !box(pref).checked;
-        box(pref).dispatchEvent(new Event('change'));
         await nextTick();
     };
 
-    beforeEach(() => withStatus({ signedIn: false, inboxCount: 0 }));
-
-    test('is not there before anything changes', async () => {
-        await mount('youtube');
-        expect(root().querySelector('.reload')).toBeNull();
-        expect(root().textContent).not.toContain('Reload the page to apply.');
+    beforeEach(() => {
+        withStatus({ signedIn: false, inboxCount: 0 });
+        onTab('https://en.wikipedia.org/wiki/Cat');
     });
 
-    test('appears once after a video-site switch changes', async () => {
+    test('is the only switch: the video-site and global ones are on the settings page', async () => {
         await mount('youtube');
 
-        await flip('siteYoutube');
-        await flip('siteNetflix');
-
-        const lines = root().querySelectorAll('.reload');
-        expect(lines).toHaveLength(1);
-        expect(lines[0].textContent).toBe('Reload the page to apply.');
+        expect([...root().querySelectorAll('input')].map((i) => (i as HTMLElement).dataset.pref)).toEqual(['highlightOffHosts']);
+        expect(root().querySelector('input[data-pref="siteYoutube"]')).toBeNull();
+        expect(root().querySelector('input[data-pref="siteNetflix"]')).toBeNull();
+        expect(root().querySelector('input[data-pref="pageHighlight"]')).toBeNull();
+        expect(root().textContent).not.toContain('Subtitles on');
     });
 
-    test('does not appear after the highlight switch changes', async () => {
+    test('is a real accessible switch named by its visible text', async () => {
         await mount('youtube');
 
-        await flip('pageHighlight');
+        expect(site().type).toBe('checkbox');
+        expect(site().getAttribute('role')).toBe('switch');
+        expect(document.getElementById(site().getAttribute('aria-labelledby')!)!.textContent).toBe(
+            'Highlight words on en.wikipedia.org',
+        );
+    });
 
-        expect(root().querySelector('.reload')).toBeNull();
+    test('names the tab\'s host without a leading www.', async () => {
+        onTab('https://www.theguardian.com/uk');
+        await mount('youtube');
+
+        expect(label()).toBe('Highlight words on theguardian.com');
+        expect(root().querySelector('.switches .host')!.textContent).toBe('theguardian.com');
+    });
+
+    test('keeps the host in its own element, so a long one can be cut with an ellipsis', async () => {
+        const long = 'a-very-long-subdomain-name.another-long-label.example-organisation.co.uk';
+        onTab(`https://${long}/`);
+        await mount('youtube');
+
+        const host = root().querySelector('.switches .host') as HTMLElement;
+        expect(host.textContent).toBe(long);
+        expect(host.title).toBe(long);
+        expect(root().querySelector('.switches input')).not.toBeNull();
+    });
+
+    test('is on for a site that was never switched off, and writes nothing by itself', async () => {
+        await mount('youtube');
+
+        expect(site().checked).toBe(true);
+        expect(site().disabled).toBe(false);
+        expect(root().querySelector('.row-hint')).toBeNull();
+        expect(prefsStore[PREFS_KEY]).toBeUndefined();
+    });
+
+    test('is off for a listed host, whichever way the tab spells it', async () => {
+        prefsStore[PREFS_KEY] = { highlightOffHosts: ['theguardian.com'] };
+        onTab('https://www.theguardian.com/uk');
+        await mount('youtube');
+
+        expect(site().checked).toBe(false);
+    });
+
+    test('turning it off lists the normalised host', async () => {
+        onTab('https://www.theguardian.com/uk');
+        await mount('youtube');
+
+        await flip();
+
+        expect(offHosts()).toEqual(['theguardian.com']);
+    });
+
+    test('turning it off keeps the hosts already listed', async () => {
+        prefsStore[PREFS_KEY] = { highlightOffHosts: ['bbc.com'] };
+        await mount('youtube');
+
+        await flip();
+
+        expect(offHosts()).toEqual(['bbc.com', 'en.wikipedia.org']);
+    });
+
+    test('turning it back on removes exactly that host', async () => {
+        prefsStore[PREFS_KEY] = { highlightOffHosts: ['bbc.com', 'en.wikipedia.org', 'a.org'] };
+        await mount('youtube');
+        expect(site().checked).toBe(false);
+
+        await flip();
+
+        expect(offHosts()).toEqual(['bbc.com', 'a.org']);
+    });
+
+    test('a switch for a site leaves the other prefs alone', async () => {
+        prefsStore[PREFS_KEY] = { siteNetflix: false, pageHighlight: true };
+        await mount('youtube');
+
+        await flip();
+
+        expect((prefsStore[PREFS_KEY] as any).siteNetflix).toBe(false);
+        expect((prefsStore[PREFS_KEY] as any).pageHighlight).toBe(true);
+    });
+
+    test('asks for the active tab of the current window', async () => {
+        await mount('youtube');
+
+        expect(tabsQueryMock.mock.calls).toEqual([[{ active: true, currentWindow: true }]]);
+    });
+
+    test('the switch slot is out of the layout until the tab answers', async () => {
+        tabsQueryMock.mockReturnValue(new Promise(() => {}));
+        await mount('youtube');
+
+        expect((root().querySelector('.switches') as HTMLElement).hidden).toBe(true);
+        expect(root().querySelector('.switches input')).toBeNull();
+    });
+
+    describe.each([
+        ['a new tab', 'chrome://newtab/'],
+        ['a chrome:// page', 'chrome://extensions/'],
+        ["the extension's own page", 'chrome-extension://test-extension-id/words.html'],
+        ['a local file', 'file:///Users/me/a.html'],
+        ["Lingogram's own site", 'https://lingogram.ai/app/vocab'],
+        ["a Lingogram subdomain", 'https://app.lingogram.ai/'],
+    ])('on %s', (_name, url) => {
+        test('there is no row at all, and no hint', async () => {
+            onTab(url);
+            await mount('youtube');
+
+            expect(root().querySelector('.switches input')).toBeNull();
+            expect(root().querySelector('.switches .row')).toBeNull();
+            expect((root().querySelector('.switches') as HTMLElement).hidden).toBe(true);
+            expect(root().textContent).not.toContain('Highlight words on');
+            expect(root().textContent).not.toContain('Highlighting is off');
+        });
+    });
+
+    test('with no tab URL (not exposed to the popup) there is no row', async () => {
+        tabsQueryMock.mockResolvedValue([{ id: 4 }]);
+        await mount('youtube');
+
+        expect(root().querySelector('.switches input')).toBeNull();
+        expect(root().textContent).not.toContain('Highlight words on');
+    });
+
+    test('with no tab at all, or a failing query, there is no row', async () => {
+        tabsQueryMock.mockResolvedValue([]);
+        await mount('youtube');
+        expect(root().querySelector('.switches input')).toBeNull();
+
+        document.body.innerHTML = POPUP_HTML;
+        jest.resetModules();
+        tabsQueryMock.mockRejectedValue(new Error('no'));
+        await mount('youtube');
+        expect(root().querySelector('.switches input')).toBeNull();
+    });
+
+    describe('with highlighting off on all websites', () => {
+        beforeEach(() => {
+            prefsStore[PREFS_KEY] = { pageHighlight: false, highlightOffHosts: [] };
+        });
+
+        test('the row stays, disabled and off, and says why under it', async () => {
+            await mount('youtube');
+
+            expect(label()).toBe('Highlight words on en.wikipedia.org');
+            expect(site().disabled).toBe(true);
+            expect(site().checked).toBe(false);
+            const hint = document.getElementById(site().getAttribute('aria-describedby')!)!;
+            expect(hint.textContent).toBe('Highlighting is off on all websites. Turn it on in Settings.');
+            expect(root().querySelector('.row-hint')).toBe(hint);
+        });
+
+        test('"Settings" in the hint is not a link of its own', async () => {
+            await mount('youtube');
+
+            expect(buttons().filter((b) => b.textContent === 'Settings')).toHaveLength(1);
+            expect(root().querySelector('.row-hint a, .row-hint button')).toBeNull();
+        });
+
+        test('even a listed host shows off, and a click changes nothing', async () => {
+            prefsStore[PREFS_KEY] = { pageHighlight: false, highlightOffHosts: ['bbc.com'] };
+            onTab('https://bbc.com/');
+            await mount('youtube');
+
+            site().click();
+            await nextTick();
+            await nextTick();
+
+            expect(site().checked).toBe(false);
+            expect(offHosts()).toEqual(['bbc.com']);
+        });
     });
 });
 

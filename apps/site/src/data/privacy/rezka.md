@@ -46,8 +46,8 @@ used, where it is stored, and the choices you have.
   stats"** and collection stops immediately.
 * **Your saved words are marked on the web pages you read.** The page text is
   compared with your saved words inside your browser and is never sent or
-  stored; you can switch this off in the toolbar popup or on the Settings page
-  (Section 1b). Resting the pointer
+  stored; you can switch this off for all websites on the Settings page, or for
+  one website in the toolbar popup (Section 1b). Resting the pointer
   on a marked word shows its translation, and only that word is sent to look it up
   (Section 1e).
 * We do **not** sell your data, show ads, run advertising trackers, build
@@ -176,8 +176,12 @@ your list. To limit this, only text that is actually shown on the page is
 marked, never hidden text. This requires Chrome's permission to run on all
 websites, which is the only thing the Extension uses that permission for; it
 does not run on Lingogram's own website. If you have saved no words, nothing is
-marked. You can switch it off with **"Highlight my words on websites"**, in the
-toolbar popup or on the Extension's Settings page. If both editions are
+marked. You can switch it off for all websites with **"Highlight my words on
+websites"** on the Extension's Settings page, or for one website with
+**"Highlight words on"** that website's name in the toolbar popup. The websites
+you switch off this way are kept as a list of their host names (for example
+`en.wikipedia.org`) on your device only; the list is never sent anywhere, and the
+Settings page shows it so you can switch a website back on. If both editions are
 installed, only the one that shows the menu item marks words.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
@@ -466,6 +470,9 @@ your device only:
 
 * your language and subtitle layout preferences, whether your saved words are
   marked on web pages, and which video sites the Extension is switched on for;
+* the **list of websites** (host names only, such as `en.wikipedia.org`) where you
+  switched the marking of your saved words off from the toolbar popup. It stays on
+  your device and is never sent anywhere;
 * how far you got on the setup page (Section 1f): whether you skipped signing in,
   and whether you finished;
 * whether the other Lingogram edition is the one that shows the menu item and

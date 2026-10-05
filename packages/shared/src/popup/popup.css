@@ -288,6 +288,7 @@ input:focus-visible {
     display: flex;
     flex-direction: column;
 }
+.switches[hidden] { display: none; }
 
 .row {
     display: flex;
@@ -303,6 +304,27 @@ input:focus-visible {
 }
 
 .row-label { display: block; }
+
+/* "Highlight words on {host}": a long host gives way with an ellipsis, so the
+   switch stays inside the 292px popup. */
+.row-label.site {
+    display: flex;
+    min-width: 0;
+}
+.row-label.site .lead { flex: 0 0 auto; white-space: pre; }
+.row-label.site .host {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.row.disabled { cursor: default; }
+.row.disabled .row-label { color: var(--lg-text-dim); }
+.sw input:disabled { cursor: default; }
+.sw input:disabled + .sw-track { opacity: 0.5; }
 
 .row-hint {
     display: block;
@@ -370,3 +392,38 @@ input:focus-visible {
     background: var(--lg-warn-bg);
     color: var(--lg-warn-text);
 }
+
+/* Settings page: "Not highlighted on:" and the hosts that can be put back. */
+.off-hosts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--lg-text-dim);
+}
+.off-host {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    padding: 1px 2px 1px 8px;
+    border-radius: 99px;
+    background: var(--lg-surface);
+    color: var(--lg-text-soft);
+}
+.off-host span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.off-host button {
+    padding: 0 6px;
+    background: none;
+    color: var(--lg-text-dim);
+    font-size: 14px;
+    line-height: 18px;
+}
+.off-host button:hover { color: var(--lg-text); }

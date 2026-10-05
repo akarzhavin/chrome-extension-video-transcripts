@@ -23,8 +23,12 @@ const storageLocal = {
         for (const k of arr) if (k in store) out[k] = store[k];
         return Promise.resolve(out);
     }),
+    // Like Chrome: a write wakes the page's own onChanged listeners too.
     set: jest.fn((items: Record<string, unknown>) => {
+        const changes: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(items)) changes[k] = { oldValue: store[k], newValue: v };
         Object.assign(store, items);
+        for (const l of [...storageListeners]) l(changes, 'local');
         return Promise.resolve();
     }),
 };
@@ -262,6 +266,95 @@ describe('where Lingogram works', () => {
         const lines = page().querySelectorAll('.reload');
         expect(lines).toHaveLength(1);
         expect(lines[0].textContent).toBe('Reload the page to apply.');
+    });
+});
+
+describe('where Lingogram works: the sites highlighting is off on', () => {
+    const line = (): HTMLElement | null => page().querySelector('.off-hosts');
+    const chips = (): string[] => [...page().querySelectorAll('.off-host')].map((c) => c.firstElementChild!.textContent!);
+    const remove = (host: string): HTMLButtonElement =>
+        page().querySelector(`button[aria-label="Highlight words on ${host} again"]`) as HTMLButtonElement;
+
+    test('the HDrezka edition: HDrezka, then the highlight', async () => {
+        await mount('rezka', ['en', 'ru']);
+
+        const works = [...page().querySelectorAll('.group')][1];
+        expect([...works.querySelectorAll('.row-label')].map((n) => n.textContent)).toEqual([
+            'Subtitles on HDrezka',
+            'Highlight my words on websites',
+        ]);
+    });
+
+    test('with an empty list there is no line at all', async () => {
+        await mount('youtube');
+
+        expect(line()!.hidden).toBe(true);
+        expect(page().textContent).not.toContain('Not highlighted on:');
+        expect(page().querySelectorAll('.off-host')).toHaveLength(0);
+    });
+
+    test('lists each host after "Not highlighted on:", under the highlight row, inside the group', async () => {
+        store[PREFS_KEY] = { highlightOffHosts: ['bbc.com', 'en.wikipedia.org'] };
+        await mount('youtube');
+
+        const works = [...page().querySelectorAll('.group')][1];
+        expect(line()!.hidden).toBe(false);
+        expect(line()!.parentElement).toBe(works);
+        expect(line()!.previousElementSibling!.querySelector('input')!.getAttribute('data-pref')).toBe('pageHighlight');
+        expect(line()!.firstChild!.textContent).toBe('Not highlighted on:');
+        expect(chips()).toEqual(['bbc.com', 'en.wikipedia.org']);
+    });
+
+    test('each host has a remove control named for it', async () => {
+        store[PREFS_KEY] = { highlightOffHosts: ['bbc.com', 'en.wikipedia.org'] };
+        await mount('youtube');
+
+        expect(remove('bbc.com').textContent).toBe('×');
+        expect(remove('en.wikipedia.org').textContent).toBe('×');
+    });
+
+    test('removing one host takes out exactly that one', async () => {
+        store[PREFS_KEY] = { highlightOffHosts: ['bbc.com', 'en.wikipedia.org', 'a.org'], siteNetflix: false };
+        await mount('youtube');
+
+        remove('en.wikipedia.org').click();
+        await nextTick();
+        await nextTick();
+
+        expect(prefsOf().highlightOffHosts).toEqual(['bbc.com', 'a.org']);
+        expect(prefsOf().siteNetflix).toBe(false);
+        expect(chips()).toEqual(['bbc.com', 'a.org']);
+    });
+
+    test('removing the last host hides the line', async () => {
+        store[PREFS_KEY] = { highlightOffHosts: ['bbc.com'] };
+        await mount('youtube');
+
+        remove('bbc.com').click();
+        await nextTick();
+        await nextTick();
+
+        expect(prefsOf().highlightOffHosts).toEqual([]);
+        expect(line()!.hidden).toBe(true);
+        expect(page().textContent).not.toContain('Not highlighted on:');
+    });
+
+    test('follows the list when a popup changes it', async () => {
+        await mount('youtube');
+        expect(line()!.hidden).toBe(true);
+
+        const next = { highlightOffHosts: ['theguardian.com'] };
+        for (const l of storageListeners) l({ [PREFS_KEY]: { newValue: next } }, 'local');
+
+        expect(line()!.hidden).toBe(false);
+        expect(chips()).toEqual(['theguardian.com']);
+    });
+
+    test('garbage in storage shows no line', async () => {
+        store[PREFS_KEY] = { highlightOffHosts: 'bbc.com' };
+        await mount('youtube');
+
+        expect(line()!.hidden).toBe(true);
     });
 });
 

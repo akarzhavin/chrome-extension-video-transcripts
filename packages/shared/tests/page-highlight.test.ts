@@ -351,6 +351,92 @@ describe('installPageHighlight', () => {
         expect(painted()).toEqual(['cat']);
     });
 
+    describe('a site switched off from the popup', () => {
+        // jsdom's location is http://localhost/.
+        const off = (...hosts: string[]) => chrome.storage.local.set({ [PREFS_KEY]: { highlightOffHosts: hosts } });
+        const mousemoveListeners = (spy: jest.SpyInstance) => spy.mock.calls.filter((c) => c[0] === 'mousemove').length;
+
+        it('paints nothing on a listed host', async () => {
+            await setMirrorEntry('cat', 'active');
+            store[PREFS_KEY] = { highlightOffHosts: ['localhost'] };
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            expect(registry.has(HIGHLIGHT_NAME)).toBe(false);
+            expect(painted()).toEqual([]);
+        });
+
+        it('installs no hover card on a listed host, and installs it when the host is removed', async () => {
+            const spy = jest.spyOn(document, 'addEventListener');
+            try {
+                await setMirrorEntry('cat', 'active');
+                store[PREFS_KEY] = { highlightOffHosts: ['localhost'] };
+                document.body.innerHTML = '<p>a cat</p>';
+                await installPageHighlight();
+                await settle();
+                expect(mousemoveListeners(spy)).toBe(0);
+                await off();
+                await settle();
+                expect(mousemoveListeners(spy)).toBe(1);
+            } finally {
+                spy.mockRestore();
+            }
+        });
+
+        it('paints on a host that is not listed', async () => {
+            await setMirrorEntry('cat', 'active');
+            store[PREFS_KEY] = { highlightOffHosts: ['example.org', 'localhost.localdomain'] };
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            expect(painted()).toEqual(['cat']);
+        });
+
+        it('clears its marks when the host is added while the page is open', async () => {
+            await setMirrorEntry('cat', 'active');
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            expect(painted()).toEqual(['cat']);
+            await off('localhost');
+            await settle();
+            expect(registry.has(HIGHLIGHT_NAME)).toBe(false);
+        });
+
+        it('paints again when the host is removed while the page is open', async () => {
+            await setMirrorEntry('cat', 'active');
+            store[PREFS_KEY] = { highlightOffHosts: ['localhost'] };
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            expect(painted()).toEqual([]);
+            await off();
+            await settle();
+            expect(painted()).toEqual(['cat']);
+        });
+
+        it('a listing of another host changes nothing on this page', async () => {
+            await setMirrorEntry('cat', 'active');
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            await off('example.org');
+            await settle();
+            expect(painted()).toEqual(['cat']);
+        });
+
+        it('keeps the global setting in charge: off everywhere stays off after the host is removed', async () => {
+            await setMirrorEntry('cat', 'active');
+            store[PREFS_KEY] = { pageHighlight: false, highlightOffHosts: ['localhost'] };
+            document.body.innerHTML = '<p>a cat</p>';
+            await installPageHighlight();
+            await settle();
+            await chrome.storage.local.set({ [PREFS_KEY]: { pageHighlight: false, highlightOffHosts: [] } });
+            await settle();
+            expect(registry.has(HIGHLIGHT_NAME)).toBe(false);
+        });
+    });
+
     it('does nothing in a browser without the Highlight API', async () => {
         const saved = (global as any).CSS;
         (global as any).CSS = {};

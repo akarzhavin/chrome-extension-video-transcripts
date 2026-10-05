@@ -78,6 +78,7 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            highlightOffHosts: [],
             siteYoutube: true,
             siteNetflix: true,
             siteRezka: true,
@@ -140,6 +141,41 @@ describe('prefs', () => {
         expect(cb).toHaveBeenCalledTimes(1); // unsubscribed
     });
 
+    test('highlightOffHosts is kept as stored', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { highlightOffHosts: ['bbc.com', 'en.wikipedia.org'] };
+        expect((await loadPrefs()).highlightOffHosts).toEqual(['bbc.com', 'en.wikipedia.org']);
+    });
+
+    test.each([
+        ['a string', 'bbc.com'],
+        ['a number', 7],
+        ['an object', { 'bbc.com': true }],
+        ['null', null],
+    ])('highlightOffHosts stored as %s falls back to []', async (_name, junk) => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { highlightOffHosts: junk };
+        expect((await loadPrefs()).highlightOffHosts).toEqual([]);
+    });
+
+    test('highlightOffHosts drops entries that are not host strings', async () => {
+        (chromeStorage.local as any)._store['prefs.v1'] = { highlightOffHosts: ['bbc.com', 3, null, '', { a: 1 }, 'x.org'] };
+        expect((await loadPrefs()).highlightOffHosts).toEqual(['bbc.com', 'x.org']);
+    });
+
+    test('the default list is not shared between callers', async () => {
+        const first = await loadPrefs();
+        first.highlightOffHosts.push('leak.example');
+        expect((await loadPrefs()).highlightOffHosts).toEqual([]);
+    });
+
+    test('the fallback list after a failing read is not shared either', async () => {
+        (chromeStorage.local.get as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+        const failed = await loadPrefs();
+        expect(failed.highlightOffHosts).toEqual([]);
+        failed.highlightOffHosts.push('leak.example');
+        (chromeStorage.local.get as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+        expect((await loadPrefs()).highlightOffHosts).toEqual([]);
+    });
+
     test('loadPrefs survives garbage stored under the key', async () => {
         (chromeStorage.local as any)._store['prefs.v1'] = 'not-an-object';
         const p = await loadPrefs();
@@ -162,6 +198,7 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            highlightOffHosts: [],
             siteYoutube: true,
             siteNetflix: true,
             siteRezka: true,

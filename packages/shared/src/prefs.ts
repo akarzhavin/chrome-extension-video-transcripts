@@ -107,6 +107,10 @@ export interface Prefs {
     // it is about pages that are not one of the streaming sites, so a
     // per-platform copy would have no scope to live in. On by default.
     pageHighlight: boolean;
+    // Hosts (see highlight-hosts.ts: lower-case, no leading "www.") where the
+    // page highlight is off although pageHighlight is on. GLOBAL, stored only
+    // in this browser. Set by the per-site switch in the popup.
+    highlightOffHosts: string[];
     // Whether the extension starts on each video site at all (sidebar,
     // overlay, subtitle fetching). Set on the welcome page and in the popup.
     // GLOBAL: they ARE the per-site switch, a per-site copy would be circular.
@@ -374,6 +378,11 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
     for (const key of ['pageHighlight', 'siteYoutube', 'siteNetflix', 'siteRezka'] as const) {
         if (typeof resolved[key] !== 'boolean') resolved[key] = DEFAULT_PREFS[key];
     }
+    // Stored garbage (not a list, or non-strings in it) must not reach the
+    // content script. A fresh array: DEFAULT_PREFS' own must never be handed out.
+    resolved.highlightOffHosts = Array.isArray(resolved.highlightOffHosts)
+        ? resolved.highlightOffHosts.filter((h): h is string => typeof h === 'string' && h !== '')
+        : [];
     // The resolved view is flat; byPlatform is storage-only.
     delete (resolved as Partial<StoredPrefs>).byPlatform;
     return resolved;
@@ -428,6 +437,7 @@ const DEFAULT_PREFS: Prefs = {
     // for a feature it does not have.
     debugMode: DEFAULT_DEBUG_MODE,
     pageHighlight: true,
+    highlightOffHosts: [],
     siteYoutube: true,
     siteNetflix: true,
     siteRezka: true,
@@ -460,12 +470,12 @@ function isPrefs(value: unknown): value is Partial<StoredPrefs> {
 }
 
 export async function loadPrefs(scope: PrefScope = currentScope()): Promise<Prefs> {
-    if (typeof chrome === 'undefined' || !chrome.storage?.local) return { ...DEFAULT_PREFS };
+    if (typeof chrome === 'undefined' || !chrome.storage?.local) return { ...DEFAULT_PREFS, highlightOffHosts: [] };
     try {
         const v = (await chrome.storage.local.get(PREFS_KEY)) as Record<string, unknown>;
         return resolve(v[PREFS_KEY], scope);
     } catch {
-        return { ...DEFAULT_PREFS };
+        return { ...DEFAULT_PREFS, highlightOffHosts: [] };
     }
 }
 

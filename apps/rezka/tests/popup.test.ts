@@ -3,6 +3,7 @@
  */
 
 const sendMessageMock = jest.fn();
+const tabsQuery = jest.fn().mockResolvedValue([]);
 
 // The switches read and write prefs, so this suite needs a storage stub too:
 // without one loadPrefs() bails to defaults and a switch's stored state could
@@ -30,12 +31,14 @@ const storageLocal = {
         sendMessage: sendMessageMock,
         lastError: undefined,
     },
+    tabs: { create: jest.fn(), query: tabsQuery },
     storage: { local: storageLocal, onChanged: { addListener: jest.fn() } },
 };
 
 beforeEach(() => {
     document.body.innerHTML = '<div id="root"></div>';
     sendMessageMock.mockReset();
+    tabsQuery.mockReset().mockResolvedValue([]);
     Object.keys(prefsStore).forEach((k) => delete prefsStore[k]);
     storageLocal.get.mockClear();
     storageLocal.set.mockClear();
@@ -77,14 +80,24 @@ describe('the HDrezka popup', () => {
         expect(root.textContent).not.toContain('student@example.com');
     });
 
-    test('has the HDrezka switch and the highlight, and no YouTube or Netflix switch', async () => {
+    test('has no video-site switch: the HDrezka one is on the settings page', async () => {
         sendMessageMock.mockImplementation((_msg, cb) => cb({ signedIn: false, inboxCount: 0 }));
         await import('../src/popup/popup');
         await nextTick();
 
-        const prefs = Array.from(document.querySelectorAll<HTMLInputElement>('.switches input')).map((i) => i.dataset.pref);
-        expect(prefs).toEqual(['siteRezka', 'pageHighlight']);
-        expect(document.querySelector('.switches .row-label')?.textContent).toBe('Subtitles on HDrezka');
+        expect(document.querySelector('input[data-pref="siteRezka"]')).toBeNull();
+        expect(document.querySelector('.switches input')).toBeNull();
+        expect(document.body.textContent).not.toContain('Subtitles on HDrezka');
+    });
+
+    test('names the tab\'s site in the one switch it has', async () => {
+        sendMessageMock.mockImplementation((_msg, cb) => cb({ signedIn: false, inboxCount: 0 }));
+        tabsQuery.mockResolvedValue([{ url: 'https://www.example.org/a' }]);
+        await import('../src/popup/popup');
+        await nextTick();
+        await nextTick();
+
+        expect(document.querySelector('.switches .row-label')?.textContent).toBe('Highlight words on example.org');
     });
 
     test('has no language pickers and no privacy switch: both are on the settings page', async () => {

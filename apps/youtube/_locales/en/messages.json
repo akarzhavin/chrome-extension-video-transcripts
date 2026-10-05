@@ -831,6 +831,14 @@
     "message": "Subtitles on {site}",
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
   },
+  "popupHighlightOnSite": {
+    "message": "Highlight words on {site}",
+    "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
+  },
+  "popupHighlightOffEverywhere": {
+    "message": "Highlighting is off on all websites. Turn it on in Settings.",
+    "description": "Popup hint under the disabled per-site switch when highlighting is switched off for all websites. 'Settings' is the popup's Settings link right below."
+  },
   "popupReloadHint": {
     "message": "Reload the page to apply.",
     "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
@@ -858,6 +866,14 @@
   "settingsHighlightHint": {
     "message": "Words you saved are marked on any page you read. Point at one to see its translation.",
     "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsHighlightOffOn": {
+    "message": "Not highlighted on:",
+    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
+  },
+  "settingsHighlightOnAgain": {
+    "message": "Highlight words on {site} again",
+    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
   },
   "settingsGroupAccount": {
     "message": "Account",

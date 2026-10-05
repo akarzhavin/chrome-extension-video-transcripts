@@ -13,7 +13,7 @@ import {
     WORDS_PAGE,
     type AuthStatus,
 } from './shared';
-import { renderSwitches } from './switches';
+import { renderSiteSwitch } from './site-switch';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
 // and the edition-specific blocks (video sites, setup) are left out.
@@ -40,9 +40,12 @@ function render(root: HTMLElement, state: ViewState): void {
     renderState(root, state.status);
     renderSetupLink(root);
 
+    // The one switch, for the site of this tab. Out of the layout until the tab
+    // and the prefs have answered, and for good where there is no such switch.
     const switches = el('div', 'switches');
-    renderSwitches(switches, edition);
+    switches.hidden = true;
     root.appendChild(switches);
+    void renderSiteSwitch(switches);
 
     root.appendChild(el('hr', 'hairline'));
     root.appendChild(settingsLink(state.status));
