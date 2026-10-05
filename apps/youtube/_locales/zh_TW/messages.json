@@ -67,10 +67,6 @@
     "message": "字幕",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "登入以儲存單字",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "已儲存 {count} 個單字",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "儲存到 Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "在網站上",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "在網站上醒目標示我的單字",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "你儲存的單字會在你閱讀的任何網頁上被標出。比對在你的裝置上完成，不會傳送任何內容。",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "完成設定",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "下次開啟或重新載入頁面時生效。",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "影片網站",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google 翻譯",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "隱藏",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "登入以保留你的單字",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "登入 Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "重新登入",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "邊看邊儲存單字",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "點一下字幕中的單字，再按「儲存」。它會保存在這裡，也就是目前的瀏覽器中。",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "開啟我的單字庫",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "登入",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "即可在所有裝置上使用它們。",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "登入已失效。新單字會儲存在此裝置上，直到你重新登入。",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site}字幕",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "重新載入頁面以套用變更。",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "設定",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "設定",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "我的單字",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "在哪些網站使用 Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "雙語字幕和影片旁的單字清單。",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "你儲存的單字會在你閱讀的任何頁面上醒目標示。指向單字即可查看翻譯。",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "帳號",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "尚未登入",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "你的單字儲存在這個瀏覽器中。登入後，所有裝置都能使用。",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "登入已失效",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "重新登入，讓新單字進入你的帳號。",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "我的單字",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "{count} 個單字",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "搜尋我的單字",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "移除",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "無法移除該單字，請再試一次。",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "這些單字只儲存在這個瀏覽器中。",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "登入後，它們會出現在所有裝置上，你也可以練習它們。單字會自動轉入你的帳號。",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "你的單字都在你的 Lingogram 單字庫裡。",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "等待加入你的帳號",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "還沒有單字",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "點一下字幕中的單字，再按「儲存」。你儲存的單字會顯示在這裡。",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

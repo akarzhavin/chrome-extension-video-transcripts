@@ -12,7 +12,6 @@
 // identical items. The two agree on one owner, the edition the learner is signed
 // in to (sibling.ts, ownsSharedFeatures), and the other hides its item.
 
-import { track } from './analytics-bg';
 import { handleAuthMessage } from './auth/background';
 import { AUTH_UID_KEY, getAuthState, SIBLING_KEYS } from './auth/storage';
 import { msg } from './i18n';
@@ -143,12 +142,6 @@ export async function saveSelection(
     if (!term || term.length > MAX_TERM_LEN) return;
     const tabId = tab?.id;
 
-    // Signed out: show the sign-in popup rather than failing silently.
-    if (!(await getAuthState())) {
-        await promptSignIn(tab);
-        return;
-    }
-
     // The surrounding paragraph, for context in the inbox. Injection is refused
     // on some pages (chrome://, the Web Store, PDFs): save without context then.
     let context = '';
@@ -186,38 +179,13 @@ export async function saveSelection(
         await toast(tabId, msg('ytQuickAddSaved', 'Saved: {term}').replace('{term}', term), true);
     } catch (err) {
         const message = String(err instanceof Error ? err.message : err);
-        // Whether the session is gone is answered by storage, not by the error
-        // text: handleAuthMessage clears the session itself exactly when the
-        // failure means it is dead (isAuthFailure). A refusal by the rules (a
-        // save within a second of another, the daily cap) also says "403", and
-        // must not send a signed-in learner to sign in.
-        if (!(await getAuthState())) {
-            await promptSignIn(tab);
-            return;
-        }
+        // A signed-out learner never lands here: the word is kept in the
+        // browser and the save succeeds. A dead session does not either — the
+        // worker keeps the word locally then too. What is left is a real
+        // failure (a refusal by the rules: a save within a second of another,
+        // the daily cap), shown as one.
         await toast(tabId, msg('ytQuickAddFailed', "Couldn't save: {error}").replace('{error}', message), false);
     }
-}
-
-// openPopup() is Chrome 127+ and can still fail (no focused window), so a badge
-// and a toast back it up and the prompt is never silently dropped.
-async function promptSignIn(tab: chrome.tabs.Tab | undefined): Promise<void> {
-    void track('signin_started', { from: 'context_menu' });
-    try {
-        chrome.action.setBadgeText({ text: '!' });
-        chrome.action.setBadgeBackgroundColor?.({ color: '#dc2626' });
-    } catch {
-        // badge unavailable — non-fatal.
-    }
-    try {
-        await (tab?.windowId != null
-            ? chrome.action.openPopup({ windowId: tab.windowId })
-            : chrome.action.openPopup());
-        return;
-    } catch {
-        // fall through to the toast hint.
-    }
-    await toast(tab?.id, msg('ytSignInToSave', 'Sign in to save words'), false);
 }
 
 async function toast(tabId: number | undefined, text: string, ok: boolean): Promise<void> {

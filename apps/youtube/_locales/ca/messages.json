@@ -67,10 +67,6 @@
     "message": "Subtítols",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Inicia la sessió per desar paraules",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} paraules desades",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Desa a Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "Als llocs web",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Ressalta les meves paraules als llocs web",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Les paraules que has desat es marquen a qualsevol pàgina que llegeixis. La comprovació es fa al teu dispositiu; no s'envia res.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Acaba la configuració",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "S'aplica la propera vegada que obris o tornis a carregar la pàgina.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Llocs de vídeo",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google Traductor",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "Amaga",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Inicia la sessió per conservar les teves paraules",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Inicia la sessió a Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Torna a iniciar la sessió",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Desa paraules mentre mires",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Fes clic en una paraula dels subtítols i després a Desa. Es conserva aquí, en aquest navegador.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "Obre el meu vocabulari",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Inicia la sessió",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "i les teves paraules seran a tots els dispositius.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "S'ha tancat la sessió. Les paraules noves es queden en aquest dispositiu fins que tornis a iniciar la sessió.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Subtítols a {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Torna a carregar la pàgina per aplicar el canvi.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Configuració",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Configuració",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Les meves paraules",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "On funciona Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Subtítols dobles i la llista de paraules al costat del vídeo.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Les paraules que has desat es ressalten a qualsevol pàgina que llegeixis. Posa el cursor sobre una per veure'n la traducció.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Compte",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Sessió no iniciada",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Les teves paraules es conserven en aquest navegador. Inicia la sessió per tenir-les a tots els dispositius.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "S'ha tancat la sessió",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Torna a iniciar la sessió perquè les paraules noves arribin al teu compte.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Les meves paraules",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "{count} paraules",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Cerca a les meves paraules",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Elimina",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "No s'ha pogut eliminar la paraula. Torna-ho a provar.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Aquestes paraules només es conserven en aquest navegador.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Inicia la sessió per tenir-les a tots els dispositius i practicar-les. Passaran al teu compte automàticament.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Les teves paraules són al teu vocabulari de Lingogram.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "Esperant passar al teu compte",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Encara no hi ha paraules",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Fes clic en una paraula dels subtítols i després a Desa. Les paraules que desis apareixeran aquí.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

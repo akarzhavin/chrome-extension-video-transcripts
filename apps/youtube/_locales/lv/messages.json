@@ -67,10 +67,6 @@
     "message": "Subtitri",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Pierakstieties, lai saglabātu vārdus",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "Saglabāti {count} vārdi",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Saglabāt lietotnē Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "Tīmekļa vietnēs",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Izcelt manus vārdus tīmekļa vietnēs",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Saglabātie vārdi tiek atzīmēti katrā lapā, ko lasāt. Salīdzināšana notiek jūsu ierīcē, nekas netiek sūtīts.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Pabeigt iestatīšanu",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "Stājas spēkā nākamreiz, kad atvērsiet vai pārlādēsiet lapu.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Video vietnes",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google tulkotājs",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "Paslēpt",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Pierakstieties, lai vārdi nepazustu",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Pierakstīties Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Pierakstīties vēlreiz",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Saglabājiet vārdus skatīšanās laikā",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Noklikšķiniet uz vārda subtitros, pēc tam uz Saglabāt. Tas paliek šeit, šajā pārlūkā.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "Atvērt manu vārdnīcu",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Pierakstieties",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "– un vārdi būs jums līdzi katrā ierīcē.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "Sesija beigusies. Jaunie vārdi tiek glabāti šajā ierīcē, līdz pierakstīsities vēlreiz.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Subtitri vietnē {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Lai izmaiņas stātos spēkā, pārlādējiet lapu.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Iestatījumi",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Iestatījumi",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Mani vārdi",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Kur darbojas Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Dubultie subtitri un vārdu saraksts blakus video.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Saglabātie vārdi tiek izcelti katrā lapā, ko lasāt. Norādiet uz vārdu, lai redzētu tā tulkojumu.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Konts",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Pierakstīšanās nav veikta",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Jūsu vārdi tiek glabāti šajā pārlūkā. Pierakstieties, lai tie būtu katrā ierīcē.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "Sesija beigusies",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Pierakstieties vēlreiz, lai jaunie vārdi nonāktu jūsu kontā.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Mani vārdi",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "Vārdi: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Meklēt manos vārdos",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Noņemt",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "Vārdu neizdevās noņemt. Mēģiniet vēlreiz.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Šie vārdi tiek glabāti tikai šajā pārlūkā.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Pierakstieties, lai tie būtu katrā ierīcē un jūs varētu ar tiem trenēties. Tie automātiski pāries uz jūsu kontu.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Jūsu vārdi ir jūsu Lingogram vārdnīcā.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "Gaida pievienošanu jūsu kontam",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Vārdu vēl nav",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Noklikšķiniet uz vārda subtitros, pēc tam uz Saglabāt. Saglabātie vārdi parādīsies šeit.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

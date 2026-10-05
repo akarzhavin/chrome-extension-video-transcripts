@@ -3,10 +3,11 @@
  */
 
 const sendMessageMock = jest.fn();
+const tabsQuery = jest.fn().mockResolvedValue([]);
 
-// The privacy toggle reads and writes prefs, so this suite needs a storage
-// stub too — without one loadPrefs() bails to defaults and the checkbox's
-// stored state could never be observed.
+// The switches read and write prefs, so this suite needs a storage stub too:
+// without one loadPrefs() bails to defaults and a switch's stored state could
+// never be observed.
 const prefsStore: Record<string, unknown> = {};
 const storageLocal = {
     get: jest.fn((keys: string | string[] | null) => {
@@ -26,15 +27,18 @@ const storageLocal = {
     runtime: {
         id: 'test-extension-id',
         getManifest: () => ({ version: '1.0.0' }),
+        getURL: (p: string) => `chrome-extension://test-extension-id/${p}`,
         sendMessage: sendMessageMock,
         lastError: undefined,
     },
+    tabs: { create: jest.fn(), query: tabsQuery },
     storage: { local: storageLocal, onChanged: { addListener: jest.fn() } },
 };
 
 beforeEach(() => {
     document.body.innerHTML = '<div id="root"></div>';
     sendMessageMock.mockReset();
+    tabsQuery.mockReset().mockResolvedValue([]);
     Object.keys(prefsStore).forEach((k) => delete prefsStore[k]);
     storageLocal.get.mockClear();
     storageLocal.set.mockClear();
@@ -45,8 +49,8 @@ function nextTick(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe('popup', () => {
-    test('renders sign-in button when not signed in (dev)', async () => {
+describe('the HDrezka popup', () => {
+    test('a signed-out learner with no words gets the block and the quiet sign-in link', async () => {
         sendMessageMock.mockImplementationOnce((_msg, cb) => {
             cb({ signedIn: false, inboxCount: 0 });
         });
@@ -55,16 +59,14 @@ describe('popup', () => {
         await nextTick();
 
         const root = document.getElementById('root')!;
-        expect(root.querySelector('h1')?.textContent).toContain('Lingogram');
+        expect(root.querySelector('h1')?.textContent).toBe('Lingogram');
         expect(root.querySelector('input[type="email"]')).toBeNull();
-        expect(root.querySelector('input[type="password"]')).toBeNull();
-        const primary = root.querySelector('button.primary');
-        expect(primary?.textContent).toContain('Sign in on lingogram');
-        // Dev hides the native-Google fallback (which requires a stable extension ID).
-        expect(root.querySelector('button.secondary')).toBeNull();
+        expect(root.querySelector('.mintro b')?.textContent).toBe('Save words as you watch');
+        expect(root.querySelector('button.primary')).toBeNull();
+        expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent)).toContain('Sign in on Lingogram');
     });
 
-    test('renders signed-in view with email and count', async () => {
+    test('a signed-in learner gets the account count on the vocabulary row', async () => {
         sendMessageMock.mockImplementationOnce((_msg, cb) => {
             cb({ signedIn: true, email: 'student@example.com', uid: 'u-1', inboxCount: 7 });
         });
@@ -73,78 +75,37 @@ describe('popup', () => {
         await nextTick();
 
         const root = document.getElementById('root')!;
-        expect(root.querySelector('.email')?.textContent).toBe('student@example.com');
-        expect(root.querySelector('.count')?.textContent).toContain('7 words');
-        expect(root.querySelector('button')?.textContent).toBe('Sign out');
-    });
-});
-
-describe('privacy toggle', () => {
-    const signedOut = () =>
-        sendMessageMock.mockImplementation((msg, cb) => {
-            if (typeof cb === 'function') cb({ signedIn: false, inboxCount: 0 });
-        });
-
-    const checkbox = () =>
-        document.querySelector<HTMLInputElement>('input[data-pref="analyticsEnabled"]');
-
-    test('renders checked by default', async () => {
-        // Analytics is on unless turned off, and a privacy control that flashes
-        // "off" before correcting itself reads worse than the reverse.
-        signedOut();
-        await import('../src/popup/popup');
-        await nextTick();
-        expect(checkbox()).not.toBeNull();
-        expect(checkbox()!.checked).toBe(true);
+        expect(root.querySelector('.mi .v2')?.textContent).toBe('7');
+        expect(root.querySelector('button.mi')?.textContent).toBe('My vocabulary7');
+        expect(root.textContent).not.toContain('student@example.com');
     });
 
-    test('reflects a stored opt-out', async () => {
-        prefsStore['prefs.v1'] = { analyticsEnabled: false };
-        signedOut();
-        await import('../src/popup/popup');
-        await nextTick();
-        expect(checkbox()!.checked).toBe(false);
-    });
-
-    test('unchecking persists the opt-out and sends the final event', async () => {
-        // The event goes out BEFORE the preference is written, so this last hit
-        // still passes the gate in analytics-bg.
-        signedOut();
+    test('has no video-site switch: the HDrezka one is on the settings page', async () => {
+        sendMessageMock.mockImplementation((_msg, cb) => cb({ signedIn: false, inboxCount: 0 }));
         await import('../src/popup/popup');
         await nextTick();
 
-        sendMessageMock.mockClear();
-        const box = checkbox()!;
-        box.checked = false;
-        box.dispatchEvent(new Event('change'));
-        await nextTick();
-
-        const tracked = sendMessageMock.mock.calls
-            .map((c) => c[0])
-            .filter((m) => m && m.action === 'TRACK_EVENT');
-        expect(tracked).toHaveLength(1);
-        expect(tracked[0].event).toBe('analytics_opt_out');
-        expect((prefsStore['prefs.v1'] as any).analyticsEnabled).toBe(false);
+        expect(document.querySelector('input[data-pref="siteRezka"]')).toBeNull();
+        expect(document.querySelector('.highlight input')).toBeNull();
+        expect(document.body.textContent).not.toContain('Subtitles on HDrezka');
     });
 
-    test('re-enabling persists but sends nothing', async () => {
-        // Opting back in isn't tracked: analytics is already on for everyone,
-        // so the event would only ever measure re-enables.
-        prefsStore['prefs.v1'] = { analyticsEnabled: false };
-        signedOut();
+    test('names the tab\'s site in the one switch it has', async () => {
+        sendMessageMock.mockImplementation((_msg, cb) => cb({ signedIn: false, inboxCount: 0 }));
+        tabsQuery.mockResolvedValue([{ url: 'https://www.example.org/a' }]);
+        await import('../src/popup/popup');
+        await nextTick();
+        await nextTick();
+
+        expect(document.querySelector('.highlight .l')?.textContent).toBe('Highlight on example.org');
+    });
+
+    test('has no language pickers and no privacy switch: both are on the settings page', async () => {
+        sendMessageMock.mockImplementation((_msg, cb) => cb({ signedIn: false, inboxCount: 0 }));
         await import('../src/popup/popup');
         await nextTick();
 
-        sendMessageMock.mockClear();
-        const box = checkbox()!;
-        box.checked = true;
-        box.dispatchEvent(new Event('change'));
-        await nextTick();
-
-        const tracked = sendMessageMock.mock.calls
-            .map((c) => c[0])
-            .filter((m) => m && m.action === 'TRACK_EVENT');
-        expect(tracked).toHaveLength(0);
-        expect((prefsStore['prefs.v1'] as any).analyticsEnabled).toBe(true);
+        expect(document.querySelector('select')).toBeNull();
+        expect(document.querySelector('input[data-pref="analyticsEnabled"]')).toBeNull();
     });
 });

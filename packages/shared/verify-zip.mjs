@@ -94,6 +94,8 @@ const PAGE_READABLE = [
     'src/content/page-script.js',
     'src/content/page-highlight.js',
     'src/popup/popup.js',
+    'src/settings/settings.js',
+    'src/words/words.js',
 ];
 
 // Files that have no business in a published extension. Source maps hand out

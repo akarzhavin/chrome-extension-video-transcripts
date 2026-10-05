@@ -3,6 +3,7 @@ import { displayForm, normalizeTerm, wordKey } from '../word-key';
 import { refreshIdToken } from './firebaseRest';
 import { AuthState, getAuthState, setAuthState } from './storage';
 import type { WorkerDiag } from '../debug/save-diag-worker';
+import { assertTermFits } from './term-limit';
 
 // Save diagnostics (debug/save-diag-worker.ts) are dev-only. Every report below
 // is gated `DIAG_BUILD && diag`: a module-level constant from the __EXT_ENV__
@@ -12,7 +13,6 @@ const DIAG_BUILD = __EXT_ENV__ === 'dev';
 // Injected at build time from infrastructure/lingogram-limits.json — the same
 // file the Firestore rule generator consumes. Single source of truth.
 const MAX_WORDS_PER_DAY = __LIMIT_MAX_WORDS_PER_DAY__;
-const MAX_TERM_BYTES = __LIMIT_MAX_TERM_BYTES__;
 const MAX_CONTEXT_BYTES = __LIMIT_MAX_CONTEXT_BYTES__;
 const MAX_FEEDBACK_TEXT_BYTES = __LIMIT_MAX_FEEDBACK_TEXT_BYTES__;
 
@@ -442,10 +442,7 @@ export async function addInboxWord(
     opts: { reactivate?: boolean; createOnly?: boolean; diag?: WorkerDiag } = {},
 ): Promise<AddInboxWordResult> {
     const diag = opts.diag;
-    const termBytes = utf8Bytes(input.term);
-    if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
-        throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
-    }
+    assertTermFits(input.term);
     if (input.context && utf8Bytes(input.context) > MAX_CONTEXT_BYTES) {
         // Truncating silently keeps the term submission going. Trim from the
         // end so the keyword's own subtitle (in the middle) survives.
@@ -684,10 +681,7 @@ export async function removeInboxWord(
     opts: { diag?: WorkerDiag } = {},
 ): Promise<{ wordId: string; documentPath: string; state: 'removed' }> {
     const diag = opts.diag;
-    const termBytes = utf8Bytes(input.term);
-    if (termBytes === 0 || termBytes > MAX_TERM_BYTES) {
-        throw new Error(`term must be 1..${MAX_TERM_BYTES} bytes (UTF-8)`);
-    }
+    assertTermFits(input.term);
 
     let state = await ensureFreshToken(cfg, diag);
     const wordId = wordKey(input.term);

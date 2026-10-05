@@ -67,10 +67,6 @@
     "message": "Титлови",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Пријавите се да сачувате речи",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "Сачувано речи: {count}",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Сачувај у Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "На веб-сајтовима",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Истакни моје речи на веб-сајтовима",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Речи које сте сачували означавају се на свакој страници коју читате. Провера се обавља на вашем уређају, ништа се не шаље.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Заврши подешавање",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "Важи од следећег отварања или освежавања странице.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Видео сајтови",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google преводилац",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "Сакриј",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Пријавите се да не изгубите речи",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Пријава на Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Пријавите се поново",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Чувајте речи док гледате",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Кликните на реч у титловима, па на Сачувај. Остаје овде, у овом прегледачу.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "Отвори мој речник",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Пријавите се",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "– и речи ће вам бити на сваком уређају.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "Сесија је истекла. Нове речи остају на овом уређају док се поново не пријавите.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Титлови на {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Поново учитајте страницу да би се промена применила.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Подешавања",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Подешавања",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Моје речи",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Где Lingogram ради",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Двоструки титлови и листа речи поред видеа.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Речи које сте сачували истичу се на свакој страници коју читате. Покажите на реч да видите превод.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Налог",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Нисте пријављени",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Ваше речи се чувају у овом прегледачу. Пријавите се да их имате на сваком уређају.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "Сесија је истекла",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Пријавите се поново да нове речи стигну на ваш налог.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Моје речи",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "Речи: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Претражи моје речи",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Уклони",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "Реч није уклоњена. Покушајте поново.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Ове речи се чувају само у овом прегледачу.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Пријавите се да их имате на сваком уређају и да можете да их вежбате. На ваш налог ће прећи аутоматски.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Ваше речи су у вашем речнику на Lingogram-у.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "Чекају додавање на ваш налог",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Још нема речи",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Кликните на реч у титловима, па на Сачувај. Речи које сачувате појавиће се овде.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

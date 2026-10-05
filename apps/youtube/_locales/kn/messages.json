@@ -67,10 +67,6 @@
     "message": "ಉಪಶೀರ್ಷಿಕೆಗಳು",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "ಪದಗಳನ್ನು ಉಳಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} ಪದಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram ಗೆ ಉಳಿಸಿ",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "ವೆಬ್‌ಸೈಟ್‌ಗಳಲ್ಲಿ",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "ವೆಬ್‌ಸೈಟ್‌ಗಳಲ್ಲಿ ನನ್ನ ಪದಗಳನ್ನು ಹೈಲೈಟ್ ಮಾಡಿ",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "ನೀವು ಉಳಿಸಿದ ಪದಗಳು ನೀವು ಓದುವ ಯಾವುದೇ ಪುಟದಲ್ಲಿ ಗುರುತಾಗುತ್ತವೆ. ಹೊಂದಾಣಿಕೆ ನಿಮ್ಮ ಸಾಧನದಲ್ಲೇ ನಡೆಯುತ್ತದೆ; ಏನನ್ನೂ ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "ಸೆಟಪ್ ಮುಗಿಸಿ",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "ಮುಂದಿನ ಬಾರಿ ಪುಟವನ್ನು ತೆರೆದಾಗ ಅಥವಾ ಮರುಲೋಡ್ ಮಾಡಿದಾಗ ಅನ್ವಯಿಸುತ್ತದೆ.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "ವೀಡಿಯೊ ಸೈಟ್‌ಗಳು",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google ಅನುವಾದ",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "ಮರೆಮಾಡಿ",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "ಪದಗಳನ್ನು ಉಳಿಸಿಕೊಳ್ಳಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram ನಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "ನೋಡುತ್ತಲೇ ಪದಗಳನ್ನು ಉಳಿಸಿ",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಯಲ್ಲಿರುವ ಪದದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ, ನಂತರ “ಉಳಿಸಿ” ಒತ್ತಿ. ಅದು ಇಲ್ಲಿ, ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಇರುತ್ತದೆ.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "ನನ್ನ ಪದಸಂಗ್ರಹವನ್ನು ತೆರೆಯಿರಿ",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "ಆಗ ನಿಮ್ಮ ಪದಗಳು ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಇರುತ್ತವೆ.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "ಸೈನ್ ಇನ್ ಅವಧಿ ಮುಗಿದಿದೆ. ಹೊಸ ಪದಗಳು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡುವವರೆಗೆ ಈ ಸಾಧನದಲ್ಲಿ ಇರುತ್ತವೆ.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site} ನಲ್ಲಿ ಉಪಶೀರ್ಷಿಕೆಗಳು",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "ಬದಲಾವಣೆ ಅನ್ವಯಿಸಲು ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "ನನ್ನ ಪದಗಳು",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram ಎಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "ಎರಡು ಭಾಷೆಯ ಉಪಶೀರ್ಷಿಕೆಗಳು ಮತ್ತು ವೀಡಿಯೊ ಪಕ್ಕದಲ್ಲಿ ಪದಗಳ ಪಟ್ಟಿ.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "ನೀವು ಉಳಿಸಿದ ಪದಗಳು ನೀವು ಓದುವ ಯಾವುದೇ ಪುಟದಲ್ಲಿ ಹೈಲೈಟ್ ಆಗುತ್ತವೆ. ಅನುವಾದ ನೋಡಲು ಪದದ ಮೇಲೆ ಪಾಯಿಂಟರ್ ಇರಿಸಿ.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "ಖಾತೆ",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "ಸೈನ್ ಇನ್ ಆಗಿಲ್ಲ",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "ನಿಮ್ಮ ಪದಗಳು ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಇವೆ. ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಪಡೆಯಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "ಸೈನ್ ಇನ್ ಅವಧಿ ಮುಗಿದಿದೆ",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "ಹೊಸ ಪದಗಳು ನಿಮ್ಮ ಖಾತೆಗೆ ತಲುಪಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "ನನ್ನ ಪದಗಳು",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "ಪದಗಳು: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "ನನ್ನ ಪದಗಳಲ್ಲಿ ಹುಡುಕಿ",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "ತೆಗೆದುಹಾಕಿ",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "ಪದವನ್ನು ತೆಗೆದುಹಾಕಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "ಈ ಪದಗಳು ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಮಾತ್ರ ಇವೆ.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಪಡೆಯಲು ಮತ್ತು ಅಭ್ಯಾಸ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ. ಪದಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ನಿಮ್ಮ ಖಾತೆಗೆ ಹೋಗುತ್ತವೆ.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "ನಿಮ್ಮ ಪದಗಳು ನಿಮ್ಮ Lingogram ಪದಸಂಗ್ರಹದಲ್ಲಿ ಇವೆ.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "ಖಾತೆಗೆ ಸೇರಿಸಲು ಕಾಯುತ್ತಿವೆ",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "ಇನ್ನೂ ಯಾವುದೇ ಪದಗಳಿಲ್ಲ",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "ಉಪಶೀರ್ಷಿಕೆಯಲ್ಲಿರುವ ಪದದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ, ನಂತರ “ಉಳಿಸಿ” ಒತ್ತಿ. ನೀವು ಉಳಿಸಿದ ಪದಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

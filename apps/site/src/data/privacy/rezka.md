@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
 
 **Effective date:** June 22, 2026
-**Last updated:** October 4, 2026
+**Last updated:** October 5, 2026
 
 This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
 Transcript for HDrezka** browser extension ("the Extension") collects, how it is
@@ -13,10 +13,11 @@ used, where it is stored, and the choices you have.
 
 ## TL;DR
 
-* **Without an account, the Extension stores nothing about you.** The interactive
-  transcript, listening challenge, dual subtitles, and local word saving all run
-  entirely inside your browser, and so does downloading a subtitle track as a
-  file. Three things do leave it, with or without an account: **looking a word
+* **Without an account, nothing about you is stored on our servers.** The
+  interactive transcript, listening challenge, dual subtitles, and word saving all
+  run inside your browser, and so does downloading a subtitle track as a file. A
+  word you save without an account is kept in your browser only (Section 1a). Three
+  things do leave it, with or without an account: **looking a word
   up** sends that word and its subtitle line to our dictionary service, and a
   **phrase you select** goes first to Google Translate, without the subtitle line
   (Section 1e); a **feedback message you choose to send** reaches us with the text you
@@ -24,7 +25,9 @@ used, where it is stored, and the choices you have.
   you can turn off. None of them is tied to your identity unless you put it
   there yourself, by typing a reply address into your feedback.
 * **Signing in is optional.** It exists only to sync your saved vocabulary across
-  devices. If you choose to sign in, we collect your **email address** and store the
+  devices. Words you saved before you signed in move into your account when you
+  sign in (Section 1b). If you choose to sign in, we collect your **email
+  address** and store the
   **words you explicitly save** (with the surrounding subtitle lines, or the
   paragraph around a word you save from the right-click menu on a web page) in our cloud
   database. A list of those words is also kept on your device, so the Extension
@@ -38,11 +41,13 @@ used, where it is stored, and the choices you have.
   anonymous usage events (for example: the Extension was installed, subtitles
   loaded, a word was saved) tagged with a **random identifier generated on your
   device** — not your email, not your account. That identifier is never joined to
-  your Lingogram account. Open the toolbar popup → **Privacy** → uncheck **"Share
-  anonymous usage stats"** and collection stops immediately.
+  your Lingogram account. Open the Extension's **Settings** page (the **Settings**
+  link in the toolbar popup) → **Privacy** → uncheck **"Share anonymous usage
+  stats"** and collection stops immediately.
 * **Your saved words are marked on the web pages you read.** The page text is
   compared with your saved words inside your browser and is never sent or
-  stored; you can switch this off in the popup (Section 1b). Resting the pointer
+  stored; you can switch this off for all websites on the Settings page, or for
+  one website in the toolbar popup (Section 1b). Resting the pointer
   on a marked word shows its translation, and only that word is sent to look it up
   (Section 1e).
 * We do **not** sell your data, show ads, run advertising trackers, build
@@ -54,9 +59,14 @@ used, where it is stored, and the choices you have.
 
 ### a. If you do **not** sign in
 The Extension does **not** collect or store any personal data about you on our
-servers, and creates no account. Your language and layout preferences and a local
-"words saved" counter are kept only in your browser (see Section 3). No account,
-email, or saved word ever leaves your device.
+servers, and creates no account. Your language and layout preferences, a local
+"words saved" counter, and **the words you save** are kept only in your browser
+(see Section 3). For each saved word that is the word or phrase as you selected
+it, the subtitle line or paragraph it came from, a coarse label of where you
+saved it (such as `youtube` or `web`), and the time you first saved it. Once you
+open the **My words** page, a translation of the word is kept with it (Section 1e).
+None of this is sent to our servers while you have no account. No account, email,
+or saved word is sent to us unless you sign in.
 
 Four things are sent even without an account, none of them tied to your identity
 unless you choose to add it:
@@ -65,7 +75,8 @@ unless you choose to add it:
   click;
 * a **word you look up**, with the subtitle line it came from — Section 1e. This
   is the feature working, not measurement, so the analytics switch does not stop
-  it; not looking words up does;
+  it; not looking words up does. The **My words** page looks up the words it
+  lists, without a sentence;
 * the **welcome and farewell pages** of Section 1f, which are ordinary visits to
   our website;
 * a **feedback message**, only if you write one and press Send — Section 1g. It
@@ -107,6 +118,19 @@ collect and process:
 * **Feedback** you send while signed in carries your user ID so we can reply — see
   Section 1g, which also covers feedback sent without an account.
 
+**Words kept in your browser.** If you saved words before you signed in (Section
+1a), or while your session had expired, they are in your browser. When you sign in,
+and each time the Extension starts while you are signed in, it writes them into
+your account one by one, oldest first, like any other save: the word and its
+subtitle line or paragraph, with the same source tag and daily limit as above.
+After each successful write, that word is removed from your browser. A word that
+fails to upload stays in your browser and is tried again at the next sign-in,
+start, or successful save. The translation kept with a word, its site label and
+the time you first saved it are not uploaded. A word too long for your account to
+hold is discarded. If your session has expired when you save a word, the word is
+kept in your browser the same way, and the Extension records in your browser that
+the session needs renewing, so it can tell you to sign in again.
+
 We do **not** collect: your browsing history, the videos you watch or the pages you
 read (beyond the subtitle text you explicitly save, the paragraph around a word you
 save from the right-click menu, the single video address included in a
@@ -123,9 +147,9 @@ browser grants the Extension temporary access to the tab you clicked in
 paragraph it sits in, saves them as described above, and shows a short
 confirmation on the page. Saving never sends anything from a page you did not
 press the item on, and never records the page's address or title. If you are not
-signed in, pressing the item opens the sign-in window and nothing is saved; only
-the anonymous usage count of Section 1c notes that a sign-in was started. The
-analytics in Section 1c count such a save under the platform label `web`. The
+signed in, the word is kept in your browser, as Section 1a describes, and is
+uploaded when you sign in. The analytics in Section 1c count such a save under the
+platform label `web`. The
 saved word carries the source tag of the edition whose menu item you pressed.
 If both editions are installed, only one shows the item: the one you are signed in
 to, or the YouTube edition when you are signed in to both or to neither. To agree
@@ -151,9 +175,13 @@ scripts can see which of its words are marked**, and through that, some of the w
 your list. To limit this, only text that is actually shown on the page is
 marked, never hidden text. This requires Chrome's permission to run on all
 websites, which is the only thing the Extension uses that permission for; it
-does not run on Lingogram's own website. If you are not signed in or have
-saved no words, nothing is marked. You can switch it off in the toolbar popup →
-**On websites** → **"Highlight my words on websites"**. If both editions are
+does not run on Lingogram's own website. If you have saved no words, nothing is
+marked. You can switch it off for all websites with **"Highlight my words on
+websites"** on the Extension's Settings page, or for one website with
+**"Highlight words on"** that website's name in the toolbar popup. The websites
+you switch off this way are kept as a list of their host names (for example
+`en.wikipedia.org`) on your device only; the list is never sent anywhere, and the
+Settings page shows it so you can switch a website back on. If both editions are
 installed, only the one that shows the menu item marks words.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
@@ -163,9 +191,11 @@ installed, only the one that shows the menu item marks words.
 
 The Extension sends anonymous usage events to **Google Analytics 4** so we can see
 how many people install it, where the Extension breaks, and which steps people give
-up on. This is **on by default**. To turn it off, open the toolbar popup, go to the
-**Privacy** section, and uncheck **"Share anonymous usage stats"**. Collection stops
-immediately.
+up on. This is **on by default**. To turn it off, open the Extension's **Settings**
+page (the **Settings** link in the toolbar popup), go to the **Privacy** group, and
+uncheck **"Share anonymous usage stats"**. You can also turn it off on the
+settings page of our website (Section 1f), which changes the same setting.
+Collection stops immediately.
 
 **The identifier.** Each event carries a **random identifier generated on your
 device** the first time the Extension runs, stored in your browser's local extension
@@ -191,12 +221,15 @@ produces a new, unrelated identifier.
   saved, or you removed one;
 * `word_lookup` — the Extension asked our dictionary service about a word (Section
   1e). The event carries the shape of the answer, never the word;
-* `signin_started` — you began the sign-in flow, and from where (the toolbar popup, the status badge, the right-click menu on a web page, or the Google Translate import);
+* `signin_started` — you began the sign-in flow, and from where (the toolbar
+  popup, the Settings page, the My words page, the status badge, or the Google
+  Translate import);
 * `gt_import_preview`, `gt_import_done` — you started an import from Google
   Translate (Section 1h) and it finished. They carry only counts (phrases found, new,
   already saved, removed earlier, skipped, added), never a word;
-* `analytics_opt_out` — you turned this analytics off (sent once, so we know how
-  many people opt out);
+* `analytics_opt_out` — you turned this analytics off, on the Settings page or on
+  the settings page of our website (sent once, so we know how many people opt
+  out);
 * `notification_fetch_failed` — the Extension could not reach our service-status
   messages (see Section 1d). Sent only on failure, never on success, and it carries
   only the reason (network error, timeout, HTTP error code, or unreadable response);
@@ -205,11 +238,12 @@ produces a new, unrelated identifier.
 
 **The fields attached to those events**, and nothing else:
 
-* a **coarse platform label** — one of `youtube`, `netflix`, `rezka`, or `web`; not
-  a hostname, not a URL;
+* a **coarse platform label** — one of `youtube`, `netflix`, `rezka`, `web`, or
+  `other`; not a hostname, not a URL;
 * the **subtitle language pair** you picked (for example `"en"` and `"ru"`);
 * **how many subtitle tracks** loaded;
-* **whether you were signed in** — a true/false flag, with no account identifier;
+* **whether you were signed in** — a true/false flag, with no account identifier.
+  On a word you save, `false` also means it was kept in your browser;
 * a **running count of words saved on this device**;
 * the **Extension version and edition**, and on `extension_updated` the version
   you had before;
@@ -226,7 +260,11 @@ produces a new, unrelated identifier.
   Extension was on;
 * when subtitles recover: what triggered the recovery (an automatic probe, your
   manual retry, or a late arrival) and how many seconds it took;
-* for `word_lookup` only: whether the hover strip or the full word screen asked,
+* for `languages_configured` only: where you picked them (the first-run screen, the
+  sidebar, the welcome page, the Extension's own pages, or the settings page of
+  our website);
+* for `word_lookup` only: whether the hover strip or the full word screen asked
+  (the My words page counts as the hover strip),
   whether the answer came from our cache, a dictionary, or a model, whether it
   was empty, and a coarse latency bucket;
 * for `notification_fetch_failed` only, **why the request failed** and, if the
@@ -277,15 +315,16 @@ and carries only the reason for the failure.
 ### e. Word lookup (the dictionary service)
 
 When you hover or click a word in the subtitles to see what it means, or rest the
-pointer on a word marked on a web page (Section 1b), the Extension asks our
-dictionary service for that meaning. The request contains:
+pointer on a word marked on a web page (Section 1b), or open the **My words**
+page (below), the Extension asks our dictionary service for that meaning. The
+request contains:
 
 * the **word or phrase** you pointed at;
 * the **language you want it in** (your native language, as configured);
 * the **subtitle line it came from**, so the service can pick the sense that fits
-  the sentence rather than the most common one. For a word marked on a web page
-  nothing is sent but the word and the language: not its sentence, not the page,
-  not the address.
+  the sentence rather than the most common one. For a word marked on a web page,
+  or listed on the My words page, nothing is sent but the word and the language:
+  not its sentence, not the page, not the address.
 
 **This happens whether or not you are signed in**, and the request carries no
 account identifier, no email, no analytics identifier, and nothing that ties one
@@ -312,6 +351,14 @@ a single word never goes to Google Translate.
 
 Answers are cached briefly on your device so the same word is not asked twice.
 
+**The My words page.** This page of the Extension lists the words kept in your
+browser (Section 3). For each word that has no stored translation, it makes the
+lookup above, once per visit to the page, with only the word and your native
+language, never the sentence the word came from. A phrase of more than one word
+goes to Google Translate first, as described above. The answer, up to three
+translations, is stored with the word in your browser. It is not uploaded to
+your account.
+
 ### f. The welcome and farewell pages
 
 **When you install the Extension**, it opens a welcome page on our website. If
@@ -325,6 +372,18 @@ your browser, which stores them on your device (Section 3); they are not sent to
 servers. To show the steps, the page asks the Extension for its current settings
 and whether you are signed in (and with which email address). The page's
 address names the Extension so it can reach it.
+
+**The settings page on our website** talks to the Extension the same way, only
+with its own message type and the same check of who is asking. To show its
+switches, it asks the Extension for your settings: your two languages, the
+languages on offer, whether each video site, the highlighting of your words and
+the usage stats (Section 1c) are on, whether you are signed in (a yes or no, not
+your email address), and the Extension's version and edition. When you change a
+setting there, the page passes the new value to the Extension, which checks it
+and stores it on your device (Section 3). The Extension answers only our website,
+does not send any of this to our servers, and puts no saved words, tokens or
+email address into it. Turning the usage stats off there is reported once, as in
+Section 1c.
 
 **When you uninstall it**, your browser opens a farewell page on our website.
 This is registered with the browser in advance, so the browser opens it on its own;
@@ -364,7 +423,8 @@ if it did.
 ### h. Importing your Google Translate saved phrases
 
 Only if you are signed in and start it yourself: with **Import from Google Translate**
-in the toolbar popup, or with the Lingogram icon the Extension adds to the toolbar of
+on the Extension's Settings page, or with the Lingogram icon the Extension adds
+to the toolbar of
 the **Saved** panel on translate.google.com. To place that icon, the Extension looks
 only at the layout of the Google Translate page, never at its text, and sends nothing
 from it. When you start the import, the Extension opens translate.google.com/saved in a background tab, reads
@@ -387,6 +447,8 @@ We use the information above **only** to:
 * authenticate you and keep you signed in across sessions;
 * store your saved vocabulary and sync it across your devices so you can review it
   later;
+* keep the words you save without an account in your browser, and move them into
+  your account when you sign in;
 * enforce a reasonable daily limit on saved words to prevent abuse;
 * investigate the subtitle-loading failures you explicitly report via the
   **"Reload page"** button, so we can fix them;
@@ -408,6 +470,9 @@ your device only:
 
 * your language and subtitle layout preferences, whether your saved words are
   marked on web pages, and which video sites the Extension is switched on for;
+* the **list of websites** (host names only, such as `en.wikipedia.org`) where you
+  switched the marking of your saved words off from the toolbar popup. It stays on
+  your device and is never sent anywhere;
 * how far you got on the setup page (Section 1f): whether you skipped signing in,
   and whether you finished;
 * whether the other Lingogram edition is the one that shows the menu item and
@@ -424,20 +489,32 @@ your device only:
 * if you are signed in: your authentication tokens, your email address, and your
   user ID (so you stay signed in), and a short-lived sign-in nonce in session
   storage;
+* a flag, set when your session has expired, that says the session needs renewing,
+  so the Extension can tell you to sign in again. It is removed when you sign in
+  or sign out;
 * while an import from Google Translate is running: the words about to be saved
   and the progress, in session storage. It is removed when you close the import's
   result, and with the browser session;
-* if you are signed in: a **local list of the words you have saved** — each word
-  in its normalized form, whether it is currently saved or has been removed, and a
-  marker of how far the list has been synced. It exists so the Extension can mark
-  a word you already own the moment it appears in a subtitle, without a network
-  round-trip. It is filled from your cloud vocabulary (Section 4) and from the words
-  you save on this device, including from the right-click menu, and holds no
-  translations, subtitle context, page text, or timestamps.
+* a **local list of the words you have saved** — each word in its normalized form,
+  whether it is currently saved or has been removed, and a marker of how far the
+  list has been synced. It exists so the Extension can mark a word you already own
+  the moment it appears in a subtitle, without a network round-trip. When you are
+  signed in it is filled from your cloud vocabulary (Section 4) and from the words
+  you save on this device, including from the right-click menu. Without an account
+  it holds the words kept in your browser (next item). It holds no translations,
+  subtitle context, page text, or timestamps;
+* the **words kept in your browser**, saved without an account or while your
+  session had expired: for each, the word or phrase as you saved it, the subtitle
+  line or paragraph it came from, a coarse label of the site, the time you first
+  saved it, and, once the My words page has looked it up, a translation (Section
+  1e). They are not shared with other browsers or devices. They stay until you
+  remove a word on the My words page, the Extension uploads it after you sign in
+  (Section 1b), or you remove the Extension. Signing out does not delete them.
 
 This local data never leaves your browser except where Section 4 describes (saved
-words synced to the cloud). Signing out removes the authentication tokens, email,
-user ID, and the local list of saved words from your device.
+words synced to the cloud, and kept words uploaded when you sign in). Signing out
+removes the authentication tokens, email, user ID, and the local list of words
+synced from your account from your device; the words kept in your browser stay.
 
 ## 4. Cloud Storage and Third-Party Services
 
@@ -448,7 +525,8 @@ as our service provider; see Google's Privacy Policy at
 https://policies.google.com/privacy. Access is restricted by Firestore security
 rules so that you can only read and write your own data. The diagnostic reports of
 Section 1b and the feedback messages of Section 1g are written to the same
-database; the Extension can write them but never read them back.
+database; the Extension can write them but never read them back. Words kept in
+your browser (Section 1b) reach this database only after you sign in.
 
 The service-status messages described in Section 1d are downloaded from the same
 Firebase project. That collection is public and read-only from the Extension: it
@@ -493,6 +571,11 @@ advertising.
 
 * **Saved vocabulary** is retained in the cloud until you delete it or request
   account deletion.
+* **Words kept in your browser** stay there until you remove them. Remove one with
+  the **Remove** button next to it on the My words page, or remove them all by
+  removing the Extension from your browser. When you sign in, each is uploaded
+  and then removed from your browser. We hold no copy of a word that is only in
+  your browser, so there is nothing for us to delete.
 * **Diagnostic reports** are kept only for troubleshooting and are covered by
   account deletion requests (they are keyed to your user ID).
 * **Feedback messages** are kept until they have been acted on. Feedback sent while
@@ -507,12 +590,13 @@ advertising.
 * **Anonymous usage events** are retained by Google Analytics for **2 months**, then
   deleted. Because these events carry no account identifier, **we cannot look up or
   delete the events belonging to a specific person — and neither can you.** There is
-  no way for us to tell which events came from you. Turning analytics off in the
-  toolbar popup stops any further collection, but it cannot retroactively remove
+  no way for us to tell which events came from you. Turning analytics off on the
+  Settings page stops any further collection, but it cannot retroactively remove
   events already sent; those expire on the 2-month schedule.
 * **Local data** can be cleared at any time by signing out (removes your tokens,
-  email, user ID, and the local list of saved words) or by removing the Extension
-  from your browser (which also removes the random analytics identifier).
+  email, user ID, and the local list of words synced from your account) or by
+  removing the Extension from your browser (which also removes the random analytics
+  identifier and any words kept in your browser).
 * To **delete your account and all associated cloud data** (email, saved words,
   diagnostic reports, and feedback sent while signed in),
   contact the developer using Section 10. We will delete it within a reasonable

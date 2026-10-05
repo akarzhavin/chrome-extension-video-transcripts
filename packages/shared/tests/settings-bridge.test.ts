@@ -1,0 +1,220 @@
+/**
+ * @jest-environment jsdom
+ *
+ * The worker side of the settings page on the site (settings-bridge.ts). Every
+ * value the page sends is checked here before anything is written, and a
+ * message with one bad part writes nothing at all.
+ */
+
+const store: Record<string, unknown> = {};
+let externalListener: ((m: any, s: any, r: any) => boolean | void) | null = null;
+
+(global as any).chrome = {
+    storage: {
+        local: {
+            get: jest.fn(async (k: any) => {
+                const keys = typeof k === 'string' ? [k] : Array.isArray(k) ? k : Object.keys(k ?? {});
+                const out: Record<string, unknown> = {};
+                for (const key of keys) if (key in store) out[key] = store[key];
+                return out;
+            }),
+            set: jest.fn(async (items: Record<string, unknown>) => {
+                for (const [k, v] of Object.entries(items)) store[k] = JSON.parse(JSON.stringify(v));
+            }),
+        },
+        onChanged: { addListener: jest.fn() },
+    },
+    runtime: {
+        id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan',
+        getManifest: () => ({ version: '1.2.3' }),
+        sendMessage: jest.fn(),
+        onMessageExternal: { addListener: (l: any) => (externalListener = l) },
+    },
+};
+
+const handleAuthMessage = jest.fn();
+jest.mock('../src/auth/background', () => ({
+    handleAuthMessage: (...a: unknown[]) => handleAuthMessage(...a),
+    isAllowedExternalSender: (s: { origin?: string }) => s.origin === 'https://lingogram.ai',
+}));
+// What the stored analytics preference said at the moment each event went out.
+const optOutSeen: unknown[] = [];
+jest.mock('../src/analytics-bg', () => ({
+    track: jest.fn(async (event: string) => {
+        const p = (store['prefs.v1'] as { analyticsEnabled?: boolean } | undefined)?.analyticsEnabled;
+        optOutSeen.push([event, p]);
+    }),
+}));
+jest.mock('../src/analytics', () => ({ ...jest.requireActual('../src/analytics'), trackVia: jest.fn() }));
+
+import { handleSettingsMessage, installSettingsBridge } from '../src/settings-bridge';
+
+const msg = (op: string, extra: Record<string, unknown> = {}) => ({ type: 'lingogram-settings' as const, op: op as any, ...extra });
+const yt = { edition: 'youtube' as const };
+const rezka = { edition: 'rezka' as const, languages: ['en', 'ru', 'uk'] };
+
+beforeEach(() => {
+    for (const k of Object.keys(store)) delete store[k];
+    optOutSeen.length = 0;
+    handleAuthMessage.mockReset();
+    handleAuthMessage.mockResolvedValue({ signedIn: true, email: 'a@b.c' });
+});
+
+describe('state', () => {
+    test('the YouTube edition: its two sites, version, languages, and the switches', async () => {
+        store['lang.v1'] = { learning: 'en', native: 'ru' };
+        store['prefs.v1'] = { pageHighlight: false, analyticsEnabled: false, siteNetflix: false };
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect(s).toMatchObject({
+            ok: true,
+            edition: 'youtube',
+            version: '1.2.3',
+            signedIn: true,
+            learning: 'en',
+            native: 'ru',
+            pageHighlight: false,
+            analyticsEnabled: false,
+        });
+        expect(s.sites).toEqual([
+            { id: 'youtube', name: 'YouTube', enabled: true },
+            { id: 'netflix', name: 'Netflix', enabled: false },
+        ]);
+        expect(s.languages.length).toBeGreaterThan(10);
+        expect(s.languages[0]).toEqual({ code: expect.any(String), label: expect.any(String), native: expect.any(String) });
+    });
+
+    test('the HDrezka edition: its one site and its own language list', async () => {
+        const s: any = await handleSettingsMessage(msg('state'), rezka);
+        expect(s.edition).toBe('rezka');
+        expect(s.sites).toEqual([{ id: 'rezka', name: 'HDrezka', enabled: true }]);
+        expect(s.languages.map((l: any) => l.code)).toEqual(['en', 'ru', 'uk']);
+    });
+
+    test('unset languages are empty strings, signed out is false, defaults are on', async () => {
+        handleAuthMessage.mockResolvedValue({ signedIn: false });
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect(s).toMatchObject({ signedIn: false, learning: '', native: '', pageHighlight: true, analyticsEnabled: true });
+    });
+});
+
+describe('set', () => {
+    test('writes languages, the two switches and the sites in one message', async () => {
+        const r = await handleSettingsMessage(
+            msg('set', {
+                languages: { learning: 'en', native: 'ru' },
+                prefs: { pageHighlight: false, analyticsEnabled: false, sites: { youtube: true, netflix: false } },
+            }),
+            yt,
+        );
+        expect(r).toEqual({ ok: true });
+        expect(store['lang.v1']).toEqual({ learning: 'en', native: 'ru' });
+        expect(store['prefs.v1']).toMatchObject({ pageHighlight: false, analyticsEnabled: false, siteYoutube: true, siteNetflix: false });
+    });
+
+    const refusals: Array<[string, Record<string, unknown>, any, string]> = [
+        ['a language this edition does not offer', { languages: { learning: 'es', native: 'ru' } }, rezka, 'unknown language'],
+        ['an unknown language code', { languages: { learning: 'en', native: 'xx' } }, yt, 'unknown language'],
+        ['a language that is not a string', { languages: { learning: 5, native: 'ru' } }, yt, 'unknown language'],
+        ['an unknown key inside languages', { languages: { learning: 'en', native: 'ru', extra: 1 } }, yt, 'unknown key: languages.extra'],
+        ['languages that is not an object', { languages: 'en' }, yt, 'languages must be an object'],
+        ['a non-boolean pageHighlight', { prefs: { pageHighlight: 'no' } }, yt, 'pageHighlight must be a boolean'],
+        ['a non-boolean analyticsEnabled', { prefs: { analyticsEnabled: 0 } }, yt, 'analyticsEnabled must be a boolean'],
+        ['an unknown pref', { prefs: { theme: 'dark' } }, yt, 'unknown key: prefs.theme'],
+        ['a site of the other edition', { prefs: { sites: { rezka: false } } }, yt, 'site not in this edition: rezka'],
+        ['netflix on the HDrezka edition', { prefs: { sites: { netflix: false } } }, rezka, 'site not in this edition: netflix'],
+        ['an unknown site', { prefs: { sites: { hulu: false } } }, yt, 'unknown key: prefs.sites.hulu'],
+        ['a non-boolean site switch', { prefs: { sites: { youtube: 'off' } } }, yt, 'sites.youtube must be a boolean'],
+        ['prefs that is not an object', { prefs: true }, yt, 'prefs must be an object'],
+        ['an unknown top-level key', { colour: 'red' }, yt, 'unknown key: colour'],
+    ];
+    test.each(refusals)('refuses %s', async (_name, extra, opts, error) => {
+        expect(await handleSettingsMessage(msg('set', extra), opts)).toEqual({ ok: false, error });
+    });
+
+    test('nothing is written when any part is invalid, even if the other parts are fine', async () => {
+        const r = await handleSettingsMessage(
+            msg('set', {
+                languages: { learning: 'en', native: 'ru' },
+                prefs: { pageHighlight: false, sites: { rezka: false } },
+            }),
+            yt,
+        );
+        expect(r).toMatchObject({ ok: false });
+        expect(store['lang.v1']).toBeUndefined();
+        expect(store['prefs.v1']).toBeUndefined();
+        expect(optOutSeen).toEqual([]);
+    });
+
+    test('an invalid message never reports an opt-out', async () => {
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false, theme: 'x' } }), yt);
+        expect(optOutSeen).toEqual([]);
+    });
+
+    test('turning analytics off reports analytics_opt_out BEFORE the preference is written', async () => {
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false } }), yt);
+        // The stored preference still said "on" when the event went out.
+        expect(optOutSeen).toEqual([['analytics_opt_out', undefined]]);
+        expect((store['prefs.v1'] as any).analyticsEnabled).toBe(false);
+    });
+
+    test('with analytics already on and explicitly stored, the event still sees it on', async () => {
+        store['prefs.v1'] = { analyticsEnabled: true };
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false } }), yt);
+        expect(optOutSeen).toEqual([['analytics_opt_out', true]]);
+    });
+
+    test('turning analytics on, or sending off while it is already off, reports nothing', async () => {
+        store['prefs.v1'] = { analyticsEnabled: false };
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false } }), yt);
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: true } }), yt);
+        expect(optOutSeen).toEqual([]);
+        expect((store['prefs.v1'] as any).analyticsEnabled).toBe(true);
+    });
+
+    test('an empty set is a no-op that succeeds', async () => {
+        expect(await handleSettingsMessage(msg('set'), yt)).toEqual({ ok: true });
+        expect(store['prefs.v1']).toBeUndefined();
+    });
+
+    test('the pair is saved with the site as its source label', async () => {
+        const languages = jest.requireActual('../src/languages') as typeof import('../src/languages');
+        const spy = jest.spyOn(languages, 'saveLanguagePrefs');
+        await handleSettingsMessage(msg('set', { languages: { learning: 'en', native: 'ru' } }), yt);
+        expect(spy).toHaveBeenCalledWith({ learning: 'en', native: 'ru' }, 'site');
+        spy.mockRestore();
+    });
+});
+
+describe('the listener', () => {
+    beforeAll(() => installSettingsBridge(yt));
+
+    test('leaves other message types to their own listeners', () => {
+        const respond = jest.fn();
+        for (const type of ['lingogram-welcome', 'lingogram-extension-auth']) {
+            expect(externalListener!({ type }, { origin: 'https://lingogram.ai' }, respond)).toBe(false);
+        }
+        expect(respond).not.toHaveBeenCalled();
+    });
+
+    test('refuses a page that is not the site, and writes nothing', () => {
+        const respond = jest.fn();
+        externalListener!(msg('set', { prefs: { pageHighlight: false } }), { origin: 'https://evil.example' }, respond);
+        expect(respond).toHaveBeenCalledWith({ ok: false, error: 'unauthorized origin' });
+        expect(store['prefs.v1']).toBeUndefined();
+    });
+
+    test('answers the site asynchronously, and an unknown op is an error', async () => {
+        const state: any = await new Promise((resolve) => {
+            expect(externalListener!(msg('state'), { origin: 'https://lingogram.ai' }, resolve)).toBe(true);
+        });
+        expect(state.ok).toBe(true);
+        const unknown = await new Promise((resolve) => externalListener!(msg('nope'), { origin: 'https://lingogram.ai' }, resolve));
+        expect(unknown).toEqual({ ok: false, error: 'unknown op' });
+    });
+
+    test('a worker error becomes an error reply, not silence', async () => {
+        handleAuthMessage.mockRejectedValue(new Error('boom'));
+        const r = await new Promise((resolve) => externalListener!(msg('state'), { origin: 'https://lingogram.ai' }, resolve));
+        expect(r).toEqual({ ok: false, error: 'boom' });
+    });
+});

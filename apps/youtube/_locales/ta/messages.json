@@ -67,10 +67,6 @@
     "message": "வசன வரிகள்",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "சொற்களைச் சேமிக்க உள்நுழையவும்",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} சொற்கள் சேமிக்கப்பட்டன",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram-இல் சேமி",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "இணையதளங்களில்",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "இணையதளங்களில் என் சொற்களை முன்னிலைப்படுத்து",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "நீங்கள் சேமித்த சொற்கள் நீங்கள் படிக்கும் எந்தப் பக்கத்திலும் குறிக்கப்படும். பொருத்தம் பார்ப்பது உங்கள் சாதனத்திலேயே நடக்கும்; எதுவும் அனுப்பப்படாது.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "அமைவை முடி",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "அடுத்த முறை பக்கத்தைத் திறக்கும்போது அல்லது மீண்டும் ஏற்றும்போது செயல்படும்.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "வீடியோ தளங்கள்",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google மொழிபெயர்ப்பு",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "மறை",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "சொற்களைச் சேமித்து வைக்க உள்நுழையவும்",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram-இல் உள்நுழையவும்",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "மீண்டும் உள்நுழையவும்",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "பார்த்துக்கொண்டே சொற்களைச் சேமிக்கவும்",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "வசன வரிகளில் ஒரு சொல்லைக் கிளிக் செய்து, பிறகு “சேமி” அழுத்தவும். அது இங்கே, இந்த உலாவியில் இருக்கும்.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "என் சொற்களஞ்சியத்தைத் திற",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "உள்நுழையவும்",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "– உங்கள் சொற்கள் எல்லாச் சாதனங்களிலும் இருக்கும்.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "உள்நுழைவு காலாவதியானது. புதிய சொற்கள் மீண்டும் உள்நுழையும் வரை இந்தச் சாதனத்தில் இருக்கும்.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site}-இல் வசன வரிகள்",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "மாற்றம் செயல்பட பக்கத்தை மீண்டும் ஏற்றவும்.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "அமைப்புகள்",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "அமைப்புகள்",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "என் சொற்கள்",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram எங்கே செயல்படுகிறது",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "இரட்டை வசன வரிகளும் வீடியோவின் அருகில் சொற்பட்டியலும்.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "நீங்கள் சேமித்த சொற்கள் நீங்கள் படிக்கும் எந்தப் பக்கத்திலும் முன்னிலைப்படுத்தப்படும். மொழிபெயர்ப்பைக் காண சொல்லின் மேல் சுட்டியை வைக்கவும்.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "கணக்கு",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "உள்நுழையவில்லை",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "உங்கள் சொற்கள் இந்த உலாவியில் வைக்கப்பட்டுள்ளன. எல்லாச் சாதனங்களிலும் பெற உள்நுழையவும்.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "உள்நுழைவு காலாவதியானது",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "புதிய சொற்கள் உங்கள் கணக்கை அடைய மீண்டும் உள்நுழையவும்.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "என் சொற்கள்",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "சொற்கள்: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "என் சொற்களில் தேடு",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "அகற்று",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "சொல்லை அகற்ற முடியவில்லை. மீண்டும் முயலவும்.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "இந்தச் சொற்கள் இந்த உலாவியில் மட்டுமே வைக்கப்பட்டுள்ளன.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "எல்லாச் சாதனங்களிலும் பெறவும் அவற்றைப் பயிற்சி செய்யவும் உள்நுழையவும். சொற்கள் தானாகவே உங்கள் கணக்கிற்கு மாறும்.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "உங்கள் சொற்கள் உங்கள் Lingogram சொற்களஞ்சியத்தில் உள்ளன.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "கணக்கில் சேர்க்க காத்திருக்கின்றன",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "இன்னும் சொற்கள் இல்லை",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "வசன வரிகளில் ஒரு சொல்லைக் கிளிக் செய்து, பிறகு “சேமி” அழுத்தவும். நீங்கள் சேமிக்கும் சொற்கள் இங்கே தோன்றும்.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

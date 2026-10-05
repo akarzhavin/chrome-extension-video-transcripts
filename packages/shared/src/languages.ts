@@ -150,7 +150,7 @@ export async function loadLanguagePrefs(): Promise<LanguagePrefs | null> {
  */
 export async function saveLanguagePrefs(
     prefs: LanguagePrefs,
-    via: 'onboarding' | 'popup' | 'sidebar' | 'welcome' | 'unknown' = 'unknown',
+    via: 'onboarding' | 'popup' | 'sidebar' | 'welcome' | 'site' | 'unknown' = 'unknown',
 ): Promise<void> {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
     if (!chrome.runtime?.id) return;

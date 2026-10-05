@@ -179,39 +179,48 @@ describe('saving', () => {
 });
 
 describe('signed out', () => {
-    it('opens the sign-in popup in the clicked window and saves nothing', async () => {
+    // The learner has no account: the worker keeps the word in the browser, so
+    // the menu saves like any other time and shows the normal toast. No sign-in
+    // popup, no "!" on the toolbar.
+    const toastText = () =>
+        executeScript.mock.calls.find((c) => Array.isArray(c[0].args) && c[0].args.length === 3)?.[0].args[0];
+
+    it('saves through the worker and shows the saved toast', async () => {
         getAuthState.mockImplementation(async () => null);
+        handleAuthMessage.mockImplementationOnce(async () => ({ ok: true, local: true }));
         await click('word');
         await flush();
-        expect(openPopup).toHaveBeenCalledWith({ windowId: 3 });
-        expect(handleAuthMessage).not.toHaveBeenCalled();
-        expect(setMirrorEntry).not.toHaveBeenCalled();
-        expect(track).toHaveBeenCalledWith('signin_started', { from: 'context_menu' });
+        expect(handleAuthMessage).toHaveBeenCalledTimes(1);
+        expect(handleAuthMessage.mock.calls[0][0]).toMatchObject({ action: 'ADD_WORD', term: 'word', site: 'web' });
+        expect(setMirrorEntry).toHaveBeenCalledWith('word', 'active');
+        expect(toastText()).toBe('Saved: word');
     });
 
-    it('falls back to a toast when the popup cannot open', async () => {
+    it('does not open the sign-in popup or touch the badge', async () => {
         getAuthState.mockImplementation(async () => null);
-        openPopup.mockImplementationOnce(async () => {
-            throw new Error('no focused window');
-        });
+        handleAuthMessage.mockImplementationOnce(async () => ({ ok: true, local: true }));
         await click('word');
         await flush();
-        const toastCall = executeScript.mock.calls.find((c) => Array.isArray(c[0].args) && c[0].args.length === 3);
-        expect(toastCall?.[0].args[0]).toBe('Sign in to save words');
+        expect(openPopup).not.toHaveBeenCalled();
+        expect((global as any).chrome.action.setBadgeText).not.toHaveBeenCalled();
+        expect(track).not.toHaveBeenCalledWith('signin_started', expect.anything());
     });
 });
 
 describe('failures', () => {
-    it('sends a revoked session to the sign-in popup, not to an error toast', async () => {
-        // What handleAuthMessage does on a dead session: clears it, then throws.
+    it('a dead session still ends in a saved toast: the worker keeps the word locally', async () => {
+        // What handleAuthMessage does on a dead session: clears it, stores the
+        // word in the browser and answers ok.
         handleAuthMessage.mockImplementationOnce(async () => {
             getAuthState.mockImplementation(async () => null);
-            throw new Error('INVALID_REFRESH_TOKEN');
+            return { ok: true, local: true };
         });
         await click('word');
         await flush();
-        expect(openPopup).toHaveBeenCalled();
-        expect(setMirrorEntry).not.toHaveBeenCalled();
+        expect(openPopup).not.toHaveBeenCalled();
+        expect(setMirrorEntry).toHaveBeenCalledWith('word', 'active');
+        const toastCall = executeScript.mock.calls.find((c) => Array.isArray(c[0].args) && c[0].args.length === 3);
+        expect(toastCall?.[0].args[0]).toBe('Saved: word');
     });
 
     it('a refusal by the rules keeps a signed-in learner where they are', async () => {

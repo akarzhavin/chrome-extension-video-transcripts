@@ -67,10 +67,6 @@
     "message": "الترجمة",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "سجّل الدخول لحفظ الكلمات",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "تم حفظ {count} كلمة",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "حفظ في Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "على المواقع",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "تمييز كلماتي على المواقع",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "تُميَّز الكلمات التي حفظتها في أي صفحة تقرؤها. تتم المطابقة على جهازك، ولا يُرسَل أي شيء.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "إنهاء الإعداد",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "يسري عند فتح الصفحة أو إعادة تحميلها في المرة القادمة.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "مواقع الفيديو",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "ترجمة Google",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "إخفاء",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "سجّل الدخول لتحتفظ بكلماتك",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "سجّل الدخول إلى Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "سجّل الدخول مرة أخرى",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "احفظ الكلمات أثناء المشاهدة",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "انقر على كلمة في الترجمة ثم على «حفظ». تبقى هنا، في هذا المتصفح.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "افتح مفرداتي",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "سجّل الدخول",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "لتبقى كلماتك معك على كل أجهزتك.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "انتهت جلسة تسجيل الدخول. تبقى الكلمات الجديدة على هذا الجهاز إلى أن تسجّل الدخول مجددًا.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "الترجمة على {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "أعد تحميل الصفحة لتطبيق التغيير.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "الإعدادات",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "الإعدادات",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "كلماتي",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "أين يعمل Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "ترجمة مزدوجة وقائمة الكلمات بجانب الفيديو.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "تُميَّز الكلمات التي حفظتها في أي صفحة تقرؤها. مرّر المؤشر على كلمة لترى ترجمتها.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "الحساب",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "لم تسجّل الدخول",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "كلماتك محفوظة في هذا المتصفح. سجّل الدخول لتكون على كل أجهزتك.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "انتهت الجلسة",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "سجّل الدخول مجددًا لتنتقل الكلمات الجديدة إلى حسابك.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "كلماتي",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "الكلمات: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "ابحث في كلماتي",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "إزالة",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "تعذّرت إزالة الكلمة. حاول مرة أخرى.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "هذه الكلمات محفوظة في هذا المتصفح فقط.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "سجّل الدخول لتكون على كل أجهزتك وتتمرّن عليها. وستنتقل إلى حسابك تلقائيًا.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "كلماتك في مفرداتك على Lingogram.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "بانتظار إضافتها إلى حسابك",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "لا توجد كلمات بعد",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "انقر على كلمة في الترجمة ثم على «حفظ». تظهر هنا الكلمات التي تحفظها.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

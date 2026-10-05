@@ -67,10 +67,6 @@
     "message": "उपशीर्षके",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "शब्द जतन करण्यासाठी साइन इन करा",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} शब्द जतन केले",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram मध्ये जतन करा",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "वेबसाइटवर",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "वेबसाइटवर माझे शब्द हायलाइट करा",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "तुम्ही जतन केलेले शब्द तुम्ही वाचत असलेल्या कोणत्याही पानावर चिन्हांकित होतात. जुळवणी तुमच्या डिव्हाइसवरच होते; काहीही पाठवले जात नाही.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "सेटअप पूर्ण करा",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "पुढच्या वेळी पेज उघडल्यावर किंवा रीलोड केल्यावर लागू होईल.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "व्हिडिओ साइट",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google भाषांतर",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "लपवा",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "शब्द जपून ठेवण्यासाठी साइन इन करा",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram वर साइन इन करा",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "पुन्हा साइन इन करा",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "पाहता पाहता शब्द जतन करा",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "सबटायटलमधील शब्दावर क्लिक करा, मग “जतन करा” दाबा. तो इथे, या ब्राउझरमध्ये राहील.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "माझा शब्दसंग्रह उघडा",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "साइन इन करा",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "म्हणजे तुमचे शब्द प्रत्येक डिव्हाइसवर असतील.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "साइन-इनची मुदत संपली. नवीन शब्द पुन्हा साइन इन करेपर्यंत या डिव्हाइसवर राहतील.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site} वरील सबटायटल",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "बदल लागू करण्यासाठी पेज रीलोड करा.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "सेटिंग्ज",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "सेटिंग्ज",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "माझे शब्द",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram कुठे काम करते",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "दुहेरी सबटायटल आणि व्हिडिओच्या शेजारी शब्दांची यादी.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "तुम्ही जतन केलेले शब्द तुम्ही वाचता त्या प्रत्येक पेजवर हायलाइट होतात. भाषांतर पाहण्यासाठी शब्दावर पॉइंटर न्या.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "खाते",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "साइन इन केलेले नाही",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "तुमचे शब्द या ब्राउझरमध्ये ठेवलेले आहेत. प्रत्येक डिव्हाइसवर मिळवण्यासाठी साइन इन करा.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "साइन-इनची मुदत संपली",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "नवीन शब्द तुमच्या खात्यात पोहोचावेत यासाठी पुन्हा साइन इन करा.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "माझे शब्द",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "शब्द: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "माझ्या शब्दांत शोधा",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "काढा",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "शब्द काढता आला नाही. पुन्हा प्रयत्न करा.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "हे शब्द फक्त या ब्राउझरमध्ये ठेवलेले आहेत.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "प्रत्येक डिव्हाइसवर मिळवण्यासाठी आणि त्यांचा सराव करण्यासाठी साइन इन करा. शब्द आपोआप तुमच्या खात्यात जातील.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "तुमचे शब्द तुमच्या Lingogram शब्दसंग्रहात आहेत.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "खात्यात जोडले जाण्याच्या प्रतीक्षेत",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "अजून एकही शब्द नाही",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "सबटायटलमधील शब्दावर क्लिक करा, मग “जतन करा” दाबा. तुम्ही जतन केलेले शब्द इथे दिसतील.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

@@ -90,9 +90,10 @@ describe('the toolbar badge when a session breaks', () => {
         await signedIn();
         addInboxWord.mockRejectedValue(new Error('Firebase REST 401: TOKEN_EXPIRED'));
 
+        // The word is kept in the browser instead of being refused.
         await expect(
             handleAuthMessage({ action: 'ADD_WORD', term: 'word', context: '' }, CONFIG),
-        ).rejects.toThrow();
+        ).resolves.toMatchObject({ ok: true, local: true });
 
         expect(badge()).toBe('!');
     });

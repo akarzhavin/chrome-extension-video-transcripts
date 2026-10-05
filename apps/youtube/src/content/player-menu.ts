@@ -610,7 +610,7 @@ class PlayerMenu {
         // asleep. Show the sign-in prompt meanwhile rather than a blank row —
         // it's the honest default, and the common case for anyone who'd care.
         if (!this.accountRow.dataset.signedIn) {
-            this.accountLabel.textContent = t('ytSignInToSave', 'Sign in to save words');
+            this.accountLabel.textContent = t('ytSignInToKeepWords', 'Sign in to keep your words');
         }
         try {
             const status = await sendMessage<AuthStatus>({ action: 'AUTH_STATUS' });
@@ -619,7 +619,7 @@ class PlayerMenu {
             const words = t('ytWordsSaved', '{count} words saved').replace('{count}', String(status.inboxCount ?? 0));
             this.accountLabel.textContent = signedIn
                 ? `${status.email ?? ''} · ${words}`
-                : t('ytSignInToSave', 'Sign in to save words');
+                : t('ytSignInToKeepWords', 'Sign in to keep your words');
         } catch {
             // Service worker unreachable — leave the sign-in prompt showing.
         }

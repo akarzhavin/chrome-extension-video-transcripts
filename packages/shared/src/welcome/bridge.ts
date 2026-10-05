@@ -10,10 +10,11 @@
 // boolean, and the sign-in challenge (nonce) is issued HERE; the
 // token itself still arrives through the existing handoff message and check.
 
-import { handleAuthMessage, isAllowedExternalSender } from '../auth/background';
+import { handleAuthMessage } from '../auth/background';
 import { setPendingAuthNonce } from '../auth/storage';
 import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from '../languages';
 import { loadPrefs, savePrefs } from '../prefs';
+import { isTrustedSiteSender } from '../site-sender';
 import type { Edition } from '../sibling';
 import { loadWelcomeState, saveWelcomeState } from './welcome';
 
@@ -55,7 +56,8 @@ export interface WelcomeSnapshot {
     finished: boolean;
 }
 
-function offered(opts: BridgeOptions) {
+/** The languages this edition offers: its own list, or all supported ones. */
+export function offered(opts: BridgeOptions) {
     return opts.languages ? SUPPORTED_LANGUAGES.filter((l) => opts.languages!.includes(l.code)) : SUPPORTED_LANGUAGES;
 }
 
@@ -130,20 +132,10 @@ export async function handleWelcomeMessage(msg: WelcomeMessage, opts: BridgeOpti
     }
 }
 
-// The site served locally (apps/site, python on :8471) for testing a dev build.
-// A module-level const so a prod bundle drops the origin entirely.
-const DEV_SITE_ORIGIN = __EXT_ENV__ === 'dev' ? 'http://localhost:8471' : '';
-
-function senderAllowed(sender: chrome.runtime.MessageSender): boolean {
-    if (isAllowedExternalSender(sender)) return true;
-    const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : '');
-    return DEV_SITE_ORIGIN !== '' && origin === DEV_SITE_ORIGIN;
-}
-
 export function installWelcomeBridge(opts: BridgeOptions): void {
     chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
         if (!isWelcomeMessage(message)) return false;
-        if (!senderAllowed(sender)) {
+        if (!isTrustedSiteSender(sender)) {
             sendResponse({ ok: false, error: 'unauthorized origin' });
             return false;
         }

@@ -213,7 +213,7 @@ async function render(badge: HTMLElement): Promise<void> {
         row.title = `${i18nMsg('ytAuthSignedInAs', 'Signed in as')} ${status.email} — ${wordsSavedLabel(status.inboxCount ?? 0)}`;
         row.setAttribute('aria-label', row.title);
     } else {
-        const text = el('span', { textContent: i18nMsg('ytSignInToSave', 'Sign in to save words') }, {
+        const text = el('span', { textContent: i18nMsg('ytSignInToKeepWords', 'Sign in to keep your words') }, {
             color: 'var(--vtt-text)',
             textDecoration: 'underline',
             textDecorationColor: 'var(--vtt-hairline-strong)',
@@ -225,7 +225,7 @@ async function render(badge: HTMLElement): Promise<void> {
             textOverflow: 'ellipsis',
         });
         row.append(text);
-        row.title = i18nMsg('ytSignInToSave', 'Sign in to save words');
+        row.title = i18nMsg('ytSignInToKeepWords', 'Sign in to keep your words');
     }
 
     row.addEventListener('mouseenter', () => {

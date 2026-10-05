@@ -20,6 +20,7 @@
 // runs at all when there is nothing saved or the setting is off.
 
 import { SIBLING_KEYS } from '../auth/storage';
+import { isHighlightOff } from '../highlight-hosts';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import { loadMirror, onMirrorChanged, type WordState } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
@@ -439,7 +440,10 @@ export async function installPageHighlight(): Promise<void> {
     if (!canHighlight() || !document.body) return;
     const painter = createPageHighlighter(document);
 
-    let enabled = (await loadPrefs()).pageHighlight;
+    const prefs = await loadPrefs();
+    let enabled = prefs.pageHighlight;
+    // Switched off for this site alone (the popup's switch): the host is on the list.
+    let siteOff = isHighlightOff(prefs.highlightOffHosts, location.hostname);
     let yields = false;
     try {
         const got = await chrome.storage.local.get(SIBLING_KEYS.otherOwns);
@@ -448,26 +452,39 @@ export async function installPageHighlight(): Promise<void> {
         // no storage — paint.
     }
     const apply = (): void => {
-        if (enabled && !yields) painter.start();
+        if (enabled && !yields && !siteOff) painter.start();
         else painter.stop();
+        syncCard();
+    };
+
+    // The card over a marked word (card.ts). It reads only what the painter
+    // painted, so with the highlight off — or nothing saved — it never opens.
+    // On a site switched off it is not installed at all, and comes with the
+    // marks when the site is switched back on.
+    let uninstallCard: (() => void) | null = null;
+    const syncCard = (): void => {
+        if (siteOff) {
+            uninstallCard?.();
+            uninstallCard = null;
+        } else if (!uninstallCard) {
+            uninstallCard = installPageCard({
+                markAtPoint: (x, y) => markAtPoint(painter, x, y),
+                active: () => painter.size > 0,
+                nativeLang: async () => (await loadLanguagePrefs())?.native,
+                send: (message) => chrome.runtime.sendMessage(message),
+            });
+        }
     };
 
     painter.setWords((await loadMirror()).words);
     apply();
 
-    // The card over a marked word (card.ts). It reads only what the painter
-    // painted, so with the highlight off — or nothing saved — it never opens.
-    installPageCard({
-        markAtPoint: (x, y) => markAtPoint(painter, x, y),
-        active: () => painter.size > 0,
-        nativeLang: async () => (await loadLanguagePrefs())?.native,
-        send: (message) => chrome.runtime.sendMessage(message),
-    });
-
     onMirrorChanged((m) => painter.setWords(m.words));
     onPrefsChanged((p) => {
-        if (p.pageHighlight === enabled) return;
+        const off = isHighlightOff(p.highlightOffHosts, location.hostname);
+        if (p.pageHighlight === enabled && off === siteOff) return;
         enabled = p.pageHighlight;
+        siteOff = off;
         apply();
     });
     chrome.storage.onChanged.addListener((changes, area) => {

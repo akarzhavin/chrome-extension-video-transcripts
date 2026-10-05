@@ -67,10 +67,6 @@
     "message": "সাবটাইটেল",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "শব্দ সংরক্ষণ করতে সাইন ইন করুন",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} শব্দ সংরক্ষিত",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram-এ সংরক্ষণ",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "ওয়েবসাইটে",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "ওয়েবসাইটে আমার শব্দ হাইলাইট করুন",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "আপনার সংরক্ষিত শব্দগুলো আপনি যে কোনো পেজ পড়েন সেখানেই চিহ্নিত হয়। মিলিয়ে দেখা হয় আপনার ডিভাইসেই; কিছুই পাঠানো হয় না।",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "সেটআপ শেষ করুন",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "পরের বার পেজ খুললে বা রিলোড করলে কার্যকর হবে।",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "ভিডিও সাইট",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google অনুবাদ",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "লুকান",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "শব্দগুলো রাখতে সাইন ইন করুন",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram-এ সাইন ইন করুন",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "আবার সাইন ইন করুন",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "দেখতে দেখতে শব্দ সংরক্ষণ করুন",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "সাবটাইটেলের কোনো শব্দে ক্লিক করুন, তারপর “সংরক্ষণ” চাপুন। শব্দটি এখানে, এই ব্রাউজারে থাকবে।",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "আমার শব্দভান্ডার খুলুন",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "সাইন ইন করুন",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "তাহলে শব্দগুলো সব ডিভাইসে থাকবে।",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "সাইন-ইনের মেয়াদ শেষ হয়েছে। নতুন শব্দ আবার সাইন ইন না করা পর্যন্ত এই ডিভাইসে থাকবে।",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site}-এ সাবটাইটেল",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "পরিবর্তন প্রয়োগ করতে পেজটি রিলোড করুন।",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "সেটিংস",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "সেটিংস",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "আমার শব্দ",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram যেখানে কাজ করে",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "দ্বৈত সাবটাইটেল এবং ভিডিওর পাশে শব্দের তালিকা।",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "আপনার সংরক্ষিত শব্দ আপনি যে কোনো পেজ পড়লে হাইলাইট হয়। অনুবাদ দেখতে শব্দের ওপর কার্সার রাখুন।",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "অ্যাকাউন্ট",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "সাইন ইন করা নেই",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "আপনার শব্দ এই ব্রাউজারে রাখা আছে। সব ডিভাইসে পেতে সাইন ইন করুন।",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "সাইন-ইনের মেয়াদ শেষ হয়েছে",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "নতুন শব্দ আপনার অ্যাকাউন্টে যাওয়ার জন্য আবার সাইন ইন করুন।",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "আমার শব্দ",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "শব্দ: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "আমার শব্দে খুঁজুন",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "সরান",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "শব্দটি সরানো গেল না। আবার চেষ্টা করুন।",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "এই শব্দগুলো শুধু এই ব্রাউজারে রাখা আছে।",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "সব ডিভাইসে পেতে এবং অনুশীলন করতে সাইন ইন করুন। শব্দগুলো স্বয়ংক্রিয়ভাবে আপনার অ্যাকাউন্টে চলে যাবে।",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "আপনার শব্দগুলো আপনার Lingogram শব্দভান্ডারে আছে।",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "অ্যাকাউন্টে যোগ হওয়ার অপেক্ষায়",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "এখনো কোনো শব্দ নেই",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "সাবটাইটেলের কোনো শব্দে ক্লিক করুন, তারপর “সংরক্ষণ” চাপুন। আপনার সংরক্ষিত শব্দ এখানে দেখা যাবে।",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

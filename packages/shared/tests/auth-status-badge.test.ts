@@ -56,12 +56,12 @@ async function mount(): Promise<void> {
     await flush();
 }
 
-test('the row states that saving needs an account', async () => {
+test('the row invites a signed-out user to sign in to keep their words', async () => {
     await mount();
     expect(row()).not.toBeNull();
     // Pinned to the words a signed-out user must see, not to whatever the row
     // happens to render — a comparison with itself would pass on an empty row.
-    expect(row()!.textContent).toMatch(/sign in to save words/i);
+    expect(row()!.textContent).toMatch(/sign in to keep your words/i);
     expect(row()!.getAttribute('aria-expanded')).toBe('false');
 });
 
@@ -144,7 +144,7 @@ test('Escape closes the panel and hands focus back to the row', async () => {
 test('an unreachable background renders the signed-out row', async () => {
     sendMessage.mockImplementation(() => { throw new Error('no receiving end'); });
     await mount();
-    expect(row()!.textContent).toMatch(/sign in to save words/i);
+    expect(row()!.textContent).toMatch(/sign in to keep your words/i);
 });
 
 /**
@@ -169,7 +169,7 @@ describe('the row when someone is signed in', () => {
         expect(row()!.textContent).toContain('reader@example.com');
         // The invitation must be GONE, not merely joined: a row showing both
         // would be telling the person to sign in while signed in.
-        expect(row()!.textContent).not.toMatch(/sign in to save words/i);
+        expect(row()!.textContent).not.toMatch(/sign in to keep your words/i);
     });
 
     test('says who is signed in and how many words are saved, without opening it', async () => {
@@ -222,7 +222,7 @@ describe('the panel when someone is signed in', () => {
         await flush();
 
         expect(panel()).toBeNull();
-        expect(row()!.textContent).toMatch(/sign in to save words/i);
+        expect(row()!.textContent).toMatch(/sign in to keep your words/i);
     });
 });
 
@@ -260,7 +260,7 @@ describe('the row follows changes made elsewhere', () => {
 
     test('signing in elsewhere replaces the invitation', async () => {
         await mount();
-        expect(row()!.textContent).toMatch(/sign in to save words/i);
+        expect(row()!.textContent).toMatch(/sign in to keep your words/i);
 
         signedInAs('reader@example.com', 1);
         await fireStorageChange({ 'auth.idToken': { newValue: 'tok' } });

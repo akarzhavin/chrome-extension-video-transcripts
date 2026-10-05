@@ -1,8 +1,9 @@
 /**
  * @jest-environment jsdom
  *
- * The popup's two blocks that come with the welcome page: this edition's video
- * site switches, and "Finish setup" until the welcome page was finished.
+ * The popup's block that comes with the welcome page: "Finish setup" until the
+ * welcome page was finished. The video-site switches are on the settings page
+ * (settings-page.test.ts).
  */
 
 const store: Record<string, unknown> = {};
@@ -28,11 +29,10 @@ const store: Record<string, unknown> = {};
         sendMessage: jest.fn((msg: any, cb?: (r: unknown) => void) => cb?.({ signedIn: false })),
     },
     i18n: { getMessage: () => '' },
-    tabs: { create: jest.fn() },
+    tabs: { create: jest.fn(), query: jest.fn(async () => []) },
 };
 
 import { initPopup } from '../src/popup/popup';
-import { loadPrefs } from '../src/prefs';
 
 const flush = async () => {
     for (let i = 0; i < 8; i++) await new Promise((r) => setTimeout(r, 0));
@@ -51,25 +51,29 @@ beforeEach(() => {
     window.close = jest.fn();
 });
 
-test('YouTube edition: YouTube and Netflix switches, writing the site prefs', async () => {
-    store['prefs.v1'] = { siteNetflix: false };
-    const root = await mount('youtube');
-    const yt = root.querySelector<HTMLInputElement>('input[data-pref="siteYoutube"]')!;
-    const nf = root.querySelector<HTMLInputElement>('input[data-pref="siteNetflix"]')!;
-    expect(yt.checked).toBe(true);
-    expect(nf.checked).toBe(false);
-    expect(root.querySelector('input[data-pref="siteRezka"]')).toBeNull();
-    yt.checked = false;
-    yt.dispatchEvent(new Event('change'));
-    await flush();
-    expect((await loadPrefs()).siteYoutube).toBe(false);
+test('the video-site switches are not in the popup, in either edition', async () => {
+    for (const edition of ['youtube', 'rezka'] as const) {
+        const root = await mount(edition);
+        expect(root.querySelector('input[data-pref^="site"]')).toBeNull();
+        expect(root.textContent).not.toContain('Subtitles on');
+    }
 });
 
-test('HDrezka edition: only the HDrezka switch', async () => {
-    const root = await mount('rezka');
-    expect(Array.from(root.querySelectorAll('input[data-pref^="site"]')).map((b) => (b as HTMLElement).dataset.pref)).toEqual([
-        'siteRezka',
-    ]);
+test('"Finish setup" is a menu row directly under the account rows, above the highlight row', async () => {
+    const root = await mount('youtube');
+    const b = Array.from(root.querySelectorAll('button')).find((x) => x.textContent === 'Finish setup')!;
+    expect(b.className).toBe('mi');
+    expect(b.querySelector('svg')).not.toBeNull();
+    expect(b.parentElement!.nextElementSibling!.className).toBe('highlight');
+    expect(b.parentElement!.previousElementSibling!.textContent).toBe('Sign in on Lingogram');
+});
+
+test('the "Finish setup" slot stays out of the layout until storage has answered', async () => {
+    store['welcome.v1'] = { step: 2, languageDone: true, skippedAccount: false, finished: true };
+    const root = await mount('youtube');
+    const slot = root.querySelector('.highlight')!.previousElementSibling as HTMLElement;
+    expect(slot.hidden).toBe(true);
+    expect(slot.children).toHaveLength(0);
 });
 
 test('"Finish setup" until the welcome page is finished, and it opens that page', async () => {
@@ -83,7 +87,7 @@ test('"Finish setup" until the welcome page is finished, and it opens that page'
     expect(Array.from(again.querySelectorAll('button')).some((x) => x.textContent === 'Finish setup')).toBe(false);
 });
 
-test('no edition given (older callers): neither block appears', async () => {
+test('no edition given (older callers): no "Finish setup"', async () => {
     const root = await mount();
     expect(root.querySelector('input[data-pref^="site"]')).toBeNull();
     expect(Array.from(root.querySelectorAll('button')).some((x) => x.textContent === 'Finish setup')).toBe(false);

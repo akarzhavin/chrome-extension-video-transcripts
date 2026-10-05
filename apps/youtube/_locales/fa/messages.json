@@ -67,10 +67,6 @@
     "message": "زیرنویس",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "برای ذخیره کلمات وارد شوید",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} کلمه ذخیره شد",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "ذخیره در Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "در وب‌سایت‌ها",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "برجسته کردن واژه‌های من در وب‌سایت‌ها",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "واژه‌هایی که ذخیره کرده‌اید در هر صفحه‌ای که می‌خوانید علامت‌گذاری می‌شوند. تطبیق روی دستگاه شما انجام می‌شود و چیزی ارسال نمی‌شود.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "پایان راه‌اندازی",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "دفعه بعد که صفحه را باز یا بارگذاری مجدد کنید اعمال می‌شود.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "سایت‌های ویدیو",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "ترجمه Google",
@@ -754,5 +734,137 @@
   "gtImportHide": {
     "message": "پنهان کردن",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "برای نگه‌داشتن واژه‌هایتان وارد شوید",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "ورود به Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "دوباره وارد شوید",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "هنگام تماشا واژه ذخیره کنید",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "روی یک واژه در زیرنویس کلیک کنید و سپس «ذخیره» را بزنید. واژه همین‌جا، در همین مرورگر می‌ماند.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupOpenVocabulary": {
+    "message": "باز کردن واژگان من",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "وارد شوید",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "تا واژه‌هایتان روی همه دستگاه‌ها همراهتان باشد.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "نشست شما به پایان رسید. واژه‌های جدید تا ورود دوباره روی این دستگاه می‌مانند.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "زیرنویس در {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "برای اعمال تغییر، صفحه را دوباره بارگذاری کنید.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "تنظیمات",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "تنظیمات",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "واژه‌های من",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram کجا کار می‌کند",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "زیرنویس دوگانه و فهرست واژه‌ها کنار ویدیو.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "واژه‌هایی که ذخیره کرده‌اید در هر صفحه‌ای که می‌خوانید برجسته می‌شوند. نشانگر را روی یک واژه ببرید تا ترجمه‌اش را ببینید.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "حساب",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "وارد نشده‌اید",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "واژه‌های شما در این مرورگر نگهداری می‌شوند. برای داشتن آن‌ها روی همه دستگاه‌ها وارد شوید.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "نشست شما به پایان رسید",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "دوباره وارد شوید تا واژه‌های جدید به حسابتان برسند.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "واژه‌های من",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "واژه‌ها: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "جستجو در واژه‌های من",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "حذف",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "حذف واژه ممکن نشد. دوباره تلاش کنید.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "این واژه‌ها فقط در این مرورگر نگهداری می‌شوند.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "برای داشتن آن‌ها روی همه دستگاه‌ها و تمرین با آن‌ها وارد شوید. واژه‌ها خودکار به حسابتان منتقل می‌شوند.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "واژه‌های شما در واژگان Lingogram شما هستند.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "در انتظار افزوده‌شدن به حسابتان",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "هنوز واژه‌ای نیست",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "روی یک واژه در زیرنویس کلیک کنید و سپس «ذخیره» را بزنید. واژه‌های ذخیره‌شده اینجا نمایش داده می‌شوند.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

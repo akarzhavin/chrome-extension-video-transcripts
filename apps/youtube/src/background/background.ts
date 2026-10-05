@@ -10,6 +10,7 @@ import {
 } from '../../../../packages/shared/src/analytics-bg';
 import { currentSide } from '../../../../packages/shared/src/auth/devEnvSwitch';
 import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/bridge';
+import { installSettingsBridge } from '../../../../packages/shared/src/settings-bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 
@@ -30,6 +31,7 @@ setBackendResolver(() => currentSide());
 installAuthBackground();
 // The setup steps on lingogram.ai/welcome/ read and write through this.
 installWelcomeBridge({ edition: 'youtube' });
+installSettingsBridge({ edition: 'youtube' });
 installContextMenuSave();
 // Relative: runner.ts imports analytics-bg (the GA4 secret), which stays out
 // of the package barrel that content scripts pull in.
