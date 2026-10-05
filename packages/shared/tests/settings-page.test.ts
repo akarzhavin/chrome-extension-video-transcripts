@@ -604,6 +604,29 @@ describe('account', () => {
         expect(account().querySelector('.row-label')!.textContent).toBe('new@example.com');
     });
 
+    test('two paints in flight at once leave one set of rows, not two', async () => {
+        await mount();
+        expect(account().querySelectorAll('.row-label').length).toBe(1);
+
+        const answers: Array<(s: unknown) => void> = [];
+        sendMessageMock.mockImplementation((msg: any, cb: any) => {
+            if (msg?.action === 'AUTH_STATUS') answers.push(cb);
+        });
+        const changed = { 'auth.email': { newValue: 'x' } };
+        for (const l of storageListeners) l(changed, 'local');
+        for (const l of storageListeners) l(changed, 'local');
+        await nextTick();
+        expect(answers.length).toBe(2);
+        const signedIn = { signedIn: true, email: 'a@b.c', inboxCount: 1, localCount: 0, needsReauth: false };
+        answers[0](signedIn);
+        answers[1](signedIn);
+        await nextTick();
+        await nextTick();
+
+        expect(account().querySelectorAll('.row-label').length).toBe(1);
+        expect(account().querySelectorAll('.group-label').length).toBe(1);
+    });
+
     test('ignores storage changes that are not about the account', async () => {
         await mount();
         sendMessageMock.mockClear();

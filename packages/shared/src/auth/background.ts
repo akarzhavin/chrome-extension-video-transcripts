@@ -34,6 +34,7 @@ import {
     setLocalTranslation,
 } from '../local-words';
 import { normalizeTerm } from '../word-key';
+import { assertTermFits } from './term-limit';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import { loadLanguagePrefs } from '../languages';
@@ -439,6 +440,12 @@ export function __resetUploadStateForTests(): void {
     uploading = null;
 }
 
+/** Still waiting in the browser, by the key the store itself uses. */
+async function stillLocal(term: string): Promise<boolean> {
+    const key = normalizeTerm(term);
+    return (await listLocalWords()).some((w) => normalizeTerm(w.term) === key);
+}
+
 async function runUpload(): Promise<UploadResult> {
     let uploaded = 0;
     let left = 0;
@@ -454,6 +461,14 @@ async function runUpload(): Promise<UploadResult> {
             // a learner who just chose to sign out.
             if (!(await getAuthState())) break;
             if (gap) await sleep(gap);
+            // Re-checked after the wait, right before the write: the snapshot
+            // above is from the start of the run, and the learner can have
+            // removed this word or signed out while it slept.
+            if (!(await getAuthState())) break;
+            if (!(await stillLocal(w.term))) {
+                left--;
+                continue;
+            }
             stampLocalWrite(w.term);
             try {
                 try {
@@ -466,6 +481,11 @@ async function runUpload(): Promise<UploadResult> {
                     if (!(err instanceof Error) || !err.message.startsWith('Firestore rules 403')) throw err;
                     gap = UPLOAD_FALLBACK_GAP_MS;
                     await sleep(gap);
+                    if (!(await getAuthState())) return { ok: true, uploaded, left };
+                    if (!(await stillLocal(w.term))) {
+                        left--;
+                        continue;
+                    }
                     await addInboxWord(config, { term: w.term, context: w.context });
                 }
             } catch (err) {
@@ -479,6 +499,9 @@ async function runUpload(): Promise<UploadResult> {
                     continue;
                 }
                 if (isAuthFailure(err)) {
+                    // No session left at all: the learner signed out while this
+                    // write was being prepared. That is not a dead session.
+                    if (!(await getAuthState())) return { ok: true, uploaded, left };
                     await endSession();
                     await setNeedsReauthBadge();
                 }
@@ -618,6 +641,9 @@ export async function handleAuthMessage(
             // reply is the same shape as a saved one plus `local: true`, so a
             // caller that only checks `ok` needs no change.
             const saveLocally = async (): Promise<unknown> => {
+                // The same limit the account write applies, before the word is
+                // kept: otherwise it is "saved", and dropped at the upload.
+                assertTermFits(term);
                 await addLocalWord({ term, context, site });
                 await setMirrorEntry(term, 'active');
                 const done = await afterSave(request, { site, signedIn: false, learning, native });

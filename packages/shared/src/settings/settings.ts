@@ -157,18 +157,28 @@ function accountRow(title: string, hint: string | null, button: HTMLButtonElemen
     return row;
 }
 
+// Two paints can be in flight at once (a storage change and a click both ask
+// for one). Each builds its rows off to the side and swaps them in after its
+// await, and only the latest one may: an older answer arriving late is dropped
+// instead of adding a second set of rows.
+const paintSeq = new WeakMap<HTMLElement, number>();
+
 /** Fills the account group from the worker's answer; called again whenever the account changes. */
 async function paintAccount(section: HTMLElement): Promise<void> {
+    const mine = (paintSeq.get(section) ?? 0) + 1;
+    paintSeq.set(section, mine);
     const label = section.querySelector('.group-label');
-    section.replaceChildren(...(label ? [label] : []));
+    const keepLabel = label ? [label] : [];
 
     let status: AuthStatus;
     try {
         status = await send<AuthStatus>({ action: 'AUTH_STATUS' });
     } catch (err) {
-        section.appendChild(el('div', 'error', String(err)));
+        if (paintSeq.get(section) === mine) section.replaceChildren(...keepLabel, el('div', 'error', String(err)));
         return;
     }
+    if (paintSeq.get(section) !== mine) return;
+    const rows: Node[] = [];
 
     const signInButton = (text: string): HTMLButtonElement => {
         const b = el('button', 'primary', text);
@@ -198,9 +208,9 @@ async function paintAccount(section: HTMLElement): Promise<void> {
             await paintAccount(section);
         });
         const who = status.email ?? i18nMsg('ytPopupUnknownEmail', '(unknown email)');
-        section.appendChild(accountRow(who, null, out, 'email'));
+        rows.push(accountRow(who, null, out, 'email'));
     } else if (status.needsReauth) {
-        section.appendChild(
+        rows.push(
             accountRow(
                 i18nMsg('settingsSignedOutTitle', 'You were signed out'),
                 i18nMsg('settingsSignedOutHint', 'Sign in again to keep saving words.'),
@@ -208,7 +218,7 @@ async function paintAccount(section: HTMLElement): Promise<void> {
             ),
         );
     } else {
-        section.appendChild(
+        rows.push(
             accountRow(
                 i18nMsg('settingsNotSignedIn', 'Not signed in'),
                 i18nMsg('settingsNotSignedInHint', 'Your words are kept in this browser. Sign in to keep them on every device.'),
@@ -216,6 +226,7 @@ async function paintAccount(section: HTMLElement): Promise<void> {
             ),
         );
     }
+    section.replaceChildren(...keepLabel, ...rows);
 }
 
 export function initSettings(opts: SettingsOptions): void {

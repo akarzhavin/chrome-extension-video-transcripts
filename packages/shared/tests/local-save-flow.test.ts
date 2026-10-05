@@ -121,6 +121,15 @@ describe('saving signed out', () => {
         expect(addInboxWord).not.toHaveBeenCalled();
     });
 
+    test('a term over the account\'s byte limit is refused like the account refuses it, and stored nowhere', async () => {
+        // 130 two-byte characters: well inside the UI's 256-character cap, over 256 bytes.
+        const wide = 'é'.repeat(130);
+        await expect(add(wide)).rejects.toThrow('term must be 1..256 bytes (UTF-8)');
+        expect(localWords()).toEqual({});
+        expect((await loadMirror()).words).toEqual({});
+        expect(track.mock.calls.find((c) => c[0] === 'word_saved')).toBeUndefined();
+    });
+
     test('analytics: the attempt and the success are both reported, flagged signed out, never with the word', async () => {
         await add('Dawn');
         const calls = track.mock.calls;
@@ -437,6 +446,56 @@ describe('moving local words into the account', () => {
         expect(res).toMatchObject({ ok: true, uploaded: 1, left: 1 });
         expect(Object.keys(localWords())).toEqual(['two']);
         expect(setBadgeText).not.toHaveBeenCalledWith({ text: '!' });
+    });
+
+    test('a word removed while the run was under way is not uploaded', async () => {
+        seed(['one', 1], ['two', 2]);
+        await signIn();
+        addInboxWord.mockImplementation(async (_c: unknown, input: { term: string }) => {
+            // Removed from the My words page while the first write is out.
+            if (input.term === 'one') await handleAuthMessage({ action: 'REMOVE_WORD', term: 'two' });
+            return { wordId: 'w' };
+        });
+        const res = await uploadLocalWords();
+        expect(addInboxWord.mock.calls.map((c) => c[1].term)).toEqual(['one']);
+        expect(res).toMatchObject({ ok: true, uploaded: 1, left: 0 });
+        expect(localWords()).toEqual({});
+        expect((await loadMirror()).words.two).toBe('removed');
+    });
+
+    test('a sign-out during the pacing wait ends the run quietly, with no badge and no reauth flag', async () => {
+        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'] });
+        seed(['one', 1], ['two', 2]);
+        await signIn();
+        addInboxWord.mockImplementation(async (_c: unknown, input: { term: string }) => {
+            if (input.term === 'one') throw rules403();
+            if (!local['auth.uid']) throw new Error('Not signed in');
+            return { wordId: 'w' };
+        });
+        const run = uploadLocalWords();
+        await jest.advanceTimersByTimeAsync(0);
+        // 'one' was refused and is waiting out the gap; the learner signs out now.
+        await handleAuthMessage({ action: 'AUTH_SIGN_OUT' });
+        await jest.advanceTimersByTimeAsync(5000);
+        const res = await run;
+        expect(res.ok).toBe(true);
+        expect(setBadgeText).not.toHaveBeenCalledWith({ text: '!' });
+        expect(local['auth.needsReauth']).toBeUndefined();
+        expect(addInboxWord).toHaveBeenCalledTimes(1);
+        expect(Object.keys(localWords()).sort()).toEqual(['one', 'two']);
+    });
+
+    test('"Not signed in" from a write after the session is gone is a quiet stop, not an expired session', async () => {
+        seed(['one', 1]);
+        await signIn();
+        addInboxWord.mockImplementation(async () => {
+            await handleAuthMessage({ action: 'AUTH_SIGN_OUT' });
+            throw new Error('Not signed in');
+        });
+        const res = await uploadLocalWords();
+        expect(res).toEqual({ ok: true, uploaded: 0, left: 1 });
+        expect(setBadgeText).not.toHaveBeenCalledWith({ text: '!' });
+        expect(local['auth.needsReauth']).toBeUndefined();
     });
 
     test('two triggers at once are one run: every word is written once', async () => {
