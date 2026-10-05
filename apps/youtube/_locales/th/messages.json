@@ -67,10 +67,6 @@
     "message": "คำบรรยาย",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "ลงชื่อเข้าใช้เพื่อบันทึกคำศัพท์",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "บันทึก {count} คำ",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "บันทึกลง Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "บนเว็บไซต์",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "ไฮไลต์คำของฉันบนเว็บไซต์",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "คำที่คุณบันทึกไว้จะถูกทำเครื่องหมายในทุกหน้าที่คุณอ่าน การจับคู่ทำงานบนอุปกรณ์ของคุณ และไม่มีการส่งข้อมูลใดออกไป",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "ตั้งค่าให้เสร็จ",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "มีผลเมื่อคุณเปิดหรือโหลดหน้านี้ใหม่ครั้งถัดไป",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "เว็บไซต์วิดีโอ",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google แปลภาษา",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "ซ่อน",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "ลงชื่อเข้าใช้เพื่อเก็บคำศัพท์ของคุณไว้",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "ลงชื่อเข้าใช้ Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "ลงชื่อเข้าใช้อีกครั้ง",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "บันทึกคำศัพท์ขณะดู",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "คลิกคำในคำบรรยาย แล้วกด “บันทึก” คำจะอยู่ที่นี่ ในเบราว์เซอร์นี้",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "คำที่บันทึกไว้",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "คำที่บันทึกไว้ในอุปกรณ์นี้",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "คำที่รออยู่ในอุปกรณ์นี้",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "เปิดคำของฉัน",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "เปิดคลังคำศัพท์ของฉัน",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "ลงชื่อเข้าใช้",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "แล้วคำศัพท์ของคุณจะอยู่ในทุกอุปกรณ์",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "เซสชันหมดอายุแล้ว คำใหม่จะเก็บไว้ในอุปกรณ์นี้จนกว่าคุณจะลงชื่อเข้าใช้อีกครั้ง",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "คำบรรยายบน {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "รีโหลดหน้าเพื่อใช้การเปลี่ยนแปลง",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "การตั้งค่า",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "การตั้งค่า",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "คำของฉัน",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram ใช้ได้ที่ไหนบ้าง",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "คำบรรยายสองภาษาและรายการคำข้างวิดีโอ",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "คำที่คุณบันทึกไว้จะถูกไฮไลต์บนทุกหน้าที่คุณอ่าน ชี้ที่คำเพื่อดูคำแปล",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "บัญชี",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "ยังไม่ได้ลงชื่อเข้าใช้",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "คำของคุณเก็บไว้ในเบราว์เซอร์นี้ ลงชื่อเข้าใช้เพื่อให้มีในทุกอุปกรณ์",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "เซสชันหมดอายุแล้ว",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "ลงชื่อเข้าใช้อีกครั้งเพื่อให้คำใหม่ไปอยู่ในบัญชีของคุณ",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "คำของฉัน",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "{count} คำ",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "ค้นหาในคำของฉัน",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "นำออก",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "นำคำออกไม่ได้ ลองอีกครั้ง",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "คำเหล่านี้เก็บไว้ในเบราว์เซอร์นี้เท่านั้น",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "ลงชื่อเข้าใช้เพื่อให้มีในทุกอุปกรณ์และฝึกกับคำเหล่านี้ได้ คำจะย้ายไปที่บัญชีของคุณโดยอัตโนมัติ",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "คำของคุณอยู่ในคลังคำศัพท์ Lingogram ของคุณ",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "กำลังรอเพิ่มในบัญชีของคุณ",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "ยังไม่มีคำ",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "คลิกคำในคำบรรยาย แล้วกด “บันทึก” คำที่คุณบันทึกจะแสดงที่นี่",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

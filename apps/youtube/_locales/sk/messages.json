@@ -67,10 +67,6 @@
     "message": "Titulky",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Prihláste sa pre ukladanie slov",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "Uložených slov: {count}",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Uložiť do Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "Na webových stránkach",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Zvýrazňovať moje slová na stránkach",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Slová, ktoré ste si uložili, sa označujú na každej stránke, ktorú čítate. Porovnanie prebieha vo vašom zariadení, nič sa neodosiela.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Dokončiť nastavenie",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "Platí od nasledujúceho otvorenia alebo obnovenia stránky.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Video weby",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Prekladač Google",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "Skryť",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Prihláste sa, aby ste o slová neprišli",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Prihlásiť sa do Lingogramu",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Prihlásiť sa znova",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Ukladajte slová pri sledovaní",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Kliknite na slovo v titulkoch a potom na Uložiť. Zostane tu, v tomto prehliadači.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "uložené slová",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "slová uložené v tomto zariadení",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "slová čakajúce v tomto zariadení",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "Otvoriť moje slová",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "Otvoriť moju slovnú zásobu",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Prihláste sa",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "– slová budete mať na každom zariadení.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "Platnosť prihlásenia vypršala. Nové slová sa uchovávajú v tomto zariadení, kým sa znova neprihlásite.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Titulky na {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Ak chcete zmenu použiť, načítajte stránku znova.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Nastavenia",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Nastavenia",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Moje slová",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Kde Lingogram funguje",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Dvojité titulky a zoznam slov vedľa videa.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Uložené slová sa zvýraznia na každej stránke, ktorú čítate. Presuňte kurzor na slovo a uvidíte jeho preklad.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Účet",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Nie ste prihlásený",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Vaše slová sú uložené v tomto prehliadači. Prihláste sa, aby ste ich mali na každom zariadení.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "Platnosť prihlásenia vypršala",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Prihláste sa znova, aby nové slová prichádzali do vášho účtu.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Moje slová",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "Slová: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Hľadať v mojich slovách",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Odstrániť",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "Slovo sa nepodarilo odstrániť. Skúste to znova.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Tieto slová sú uložené iba v tomto prehliadači.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Prihláste sa, aby ste ich mali na každom zariadení a mohli ich precvičovať. Do vášho účtu sa presunú automaticky.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Vaše slová sú vo vašej slovnej zásobe v Lingogram.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "Čakajú na pridanie do vášho účtu",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Zatiaľ žiadne slová",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Kliknite na slovo v titulkoch a potom na Uložiť. Uložené slová sa zobrazia tu.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

@@ -67,10 +67,6 @@
     "message": "자막",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "로그인하여 단어 저장",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "단어 {count}개 저장됨",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram에 저장",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "웹사이트에서",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "웹사이트에서 내 단어 강조 표시",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "저장한 단어는 읽고 있는 모든 페이지에서 표시됩니다. 일치 확인은 기기에서만 이루어지며 아무것도 전송되지 않습니다.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "설정 완료",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "다음에 페이지를 열거나 새로고침할 때 적용돼요.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "동영상 사이트",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google 번역",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "숨기기",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "로그인하고 단어 보관하기",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram에 로그인",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "다시 로그인",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "영상을 보며 단어를 저장하세요",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "자막의 단어를 클릭한 뒤 ‘저장’을 누르세요. 이 브라우저에 보관돼요.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "저장된 단어",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "이 기기에 저장된 단어",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "이 기기에서 대기 중인 단어",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "내 단어 열기",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "내 단어장 열기",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "로그인하면",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "모든 기기에서 내 단어를 볼 수 있어요.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "로그인이 만료되었어요. 새 단어는 다시 로그인할 때까지 이 기기에 보관돼요.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site} 자막",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "변경 사항을 적용하려면 페이지를 새로고침하세요.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "설정",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "설정",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "내 단어",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram을 쓸 수 있는 곳",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "이중 자막과 영상 옆 단어 목록.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "저장한 단어는 읽고 있는 모든 페이지에서 강조 표시돼요. 단어에 마우스를 올리면 번역을 볼 수 있어요.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "계정",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "로그인하지 않음",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "단어는 이 브라우저에 보관돼요. 로그인하면 모든 기기에서 볼 수 있어요.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "로그인이 만료되었어요",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "새 단어가 계정에 들어가도록 다시 로그인하세요.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "내 단어",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "단어 {count}개",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "내 단어 검색",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "삭제",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "단어를 삭제하지 못했어요. 다시 시도해 주세요.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "이 단어들은 이 브라우저에만 보관돼요.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "로그인하면 모든 기기에서 볼 수 있고 연습도 할 수 있어요. 단어는 자동으로 계정에 옮겨져요.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "내 단어는 Lingogram 단어장에 있어요.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "계정에 추가되기를 기다리는 중",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "아직 단어가 없어요",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "자막의 단어를 클릭한 뒤 ‘저장’을 누르세요. 저장한 단어가 여기에 표시돼요.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

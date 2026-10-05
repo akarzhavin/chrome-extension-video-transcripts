@@ -67,10 +67,6 @@
     "message": "Sottotitoli",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Accedi per salvare le parole",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} parole salvate",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Salva in Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "Sui siti web",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Evidenzia le mie parole sui siti web",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Le parole che hai salvato vengono evidenziate in ogni pagina che leggi. Il confronto avviene sul tuo dispositivo; non viene inviato nulla.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Termina la configurazione",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "Vale dalla prossima volta che apri o ricarichi la pagina.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Siti video",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google Traduttore",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "Nascondi",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Accedi per non perdere le tue parole",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Accedi su Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Accedi di nuovo",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Salva le parole mentre guardi",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Clicca su una parola nei sottotitoli, poi su Salva. Resta qui, in questo browser.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "parole salvate",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "parole salvate su questo dispositivo",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "parole in attesa su questo dispositivo",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "Apri le mie parole",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "Apri il mio vocabolario",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Accedi",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "e le tue parole saranno su ogni dispositivo.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "La sessione è scaduta. Le nuove parole restano su questo dispositivo finché non accedi di nuovo.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Sottotitoli su {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Ricarica la pagina per applicare la modifica.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Impostazioni",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Impostazioni",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Le mie parole",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Dove funziona Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Sottotitoli doppi e l'elenco delle parole accanto al video.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Le parole che hai salvato vengono evidenziate in ogni pagina che leggi. Passa il cursore su una per vedere la traduzione.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Account",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Accesso non effettuato",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Le tue parole sono conservate in questo browser. Accedi per averle su ogni dispositivo.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "La sessione è scaduta",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Accedi di nuovo perché le nuove parole arrivino nel tuo account.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Le mie parole",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "{count} parole",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Cerca nelle mie parole",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Rimuovi",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "Impossibile rimuovere la parola. Riprova.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Queste parole sono conservate solo in questo browser.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Accedi per averle su ogni dispositivo e allenarti con loro. Passeranno al tuo account automaticamente.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Le tue parole sono nel tuo vocabolario di Lingogram.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "In attesa di essere aggiunte al tuo account",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Ancora nessuna parola",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Clicca su una parola nei sottotitoli, poi su Salva. Le parole che salvi compaiono qui.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

@@ -67,10 +67,6 @@
     "message": "ግርጌ ጽሑፍ",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "ቃላትን ለማስቀመጥ ይግቡ",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} ቃላት ተቀምጠዋል",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "ወደ Lingogram አስቀምጥ",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "በድር ጣቢያዎች ላይ",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "ቃሎቼን በድር ጣቢያዎች ላይ አድምቅ",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "የተቀመጡ ቃላትዎ በሚያነቧቸው ማንኛውም ገጽ ላይ ይደምቃሉ። ፍለጋው የሚካሄደው በመሣሪያዎ ላይ ነው፤ ምንም ነገር አይላክም።",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "ማዋቀሩን ጨርስ",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "ገጹን በሚቀጥለው ጊዜ ሲከፍቱ ወይም ሲያድሱ ይተገበራል።",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "የቪዲዮ ጣቢያዎች",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google ትርጉም",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "ደብቅ",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "ቃላትዎን ለማቆየት ይግቡ",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "በ Lingogram ላይ ይግቡ",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "እንደገና ይግቡ",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "እየተመለከቱ ቃላትን ያስቀምጡ",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "በግርጌ ጽሑፉ ውስጥ አንድ ቃል ላይ ጠቅ ያድርጉ፣ ከዚያ “አስቀምጥ” ይጫኑ። እዚህ፣ በዚህ አሳሽ ውስጥ ይቆያል።",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "የተቀመጡ ቃላት",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "በዚህ መሣሪያ ላይ የተቀመጡ ቃላት",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "በዚህ መሣሪያ ላይ የሚጠባበቁ ቃላት",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "ቃሎቼን ክፈት",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "የቃላት ዝርዝሬን ክፈት",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "ይግቡ",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "– ቃላትዎ በሁሉም መሣሪያዎች ላይ ይኖራሉ።",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "ክፍለ ጊዜዎ አብቅቷል። አዲስ ቃላት እንደገና እስኪገቡ ድረስ በዚህ መሣሪያ ላይ ይቆያሉ።",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "በ{site} ላይ ያሉ ግርጌ ጽሑፎች",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "ለውጡን ለመተግበር ገጹን እንደገና ይጫኑ።",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "ቅንብሮች",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "ቅንብሮች",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "ቃሎቼ",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram የሚሠራባቸው ቦታዎች",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "ድርብ ግርጌ ጽሑፎች እና ከቪዲዮው ጎን ያለው የቃላት ዝርዝር።",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "ያስቀመጧቸው ቃላት በሚያነቧቸው ማንኛውም ገጽ ላይ ይደምቃሉ። ትርጉሙን ለማየት ቃሉ ላይ ጠቋሚውን ያድርጉ።",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "መለያ",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "አልገቡም",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "ቃላትዎ በዚህ አሳሽ ውስጥ ተቀምጠዋል። በሁሉም መሣሪያዎች ላይ እንዲኖሯቸው ይግቡ።",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "ክፍለ ጊዜዎ አብቅቷል",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "አዲስ ቃላት ወደ መለያዎ እንዲደርሱ እንደገና ይግቡ።",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "ቃሎቼ",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "ቃላት፦ {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "በቃሎቼ ውስጥ ፈልግ",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "አስወግድ",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "ቃሉን ማስወገድ አልተቻለም። እንደገና ይሞክሩ።",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "እነዚህ ቃላት በዚህ አሳሽ ውስጥ ብቻ ተቀምጠዋል።",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "በሁሉም መሣሪያዎች ላይ እንዲኖሯቸው እና እንዲለማመዷቸው ይግቡ። ወደ መለያዎ በራስ-ሰር ይተላለፋሉ።",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "ቃላትዎ በLingogram የቃላት ዝርዝርዎ ውስጥ ናቸው።",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "ወደ መለያዎ እስኪጨመሩ በመጠባበቅ ላይ",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "ገና ምንም ቃል የለም",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "በግርጌ ጽሑፉ ውስጥ አንድ ቃል ላይ ጠቅ ያድርጉ፣ ከዚያ “አስቀምጥ” ይጫኑ። ያስቀመጧቸው ቃላት እዚህ ይታያሉ።",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

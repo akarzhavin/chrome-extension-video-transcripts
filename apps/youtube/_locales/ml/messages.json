@@ -67,10 +67,6 @@
     "message": "സബ്‌ടൈറ്റിലുകൾ",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "വാക്കുകൾ സംരക്ഷിക്കാൻ സൈൻ ഇൻ ചെയ്യുക",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Lingogram-ൽ സേവ് ചെയ്യുക",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "വെബ്‌സൈറ്റുകളിൽ",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "വെബ്‌സൈറ്റുകളിൽ എന്റെ വാക്കുകൾ ഹൈലൈറ്റ് ചെയ്യുക",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "നിങ്ങൾ സംരക്ഷിച്ച വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും അടയാളപ്പെടുത്തും. പൊരുത്തപ്പെടുത്തൽ നിങ്ങളുടെ ഉപകരണത്തിൽ തന്നെയാണ് നടക്കുന്നത്; ഒന്നും അയയ്ക്കുന്നില്ല.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "സജ്ജീകരണം പൂർത്തിയാക്കുക",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "അടുത്ത തവണ പേജ് തുറക്കുമ്പോഴോ റീലോഡ് ചെയ്യുമ്പോഴോ ബാധകമാകും.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "വീഡിയോ സൈറ്റുകൾ",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Google വിവർത്തനം",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "മറയ്ക്കുക",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "വാക്കുകൾ സൂക്ഷിക്കാൻ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Lingogram-ൽ സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "വീണ്ടും സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "കാണുമ്പോൾ തന്നെ വാക്കുകൾ സേവ് ചെയ്യുക",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "സബ്‌ടൈറ്റിലിലെ ഒരു വാക്കിൽ ക്ലിക്ക് ചെയ്ത് “സേവ് ചെയ്യുക” അമർത്തുക. അത് ഇവിടെ, ഈ ബ്രൗസറിൽ സൂക്ഷിക്കും.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "സേവ് ചെയ്ത വാക്കുകൾ",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "ഈ ഉപകരണത്തിൽ സേവ് ചെയ്ത വാക്കുകൾ",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "ഈ ഉപകരണത്തിൽ കാത്തിരിക്കുന്ന വാക്കുകൾ",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "എന്റെ വാക്കുകൾ തുറക്കുക",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "എന്റെ പദാവലി തുറക്കുക",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "എങ്കിൽ നിങ്ങളുടെ വാക്കുകൾ എല്ലാ ഉപകരണങ്ങളിലും ഉണ്ടാകും.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "സൈൻ ഇൻ കാലാവധി കഴിഞ്ഞു. പുതിയ വാക്കുകൾ വീണ്ടും സൈൻ ഇൻ ചെയ്യുന്നതുവരെ ഈ ഉപകരണത്തിൽ സൂക്ഷിക്കും.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "{site}-ലെ സബ്‌ടൈറ്റിലുകൾ",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "മാറ്റം പ്രയോഗിക്കാൻ പേജ് റീലോഡ് ചെയ്യുക.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "ക്രമീകരണം",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "ക്രമീകരണം",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "എന്റെ വാക്കുകൾ",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Lingogram എവിടെ പ്രവർത്തിക്കുന്നു",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "ഇരട്ട സബ്‌ടൈറ്റിലുകളും വീഡിയോയ്ക്ക് അരികിലെ വാക്കുകളുടെ പട്ടികയും.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "നിങ്ങൾ സേവ് ചെയ്ത വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും ഹൈലൈറ്റ് ചെയ്യും. പരിഭാഷ കാണാൻ വാക്കിൽ പോയിന്റർ വയ്ക്കുക.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "അക്കൗണ്ട്",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "സൈൻ ഇൻ ചെയ്തിട്ടില്ല",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "നിങ്ങളുടെ വാക്കുകൾ ഈ ബ്രൗസറിൽ സൂക്ഷിച്ചിരിക്കുന്നു. എല്ലാ ഉപകരണങ്ങളിലും ലഭിക്കാൻ സൈൻ ഇൻ ചെയ്യുക.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "സൈൻ ഇൻ കാലാവധി കഴിഞ്ഞു",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "പുതിയ വാക്കുകൾ നിങ്ങളുടെ അക്കൗണ്ടിൽ എത്താൻ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "എന്റെ വാക്കുകൾ",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "വാക്കുകൾ: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "എന്റെ വാക്കുകളിൽ തിരയുക",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "നീക്കം ചെയ്യുക",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "വാക്ക് നീക്കം ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "ഈ വാക്കുകൾ ഈ ബ്രൗസറിൽ മാത്രം സൂക്ഷിച്ചിരിക്കുന്നു.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "എല്ലാ ഉപകരണങ്ങളിലും ലഭിക്കാനും അവ പരിശീലിക്കാനും സൈൻ ഇൻ ചെയ്യുക. വാക്കുകൾ സ്വയമേവ നിങ്ങളുടെ അക്കൗണ്ടിലേക്ക് മാറും.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "നിങ്ങളുടെ വാക്കുകൾ നിങ്ങളുടെ Lingogram പദാവലിയിൽ ഉണ്ട്.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "അക്കൗണ്ടിൽ ചേർക്കാൻ കാത്തിരിക്കുന്നു",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "ഇതുവരെ വാക്കുകളില്ല",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "സബ്‌ടൈറ്റിലിലെ ഒരു വാക്കിൽ ക്ലിക്ക് ചെയ്ത് “സേവ് ചെയ്യുക” അമർത്തുക. നിങ്ങൾ സേവ് ചെയ്യുന്ന വാക്കുകൾ ഇവിടെ കാണിക്കും.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }

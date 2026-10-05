@@ -67,10 +67,6 @@
     "message": "Υπότιτλοι",
     "description": "Sidebar panel header title."
   },
-  "ytSignInToSave": {
-    "message": "Συνδεθείτε για αποθήκευση λέξεων",
-    "description": "Account prompt to sign in and save vocabulary."
-  },
   "ytWordsSaved": {
     "message": "{count} λέξεις αποθηκεύτηκαν",
     "description": "Saved-words counter; {count} is the number."
@@ -639,29 +635,13 @@
     "message": "Αποθήκευση στο Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
   },
-  "popupGroupWebsites": {
-    "message": "Σε ιστότοπους",
-    "description": "Popup settings group heading for features that work on ordinary websites."
-  },
   "popupPageHighlightLabel": {
     "message": "Επισήμανση των λέξεών μου σε ιστότοπους",
     "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
-  "popupPageHighlightHint": {
-    "message": "Οι λέξεις που αποθηκεύσατε επισημαίνονται σε κάθε σελίδα που διαβάζετε. Ο έλεγχος γίνεται στη συσκευή σας και δεν στέλνεται τίποτα.",
-    "description": "Hint under the toggle. Must keep both facts: saved words are marked on any page, and matching happens locally with nothing sent."
-  },
   "popupFinishSetup": {
     "message": "Ολοκλήρωση ρύθμισης",
     "description": "Toolbar popup."
-  },
-  "popupSitesHint": {
-    "message": "Ισχύει την επόμενη φορά που θα ανοίξετε ή θα φορτώσετε ξανά τη σελίδα.",
-    "description": "Toolbar popup."
-  },
-  "popupVideoSites": {
-    "message": "Ιστότοποι βίντεο",
-    "description": "Toolbar popup: heading above the per-site on/off switches."
   },
   "gtImportTitle": {
     "message": "Μετάφραση Google",
@@ -754,5 +734,153 @@
   "gtImportHide": {
     "message": "Απόκρυψη",
     "description": "Hides the import panel on translate.google.com; the import goes on."
+  },
+  "ytSignInToKeepWords": {
+    "message": "Συνδέσου για να κρατήσεις τις λέξεις σου",
+    "description": "Account prompt shown to a signed-out user in the subtitle panel and the player menu. Saving works without an account; signing in keeps the saved words on every device."
+  },
+  "accountSignInOnLingogram": {
+    "message": "Σύνδεση στο Lingogram",
+    "description": "Button or link that opens the Lingogram website to sign in. 'Lingogram' is the product name."
+  },
+  "accountSignInAgain": {
+    "message": "Σύνδεση ξανά",
+    "description": "Button shown after the session expired; it opens the Lingogram website to sign in again."
+  },
+  "popupEmptyTitle": {
+    "message": "Αποθήκευσε λέξεις καθώς βλέπεις",
+    "description": "Toolbar popup: title of the card shown while the learner has not saved any word yet."
+  },
+  "popupEmptyText": {
+    "message": "Κάνε κλικ σε μια λέξη στους υπότιτλους και μετά στην Αποθήκευση. Μένει εδώ, σε αυτό το πρόγραμμα περιήγησης.",
+    "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
+  },
+  "popupWordsSavedCaption": {
+    "message": "αποθηκευμένες λέξεις",
+    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  },
+  "popupWordsOnDevice": {
+    "message": "λέξεις αποθηκευμένες σε αυτή τη συσκευή",
+    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
+  },
+  "popupWordsWaiting": {
+    "message": "λέξεις σε αναμονή σε αυτή τη συσκευή",
+    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
+  },
+  "popupOpenMyWords": {
+    "message": "Άνοιγμα των λέξεών μου",
+    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  },
+  "popupOpenVocabulary": {
+    "message": "Άνοιγμα του λεξιλογίου μου",
+    "description": "Button that opens the learner's vocabulary on the Lingogram website."
+  },
+  "popupSignInLead": {
+    "message": "Συνδέσου",
+    "description": "Toolbar popup: link text. Followed by a space and the next string, so the two read as one sentence: 'Sign in to keep them on every device.'"
+  },
+  "popupSignInTail": {
+    "message": "και οι λέξεις σου θα είναι σε κάθε συσκευή.",
+    "description": "Toolbar popup: plain text after the 'Sign in' link; together they read as one sentence."
+  },
+  "popupSignedOutNotice": {
+    "message": "Η σύνδεσή σου έληξε. Οι νέες λέξεις μένουν σε αυτή τη συσκευή μέχρι να συνδεθείς ξανά.",
+    "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
+  },
+  "popupSubtitlesOn": {
+    "message": "Υπότιτλοι στο {site}",
+    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupReloadHint": {
+    "message": "Φόρτωσε ξανά τη σελίδα για να εφαρμοστεί η αλλαγή.",
+    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
+  },
+  "popupSettingsLink": {
+    "message": "Ρυθμίσεις",
+    "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
+  },
+  "settingsTitle": {
+    "message": "Ρυθμίσεις",
+    "description": "Title of the extension's own settings page."
+  },
+  "settingsMyWords": {
+    "message": "Οι λέξεις μου",
+    "description": "Link in the settings page header to the page with the words saved in this browser."
+  },
+  "settingsGroupWorks": {
+    "message": "Πού λειτουργεί το Lingogram",
+    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
+  },
+  "settingsYoutubeHint": {
+    "message": "Διπλοί υπότιτλοι και η λίστα λέξεων δίπλα στο βίντεο.",
+    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
+  },
+  "settingsHighlightHint": {
+    "message": "Οι λέξεις που αποθήκευσες επισημαίνονται σε κάθε σελίδα που διαβάζεις. Δείξε μια λέξη για να δεις τη μετάφρασή της.",
+    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsGroupAccount": {
+    "message": "Λογαριασμός",
+    "description": "Settings page: small group heading above the account section."
+  },
+  "settingsNotSignedIn": {
+    "message": "Δεν έχεις συνδεθεί",
+    "description": "Settings page, account section: title shown when the learner has no account session."
+  },
+  "settingsNotSignedInHint": {
+    "message": "Οι λέξεις σου φυλάσσονται σε αυτό το πρόγραμμα περιήγησης. Συνδέσου για να τις έχεις σε κάθε συσκευή.",
+    "description": "Settings page, account section: hint under 'Not signed in'."
+  },
+  "settingsSignedOutTitle": {
+    "message": "Η σύνδεσή σου έληξε",
+    "description": "Settings page, account section: title shown when the session expired."
+  },
+  "settingsSignedOutHint": {
+    "message": "Συνδέσου ξανά για να φτάνουν οι νέες λέξεις στον λογαριασμό σου.",
+    "description": "Settings page, account section: hint under 'You were signed out'."
+  },
+  "wordsTitle": {
+    "message": "Οι λέξεις μου",
+    "description": "Title of the extension's page that lists the words saved in this browser."
+  },
+  "wordsCount": {
+    "message": "Λέξεις: {count}",
+    "description": "My words page header: number of words. {count} is the number."
+  },
+  "wordsSearchPlaceholder": {
+    "message": "Αναζήτηση στις λέξεις μου",
+    "description": "My words page: placeholder and accessible name of the search field."
+  },
+  "wordsRemove": {
+    "message": "Αφαίρεση",
+    "description": "My words page: button that removes one word from the list."
+  },
+  "wordsRemoveFailed": {
+    "message": "Δεν ήταν δυνατή η αφαίρεση της λέξης. Δοκίμασε ξανά.",
+    "description": "My words page: short error shown under a word that could not be removed."
+  },
+  "wordsLocalNoticeTitle": {
+    "message": "Αυτές οι λέξεις φυλάσσονται μόνο σε αυτό το πρόγραμμα περιήγησης.",
+    "description": "My words page: title of the notice shown to a signed-out learner who has saved words."
+  },
+  "wordsLocalNoticeText": {
+    "message": "Συνδέσου για να τις έχεις σε κάθε συσκευή και να εξασκείσαι με αυτές. Θα περάσουν στον λογαριασμό σου αυτόματα.",
+    "description": "My words page: text of that notice. 'Practise' means doing the vocabulary exercises on the Lingogram website."
+  },
+  "wordsAccountCard": {
+    "message": "Οι λέξεις σου είναι στο λεξιλόγιό σου στο Lingogram.",
+    "description": "My words page: text of the card shown to a signed-in learner, next to the button that opens the vocabulary on the website."
+  },
+  "wordsWaitingHeading": {
+    "message": "Αναμένουν προσθήκη στον λογαριασμό σου",
+    "description": "My words page: small heading above words that were saved in this browser and are still waiting to be uploaded to the account."
+  },
+  "wordsEmptyTitle": {
+    "message": "Καμία λέξη ακόμη",
+    "description": "My words page: title shown when no word is saved."
+  },
+  "wordsEmptyText": {
+    "message": "Κάνε κλικ σε μια λέξη στους υπότιτλους και μετά στην Αποθήκευση. Οι λέξεις που αποθηκεύεις εμφανίζονται εδώ.",
+    "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   }
 }
