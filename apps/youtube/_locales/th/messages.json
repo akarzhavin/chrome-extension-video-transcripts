@@ -755,22 +755,6 @@
     "message": "คลิกคำในคำบรรยาย แล้วกด “บันทึก” คำจะอยู่ที่นี่ ในเบราว์เซอร์นี้",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "คำที่บันทึกไว้",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
-  },
-  "popupWordsOnDevice": {
-    "message": "คำที่บันทึกไว้ในอุปกรณ์นี้",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "คำที่รออยู่ในอุปกรณ์นี้",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "เปิดคำของฉัน",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
-  },
   "popupOpenVocabulary": {
     "message": "เปิดคลังคำศัพท์ของฉัน",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."

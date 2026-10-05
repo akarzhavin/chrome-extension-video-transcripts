@@ -15,7 +15,7 @@ import { withHighlight } from '../highlight-hosts';
 import { loadPrefs, onPrefsChanged, savePrefs } from '../prefs';
 import type { Edition } from '../sibling';
 import { renderGtImport } from '../popup/gt-import-view';
-import { el, fill, iconImage, send, startSignIn, WORDS_PAGE, type AuthStatus } from '../popup/shared';
+import { el, fill, HIGHLIGHT_ANCHOR, iconImage, send, startSignIn, WORDS_PAGE, type AuthStatus } from '../popup/shared';
 import { makeSwitch, renderSwitches } from '../popup/switches';
 
 export interface SettingsOptions {
@@ -259,6 +259,8 @@ export function initSettings(opts: SettingsOptions): void {
     const account = group(i18nMsg('settingsGroupAccount', 'Account'));
     page.appendChild(account);
     void paintAccount(account);
+    // "Manage sites" in the popup lands here: settings.html#highlight.
+    if (location.hash === `#${HIGHLIGHT_ANCHOR}`) document.getElementById(HIGHLIGHT_ANCHOR)?.scrollIntoView();
     // Signing in happens in another tab; the page follows it without a reload.
     chrome.storage.onChanged.addListener((changes, area) => {
         if (area === 'local' && Object.keys(changes).some((k) => k.startsWith('auth.'))) void paintAccount(account);

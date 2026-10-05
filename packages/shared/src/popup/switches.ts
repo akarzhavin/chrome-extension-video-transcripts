@@ -10,7 +10,7 @@ import { msg as i18nMsg } from '../i18n';
 import { loadPrefs, savePrefs, sitePrefKey, type Prefs, type VideoSite } from '../prefs';
 import type { Edition } from '../sibling';
 import { ownSites, SITE_NAMES } from '../welcome/welcome';
-import { el, fill } from './shared';
+import { el, fill, HIGHLIGHT_ANCHOR } from './shared';
 
 export interface SwitchSpec {
     label: string;
@@ -75,6 +75,8 @@ export function renderSwitches(into: HTMLElement, edition: Edition | null, hints
 
     const add = (spec: SwitchSpec) => {
         const { row, input } = makeSwitch(spec);
+        // The popup's "Manage sites" opens the settings page scrolled here.
+        if (spec.pref === 'pageHighlight') row.id = HIGHLIGHT_ANCHOR;
         input.addEventListener('change', () => {
             void savePrefs({ [spec.pref]: input.checked } as Partial<Prefs>);
             spec.onChange?.(input.checked);

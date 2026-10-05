@@ -755,22 +755,6 @@
     "message": "자막의 단어를 클릭한 뒤 ‘저장’을 누르세요. 이 브라우저에 보관돼요.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "저장된 단어",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
-  },
-  "popupWordsOnDevice": {
-    "message": "이 기기에 저장된 단어",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "이 기기에서 대기 중인 단어",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "내 단어 열기",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
-  },
   "popupOpenVocabulary": {
     "message": "내 단어장 열기",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."

@@ -3,8 +3,8 @@
  */
 
 /**
- * The toolbar popup: a header, one state block (four of them), the per-site
- * highlight switch, a hairline and a "Settings" link. The language pickers, the Google Translate
+ * The toolbar popup: a plain menu. A header, the account rows (four states),
+ * the per-site highlight row, one separator and the "Settings" row. The language pickers, the Google Translate
  * import, the privacy switch and the sign-out button are on the settings page
  * now (settings-page.test.ts).
  *
@@ -104,6 +104,20 @@ const buttonByText = (text: string): HTMLButtonElement => {
     if (found.length !== 1) throw new Error(`expected one button "${text}", found ${found.length}`);
     return found[0];
 };
+/**
+ * What the learner sees below the header, top to bottom, one string per row:
+ * a row's label and its value in brackets, a block's text, a sub-line, and
+ * "---" for the separator. Slots that are still hidden are left out.
+ */
+const visibleRows = (): string[] =>
+    [...root().querySelectorAll('.mi, .mintro, .mnote, .msub, .msep')]
+        .filter((n) => !n.closest('[hidden]'))
+        .map((n) => {
+            if (n.classList.contains('msep')) return '---';
+            if (!n.classList.contains('mi')) return n.textContent!.trim();
+            const value = n.querySelector('.v2');
+            return n.querySelector('.l')!.textContent + (value ? ` [${value.textContent}]` : '');
+        });
 const click = async (b: HTMLElement): Promise<void> => {
     b.click();
     await nextTick();
@@ -132,12 +146,13 @@ describe("the popup's loading text", () => {
         expect(root().textContent).toContain('Loading…');
     });
 
-    test('it shows no card and no sign-in while still loading', async () => {
+    test('it shows no rows and no sign-in while still loading', async () => {
         sendMessageMock.mockImplementation(() => {});
         const { initPopup } = await import('../src/popup/popup');
         initPopup();
 
-        expect(root().querySelector('.hero')).toBeNull();
+        expect(root().querySelector('.mintro')).toBeNull();
+        expect(root().querySelector('.mi')).toBeNull();
         expect(root().textContent).not.toContain('Sign in');
         expect(root().textContent).not.toContain('Save words as you watch');
     });
@@ -162,35 +177,50 @@ describe('the header', () => {
 
         const h1 = root().querySelector('h1')!;
         expect(h1.textContent).toBe('Lingogram');
+        expect(h1.className).toBe('mhd');
         expect(h1.querySelector('img')!.getAttribute('src')).toBe('src/assets/icons/icon48.png');
+        expect(h1.querySelector('img')!.getAttribute('width')).toBe('18');
+        expect(root().firstElementChild).toBe(h1);
     });
 });
 
 describe('state 1: signed out, nothing saved yet', () => {
     beforeEach(() => withStatus({ signedIn: false, inboxCount: 0, localCount: 0, needsReauth: false }));
 
-    test('teaches the one gesture in a card', async () => {
+    test('shows exactly these rows, in this order', async () => {
         await mount();
 
-        const card = root().querySelector('.hero')!;
-        expect(card.querySelector('.hero-title')!.textContent).toBe('Save words as you watch');
-        expect(card.textContent).toContain('Click a word in the subtitles, then Save. It is kept here, in this browser.');
+        expect(visibleRows()).toEqual([
+            'Save words as you watch' + 'Click a word in the subtitles, then Save. It is kept here, in this browser.',
+            'Sign in on Lingogram',
+            '---',
+            'Settings',
+        ]);
     });
 
-    test('has no primary button and no figure', async () => {
+    test('teaches the one gesture in a soft block', async () => {
         await mount();
 
-        expect(root().querySelector('button.primary')).toBeNull();
-        expect(root().querySelector('.big')).toBeNull();
+        const block = root().querySelector('.mintro')!;
+        expect(block.querySelector('b')!.textContent).toBe('Save words as you watch');
+        expect(block.querySelector('span')!.textContent).toBe('Click a word in the subtitles, then Save. It is kept here, in this browser.');
     });
 
-    test('offers a quiet "Sign in on Lingogram" that starts the sign-in from the popup', async () => {
+    test('has no figure and no count', async () => {
+        await mount();
+
+        expect(root().querySelector('.v2')).toBeNull();
+        expect(root().querySelector('.chev')).toBeNull();
+    });
+
+    test('"Sign in on Lingogram" is an accent row that starts the sign-in from the popup', async () => {
         await mount();
         sendMessageMock.mockClear();
-        withStatus({ signedIn: false, inboxCount: 0 });
         sendMessageMock.mockImplementation((m: any, cb: any) => cb(m.action === 'AUTH_SIGN_IN_VIA_LINGOGRAM' ? { ok: true } : {}));
 
-        await click(buttonByText('Sign in on Lingogram'));
+        const row = buttonByText('Sign in on Lingogram');
+        expect(row.querySelector('.l')!.className).toBe('l acc');
+        await click(row);
 
         expect(sendMessageMock.mock.calls.map((c) => c[0])).toEqual([
             { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'popup' },
@@ -208,56 +238,63 @@ describe('state 1: signed out, nothing saved yet', () => {
 
         expect(root().querySelector('.error')!.textContent).toBe('Error: tab refused');
         expect(window.close).not.toHaveBeenCalled();
-        // the card is still there under the error
-        expect(root().querySelector('.hero-title')!.textContent).toBe('Save words as you watch');
+        // the block is still there under the error
+        expect(root().querySelector('.mintro b')!.textContent).toBe('Save words as you watch');
     });
 });
 
 describe('state 2: signed out, words kept on this device', () => {
     beforeEach(() => withStatus({ signedIn: false, inboxCount: 12, localCount: 12, needsReauth: false }));
 
-    test('shows the count, what it counts, and one primary button', async () => {
+    test('shows exactly these rows, in this order', async () => {
         await mount();
 
-        const card = root().querySelector('.hero')!;
-        expect(card.querySelector('.big')!.textContent).toBe('12');
-        expect(card.textContent).toContain('words saved on this device');
-        expect(root().querySelectorAll('button.primary')).toHaveLength(1);
-        expect(card.querySelector('button.primary')!.textContent).toBe('Open my words');
+        expect(visibleRows()).toEqual(['My words [12]', 'Sign in to keep them on every device.', '---', 'Settings']);
     });
 
-    test('"Open my words" opens words.html in a tab and closes the popup', async () => {
+    test('"My words" carries the count and a chevron, and is a button', async () => {
         await mount();
 
-        await click(buttonByText('Open my words'));
+        const row = buttonByText('My words12');
+        expect(row.querySelector('.v2')!.textContent).toBe('12');
+        expect(row.querySelector('svg.chev')).not.toBeNull();
+    });
+
+    test('"My words" opens words.html in a tab and closes the popup', async () => {
+        await mount();
+
+        await click(buttonByText('My words12'));
 
         expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'chrome-extension://test-extension-id/words.html' }]]);
         expect(window.close).toHaveBeenCalledTimes(1);
     });
 
-    test('below it, a "Sign in" link and the reason as plain text', async () => {
+    test('the sign-in row is "Sign in" in the accent colour and the reason in normal text', async () => {
         await mount();
 
-        const line = [...root().querySelectorAll('.sm')].find((n) => n.textContent === 'Sign in to keep them on every device.')!;
-        expect(line.querySelector('button')!.textContent).toBe('Sign in');
-        expect(line.querySelector('span')!.textContent).toBe('to keep them on every device.');
+        const row = [...root().querySelectorAll('button.mi')].find((b) => b.textContent === 'Sign in to keep them on every device.')!;
+        expect(row.querySelector('.acc')!.textContent).toBe('Sign in');
+        expect(row.querySelector('.l')!.className).toBe('l');
+        expect(row.querySelector('svg')).not.toBeNull();
     });
 
-    test('that link starts the sign-in from the popup', async () => {
+    test('that row starts the sign-in from the popup', async () => {
         await mount();
         sendMessageMock.mockClear();
         sendMessageMock.mockImplementation((m: any, cb: any) => cb(m.action === 'AUTH_SIGN_IN_VIA_LINGOGRAM' ? { ok: true } : {}));
 
-        await click(buttonByText('Sign in'));
+        await click(buttonByText('Sign in to keep them on every device.'));
 
         expect(sendMessageMock.mock.calls.map((c) => c[0])).toEqual([
             { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'popup' },
         ]);
+        expect(window.close).toHaveBeenCalledTimes(1);
     });
 
-    test('shows no account words button', async () => {
+    test('shows no account vocabulary row', async () => {
         await mount();
-        expect(buttons().map((b) => b.textContent)).not.toContain('Open my vocabulary');
+        expect(buttons().map((b) => b.textContent)).not.toContain('My vocabulary12');
+        expect(root().textContent).not.toContain('My vocabulary');
     });
 });
 
@@ -266,26 +303,22 @@ describe('state 3: signed in', () => {
         withStatus({ signedIn: true, email: 'reader@example.com', uid: 'u1', inboxCount: 387, localCount: 0, needsReauth: false }),
     );
 
-    test("shows the account's count and one primary button", async () => {
+    test('shows exactly these rows, in this order', async () => {
         await mount();
 
-        const card = root().querySelector('.hero')!;
-        expect(card.querySelector('.big')!.textContent).toBe('387');
-        expect(card.textContent).toContain('words saved');
-        expect(card.textContent).not.toContain('on this device');
-        expect(card.querySelector('button.primary')!.textContent).toBe('Open my vocabulary');
+        expect(visibleRows()).toEqual(['My vocabulary [387]', '---', 'Settings']);
     });
 
-    test('"Open my vocabulary" opens the site vocabulary in a tab and closes the popup', async () => {
+    test('"My vocabulary" opens the site vocabulary in a tab and closes the popup', async () => {
         await mount();
 
-        await click(buttonByText('Open my vocabulary'));
+        await click(buttonByText('My vocabulary387'));
 
         expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'http://localhost:5173/app/vocab' }]]);
         expect(window.close).toHaveBeenCalledTimes(1);
     });
 
-    test('no email, no sign-out button, no sign-in link in the popup', async () => {
+    test('no email, no sign-out button, no sign-in row in the popup', async () => {
         await mount();
 
         expect(root().textContent).not.toContain('reader@example.com');
@@ -297,7 +330,7 @@ describe('state 3: signed in', () => {
     test('an account with nothing saved reads zero', async () => {
         withStatus({ signedIn: true, email: 'reader@example.com' });
         await mount();
-        expect(root().querySelector('.big')!.textContent).toBe('0');
+        expect(visibleRows()).toEqual(['My vocabulary [0]', '---', 'Settings']);
     });
 });
 
@@ -305,23 +338,40 @@ describe('state 4: the session expired', () => {
     const expired = (localCount: number) =>
         withStatus({ signedIn: false, inboxCount: localCount, localCount, needsReauth: true });
 
-    test('says what the red "!" means, with one primary "Sign in again"', async () => {
+    test('shows exactly these rows, in this order', async () => {
         expired(3);
         await mount();
 
-        const notice = root().querySelector('.warn')!;
-        expect(notice.textContent).toContain('You were signed out. New words are kept on this device until you sign in again.');
-        expect(notice.querySelector('button.primary')!.textContent).toBe('Sign in again');
-        expect(root().querySelectorAll('button.primary')).toHaveLength(1);
+        expect(visibleRows()).toEqual([
+            'You were signed out. New words are kept on this device until you sign in again.',
+            'Sign in again',
+            'Words waiting on this device [3]',
+            '---',
+            'Settings',
+        ]);
     });
 
-    test('"Sign in again" starts the sign-in from the popup', async () => {
+    test('with no words waiting there is only the notice and "Sign in again"', async () => {
+        expired(0);
+        await mount();
+
+        expect(visibleRows()).toEqual([
+            'You were signed out. New words are kept on this device until you sign in again.',
+            'Sign in again',
+            '---',
+            'Settings',
+        ]);
+    });
+
+    test('"Sign in again" is an accent row that starts the sign-in from the popup', async () => {
         expired(3);
         await mount();
         sendMessageMock.mockClear();
         sendMessageMock.mockImplementation((m: any, cb: any) => cb(m.action === 'AUTH_SIGN_IN_VIA_LINGOGRAM' ? { ok: true } : {}));
 
-        await click(buttonByText('Sign in again'));
+        const row = buttonByText('Sign in again');
+        expect(row.querySelector('.l')!.className).toBe('l acc');
+        await click(row);
 
         expect(sendMessageMock.mock.calls.map((c) => c[0])).toEqual([
             { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'popup' },
@@ -329,44 +379,52 @@ describe('state 4: the session expired', () => {
         expect(window.close).toHaveBeenCalledTimes(1);
     });
 
-    test('words waiting here are a card with a secondary "Open my words"', async () => {
+    test('"Words waiting on this device" opens words.html in a tab and closes the popup', async () => {
         expired(3);
         await mount();
 
-        const card = root().querySelector('.hero')!;
-        expect(card.querySelector('.big')!.textContent).toBe('3');
-        expect(card.textContent).toContain('words waiting on this device');
-        const open = card.querySelector('button')!;
-        expect(open.textContent).toBe('Open my words');
-        expect(open.className).toContain('secondary');
-        expect(open.className).not.toContain('primary');
-    });
-
-    test('that button opens words.html in a tab and closes the popup', async () => {
-        expired(3);
-        await mount();
-
-        await click(buttonByText('Open my words'));
+        const row = buttonByText('Words waiting on this device3');
+        expect(row.querySelector('svg.chev')).not.toBeNull();
+        await click(row);
 
         expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'chrome-extension://test-extension-id/words.html' }]]);
         expect(window.close).toHaveBeenCalledTimes(1);
-    });
-
-    test('with no words waiting there is no card, only the notice', async () => {
-        expired(0);
-        await mount();
-
-        expect(root().querySelector('.warn')).not.toBeNull();
-        expect(root().querySelector('.hero')).toBeNull();
-        expect(root().textContent).not.toContain('Open my words');
     });
 
     test('a signed-in account is never shown the notice, whatever the stored flag says', async () => {
         withStatus({ signedIn: true, email: 'a@b.c', inboxCount: 4, localCount: 0, needsReauth: true });
         await mount();
 
-        expect(root().querySelector('.warn')).toBeNull();
-        expect(root().querySelector('.big')!.textContent).toBe('4');
+        expect(root().querySelector('.mnote')).toBeNull();
+        expect(visibleRows()).toEqual(['My vocabulary [4]', '---', 'Settings']);
+    });
+});
+
+describe('the rows are real controls', () => {
+    test('every acting row is a <button type="button"> with its text as the accessible name', async () => {
+        withStatus({ signedIn: false, inboxCount: 12, localCount: 12, needsReauth: false });
+        await mount('youtube');
+
+        const rows = [...root().querySelectorAll('.mi')].filter((r) => !r.classList.contains('static'));
+        expect(rows.map((r) => r.tagName)).toEqual(['BUTTON', 'BUTTON', 'BUTTON', 'BUTTON']);
+        expect(rows.map((r) => (r as HTMLButtonElement).type)).toEqual(['button', 'button', 'button', 'button']);
+        expect(rows.map((r) => r.textContent)).toEqual([
+            'My words12',
+            'Sign in to keep them on every device.',
+            'Finish setup',
+            'Settings',
+        ]);
+    });
+
+    test('every row has a stroke icon hidden from the accessibility tree', async () => {
+        withStatus({ signedIn: true, inboxCount: 3 });
+        await mount('youtube');
+
+        const icons = [...root().querySelectorAll('.mi > svg:first-child')];
+        // vocabulary, finish setup, settings
+        expect(icons).toHaveLength(3);
+        expect(icons.map((i) => i.getAttribute('aria-hidden'))).toEqual(['true', 'true', 'true']);
+        expect(icons.map((i) => i.getAttribute('stroke'))).toEqual(['currentColor', 'currentColor', 'currentColor']);
     });
 });
 
@@ -386,8 +444,9 @@ describe('what left the popup', () => {
 });
 
 describe('the per-site highlight switch', () => {
-    const site = (): HTMLInputElement => root().querySelector('.switches input') as HTMLInputElement;
-    const label = (): string => root().querySelector('.switches .row-label')!.textContent!;
+    const site = (): HTMLInputElement => root().querySelector('.highlight input') as HTMLInputElement;
+    const label = (): string => root().querySelector('.highlight .l')!.textContent!;
+    const sub = (): HTMLElement | null => root().querySelector('.highlight .msub');
     const offHosts = (): unknown => (prefsStore[PREFS_KEY] as any)?.highlightOffHosts;
     const flip = async (): Promise<void> => {
         site().checked = !site().checked;
@@ -401,6 +460,23 @@ describe('the per-site highlight switch', () => {
         onTab('https://en.wikipedia.org/wiki/Cat');
     });
 
+    test('sits between the account rows and the separator, as a pen row with its switch', async () => {
+        await mount('youtube');
+
+        expect(visibleRows()).toEqual([
+            'Save words as you watchClick a word in the subtitles, then Save. It is kept here, in this browser.',
+            'Sign in on Lingogram',
+            'Finish setup',
+            'Highlight on en.wikipedia.org',
+            '---',
+            'Settings',
+        ]);
+        const row = root().querySelector('.highlight .mi')!;
+        expect(row.classList.contains('static')).toBe(true);
+        expect(row.querySelector('svg')).not.toBeNull();
+        expect(row.lastElementChild!.className).toBe('sw');
+    });
+
     test('is the only switch: the video-site and global ones are on the settings page', async () => {
         await mount('youtube');
 
@@ -411,22 +487,20 @@ describe('the per-site highlight switch', () => {
         expect(root().textContent).not.toContain('Subtitles on');
     });
 
-    test('is a real accessible switch named by its visible text', async () => {
+    test('is a real accessible switch whose name contains the host', async () => {
         await mount('youtube');
 
         expect(site().type).toBe('checkbox');
         expect(site().getAttribute('role')).toBe('switch');
-        expect(document.getElementById(site().getAttribute('aria-labelledby')!)!.textContent).toBe(
-            'Highlight words on en.wikipedia.org',
-        );
+        expect(document.getElementById(site().getAttribute('aria-labelledby')!)!.textContent).toBe('Highlight on en.wikipedia.org');
     });
 
     test('names the tab\'s host without a leading www.', async () => {
         onTab('https://www.theguardian.com/uk');
         await mount('youtube');
 
-        expect(label()).toBe('Highlight words on theguardian.com');
-        expect(root().querySelector('.switches .host')!.textContent).toBe('theguardian.com');
+        expect(label()).toBe('Highlight on theguardian.com');
+        expect(root().querySelector('.highlight .host')!.textContent).toBe('theguardian.com');
     });
 
     test('keeps the host in its own element, so a long one can be cut with an ellipsis', async () => {
@@ -434,18 +508,20 @@ describe('the per-site highlight switch', () => {
         onTab(`https://${long}/`);
         await mount('youtube');
 
-        const host = root().querySelector('.switches .host') as HTMLElement;
+        const host = root().querySelector('.highlight .host') as HTMLElement;
         expect(host.textContent).toBe(long);
         expect(host.title).toBe(long);
-        expect(root().querySelector('.switches input')).not.toBeNull();
+        expect(site()).not.toBeNull();
+        expect(host.parentElement!.className).toBe('l site');
     });
 
-    test('is on for a site that was never switched off, and writes nothing by itself', async () => {
+    test('is on for a site that was never switched off, writes nothing by itself, and has no sub-line', async () => {
         await mount('youtube');
 
         expect(site().checked).toBe(true);
         expect(site().disabled).toBe(false);
-        expect(root().querySelector('.row-hint')).toBeNull();
+        expect(sub()).toBeNull();
+        expect(root().textContent).not.toContain('Manage sites');
         expect(prefsStore[PREFS_KEY]).toBeUndefined();
     });
 
@@ -455,6 +531,38 @@ describe('the per-site highlight switch', () => {
         await mount('youtube');
 
         expect(site().checked).toBe(false);
+    });
+
+    test('off: a sub-line "Off on this site." with the "Manage sites" link, indented under the label', async () => {
+        prefsStore[PREFS_KEY] = { highlightOffHosts: ['en.wikipedia.org'] };
+        await mount('youtube');
+
+        expect(sub()!.textContent).toBe('Off on this site. Manage sites');
+        expect(sub()!.querySelector('button.lnk')!.textContent).toBe('Manage sites');
+        expect(sub()!.previousElementSibling).toBe(root().querySelector('.highlight .mi'));
+        expect(visibleRows().slice(-4)).toEqual(['Highlight on en.wikipedia.org', 'Off on this site. Manage sites', '---', 'Settings']);
+    });
+
+    test('the sub-line follows the switch: it appears when turned off and goes when turned on', async () => {
+        await mount('youtube');
+        expect(sub()).toBeNull();
+
+        await flip();
+        expect(sub()!.textContent).toBe('Off on this site. Manage sites');
+
+        await flip();
+        expect(sub()).toBeNull();
+    });
+
+    test('"Manage sites" opens the extension\'s settings page at #highlight and closes the popup', async () => {
+        prefsStore[PREFS_KEY] = { highlightOffHosts: ['en.wikipedia.org'] };
+        await mount('youtube');
+
+        await click(root().querySelector('.highlight .lnk') as HTMLElement);
+
+        expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'chrome-extension://test-extension-id/settings.html#highlight' }]]);
+        expect(openOptionsPageMock).not.toHaveBeenCalled();
+        expect(window.close).toHaveBeenCalledTimes(1);
     });
 
     test('turning it off lists the normalised host', async () => {
@@ -505,8 +613,8 @@ describe('the per-site highlight switch', () => {
         tabsQueryMock.mockReturnValue(new Promise(() => {}));
         await mount('youtube');
 
-        expect((root().querySelector('.switches') as HTMLElement).hidden).toBe(true);
-        expect(root().querySelector('.switches input')).toBeNull();
+        expect((root().querySelector('.highlight') as HTMLElement).hidden).toBe(true);
+        expect(root().querySelector('.highlight input')).toBeNull();
     });
 
     describe.each([
@@ -521,10 +629,11 @@ describe('the per-site highlight switch', () => {
             onTab(url);
             await mount('youtube');
 
-            expect(root().querySelector('.switches input')).toBeNull();
-            expect(root().querySelector('.switches .row')).toBeNull();
-            expect((root().querySelector('.switches') as HTMLElement).hidden).toBe(true);
-            expect(root().textContent).not.toContain('Highlight words on');
+            expect(root().querySelector('.highlight input')).toBeNull();
+            expect(root().querySelector('.highlight .mi')).toBeNull();
+            expect((root().querySelector('.highlight') as HTMLElement).hidden).toBe(true);
+            expect(root().textContent).not.toContain('Highlight on');
+            expect(root().textContent).not.toContain('Manage sites');
             expect(root().textContent).not.toContain('Highlighting is off');
         });
     });
@@ -533,20 +642,20 @@ describe('the per-site highlight switch', () => {
         tabsQueryMock.mockResolvedValue([{ id: 4 }]);
         await mount('youtube');
 
-        expect(root().querySelector('.switches input')).toBeNull();
-        expect(root().textContent).not.toContain('Highlight words on');
+        expect(root().querySelector('.highlight input')).toBeNull();
+        expect(root().textContent).not.toContain('Highlight on');
     });
 
     test('with no tab at all, or a failing query, there is no row', async () => {
         tabsQueryMock.mockResolvedValue([]);
         await mount('youtube');
-        expect(root().querySelector('.switches input')).toBeNull();
+        expect(root().querySelector('.highlight input')).toBeNull();
 
         document.body.innerHTML = POPUP_HTML;
         jest.resetModules();
         tabsQueryMock.mockRejectedValue(new Error('no'));
         await mount('youtube');
-        expect(root().querySelector('.switches input')).toBeNull();
+        expect(root().querySelector('.highlight input')).toBeNull();
     });
 
     describe('with highlighting off on all websites', () => {
@@ -554,35 +663,31 @@ describe('the per-site highlight switch', () => {
             prefsStore[PREFS_KEY] = { pageHighlight: false, highlightOffHosts: [] };
         });
 
-        test('the row stays, disabled and off, and says why under it', async () => {
+        test('the row reads that, has no switch, and the sub-line is just "Manage sites"', async () => {
             await mount('youtube');
 
-            expect(label()).toBe('Highlight words on en.wikipedia.org');
-            expect(site().disabled).toBe(true);
-            expect(site().checked).toBe(false);
-            const hint = document.getElementById(site().getAttribute('aria-describedby')!)!;
-            expect(hint.textContent).toBe('Highlighting is off on all websites. Turn it on in Settings.');
-            expect(root().querySelector('.row-hint')).toBe(hint);
+            expect(visibleRows().slice(-4)).toEqual(['Highlighting is off on all websites', 'Manage sites', '---', 'Settings']);
+            expect(root().querySelector('.highlight input')).toBeNull();
+            expect(root().querySelector('.highlight .sw')).toBeNull();
+            expect(root().textContent).not.toContain('Off on this site.');
+            expect(root().textContent).not.toContain('Highlight on');
         });
 
-        test('"Settings" in the hint is not a link of its own', async () => {
+        test('"Manage sites" opens settings.html#highlight and closes the popup', async () => {
             await mount('youtube');
 
-            expect(buttons().filter((b) => b.textContent === 'Settings')).toHaveLength(1);
-            expect(root().querySelector('.row-hint a, .row-hint button')).toBeNull();
+            await click(root().querySelector('.highlight .lnk') as HTMLElement);
+
+            expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'chrome-extension://test-extension-id/settings.html#highlight' }]]);
+            expect(window.close).toHaveBeenCalledTimes(1);
         });
 
-        test('even a listed host shows off, and a click changes nothing', async () => {
-            prefsStore[PREFS_KEY] = { pageHighlight: false, highlightOffHosts: ['bbc.com'] };
-            onTab('https://bbc.com/');
+        test('on a tab with no such row it is not shown either', async () => {
+            onTab('chrome://newtab/');
             await mount('youtube');
 
-            site().click();
-            await nextTick();
-            await nextTick();
-
-            expect(site().checked).toBe(false);
-            expect(offHosts()).toEqual(['bbc.com']);
+            expect(root().textContent).not.toContain('Highlighting is off');
+            expect(root().textContent).not.toContain('Manage sites');
         });
     });
 });
@@ -644,12 +749,15 @@ describe('the Settings link', () => {
         ]);
     });
 
-    test('sits last, under a hairline', async () => {
+    test('sits last, under the one separator, with the sliders icon', async () => {
         withStatus({ signedIn: false, inboxCount: 0 });
         await mount('youtube');
 
         const kids = [...root().children];
         expect(kids[kids.length - 1].textContent).toBe('Settings');
-        expect(kids[kids.length - 2].tagName).toBe('HR');
+        expect(kids[kids.length - 1].tagName).toBe('BUTTON');
+        expect(kids[kids.length - 2].className).toBe('msep');
+        expect(root().querySelectorAll('.msep')).toHaveLength(1);
+        expect(kids[kids.length - 1].querySelectorAll('svg circle')).toHaveLength(2);
     });
 });

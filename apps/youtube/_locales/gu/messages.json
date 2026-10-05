@@ -755,22 +755,6 @@
     "message": "સબટાઈટલમાં કોઈ શબ્દ પર ક્લિક કરો, પછી “સાચવો” દબાવો. તે અહીં, આ બ્રાઉઝરમાં રહેશે.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "સાચવેલા શબ્દો",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
-  },
-  "popupWordsOnDevice": {
-    "message": "આ ડિવાઇસ પર સાચવેલા શબ્દો",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "આ ડિવાઇસ પર રાહ જોતા શબ્દો",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "મારા શબ્દો ખોલો",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
-  },
   "popupOpenVocabulary": {
     "message": "મારું શબ્દભંડોળ ખોલો",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."

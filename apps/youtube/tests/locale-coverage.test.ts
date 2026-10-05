@@ -51,6 +51,10 @@ const WORD_CARD_KEYS = [
 const PENDING_TRANSLATION = [
     'popupHighlightOnSite',
     'popupHighlightOffEverywhere',
+    'popupHighlightOffHere',
+    'popupManageSites',
+    'popupMenuVocabulary',
+    'popupMenuWaiting',
     'settingsHighlightOffOn',
     'settingsHighlightOnAgain',
 ];

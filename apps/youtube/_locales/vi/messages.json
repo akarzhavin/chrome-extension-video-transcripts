@@ -755,22 +755,6 @@
     "message": "Nhấp vào một từ trong phụ đề, rồi nhấp Lưu. Từ được giữ ở đây, trong trình duyệt này.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "từ đã lưu",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
-  },
-  "popupWordsOnDevice": {
-    "message": "từ đã lưu trên thiết bị này",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "từ đang chờ trên thiết bị này",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "Mở từ của tôi",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
-  },
   "popupOpenVocabulary": {
     "message": "Mở từ vựng của tôi",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."

@@ -50,7 +50,7 @@ function nextTick(): Promise<void> {
 }
 
 describe('the HDrezka popup', () => {
-    test('a signed-out learner with no words gets the card and the quiet sign-in link', async () => {
+    test('a signed-out learner with no words gets the block and the quiet sign-in link', async () => {
         sendMessageMock.mockImplementationOnce((_msg, cb) => {
             cb({ signedIn: false, inboxCount: 0 });
         });
@@ -61,12 +61,12 @@ describe('the HDrezka popup', () => {
         const root = document.getElementById('root')!;
         expect(root.querySelector('h1')?.textContent).toBe('Lingogram');
         expect(root.querySelector('input[type="email"]')).toBeNull();
-        expect(root.querySelector('.hero-title')?.textContent).toBe('Save words as you watch');
+        expect(root.querySelector('.mintro b')?.textContent).toBe('Save words as you watch');
         expect(root.querySelector('button.primary')).toBeNull();
         expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent)).toContain('Sign in on Lingogram');
     });
 
-    test('a signed-in learner gets the account count and the vocabulary button', async () => {
+    test('a signed-in learner gets the account count on the vocabulary row', async () => {
         sendMessageMock.mockImplementationOnce((_msg, cb) => {
             cb({ signedIn: true, email: 'student@example.com', uid: 'u-1', inboxCount: 7 });
         });
@@ -75,8 +75,8 @@ describe('the HDrezka popup', () => {
         await nextTick();
 
         const root = document.getElementById('root')!;
-        expect(root.querySelector('.big')?.textContent).toBe('7');
-        expect(root.querySelector('button.primary')?.textContent).toBe('Open my vocabulary');
+        expect(root.querySelector('.mi .v2')?.textContent).toBe('7');
+        expect(root.querySelector('button.mi')?.textContent).toBe('My vocabulary7');
         expect(root.textContent).not.toContain('student@example.com');
     });
 
@@ -86,7 +86,7 @@ describe('the HDrezka popup', () => {
         await nextTick();
 
         expect(document.querySelector('input[data-pref="siteRezka"]')).toBeNull();
-        expect(document.querySelector('.switches input')).toBeNull();
+        expect(document.querySelector('.highlight input')).toBeNull();
         expect(document.body.textContent).not.toContain('Subtitles on HDrezka');
     });
 
@@ -97,7 +97,7 @@ describe('the HDrezka popup', () => {
         await nextTick();
         await nextTick();
 
-        expect(document.querySelector('.switches .row-label')?.textContent).toBe('Highlight words on example.org');
+        expect(document.querySelector('.highlight .l')?.textContent).toBe('Highlight on example.org');
     });
 
     test('has no language pickers and no privacy switch: both are on the settings page', async () => {

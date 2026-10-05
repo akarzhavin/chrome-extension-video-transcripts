@@ -59,18 +59,19 @@ test('the video-site switches are not in the popup, in either edition', async ()
     }
 });
 
-test('"Finish setup" is a quiet full-width button directly under the state block, above the switches', async () => {
+test('"Finish setup" is a menu row directly under the account rows, above the highlight row', async () => {
     const root = await mount('youtube');
     const b = Array.from(root.querySelectorAll('button')).find((x) => x.textContent === 'Finish setup')!;
-    expect(b.className).toBe('setup-link');
-    expect(b.parentElement!.nextElementSibling!.className).toBe('switches');
+    expect(b.className).toBe('mi');
+    expect(b.querySelector('svg')).not.toBeNull();
+    expect(b.parentElement!.nextElementSibling!.className).toBe('highlight');
     expect(b.parentElement!.previousElementSibling!.textContent).toBe('Sign in on Lingogram');
 });
 
 test('the "Finish setup" slot stays out of the layout until storage has answered', async () => {
     store['welcome.v1'] = { step: 2, languageDone: true, skippedAccount: false, finished: true };
     const root = await mount('youtube');
-    const slot = root.querySelector('.switches')!.previousElementSibling as HTMLElement;
+    const slot = root.querySelector('.highlight')!.previousElementSibling as HTMLElement;
     expect(slot.hidden).toBe(true);
     expect(slot.children).toHaveLength(0);
 });

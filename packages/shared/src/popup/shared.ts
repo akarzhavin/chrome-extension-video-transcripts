@@ -62,9 +62,17 @@ export function siteSettingsUrl(edition: Edition): string {
 /** The extension's own full-tab pages. */
 export const WORDS_PAGE = 'words.html';
 export const SETTINGS_PAGE = 'settings.html';
+/** The settings page scrolled to the website-highlight part of "Where Lingogram works". */
+export const HIGHLIGHT_ANCHOR = 'highlight';
 
 export async function openTab(url: string): Promise<void> {
     await chrome.tabs.create({ url });
+}
+
+/** "Manage sites": the extension's own settings page at the highlight part; closes the popup. */
+export async function openManageSites(): Promise<void> {
+    await openTab(chrome.runtime.getURL(`${SETTINGS_PAGE}#${HIGHLIGHT_ANCHOR}`));
+    window.close();
 }
 
 export function el<K extends keyof HTMLElementTagNameMap>(

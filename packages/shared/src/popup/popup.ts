@@ -13,6 +13,7 @@ import {
     WORDS_PAGE,
     type AuthStatus,
 } from './shared';
+import { accent, menuRow } from './menu';
 import { renderSiteSwitch } from './site-switch';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
@@ -27,28 +28,29 @@ interface ViewState {
 
 function render(root: HTMLElement, state: ViewState): void {
     root.innerHTML = '';
+    root.className = 'menu';
 
-    const title = el('h1', 'hd');
-    title.append(iconImage(22), document.createTextNode('Lingogram'));
+    const title = el('h1', 'mhd');
+    title.append(iconImage(18), document.createTextNode('Lingogram'));
     root.appendChild(title);
 
     if (state.loading) {
-        root.appendChild(el('div', 'dim', i18nMsg('ytPopupLoading', 'Loading…')));
+        root.appendChild(el('div', 'mload dim', i18nMsg('ytPopupLoading', 'Loading…')));
         return;
     }
 
     renderState(root, state.status);
     renderSetupLink(root);
 
-    // The one switch, for the site of this tab. Out of the layout until the tab
-    // and the prefs have answered, and for good where there is no such switch.
-    const switches = el('div', 'switches');
-    switches.hidden = true;
-    root.appendChild(switches);
-    void renderSiteSwitch(switches);
+    // The highlight row, for the site of this tab. Out of the layout until the
+    // tab and the prefs have answered, and for good where there is no such row.
+    const highlight = el('div', 'highlight');
+    highlight.hidden = true;
+    root.appendChild(highlight);
+    void renderSiteSwitch(highlight);
 
-    root.appendChild(el('hr', 'hairline'));
-    root.appendChild(settingsLink(state.status));
+    root.appendChild(el('div', 'msep'));
+    root.appendChild(settingsRow(state.status));
 
     if (state.error) {
         root.appendChild(el('div', 'error', state.error));
@@ -77,102 +79,88 @@ function stateOf(status?: AuthStatus): PopupState {
 }
 
 function renderState(root: HTMLElement, status?: AuthStatus): void {
+    const wordsPage = () => openAndClose(chrome.runtime.getURL(WORDS_PAGE));
     switch (stateOf(status)) {
         case 'account':
             root.appendChild(
-                countCard(
-                    status?.inboxCount ?? 0,
-                    i18nMsg('popupWordsSavedCaption', 'words saved'),
-                    i18nMsg('popupOpenVocabulary', 'Open my vocabulary'),
-                    'primary',
-                    () => openAndClose(vocabUrl()),
-                ),
+                menuRow({
+                    icon: 'book',
+                    label: i18nMsg('popupMenuVocabulary', 'My vocabulary'),
+                    value: String(status?.inboxCount ?? 0),
+                    chevron: true,
+                    onClick: () => openAndClose(vocabUrl()),
+                }),
             );
             return;
-        case 'device':
+        case 'device': {
             root.appendChild(
-                countCard(
-                    status?.inboxCount ?? 0,
-                    i18nMsg('popupWordsOnDevice', 'words saved on this device'),
-                    i18nMsg('popupOpenMyWords', 'Open my words'),
-                    'primary',
-                    () => openAndClose(chrome.runtime.getURL(WORDS_PAGE)),
-                ),
+                menuRow({
+                    icon: 'book',
+                    label: i18nMsg('settingsMyWords', 'My words'),
+                    value: String(status?.inboxCount ?? 0),
+                    chevron: true,
+                    onClick: wordsPage,
+                }),
             );
-            root.appendChild(signInLine(root, status));
+            const row = menuRow({
+                icon: 'user',
+                label: [
+                    accent(i18nMsg('popupSignInLead', 'Sign in')),
+                    document.createTextNode(` ${i18nMsg('popupSignInTail', 'to keep them on every device.')}`),
+                ],
+                onClick: () => void signIn(root, row, status),
+            });
+            root.appendChild(row);
             return;
-        case 'reauth':
-            root.appendChild(reauthNotice(root, status));
+        }
+        case 'reauth': {
+            const notice = el(
+                'div',
+                'mnote',
+                i18nMsg('popupSignedOutNotice', 'You were signed out. New words are kept on this device until you sign in again.'),
+            );
+            root.appendChild(notice);
+            const row = menuRow({
+                icon: 'user',
+                label: i18nMsg('accountSignInAgain', 'Sign in again'),
+                accent: true,
+                onClick: () => void signIn(root, row, status),
+            });
+            root.appendChild(row);
             if ((status?.localCount ?? 0) > 0) {
                 root.appendChild(
-                    countCard(
-                        status?.localCount ?? 0,
-                        i18nMsg('popupWordsWaiting', 'words waiting on this device'),
-                        i18nMsg('popupOpenMyWords', 'Open my words'),
-                        'secondary',
-                        () => openAndClose(chrome.runtime.getURL(WORDS_PAGE)),
-                    ),
+                    menuRow({
+                        icon: 'book',
+                        label: i18nMsg('popupMenuWaiting', 'Words waiting on this device'),
+                        value: String(status?.localCount ?? 0),
+                        chevron: true,
+                        onClick: wordsPage,
+                    }),
                 );
             }
             return;
+        }
         case 'empty': {
-            const card = el('div', 'hero');
-            card.appendChild(el('b', 'hero-title', i18nMsg('popupEmptyTitle', 'Save words as you watch')));
-            card.appendChild(
+            const intro = el('div', 'mintro');
+            intro.appendChild(el('b', undefined, i18nMsg('popupEmptyTitle', 'Save words as you watch')));
+            intro.appendChild(
                 el(
-                    'div',
-                    'dim sm',
+                    'span',
+                    undefined,
                     i18nMsg('popupEmptyText', 'Click a word in the subtitles, then Save. It is kept here, in this browser.'),
                 ),
             );
-            root.appendChild(card);
-            const link = el('button', 'link left', i18nMsg('accountSignInOnLingogram', 'Sign in on Lingogram'));
-            link.addEventListener('click', () => void signIn(root, link, status));
-            root.appendChild(link);
+            root.appendChild(intro);
+            const row = menuRow({
+                icon: 'user',
+                label: i18nMsg('accountSignInOnLingogram', 'Sign in on Lingogram'),
+                accent: true,
+                onClick: () => void signIn(root, row, status),
+            });
+            root.appendChild(row);
             return;
         }
     }
-}
-
-/** The big number, what it counts, and the one button that goes with it. */
-function countCard(
-    count: number,
-    caption: string,
-    buttonText: string,
-    kind: 'primary' | 'secondary',
-    onClick: () => void,
-): HTMLElement {
-    const card = el('div', 'hero');
-    const figure = el('div');
-    figure.append(el('div', 'big', String(count)), el('div', 'dim', caption));
-    const button = el('button', `${kind} block`, buttonText);
-    button.addEventListener('click', onClick);
-    card.append(figure, button);
-    return card;
-}
-
-/** "Sign in" + "to keep them on every device." — the upgrade, with its reason. */
-function signInLine(root: HTMLElement, status: AuthStatus | undefined): HTMLElement {
-    const line = el('div', 'sm');
-    const link = el('button', 'link', i18nMsg('popupSignInLead', 'Sign in'));
-    link.addEventListener('click', () => void signIn(root, link, status));
-    line.append(link, document.createTextNode(' '), el('span', 'dim', i18nMsg('popupSignInTail', 'to keep them on every device.')));
-    return line;
-}
-
-function reauthNotice(root: HTMLElement, status: AuthStatus | undefined): HTMLElement {
-    const box = el('div', 'warn');
-    box.appendChild(
-        el(
-            'div',
-            undefined,
-            i18nMsg('popupSignedOutNotice', 'You were signed out. New words are kept on this device until you sign in again.'),
-        ),
-    );
-    const button = el('button', 'primary', i18nMsg('accountSignInAgain', 'Sign in again'));
-    button.addEventListener('click', () => void signIn(root, button, status));
-    box.appendChild(button);
-    return box;
 }
 
 async function signIn(root: HTMLElement, button: HTMLButtonElement, status: AuthStatus | undefined): Promise<void> {
@@ -192,23 +180,25 @@ function openAndClose(url: string): void {
 // "Settings": the site's page for this extension when signed in, otherwise the
 // extension's own. The site's page needs an account to mean anything; the
 // extension's works without one.
-function settingsLink(status?: AuthStatus): HTMLElement {
-    const link = el('button', 'link left', i18nMsg('popupSettingsLink', 'Settings'));
-    link.addEventListener('click', () => {
-        void (async () => {
-            if (status?.signedIn && edition) {
-                await openTab(siteSettingsUrl(edition));
-            } else {
-                try {
-                    await chrome.runtime.openOptionsPage();
-                } catch {
-                    await openTab(chrome.runtime.getURL(SETTINGS_PAGE));
+function settingsRow(status?: AuthStatus): HTMLElement {
+    return menuRow({
+        icon: 'sliders',
+        label: i18nMsg('popupSettingsLink', 'Settings'),
+        onClick: () => {
+            void (async () => {
+                if (status?.signedIn && edition) {
+                    await openTab(siteSettingsUrl(edition));
+                } else {
+                    try {
+                        await chrome.runtime.openOptionsPage();
+                    } catch {
+                        await openTab(chrome.runtime.getURL(SETTINGS_PAGE));
+                    }
                 }
-            }
-            window.close();
-        })();
+                window.close();
+            })();
+        },
     });
-    return link;
 }
 
 // "Finish setup" while the welcome page has not been finished — the way back to
@@ -216,17 +206,21 @@ function settingsLink(status?: AuthStatus): HTMLElement {
 // the layout until then.
 function renderSetupLink(root: HTMLElement): void {
     if (!edition) return;
-    const slot = el('div');
+    const slot = el('div', 'setup');
     slot.hidden = true;
     root.appendChild(slot);
     void loadWelcomeState().then((w) => {
         if (w.finished) return;
-        const b = el('button', 'setup-link', i18nMsg('popupFinishSetup', 'Finish setup'));
-        b.addEventListener('click', () => {
-            void chrome.tabs.create({ url: welcomeUrl(edition ?? '', chrome.runtime.id) });
-            window.close();
-        });
-        slot.appendChild(b);
+        slot.appendChild(
+            menuRow({
+                icon: 'flag',
+                label: i18nMsg('popupFinishSetup', 'Finish setup'),
+                onClick: () => {
+                    void chrome.tabs.create({ url: welcomeUrl(edition ?? '', chrome.runtime.id) });
+                    window.close();
+                },
+            }),
+        );
         slot.hidden = false;
     });
 }

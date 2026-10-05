@@ -755,22 +755,6 @@
     "message": "Klikněte na slovo v titulcích a potom na Uložit. Zůstane tady, v tomto prohlížeči.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "uložená slova",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
-  },
-  "popupWordsOnDevice": {
-    "message": "slova uložená v tomto zařízení",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "slova čekající v tomto zařízení",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "Otevřít má slova",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
-  },
   "popupOpenVocabulary": {
     "message": "Otevřít mou slovní zásobu",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."

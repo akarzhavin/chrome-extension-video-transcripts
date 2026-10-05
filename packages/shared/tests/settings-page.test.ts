@@ -128,6 +128,44 @@ describe('the header and the groups', () => {
         expect(link.getAttribute('href')).toBe('words.html');
     });
 
+    describe('opened with #highlight (the popup\'s "Manage sites")', () => {
+        let scrolled: Element[];
+        beforeEach(() => {
+            scrolled = [];
+            (Element.prototype as any).scrollIntoView = function (this: Element) {
+                scrolled.push(this);
+            };
+        });
+        afterEach(() => {
+            delete (Element.prototype as any).scrollIntoView;
+            window.location.hash = '';
+        });
+
+        test('the website-highlight row carries the id and is scrolled into view', async () => {
+            window.location.hash = '#highlight';
+            await mount();
+
+            const target = document.getElementById('highlight')!;
+            expect(target.querySelector('input')!.dataset.pref).toBe('pageHighlight');
+            expect(scrolled).toEqual([target]);
+        });
+
+        test('without the hash nothing is scrolled', async () => {
+            window.location.hash = '';
+            await mount();
+
+            expect(document.getElementById('highlight')).not.toBeNull();
+            expect(scrolled).toEqual([]);
+        });
+
+        test('another hash scrolls nothing', async () => {
+            window.location.hash = '#privacy';
+            await mount();
+
+            expect(scrolled).toEqual([]);
+        });
+    });
+
     test('five groups, labelled in this order', async () => {
         await mount();
 

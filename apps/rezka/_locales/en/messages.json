@@ -711,21 +711,13 @@
     "message": "Click a word in the subtitles, then Save. It is kept here, in this browser.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
-  "popupWordsSavedCaption": {
-    "message": "words saved",
-    "description": "Toolbar popup: caption under the big number of words saved in the signed-in account. The number is shown separately, not part of this string."
+  "popupMenuVocabulary": {
+    "message": "My vocabulary",
+    "description": "Toolbar popup: row that opens the learner's vocabulary on the Lingogram website, signed in. The number of saved words is shown at the right of the row."
   },
-  "popupWordsOnDevice": {
-    "message": "words saved on this device",
-    "description": "Toolbar popup: caption under the big number of words kept only in this browser, signed out. The number is shown separately."
-  },
-  "popupWordsWaiting": {
-    "message": "words waiting on this device",
-    "description": "Toolbar popup: caption under the big number of words kept in this browser after the session expired, waiting to be added to the account. The number is shown separately."
-  },
-  "popupOpenMyWords": {
-    "message": "Open my words",
-    "description": "Toolbar popup: button that opens the extension's own page with the words saved in this browser."
+  "popupMenuWaiting": {
+    "message": "Words waiting on this device",
+    "description": "Toolbar popup: row shown after the session expired; opens the extension's page with the words kept in this browser, waiting to be added to the account. The number of words is shown at the right of the row."
   },
   "popupOpenVocabulary": {
     "message": "Open my vocabulary",
@@ -748,12 +740,20 @@
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
   },
   "popupHighlightOnSite": {
-    "message": "Highlight words on {site}",
+    "message": "Highlight on {site}",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
   },
+  "popupHighlightOffHere": {
+    "message": "Off on this site.",
+    "description": "Toolbar popup: line under the highlight row when highlighting is switched off for the current site. Followed by a space and the 'Manage sites' link, so the two read as one line."
+  },
+  "popupManageSites": {
+    "message": "Manage sites",
+    "description": "Toolbar popup: link that opens the extension's settings page at the list of sites where words are highlighted."
+  },
   "popupHighlightOffEverywhere": {
-    "message": "Highlighting is off on all websites. Turn it on in Settings.",
-    "description": "Popup hint under the disabled per-site switch when highlighting is switched off for all websites. 'Settings' is the popup's Settings link right below."
+    "message": "Highlighting is off on all websites",
+    "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
   "popupReloadHint": {
     "message": "Reload the page to apply.",
