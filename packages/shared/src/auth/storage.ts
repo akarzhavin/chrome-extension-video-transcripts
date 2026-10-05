@@ -33,7 +33,35 @@ const KEYS = {
 // saved, so it is cleared with the credentials on sign-out — see clearAuthState.
 export const WORD_KEYS = {
     mirror: 'words.v1',
+    // Words saved without an account, waiting to move into one. Read/written
+    // only by ../local-words.ts. Unlike the mirror this one is NOT cleared with
+    // the credentials: it belongs to the browser, not to an account, and it is
+    // exactly what a signed-out learner has to keep.
+    local: 'localWords.v1',
 } as const;
+
+// Set when the session died (see setNeedsReauthBadge in background.ts), so a
+// popup opened later can explain the "!" on the toolbar icon. Local state about
+// this install, nothing derived from the account.
+export const NEEDS_REAUTH_KEY = 'auth.needsReauth';
+
+export async function getNeedsReauth(): Promise<boolean> {
+    try {
+        const v = (await chrome.storage.local.get(NEEDS_REAUTH_KEY)) as Record<string, unknown>;
+        return v[NEEDS_REAUTH_KEY] === true;
+    } catch {
+        return false;
+    }
+}
+
+export async function setNeedsReauth(on: boolean): Promise<void> {
+    try {
+        if (on) await chrome.storage.local.set({ [NEEDS_REAUTH_KEY]: true });
+        else await chrome.storage.local.remove(NEEDS_REAUTH_KEY);
+    } catch {
+        // best-effort: the badge itself is the primary signal.
+    }
+}
 
 // The Google Translate import in progress. Read/written only by
 // ../gt-import/runner.ts, in chrome.storage.SESSION: it holds the terms about

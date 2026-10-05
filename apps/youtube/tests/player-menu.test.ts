@@ -757,7 +757,7 @@ describe('account row', () => {
         openMenu();
         await Promise.resolve();
         const row = document.getElementById('vtt-ytp-menu-account')!;
-        expect(row.textContent).toContain('Sign in to save words');
+        expect(row.textContent).toContain('Sign in to keep your words');
         row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         // `from` labels which surface converted the sign-in, for the funnel.
         expect(lastMessage).toEqual({

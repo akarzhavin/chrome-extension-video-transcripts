@@ -219,6 +219,8 @@ leaked=0
 for app in $APPS; do
     for bundle in "apps/$app/build/src/content/index.js" \
                   "apps/$app/build/src/popup/popup.js" \
+                  "apps/$app/build/src/settings/settings.js" \
+                  "apps/$app/build/src/words/words.js" \
                   "apps/$app/build/src/content/page-script.js" \
                   "apps/$app/build/src/content/page-highlight.js"; do
         [[ -f "$bundle" ]] || continue

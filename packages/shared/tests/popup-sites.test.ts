@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  *
  * The popup's two blocks that come with the welcome page: this edition's video
- * site switches, and "Finish setup" until the welcome page was finished.
+ * site switches, and "Finish setup" until the welcome page was finished. (The
+ * switches' labels, order and reload line are in popup.test.ts.)
  */
 
 const store: Record<string, unknown> = {};
@@ -63,6 +64,22 @@ test('YouTube edition: YouTube and Netflix switches, writing the site prefs', as
     yt.dispatchEvent(new Event('change'));
     await flush();
     expect((await loadPrefs()).siteYoutube).toBe(false);
+});
+
+test('"Finish setup" is a quiet full-width button directly under the state block, above the switches', async () => {
+    const root = await mount('youtube');
+    const b = Array.from(root.querySelectorAll('button')).find((x) => x.textContent === 'Finish setup')!;
+    expect(b.className).toBe('setup-link');
+    expect(b.parentElement!.nextElementSibling!.className).toBe('switches');
+    expect(b.parentElement!.previousElementSibling!.textContent).toBe('Sign in on Lingogram');
+});
+
+test('the "Finish setup" slot stays out of the layout until storage has answered', async () => {
+    store['welcome.v1'] = { step: 2, languageDone: true, skippedAccount: false, finished: true };
+    const root = await mount('youtube');
+    const slot = root.querySelector('.switches')!.previousElementSibling as HTMLElement;
+    expect(slot.hidden).toBe(true);
+    expect(slot.children).toHaveLength(0);
 });
 
 test('HDrezka edition: only the HDrezka switch', async () => {

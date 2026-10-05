@@ -135,7 +135,7 @@ describe('what the usage-statistics switch does not stop', () => {
      * up still reaches a server either way.
      *
      * Pinned by scope — the consent flag is consulted only by the analytics
-     * code and the two places that offer the switch. The day something else
+     * code and the places that offer the switch. The day something else
      * starts reading it, that is a deliberate widening and this check says so.
      */
     test('the consent flag governs analytics only', () => {
@@ -145,7 +145,8 @@ describe('what the usage-statistics switch does not stop', () => {
             'packages/shared/src/prefs.ts', // where it is defined
             'packages/shared/src/SidebarUI.ts', // the switch in settings
             'packages/shared/src/analytics-bg.ts', // the gate it exists for
-            'packages/shared/src/popup/popup.ts', // the same switch in the popup
+            'packages/shared/src/settings/settings.ts', // the same switch on the extension's settings page
+            'packages/shared/src/settings-bridge.ts', // the same switch on the site's settings page
         ];
 
         // Walk both source trees rather than reading four files: a new reader

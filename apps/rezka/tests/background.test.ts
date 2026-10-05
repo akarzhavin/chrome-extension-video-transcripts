@@ -137,20 +137,22 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
     });
 
-    test('the registry holds exactly the fourteen non-dev actions', () => {
+    test('the registry holds exactly the sixteen non-dev actions', () => {
         // Fails loudly when an action is added to the union but not the Set —
         // which it did twice during this feature, for REMOVE_WORD and then for
         // SYNC_WORDS, exactly as intended. A name present in only one of the
         // two type-checks cleanly and is then dropped by isAuthAction with no
         // error at all: the message is never handled and the caller's promise
         // never settles.
-        expect(AUTH_ACTIONS.size).toBe(14);
+        expect(AUTH_ACTIONS.size).toBe(16);
         // Named as well as counted: a count alone stays green if one action is
         // added while another is dropped in the same edit.
         expect(AUTH_ACTIONS.has('ADD_WORD')).toBe(true);
         expect(AUTH_ACTIONS.has('REMOVE_WORD')).toBe(true);
         expect(AUTH_ACTIONS.has('SYNC_WORDS')).toBe(true);
         expect(AUTH_ACTIONS.has('OPEN_EXTENSION_PAGE')).toBe(true);
+        expect(AUTH_ACTIONS.has('LOCAL_WORDS_LIST')).toBe(true);
+        expect(AUTH_ACTIONS.has('LOCAL_WORD_SET_TRANSLATION')).toBe(true);
     });
 
     test('an unknown analytics event is rejected at the boundary', async () => {
@@ -519,9 +521,10 @@ describe('ADD_WORD analytics params', () => {
 
     test('a signed-out attempt carries signed_in:false and the stored pair', async () => {
         localStore['lang.v1'] = { learning: 'en', native: 'ru' };
+        // Kept in the browser now, not refused.
         await expect(
             handleAuthMessage({ action: 'ADD_WORD', term: 'hola', site: 'rezka' } as any),
-        ).rejects.toThrow();
+        ).resolves.toMatchObject({ ok: true, local: true });
         await flush();
         const attempts = ga4Events().filter((e) => e.name === 'word_save_attempt');
         expect(attempts).toHaveLength(1);
@@ -531,7 +534,10 @@ describe('ADD_WORD analytics params', () => {
             learning: 'en',
             native: 'ru',
         });
-        expect(ga4Events().filter((e) => e.name === 'word_saved')).toHaveLength(0);
+        // The save landed, so the funnel's last step is reported, flagged signed out.
+        const saved = ga4Events().filter((e) => e.name === 'word_saved');
+        expect(saved).toHaveLength(1);
+        expect(saved[0].params).toMatchObject({ site: 'rezka', signed_in: false, saved_count: 1 });
     });
 
     test('an unconfigured pair reports empty strings, not absence', async () => {
@@ -539,7 +545,7 @@ describe('ADD_WORD analytics params', () => {
         // (not set) row that is indistinguishable from old-version traffic.
         await expect(
             handleAuthMessage({ action: 'ADD_WORD', term: 'hola', site: 'rezka' } as any),
-        ).rejects.toThrow();
+        ).resolves.toMatchObject({ ok: true });
         await flush();
         const attempts = ga4Events().filter((e) => e.name === 'word_save_attempt');
         expect(attempts[0].params).toMatchObject({ learning: '', native: '' });

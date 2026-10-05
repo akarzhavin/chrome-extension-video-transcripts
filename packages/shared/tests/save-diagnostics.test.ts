@@ -169,20 +169,19 @@ describe('a refused save leaves the whole story', () => {
         expect(log().failures[0].before.map((b) => b.term)).toEqual(['precinct']);
     });
 
-    test('a signed-out press records that there was no session, and what was shown', async () => {
+    test('a signed-out press is kept in the browser and logged as saved', async () => {
         delete store['auth.idToken'];
         delete store['auth.refreshToken'];
         delete store['auth.uid'];
         delete store['auth.expiresAt'];
         delete store['auth.email'];
 
-        expect(await save('precinct', 'ctx')).toBe(false);
+        // No refusal any more: the word waits locally for an account.
+        expect(await save('precinct', 'ctx')).toBe(true);
 
         const a = last();
-        expect(a.outcome).toBe('failed');
-        expect(a.worker?.session).toBe(false);
-        expect(a.worker?.requests).toEqual([]);
-        expect(a.shown).toBe('Sign in via the Lingogram row above the subtitle list to save words.');
+        expect(a.outcome).toBe('ok');
+        expect(Object.keys((store['localWords.v1'] as { words: object }).words)).toEqual(['precinct']);
     });
 
     test('an expired token is refreshed, and the refresh is on the record', async () => {

@@ -18,7 +18,21 @@ import {
 } from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
 import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
-import { activeWordCount, applySyncedDocs, loadMirror, setMirrorEntry } from '../word-mirror';
+import {
+    activateMirrorTerms,
+    activeWordCount,
+    applySyncedDocs,
+    loadMirror,
+    setMirrorEntry,
+    setMirrorToTerms,
+} from '../word-mirror';
+import {
+    addLocalWord,
+    countLocalWords,
+    listLocalWords,
+    removeLocalWord,
+    setLocalTranslation,
+} from '../local-words';
 import { normalizeTerm } from '../word-key';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
@@ -33,10 +47,12 @@ import {
     clearParkedAuthStates,
     clearPendingAuthNonce,
     getAuthState,
+    getNeedsReauth,
     getRatePromptShown,
     markRatePromptShown,
     RATE_PROMPT_WORD_THRESHOLD,
     setAuthState,
+    setNeedsReauth,
     setPendingAuthNonce,
     validatePendingAuthNonce,
 } from './storage';
@@ -49,6 +65,8 @@ export type AuthAction =
     | 'OPEN_EXTENSION_PAGE'
     | 'ADD_WORD'
     | 'REMOVE_WORD'
+    | 'LOCAL_WORDS_LIST'
+    | 'LOCAL_WORD_SET_TRANSLATION'
     | 'SYNC_WORDS'
     | 'REPORT_NO_SUBS'
     | 'SEND_FEEDBACK'
@@ -76,6 +94,8 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     // type-checking and is then dropped by isAuthAction with no error: the
     // message is never handled and the caller's promise never settles.
     'REMOVE_WORD',
+    'LOCAL_WORDS_LIST',
+    'LOCAL_WORD_SET_TRANSLATION',
     'SYNC_WORDS',
     'REPORT_NO_SUBS',
     'SEND_FEEDBACK',
@@ -107,21 +127,39 @@ export interface AuthMessage {
 // Surface "the extension needs to be re-authorized" via the toolbar badge.
 // Refresh-token failures (revoked session, very long inactivity) now require
 // the user to open a normal /extension-auth tab — no silent recovery path.
-function setNeedsReauthBadge(): void {
+//
+// The fact is also kept in storage (AUTH_STATUS.needsReauth): a popup opened
+// later has to be able to say what the "!" means, and the badge alone cannot.
+async function setNeedsReauthBadge(): Promise<void> {
     try {
         chrome.action?.setBadgeText({ text: '!' });
         chrome.action?.setBadgeBackgroundColor?.({ color: '#dc2626' });
     } catch {
         // chrome.action unavailable in some test contexts; silent ignore.
     }
+    await setNeedsReauth(true);
 }
 
-function clearNeedsReauthBadge(): void {
+async function clearNeedsReauthBadge(): Promise<void> {
     try {
         chrome.action?.setBadgeText({ text: '' });
     } catch {
         // see setNeedsReauthBadge.
     }
+    await setNeedsReauth(false);
+}
+
+/**
+ * End the session and leave the profile the way a signed-out one looks: the
+ * mirror holds exactly the words kept in the browser.
+ *
+ * `clearAuthState` drops the mirror together with the credentials, which is
+ * right for the account's words and wrong for the local ones — they are still
+ * saved, and the heart over them and the page highlight read the mirror.
+ */
+async function endSession(): Promise<void> {
+    await clearAuthState();
+    await setMirrorToTerms((await listLocalWords()).map((w) => w.term));
 }
 
 function isAuthFailure(err: unknown): boolean {
@@ -227,6 +265,11 @@ async function runSync(): Promise<SyncResult> {
         if (fresh.length > 0) {
             await applySyncedDocs(fresh.map((d) => ({ term: d.term, state: d.state, updatedAt: d.updatedAt })));
         }
+        // Words still waiting in the browser are saved as far as the learner is
+        // concerned, whatever the account says about them yet. A sync only
+        // writes the entries it was given, so this is for the one it can get
+        // wrong: a document the account holds as removed.
+        await activateMirrorTerms((await listLocalWords()).map((w) => w.term));
         // A full pass that applied nothing left the cursor at 0, so the next
         // one would be full as well and would ask the same question again.
         // Note the condition is on what the QUERY returned, not on `fresh`: a
@@ -303,6 +346,155 @@ export async function syncWords(opts: { force?: boolean } = {}): Promise<SyncRes
     return inFlight;
 }
 
+interface SaveContext {
+    site: string;
+    signedIn: boolean;
+    learning: string;
+    native: string;
+}
+
+/**
+ * What every successful save does after the word is stored, wherever it was
+ * stored: the install's running count, the one-shot rating prompt, the funnel's
+ * terminal event. A word kept in the browser counts like any other — the learner
+ * saved it, and the prompt is about that.
+ */
+async function afterSave(
+    request: AuthMessage,
+    ctx: SaveContext,
+): Promise<{ inboxCount: number; promptRate: boolean }> {
+    const inboxCount = await activeWordCount();
+    // Value-moment rating prompt (P1.8): once this install crosses
+    // the saved-word threshold, ask for a store rating — exactly
+    // once, ever. The content script renders the actual banner when
+    // it sees promptRate; here we only decide + burn the one-shot.
+    const savedWordCount = await bumpSavedWordCount();
+    let promptRate = false;
+    // `silent` = the caller has no page UI to render the banner (the
+    // context-menu save): burning the one-shot there would spend
+    // the only ask on a save nobody saw it on.
+    if (
+        request.silent !== true &&
+        savedWordCount >= RATE_PROMPT_WORD_THRESHOLD &&
+        !(await getRatePromptShown())
+    ) {
+        await markRatePromptShown();
+        promptRate = true;
+    }
+    // The funnel's terminal step. saved_count is this install's
+    // running total, which is what makes "how many people reach
+    // their 5th / 30th word" answerable. `signed_in: false` now also means
+    // "kept in the browser".
+    void track('word_saved', {
+        site: ctx.site,
+        saved_count: savedWordCount,
+        signed_in: ctx.signedIn,
+        learning: ctx.learning,
+        native: ctx.native,
+    });
+    return { inboxCount, promptRate };
+}
+
+// --- moving words kept in the browser into the account ----------------------
+//
+// The same pacing the Google Translate import uses (gt-import/runner.ts): no
+// pause between writes to begin with — the planned rules interval is shorter
+// than one write takes — and after the first refusal a one-second gap, which
+// then paces the rest, so it also works against rules that still demand a
+// second between saves.
+const UPLOAD_FALLBACK_GAP_MS = 1100;
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+export interface UploadResult {
+    ok: boolean;
+    /** Words written into the account by this run. */
+    uploaded: number;
+    /** Words still waiting in the browser afterwards. */
+    left: number;
+    error?: string;
+}
+
+// One upload at a time. A sign-in, a worker start and a save can all ask for it
+// within the same second; a second run beside the first would write the same
+// words twice and trip the rules' interval against itself.
+let uploading: Promise<UploadResult> | null = null;
+
+/**
+ * Write the words kept in the browser into the signed-in account, oldest first.
+ * A word leaves the local store only after its write succeeded. The first
+ * failure ends the run and leaves everything after it local; the next trigger
+ * (a sign-in, a worker start, a successful save) tries again. Never rejects.
+ */
+export function uploadLocalWords(): Promise<UploadResult> {
+    if (uploading) return uploading;
+    uploading = runUpload().finally(() => {
+        uploading = null;
+    });
+    return uploading;
+}
+
+/** Test seam: forget a run that was left hanging by a previous case. */
+export function __resetUploadStateForTests(): void {
+    uploading = null;
+}
+
+async function runUpload(): Promise<UploadResult> {
+    let uploaded = 0;
+    let left = 0;
+    try {
+        await devEnvReady();
+        const words = (await listLocalWords()).sort((a, b) => a.addedAt - b.addedAt);
+        left = words.length;
+        let gap = 0;
+        for (const w of words) {
+            // Checked before every word, not once: a sign-out in the middle of a
+            // long run must end it quietly. Writing on would fail as "Not
+            // signed in" and be taken for a dead session, raising the badge for
+            // a learner who just chose to sign out.
+            if (!(await getAuthState())) break;
+            if (gap) await sleep(gap);
+            stampLocalWrite(w.term);
+            try {
+                try {
+                    await addInboxWord(config, { term: w.term, context: w.context });
+                } catch (err) {
+                    // A refused write is most likely the rules' interval:
+                    // retried once after the old one-second gap, which then
+                    // paces the rest. A second refusal is something else and
+                    // ends the run.
+                    if (!(err instanceof Error) || !err.message.startsWith('Firestore rules 403')) throw err;
+                    gap = UPLOAD_FALLBACK_GAP_MS;
+                    await sleep(gap);
+                    await addInboxWord(config, { term: w.term, context: w.context });
+                }
+            } catch (err) {
+                const message = String(err instanceof Error ? err.message : err);
+                // A term the account can never hold (longer than its limit) is
+                // dropped, not retried: left at the head of the queue it would
+                // block every word behind it at every trigger, for good.
+                if (message.startsWith('term must be')) {
+                    await removeLocalWord(w.term);
+                    left--;
+                    continue;
+                }
+                if (isAuthFailure(err)) {
+                    await endSession();
+                    await setNeedsReauthBadge();
+                }
+                return { ok: false, uploaded, left, error: message };
+            }
+            await removeLocalWord(w.term);
+            await setMirrorEntry(w.term, 'active');
+            uploaded++;
+            left--;
+        }
+        return { ok: true, uploaded, left };
+    } catch (err) {
+        return { ok: false, uploaded, left, error: String(err instanceof Error ? err.message : err) };
+    }
+}
+
 /**
  * A dev build's chosen backend, restored once per worker. Every path that
  * talks to Firebase awaits it: a worker woken by a message that is not an auth
@@ -325,9 +517,20 @@ export async function handleAuthMessage(
         case 'AUTH_STATUS': {
             const state = await getAuthState();
             const inboxCount = await activeWordCount();
+            const localCount = await countLocalWords();
+            const needsReauth = await getNeedsReauth();
             return state
-                ? { signedIn: true, email: state.email, uid: state.uid, inboxCount }
-                : { signedIn: false, inboxCount };
+                ? { signedIn: true, email: state.email, uid: state.uid, inboxCount, localCount, needsReauth }
+                : { signedIn: false, inboxCount, localCount, needsReauth };
+        }
+        case 'LOCAL_WORDS_LIST': {
+            return { ok: true, words: await listLocalWords() };
+        }
+        case 'LOCAL_WORD_SET_TRANSLATION': {
+            const term = String(request.term ?? '').trim();
+            if (!term) throw new Error('term required');
+            await setLocalTranslation(term, typeof request.translation === 'string' ? request.translation : '');
+            return { ok: true };
         }
         case 'AUTH_SIGN_IN_VIA_LINGOGRAM': {
             const extId = chrome.runtime.id;
@@ -368,7 +571,7 @@ export async function handleAuthMessage(
             return { ok: true };
         }
         case 'AUTH_SIGN_OUT': {
-            await clearAuthState();
+            await endSession();
             // Dev builds park one session per backend so the switch does not
             // cost a sign-in (see storage.parkAuthState). An explicit sign-out
             // has to reach those too: leaving them would make "signed out"
@@ -380,7 +583,7 @@ export async function handleAuthMessage(
             // memory until the worker recycles.
             localWrites.clear();
             emptyFullSyncUid = null;
-            clearNeedsReauthBadge();
+            await clearNeedsReauthBadge();
             return { ok: true };
         }
         case 'ADD_WORD': {
@@ -390,12 +593,12 @@ export async function handleAuthMessage(
             const input = { term, context };
             // Every save funnels through here from all three extensions, so the
             // attempt/success pair is measured in one place. The attempt is
-            // recorded before the write so signed-out and failed saves show up
-            // too — the gap between the two is the "sign in to save" funnel
-            // hole. `site` is the coarse platform label from the caller; the
-            // saved word itself is never a parameter (deny-list in analytics.ts).
+            // recorded before the write so failed saves show up too. `site` is
+            // the coarse platform label from the caller; the saved word itself
+            // is never a parameter (deny-list in analytics.ts).
             const site = String(request.site ?? '');
-            const signedIn = !!(await getAuthState());
+            const auth = await getAuthState();
+            const signedIn = !!auth;
             // The language pair rides on both events so attempt/saved rows are
             // sliceable by the same dimensions. Read from storage rather than
             // taken from the caller: the web edition's context menu has no
@@ -409,46 +612,36 @@ export async function handleAuthMessage(
             // taken after the response would lose exactly the race it exists
             // for: the sync that started while this write was in flight.
             stampLocalWrite(term);
-            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
+
+            // Kept in the browser, and the mirror says so at once: the heart
+            // and the page highlight read the mirror, not the local store. The
+            // reply is the same shape as a saved one plus `local: true`, so a
+            // caller that only checks `ok` needs no change.
+            const saveLocally = async (): Promise<unknown> => {
+                await addLocalWord({ term, context, site });
+                await setMirrorEntry(term, 'active');
+                const done = await afterSave(request, { site, signedIn: false, learning, native });
+                return { ok: true, local: true, inboxCount: done.inboxCount, promptRate: done.promptRate };
+            };
+            if (!signedIn) return await saveLocally();
+
+            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(auth) : undefined;
             try {
                 const r = await addInboxWord(config, input, { diag });
                 // Marked here as well as by the caller: the quick-add overlay
                 // marks the word before asking, the context menu only after the
                 // reply, and the count in this reply must include it either way.
                 await setMirrorEntry(term, 'active');
-                const inboxCount = await activeWordCount();
-                // Value-moment rating prompt (P1.8): once this install crosses
-                // the saved-word threshold, ask for a store rating — exactly
-                // once, ever. The content script renders the actual banner when
-                // it sees promptRate; here we only decide + burn the one-shot.
-                const savedWordCount = await bumpSavedWordCount();
-                let promptRate = false;
-                // `silent` = the caller has no page UI to render the banner (the
-                // context-menu save): burning the one-shot there would spend
-                // the only ask on a save nobody saw it on.
-                if (
-                    request.silent !== true &&
-                    savedWordCount >= RATE_PROMPT_WORD_THRESHOLD &&
-                    !(await getRatePromptShown())
-                ) {
-                    await markRatePromptShown();
-                    promptRate = true;
-                }
-                // The funnel's terminal step. saved_count is this install's
-                // running total, which is what makes "how many people reach
-                // their 5th / 30th word" answerable.
-                void track('word_saved', {
-                    site,
-                    saved_count: savedWordCount,
-                    signed_in: signedIn,
-                    learning,
-                    native,
-                });
+                const done = await afterSave(request, { site, signedIn: true, learning, native });
+                // A save that went through is proof the account is reachable
+                // and under its limits: the cheapest moment to carry on with
+                // words that did not make it earlier.
+                void uploadLocalWords();
                 return {
                     ok: true,
                     wordId: r.wordId,
-                    inboxCount,
-                    promptRate,
+                    inboxCount: done.inboxCount,
+                    promptRate: done.promptRate,
                     ...(DIAG_BUILD && diag ? { diag: diag.done() } : {}),
                 };
             } catch (err) {
@@ -457,9 +650,17 @@ export async function handleAuthMessage(
                 // wipe state and prompt the user to re-authorize via a
                 // normal visible tab. No silent recovery: the scoped
                 // session is gone and a fresh handoff is the only path.
+                //
+                // The word is not lost with it: it is kept in the browser and
+                // moves into the account after the next sign-in. Only THIS
+                // classification does that. A refusal by the rules (the
+                // interval, the daily cap) is not a dead session and still
+                // throws, so the caller shows its failure and the learner can
+                // retry in the account.
                 if (isAuthFailure(err)) {
-                    await clearAuthState();
-                    setNeedsReauthBadge();
+                    await endSession();
+                    await setNeedsReauthBadge();
+                    return await saveLocally();
                 }
                 throw err;
             }
@@ -468,14 +669,26 @@ export async function handleAuthMessage(
             const term = String(request.term ?? '').trim();
             if (!term) throw new Error('term required');
             const site = String(request.site ?? '');
-            const signedIn = !!(await getAuthState());
+            const auth = await getAuthState();
+            const signedIn = !!auth;
             const prefs = await loadLanguagePrefs();
             const learning = prefs?.learning ?? '';
             const native = prefs?.native ?? '';
             stampLocalWrite(term);
-            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(await getAuthState()) : undefined;
+            if (!signedIn) {
+                // Nothing to tell an account: the word only ever lived here.
+                await removeLocalWord(term);
+                await setMirrorEntry(term, 'removed');
+                const inboxCount = await activeWordCount();
+                void track('word_removed', { site, signed_in: false, learning, native });
+                return { ok: true, local: true, state: 'removed', inboxCount };
+            }
+            const diag = DIAG_BUILD && request.diag === true ? createWorkerDiag(auth) : undefined;
             try {
                 const r = await removeInboxWord(config, { term }, { diag });
+                // A copy still waiting in the browser would otherwise upload
+                // later and bring the word back.
+                await removeLocalWord(term);
                 // Marked here as well as by the caller, so the count in this
                 // reply is what is left whoever sent the removal.
                 await setMirrorEntry(term, 'removed');
@@ -495,8 +708,8 @@ export async function handleAuthMessage(
                 // reaching here is a real failure and is classified exactly as
                 // a failed save would be.
                 if (isAuthFailure(err)) {
-                    await clearAuthState();
-                    setNeedsReauthBadge();
+                    await endSession();
+                    await setNeedsReauthBadge();
                 }
                 throw err;
             }
@@ -721,6 +934,8 @@ export function installExternalAuthHandoff(): void {
         if (isSiblingMessage(message)) return false;
         // The welcome page on the site has its own listener (welcome/bridge.ts).
         if ((message as { type?: unknown } | undefined)?.type === 'lingogram-welcome') return false;
+        // Likewise the settings page (settings-bridge.ts).
+        if ((message as { type?: unknown } | undefined)?.type === 'lingogram-settings') return false;
         if (!isAllowedExternalSender(sender)) {
             sendResponse({ ok: false, error: 'unauthorized origin' });
             return false;
@@ -769,12 +984,13 @@ export function installExternalAuthHandoff(): void {
                 });
                 // Success — burn the nonce so the same URL can't be replayed.
                 await clearPendingAuthNonce();
-                clearNeedsReauthBadge();
+                await clearNeedsReauthBadge();
                 sendResponse({ ok: true });
                 // Fill the mirror now: the popup's count and the page
                 // highlight read it, and nothing else would sync it until some
-                // page woke the worker. Never rejects, so no catch.
-                void syncWords({ force: true });
+                // page woke the worker. Then move the words kept in the browser
+                // into the account. Neither rejects, so no catch.
+                void syncWords({ force: true }).then(() => uploadLocalWords());
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }
@@ -810,17 +1026,34 @@ export function installAuthMessageHandler(): void {
 export async function migrateLegacyAuthState(): Promise<void> {
     const state = await getAuthState();
     if (state && !state.refreshToken) {
-        await clearAuthState();
-        setNeedsReauthBadge();
+        await endSession();
+        await setNeedsReauthBadge();
     }
 }
 
 export function installAuthBackground(): void {
     installAuthMessageHandler();
     installExternalAuthHandoff();
-    void migrateLegacyAuthState();
+    void migrateLegacyAuthState().then(restoreLocalState, restoreLocalState);
     // (a) Worker wake. Fire-and-forget beside the migration: a wake is the
     // cheapest moment to notice what another device did, and syncWords never
     // rejects, so nothing here needs a catch.
     void syncWords();
+}
+
+/**
+ * Worker start, once the session question is settled: signed out, the mirror is
+ * exactly the words kept in the browser; signed in, whatever is still waiting
+ * there is carried into the account.
+ */
+async function restoreLocalState(): Promise<void> {
+    try {
+        if (await getAuthState()) {
+            await uploadLocalWords();
+        } else {
+            await setMirrorToTerms((await listLocalWords()).map((w) => w.term));
+        }
+    } catch (err) {
+        console.warn('[Lingogram] local words restore failed:', err);
+    }
 }

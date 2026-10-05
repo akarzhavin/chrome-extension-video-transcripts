@@ -182,6 +182,8 @@ export default defineConfig(({ command, mode }) => {
     const isContent = mode === 'content';
     const isInterceptor = mode === 'interceptor';
     const isPopup = mode === 'popup';
+    const isSettings = mode === 'settings';
+    const isWords = mode === 'words';
     const isHighlight = mode === 'highlight';
     const isGtButton = mode === 'gt-button';
 
@@ -201,17 +203,23 @@ export default defineConfig(({ command, mode }) => {
               ? resolve(__dirname, 'src/content/index.ts')
               : isPopup
                 ? resolve(__dirname, 'src/popup/popup.ts')
+                : isSettings
+                ? resolve(__dirname, 'src/settings/settings.ts')
+                : isWords
+                ? resolve(__dirname, 'src/words/words.ts')
                 : isHighlight
                 ? resolve(__dirname, 'src/content/page-highlight.ts')
                 : resolve(__dirname, 'src/content/network-interceptor.ts'),
           formats: [isBackground ? 'es' : 'iife'],
-          name: isGtButton ? 'LgGtButton' : isContent ? 'VttContent' : isHighlight ? 'LgPageHighlight' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : undefined,
+          name: isGtButton ? 'LgGtButton' : isContent ? 'VttContent' : isHighlight ? 'LgPageHighlight' : isInterceptor ? 'VttInterceptor' : isPopup ? 'VttPopup' : isSettings ? 'LgSettings' : isWords ? 'LgWords' : undefined,
           fileName: () => {
             if (isBackground) return 'src/background/background.js';
             if (isGtButton) return 'src/content/gt-button.js';
             if (isContent) return 'src/content/index.js';
             if (isInterceptor) return 'src/content/network-interceptor.js';
             if (isPopup) return 'src/popup/popup.js';
+            if (isSettings) return 'src/settings/settings.js';
+            if (isWords) return 'src/words/words.js';
             if (isHighlight) return 'src/content/page-highlight.js';
             return 'bundle.js';
           }
@@ -324,6 +332,21 @@ export default defineConfig(({ command, mode }) => {
             {
               src: '../../packages/shared/src/popup/popup.css',
               dest: 'src/popup',
+              rename: { stripBase: true }
+            },
+            {
+              src: '../../packages/shared/src/settings/settings.html',
+              dest: '.',
+              rename: { stripBase: true }
+            },
+            {
+              src: '../../packages/shared/src/words/words.html',
+              dest: '.',
+              rename: { stripBase: true }
+            },
+            {
+              src: '../../packages/shared/src/pages/page.css',
+              dest: 'src/pages',
               rename: { stripBase: true }
             },
             {

@@ -283,11 +283,17 @@ export const GT_IMPORT_ACTIONS = ['GT_IMPORT_START', 'GT_IMPORT_CONFIRM', 'GT_IM
 
 const GT_ORIGIN = 'https://translate.google.com';
 
-/** The popup (no tab), or this extension's own script in a Google Translate tab. */
+/**
+ * The popup (no tab), this extension's own page in a tab (the settings page),
+ * or its script in a Google Translate tab.
+ */
 export function importSenderAllowed(sender: chrome.runtime.MessageSender): boolean {
     if (sender.id !== chrome.runtime.id) return false;
     if (!sender.tab) return true;
     const origin = sender.origin ?? (sender.url ? new URL(sender.url).origin : '');
+    // An extension page opened as a tab carries a tab too. Its origin is the
+    // extension's own, which a page on the web cannot have.
+    if (origin === `chrome-extension://${chrome.runtime.id}` && sender.frameId === 0) return true;
     return origin === GT_ORIGIN && sender.frameId === 0;
 }
 

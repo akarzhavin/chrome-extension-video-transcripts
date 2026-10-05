@@ -7,8 +7,8 @@
     "build:dev": "../../scripts/build-with-analytics.sh dev youtube",
     "build:capture": "../../scripts/build-with-analytics.sh capture youtube",
     "build:raw": "npm run build:vite:raw && npm run zip",
-    "build:vite:raw": "vite build --mode background && vite build --mode content && vite build --mode page-script && vite build --mode popup && vite build --mode highlight && vite build --mode gt-button",
-    "build:dev:raw": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode page-script && EXT_ENV=dev vite build --mode popup && EXT_ENV=dev vite build --mode highlight && EXT_ENV=dev vite build --mode gt-button",
+    "build:vite:raw": "vite build --mode background && vite build --mode content && vite build --mode page-script && vite build --mode popup && vite build --mode settings && vite build --mode words && vite build --mode highlight && vite build --mode gt-button",
+    "build:dev:raw": "EXT_ENV=dev vite build --mode background && EXT_ENV=dev vite build --mode content && EXT_ENV=dev vite build --mode page-script && EXT_ENV=dev vite build --mode popup && EXT_ENV=dev vite build --mode settings && EXT_ENV=dev vite build --mode words && EXT_ENV=dev vite build --mode highlight && EXT_ENV=dev vite build --mode gt-button",
     "zip": "node ../../packages/shared/zip-build.mjs --label youtube --version $npm_package_version",
     "dev": "vite",
     "type-check": "tsc --noEmit"

@@ -348,7 +348,7 @@
 }
 
 /* The auth badge is a sign-in ask, and this screen deliberately works without
-   an account — leaving it up puts a competing "Sign in to save words" directly
+   an account — leaving it up puts a competing "Sign in to keep your words" directly
    above a form whose whole point is that signed-out people can still be heard.
    !important because the badge sets display:block inline from JS (same reason
    the settings takeover needs it for the gear button). */

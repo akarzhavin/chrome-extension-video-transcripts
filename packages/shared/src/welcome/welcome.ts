@@ -45,6 +45,9 @@ export function ownSites(edition: Edition): VideoSite[] {
     return edition === 'youtube' ? ['youtube', 'netflix'] : ['rezka'];
 }
 
+/** Display names of the video sites, as the popup and the settings page show them. */
+export const SITE_NAMES: Record<VideoSite, string> = { youtube: 'YouTube', netflix: 'Netflix', rezka: 'HDrezka' };
+
 /**
  * The welcome page's address. `id` tells the page which extension to talk to
  * (the store id, or an unpacked build's own); `cid` joins the visit to the

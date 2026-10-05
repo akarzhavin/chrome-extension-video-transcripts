@@ -153,6 +153,50 @@ export async function setMirrorEntry(term: string, state: WordState): Promise<vo
 }
 
 /**
+ * Make the mirror hold exactly these terms, all active, and nothing else.
+ *
+ * What a signed-out profile's mirror is: the words kept in the browser. Used
+ * after the session ends (sign-out, a dead session), where the account's words
+ * must not linger and the local ones must not vanish with them. Skips the write
+ * when the mirror already says exactly this, so a worker start does not wake
+ * every subscriber in every tab for nothing.
+ */
+export async function setMirrorToTerms(terms: readonly string[]): Promise<void> {
+    const m = await loadMirror();
+    const want = new Set(terms.map(key).filter(Boolean));
+    const have = Object.entries(m.words).filter(([, s]) => s === 'active').map(([k]) => k);
+    const same =
+        m.cursor === 0 &&
+        have.length === want.size &&
+        have.every((k) => want.has(k)) &&
+        Object.keys(m.words).length === have.length;
+    if (same) return;
+    const next = empty();
+    for (const k of want) next.words[k] = 'active';
+    await write(next);
+}
+
+/**
+ * Mark these terms active where they are not already. For words that exist only
+ * locally while a sync fills the mirror from the account: the sync does not
+ * know them, and one it knows as removed must not hide a word the learner has
+ * just saved again.
+ */
+export async function activateMirrorTerms(terms: readonly string[]): Promise<void> {
+    if (terms.length === 0) return;
+    const m = await loadMirror();
+    let changed = false;
+    for (const t of terms) {
+        const k = key(t);
+        if (k && m.words[k] !== 'active') {
+            m.words[k] = 'active';
+            changed = true;
+        }
+    }
+    if (changed) await write(m);
+}
+
+/**
  * Forget a term entirely — not the same as recording it as 'removed'.
  *
  * Used only to roll a failed save back to "absent". A 'removed' entry means the

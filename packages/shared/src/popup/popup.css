@@ -27,6 +27,8 @@
     --lg-danger: #b91c1c;
     --lg-warn-bg: #fef3c7;
     --lg-warn-text: #92400e;
+    /* The switch's off track: dark enough to read against the white panel. */
+    --lg-track: #c7cad3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +53,7 @@
         --lg-danger: #f87171;
         --lg-warn-bg: rgba(245, 158, 11, 0.16);
         --lg-warn-text: #fbbf24;
+        --lg-track: #4a4d58;
     }
 }
 
@@ -63,43 +66,44 @@ html, body {
     background: var(--lg-bg);
 }
 
+/* The popup: 260px of content, 292px with the padding. */
 #root {
-    min-width: 260px;
+    width: 260px;
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 h1 {
-    margin: 0 0 12px;
+    margin: 0;
     font-size: 16px;
     font-weight: 600;
 }
 
-.row {
+/* The header of each surface: the extension's icon, then its name. */
+.hd {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    font-size: 15px;
 }
 
-input[type="email"],
-input[type="password"] {
-    padding: 8px 10px;
-    border: 1px solid var(--lg-border);
-    border-radius: 6px;
-    font-size: 13px;
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--lg-bg);
-    color: var(--lg-text);
+.brand-icon {
+    border-radius: 5px;
+    flex: 0 0 auto;
 }
+
+.dim { color: var(--lg-text-dim); }
+.sm { font-size: 12px; }
 
 button {
-    padding: 8px 12px;
+    padding: 9px 12px;
     border: 0;
-    border-radius: 6px;
+    border-radius: 7px;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     font-family: inherit;
     transition: background-color 0.15s;
 }
@@ -118,14 +122,35 @@ button.secondary {
 
 button.secondary:hover:not(:disabled) { background: var(--lg-surface-hover); }
 
+button.block { width: 100%; }
+
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
+/* A text-style action: "Sign in", "Settings", "My words". */
+button.link,
+a.link {
+    padding: 0;
+    background: none;
+    color: var(--lg-accent);
+    font-weight: 500;
+    font-size: 13px;
+    text-align: left;
+    text-decoration: none;
+}
+
+button.link:hover,
+a.link:hover { text-decoration: underline; }
+
+/* Keeps a lone link the width of its text, not of the column. */
+.left { align-self: flex-start; }
+
 /* Every focusable control gets the same visible ring — the browser default is
    nearly invisible against the dark surface. */
 button:focus-visible,
+a:focus-visible,
 select:focus-visible,
 input:focus-visible {
     outline: 2px solid var(--lg-accent);
@@ -136,12 +161,6 @@ input:focus-visible {
     font-weight: 500;
     margin-bottom: 4px;
     word-break: break-all;
-}
-
-.count {
-    font-size: 12px;
-    color: var(--lg-text-dim);
-    margin-bottom: 12px;
 }
 
 .error {
@@ -165,18 +184,6 @@ input:focus-visible {
     margin-bottom: 8px;
 }
 
-.lang-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 10px;
-}
-
-.lang-row span {
-    font-size: 12px;
-    color: var(--lg-text-soft);
-}
-
 .lang-select {
     padding: 8px 10px;
     border: 1px solid var(--lg-border);
@@ -189,45 +196,16 @@ input:focus-visible {
     font-family: inherit;
 }
 
-/* Analytics opt-out. Native checkbox on purpose — it inherits the dark-mode
-   rendering from `color-scheme` above, the focus ring declared for `input`,
-   and the platform's own accessibility affordances. The <label> wrapper makes
-   the text a click target too, matching .lang-row. */
-.toggle-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.toggle-box {
-    /* Native boxes render ~13px; nudge down to sit on the label's cap height
-       rather than its line box. */
-    margin: 1px 0 0;
-    flex: 0 0 auto;
-    accent-color: var(--lg-accent);
-    cursor: pointer;
-}
-
-.toggle-label {
-    font-size: 12px;
-    color: var(--lg-text-soft);
-    line-height: 1.35;
-}
-
 .toggle-hint {
     margin-top: 6px;
-    /* Aligns under .toggle-label, clearing the checkbox. */
-    padding-left: 21px;
     font-size: 11px;
     color: var(--lg-text-dim);
     line-height: 1.4;
 }
 
-/* "Finish setup" (renderSetupLink): full width, above the language block. */
+/* "Finish setup" (renderSetupLink): a quiet full-width button under the state block. */
 .setup-link {
     width: 100%;
-    margin-bottom: 12px;
     background: var(--lg-surface);
     color: var(--lg-text);
 }
@@ -261,4 +239,134 @@ input:focus-visible {
     height: 8px;
     accent-color: var(--lg-accent);
     margin-bottom: 6px;
+}
+
+/* The state block: a soft card with a figure and its one button. */
+.hero {
+    background: var(--lg-surface);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hero-title { font-size: 15px; }
+
+.big {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* "You were signed out": amber, like the browser's own warnings. */
+.warn {
+    background: var(--lg-warn-bg);
+    color: var(--lg-warn-text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.hairline {
+    height: 1px;
+    margin: 2px -16px;
+    border: 0;
+    background: var(--lg-hairline);
+}
+
+/* The switches, shared by the popup and the settings page. A native checkbox
+   (role="switch") laid transparently over a drawn track, so the keyboard, the
+   focus ring and the screen reader all get the real control. */
+.switches {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 30px;
+    cursor: pointer;
+}
+
+.row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.row-label { display: block; }
+
+.row-hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--lg-text-dim);
+}
+
+.sw {
+    position: relative;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 20px;
+}
+
+.sw input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.sw-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 99px;
+    background: var(--lg-track);
+    transition: background-color 0.15s;
+    pointer-events: none;
+}
+
+.sw-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s;
+}
+
+.sw input:checked + .sw-track { background: var(--lg-accent); }
+.sw input:checked + .sw-track::after { transform: translateX(14px); }
+.sw input:focus-visible + .sw-track {
+    outline: 2px solid var(--lg-accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sw-track,
+    .sw-track::after { transition: none; }
+}
+
+/* "Reload the page to apply." — appears after a video-site switch changes. */
+.reload {
+    margin-top: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    background: var(--lg-warn-bg);
+    color: var(--lg-warn-text);
 }
