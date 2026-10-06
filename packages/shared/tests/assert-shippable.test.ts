@@ -255,6 +255,23 @@ describe('assert-shippable', () => {
         });
     });
 
+    // Only a dev build has a `key` (its fixed dev key). In a release it means a
+    // dev build, and the store refuses a package whose key is not the item's.
+    describe('manifest key', () => {
+        it('refuses a build whose manifest carries a key', () => {
+            const { code, output } = runGate(
+                makeBuild({ manifest: { ...healthyManifest(), key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA' } }),
+            );
+            expect(code).toBe(1);
+            expect(output).toContain('carries a `key`');
+        });
+
+        it('refuses the placeholder too: a release has no key field at all', () => {
+            const { code } = runGate(makeBuild({ manifest: { ...healthyManifest(), key: 'REPLACE_WITH_BASE64_DER_KEY' } }));
+            expect(code).toBe(1);
+        });
+    });
+
     describe('pre-existing rules still bite', () => {
         it('refuses a dev backend switch', () => {
             const { code, output } = runGate(

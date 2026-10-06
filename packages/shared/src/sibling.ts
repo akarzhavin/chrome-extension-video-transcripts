@@ -6,8 +6,9 @@
 // YouTube edition keeps it. See ownsSharedFeatures.
 //
 // Addressed by extension id. A store build's id comes from its signing key and
-// is fixed here; an unpacked dev build's id comes from the folder it is loaded
-// from, and the build computes both editions' dev ids (vite-sibling-ids.mjs).
+// is fixed here; a dev build's comes from the fixed dev key its manifest
+// carries, the same from any folder (vite-sibling-ids.mjs). A RELEASE build
+// loaded unpacked has neither: its id comes from its folder and nobody knows it.
 
 export type Edition = 'youtube' | 'rezka';
 

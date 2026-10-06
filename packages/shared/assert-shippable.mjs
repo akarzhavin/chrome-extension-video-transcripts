@@ -403,6 +403,17 @@ function manifestProblems(dir) {
         problems.push(`host_permissions is missing ${infraMissing.join(', ')} — auth or saving would fail`);
     }
 
+    // A `key` sets the extension's id. Only a dev build has one (its fixed dev
+    // key, vite-sibling-ids.mjs): the store keeps the real key itself and
+    // refuses a package whose key differs, and a dev key in a release means
+    // this is a dev build. Any value is refused, the placeholder included.
+    if ('key' in manifest) {
+        problems.push(
+            'manifest.json carries a `key` — only a dev build may have one. ' +
+            'This is a dev build, or a key was added to the source manifest.',
+        );
+    }
+
     if (manifest.version === '0.0.0' || manifest.version === '1.0.0') {
         problems.push(
             `manifest version is ${manifest.version} — the placeholder, not the extension's version. ` +
