@@ -42,7 +42,11 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* The ground is painted on <html> as well as <body>. body is a size container
+   (container-type below), and containment stops the browser from propagating
+   body's background to the canvas: on a page shorter than the window the rest
+   of it showed the browser's own default (grey in dark mode) under the footer. */
+html { scroll-behavior: smooth; background: var(--ground); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0; background: var(--ground); color: var(--ink);
