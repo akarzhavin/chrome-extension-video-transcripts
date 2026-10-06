@@ -755,6 +755,14 @@
     "message": "Klicka på ett ord i undertexterna och sedan på Spara. Det finns kvar här, i den här webbläsaren.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
+  "popupMenuVocabulary": {
+    "message": "Mitt ordförråd",
+    "description": "Toolbar popup: row that opens the learner's vocabulary on the Lingogram website, signed in. The number of saved words is shown at the right of the row."
+  },
+  "popupMenuWaiting": {
+    "message": "Ord som väntar på den här enheten",
+    "description": "Toolbar popup: row shown after the session expired; opens the extension's page with the words kept in this browser, waiting to be added to the account. The number of words is shown at the right of the row."
+  },
   "popupOpenVocabulary": {
     "message": "Öppna mitt ordförråd",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."
@@ -774,6 +782,22 @@
   "popupSubtitlesOn": {
     "message": "Undertexter på {site}",
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupHighlightOnSite": {
+    "message": "Markera på {site}",
+    "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
+  },
+  "popupHighlightOffHere": {
+    "message": "Av på den här webbplatsen.",
+    "description": "Toolbar popup: line under the highlight row when highlighting is switched off for the current site. Followed by a space and the 'Manage sites' link, so the two read as one line."
+  },
+  "popupManageSites": {
+    "message": "Välj webbplatser",
+    "description": "Toolbar popup: link that opens the extension's settings page at the list of sites where words are highlighted."
+  },
+  "popupHighlightOffEverywhere": {
+    "message": "Markering är av på alla webbplatser",
+    "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
   "popupReloadHint": {
     "message": "Ladda om sidan för att tillämpa ändringen.",
@@ -802,6 +826,14 @@
   "settingsHighlightHint": {
     "message": "Ord du har sparat markeras på alla sidor du läser. Peka på ett ord för att se översättningen.",
     "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsHighlightOffOn": {
+    "message": "Inte markerat på:",
+    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
+  },
+  "settingsHighlightOnAgain": {
+    "message": "Markera ord på {site} igen",
+    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
   },
   "settingsGroupAccount": {
     "message": "Konto",
