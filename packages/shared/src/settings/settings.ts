@@ -14,6 +14,7 @@ import {
 import { withHighlight } from '../highlight-hosts';
 import { loadPrefs, onPrefsChanged, savePrefs } from '../prefs';
 import type { Edition } from '../sibling';
+import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { renderGtImport } from '../popup/gt-import-view';
 import { el, fill, HIGHLIGHT_ANCHOR, iconImage, send, startSignIn, WORDS_PAGE, type AuthStatus } from '../popup/shared';
 import { makeSwitch, renderSwitches } from '../popup/switches';
@@ -269,7 +270,8 @@ export function initSettings(opts: SettingsOptions): void {
 
     const account = group(i18nMsg('settingsGroupAccount', 'Account'));
     page.appendChild(account);
-    void paintAccount(account);
+    // The account answer follows the backend a dev build was switched to.
+    void restoreEnvForPage(() => void paintAccount(account)).then(() => paintAccount(account));
     // "Manage sites" in the popup lands here: settings.html#highlight.
     if (location.hash === `#${HIGHLIGHT_ANCHOR}`) document.getElementById(HIGHLIGHT_ANCHOR)?.scrollIntoView();
     // Signing in happens in another tab; the page follows it without a reload.

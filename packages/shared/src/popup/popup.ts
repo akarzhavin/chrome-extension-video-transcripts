@@ -15,6 +15,8 @@ import {
 } from './shared';
 import { accent, menuRow } from './menu';
 import { renderSiteSwitch } from './site-switch';
+import { restoreEnvForPage } from '../auth/devEnvSwitch';
+import { mountDevBackendChip } from './dev-backend-chip';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
 // and the edition-specific blocks (video sites, setup) are left out.
@@ -39,6 +41,12 @@ function render(root: HTMLElement, state: ViewState): void {
         return;
     }
 
+    // Guarded on the literal at the call site, so a release bundle drops the
+    // chip. Not while loading: the header would ask the worker before the
+    // account status does.
+    // Guarded on the literal at the call site, so a release bundle drops the chip.
+    if (__EXT_ENV__ === 'dev') void mountDevBackendChip(title, () => void refresh(root));
+
     renderState(root, state.status);
     renderSetupLink(root);
 
@@ -57,13 +65,18 @@ function render(root: HTMLElement, state: ViewState): void {
     }
 }
 
+// Only the newest refresh may paint: a switch triggers one from the storage
+// change and one from the chip, and the first can answer mid-switch.
+let refreshSeq = 0;
+
 async function refresh(root: HTMLElement): Promise<void> {
+    const mine = ++refreshSeq;
     render(root, { loading: true });
     try {
         const status = await send<AuthStatus>({ action: 'AUTH_STATUS' });
-        render(root, { status });
+        if (mine === refreshSeq) render(root, { status });
     } catch (err) {
-        render(root, { error: String(err) });
+        if (mine === refreshSeq) render(root, { error: String(err) });
     }
 }
 
@@ -232,5 +245,7 @@ export function initPopup(opts?: { edition?: Edition }): void {
         console.error('[Lingogram] popup: #root not found');
         return;
     }
-    refresh(root);
+    // The links this popup builds follow the backend a dev build was switched to.
+    render(root, { loading: true });
+    void restoreEnvForPage(() => void refresh(root)).then(() => refresh(root));
 }

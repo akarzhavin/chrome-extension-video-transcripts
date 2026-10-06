@@ -234,6 +234,36 @@ export async function restoreEnv(): Promise<void> {
 }
 
 /**
+ * The same restore for an extension PAGE (toolbar popup, words page, settings
+ * page). Only the service worker used to call restoreEnv(), so a page's own
+ * `config` stayed on the build's home backend and every link it built — the
+ * vocabulary, the site's settings — opened the home frontend after a switch.
+ *
+ * Applies the stored side before the page's first render, and keeps following
+ * `dev.targetEnv` while the page is open (the switch can be made from the
+ * popup chip or the sidebar badge). `onChange` fires after a change has been
+ * applied, so the page can repaint. One shared place: pages never read the
+ * storage key themselves.
+ *
+ * Nothing in a prod build: the literal folds, and with it the listener and
+ * the storage key.
+ */
+export async function restoreEnvForPage(onChange?: () => void): Promise<void> {
+    if (__EXT_ENV__ !== 'dev') return;
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'local' || !changes[STORAGE_KEY]) return;
+        const next = changes[STORAGE_KEY].newValue;
+        if (typeof next === 'string') applySide(next);
+        onChange?.();
+    });
+    try {
+        await restoreEnv();
+    } catch {
+        /* the page stays on the build's own backend */
+    }
+}
+
+/**
  * Switch targets, parking the session you are leaving and restoring the one
  * belonging to the target you are entering.
  *
