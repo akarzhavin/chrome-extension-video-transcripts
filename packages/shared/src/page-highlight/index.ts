@@ -88,15 +88,24 @@ export function matchKey(term: string): string {
 export interface SavedIndex {
     words: Set<string>;
     phrasesByFirst: Map<string, string[][]>;
+    /**
+     * The stored terms behind each key. They differ whenever matchKey folded
+     * something away: "individual." is painted as "individual", and a removal
+     * must name the document that exists, not the word on the page.
+     */
+    terms: Map<string, string[]>;
 }
 
 export function indexSaved(words: Record<string, WordState>): SavedIndex {
-    const out: SavedIndex = { words: new Set(), phrasesByFirst: new Map() };
+    const out: SavedIndex = { words: new Set(), phrasesByFirst: new Map(), terms: new Map() };
     for (const [term, state] of Object.entries(words)) {
         if (state !== 'active') continue;
         const key = matchKey(term);
         if (!key) continue;
         out.words.add(key);
+        const stored = out.terms.get(key);
+        if (stored) stored.push(term);
+        else out.terms.set(key, [term]);
         const parts = key.split(' ');
         if (parts.length < 2) continue;
         const list = out.phrasesByFirst.get(parts[0]);
@@ -190,7 +199,7 @@ interface Mark {
  * calls installPageHighlight().
  */
 export function createPageHighlighter(doc: Document = document) {
-    let saved: SavedIndex = { words: new Set(), phrasesByFirst: new Map() };
+    let saved: SavedIndex = { words: new Set(), phrasesByFirst: new Map(), terms: new Map() };
     const highlight = new Highlight();
     const marksOf = new Map<Text, Mark[]>();
     /** Subtrees still to walk, and the walk in progress. */
@@ -407,10 +416,12 @@ export function createPageHighlighter(doc: Document = document) {
          * marks already painted, so it costs a map lookup, and a word the walk
          * skipped (hidden, ours, an editor) is never reported.
          */
-        markAt(node: Node, offset: number): { key: string; range: AbstractRange } | null {
+        markAt(node: Node, offset: number): { key: string; terms: string[]; range: AbstractRange } | null {
             if (node.nodeType !== Node.TEXT_NODE) return null;
             for (const m of marksOf.get(node as Text) ?? []) {
-                if (offset >= m.range.startOffset && offset <= m.range.endOffset) return { key: m.key, range: m.range };
+                if (offset >= m.range.startOffset && offset <= m.range.endOffset) {
+                    return { key: m.key, terms: [...(saved.terms.get(m.key) ?? [m.key])], range: m.range };
+                }
             }
             return null;
         },
@@ -522,7 +533,7 @@ function markAtPoint(painter: ReturnType<typeof createPageHighlighter>, x: numbe
     if (!at) return null;
     const hit = painter.markAt(at.node, at.offset);
     if (!hit) return null;
-    const { range, key } = hit;
+    const { range, key, terms } = hit;
     const live = (): Range | null => {
         if (!range.startContainer.isConnected) return null;
         const r = document.createRange();
@@ -538,6 +549,7 @@ function markAtPoint(painter: ReturnType<typeof createPageHighlighter>, x: numbe
     const SLOP = 2;
     const mark: PageMark = {
         key,
+        terms,
         rect: () => {
             // The first line of a phrase that wraps: the card sits over where it starts.
             const b = boxes();

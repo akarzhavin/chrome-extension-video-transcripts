@@ -28,6 +28,12 @@ import type { LookupResult } from '../lookup/types';
 export interface PageMark {
     /** The saved term (its match key), which is what is looked up and saved. */
     key: string;
+    /**
+     * The stored terms this mark stands for, which is what Remove names. Not
+     * always `key`: a term saved with its full stop ("individual.") is painted
+     * on the bare word, and removing the bare word removes nothing.
+     */
+    terms: readonly string[];
     /** Where the word is now, or null once it is off the page. */
     rect(): DOMRect | null;
     /** Whether the viewport point is on the word itself. */
@@ -233,20 +239,27 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
             `${HEART_SVG}<span>${escapeHtml(heartLabel(true))}</span></button></div>`;
         const btn = el.querySelector<HTMLButtonElement>('.heart')!;
         let saved = true;
+        // What Remove names: the stored forms at first, the key once Save has
+        // put the word back under it.
+        let forms = mark.terms.length ? [...mark.terms] : [mark.key];
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             btn.disabled = true;
             // The worker updates the mirror on success, and the highlighter
             // follows the mirror: the underline goes (or comes back) by itself.
-            const res = await deps
-                .send<{ ok?: boolean }>(
-                    saved
-                        ? { action: 'REMOVE_WORD', term: mark.key, site: site() }
-                        : { action: 'ADD_WORD', term: mark.key, context: mark.context(), site: site() },
-                )
-                .catch(() => undefined);
+            const send = (message: Record<string, unknown>) =>
+                deps.send<{ ok?: boolean }>(message).catch(() => undefined);
+            let ok: boolean;
+            if (saved) {
+                const results = [];
+                for (const term of forms) results.push(await send({ action: 'REMOVE_WORD', term, site: site() }));
+                ok = results.every((r) => r?.ok);
+            } else {
+                ok = !!(await send({ action: 'ADD_WORD', term: mark.key, context: mark.context(), site: site() }))?.ok;
+                if (ok) forms = [mark.key];
+            }
             btn.disabled = false;
-            if (!res?.ok) return;
+            if (!ok) return;
             saved = !saved;
             btn.classList.toggle('saved', saved);
             btn.querySelector('span')!.textContent = heartLabel(saved);

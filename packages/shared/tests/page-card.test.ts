@@ -13,8 +13,9 @@ import { installPageCard, type PageCardDeps, type PageMark } from '../src/page-h
 const sent: Array<Record<string, unknown>> = [];
 let replies: Record<string, unknown>;
 
-const mark = (key: string): PageMark => ({
+const mark = (key: string, terms: string[] = [key]): PageMark => ({
     key,
+    terms,
     rect: () => ({ left: 100, top: 40, right: 160, bottom: 60, width: 60, height: 20, x: 100, y: 40 }) as DOMRect,
     contains: (x, y) => x >= 100 && x <= 160 && y === 50,
     context: () => `I had to ${key} the plan.`,
@@ -157,6 +158,29 @@ test('Remove takes the word off the list, then Save puts it back with its senten
     await flush();
     expect(sent.at(-1)).toEqual({ action: 'ADD_WORD', term: 'scrap', context: 'I had to scrap the plan.', site: 'other' });
     expect(heart().textContent).toBe('Remove');
+});
+
+// Saved with its full stop, painted on the bare word: Remove must name the
+// document that exists. Sending the bare word removed nothing and the click
+// looked ignored (prod, 2026-10-06: 167 of 513 saved terms carry punctuation).
+test('Remove names the stored forms behind the mark, not the word on the page', async () => {
+    deps.markAtPoint = (x, y) => (x >= 100 && x <= 160 && y === 50 ? mark('individual', ['individual.', 'individual']) : null);
+    await openCard();
+    heart().click();
+    await flush();
+    expect(sent.filter((m) => m.action === 'REMOVE_WORD')).toEqual([
+        { action: 'REMOVE_WORD', term: 'individual.', site: 'other' },
+        { action: 'REMOVE_WORD', term: 'individual', site: 'other' },
+    ]);
+    expect(heart().textContent).toBe('Save');
+
+    // Saved back, it lives under the bare word, and that is what Remove names next.
+    heart().click();
+    await flush();
+    sent.length = 0;
+    heart().click();
+    await flush();
+    expect(sent).toEqual([{ action: 'REMOVE_WORD', term: 'individual', site: 'other' }]);
 });
 
 test('a refused removal leaves the heart as it was', async () => {
