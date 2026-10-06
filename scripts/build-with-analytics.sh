@@ -166,6 +166,14 @@ node packages/shared/assert-foldable.mjs
 echo "  ok: source is foldable"
 echo
 
+# BEFORE the build: no source manifest carries a real `key`. Only a dev build
+# gets one, added by the build itself; assert-shippable.mjs refuses a key in a
+# release after the build, and this catches the same mistake before it.
+echo "Checking the source manifests carry no key..."
+node packages/shared/assert-source-manifests.mjs $APPS
+echo "  ok: no key in the source manifests"
+echo
+
 if [[ "$ENV_NAME" == "capture" ]]; then
     echo "Building ($APPS) for capture: production backends, no analytics, no zip."
 else

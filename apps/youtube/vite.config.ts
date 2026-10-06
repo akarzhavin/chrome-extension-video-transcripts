@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { siblingDevIds } from '../../packages/shared/vite-sibling-ids.mjs';
+import { DEV_KEYS, siblingDevIds } from '../../packages/shared/vite-sibling-ids.mjs';
 import { resolve } from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { loadLingogramLimits, limitDefines, assertSourceAllowed } from '../../packages/shared/vite-limits.mjs';
@@ -248,9 +248,11 @@ export default defineConfig(({ command, mode }) => {
                     manifest.externally_connectable.ids = [...ids, SIBLING_DEV_IDS.rezka];
                   }
                 }
-                // Strip prod-only placeholders in dev so Chrome can load unpacked.
+                // A dev build carries its fixed dev key, so its id is the same from
+                // any folder and across reinstalls (vite-sibling-ids.mjs). A release
+                // build carries none: the gates refuse a `key` there.
                 if (isDev) {
-                  delete manifest.key;
+                  manifest.key = DEV_KEYS.youtube;
                 }
                 // Even in prod builds, drop the `key` if it's still the
                 // REPLACE_WITH_ placeholder — otherwise Chrome refuses to load
