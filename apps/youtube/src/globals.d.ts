@@ -13,6 +13,8 @@ declare const __EXT_DEV_TARGETS__: string;
 // What this build calls its OWN target, for the badge. Empty = derive it from
 // the project id.
 declare const __EXT_HOME_TARGET_NAME__: string;
+/** The target a fresh dev install starts on; '' = the build's own. */
+declare const __EXT_DEV_DEFAULT_TARGET__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;

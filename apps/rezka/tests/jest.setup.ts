@@ -11,6 +11,7 @@
 // what a checkout with no credentials gets.
 (global as any).__EXT_DEV_TARGETS__ = '';
 (global as any).__EXT_HOME_TARGET_NAME__ = '';
+(global as any).__EXT_DEV_DEFAULT_TARGET__ = '';
 // Lookup API. A non-empty value keeps the LOOKUP_WORD handler's "not
 // configured" early-return from short-circuiting the tests that mean to
 // exercise the real path; tests wanting the off state override config locally.

@@ -13,6 +13,7 @@ import { installSettingsBridge } from '../../../../packages/shared/src/settings-
 import { SUBTITLE_LANGUAGES } from '../config';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
+import { devEnvReady } from '../../../../packages/shared/src/auth/background';
 
 // Tags every event with the backend it came from — a dev build can be switched
 // between its targets at runtime, and they must stay distinguishable.
@@ -75,6 +76,8 @@ installOnboarding('rezka', {
     // for every edition, and a copy per background script is a copy that can
     // drift silently.
     clientId: onboardingClientId,
+    // The welcome URL names the backend's site: wait for a dev build's switch.
+    ready: devEnvReady,
     onInstall: () => {
         void markInstalled();
         // See the youtube edition: ext_source already carries this.

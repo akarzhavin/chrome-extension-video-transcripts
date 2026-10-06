@@ -91,6 +91,12 @@ const TARGET_API_ORIGIN_MATCHES = DEV_TARGETS.filter((t) => t.apiBaseUrl).map(
 );
 // What this build calls its OWN target, for the badge.
 const HOME_TARGET_NAME = process.env.EXT_HOME_TARGET_NAME ?? '';
+// Where a fresh dev install starts. Must name a stop on the ring: a name that
+// matches nothing would leave the build on its own target with no word said.
+const DEV_DEFAULT_TARGET = isDev ? process.env.EXT_DEV_DEFAULT_TARGET ?? '' : '';
+if (DEV_DEFAULT_TARGET && ![HOME_TARGET_NAME, ...DEV_TARGETS.map((t) => t.name)].includes(DEV_DEFAULT_TARGET)) {
+  throw new Error(`EXT_DEV_DEFAULT_TARGET=${DEV_DEFAULT_TARGET} is not on the ring (EXT_HOME_TARGET_NAME / EXT_DEV_TARGETS)`);
+}
 
 // EXT_FIREBASE_HOSTS=live keeps a dev build on the cloud Firebase hosts, and
 // sets what this build's OWN target resolves against. The emulators stay the
@@ -146,6 +152,7 @@ const buildDefines = {
   // Dropped from prod bundles: devEnvSwitch sits behind an __EXT_ENV__ guard.
   __EXT_DEV_TARGETS__: JSON.stringify(DEV_TARGETS.length ? JSON.stringify(DEV_TARGETS) : ''),
   __EXT_HOME_TARGET_NAME__: JSON.stringify(HOME_TARGET_NAME),
+  __EXT_DEV_DEFAULT_TARGET__: JSON.stringify(DEV_DEFAULT_TARGET),
   // Lookup API for this build's own target. Empty = off.
   __EXT_API_BASE_URL__: JSON.stringify(API_BASE_URL),
   // GA4 Measurement Protocol. The api_secret is a WRITE-ONLY credential: it can

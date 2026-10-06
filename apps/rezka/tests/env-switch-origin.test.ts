@@ -240,3 +240,47 @@ describe('switching parks the session it leaves, not the one it enters', () => {
         expect((await getAuthState())?.uid).toBe(AUTH.uid);
     });
 });
+
+describe('a fresh install starts on the build default', () => {
+    /** chrome.storage.local holding `stored` under the switch's key, or nothing. */
+    function storage(stored?: string): void {
+        (global as any).chrome = {
+            storage: {
+                local: {
+                    get: async () => (stored === undefined ? {} : { 'dev.targetEnv': stored }),
+                },
+            },
+        };
+    }
+    afterEach(() => {
+        delete (global as any).chrome;
+        (global as any).__EXT_DEV_DEFAULT_TARGET__ = '';
+    });
+
+    test('nothing chosen yet: the default target', async () => {
+        setBuild(RING);
+        (global as any).__EXT_DEV_DEFAULT_TARGET__ = 'preprod';
+        storage();
+        const { restoreEnv, currentSide } = await load();
+        await restoreEnv();
+        expect(currentSide()).toBe('preprod');
+    });
+
+    test('a choice already made wins over the default', async () => {
+        setBuild(RING);
+        (global as any).__EXT_DEV_DEFAULT_TARGET__ = 'preprod';
+        storage('prod');
+        const { restoreEnv, currentSide } = await load();
+        await restoreEnv();
+        expect(currentSide()).toBe('prod');
+    });
+
+    test('no default named: the build stays on its own target', async () => {
+        setBuild(RING);
+        (global as any).__EXT_DEV_DEFAULT_TARGET__ = '';
+        storage();
+        const { restoreEnv, currentSide } = await load();
+        await restoreEnv();
+        expect(currentSide()).toBe('local');
+    });
+});

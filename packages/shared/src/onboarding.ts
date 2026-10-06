@@ -46,6 +46,14 @@ export interface OnboardingHooks {
      * an omitted param.
      */
     clientId?: () => Promise<string>;
+    /**
+     * Resolves once the backend is chosen. A dev build restores its switch
+     * from storage (or its build default), and until then `config` names the
+     * build's OWN target: a welcome page opened earlier is that target's site,
+     * which mints a token the extension, by then on another backend, refuses
+     * ("Could not connect the extension"). Nothing to wait for in a release.
+     */
+    ready?: () => Promise<void>;
 }
 
 /**
@@ -78,14 +86,16 @@ export function installOnboarding(
             // exactly as before. Deferring the tab behind a promise nobody
             // needs would risk the worker dying first and swallowing the
             // welcome page — the one thing this branch exists to deliver.
-            if (!hooks?.clientId) {
+            if (!hooks?.clientId && !hooks?.ready) {
                 void chrome.tabs.create({ url: welcomeUrl(ext, chrome.runtime.id) });
                 return;
             }
             // With a resolver, wait for it so /welcome/ carries the same id the
             // install event reported under. onInstall mints it first, so this
-            // reads storage rather than racing the mint.
+            // reads storage rather than racing the mint. And wait for the
+            // backend: the URL names its site.
             void (async () => {
+                await hooks.ready?.().catch(() => undefined);
                 const cid = await resolveCid(hooks);
                 // `id` names this extension, so the page's three setup steps
                 // can talk to it (welcome/bridge.ts).
