@@ -9,6 +9,7 @@
 import { msg as i18nMsg } from '../i18n';
 import { loadLanguagePrefs } from '../languages';
 import { LOCAL_WORDS_KEY, type LocalWord } from '../local-words';
+import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { el, fill, iconImage, openTab, send, SETTINGS_PAGE, startSignIn, vocabUrl, type AuthStatus } from '../popup/shared';
 import { normalizeTerm } from '../word-key';
 import { MIRROR_KEY } from '../word-mirror';
@@ -284,5 +285,7 @@ export function initWords(): void {
         const keys = Object.keys(changes);
         if (keys.some((k) => k === LOCAL_WORDS_KEY || k === MIRROR_KEY || k.startsWith('auth.'))) void refresh();
     });
-    void refresh();
+    // The backend a dev build was switched to comes first: the account card and
+    // its "Open my vocabulary" link follow it.
+    void restoreEnvForPage(() => void refresh()).then(() => refresh());
 }
