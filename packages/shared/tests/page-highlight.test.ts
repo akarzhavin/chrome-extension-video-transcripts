@@ -145,6 +145,19 @@ describe('the painter', () => {
         expect(painted()).toEqual(['cat', 'mat']);
     });
 
+    it('tells the card which stored terms a mark stands for', async () => {
+        document.body.innerHTML = '<p>each individual case</p>';
+        const p = createPageHighlighter(document);
+        p.setWords(words('individual.', 'Individual', 'case'));
+        p.start();
+        await settle();
+        const text = document.querySelector('p')!.firstChild as Text;
+        expect(p.markAt(text, 7)?.key).toBe('individual');
+        expect(p.markAt(text, 7)?.terms.sort()).toEqual(['Individual', 'individual.']);
+        expect(p.markAt(text, 17)?.terms).toEqual(['case']);
+        p.stop();
+    });
+
     // The hover card asks "which saved word is at this point of the text" —
     // the answer comes from the marks already painted, never from the DOM.
     it('names the mark at a point in the text, and nothing between marks', async () => {
