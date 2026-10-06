@@ -755,6 +755,14 @@
     "message": "സബ്‌ടൈറ്റിലിലെ ഒരു വാക്കിൽ ക്ലിക്ക് ചെയ്ത് “സേവ് ചെയ്യുക” അമർത്തുക. അത് ഇവിടെ, ഈ ബ്രൗസറിൽ സൂക്ഷിക്കും.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
+  "popupMenuVocabulary": {
+    "message": "എന്റെ പദാവലി",
+    "description": "Toolbar popup: row that opens the learner's vocabulary on the Lingogram website, signed in. The number of saved words is shown at the right of the row."
+  },
+  "popupMenuWaiting": {
+    "message": "ഈ ഉപകരണത്തിൽ കാത്തിരിക്കുന്ന വാക്കുകൾ",
+    "description": "Toolbar popup: row shown after the session expired; opens the extension's page with the words kept in this browser, waiting to be added to the account. The number of words is shown at the right of the row."
+  },
   "popupOpenVocabulary": {
     "message": "എന്റെ പദാവലി തുറക്കുക",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."
@@ -774,6 +782,22 @@
   "popupSubtitlesOn": {
     "message": "{site}-ലെ സബ്‌ടൈറ്റിലുകൾ",
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupHighlightOnSite": {
+    "message": "{site}-ൽ ഹൈലൈറ്റ് ചെയ്യുക",
+    "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
+  },
+  "popupHighlightOffHere": {
+    "message": "ഈ സൈറ്റിൽ ഓഫാണ്.",
+    "description": "Toolbar popup: line under the highlight row when highlighting is switched off for the current site. Followed by a space and the 'Manage sites' link, so the two read as one line."
+  },
+  "popupManageSites": {
+    "message": "സൈറ്റുകൾ തിരഞ്ഞെടുക്കുക",
+    "description": "Toolbar popup: link that opens the extension's settings page at the list of sites where words are highlighted."
+  },
+  "popupHighlightOffEverywhere": {
+    "message": "എല്ലാ വെബ്‌സൈറ്റുകളിലും ഹൈലൈറ്റ് ഓഫാണ്",
+    "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
   "popupReloadHint": {
     "message": "മാറ്റം പ്രയോഗിക്കാൻ പേജ് റീലോഡ് ചെയ്യുക.",
@@ -802,6 +826,14 @@
   "settingsHighlightHint": {
     "message": "നിങ്ങൾ സേവ് ചെയ്ത വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും ഹൈലൈറ്റ് ചെയ്യും. പരിഭാഷ കാണാൻ വാക്കിൽ പോയിന്റർ വയ്ക്കുക.",
     "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsHighlightOffOn": {
+    "message": "ഹൈലൈറ്റ് ഇല്ലാത്ത സൈറ്റുകൾ:",
+    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
+  },
+  "settingsHighlightOnAgain": {
+    "message": "{site}-ൽ വാക്കുകൾ വീണ്ടും ഹൈലൈറ്റ് ചെയ്യുക",
+    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
   },
   "settingsGroupAccount": {
     "message": "അക്കൗണ്ട്",

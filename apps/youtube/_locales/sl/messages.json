@@ -755,6 +755,14 @@
     "message": "Kliknite besedo v podnapisih in nato Shrani. Ostane tukaj, v tem brskalniku.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
+  "popupMenuVocabulary": {
+    "message": "Moj slovar",
+    "description": "Toolbar popup: row that opens the learner's vocabulary on the Lingogram website, signed in. The number of saved words is shown at the right of the row."
+  },
+  "popupMenuWaiting": {
+    "message": "Besede, ki čakajo v tej napravi",
+    "description": "Toolbar popup: row shown after the session expired; opens the extension's page with the words kept in this browser, waiting to be added to the account. The number of words is shown at the right of the row."
+  },
   "popupOpenVocabulary": {
     "message": "Odpri moj slovar",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."
@@ -774,6 +782,22 @@
   "popupSubtitlesOn": {
     "message": "Podnapisi na {site}",
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupHighlightOnSite": {
+    "message": "Označi na {site}",
+    "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
+  },
+  "popupHighlightOffHere": {
+    "message": "Na tem spletnem mestu izklopljeno.",
+    "description": "Toolbar popup: line under the highlight row when highlighting is switched off for the current site. Followed by a space and the 'Manage sites' link, so the two read as one line."
+  },
+  "popupManageSites": {
+    "message": "Izberi spletna mesta",
+    "description": "Toolbar popup: link that opens the extension's settings page at the list of sites where words are highlighted."
+  },
+  "popupHighlightOffEverywhere": {
+    "message": "Označevanje je izklopljeno na vseh spletnih straneh",
+    "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
   "popupReloadHint": {
     "message": "Za uveljavitev spremembe znova naložite stran.",
@@ -802,6 +826,14 @@
   "settingsHighlightHint": {
     "message": "Besede, ki ste jih shranili, so označene na vsaki strani, ki jo berete. Pokažite na besedo, da vidite prevod.",
     "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsHighlightOffOn": {
+    "message": "Brez označevanja na:",
+    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
+  },
+  "settingsHighlightOnAgain": {
+    "message": "Znova označi besede na {site}",
+    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
   },
   "settingsGroupAccount": {
     "message": "Račun",

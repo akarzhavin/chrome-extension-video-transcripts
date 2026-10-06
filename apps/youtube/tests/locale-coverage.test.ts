@@ -38,27 +38,6 @@ const WORD_CARD_KEYS = [
     'ytPosVerb',
 ];
 
-/**
- * Keys added to `en` for the popup's per-site highlight switch and the settings
- * page's list of those sites, whose translation into the other locales is done
- * separately. Until then those locales fall back to the English text (Chrome
- * uses `default_locale`).
- *
- * Delete a key from this list in the commit that translates it; delete the list
- * with the last key. Each entry must exist in `en`, so the list cannot outlive
- * a renamed key.
- */
-const PENDING_TRANSLATION = [
-    'popupHighlightOnSite',
-    'popupHighlightOffEverywhere',
-    'popupHighlightOffHere',
-    'popupManageSites',
-    'popupMenuVocabulary',
-    'popupMenuWaiting',
-    'settingsHighlightOffOn',
-    'settingsHighlightOnAgain',
-];
-
 const localeNames = (): string[] =>
     readdirSync(LOCALES_DIR).filter((d) => existsSync(join(LOCALES_DIR, d, 'messages.json')));
 
@@ -73,7 +52,7 @@ describe('word-card translation coverage', () => {
         for (const locale of localeNames()) {
             const missing = [...reference].filter((k) => !keysOf(locale).has(k));
             const beyondTheWordCard = missing.filter(
-                (k) => !WORD_CARD_KEYS.includes(k) && !PENDING_TRANSLATION.includes(k),
+                (k) => !WORD_CARD_KEYS.includes(k),
             );
             if (beyondTheWordCard.length) unexpected[locale] = beyondTheWordCard.sort();
         }
@@ -82,11 +61,6 @@ describe('word-card translation coverage', () => {
         // problem from the one this test pins, and would otherwise hide inside
         // the same count.
         expect(unexpected).toEqual({});
-    });
-
-    test('every key awaiting translation exists in the English file', () => {
-        const english = keysOf('en');
-        expect(PENDING_TRANSLATION.filter((k) => !english.has(k))).toEqual([]);
     });
 
     test('the word card is translated in exactly three locales', () => {

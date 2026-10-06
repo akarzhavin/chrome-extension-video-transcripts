@@ -755,6 +755,14 @@
     "message": "Fes clic en una paraula dels subtítols i després a Desa. Es conserva aquí, en aquest navegador.",
     "description": "Toolbar popup: text of the card shown while the learner has not saved any word yet. 'Save' is the label of the save button on the word card."
   },
+  "popupMenuVocabulary": {
+    "message": "El meu vocabulari",
+    "description": "Toolbar popup: row that opens the learner's vocabulary on the Lingogram website, signed in. The number of saved words is shown at the right of the row."
+  },
+  "popupMenuWaiting": {
+    "message": "Paraules en espera en aquest dispositiu",
+    "description": "Toolbar popup: row shown after the session expired; opens the extension's page with the words kept in this browser, waiting to be added to the account. The number of words is shown at the right of the row."
+  },
   "popupOpenVocabulary": {
     "message": "Obre el meu vocabulari",
     "description": "Button that opens the learner's vocabulary on the Lingogram website."
@@ -774,6 +782,22 @@
   "popupSubtitlesOn": {
     "message": "Subtítols a {site}",
     "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
+  },
+  "popupHighlightOnSite": {
+    "message": "Ressalta a {site}",
+    "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
+  },
+  "popupHighlightOffHere": {
+    "message": "Desactivat en aquest lloc.",
+    "description": "Toolbar popup: line under the highlight row when highlighting is switched off for the current site. Followed by a space and the 'Manage sites' link, so the two read as one line."
+  },
+  "popupManageSites": {
+    "message": "Tria els llocs",
+    "description": "Toolbar popup: link that opens the extension's settings page at the list of sites where words are highlighted."
+  },
+  "popupHighlightOffEverywhere": {
+    "message": "El ressaltat està desactivat a tots els llocs web",
+    "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
   "popupReloadHint": {
     "message": "Torna a carregar la pàgina per aplicar el canvi.",
@@ -802,6 +826,14 @@
   "settingsHighlightHint": {
     "message": "Les paraules que has desat es ressalten a qualsevol pàgina que llegeixis. Posa el cursor sobre una per veure'n la traducció.",
     "description": "Settings page: hint under the 'Highlight my words on websites' switch."
+  },
+  "settingsHighlightOffOn": {
+    "message": "Sense ressaltat a:",
+    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
+  },
+  "settingsHighlightOnAgain": {
+    "message": "Torna a ressaltar les paraules a {site}",
+    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
   },
   "settingsGroupAccount": {
     "message": "Compte",
