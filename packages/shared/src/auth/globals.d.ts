@@ -13,6 +13,8 @@ declare const __EXT_DEV_TARGETS__: string;
 // What this build calls its OWN target, for the badge. Empty = derive it from
 // the project id.
 declare const __EXT_HOME_TARGET_NAME__: string;
+/** The target a fresh dev install starts on; '' = the build's own. */
+declare const __EXT_DEV_DEFAULT_TARGET__: string;
 // Our own API (edge gateway) for POST /dictionary/lookup. Empty = feature off.
 // Named __EXT_*__ so assert-shippable's unsubstituted-define rule covers it.
 declare const __EXT_API_BASE_URL__: string;

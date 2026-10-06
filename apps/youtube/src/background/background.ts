@@ -13,6 +13,7 @@ import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/br
 import { installSettingsBridge } from '../../../../packages/shared/src/settings-bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
+import { devEnvReady } from '../../../../packages/shared/src/auth/background';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
@@ -41,6 +42,8 @@ installOnboarding('youtube', {
     // for every edition, and a copy per background script is a copy that can
     // drift silently.
     clientId: onboardingClientId,
+    // The welcome URL names the backend's site: wait for a dev build's switch.
+    ready: devEnvReady,
     onInstall: () => {
         // Stamps the retention clock. Installs that predate analytics have no
         // date and simply never appear in retention — deliberately, since

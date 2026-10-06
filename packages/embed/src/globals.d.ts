@@ -14,6 +14,8 @@ declare const __EXT_SOURCE__: string;
 // reachable from the auth module this program imports, so tsc needs the names.
 declare const __EXT_DEV_TARGETS__: string;
 declare const __EXT_HOME_TARGET_NAME__: string;
+/** The target a fresh dev install starts on; '' = the build's own. */
+declare const __EXT_DEV_DEFAULT_TARGET__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_CONTEXT_BYTES__: number;

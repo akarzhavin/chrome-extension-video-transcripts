@@ -189,3 +189,40 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
         );
     });
 });
+
+// A dev build restores its chosen backend from storage after install. The
+// welcome URL names a site, and the site mints a token for ITS project: opened
+// before the switch was restored, the tab was the build's own site, and the
+// extension, by then on preprod, refused the token ("Could not connect").
+describe('welcome tab waits for the backend', () => {
+    const original = config.frontendBaseUrl;
+    afterEach(() => {
+        config.frontendBaseUrl = original;
+    });
+
+    it('opens on the site of the backend the extension ends up on', async () => {
+        installOnboarding('youtube', {
+            clientId: async () => 'cid-abc',
+            ready: async () => {
+                await settle();
+                config.frontendBaseUrl = 'https://preprod.example.com';
+            },
+        });
+        fireInstalled({ reason: 'install' });
+        await settle();
+        await settle();
+        expect(tabsCreate).toHaveBeenCalledTimes(1);
+        expect(tabsCreate.mock.calls[0][0]).toEqual({
+            url: 'https://preprod.example.com/welcome/?ext=youtube&id=abcdefghijklmnopabcdefghijklmnop&cid=cid-abc',
+        });
+    });
+
+    it('still opens when the backend cannot be restored', async () => {
+        installOnboarding('rezka', { ready: async () => Promise.reject(new Error('storage gone')) });
+        fireInstalled({ reason: 'install' });
+        await settle();
+        expect(tabsCreate).toHaveBeenCalledWith({
+            url: `${original}/welcome/?ext=rezka&id=abcdefghijklmnopabcdefghijklmnop`,
+        });
+    });
+});

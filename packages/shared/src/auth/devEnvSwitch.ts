@@ -225,12 +225,17 @@ export function applySide(side: ExtEnvName): void {
  * Restore the last chosen target. Called at service-worker startup, so a
  * switch survives the worker being torn down and respawned (which Chrome does
  * aggressively and invisibly).
+ *
+ * Nothing chosen yet — a fresh install — starts on EXT_DEV_DEFAULT_TARGET when
+ * the build names one, else on the build's own target. Not written back: the
+ * default is the build's, and a choice is the learner's.
  */
 export async function restoreEnv(): Promise<void> {
     if (__EXT_ENV__ !== 'dev') return;
     const v = (await chrome.storage.local.get(STORAGE_KEY)) as Record<string, unknown>;
     const stored = v[STORAGE_KEY];
-    if (typeof stored === 'string') applySide(stored);
+    const side = typeof stored === 'string' ? stored : __EXT_DEV_DEFAULT_TARGET__;
+    if (side) applySide(side);
 }
 
 /**

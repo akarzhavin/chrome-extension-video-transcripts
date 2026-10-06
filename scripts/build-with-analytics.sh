@@ -143,10 +143,12 @@ export LINGOGRAM_BUILD_VIA_WRAPPER=1
 if [[ "$ENV_NAME" == "dev" ]]; then
     export EXT_DEV_TARGETS="${ENVFILE_EXT_DEV_TARGETS:-}"
     export EXT_HOME_TARGET_NAME="${ENVFILE_EXT_HOME_TARGET_NAME:-}"
+    export EXT_DEV_DEFAULT_TARGET="${ENVFILE_EXT_DEV_DEFAULT_TARGET:-}"
     if [[ -n "$EXT_DEV_TARGETS" ]]; then
         ring=$(node -e 'const t=JSON.parse(process.env.EXT_DEV_TARGETS);console.log(t.map(x=>x.name||x.projectId).join(" -> "))' 2>/dev/null) \
             || { echo "error: EXT_DEV_TARGETS in .env is not valid JSON." >&2; exit 1; }
         echo "Backend switch ring: ${EXT_HOME_TARGET_NAME:-<own>} -> $ring -> (wraps)"
+        echo "A fresh install starts on: ${EXT_DEV_DEFAULT_TARGET:-${EXT_HOME_TARGET_NAME:-<own>}}"
     else
         echo "No EXT_DEV_TARGETS in .env: the backend badge will be inert."
     fi
