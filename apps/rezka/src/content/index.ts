@@ -27,7 +27,6 @@ import {
     isContextOrphaned,
     showOrphanNotice,
     type Subtitle,
-    isSiteEnabled,
 } from '@video-transcripts/shared';
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
@@ -1260,11 +1259,9 @@ function bootstrap(): void {
     }
 
     if (!isRezka) return;
-    // Switched off on the welcome page or in the popup: nothing is built.
-    // Read once; a change applies on the next page load.
-    void isSiteEnabled('rezka').then((on) => {
-        if (on) start();
-    });
+    // Always on. Older versions let the learner switch HDrezka off; that
+    // stored flag is ignored now, as there is no switch left to undo it.
+    start();
 }
 
 function start(): void {

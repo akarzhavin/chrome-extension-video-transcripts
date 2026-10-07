@@ -371,6 +371,15 @@ input:focus-visible {
     font-size: 13px;
     font-weight: 600;
 }
+.mhd-platform {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--lg-text-dim);
+    font-weight: 500;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .mhd .brand-icon {
     border-radius: 4px;
     margin-left: -1px;

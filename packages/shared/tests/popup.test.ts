@@ -182,6 +182,18 @@ describe('the header', () => {
         expect(h1.querySelector('img')!.getAttribute('width')).toBe('18');
         expect(root().firstElementChild).toBe(h1);
     });
+
+    test.each([
+        ['youtube', 'LingogramYouTube · Netflix'],
+        ['rezka', 'LingogramHDrezka'],
+    ] as const)('names the platform of the %s edition', async (ed, text) => {
+        withStatus({ signedIn: false, inboxCount: 0 });
+        await mount(ed);
+
+        const h1 = root().querySelector('h1')!;
+        expect(h1.textContent).toBe(text);
+        expect(h1.querySelector('.mhd-platform')).not.toBeNull();
+    });
 });
 
 describe('state 1: signed out, nothing saved yet', () => {
@@ -460,6 +472,55 @@ describe('the per-site highlight switch', () => {
         onTab('https://en.wikipedia.org/wiki/Cat');
     });
 
+    // The other edition paints the highlight: the switch shows and changes ITS
+    // settings, so it works the same in both editions and this copy stays unused.
+    describe('when the other edition paints the highlight', () => {
+        const OWNER = 'pkoibjilnaeadmcnmfkgcjhalljbmfan';
+        let external: Array<[string, any]>;
+        let setReply: unknown;
+        beforeEach(() => {
+            external = [];
+            setReply = { ok: true };
+            prefsStore['sibling.owner'] = { edition: 'youtube', id: OWNER };
+            const base = sendMessageMock.getMockImplementation()!;
+            sendMessageMock.mockImplementation((a: any, b: any) => {
+                if (typeof a !== 'string') return base(a, b);
+                external.push([a, b]);
+                if (b.op === 'highlightGet') {
+                    return Promise.resolve({ ok: true, prefs: { pageHighlight: true, highlightOffHosts: ['en.wikipedia.org'] } });
+                }
+                return Promise.resolve(setReply);
+            });
+        });
+        afterEach(() => {
+            delete prefsStore['sibling.owner'];
+        });
+
+        test("shows the painting edition's state for this site", async () => {
+            await mount('rezka');
+            expect(site().checked).toBe(false);
+            expect(external[0]).toEqual([OWNER, { type: 'lingogram-sibling', op: 'highlightGet' }]);
+        });
+
+        test('writes there, not here', async () => {
+            await mount('rezka');
+            await flip();
+            expect(external.at(-1)).toEqual([
+                OWNER,
+                { type: 'lingogram-sibling', op: 'highlightSet', change: { highlightHost: { host: 'en.wikipedia.org', on: true } } },
+            ]);
+            expect(offHosts()).toBeUndefined();
+            expect(site().checked).toBe(true);
+        });
+
+        test('puts the switch back when the change was not saved there', async () => {
+            setReply = undefined;
+            await mount('rezka');
+            await flip();
+            expect(site().checked).toBe(false);
+        });
+    });
+
     test('sits between the account rows and the separator, as a pen row with its switch', async () => {
         await mount('youtube');
 
@@ -693,36 +754,22 @@ describe('the per-site highlight switch', () => {
 });
 
 describe('the Settings link', () => {
-    test('signed out: opens the extension settings page and closes the popup', async () => {
-        withStatus({ signedIn: false, inboxCount: 0 });
+    // One settings interface: the site's page, signed in or not. It says itself
+    // when the extension is not connected to an account.
+    test.each([
+        ['signed out', { signedIn: false, inboxCount: 0 }],
+        ['expired session', { signedIn: false, inboxCount: 2, localCount: 2, needsReauth: true }],
+    ])("%s: opens the site's page too, not the extension's own", async (_name, status) => {
+        withStatus(status);
         await mount('youtube');
 
         await click(buttonByText('Settings'));
 
-        expect(openOptionsPageMock).toHaveBeenCalledTimes(1);
-        expect(tabsCreateMock).not.toHaveBeenCalled();
+        expect(tabsCreateMock.mock.calls).toEqual([
+            [{ url: 'http://localhost:5173/app/vocab/extension?ext=test-extension-id&edition=youtube' }],
+        ]);
+        expect(openOptionsPageMock).not.toHaveBeenCalled();
         expect(window.close).toHaveBeenCalledTimes(1);
-    });
-
-    test('signed out, with no options page API: falls back to a tab on settings.html', async () => {
-        withStatus({ signedIn: false, inboxCount: 0 });
-        await mount('youtube');
-        openOptionsPageMock.mockRejectedValue(new Error('unavailable'));
-
-        await click(buttonByText('Settings'));
-
-        expect(tabsCreateMock.mock.calls).toEqual([[{ url: 'chrome-extension://test-extension-id/settings.html' }]]);
-        expect(window.close).toHaveBeenCalledTimes(1);
-    });
-
-    test('expired session counts as signed out', async () => {
-        withStatus({ signedIn: false, inboxCount: 2, localCount: 2, needsReauth: true });
-        await mount('youtube');
-
-        await click(buttonByText('Settings'));
-
-        expect(openOptionsPageMock).toHaveBeenCalledTimes(1);
-        expect(tabsCreateMock).not.toHaveBeenCalled();
     });
 
     test("signed in: opens the site's page for this extension and edition, and closes the popup", async () => {

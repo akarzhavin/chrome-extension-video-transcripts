@@ -5,9 +5,9 @@
 // no URL) the popup shows nothing, and when highlighting is off everywhere the
 // row is there, without a switch, with the way back in a link.
 
-import { highlightSiteOf, isHighlightOff, withHighlight } from '../highlight-hosts';
+import { highlightSiteOf, isHighlightOff } from '../highlight-hosts';
 import { msg as i18nMsg } from '../i18n';
-import { loadPrefs, savePrefs } from '../prefs';
+import { loadHighlightPrefs, saveHighlightPrefs } from '../highlight-prefs';
 import { inlineLink, staticRow, subLine } from './menu';
 import { el, openManageSites } from './shared';
 
@@ -42,7 +42,8 @@ function siteLabel(site: string, id: string): HTMLElement {
 export async function renderSiteSwitch(into: HTMLElement): Promise<void> {
     const site = highlightSiteOf(await currentTabUrl());
     if (!site) return;
-    const prefs = await loadPrefs();
+    // Where the highlight reads them: the other edition's, when it is the one that paints.
+    const prefs = await loadHighlightPrefs();
     const manage = () => inlineLink(i18nMsg('popupManageSites', 'Manage sites'), () => void openManageSites());
 
     if (!prefs.pageHighlight) {
@@ -79,7 +80,12 @@ export async function renderSiteSwitch(into: HTMLElement): Promise<void> {
     input.addEventListener('change', () => {
         const on = input.checked;
         paintSub();
-        void loadPrefs().then((p) => savePrefs({ highlightOffHosts: withHighlight(p.highlightOffHosts, site, on) }));
+        void saveHighlightPrefs({ highlightHost: { host: site, on } }).then((ok) => {
+            if (ok) return;
+            // Not saved where it counts: put the switch back.
+            input.checked = !on;
+            paintSub();
+        });
     });
     into.hidden = false;
 }

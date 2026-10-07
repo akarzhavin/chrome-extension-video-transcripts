@@ -7,6 +7,7 @@
  */
 
 const store: Record<string, unknown> = {};
+const session: Record<string, unknown> = {};
 let externalListener: ((m: any, s: any, r: any) => boolean | void) | null = null;
 
 (global as any).chrome = {
@@ -23,6 +24,9 @@ let externalListener: ((m: any, s: any, r: any) => boolean | void) | null = null
             }),
         },
         onChanged: { addListener: jest.fn() },
+        session: {
+            set: jest.fn(async (items: Record<string, unknown>) => Object.assign(session, items)),
+        },
     },
     runtime: {
         id: 'pkoibjilnaeadmcnmfkgcjhalljbmfan',
@@ -56,6 +60,7 @@ const rezka = { edition: 'rezka' as const, languages: ['en', 'ru', 'uk'] };
 beforeEach(() => {
     for (const k of Object.keys(store)) delete store[k];
     optOutSeen.length = 0;
+    (chrome.runtime.sendMessage as jest.Mock).mockReset();
     handleAuthMessage.mockReset();
     handleAuthMessage.mockResolvedValue({ signedIn: true, email: 'a@b.c' });
 });
@@ -157,6 +162,24 @@ describe('set', () => {
         expect((store['prefs.v1'] as any).analyticsEnabled).toBe(false);
     });
 
+    test('turning analytics off also tells the other edition', async () => {
+        const send = chrome.runtime.sendMessage as jest.Mock;
+        send.mockClear();
+        await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false } }), yt);
+        expect(send).toHaveBeenCalledWith('hmdkmkimdbomemfcjmgeclchbcdbhabj', {
+            type: 'lingogram-sibling',
+            op: 'analyticsSet',
+            on: false,
+        });
+    });
+
+    test('other prefs stay with this edition', async () => {
+        const send = chrome.runtime.sendMessage as jest.Mock;
+        send.mockClear();
+        await handleSettingsMessage(msg('set', { prefs: { pageHighlight: false } }), yt);
+        expect(send.mock.calls.filter(([, m]) => m?.op === 'analyticsSet')).toEqual([]);
+    });
+
     test('with analytics already on and explicitly stored, the event still sees it on', async () => {
         store['prefs.v1'] = { analyticsEnabled: true };
         await handleSettingsMessage(msg('set', { prefs: { analyticsEnabled: false } }), yt);
@@ -216,5 +239,113 @@ describe('the listener', () => {
         handleAuthMessage.mockRejectedValue(new Error('boom'));
         const r = await new Promise((resolve) => externalListener!(msg('state'), { origin: 'https://lingogram.ai' }, resolve));
         expect(r).toEqual({ ok: false, error: 'boom' });
+    });
+});
+
+// The site's page is the one settings interface now, so it carries what the
+// extension's own page used to: the sites the highlight is off on, and the
+// connect button for a signed-out extension.
+describe('sites without highlight', () => {
+    test('state lists them', async () => {
+        store['prefs.v1'] = { highlightOffHosts: ['news.ycombinator.com', 'bbc.co.uk'] };
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect(s.highlightOffHosts).toEqual(['news.ycombinator.com', 'bbc.co.uk']);
+    });
+
+    test('switching one back on removes only that one', async () => {
+        store['prefs.v1'] = { highlightOffHosts: ['news.ycombinator.com', 'bbc.co.uk'] };
+        const r = await handleSettingsMessage(msg('set', { prefs: { highlightHost: { host: 'www.BBC.co.uk', on: true } } }), yt);
+        expect(r).toEqual({ ok: true });
+        expect((store['prefs.v1'] as any).highlightOffHosts).toEqual(['news.ycombinator.com']);
+    });
+
+    test('a change made since the page read the list is kept', async () => {
+        store['prefs.v1'] = { highlightOffHosts: ['a.com'] };
+        await handleSettingsMessage(msg('state'), yt);
+        // The popup switches b.com off meanwhile.
+        store['prefs.v1'] = { highlightOffHosts: ['a.com', 'b.com'] };
+        await handleSettingsMessage(msg('set', { prefs: { highlightHost: { host: 'a.com', on: true } } }), yt);
+        expect((store['prefs.v1'] as any).highlightOffHosts).toEqual(['b.com']);
+    });
+
+    test.each([
+        [{ host: 'a.com' }, 'highlightHost.on must be a boolean'],
+        [{ host: 'a b.com', on: true }, 'highlightHost.host must be a hostname'],
+        [{ host: 7, on: true }, 'highlightHost.host must be a hostname'],
+        [{ host: 'a.com', on: true, x: 1 }, 'unknown key: prefs.highlightHost.x'],
+        ['a.com', 'highlightHost must be an object'],
+    ])('refuses %p, writing nothing', async (highlightHost, error) => {
+        store['prefs.v1'] = { highlightOffHosts: ['a.com'], pageHighlight: true };
+        const r = await handleSettingsMessage(msg('set', { prefs: { pageHighlight: false, highlightHost } }), yt);
+        expect(r).toEqual({ ok: false, error });
+        expect(store['prefs.v1']).toEqual({ highlightOffHosts: ['a.com'], pageHighlight: true });
+    });
+});
+
+describe('beginSignIn', () => {
+    test('issues a one-shot challenge and keeps it for the handoff', async () => {
+        const r: any = await handleSettingsMessage(msg('beginSignIn'), yt);
+        expect(r.ok).toBe(true);
+        expect(r.nonce).toMatch(/^[0-9a-f-]{36}$/);
+        expect(Object.values(session)).toContain(r.nonce);
+    });
+
+    test('two calls, two different challenges', async () => {
+        const a: any = await handleSettingsMessage(msg('beginSignIn'), yt);
+        const b: any = await handleSettingsMessage(msg('beginSignIn'), yt);
+        expect(a.nonce).not.toBe(b.nonce);
+    });
+});
+
+describe('highlight settings live with the edition that paints', () => {
+    const OWNER = 'hmdkmkimdbomemfcjmgeclchbcdbhabj';
+    const sendMessage = (global as any).chrome.runtime.sendMessage as jest.Mock;
+    afterEach(() => sendMessage.mockReset());
+
+    test('this edition paints: its own settings', async () => {
+        store['prefs.v1'] = { pageHighlight: false, highlightOffHosts: ['a.com'] };
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect([s.pageHighlight, s.highlightOffHosts]).toEqual([false, ['a.com']]);
+        expect(sendMessage).not.toHaveBeenCalled();
+    });
+
+    test("the other edition paints: state shows its settings", async () => {
+        store['sibling.owner'] = { edition: 'rezka', id: OWNER };
+        store['prefs.v1'] = { pageHighlight: false, highlightOffHosts: ['mine.com'] };
+        sendMessage.mockResolvedValue({ ok: true, prefs: { pageHighlight: true, highlightOffHosts: ['theirs.com'] } });
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect([s.pageHighlight, s.highlightOffHosts]).toEqual([true, ['theirs.com']]);
+        expect(sendMessage).toHaveBeenCalledWith(OWNER, { type: 'lingogram-sibling', op: 'highlightGet' });
+    });
+
+    test('a change is sent there and this copy is left alone', async () => {
+        store['sibling.owner'] = { edition: 'rezka', id: OWNER };
+        store['prefs.v1'] = { pageHighlight: true, highlightOffHosts: [] };
+        sendMessage.mockResolvedValue({ ok: true });
+        const r = await handleSettingsMessage(msg('set', { prefs: { pageHighlight: false, highlightHost: { host: 'a.com', on: false } } }), yt);
+        expect(r).toEqual({ ok: true });
+        expect(sendMessage).toHaveBeenCalledWith(OWNER, {
+            type: 'lingogram-sibling',
+            op: 'highlightSet',
+            change: { pageHighlight: false, highlightHost: { host: 'a.com', on: false } },
+        });
+        expect(store['prefs.v1']).toEqual({ pageHighlight: true, highlightOffHosts: [] });
+    });
+
+    test('the painting edition not answering is a refusal, not a silent local write', async () => {
+        store['sibling.owner'] = { edition: 'rezka', id: OWNER };
+        store['prefs.v1'] = { pageHighlight: true };
+        sendMessage.mockRejectedValue(new Error('Receiving end does not exist.'));
+        const r: any = await handleSettingsMessage(msg('set', { prefs: { pageHighlight: false } }), yt);
+        expect(r.ok).toBe(false);
+        expect(store['prefs.v1']).toEqual({ pageHighlight: true });
+    });
+
+    test('reading falls back to this copy when the other edition is gone', async () => {
+        store['sibling.owner'] = { edition: 'rezka', id: OWNER };
+        store['prefs.v1'] = { pageHighlight: false, highlightOffHosts: ['mine.com'] };
+        sendMessage.mockRejectedValue(new Error('gone'));
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect([s.pageHighlight, s.highlightOffHosts]).toEqual([false, ['mine.com']]);
     });
 });

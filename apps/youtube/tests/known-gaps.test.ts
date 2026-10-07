@@ -143,10 +143,9 @@ describe('what the usage-statistics switch does not stop', () => {
         // of what the switch governs, which is a decision, not a refactor.
         const readers = [
             'packages/shared/src/prefs.ts', // where it is defined
-            'packages/shared/src/SidebarUI.ts', // the switch in settings
             'packages/shared/src/analytics-bg.ts', // the gate it exists for
-            'packages/shared/src/settings/settings.ts', // the same switch on the extension's settings page
-            'packages/shared/src/settings-bridge.ts', // the same switch on the site's settings page
+            'packages/shared/src/analytics-consent.ts', // one choice for both editions
+            'packages/shared/src/settings-bridge.ts', // the switch, on the site's settings page
         ];
 
         // Walk both source trees rather than reading four files: a new reader

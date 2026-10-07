@@ -3282,34 +3282,11 @@ describe('the panel as it is built', () => {
         });
     });
 
-    // §20.2, T5.7. Article D: the map places the explanation in the row's text;
-    // the code puts it in the row's tooltip, deliberately — the footer is a
-    // one-line-per-row band. Pinned where it actually lives.
-    describe('the analytics consent row', () => {
-        const row = (): HTMLElement =>
-            document.getElementById('vtt-analytics-toggle')!.closest('.vtt-panel-row') as HTMLElement;
-
-        test('names itself in the row text', () => {
-            expect(row().textContent).toContain('Share anonymous usage stats');
-        });
-
-        // The sentence is the consent: it is what tells the user that the
-        // count is a count and not their viewing history. Asserted whole, not
-        // as "some tooltip exists".
-        test('carries what is never collected, in full', () => {
-            expect(row().title).toBe(
-                'Counts like "subtitles loaded" and "word saved". ' +
-                'Never your account, the videos you watch, or the words you save.',
-            );
-        });
-
-        // A native checkbox, not a styled div: this is the one control in the
-        // panel where being operable matters legally rather than aesthetically.
-        test('is a real checkbox', () => {
-            const box = document.getElementById('vtt-analytics-toggle') as HTMLInputElement;
-            expect(box.tagName).toBe('INPUT');
-            expect(box.type).toBe('checkbox');
-        });
+    // The stats opt-out moved to the site's settings page, one choice for both
+    // editions: the panel must not offer a second, edition-local copy of it.
+    test('offers no usage-stats switch', () => {
+        expect(document.getElementById('vtt-analytics-toggle')).toBeNull();
+        expect(document.body.textContent).not.toContain('Share anonymous usage stats');
     });
 
     // Corrections, T5.10. The two dropdowns choose which LOADED TRACK feeds

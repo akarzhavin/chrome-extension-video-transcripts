@@ -22,6 +22,9 @@ import { mountDevBackendChip } from './dev-backend-chip';
 // and the edition-specific blocks (video sites, setup) are left out.
 let edition: Edition | null = null;
 
+// Brand names, the same in every language.
+const PLATFORM: Record<Edition, string> = { youtube: 'YouTube · Netflix', rezka: 'HDrezka' };
+
 interface ViewState {
     status?: AuthStatus;
     loading?: boolean;
@@ -34,6 +37,8 @@ function render(root: HTMLElement, state: ViewState): void {
 
     const title = el('h1', 'mhd');
     title.append(iconImage(18), document.createTextNode('Lingogram'));
+    // Both editions share the icon and the name: the platform tells them apart.
+    if (edition) title.appendChild(el('span', 'mhd-platform', PLATFORM[edition]));
     root.appendChild(title);
 
     if (state.loading) {
@@ -58,7 +63,7 @@ function render(root: HTMLElement, state: ViewState): void {
     void renderSiteSwitch(highlight);
 
     root.appendChild(el('div', 'msep'));
-    root.appendChild(settingsRow(state.status));
+    root.appendChild(settingsRow());
 
     if (state.error) {
         root.appendChild(el('div', 'error', state.error));
@@ -190,16 +195,16 @@ function openAndClose(url: string): void {
     void openTab(url).then(() => window.close());
 }
 
-// "Settings": the site's page for this extension when signed in, otherwise the
-// extension's own. The site's page needs an account to mean anything; the
-// extension's works without one.
-function settingsRow(status?: AuthStatus): HTMLElement {
+// "Settings": the site's page for this extension, signed in or not. That page
+// is the one settings interface and says itself when the extension is not
+// connected to an account.
+function settingsRow(): HTMLElement {
     return menuRow({
         icon: 'sliders',
         label: i18nMsg('popupSettingsLink', 'Settings'),
         onClick: () => {
             void (async () => {
-                if (status?.signedIn && edition) {
+                if (edition) {
                     await openTab(siteSettingsUrl(edition));
                 } else {
                     try {
