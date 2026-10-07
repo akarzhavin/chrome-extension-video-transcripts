@@ -273,7 +273,8 @@ describe('Language', () => {
         expect(current()).toBe('Language');
     });
 
-    test('the popular languages are tiles with a flag; the native language is never one (English apart)', async () => {
+    test('the popular languages are tiles with a flag', async () => {
+        setBrowserLanguage('ru-RU');
         await mount({ lang: 'ru', locales: ['en', 'ru'] });
         expect(tileCodes()).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
         expect(ws().querySelectorAll('.ws-learn .ws-tile .ws-flag svg')).toHaveLength(8);
@@ -328,7 +329,21 @@ describe('Language', () => {
         expect(current()).toBe('Account');
     });
 
+    test('choosing a native language takes no tile away from the learning row', async () => {
+        edition = 'rezka';
+        await mount({ lang: 'ru', locales: [] });
+        const before = tileCodes();
+        expect(before).toEqual(['en', 'ru', 'uk']);
+        setNative('uk');
+        await flush();
+        expect(tileCodes()).toEqual(before);
+        setNative('en');
+        await flush();
+        expect(tileCodes()).toEqual(before);
+    });
+
     test('picking the language being learned as the native one clears the learning pick', async () => {
+        setBrowserLanguage('ru-RU');
         await mount({ lang: 'ru', locales: [] });
         expect(pressed()).toEqual(['en']);
         setNative('en');
@@ -383,13 +398,17 @@ describe('Language', () => {
     test('HDrezka offers its three languages', async () => {
         edition = 'rezka';
         await mount({ lang: 'ru', locales: [] });
-        expect(tileCodes()).toEqual(['en', 'uk']);
+        expect(tileCodes()).toEqual(['en', 'ru', 'uk']);
         expect(ws().querySelector('.ws-other')).toBeNull();
+        // Names only: no country's flag, in either row.
+        expect(ws().querySelectorAll('.ws-tile')).toHaveLength(6);
+        expect(ws().querySelectorAll('.ws-tile .ws-flag')).toHaveLength(0);
     });
 });
 
 describe('native language tiles', () => {
     test('the native languages this site sees most, each named in its own language, with a flag', async () => {
+        setBrowserLanguage('ru-RU');
         await mount({ lang: 'ru', locales: [] });
         expect(nativeCodes()).toEqual(['ru', 'zh', 'es', 'en', 'pt', 'vi', 'ko', 'ja']);
         const names = Array.from(ws().querySelectorAll('.ws-native-field .ws-tile-name')).map((n) => n.textContent);
@@ -400,7 +419,33 @@ describe('native language tiles', () => {
         expect(ws().querySelector<HTMLSelectElement>('.ws-native')!.value).toBe('');
     });
 
+    test('the system language is the default native language, over the page language', async () => {
+        setBrowserLanguage('uk-UA');
+        await mount({ lang: 'ru', locales: [] });
+        expect(nativeTile('uk')!.getAttribute('aria-pressed')).toBe('true');
+        expect(nativeTile('ru')!.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    test('a system language the edition does not offer falls back to the page language', async () => {
+        edition = 'rezka';
+        setBrowserLanguage('de-DE');
+        await mount({ lang: 'ru', locales: [] });
+        expect(nativeTile('ru')!.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    test('the system language leads the native row, and a click moves no tile', async () => {
+        edition = 'rezka';
+        setBrowserLanguage('uk-UA');
+        await mount({ lang: 'ru', locales: [] });
+        expect(nativeCodes()).toEqual(['uk', 'ru', 'en']);
+        nativeTile('en')!.click();
+        await flush();
+        expect(nativeCodes()).toEqual(['uk', 'ru', 'en']);
+        expect(nativeTile('en')!.getAttribute('aria-pressed')).toBe('true');
+    });
+
     test('a native language outside the tiles comes first, pressed', async () => {
+        setBrowserLanguage('de-DE');
         await mount({ lang: 'de', locales: [] });
         expect(nativeCodes()[0]).toBe('de');
         expect(nativeCodes()).toHaveLength(8);
@@ -412,6 +457,11 @@ describe('native language tiles', () => {
         expect(nativeTiles(['en', 'ru', 'de'], 'de')).toEqual(['de', 'ru', 'en']);
         expect(nativeTiles(['en', 'ru'], '')).toEqual(['ru', 'en']);
         expect(nativeTiles(['en', 'ru'], 'xx')).toEqual(['ru', 'en']);
+        // The default leads even when it is popular further down the row.
+        expect(nativeTiles(['en', 'ru', 'uk'], 'uk')).toEqual(['uk', 'ru', 'en']);
+        expect(nativeTiles(['en', 'ru', 'uk'], 'en')).toEqual(['en', 'ru', 'uk']);
+        // A pick from the list comes right after the default.
+        expect(nativeTiles(['en', 'ru', 'uk', 'de'], 'uk', 'de')).toEqual(['uk', 'de', 'ru', 'en']);
     });
 
     test('a native language from the list is saved like a tile', async () => {
@@ -419,7 +469,8 @@ describe('native language tiles', () => {
         setNative('de');
         await flush();
         expect(nativeValue()).toBe('de');
-        expect(nativeCodes()[0]).toBe('de');
+        // In view as a pressed tile, right after the default one.
+        expect(nativeCodes().slice(0, 2)).toEqual(['en', 'de']);
         tile('es').click();
         await flush();
         btn('Continue').click();
@@ -458,13 +509,11 @@ describe('the page speaks the visitor language', () => {
         expect(pageFor('ru', '')).toBe('/ru/welcome/?hl=1');
     });
 
-    test('popularTiles: eight at most, the native language never among them', () => {
+    test('popularTiles: eight at most, English first, the same for every native language', () => {
         const all = ['en', 'es', 'pt', 'fr', 'de', 'it', 'ja', 'ko', 'zh', 'ru', 'uk', 'nl'];
-        expect(popularTiles(all, 'ru')).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
-        expect(popularTiles(all, 'en')).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
-        expect(popularTiles(all, 'es')).toEqual(['en', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt']);
-        expect(popularTiles(['en', 'ru', 'uk'], 'ru')).toEqual(['en', 'uk']);
-        expect(popularTiles(['de', 'fr'], 'fr')).toEqual(['de']); // English not offered: nothing to put first
+        expect(popularTiles(all)).toEqual(['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it']);
+        expect(popularTiles(['en', 'ru', 'uk'])).toEqual(['en', 'ru', 'uk']);
+        expect(popularTiles(['de', 'fr'])).toEqual(['de', 'fr']); // English not offered: nothing to put first
     });
 });
 

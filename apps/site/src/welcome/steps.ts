@@ -124,14 +124,13 @@ const OWN_STORE: Record<string, string> = {
 };
 // The languages offered as tiles, in this order: the ones this site's own
 // visitors learn most, then the most-studied languages in the world. English
-// is always the first tile, whoever is looking; every other tile is dropped
-// when it is the native language, and the row is filled to TILE_COUNT from
-// what is left (a Spanish speaker sees English first and Portuguese last).
+// is always the first tile. The row is the same whatever the native language:
+// choosing one never takes a tile away or shifts the others.
 const POPULAR = ['en', 'es', 'de', 'ja', 'fr', 'ko', 'zh', 'it', 'pt', 'ru', 'uk'];
 const TILE_COUNT = 8;
 // Native languages as tiles, in the order this site's visitors have them
-// (GA4, native language by users). The current one is put first when it is
-// not among them, so the pressed tile is always in view.
+// (GA4, native language by users). The current one always comes first, so
+// the pressed tile leads the row.
 const NATIVE_POPULAR = ['ru', 'zh', 'es', 'en', 'pt', 'vi', 'ko', 'ja', 'tr', 'th', 'uk', 'ar', 'id'];
 // Browser codes that differ from the site's locale codes.
 const BROWSER_ALIAS: Record<string, string> = { nb: 'no', nn: 'no', tl: 'fil', iw: 'he' };
@@ -194,24 +193,25 @@ export function statuses(s: Snapshot, siteSignedIn = false): Status[] {
 }
 
 /**
- * The popular-language tiles: English always first, then the rest of POPULAR
- * without the native language, TILE_COUNT in all. Pure, for the tests.
+ * The popular-language tiles: English always first, then the rest of POPULAR,
+ * TILE_COUNT in all. Pure, for the tests.
  */
-export function popularTiles(offered: string[], native: string): string[] {
+export function popularTiles(offered: string[]): string[] {
   const first = offered.includes('en') ? ['en'] : [];
-  const rest = POPULAR.filter((c) => c !== 'en' && offered.includes(c) && c !== native);
+  const rest = POPULAR.filter((c) => c !== 'en' && offered.includes(c));
   return [...first, ...rest].slice(0, TILE_COUNT);
 }
 
 /**
- * The native-language tiles: NATIVE_POPULAR as offered, TILE_COUNT in all,
- * with the current choice put first when it is not among them. Pure, for the
- * tests.
+ * The native-language tiles: the default first (the system language, unless
+ * one was saved or picked), then `picked` when it is a language from the list,
+ * so the pressed tile is in view, then NATIVE_POPULAR as offered, TILE_COUNT
+ * in all. A tile picked from the row keeps its place. Pure, for the tests.
  */
-export function nativeTiles(offered: string[], current: string): string[] {
-  const list = NATIVE_POPULAR.filter((c) => offered.includes(c)).slice(0, TILE_COUNT);
-  if (!current || !offered.includes(current) || list.includes(current)) return list;
-  return [current, ...list].slice(0, TILE_COUNT);
+export function nativeTiles(offered: string[], current: string, picked = ''): string[] {
+  const lead = [current, picked].filter((c, i, a) => c && offered.includes(c) && a.indexOf(c) === i);
+  const list = NATIVE_POPULAR.filter((c) => offered.includes(c) && !lead.includes(c));
+  return [...lead, ...list].slice(0, TILE_COUNT);
 }
 
 /**
@@ -310,6 +310,8 @@ function navigate(win: Window, url: string): void {
 }
 
 interface View {
+  /** The native language the page opened with: it leads the native row and stays put on a click. */
+  nativeFirst: string;
   doc: Document;
   win: Window;
   t: StepsI18n;
@@ -371,17 +373,19 @@ export async function initSteps(doc: Document = document, win: Window = window):
   const offered = s.languages.map((l) => l.code);
   // A page opened by choosing a native language (`hl`) is that language; the
   // pick made just before moving here comes with it. Otherwise what the
-  // extension saved leads, then the page language, then the browser's.
+  // extension saved leads, then the system's language, then the page's.
   const chose = new URLSearchParams(win.location.search).has('hl');
+  const system = BROWSER_ALIAS[browserLanguage(win)] ?? browserLanguage(win);
   const native =
     chose && offered.includes(cfg.lang)
       ? cfg.lang
-      : s.native || (offered.includes(cfg.lang) ? cfg.lang : offered.includes(browserLanguage(win)) ? browserLanguage(win) : '');
+      : s.native || (offered.includes(system) ? system : offered.includes(cfg.lang) ? cfg.lang : '');
   const kept = stash(win);
   let learning = offered.includes(kept) ? kept : s.learning;
   if (!learning && native !== 'en' && offered.includes('en')) learning = 'en';
 
   const v: View = {
+    nativeFirst: native,
     doc,
     win,
     t: cfg.i18n,
@@ -527,7 +531,7 @@ interface PickerOptions {
   pick: (code: string) => void;
 }
 
-/** Popular languages as flag tiles, and every other one in a list after them. */
+/** Popular languages as tiles (with flags, but not for HDrezka), and every other one in a list after them. */
 function tilePicker(v: View, o: PickerOptions): HTMLElement {
   const { doc, t } = v;
   const field = el(doc, 'div', `ws-field ${o.cls}`);
@@ -540,7 +544,9 @@ function tilePicker(v: View, o: PickerOptions): HTMLElement {
     tile.type = 'button';
     tile.dataset.code = code;
     tile.setAttribute('aria-pressed', String(o.chosen === code));
-    if (FLAGS[code]) {
+    // No flags for HDrezka: its languages are Russian and Ukrainian, and a
+    // country's flag next to the other's can hurt. The names say it all.
+    if (v.s.edition !== 'rezka' && FLAGS[code]) {
       const flag = el(doc, 'span', 'ws-flag');
       flag.innerHTML = FLAGS[code]; // constant markup from flags.ts
       tile.appendChild(flag);
@@ -576,14 +582,14 @@ function languageStep(v: View, box: HTMLElement): void {
   const offered = s.languages.map((l) => l.code);
 
   // I'm learning: popular languages as tiles, everything else in a list.
-  const learnTiles = popularTiles(offered, v.draft.native);
+  const learnTiles = popularTiles(offered);
   const learn = tilePicker(v, {
     cls: 'ws-learn',
     label: t.learning,
     tiles: learnTiles,
     chosen: v.draft.learning,
     name: (code) => localName(code, byCode.get(code)?.label ?? code, v.lang),
-    rest: s.languages.filter((l) => !learnTiles.includes(l.code) && l.code !== v.draft.native),
+    rest: s.languages.filter((l) => !learnTiles.includes(l.code)),
     pick: (code) => {
       v.draft.learning = code;
       paint(v);
@@ -592,7 +598,11 @@ function languageStep(v: View, box: HTMLElement): void {
 
   // My native language, also the language of this page: the same tiles, each
   // named in its own language so a speaker finds theirs on any page.
-  const nativeCodes = nativeTiles(offered, v.draft.native);
+  const nativeCodes = nativeTiles(
+    offered,
+    v.nativeFirst,
+    nativeTiles(offered, v.nativeFirst).includes(v.draft.native) ? '' : v.draft.native,
+  );
   const nativeRow = tilePicker(v, {
     cls: 'ws-native-field',
     label: t.native,
