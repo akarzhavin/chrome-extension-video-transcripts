@@ -83,58 +83,6 @@ for (const site of SITES) {
 }
 
 for (const site of SITES) {
-    test.describe(`${site.name}: usage statistics`, () => {
-        /**
-         * Behaviour map §20. The switch is a consent control, so what matters is
-         * that a choice is offered and that it holds.
-         *
-         * The person's own choice is read, flipped, and put back — and the guard
-         * restores their whole preference blob afterwards regardless.
-         */
-        test('the choice is offered and is remembered', async ({ ext, pageFor }) => {
-            const reason = site.skipReason();
-            test.skip(reason !== null, reason ?? '');
-            const page = await pageFor(site);
-
-            await preservingUiPrefs(ext, async () => {
-                await waitForLines(page);
-                await openSettings(page);
-
-                await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
-
-                const value = () =>
-                    page.evaluate(
-                        () => (document.getElementById('vtt-analytics-toggle') as HTMLInputElement | null)?.checked ?? null,
-                    );
-
-                const before = await value();
-                expect(before).not.toBeNull();
-
-                await page.evaluate(() => {
-                    const box = document.getElementById('vtt-analytics-toggle') as HTMLInputElement;
-                    box.click();
-                });
-                await expect.poll(value, { timeout: 20_000 }).toBe(!before);
-
-                // It survives a reload, which is what makes it a choice rather
-                // than a switch that forgets.
-                await page.reload({ waitUntil: 'domcontentloaded' });
-                await waitForLines(page);
-                await openSettings(page);
-                await page.waitForFunction(() => !!document.getElementById('vtt-analytics-toggle'), null, {
-                    timeout: 30_000,
-                    polling: 250,
-                });
-                expect(await value()).toBe(!before);
-            });
-        });
-    });
-}
-
-for (const site of SITES) {
     test.describe(`${site.name}: reporting a problem`, () => {
         /** Behaviour map §21. The form opens over the settings screen and comes back. */
         test('the form opens from settings and can be left again', async ({ ext, pageFor }) => {

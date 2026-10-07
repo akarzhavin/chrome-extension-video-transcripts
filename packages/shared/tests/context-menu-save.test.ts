@@ -17,7 +17,7 @@ jest.mock('../src/auth/background', () => ({
 }));
 jest.mock('../src/auth/storage', () => ({
     AUTH_UID_KEY: 'auth.uid',
-    SIBLING_KEYS: { otherOwns: 'sibling.otherOwns' },
+    SIBLING_KEYS: { otherOwns: 'sibling.otherOwns', owner: 'sibling.owner' },
     getAuthState: () => getAuthState(),
 }));
 jest.mock('../src/word-mirror', () => ({
@@ -68,13 +68,16 @@ const DEV_ID = 'abcdefghijklmnopabcdefghijklmnop';
     runtime: {
         id: DEV_ID,
         sendMessage,
-        onInstalled: { addListener: (f: () => void) => (listeners.installed = f) },
+        onInstalled: { addListener: (f: (d?: unknown) => void) => (listeners.installed = f) },
         onStartup: { addListener: (f: () => void) => (listeners.startup = f) },
         onMessageExternal: { addListener: (f: any) => (listeners.external = f) },
         lastError: undefined as unknown,
     },
     storage: {
-        local: { set: jest.fn(async (_o: Record<string, unknown>) => {}) },
+        local: {
+            set: jest.fn(async (_o: Record<string, unknown>) => {}),
+            get: jest.fn(async (_k: unknown): Promise<Record<string, unknown>> => ({})),
+        },
         onChanged: { addListener: (f: any) => (listeners.storage = f) },
     },
     contextMenus: {
@@ -296,6 +299,53 @@ describe('two editions installed side by side', () => {
         });
     });
 
+    // The popup and the settings page read WHO paints, to point there instead
+    // of offering highlight settings this edition's painter never reads.
+    it.each(matrix)('YouTube signed in %s, HDrezka signed in %s: the yielding edition records the %s edition as owner', async (yt, rz, owner) => {
+        const lastSet = () => (global as any).chrome.storage.local.set.mock.calls.at(-1)[0]['sibling.owner'];
+        siblingAnswers(EDITION_IDS.rezka, { ok: true, signedIn: rz });
+        await asEdition(EDITION_IDS.youtube, yt);
+        const fromYoutube = lastSet();
+        siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: yt });
+        await asEdition(EDITION_IDS.rezka, rz);
+        const fromRezka = lastSet();
+        expect({ fromYoutube, fromRezka }).toEqual(
+            owner === 'youtube'
+                ? { fromYoutube: null, fromRezka: { edition: 'youtube', id: EDITION_IDS.youtube } }
+                : { fromYoutube: { edition: 'rezka', id: EDITION_IDS.rezka }, fromRezka: null },
+        );
+    });
+
+    // Ownership moves here (HDrezka signs in, YouTube is signed out) while the
+    // previous owner still answers: its highlight settings come along.
+    it('taking ownership over, asks the previous owner for its highlight settings', async () => {
+        const get = (global as any).chrome.storage.local.get as jest.Mock;
+        get.mockImplementation(async () => ({ 'sibling.otherOwns': true }));
+        const asked: unknown[] = [];
+        sendMessage.mockImplementation(async (id: string, m: any) => {
+            if (id !== EDITION_IDS.youtube) throw new Error('Receiving end does not exist.');
+            asked.push(m.op);
+            return m.op === 'status' ? { ok: true, signedIn: false } : { ok: true, prefs: { pageHighlight: true, highlightOffHosts: [] } };
+        });
+        try {
+            await asEdition(EDITION_IDS.rezka, true);
+            expect(asked).toContain('highlightGet');
+        } finally {
+            get.mockImplementation(async () => ({}));
+        }
+    });
+
+    it('keeping ownership, asks for nothing', async () => {
+        const asked: unknown[] = [];
+        sendMessage.mockImplementation(async (id: string, m: any) => {
+            if (id !== EDITION_IDS.rezka) throw new Error('Receiving end does not exist.');
+            asked.push(m.op);
+            return { ok: true, signedIn: false };
+        });
+        await asEdition(EDITION_IDS.youtube, true);
+        expect(asked).not.toContain('highlightGet');
+    });
+
     it('keeps the item when the other edition is absent', async () => {
         await asEdition(EDITION_IDS.rezka, false);
         expect(live).toHaveLength(1);
@@ -318,6 +368,46 @@ describe('two editions installed side by side', () => {
         const fromStranger = jest.fn();
         expect(listeners.external!({ type: 'lingogram-sibling', op: 'status' }, { id: DEV_ID }, fromStranger)).toBe(false);
         expect(fromStranger).not.toHaveBeenCalled();
+    });
+
+    it('answers the stats choice to its sibling only', async () => {
+        await asEdition(EDITION_IDS.youtube, true);
+        const get = (global as any).chrome.storage.local.get as jest.Mock;
+        get.mockImplementation(async () => ({ 'prefs.v1': { analyticsEnabled: false } }));
+        try {
+            const reply = await new Promise((resolve) => {
+                expect(listeners.external!({ type: 'lingogram-sibling', op: 'analyticsGet' }, { id: EDITION_IDS.rezka }, resolve)).toBe(true);
+            });
+            expect(reply).toEqual({ ok: true, on: false });
+        } finally {
+            get.mockImplementation(async () => ({}));
+        }
+        const fromStranger = jest.fn();
+        expect(listeners.external!({ type: 'lingogram-sibling', op: 'analyticsSet', on: false }, { id: DEV_ID }, fromStranger)).toBe(false);
+        expect(fromStranger).not.toHaveBeenCalled();
+    });
+
+    it('stores the stats choice the sibling sends', async () => {
+        await asEdition(EDITION_IDS.youtube, true);
+        const set = (global as any).chrome.storage.local.set as jest.Mock;
+        set.mockClear();
+        const reply = await new Promise((resolve) => {
+            listeners.external!({ type: 'lingogram-sibling', op: 'analyticsSet', on: false }, { id: EDITION_IDS.rezka }, resolve);
+        });
+        expect(reply).toEqual({ ok: true });
+        expect(set.mock.calls.map(([o]) => o['prefs.v1']?.analyticsEnabled)).toContain(false);
+    });
+
+    it.each([
+        ['install', true],
+        ['update', false],
+    ])('on %s, asks the other edition whether stats are off: %s', async (reason, asks) => {
+        await asEdition(EDITION_IDS.rezka, false);
+        sendMessage.mockClear();
+        listeners.installed!({ reason } as any);
+        await flush();
+        const ops = sendMessage.mock.calls.map(([, m]) => (m as any).op);
+        expect(ops.includes('analyticsGet')).toBe(asks);
     });
 
     it('signing in moves the item here, and tells the other edition', async () => {

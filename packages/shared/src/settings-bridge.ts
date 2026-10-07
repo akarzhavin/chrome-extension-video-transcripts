@@ -8,17 +8,20 @@
 // Nothing the page sends is trusted as-is. A write is all-or-nothing: the whole
 // message is validated first and nothing is stored unless every part is valid.
 
-import { track } from './analytics-bg';
+import { setAnalyticsEverywhere } from './analytics-consent';
 import { handleAuthMessage } from './auth/background';
+import { setPendingAuthNonce } from './auth/storage';
+import { normalizeHost } from './highlight-hosts';
 import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from './languages';
 import { loadPrefs, savePrefs, sitePrefKey, type Prefs, type VideoSite } from './prefs';
+import { loadHighlightPrefs, saveHighlightPrefs, type HighlightChange } from './highlight-prefs';
 import { isTrustedSiteSender } from './site-sender';
 import { SITE_NAMES, ownSites } from './welcome/welcome';
 import { offered, type BridgeOptions } from './welcome/bridge';
 
 export const SETTINGS_MESSAGE_TYPE = 'lingogram-settings';
 
-export type SettingsOp = 'state' | 'set';
+export type SettingsOp = 'state' | 'set' | 'beginSignIn';
 
 export interface SettingsMessage {
     type: typeof SETTINGS_MESSAGE_TYPE;
@@ -46,13 +49,17 @@ export interface SettingsSnapshot {
     sites: Array<{ id: VideoSite; name: string; enabled: boolean }>;
     pageHighlight: boolean;
     analyticsEnabled: boolean;
+    /** Sites the page highlight is switched off on (the popup's per-site switch). */
+    highlightOffHosts: string[];
 }
 
 async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
-    const [auth, langs, prefs] = await Promise.all([
+    const [auth, langs, prefs, highlight] = await Promise.all([
         handleAuthMessage({ action: 'AUTH_STATUS' }) as Promise<{ signedIn: boolean }>,
         loadLanguagePrefs(),
         loadPrefs(),
+        // From the edition that paints, which may be the other one.
+        loadHighlightPrefs(),
     ]);
     return {
         ok: true,
@@ -67,12 +74,16 @@ async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
             name: SITE_NAMES[id],
             enabled: prefs[sitePrefKey(id)],
         })),
-        pageHighlight: prefs.pageHighlight,
+        pageHighlight: highlight.pageHighlight,
         analyticsEnabled: prefs.analyticsEnabled,
+        highlightOffHosts: highlight.highlightOffHosts,
     };
 }
 
-type Reply = { ok: boolean; error?: string } | SettingsSnapshot;
+type Reply = { ok: boolean; error?: string; nonce?: string } | SettingsSnapshot;
+
+/** A hostname as the page may name one: letters, digits, dots, hyphens. */
+const HOST = /^[a-z0-9.-]{1,253}$/;
 
 const isPlain = (v: unknown): v is Record<string, unknown> =>
     typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -85,13 +96,20 @@ function strayKey(obj: Record<string, unknown>, allowed: readonly string[]): str
 interface ValidSet {
     languages?: { learning: string; native: string };
     prefs: Partial<Prefs>;
+    /**
+     * The highlight settings, written where the highlight reads them
+     * (highlight-prefs.ts). One site switched on or off is applied to the list
+     * as it is when written: a whole list sent by the page would undo a change
+     * the popup made since the page read it.
+     */
+    highlight: HighlightChange;
 }
 
 /** The message's changes, or the reason it is refused. Writes nothing. */
 function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | string {
     const stray = strayKey(msg, ['type', 'op', 'languages', 'prefs']);
     if (stray) return `unknown key: ${stray}`;
-    const out: ValidSet = { prefs: {} };
+    const out: ValidSet = { prefs: {}, highlight: {} };
 
     if (msg.languages !== undefined) {
         const l = msg.languages;
@@ -109,13 +127,14 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
     if (msg.prefs !== undefined) {
         const p = msg.prefs;
         if (!isPlain(p)) return 'prefs must be an object';
-        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'sites']);
+        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'sites', 'highlightHost']);
         if (bad) return `unknown key: prefs.${bad}`;
         for (const k of ['pageHighlight', 'analyticsEnabled'] as const) {
             if (p[k] === undefined) continue;
             if (typeof p[k] !== 'boolean') return `${k} must be a boolean`;
-            out.prefs[k] = p[k];
         }
+        if (typeof p.analyticsEnabled === 'boolean') out.prefs.analyticsEnabled = p.analyticsEnabled;
+        if (typeof p.pageHighlight === 'boolean') out.highlight.pageHighlight = p.pageHighlight;
         if (p.sites !== undefined) {
             const s = p.sites;
             if (!isPlain(s)) return 'sites must be an object';
@@ -126,6 +145,15 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
                 if (typeof on !== 'boolean') return `sites.${id} must be a boolean`;
                 out.prefs[sitePrefKey(id as VideoSite)] = on;
             }
+        }
+        if (p.highlightHost !== undefined) {
+            const h = p.highlightHost;
+            if (!isPlain(h)) return 'highlightHost must be an object';
+            const badH = strayKey(h, ['host', 'on']);
+            if (badH) return `unknown key: prefs.highlightHost.${badH}`;
+            if (typeof h.host !== 'string' || !HOST.test(normalizeHost(h.host))) return 'highlightHost.host must be a hostname';
+            if (typeof h.on !== 'boolean') return 'highlightHost.on must be a boolean';
+            out.highlight.highlightHost = { host: h.host, on: h.on };
         }
     }
     return out;
@@ -140,17 +168,24 @@ export async function handleSettingsMessage(msg: SettingsMessage, opts: BridgeOp
             const v = validateSet(msg, opts);
             if (typeof v === 'string') return { ok: false, error: v };
             if (v.languages) await saveLanguagePrefs(v.languages, 'site');
-            if (Object.keys(v.prefs).length > 0) {
-                // Reported BEFORE the preference is written, as the popup does:
-                // the event is the last one the gate lets through. Only when
-                // analytics is on right now, so a page that re-sends "off" does
-                // not report an opt-out that already happened.
-                if (v.prefs.analyticsEnabled === false && (await loadPrefs()).analyticsEnabled) {
-                    await track('analytics_opt_out');
-                }
-                await savePrefs(v.prefs);
+            // The stats choice is one for both editions: written here and there.
+            const { analyticsEnabled, ...own } = v.prefs;
+            if (analyticsEnabled !== undefined) await setAnalyticsEverywhere(analyticsEnabled);
+            if (Object.keys(own).length > 0) await savePrefs(own);
+            if (Object.keys(v.highlight).length > 0 && !(await saveHighlightPrefs(v.highlight))) {
+                return { ok: false, error: 'the edition that highlights words did not save the change' };
             }
             return { ok: true };
+        }
+        case 'beginSignIn': {
+            // The page connects a signed-out extension itself: it mints the
+            // token for its own signed-in learner and sends the usual handoff,
+            // which must carry this one-shot challenge. Issued exactly as the
+            // welcome bridge and AUTH_SIGN_IN_VIA_LINGOGRAM issue it; only a
+            // trusted frontend origin reaches this handler.
+            const nonce = crypto.randomUUID();
+            await setPendingAuthNonce(nonce);
+            return { ok: true, nonce };
         }
         default:
             return { ok: false, error: 'unknown op' };

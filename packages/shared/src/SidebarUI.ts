@@ -1,7 +1,7 @@
 import { AppState } from './AppState';
 // Content-safe half only: analytics.ts never reads the GA4 api_secret, so it is
 // safe in a bundle the page can read. analytics-bg must never be imported here.
-import { trackVia, platformOf } from './analytics';
+import { platformOf } from './analytics';
 import {
     DEFAULT_DEBUG_MODE,
     loadPrefs,
@@ -98,7 +98,6 @@ export const ICONS = {
     reading: svgIcon('<path d="M2 6s3-2 10-2 10 2 10 2v12s-3-2-10-2-10 2-10 2z" opacity=".4"/><path d="M12 4v14"/>'),
     appearance: svgIcon('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
     chevron: svgIcon('<path d="M6 9l6 6 6-6"/>'),
-    privacy: svgIcon('<path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/>'),
     // Speech bubble, not a warning triangle or a bug: this is an invitation to
     // say something, and an alert glyph would read as "something is broken
     // right now" every time the panel is open.
@@ -661,15 +660,12 @@ export class SidebarUI {
         settingsPanel.appendChild(boxGroup);
 
 
-        // -- Tail rows -----------------------------------------------------------
-        // Two rows of one anatomy close the panel: the analytics opt-out (a
-        // setting, so it scrolls with the settings) and "Report a problem"
-        // (not "Leave feedback" — the point is to catch the unhappy user
-        // before they leave a one-star review instead). Neither is a
-        // buildGroup: a heading would out-shout Languages for things people
-        // touch once or never. Hairline-separated rows in the groups' icon
-        // column, same weight as each other.
-        settingsPanel.appendChild(this.buildAnalyticsToggle());
+        // -- Tail row ------------------------------------------------------------
+        // "Report a problem" closes the panel (not "Leave feedback" — the point
+        // is to catch the unhappy user before they leave a one-star review
+        // instead). Not a buildGroup: a heading would out-shout Languages for
+        // something people touch once or never. The stats opt-out lives on the
+        // site's settings page, one choice for both editions.
 
         const feedbackLink = document.createElement('button');
         feedbackLink.id = 'vtt-feedback-link';
@@ -853,74 +849,9 @@ export class SidebarUI {
     }
 
     /**
-     * The analytics opt-out, mirroring the one in the toolbar popup.
-     *
-     * A native checkbox rather than a styled div: it gets keyboard focus, the
-     * platform focus ring, and screen-reader semantics for free — and this is
-     * the one control in the panel where being operable matters legally, not
-     * just aesthetically.
-     *
-     * Rendered checked, then corrected once prefs resolve. Flashing "off" on a
-     * privacy control reads far worse than the reverse: a user who glances at
-     * it mid-load would think collection was already disabled.
-     */
-    private buildAnalyticsToggle(): HTMLLabelElement {
-        // Anatomy mirrors .vtt-feedback-link below it — icon, label, one line —
-        // so the footer reads as one band, not two leftovers. The state lives
-        // in a trailing mini-switch, the settings idiom for a live toggle
-        // (a checkbox here read as "form field", which this is not).
-        const label = document.createElement('label');
-        label.className = 'vtt-panel-row';
-        label.innerHTML = `${ICONS.privacy}<span class="vtt-privacy-text">${msg(
-            'ytPrivacyAnalyticsLabel',
-            'Share anonymous usage stats',
-        )}</span>`;
-
-        // The full sentence lives in the tooltip rather than a second line:
-        // the footer is a one-line-per-row band, and spelling out what is and
-        // is not collected inline would make privacy the loudest thing here.
-        // The policy carries the same wording in full.
-        label.title = msg(
-            'ytPrivacyAnalyticsHint',
-            'Counts like "subtitles loaded" and "word saved". Never your account, the videos you watch, or the words you save.',
-        );
-
-        // A real checkbox drives the switch: keyboard, focus and screen-reader
-        // semantics stay native, only the pixels are ours. It is visually
-        // hidden by CSS, and :focus-visible re-surfaces as a ring on the track.
-        const box = document.createElement('input');
-        box.type = 'checkbox';
-        box.id = 'vtt-analytics-toggle';
-        box.className = 'vtt-switch-input';
-        box.checked = true;
-
-        const track = document.createElement('span');
-        track.className = 'vtt-switch';
-        track.setAttribute('aria-hidden', 'true');
-
-        label.appendChild(box);
-        label.appendChild(track);
-
-        void loadPrefs().then((p) => {
-            box.checked = p.analyticsEnabled;
-        });
-        box.addEventListener('change', () => {
-            const on = box.checked;
-            // Sent BEFORE the preference is written, so this final hit still
-            // passes the gate. Opting back in isn't tracked: analytics is on
-            // for everyone by default, so that event could only ever measure
-            // re-enables. Same ordering as the popup's copy of this control.
-            if (!on) trackVia('analytics_opt_out');
-            void savePrefs({ analyticsEnabled: on });
-        });
-
-        return label;
-    }
-
-    /**
      * Dev-only: the subtitle diagnostics toggle.
      *
-     * Anatomy is deliberately the analytics row's, so the panel's footer stays
+     * Anatomy is deliberately the feedback row's, so the panel's footer stays
      * one band rather than gaining a differently-shaped stranger.
      *
      * The label is hardcoded English, NOT an i18n key. The interface ships in
@@ -958,8 +889,8 @@ export class SidebarUI {
         box.type = 'checkbox';
         box.id = 'vtt-debug-toggle';
         box.className = 'vtt-switch-input';
-        // Seeded from the default and corrected below once storage resolves —
-        // the same shape as the analytics row. Hardcoding `false` here would
+        // Seeded from the default and corrected below once storage resolves.
+        // Hardcoding `false` here would
         // paint the switch off for a frame on a dev build, where the default
         // is on, and read as "the recorder is not running" at exactly the
         // moment someone is checking whether it is.

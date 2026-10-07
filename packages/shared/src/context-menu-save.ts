@@ -12,8 +12,10 @@
 // identical items. The two agree on one owner, the edition the learner is signed
 // in to (sibling.ts, ownsSharedFeatures), and the other hides its item.
 
+import { adoptAnalyticsOptOut, answerAnalyticsRequest } from './analytics-consent';
 import { handleAuthMessage } from './auth/background';
 import { AUTH_UID_KEY, getAuthState, SIBLING_KEYS } from './auth/storage';
+import { answerHighlightRequest, takeHighlightPrefsFrom } from './highlight-prefs';
 import { msg } from './i18n';
 import {
     editionOf,
@@ -72,14 +74,29 @@ function tellSibling(): void {
 
 async function decideAndApply(): Promise<void> {
     const signedIn = !!(await getAuthState());
-    const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, await askSiblingStatus());
+    const sibling = await askSiblingStatus();
+    let yieldedBefore = false;
+    try {
+        yieldedBefore = (await chrome.storage?.local?.get(SIBLING_KEYS.otherOwns))?.[SIBLING_KEYS.otherOwns] === true;
+    } catch {
+        // unknown: nothing to take over
+    }
+    const owns = ownsSharedFeatures(editionOf(chrome.runtime.id), signedIn, sibling);
+    const ownerEdition = sibling ? editionOf(sibling.id) : null;
     // The same answer decides who paints saved words on web pages: a content
     // script cannot message another extension, so it reads the worker's answer.
     try {
-        await chrome.storage?.local?.set({ [SIBLING_KEYS.otherOwns]: !owns });
+        await chrome.storage?.local?.set({
+            [SIBLING_KEYS.otherOwns]: !owns,
+            // Who, so the popup and the site can point there instead of showing switches nobody reads.
+            [SIBLING_KEYS.owner]: !owns && sibling && ownerEdition ? { edition: ownerEdition, id: sibling.id } : null,
+        });
     } catch {
         // storage unavailable — the page script then paints, a duplicate at worst.
     }
+    // Ownership moved here while the previous owner still answers: its
+    // highlight settings are the ones the learner last saw, so they come along.
+    if (owns && yieldedBefore && sibling) await takeHighlightPrefsFrom(sibling.id);
     await (owns ? showItem() : hideItem());
 }
 
@@ -100,7 +117,9 @@ export function installContextMenuSave(): void {
     // Every worker start, not only install/startup: the worker wakes many times
     // a day, so a removed or signed-out sibling is noticed within one wake.
     void syncMenu();
-    chrome.runtime.onInstalled.addListener(() => {
+    chrome.runtime.onInstalled.addListener((details) => {
+        // A learner who opted out of stats in the other edition is out here too.
+        if (details?.reason === 'install') void adoptAnalyticsOptOut();
         void syncMenu();
         tellSibling();
     });
@@ -122,6 +141,14 @@ export function installContextMenuSave(): void {
                 void syncMenu();
                 sendResponse({ ok: true });
                 return false;
+            }
+            if (message.op === 'highlightGet' || message.op === 'highlightSet') {
+                void answerHighlightRequest(message).then(sendResponse);
+                return true;
+            }
+            if (message.op === 'analyticsGet' || message.op === 'analyticsSet') {
+                void answerAnalyticsRequest(message).then(sendResponse);
+                return true;
             }
             void getAuthState().then((state) => sendResponse({ ok: true, signedIn: !!state } satisfies SiblingStatus));
             return true; // answered asynchronously

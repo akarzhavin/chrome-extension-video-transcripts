@@ -59,7 +59,7 @@ describe('the HDrezka popup', () => {
         await nextTick();
 
         const root = document.getElementById('root')!;
-        expect(root.querySelector('h1')?.textContent).toBe('Lingogram');
+        expect(root.querySelector('h1')?.textContent).toBe('LingogramHDrezka');
         expect(root.querySelector('input[type="email"]')).toBeNull();
         expect(root.querySelector('.mintro b')?.textContent).toBe('Save words as you watch');
         expect(root.querySelector('button.primary')).toBeNull();

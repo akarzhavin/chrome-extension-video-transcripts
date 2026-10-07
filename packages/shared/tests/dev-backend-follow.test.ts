@@ -262,33 +262,3 @@ describe('the words page follows the stored backend', () => {
         expect(tabsCreate).toHaveBeenCalledWith({ url: `${PREPROD_URL}/app/vocab` });
     });
 });
-
-describe('the settings page follows the stored backend', () => {
-    beforeEach(() => {
-        document.body.innerHTML = bodyOf('settings/settings.html');
-    });
-
-    test('restores the stored side before the account group is painted', async () => {
-        store['dev.targetEnv'] = 'preprod';
-        const { config } = await import('../src/auth/config');
-        const { initSettings } = await import('../src/settings/settings');
-        initSettings({ edition: 'youtube' });
-        await settle();
-        expect(config.frontendBaseUrl).toBe(PREPROD_URL);
-    });
-
-    test('a changed dev.targetEnv while open re-applies and repaints the account', async () => {
-        const { config } = await import('../src/auth/config');
-        const { initSettings } = await import('../src/settings/settings');
-        initSettings({ edition: 'youtube' });
-        await settle();
-        expect(config.frontendBaseUrl).toBe(HOME_URL);
-        const before = actions().filter((a) => a === 'AUTH_STATUS').length;
-
-        for (const l of storageListeners) l({ 'dev.targetEnv': { newValue: 'preprod' } }, 'local');
-        await settle();
-
-        expect(config.frontendBaseUrl).toBe(PREPROD_URL);
-        expect(actions().filter((a) => a === 'AUTH_STATUS').length).toBeGreaterThan(before);
-    });
-});

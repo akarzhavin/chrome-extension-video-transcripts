@@ -101,6 +101,8 @@ export const WELCOME_KEYS = {
 
 export const SIBLING_KEYS = {
     otherOwns: 'sibling.otherOwns',
+    /** Which edition owns the shared features when it is not this one: {edition, id}, or absent. */
+    owner: 'sibling.owner',
 } as const;
 
 // Anonymous-analytics storage keys. Read/written only by analytics-bg.ts;
