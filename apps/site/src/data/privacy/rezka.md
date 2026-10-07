@@ -1,11 +1,13 @@
-# Privacy Policy — Lingogram: Dual Subtitles & Transcript for HDrezka
+# Privacy Policy — Dual Subtitles for HDrezka — Lingogram
 
 **Effective date:** June 22, 2026
 **Last updated:** October 7, 2026
 
-This Privacy Policy explains what information the **Lingogram: Dual Subtitles &
-Transcript for HDrezka** browser extension ("the Extension") collects, how it is
-used, where it is stored, and the choices you have.
+This Privacy Policy explains what information the **Dual Subtitles for HDrezka —
+Lingogram** browser extension ("the Extension") collects, how it is used, where it
+is stored, and the choices you have. It applies to the Extension wherever it runs:
+on **HDrezka**, on the web pages where it marks your saved words (Section 1b), and on
+translate.google.com when you import your saved phrases (Section 1h).
 
 *This English version at https://lingogram.ai/privacy/rezka/ is the authoritative one.*
 
@@ -13,21 +15,22 @@ used, where it is stored, and the choices you have.
 
 ## TL;DR
 
-* **Without an account, nothing about you is stored on our servers.** The
+* **Without an account, we keep no account and no list of your words.** The
   interactive transcript, listening challenge, dual subtitles, and word saving all
   run inside your browser, and so does downloading a subtitle track as a file. A
-  word you save without an account is kept in your browser only (Section 1a). Three
+  word you save without an account is kept in your browser only (Section 1a). Some
   things do leave it, with or without an account: **looking a word
-  up** sends that word and its subtitle line to our dictionary service, and a
-  **phrase you select** goes first to Google Translate, without the subtitle line
+  up** sends that word and the subtitle lines around it to our dictionary service,
+  which may pass them to **OpenAI** to answer, and a
+  **phrase you select** goes first to Google Translate, without the subtitle lines
   (Section 1e); a **feedback message you choose to send** reaches us with the text you
   typed (Section 1g); and the anonymous usage counting described below, which
-  you can turn off. None of them is tied to your identity unless you put it
-  there yourself, by typing a reply address into your feedback.
+  you can turn off. None of them carries your name, email or account ID, except
+  feedback you send while signed in, which carries your user ID so we can reply.
 * **Signing in is optional.** It exists only to sync your saved vocabulary across
   devices. Words you saved before you signed in move into your account when you
   sign in (Section 1b). If you choose to sign in, we collect your **email
-  address** and store the
+  address** and **name** and store the
   **words you explicitly save** (with the surrounding subtitle lines, or the
   paragraph around a word you save from the right-click menu on a web page) in our cloud
   database. A list of those words is also kept on your device, so the Extension
@@ -41,9 +44,9 @@ used, where it is stored, and the choices you have.
   anonymous usage events (for example: the Extension was installed, subtitles
   loaded, a word was saved) tagged with a **random identifier generated on your
   device** — not your email, not your account. That identifier is never joined to
-  your Lingogram account. Open the Extension's **Settings** page (the **Settings**
-  link in the toolbar popup) → **Privacy** → uncheck **"Share anonymous usage
-  stats"** and collection stops immediately.
+  your Lingogram account. Click **Settings** in the toolbar popup (it opens the
+  Extension's settings on our website, Section 1f) → **Privacy** → uncheck
+  **"Share anonymous usage stats"** and collection stops immediately.
 * **Your saved words are marked on the web pages you read.** The page text is
   compared with your saved words inside your browser and is never sent or
   stored; you can switch this off for all websites on the Settings page, or for
@@ -65,15 +68,18 @@ servers, and creates no account. Your language and layout preferences, a local
 it, the subtitle line or paragraph it came from, a coarse label of where you
 saved it (such as `youtube` or `web`), and the time you first saved it. Once you
 open the **My words** page, a translation of the word is kept with it (Section 1e).
-None of this is sent to our servers while you have no account. No account, email,
-or saved word is sent to us unless you sign in.
+None of this is uploaded to our servers while you have no account, and no account
+or email is sent to us unless you sign in. A saved word does leave your browser
+when it is looked up — on the My words page, or when you rest the pointer on it on
+a web page — as described in Section 1e: the word alone, without its context.
 
 Four things are sent even without an account, none of them tied to your identity
 unless you choose to add it:
 
 * the **anonymous usage analytics** of Section 1c, which you can turn off in one
   click;
-* a **word you look up**, with the subtitle line it came from — Section 1e. This
+* a **word you look up**, with the subtitle lines around it — Section 1e, which
+  also says how our dictionary service may pass them to OpenAI. This
   is the feature working, not measurement, so the analytics switch does not stop
   it; not looking words up does. The **My words** page looks up the words it
   lists, without a sentence;
@@ -86,8 +92,11 @@ unless you choose to add it:
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
 collect and process:
 
-* **Account data** — your **email address** and a Firebase-generated user ID. These
-  identify your account and associate your saved words with you.
+* **Account data** — your **email address**, your **name** (as you type it when you
+  register, or the name on your Google account if you sign in with Google; when
+  none is given, the part of your email before the @ is used), and a
+  Firebase-generated user ID. These identify your account and associate your saved
+  words with you.
 * **Saved vocabulary** — only the items you explicitly choose to save, while watching
   or from the right-click menu on any website, or import from Google Translate
   (Section 1h).
@@ -133,7 +142,7 @@ the session needs renewing, so it can tell you to sign in again.
 
 We do **not** collect: your browsing history, the videos you watch or the pages you
 read (beyond the subtitle text you explicitly save, the paragraph around a word you
-save from the right-click menu, the subtitle line accompanying a word you look
+save from the right-click menu, the subtitle lines accompanying a word you look
 up as described in Section 1e, the site name attached to a feedback message you
 send, and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a coarse platform label
@@ -195,11 +204,10 @@ follow the same choice, and only the one that shows the menu item marks words.
 
 The Extension sends anonymous usage events to **Google Analytics 4** so we can see
 how many people install it, where the Extension breaks, and which steps people give
-up on. This is **on by default**. To turn it off, open the Extension's **Settings**
-page (the **Settings** link in the toolbar popup), go to the **Privacy** group, and
-uncheck **"Share anonymous usage stats"**. You can also turn it off on the
-settings page of our website (Section 1f), which changes the same setting.
-Collection stops immediately. If both Lingogram editions are installed, turning it
+up on. This is **on by default**. To turn it off, click **Settings** in the toolbar
+popup. It opens the Extension's settings page on our website (Section 1f); in its
+**Privacy** group, uncheck **"Share anonymous usage stats"**. The page passes the
+change to the Extension inside your browser, and collection stops immediately. If both Lingogram editions are installed, turning it
 off or on in one does the same in the other, inside your browser, and an edition
 installed later starts with it off if you had turned it off in the other.
 
@@ -330,8 +338,9 @@ request contains:
 
 * the **word or phrase** you pointed at;
 * the **language you want it in** (your native language, as configured);
-* the **subtitle line it came from**, so the service can pick the sense that fits
-  the sentence rather than the most common one. For a word marked on a web page,
+* the **subtitle lines around it** (the line it came from, and the lines just
+  before and after it), so the service can pick the sense that fits the sentence
+  rather than the most common one. For a word marked on a web page,
   or listed on the My words page, nothing is sent but the word and the language:
   not its sentence, not the page, not the address.
 
@@ -339,6 +348,18 @@ request contains:
 account identifier, no email, no analytics identifier, and nothing that ties one
 lookup to another or to you. We use it to answer that lookup, and we do not build
 a history of your lookups against any identity.
+
+**How our dictionary service answers.** The service runs on Google Cloud. It first
+looks the word up in Wiktionary data published by **kaikki.org**, sending only the
+word, from our server. When that has no entry (typically a phrase, a rare word or a
+name), or when the dictionary is unavailable, the service asks an AI model run by
+**OpenAI** through the OpenAI API, sending the word or phrase, your language and the
+subtitle lines that came with it. Neither receives your IP address, an account
+identifier or anything else about you; OpenAI processes the request as our service
+provider under its API data-usage terms. The service stores each answer in its
+database, keyed by the word, the language and a one-way hash of the subtitle lines,
+so the same question is not asked again, and its logs record the word asked (not
+the subtitle lines) to monitor answer quality (Section 6).
 
 It is a feature rather than measurement, so the **"Share anonymous usage stats"**
 switch does not stop it — that switch governs Section 1c. The way to send no
@@ -464,6 +485,8 @@ We use the information above **only** to:
 * keep the words you save without an account in your browser, and move them into
   your account when you sign in;
 * enforce a reasonable daily limit on saved words to prevent abuse;
+* answer the word lookups you make (Section 1e), through our dictionary service and
+  the providers it uses (kaikki.org and OpenAI) and, for phrases, Google Translate;
 * investigate the subtitle-loading failures you explicitly report via the
   **"Reload page"** button, so we can fix them;
 * read the feedback you send, and reply to it if you are signed in or left a reply
@@ -474,7 +497,7 @@ We use the information above **only** to:
   of you.
 
 We do not use your information for advertising, profiling, or any purpose beyond
-providing the sync, diagnostics, and feedback features and the aggregate usage
+providing the sync, word lookup, diagnostics, and feedback features and the aggregate usage
 counting described here.
 
 ## 3. Local Storage (On Your Device)
@@ -548,6 +571,13 @@ Firebase project. That collection is public and read-only from the Extension: it
 contains only messages we write, no user data, and the Extension can read it but
 never write to it.
 
+Word lookups (Section 1e) go to **our dictionary service**, which we run on Google
+Cloud. To answer them it uses Wiktionary data from **kaikki.org** (the word only)
+and, when that has no entry, the **OpenAI API** (the word or phrase, your language
+and the subtitle lines that came with it), as described in Section 1e. OpenAI
+processes these requests as our service provider under its API terms; see
+https://openai.com/policies/privacy-policy.
+
 The anonymous usage events described in Section 1c are sent to **Google Analytics 4**
 (via the Measurement Protocol) unless you turn analytics off. Google processes those
 events for us as our service provider, under the same Google Privacy Policy. Firebase
@@ -560,7 +590,7 @@ These requests:
 
 * are made directly from your browser to the platform, with no intermediate proxy of
   ours;
-* contain no account data or saved words;
+* contain no Lingogram account data or saved words;
 * are subject to the privacy policies of those platforms.
 
 A **phrase you select**, or a saved phrase you point at on a web page, is sent to
@@ -577,11 +607,13 @@ from it reaches us except the new words you confirm.
 ## 5. Data Sharing and Sale
 
 We do **not** sell, rent, or trade your personal data. We do not share it with any
-third party except Google Firebase and Google Analytics as the infrastructure and
-analytics providers described in Section 4, and Google Translate, which receives
-the text of a phrase you select or point at (Section 1e), or where required by law. The dictionary
-service of Section 1e is our own, not a third party. We do not use your data for
-advertising.
+third party except: Google (Firebase, Google Cloud and Google Analytics) as the
+infrastructure and analytics providers described in Section 4; Google Translate,
+which receives the text of a phrase you select or point at (Section 1e); kaikki.org,
+which our dictionary service asks about a looked-up word, and OpenAI, which it asks
+about a word or phrase with its subtitle lines when the dictionary has no entry
+(Section 1e); or where required by law. None of them receives your name, email or
+account identifier from us. We do not use your data for advertising.
 
 ## 6. Data Retention and Deletion
 
@@ -602,10 +634,14 @@ advertising.
   Feedback sent without an account carries no identifier of yours unless you
   typed a reply address; to have such a message deleted, contact us (Section 10)
   quoting that address.
-* **Word lookups** (Section 1e) are answered and not kept as a history against any
-  identity; there is no account or identifier attached to one, so there is nothing
-  to look up or delete per person. Operational logs, where they exist, are
-  short-lived and serve to keep the service running.
+* **Word lookups** (Section 1e) are not kept as a history against any identity: no
+  account or identifier is attached to one, so there is nothing to look up or
+  delete per person. The dictionary service's database keeps each answer, keyed by
+  the word, the language and a one-way hash of the subtitle lines, and its logs
+  record the word asked; as for any web service, the hosting platform's request
+  logs also record the IP address of each request. Logs are kept under Google
+  Cloud's standard retention (30 days) and serve to keep the service running.
+  Requests passed to OpenAI are handled under OpenAI's API data-usage terms.
 * **Anonymous usage events** are retained by Google Analytics for **2 months**, then
   deleted. Because these events carry no account identifier, **we cannot look up or
   delete the events belonging to a specific person — and neither can you.** There is
@@ -616,10 +652,12 @@ advertising.
   email, user ID, and the local list of words synced from your account) or by
   removing the Extension from your browser (which also removes the random analytics
   identifier and any words kept in your browser).
-* To **delete your account and all associated cloud data** (email, saved words,
-  diagnostic reports, and feedback sent while signed in),
-  contact the developer using Section 10. We will delete it within a reasonable
-  period.
+* To **delete your account and all associated cloud data**, email
+  **support@lingogram.ai** from the address your account uses (Section 10).
+  Deletion is done by hand: we delete your sign-in account (email, name and user
+  ID), your saved words wherever we keep them, including words marked as removed,
+  your diagnostic reports, and feedback sent while signed in, and confirm by email
+  within 30 days.
 
 ## 7. Security
 
@@ -643,8 +681,9 @@ after an update constitutes acceptance of the revised policy.
 ## 10. Contact
 
 For any questions about this Privacy Policy, or to request deletion of your account
-and data, please contact the developer via the project's official repository or
-through the Chrome Web Store support page for the Extension.
+and data, please email **support@lingogram.ai**. To delete your account, write from
+the email address the account uses, so we can confirm it is yours. Please do not
+post your email address in a public place, such as a GitHub issue.
 
 ---
 
