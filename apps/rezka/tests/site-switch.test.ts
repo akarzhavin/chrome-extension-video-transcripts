@@ -3,10 +3,9 @@
  * @jest-environment-options {"url": "https://hdrezka.ag/films/drama/1-title.html"}
  */
 
-// The site switch (welcome page, popup): HDrezka switched off means the content
-// script builds nothing on an HDrezka page. Driven through the REAL entry
-// module on a rezka URL, once off and once on, so the "on" run proves the
-// "off" run's empty page is the switch and not a bootstrap that never ran.
+// No site switch any more: a site switched off by an older version is built
+// anyway, since nothing is left to switch it back on. Driven through the REAL
+// entry module, with the stored flag off and on.
 
 // A module, not a script: the three site-switch files share names.
 export {};
@@ -56,12 +55,12 @@ async function loadEntry(siteRezka: boolean): Promise<void> {
     await flush();
 }
 
-test('switched off: nothing is built on an HDrezka page', async () => {
+test('a site switched off by an older version is built anyway: there is no switch to turn it back on', async () => {
     await loadEntry(false);
-    expect(document.getElementById('vtt-sidebar')).toBeNull();
+    expect(document.getElementById('vtt-sidebar')).not.toBeNull();
 });
 
-test('switched on: the sidebar is built (control for the test above)', async () => {
+test('switched on: the sidebar is built', async () => {
     await loadEntry(true);
     expect(document.getElementById('vtt-sidebar')).not.toBeNull();
 });
