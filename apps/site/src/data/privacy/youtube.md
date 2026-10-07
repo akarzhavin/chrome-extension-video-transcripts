@@ -4,7 +4,7 @@ Covers the **Lingogram: Dual Subtitles & Transcript for YouTube** extension, whi
 works on both YouTube and Netflix.
 
 **Effective date:** June 22, 2026
-**Last updated:** October 5, 2026
+**Last updated:** October 7, 2026
 
 This Privacy Policy explains what information the Extension collects, how it is used,
 where it is stored, and the choices you have. It applies to the Extension on both
@@ -51,8 +51,8 @@ where it is stored, and the choices you have. It applies to the Extension on bot
   compared with your saved words inside your browser and is never sent or
   stored; you can switch this off for all websites on the Settings page, or for
   one website in the toolbar popup (Section 1b). Resting the pointer
-  on a marked word shows its translation, and only that word is sent to look it up
-  (Section 1e).
+  on a marked word shows its translation, and only that word is sent to look it up;
+  a marked phrase of more than one word goes to Google Translate first (Section 1e).
 * We do **not** sell your data, show ads, run advertising trackers, build
   advertising profiles, or track your browsing history.
 
@@ -138,19 +138,18 @@ the session needs renewing, so it can tell you to sign in again.
 
 We do **not** collect: your browsing history, the videos you watch or the pages you
 read (beyond the subtitle text you explicitly save, the paragraph around a word you
-save from the right-click menu, the single video address included in a
-diagnostic report you explicitly trigger, and the site name attached to a feedback
-message you send; the analytics in Section 1c record only a coarse platform label
+save from the right-click menu, the subtitle line accompanying a word you look
+up as described in Section 1e, the site name attached to a feedback message you
+send, and the single video address included in a
+diagnostic report you explicitly trigger; the analytics in Section 1c record only a coarse platform label
 such as `youtube` or `netflix`, never a video or a URL),
 IP-based location tracking, advertising identifiers, or cookies for tracking.
 
 **Saving from the right-click menu.** When you select text on any web page, the
 Extension adds a **"Save to Lingogram"** item to your browser's right-click menu.
 The page is read only when you press that item, and only that one page: the
-browser grants the Extension temporary access to the tab you clicked in
-(Chrome's `activeTab` permission), the Extension reads the selected text and the
-paragraph it sits in, saves them as described above, and shows a short
-confirmation on the page. Saving never sends anything from a page you did not
+Extension reads the selected text and the paragraph it sits in, saves them as
+described above, and shows a short confirmation on the page. Saving never sends anything from a page you did not
 press the item on, and never records the page's address or title. If you are not
 signed in, the word is kept in your browser, as Section 1a describes, and is
 uploaded when you sign in. The analytics in Section 1c count such a save under the
@@ -160,7 +159,8 @@ If both editions are installed, only one shows the item: the one you are signed 
 to, or the YouTube edition when you are signed in to both or to neither. To agree
 on this, each edition asks the other, inside your browser, whether it is installed
 and signed in; the answer is a yes or no and carries no other data about you or
-the page.
+the page. The two editions also share, inside your browser, the settings described
+below and in Section 1c, so that both follow the same choice.
 
 **Marking your saved words on web pages.** On the web pages you open, the Extension
 marks the words and phrases you have saved, so you notice them wherever they
@@ -170,8 +170,9 @@ The page text, the words found in it, and the address of the page are **never
 sent anywhere** — not to us, not to Google, not to anyone — and nothing about
 them is stored. The one exception is a word you point at: resting the pointer on a
 marked word opens a card with its translation, and that word, only the word and
-not the sentence or the page, is sent to our dictionary service as described in
-Section 1e. Removing the word from that card, or saving it again, is an ordinary
+not the sentence or the page, is sent to look it up as described in Section 1e —
+to our dictionary service for a single word, and first to Google Translate for a
+phrase of more than one word. Removing the word from that card, or saving it again, is an ordinary
 change to your saved words, as described above; saving it again sends the
 paragraph it is in as its context, as the right-click save does. The marks are
 drawn by the browser over the text and do not change
@@ -179,15 +180,18 @@ the page's content. Because they are drawn on the page, **the website's own
 scripts can see which of its words are marked**, and through that, some of the words on
 your list. To limit this, only text that is actually shown on the page is
 marked, never hidden text. This requires Chrome's permission to run on all
-websites, which is the only thing the Extension uses that permission for; it
+websites. The Extension uses that access only for this marking and for reading the
+paragraph around a selection you save from the right-click menu (above); it
 does not run on Lingogram's own website. If you have saved no words, nothing is
 marked. You can switch it off for all websites with **"Highlight my words on
 websites"** on the Extension's Settings page, or for one website with
 **"Highlight words on"** that website's name in the toolbar popup. The websites
 you switch off this way are kept as a list of their host names (for example
-`en.wikipedia.org`) on your device only; the list is never sent anywhere, and the
-Settings page shows it so you can switch a website back on. If both editions are
-installed, only the one that shows the menu item marks words.
+`en.wikipedia.org`) on your device; the list is never sent to our servers or to
+anyone else. The Settings page, and the settings page of our website (Section 1f),
+show it so you can switch a website back on. If both editions are installed, the
+other edition is given the same switch and list inside your browser, so both
+follow the same choice, and only the one that shows the menu item marks words.
 
 > Your Lingogram account works across our other Lingogram extensions; if you sign in
 > with the same account, your saved vocabulary syncs together.
@@ -200,7 +204,9 @@ up on. This is **on by default**. To turn it off, open the Extension's **Setting
 page (the **Settings** link in the toolbar popup), go to the **Privacy** group, and
 uncheck **"Share anonymous usage stats"**. You can also turn it off on the
 settings page of our website (Section 1f), which changes the same setting.
-Collection stops immediately.
+Collection stops immediately. If both Lingogram editions are installed, turning it
+off or on in one does the same in the other, inside your browser, and an edition
+installed later starts with it off if you had turned it off in the other.
 
 **The identifier.** Each event carries a **random identifier generated on your
 device** the first time the Extension runs, stored in your browser's local extension
@@ -234,7 +240,8 @@ produces a new, unrelated identifier.
   YouTube player, or the Google Translate import);
 * `gt_import_preview`, `gt_import_done` — you started an import from Google
   Translate (Section 1h) and it finished. They carry only counts (phrases found, new,
-  already saved, removed earlier, skipped, added), never a word;
+  already saved, removed earlier, skipped, added, refused by our server, left
+  unfinished) and, if the import stopped, a short error code; never a word;
 * `analytics_opt_out` — you turned this analytics off, on the Settings page or on
   the settings page of our website (sent once, so we know how many people opt
   out);
@@ -253,8 +260,9 @@ produces a new, unrelated identifier.
 * **whether you were signed in** — a true/false flag, with no account identifier.
   On a word you save, `false` also means it was kept in your browser;
 * a **running count of words saved on this device**;
-* the **Extension version and edition**, and on `extension_updated` the version
-  you had before;
+* the **Extension version and edition**, the **build type** (a store build or one
+  of our developer test builds), and on `extension_updated` the version you had
+  before;
 * on developer test builds only, **which of our own test servers** the build was
   pointed at — a label about our infrastructure, not about you; builds installed
   from the Chrome Web Store never send it;
@@ -273,8 +281,9 @@ produces a new, unrelated identifier.
   our website);
 * for `word_lookup` only: whether the hover strip or the full word screen asked
   (the My words page counts as the hover strip),
-  whether the answer came from our cache, a dictionary, or a model, whether it
-  was empty, and a coarse latency bucket;
+  whether the answer came from our cache, a dictionary, a model, or Google
+  Translate, or the lookup failed, whether it was empty, and a coarse latency
+  bucket;
 * for `notification_fetch_failed` only, **why the request failed** and, if the
   server answered, its **HTTP status code**;
 * a **session ID** that groups events from one browsing session.
@@ -354,8 +363,10 @@ not contain the subtitle line, and it carries no account identifier, no email, n
 analytics identifier and no cookies. Like any web request, it reaches Google from
 your IP address, and Google processes it under its own Privacy Policy
 (https://policies.google.com/privacy). The dictionary service is asked about the
-phrase, as described above, only when Google gives no answer. Hovering or clicking
-a single word never goes to Google Translate.
+phrase, as described above, only when Google gives no answer. The same applies
+when you rest the pointer on a saved phrase of more than one word marked on a web
+page (Section 1b): only that phrase and your language go to Google Translate.
+Hovering or clicking a single word never goes to Google Translate.
 
 Answers are cached briefly on your device so the same word is not asked twice.
 
@@ -385,7 +396,8 @@ address names the Extension so it can reach it.
 with its own message type and the same check of who is asking. To show its
 switches, it asks the Extension for your settings: your two languages, the
 languages on offer, whether each video site, the highlighting of your words and
-the usage stats (Section 1c) are on, whether you are signed in (a yes or no, not
+the usage stats (Section 1c) are on, the list of websites where you switched the
+marking of your words off (Section 1b), whether you are signed in (a yes or no, not
 your email address), and the Extension's version and edition. When you change a
 setting there, the page passes the new value to the Extension, which checks it
 and stores it on your device (Section 3). The Extension answers only our website,
@@ -430,7 +442,7 @@ if it did.
 
 ### h. Importing your Google Translate saved phrases
 
-Only if you are signed in and start it yourself: with **Import from Google Translate**
+Only if you start it yourself: with **Import from Google Translate**
 on the Extension's Settings page, or with the Lingogram icon the Extension adds
 to the toolbar of
 the **Saved** panel on translate.google.com. To place that icon, the Extension looks
@@ -438,7 +450,9 @@ only at the layout of the Google Translate page, never at its text, and sends no
 from it. When you start the import, the Extension opens translate.google.com/saved in a background tab, reads
 the list of phrases saved in the Google account you are signed in to there, and
 closes the tab. The list is read inside your browser; the page itself is not sent to
-us, and the Extension does nothing else with your Google account.
+us, and the Extension does nothing else with your Google account. If you are not
+signed in to Lingogram, the list is read only to show you how many phrases were
+found, and nothing is saved until you sign in and start the import again.
 
 From each saved pair the Extension keeps only the side in the language you are
 learning, compares those words with your Lingogram list, and shows how many are new
@@ -479,8 +493,9 @@ your device only:
 * your language and subtitle layout preferences, whether your saved words are
   marked on web pages, and which video sites the Extension is switched on for;
 * the **list of websites** (host names only, such as `en.wikipedia.org`) where you
-  switched the marking of your saved words off from the toolbar popup. It stays on
-  your device and is never sent anywhere;
+  switched the marking of your saved words off from the toolbar popup. It is never
+  sent to our servers; it is shown to the settings page of our website and shared
+  with the other Lingogram edition, both inside your browser (Sections 1b and 1f);
 * how far you got on the setup page (Section 1f): whether you skipped signing in,
   and whether you finished;
 * whether the other Lingogram edition is the one that shows the menu item and
@@ -561,7 +576,8 @@ player for that platform's own automatic translation of a track it already serve
 a request to YouTube, made from your browser, carrying nothing about your account.
 No machine translation is involved on Netflix.
 
-A **phrase you select** is sent to **Google Translate** (translate.googleapis.com
+A **phrase you select**, or a saved phrase you point at on a web page, is sent to
+**Google Translate** (translate.googleapis.com
 and translate.google.com) directly from your browser, as described in Section 1e: the phrase and your
 language only, without cookies or any identifier of ours. Google handles those
 requests under its own Privacy Policy and terms.
@@ -576,14 +592,17 @@ from it reaches us except the new words you confirm.
 We do **not** sell, rent, or trade your personal data. We do not share it with any
 third party except Google Firebase and Google Analytics as the infrastructure and
 analytics providers described in Section 4, and Google Translate, which receives
-the text of a phrase you select (Section 1e), or where required by law. The dictionary
+the text of a phrase you select or point at (Section 1e), or where required by law. The dictionary
 service of Section 1e is our own, not a third party. We do not use your data for
 advertising.
 
 ## 6. Data Retention and Deletion
 
-* **Saved vocabulary** is retained in the cloud until you delete it or request
-  account deletion.
+* **Saved vocabulary** is retained in the cloud until you request account
+  deletion. Removing a word from your list marks it as removed in your account
+  rather than erasing it, so that syncing or an import from Google Translate does not
+  bring it back; the record, with its word and context, stays until the account is
+  deleted.
 * **Words kept in your browser** stay there until you remove them. Remove one with
   the **Remove** button next to it on the My words page, or remove them all by
   removing the Extension from your browser. When you sign in, each is uploaded
