@@ -144,6 +144,57 @@ describe('SidebarUI', () => {
         expect(overlay?.textContent).toBe('Hello');
     });
 
+    /**
+     * Reported: a phrase selected over the video and left selected froze the
+     * captions once the film went on. The overlay keeps a selection by not
+     * rebuilding; that is right mid-drag and while paused, and wrong once the
+     * film plays with the button up.
+     */
+    describe('a selection in the overlay', () => {
+        const setUp = (playing: boolean) => {
+            state.overlayEnabled = true;
+            state.addTrack('English', [
+                { startTime: 0, endTime: 2, text: 'First line' } as Subtitle,
+                { startTime: 2, endTime: 4, text: 'Second line' } as Subtitle,
+            ]);
+            const video = document.createElement('video');
+            Object.defineProperty(video, 'paused', { configurable: true, get: () => !playing });
+            const container = document.createElement('div');
+            container.appendChild(video);
+            document.body.appendChild(container);
+            ui.updateOverlay(0);
+            const overlay = document.getElementById('vtt-video-overlay')!;
+            const range = document.createRange();
+            range.selectNodeContents(overlay.querySelector('.vtt-overlay-main')!);
+            window.getSelection()!.removeAllRanges();
+            window.getSelection()!.addRange(range);
+            return overlay;
+        };
+        afterEach(() => {
+            window.getSelection()?.removeAllRanges();
+            document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        });
+
+        test('does not freeze the captions once the film plays on', () => {
+            const overlay = setUp(true);
+            ui.updateOverlay(1);
+            expect(overlay.textContent).toContain('Second line');
+        });
+
+        test('is kept while the film is paused', () => {
+            const overlay = setUp(false);
+            ui.updateOverlay(1);
+            expect(overlay.textContent).toContain('First line');
+        });
+
+        test('is kept mid-drag, the button still down, while the film plays', () => {
+            const overlay = setUp(true);
+            document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            ui.updateOverlay(1);
+            expect(overlay.textContent).toContain('First line');
+        });
+    });
+
     describe('buildSecondaryTextElement', () => {
         const build = (texts: string[]) =>
             (ui as any).buildSecondaryTextElement(texts.map((text) => ({ text }))) as HTMLDivElement | null;

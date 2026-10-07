@@ -1147,9 +1147,22 @@ describe('selection — dragging a phrase opens the same card', () => {
     }
 
     /** Release the drag the way the browser does: mousedown, then mouseup. */
-    async function release(): Promise<void> {
+    /**
+     * Press, then the selection, then release — the order a real drag has. The
+     * strip tells a drag from a click by whether the selection changed between
+     * the two, so a selection made before the press would read as a click.
+     */
+    function dragOut(): void {
+        const sel = window.getSelection()!;
+        const range = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+        sel.removeAllRanges();
         document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        if (range) sel.addRange(range);
         document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    }
+
+    async function release(): Promise<void> {
+        dragOut();
         await new Promise((r) => setTimeout(r, 0));
         await new Promise((r) => setTimeout(r, 0));
     }
@@ -1353,6 +1366,194 @@ describe('selection — dragging a phrase opens the same card', () => {
      * a Save that would have saved the one word. The drag's own release is the
      * gesture; the word the hand happens to stop on is not a new question.
      */
+    /**
+     * Seen live: "arbitrarily pick Jared." opened the card for "Jared", and
+     * "hang out with" the card for "out". The phrase card reads the language
+     * prefs before it is up; a pointer move in that gap found no phrase card
+     * to defer to and armed the word under it, which then replaced the phrase.
+     */
+    /**
+     * Seen live: "I got bored," saved from its card, the phrase underlined as
+     * saved, and the heart still empty until the card was opened again. The
+     * press on the heart is also a mouseup; with the selection still on the
+     * page it read as a fresh drag and reopened the card while the save was in
+     * flight, so the save filled the heart of a card already gone.
+     */
+    it('pressing the heart of a phrase card fills it, with the selection still on the page', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['and', 'I', 'got', 'bored,']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        selectSpans(spans[1], spans[3]);
+        await release();
+        expect(card()?.dataset.word).toBe('I got bored,');
+
+        const send = chrome.runtime.sendMessage as jest.Mock;
+        send.mockImplementation((msg: any, cb?: (r: unknown) => void) => {
+            const res = msg?.action === 'LOOKUP_WORD' ? { ok: true, result: dictAnswer } : { ok: true, wordId: 'w1' };
+            // The save takes a moment, as it does over the network.
+            if (msg?.action === 'ADD_WORD') return new Promise((r) => setTimeout(() => { cb?.(res); r(res); }, 30));
+            cb?.(res);
+            return Promise.resolve(res);
+        });
+        // A real press: down, up, click — and the selection survives it.
+        const heart = card()!.querySelector<HTMLElement>('.vtt-lookup-heart')!;
+        heart.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        heart.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        heart.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 100));
+
+        expect(send.mock.calls.some((c) => c[0]?.action === 'ADD_WORD')).toBe(true);
+        expect(card()!.querySelector('.vtt-lookup-heart')!.classList.contains('saved')).toBe(true);
+    });
+
+    /**
+     * Seen live on YouTube, measured: the phrase card opened and was removed
+     * ~20 ms later by the hide timer. The pointer left a word while the card
+     * was still reading its prefs — no phrase card yet to exempt — and the
+     * timer it armed then closed the phrase card, which only a dismissal may.
+     */
+    /**
+     * Reported: select two or three words, point at a word outside them (its
+     * card replaces the phrase's), then back at the selection — nothing
+     * opened. A word inside the live selection was barred from opening its
+     * own card, and nothing reopened the phrase's either.
+     */
+    /**
+     * Seen live: with "you've gone" still selected, Play did nothing. Every
+     * mouseup read the old selection as a fresh drag: the press on Play closed
+     * the card and resumed the film, the release reopened the card and paused
+     * it again. Only a release that changed the selection is a drag.
+     */
+    it('a click elsewhere with the phrase still selected does not reopen its card', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['when', "you've", 'gone', 'to']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        const play = document.createElement('button');
+        play.className = 'ytp-play-button';
+        document.body.append(box, play);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        selectSpans(spans[1], spans[2]);
+        await release();
+        expect(card()?.dataset.word).toBe("you've gone");
+
+        // A click on the player's own button; the selection survives it.
+        play.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        play.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 50));
+
+        expect(String(window.getSelection())).toContain('gone');
+        expect(card()).toBeNull();
+    });
+
+    it('pointing back at the selection after another word reopens the phrase card', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['hang', 'out', 'with', 'more']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        selectSpans(spans[0], spans[2]);
+        await release();
+        expect(card()?.dataset.word).toBe('hang out with');
+
+        const point = async (span: HTMLElement, x: number): Promise<void> => {
+            span.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: x, clientY: 20 }));
+            span.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x + 1, clientY: 20 }));
+            await new Promise((r) => setTimeout(r, 400));
+        };
+        await point(spans[3], 400);
+        expect(card()?.dataset.word).toBe('more');
+        await point(spans[1], 140);
+        expect(card()?.dataset.word).toBe('hang out with');
+    });
+
+    it('a pointer leaving a word while the phrase card opens does not close it', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['investors', 'of', 'the', 'future']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        const get = chromeStorage.local.get;
+        chromeStorage.local.get = ((...a: unknown[]) =>
+            new Promise((r) => setTimeout(() => r((get as (...x: unknown[]) => unknown)(...a)), 100))) as typeof get;
+        try {
+            selectSpans(spans[0], spans[2]);
+            dragOut();
+            await new Promise((r) => setTimeout(r, 5));
+            // The hand drifts off the last word, onto the video.
+            spans[2].dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body, clientX: 400, clientY: 80 }));
+            await new Promise((r) => setTimeout(r, 1500));
+        } finally {
+            chromeStorage.local.get = get;
+        }
+
+        expect(card()).not.toBeNull();
+        expect(card()!.dataset.word).toBe('investors of the');
+    });
+
+    it('a pointer move while the phrase card is still opening does not replace it', async () => {
+        const box = document.createElement('div');
+        box.className = 'vtt-overlay-main';
+        box.dataset.index = '0';
+        for (const w of ['hang', 'out', 'with', 'more']) {
+            const span = document.createElement('span');
+            span.dataset.word = w;
+            span.textContent = w;
+            box.append(span, ' ');
+        }
+        document.body.appendChild(box);
+        stubSpanRects(box);
+        const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
+        // Storage slower than the hover delay, as in a busy browser: the word's
+        // timer fires while the phrase card is still reading its prefs.
+        const get = chromeStorage.local.get;
+        chromeStorage.local.get = ((...a: unknown[]) =>
+            new Promise((r) => setTimeout(() => r((get as (...x: unknown[]) => unknown)(...a)), 400))) as typeof get;
+        try {
+            selectSpans(spans[0], spans[2]);
+            dragOut();
+            await new Promise((r) => setTimeout(r, 5));
+            // The hand moves over a word of the phrase before the card is up.
+            spans[1].dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: 140, clientY: 20 }));
+            spans[1].dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 141, clientY: 20 }));
+            await new Promise((r) => setTimeout(r, 1500));
+        } finally {
+            chromeStorage.local.get = get;
+        }
+
+        expect(card()).not.toBeNull();
+        expect(card()!.dataset.word).toBe('hang out with');
+    });
+
     it('the word the drag ends on does not replace the phrase card', async () => {
         const box = document.createElement('div');
         box.className = 'vtt-overlay-main';

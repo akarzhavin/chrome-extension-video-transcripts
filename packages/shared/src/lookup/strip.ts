@@ -667,6 +667,11 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
     function scheduleHide(): void {
         clearTimeout(hideTimer);
         hideTimer = setTimeout(() => {
+            // A card opened by a drag stays until it is dismissed. Asked when
+            // the timer fires, not when it is armed: a pointer leaving a word
+            // while the phrase card was still opening armed it, and it then
+            // closed the phrase card ~20 ms after it appeared (measured live).
+            if (current?.selected) return;
             const el = strip();
             if (el?.matches(':hover')) return;
             if (current?.hovered()) return;
@@ -811,6 +816,18 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         !!current?.selected && current.spans().includes(span);
 
     /**
+     * Whether this word is in the selection still on the page. Such a word
+     * answers for the phrase, never for itself: before the phrase card is up
+     * (it reads the language prefs first — seen live as "arbitrarily pick
+     * Jared." answered with "Jared"), and after another word's card replaced
+     * it (pointing back at the selection then reopened nothing).
+     */
+    const inLiveSelection = (span: HTMLElement): boolean => {
+        const sel = window.getSelection();
+        return !!sel && !sel.isCollapsed && sel.rangeCount > 0 && sel.getRangeAt(0).intersectsNode(span);
+    };
+
+    /**
      * The card a pointer on this word asks for: the whole saved phrase when the
      * word is drawn as part of one, the word itself otherwise. Seen live: "To
      * track down", saved and underlined, answered a hover on "track" with the
@@ -833,7 +850,17 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         clearTimeout(hideTimer);
         if (span === current?.key || insideSelection(span) || insideCurrentRun(span)) return;
         clearTimeout(hoverTimer);
-        hoverTimer = setTimeout(() => void show(anchorFor(span)), HOVER_DELAY_MS);
+        const phrase = inLiveSelection(span);
+        hoverTimer = setTimeout(() => {
+            if (!phrase) {
+                void show(anchorFor(span));
+                return;
+            }
+            // Up by now when it was only still opening.
+            if (current?.selected) return;
+            const anchor = selectionCard();
+            if (anchor) void show(anchor);
+        }, HOVER_DELAY_MS);
     };
 
     const onMouseOut = (e: MouseEvent): void => {
@@ -888,6 +915,16 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         scheduleHide();
     };
 
+    /** The card for the selection on the page, or null when it is no phrase to look up. */
+    function selectionCard(): Anchor | null {
+        const payload = getSelectionPayload();
+        if (!payload || payload.term.length > MAX_LOOKUP_TERM_LEN) return null;
+        // One word dragged over is the word itself — let the span path own
+        // it, so hovering it again finds the card already open on it.
+        const spans = selectionWordSpans();
+        return spans.length === 1 ? spanAnchor(spans[0], true) : selectionAnchor(payload, spans);
+    }
+
     /**
      * A dragged phrase opens the same card a hovered word does. This replaces
      * the old "+ Lingogram" pill, which was a second, differently-shaped offer
@@ -902,18 +939,13 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         // card (its own heart) collapses the range, and reading it in the same
         // tick would catch the pre-collapse state.
         setTimeout(() => {
-            const payload = getSelectionPayload();
-            if (!payload || payload.term.length > MAX_LOOKUP_TERM_LEN) return;
-            // One word dragged over is the word itself — let the span path own
-            // it, so hovering it again finds the card already open on it.
-            const spans = selectionWordSpans();
+            const anchor = selectionCard();
+            if (!anchor) return;
             // A hover armed on the way — before the press was heard, or on the
             // word the hand stops on — must not land on top of this card.
             clearTimeout(hoverTimer);
             removeStrip();
-            void show(spans.length === 1
-                ? spanAnchor(spans[0], true)
-                : selectionAnchor(payload, spans));
+            void show(anchor);
         }, 0);
     };
 
@@ -974,6 +1006,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
     const onMouseDown = (e: MouseEvent): void => {
         dragging = true;
+        selAtDown = liveRange();
         // A press on a sidebar word is a seek (or the start of a drag), never a
         // request for its card: the pointer that pressed is resting on the
         // word, and without this the dwell would open the card half a second
@@ -991,8 +1024,26 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
             ?.closest?.<HTMLElement>(`${OVERLAY_HOVER_SELECTOR}, ${SIDEBAR_HOVER_SELECTOR}`) ?? null;
         removeStrip();
     };
-    const onMouseUp = (): void => {
+    // The selection as the press found it, to tell a drag from a click.
+    let selAtDown: Range | null = null;
+    const liveRange = (): Range | null => {
+        const sel = window.getSelection();
+        return sel && !sel.isCollapsed && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    };
+    const sameRange = (a: Range | null, b: Range | null): boolean =>
+        !!a && !!b
+        && a.compareBoundaryPoints(Range.START_TO_START, b) === 0
+        && a.compareBoundaryPoints(Range.END_TO_END, b) === 0;
+    const onMouseUp = (e: MouseEvent): void => {
         dragging = false;
+        // A press on the card's own button, not the end of a drag. With the
+        // phrase still selected it reopened the card while its save was in
+        // flight, and the save then filled the heart of a card already gone.
+        if (strip()?.contains(e.target as Node)) return;
+        // A click that left the selection as it was is no drag. With a phrase
+        // still selected, Play did nothing: its press closed the card and
+        // resumed the film, its release reopened the card and paused it again.
+        if (sameRange(selAtDown, liveRange())) return;
         onSelectionMouseUp();
     };
 

@@ -138,6 +138,14 @@ export const ICONS = {
 
 type ScrollMode = 'smooth' | 'instant';
 
+// Whether a mouse button is down anywhere on the page: a drag in progress.
+// Window-level and capturing, so a press the page swallows still counts.
+let pointerDown = false;
+if (typeof window !== 'undefined') {
+    window.addEventListener('mousedown', () => { pointerDown = true; }, true);
+    window.addEventListener('mouseup', () => { pointerDown = false; }, true);
+}
+
 function hasSelectionInside(el: Element): boolean {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return false;
@@ -2801,9 +2809,14 @@ export class SidebarUI {
             return;
         }
 
-        // Preserve an in-progress selection inside the overlay. timeupdate
-        // ticks every ~250ms; rebuilding would destroy the user's Range.
-        if (existing && hasSelectionInside(existing)) return;
+        // Preserve a selection inside the overlay while it is being made or
+        // read: timeupdate ticks every ~250ms, and rebuilding destroys the
+        // Range. Mid-drag, or with the film paused. Not once it plays on with
+        // the button up — a phrase left selected froze the captions in place.
+        if (existing && hasSelectionInside(existing)) {
+            const video = existing.parentElement?.querySelector('video') ?? document.querySelector('video');
+            if (pointerDown || !video || video.paused) return;
+        }
 
         const desiredParent = this.app.getOverlayParent?.() ?? document.querySelector('video')?.parentElement ?? null;
         if (existing && desiredParent && existing.parentElement !== desiredParent) {
