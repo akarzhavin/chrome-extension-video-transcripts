@@ -91,7 +91,6 @@ describe('the pages never reach the analytics secret', () => {
         'packages/shared/src/settings/settings.ts',
         'packages/shared/src/words/words.ts',
         'packages/shared/src/popup/popup.ts',
-        'packages/shared/src/popup/switches.ts',
         'packages/shared/src/popup/shared.ts',
     ];
     test.each(FILES)('%s does not import analytics-bg, the settings bridge or the worker', (file) => {
@@ -108,7 +107,6 @@ describe('the texts of the pages', () => {
     // absent, and a different text there is a second wording nobody reviewed.
     const SOURCES = [
         'packages/shared/src/popup/popup.ts',
-        'packages/shared/src/popup/switches.ts',
         'packages/shared/src/words/words.ts',
     ];
     const CALL = /i18nMsg\(\s*'([A-Za-z0-9_]+)',\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
@@ -123,7 +121,7 @@ describe('the texts of the pages', () => {
         // settings.ts left the list: it is a redirect to the site's page and has no texts.
         expect(found.length).toBeGreaterThan(25);
         expect(found.map((f) => f.key)).toContain('wordsRemoveFailed');
-        expect(found.map((f) => f.key)).toContain('popupPageHighlightLabel');
+        expect(found.map((f) => f.key)).toContain('popupSettingsLink');
         expect(found.map((f) => f.key)).toContain('popupEmptyText');
     });
 

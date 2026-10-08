@@ -93,13 +93,13 @@ describe('writes are validated', () => {
     });
 
     test('prefs: word highlighting only, and only as a boolean', async () => {
-        // The video-site switches live in the popup; the page may not touch them.
+        // There is no video-site switch; a page sending the old ones is refused.
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteNetflix: false } }), yt)).toMatchObject({ ok: false });
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { siteRezka: false } }), yt)).toMatchObject({ ok: false });
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { pageHighlight: 'no' } }), yt)).toMatchObject({ ok: false });
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { analyticsEnabled: false } }), yt)).toMatchObject({ ok: false });
         expect((await loadPrefs()).analyticsEnabled).toBe(true);
-        expect((await loadPrefs()).siteNetflix).toBe(true);
+        expect(JSON.stringify(await chrome.storage.local.get('prefs.v1'))).not.toContain('siteNetflix');
         expect(await handleWelcomeMessage(msg('setPrefs', { prefs: { pageHighlight: false } }), yt)).toEqual({ ok: true });
         expect((await loadPrefs()).pageHighlight).toBe(false);
     });

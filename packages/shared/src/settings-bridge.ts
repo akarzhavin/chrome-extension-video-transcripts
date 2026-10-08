@@ -13,7 +13,7 @@ import { handleAuthMessage } from './auth/background';
 import { setPendingAuthNonce } from './auth/storage';
 import { normalizeHost } from './highlight-hosts';
 import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from './languages';
-import { loadPrefs, savePrefs, sitePrefKey, type Prefs, type VideoSite } from './prefs';
+import { loadPrefs, savePrefs, type Prefs, type VideoSite } from './prefs';
 import { loadHighlightPrefs, saveHighlightPrefs, type HighlightChange } from './highlight-prefs';
 import { isTrustedSiteSender } from './site-sender';
 import { SITE_NAMES, ownSites } from './welcome/welcome';
@@ -46,7 +46,7 @@ export interface SettingsSnapshot {
     learning: string;
     native: string;
     languages: Array<{ code: string; label: string; native: string }>;
-    sites: Array<{ id: VideoSite; name: string; enabled: boolean }>;
+    sites: Array<{ id: VideoSite; name: string }>;
     pageHighlight: boolean;
     analyticsEnabled: boolean;
     /** Sites the page highlight is switched off on (the popup's per-site switch). */
@@ -69,11 +69,8 @@ async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
         learning: langs?.learning ?? '',
         native: langs?.native ?? '',
         languages: offered(opts).map(({ code, label, native }) => ({ code, label, native })),
-        sites: ownSites(opts.edition).map((id) => ({
-            id,
-            name: SITE_NAMES[id],
-            enabled: prefs[sitePrefKey(id)],
-        })),
+        // The sites this edition runs on, always: there is no switch for them.
+        sites: ownSites(opts.edition).map((id) => ({ id, name: SITE_NAMES[id] })),
         pageHighlight: highlight.pageHighlight,
         analyticsEnabled: prefs.analyticsEnabled,
         highlightOffHosts: highlight.highlightOffHosts,
@@ -127,7 +124,7 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
     if (msg.prefs !== undefined) {
         const p = msg.prefs;
         if (!isPlain(p)) return 'prefs must be an object';
-        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'sites', 'highlightHost']);
+        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'highlightHost']);
         if (bad) return `unknown key: prefs.${bad}`;
         for (const k of ['pageHighlight', 'analyticsEnabled'] as const) {
             if (p[k] === undefined) continue;
@@ -135,17 +132,6 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
         }
         if (typeof p.analyticsEnabled === 'boolean') out.prefs.analyticsEnabled = p.analyticsEnabled;
         if (typeof p.pageHighlight === 'boolean') out.highlight.pageHighlight = p.pageHighlight;
-        if (p.sites !== undefined) {
-            const s = p.sites;
-            if (!isPlain(s)) return 'sites must be an object';
-            const own = ownSites(opts.edition);
-            for (const [id, on] of Object.entries(s)) {
-                if (!(['youtube', 'netflix', 'rezka'] as string[]).includes(id)) return `unknown key: prefs.sites.${id}`;
-                if (!own.includes(id as VideoSite)) return `site not in this edition: ${id}`;
-                if (typeof on !== 'boolean') return `sites.${id} must be a boolean`;
-                out.prefs[sitePrefKey(id as VideoSite)] = on;
-            }
-        }
         if (p.highlightHost !== undefined) {
             const h = p.highlightHost;
             if (!isPlain(h)) return 'highlightHost must be an object';

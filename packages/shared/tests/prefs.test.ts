@@ -79,9 +79,6 @@ describe('prefs', () => {
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
             highlightOffHosts: [],
-            siteYoutube: true,
-            siteNetflix: true,
-            siteRezka: true,
             theme: 'dark',
         });
     });
@@ -199,9 +196,6 @@ describe('prefs', () => {
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
             highlightOffHosts: [],
-            siteYoutube: true,
-            siteNetflix: true,
-            siteRezka: true,
             theme: 'dark',
         });
     });
