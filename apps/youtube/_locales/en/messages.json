@@ -99,10 +99,6 @@
     "message": "Not really",
     "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
   },
-  "ytRateThanks": {
-    "message": "Thanks for telling us.",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
   "ytRateFeedbackTitle": {
     "message": "What would make it better?",
     "description": "Title of the feedback form shown after a negative answer on the rating prompt."
@@ -219,10 +215,6 @@
     "message": "Reading mode",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "Modes",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "Text",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -302,18 +294,6 @@
   "ytStyleReset": {
     "message": "Reset",
     "description": "Button that restores the default overlay appearance."
-  },
-  "ytOverlayOffNote": {
-    "message": "On-screen overlay is off",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "The quick brown fox",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "Translation preview",
-    "description": "Sample translation line shown in the style preview."
   },
   "ytSettingsTitle": {
     "message": "Settings",
@@ -399,10 +379,6 @@
     "message": "Couldn't open the sign-in page. Try again.",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "Saved: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -422,22 +398,6 @@
   "ytPopupLoading": {
     "message": "Loading…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(unknown email)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "Select…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "I'm learning",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "My native language",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "Reveal the next word of this subtitle",
@@ -551,10 +511,6 @@
     "message": "Share anonymous usage stats",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "Counts like “subtitles loaded” and “word saved”. Never your account, the videos you watch, or the words you save.",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "Dismiss",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
@@ -598,10 +554,6 @@
   "ytLookupSave": {
     "message": "Save",
     "description": "Heart button label: save the looked-up word to the dictionary."
-  },
-  "ytLookupSaved": {
-    "message": "Saved",
-    "description": "Heart button label after a successful save."
   },
   "ytLookupRemove": {
     "message": "Remove",
@@ -674,10 +626,6 @@
   "ctxMenuSave": {
     "message": "Save to Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "Highlight my words on websites",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "Finish setup",
@@ -819,10 +767,6 @@
     "message": "You were signed out. New words are kept on this device until you sign in again.",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "Subtitles on {site}",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "Highlight on {site}",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -839,61 +783,13 @@
     "message": "Highlighting is off on all websites",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "Reload the page to apply.",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "Settings",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "Settings",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "My words",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Where Lingogram works",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "Dual subtitles and the word list next to the video.",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "Words you saved are marked on any page you read. Point at one to see its translation.",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "Not highlighted on:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "Highlight words on {site} again",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "Account",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "Not signed in",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "Your words are kept in this browser. Sign in to keep them on every device.",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "You were signed out",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "Sign in again to keep saving words.",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "My words",

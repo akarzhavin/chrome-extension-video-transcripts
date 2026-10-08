@@ -35,6 +35,14 @@
     "message": "തിരഞ്ഞെടുക്കുക…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "ഈ വീഡിയോയിൽ ലഭ്യം",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "മറ്റ് ഭാഷകൾ",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "സബ്‌ടൈറ്റിലുകൾ തിരയുന്നു…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "സബ്‌ടൈറ്റിലുകൾ",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "റേറ്റ് ചെയ്യുക",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "ഇതിനകം ഒരുപാട് വാക്കുകൾ സേവ് ചെയ്തുകഴിഞ്ഞു.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "വെബ് സ്റ്റോറിലെ നിങ്ങളുടെ റേറ്റിംഗ് ഞങ്ങൾക്ക് വളരെ വിലപ്പെട്ടതാണ്. അങ്ങനെയാണ് മറ്റുള്ളവർ ഞങ്ങളെ കാണുന്നത്.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "അതെ!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "അത്ര ഇല്ല",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "എന്താണ് കുറവ്?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "എന്താണ് ശരിയാകാത്തത്? എന്ത് മാറ്റും?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "നന്ദി, ഇത് ശരിക്കും സഹായകമാണ്.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "അയക്കാനായില്ല. വീണ്ടും?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "വേണ്ട",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "അയക്കുക",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "അയക്കുന്നു…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "കേട്ടതിൽ സന്തോഷം",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "ഇപ്പോൾ വേണ്ട",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "{count} വാക്കുകൾ സംരക്ഷിച്ചു",
@@ -147,10 +215,6 @@
     "message": "വായനാ മോഡ്",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "മോഡുകൾ",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "ടെക്സ്റ്റ്",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "പുനഃസജ്ജമാക്കുക",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "വീഡിയോയിലെ സബ്ടൈറ്റിൽ ഓഫാണ്",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "വേഗതയുള്ള തവിട്ട് കുറുക്കൻ",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "വിവർത്തന പ്രിവ്യൂ",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "ക്രമീകരണം",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "ഈ വീഡിയോയിൽ ലഭ്യം",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "മറ്റ് ഭാഷകൾ",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "റേറ്റ് ചെയ്യുക",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Lingogram ഇഷ്ടപ്പെട്ടോ?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "ഇതിനകം ഒരുപാട് വാക്കുകൾ സേവ് ചെയ്തുകഴിഞ്ഞു.",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "വെബ് സ്റ്റോറിലെ നിങ്ങളുടെ റേറ്റിംഗ് ഞങ്ങൾക്ക് വളരെ വിലപ്പെട്ടതാണ്. അങ്ങനെയാണ് മറ്റുള്ളവർ ഞങ്ങളെ കാണുന്നത്.",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "അതെ!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "അത്ര ഇല്ല",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "പറഞ്ഞതിന് നന്ദി.",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "എന്താണ് കുറവ്?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "എന്താണ് ശരിയാകാത്തത്? എന്ത് മാറ്റും?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "നന്ദി, ഇത് ശരിക്കും സഹായകമാണ്.",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "അയക്കാനായില്ല. വീണ്ടും?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "വേണ്ട",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "അയക്കുക",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "അയക്കുന്നു…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "കേട്ടതിൽ സന്തോഷം",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "ഇപ്പോൾ വേണ്ട",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "Lingogram മെനു",
@@ -399,10 +379,6 @@
     "message": "സൈൻ ഇൻ പേജ് തുറക്കാനായില്ല. വീണ്ടും ശ്രമിക്കുക.",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "സംരക്ഷിച്ചു: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "നീക്കം ചെയ്യാനായില്ല: {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "ലോഡ് ചെയ്യുന്നു…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(ഇമെയിൽ അജ്ഞാതം)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "തിരഞ്ഞെടുക്കുക…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "ഞാൻ പഠിക്കുന്നത്",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "എന്റെ മാതൃഭാഷ",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "ഈ സബ്‌ടൈറ്റിലിന്റെ അടുത്ത വാക്ക് കാണിക്കുക",
@@ -515,6 +475,10 @@
     "message": "വിവർത്തനം ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് സബ്ടൈറ്റിൽ ലിങ്കിന്റെ കാലാവധി കഴിഞ്ഞു. വീണ്ടും തിരയുന്നത് സാധാരണയായി ഇത് പരിഹരിക്കും.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} അക്ഷരങ്ങൾ ബാക്കി",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "ക്രമീകരണം",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "{n} അക്ഷരങ്ങൾ ബാക്കി",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "സ്വകാര്യത",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "അജ്ഞാത ഉപയോഗ സ്ഥിതിവിവരം പങ്കിടുക",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "“സബ്ടൈറ്റിൽ ലോഡ് ചെയ്തു”, “വാക്ക് സംരക്ഷിച്ചു” എന്നിവ പോലുള്ള എണ്ണങ്ങൾ മാത്രം. നിങ്ങളുടെ അക്കൗണ്ടോ കാണുന്ന വീഡിയോകളോ സംരക്ഷിക്കുന്ന വാക്കുകളോ ഒരിക്കലും അല്ല.",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "അടയ്‌ക്കുക",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "സബ്‌ടൈറ്റിലുകൾ ഇവിടെ ദൃശ്യമാകും",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "വിവർത്തനം ഇവിടെ ദൃശ്യമാകും",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "സബ്‌ടൈറ്റിലുകൾ നീക്കാൻ വലിച്ചിടുക",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "മുമ്പത്തെ വരി",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "വരി വീണ്ടും പ്ലേ ചെയ്യുക",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "അടുത്ത വരി",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -599,10 +555,6 @@
     "message": "സേവ് ചെയ്യുക",
     "description": "Heart button label: save the looked-up word to the dictionary."
   },
-  "ytLookupSaved": {
-    "message": "സേവ് ചെയ്തു",
-    "description": "Heart button label after a successful save."
-  },
   "ytLookupRemove": {
     "message": "നീക്കം ചെയ്യുക",
     "description": "Label on a saved word’s heart: pressing it takes the word off the list."
@@ -619,6 +571,46 @@
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
   },
+  "ytPosNoun": {
+    "message": "നാമം",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "ക്രിയ",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "വിശേഷണം",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "ക്രി.വിശേ.",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "ഗതി",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "സംയോജകം",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "സർവനാമം",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "വ്യാക്ഷേപകം",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "സംഖ്യ",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "ശൈലി",
+    "description": "Short part-of-speech label: phrase."
+  },
   "dupCopyTitle": {
     "message": "Lingogram രണ്ടുതവണ പ്രവർത്തിക്കുന്നു",
     "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
@@ -634,10 +626,6 @@
   "ctxMenuSave": {
     "message": "Lingogram-ൽ സേവ് ചെയ്യുക",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "വെബ്‌സൈറ്റുകളിൽ എന്റെ വാക്കുകൾ ഹൈലൈറ്റ് ചെയ്യുക",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "സജ്ജീകരണം പൂർത്തിയാക്കുക",
@@ -779,10 +767,6 @@
     "message": "സൈൻ ഇൻ കാലാവധി കഴിഞ്ഞു. പുതിയ വാക്കുകൾ വീണ്ടും സൈൻ ഇൻ ചെയ്യുന്നതുവരെ ഈ ഉപകരണത്തിൽ സൂക്ഷിക്കും.",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "{site}-ലെ സബ്‌ടൈറ്റിലുകൾ",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "{site}-ൽ ഹൈലൈറ്റ് ചെയ്യുക",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -799,61 +783,13 @@
     "message": "എല്ലാ വെബ്‌സൈറ്റുകളിലും ഹൈലൈറ്റ് ഓഫാണ്",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "മാറ്റം പ്രയോഗിക്കാൻ പേജ് റീലോഡ് ചെയ്യുക.",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "ക്രമീകരണം",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "ക്രമീകരണം",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "എന്റെ വാക്കുകൾ",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Lingogram എവിടെ പ്രവർത്തിക്കുന്നു",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "ഇരട്ട സബ്‌ടൈറ്റിലുകളും വീഡിയോയ്ക്ക് അരികിലെ വാക്കുകളുടെ പട്ടികയും.",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "നിങ്ങൾ സേവ് ചെയ്ത വാക്കുകൾ വായിക്കുന്ന ഏതു പേജിലും ഹൈലൈറ്റ് ചെയ്യും. പരിഭാഷ കാണാൻ വാക്കിൽ പോയിന്റർ വയ്ക്കുക.",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "ഹൈലൈറ്റ് ഇല്ലാത്ത സൈറ്റുകൾ:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "{site}-ൽ വാക്കുകൾ വീണ്ടും ഹൈലൈറ്റ് ചെയ്യുക",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "അക്കൗണ്ട്",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "സൈൻ ഇൻ ചെയ്തിട്ടില്ല",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "നിങ്ങളുടെ വാക്കുകൾ ഈ ബ്രൗസറിൽ സൂക്ഷിച്ചിരിക്കുന്നു. എല്ലാ ഉപകരണങ്ങളിലും ലഭിക്കാൻ സൈൻ ഇൻ ചെയ്യുക.",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "സൈൻ ഇൻ കാലാവധി കഴിഞ്ഞു",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "പുതിയ വാക്കുകൾ നിങ്ങളുടെ അക്കൗണ്ടിൽ എത്താൻ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "എന്റെ വാക്കുകൾ",

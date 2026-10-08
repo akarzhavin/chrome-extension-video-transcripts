@@ -35,6 +35,14 @@
     "message": "ይምረጡ…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "በዚህ ቪዲዮ ውስጥ ያሉ",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "ሌሎች ቋንቋዎች",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "የትርጉም ጽሑፎችን በመፈለግ ላይ…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "ግርጌ ጽሑፍ",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "ደረጃ ስጥ",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram ወደውታል?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "እስካሁን በርካታ ቃላት አስቀምጠዋል።",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "በድር መደብር የሚሰጡት ደረጃ ለእኛ ትልቅ ዋጋ አለው። ሌሎችም እኛን የሚያገኙት በዚህ መንገድ ነው።",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "አዎ!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "ብዙም አይደለም",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "ምን ይጎድለዋል?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "ምን አልተመቸዎትም? ምን ይለውጡ ነበር?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "እናመሰግናለን፣ ይህ በጣም ይረዳናል።",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "አልተላከም። እንደገና?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "ይለፉ",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "ላክ",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "በመላክ ላይ…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "ስንሰማ ደስ ብሎናል",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "አሁን አይደለም",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "{count} ቃላት ተቀምጠዋል",
@@ -147,10 +215,6 @@
     "message": "የንባብ ሁነታ",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "ሁነታዎች",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "ጽሑፍ",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "ዳግም አስጀምር",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "በቪዲዮ ላይ ያለው የትርጉም ጽሑፍ ጠፍቷል",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "ፈጣኑ ቡናማ ቀበሮ",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "የትርጉም ቅድመ-እይታ",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "ቅንብሮች",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "በዚህ ቪዲዮ ውስጥ ያሉ",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "ሌሎች ቋንቋዎች",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "ደረጃ ስጥ",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Lingogram ወደውታል?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "እስካሁን በርካታ ቃላት አስቀምጠዋል።",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "በድር መደብር የሚሰጡት ደረጃ ለእኛ ትልቅ ዋጋ አለው። ሌሎችም እኛን የሚያገኙት በዚህ መንገድ ነው።",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "አዎ!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "ብዙም አይደለም",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "ስለነገሩን እናመሰግናለን።",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "ምን ይጎድለዋል?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "ምን አልተመቸዎትም? ምን ይለውጡ ነበር?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "እናመሰግናለን፣ ይህ በጣም ይረዳናል።",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "አልተላከም። እንደገና?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "ይለፉ",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "ላክ",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "በመላክ ላይ…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "ስንሰማ ደስ ብሎናል",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "አሁን አይደለም",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "የLingogram ምናሌ",
@@ -399,10 +379,6 @@
     "message": "የመግቢያ ገጹን መክፈት አልተቻለም። እንደገና ይሞክሩ።",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "ተቀምጧል፦ {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "ማስወገድ አልተቻለም፦ {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "በመጫን ላይ…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(ኢሜይል አይታወቅም)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "ይምረጡ…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "እየተማርኩ ያለሁት",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "የአፍ መፍቻ ቋንቋዬ",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "የዚህን ትርጉም ቀጣይ ቃል አሳይ",
@@ -515,6 +475,10 @@
     "message": "ትርጉሙ ከመጫኑ በፊት የንዑስ ጽሑፍ አገናኝ ጊዜው አልፎበታል። እንደገና መፈለግ ብዙውን ጊዜ ያስተካክለዋል።",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} ቁምፊዎች ቀርተዋል",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "ችግር ሪፖርት አድርግ",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "ቅንብሮች",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "{n} ቁምፊዎች ቀርተዋል",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "ግላዊነት",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "ስም-አልባ የአጠቃቀም ስታቲስቲክስ አጋራ",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "እንደ «ግርጌ ጽሑፍ ተጫነ» እና «ቃል ተቀመጠ» ያሉ ቆጠራዎች ብቻ። መለያዎ፣ የሚመለከቷቸው ቪዲዮዎች ወይም የሚያስቀምጧቸው ቃላት በፍጹም አይላኩም።",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "ዝጋ",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "የትርጉም ጽሑፍ እዚህ ይታያል",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "ትርጉም እዚህ ይታያል",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "የትርጉም ጽሑፎችን ለማንቀሳቀስ ይጎትቱ",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "ቀዳሚ መስመር",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "መስመሩን እንደገና አጫውት",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "ቀጣይ መስመር",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -599,10 +555,6 @@
     "message": "አስቀምጥ",
     "description": "Heart button label: save the looked-up word to the dictionary."
   },
-  "ytLookupSaved": {
-    "message": "ተቀምጧል",
-    "description": "Heart button label after a successful save."
-  },
   "ytLookupRemove": {
     "message": "አስወግድ",
     "description": "Label on a saved word’s heart: pressing it takes the word off the list."
@@ -619,6 +571,46 @@
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
   },
+  "ytPosNoun": {
+    "message": "ስም",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "ግስ",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "ቅጽል",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "ተውሳከ ግስ",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "መስተዋድድ",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "መስተጻምር",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "ተውላጠ ስም",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "ቃለ አጋኖ",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "ቁጥር",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "ሐረግ",
+    "description": "Short part-of-speech label: phrase."
+  },
   "dupCopyTitle": {
     "message": "Lingogram ሁለት ጊዜ እየሰራ ነው",
     "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
@@ -634,10 +626,6 @@
   "ctxMenuSave": {
     "message": "ወደ Lingogram አስቀምጥ",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "ቃሎቼን በድር ጣቢያዎች ላይ አድምቅ",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "ማዋቀሩን ጨርስ",
@@ -779,10 +767,6 @@
     "message": "ክፍለ ጊዜዎ አብቅቷል። አዲስ ቃላት እንደገና እስኪገቡ ድረስ በዚህ መሣሪያ ላይ ይቆያሉ።",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "በ{site} ላይ ያሉ ግርጌ ጽሑፎች",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "{site} ላይ አድምቅ",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -799,61 +783,13 @@
     "message": "በሁሉም ድር ጣቢያዎች ላይ ማድመቅ ጠፍቷል",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "ለውጡን ለመተግበር ገጹን እንደገና ይጫኑ።",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "ቅንብሮች",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "ቅንብሮች",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "ቃሎቼ",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Lingogram የሚሠራባቸው ቦታዎች",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "ድርብ ግርጌ ጽሑፎች እና ከቪዲዮው ጎን ያለው የቃላት ዝርዝር።",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "ያስቀመጧቸው ቃላት በሚያነቧቸው ማንኛውም ገጽ ላይ ይደምቃሉ። ትርጉሙን ለማየት ቃሉ ላይ ጠቋሚውን ያድርጉ።",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "ያልተደመቀባቸው ጣቢያዎች፦",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "{site} ላይ ቃላትን እንደገና አድምቅ",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "መለያ",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "አልገቡም",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "ቃላትዎ በዚህ አሳሽ ውስጥ ተቀምጠዋል። በሁሉም መሣሪያዎች ላይ እንዲኖሯቸው ይግቡ።",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "ክፍለ ጊዜዎ አብቅቷል",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "አዲስ ቃላት ወደ መለያዎ እንዲደርሱ እንደገና ይግቡ።",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "ቃሎቼ",

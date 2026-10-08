@@ -35,6 +35,14 @@
     "message": "Виберіть…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "Є в цьому відео",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "Інші мови",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "Пошук субтитрів…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "Субтитри",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "Оцінити",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Подобається Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Ти вже зберіг чимало слів.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "Будемо дуже вдячні, якщо оціниш нас у Web Store. Так Lingogram знаходять інші.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Так!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Не дуже",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Чого бракує?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Що пішло не так? Що б ти змінив?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Дякуємо, це справді важливо.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Не надіслалося. Ще раз?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "Пропустити",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Надіслати",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Надсилаємо…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "Приємно чути",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "Не зараз",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "Збережено слів: {count}",
@@ -147,10 +215,6 @@
     "message": "Режим читання",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "Режими",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "Текст",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "Скинути",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "Субтитри на відео вимкнено",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "Швидка руда лисиця",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "Приклад перекладу",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "Налаштування",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "Є в цьому відео",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "Інші мови",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "Оцінити",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Подобається Lingogram?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "Ти вже зберіг чимало слів.",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "Будемо дуже вдячні, якщо оціниш нас у Web Store. Так Lingogram знаходять інші.",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "Так!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "Не дуже",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "Дякуємо, що сказав.",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "Чого бракує?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "Що пішло не так? Що б ти змінив?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "Дякуємо, це справді важливо.",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "Не надіслалося. Ще раз?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "Пропустити",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "Надіслати",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "Надсилаємо…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "Приємно чути",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "Не зараз",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "Меню Lingogram",
@@ -399,10 +379,6 @@
     "message": "Не вдалося відкрити сторінку входу. Спробуйте ще раз.",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "Збережено: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "Не вдалося видалити: {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "Завантаження…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(пошта невідома)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "Виберіть…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "Я вивчаю",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "Моя рідна мова",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "Відкрити наступне слово цих субтитрів",
@@ -515,6 +475,10 @@
     "message": "Посилання на субтитри застаріло раніше, ніж завантажився переклад. Зазвичай допомагає повторний пошук.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "Залишилось символів: {n}",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "Повідомити про проблему",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "Налаштування",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "Залишилось символів: {n}",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "Конфіденційність",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "Ділитися анонімною статистикою",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "Лічильники на кшталт «субтитри завантажено» та «слово збережено». Ніколи — ваш обліковий запис, відео, які ви дивитесь, або збережені слова.",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "Закрити",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "Тут з’являться субтитри",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "Тут з’явиться переклад",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "Перетягніть, щоб перемістити субтитри",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "Попередній рядок",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "Повторити рядок",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "Наступний рядок",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -598,10 +554,6 @@
   "ytLookupSave": {
     "message": "Зберегти",
     "description": "Heart button label: save the looked-up word to the dictionary."
-  },
-  "ytLookupSaved": {
-    "message": "Збережено",
-    "description": "Heart button label after a successful save."
   },
   "ytLookupRemove": {
     "message": "Прибрати",
@@ -674,10 +626,6 @@
   "ctxMenuSave": {
     "message": "Зберегти в Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "Підсвічувати мої слова на сайтах",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "Завершити налаштування",
@@ -819,10 +767,6 @@
     "message": "Сеанс завершився. Нові слова зберігаються на цьому пристрої, доки ви знову не ввійдете.",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "Субтитри на {site}",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "Підсвічувати на {site}",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -839,61 +783,13 @@
     "message": "Підсвічування вимкнено на всіх сайтах",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "Перезавантажте сторінку, щоб зміни набули чинності.",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "Налаштування",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "Налаштування",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "Мої слова",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Де працює Lingogram",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "Подвійні субтитри та список слів поруч із відео.",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "Збережені слова виділяються на будь-якій сторінці. Наведіть на слово, щоб побачити переклад.",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "Без підсвічування на сайтах:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "Знову підсвічувати слова на {site}",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "Обліковий запис",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "Вхід не виконано",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "Ваші слова зберігаються в цьому браузері. Увійдіть, щоб вони були на всіх пристроях.",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "Сеанс завершився",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "Увійдіть знову, щоб нові слова зберігалися в обліковому записі.",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "Мої слова",

@@ -35,6 +35,14 @@
     "message": "Selectează…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "Disponibile în acest videoclip",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "Alte limbi",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "Se caută subtitrări…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "Subtitrări",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "Evaluează",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Îți place Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Ai strâns deja destule cuvinte salvate.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "O evaluare în Web Store ar însemna mult pentru noi. Așa ne găsesc și alții.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Da!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Nu prea",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Ce lipsește?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Ce n-a mers? Ce ai schimba?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Mulțumim, chiar ne ajută.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Nu s-a trimis. Mai încerci?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "Sari peste",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Trimite",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Se trimite…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "Ne bucurăm să auzim",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "Nu acum",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "{count} cuvinte salvate",
@@ -147,10 +215,6 @@
     "message": "Mod de citire",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "Moduri",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "Text",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "Resetează",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "Subtitrările pe video sunt dezactivate",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "Vulpea maro rapidă",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "Previzualizarea traducerii",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "Setări",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "Disponibile în acest videoclip",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "Alte limbi",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "Evaluează",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Îți place Lingogram?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "Ai strâns deja destule cuvinte salvate.",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "O evaluare în Web Store ar însemna mult pentru noi. Așa ne găsesc și alții.",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "Da!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "Nu prea",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "Mulțumim că ne-ai spus.",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "Ce lipsește?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "Ce n-a mers? Ce ai schimba?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "Mulțumim, chiar ne ajută.",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "Nu s-a trimis. Mai încerci?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "Sari peste",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "Trimite",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "Se trimite…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "Ne bucurăm să auzim",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "Nu acum",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "Meniul Lingogram",
@@ -399,10 +379,6 @@
     "message": "Pagina de conectare nu a putut fi deschisă. Încearcă din nou.",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "Salvat: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "Nu s-a putut elimina: {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "Se încarcă…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(e-mail necunoscut)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "Alege…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "Învăț",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "Limba mea maternă",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "Arată următorul cuvânt din această subtitrare",
@@ -515,6 +475,10 @@
     "message": "Linkul subtitrării a expirat înainte ca traducerea să se încarce. O nouă căutare rezolvă de obicei problema.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} caractere rămase",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "Raportează o problemă",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "Setări",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "{n} caractere rămase",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "Confidențialitate",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "Partajează statistici de utilizare anonime",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "Contorizări precum „subtitrări încărcate” și „cuvânt salvat”. Niciodată contul tău, videoclipurile pe care le urmărești sau cuvintele pe care le salvezi.",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "Închide",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "Subtitrările apar aici",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "Traducerea apare aici",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "Trage pentru a muta subtitrările",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "Rândul anterior",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "Redă din nou rândul",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "Rândul următor",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -599,10 +555,6 @@
     "message": "Salvează",
     "description": "Heart button label: save the looked-up word to the dictionary."
   },
-  "ytLookupSaved": {
-    "message": "Salvat",
-    "description": "Heart button label after a successful save."
-  },
   "ytLookupRemove": {
     "message": "Elimină",
     "description": "Label on a saved word’s heart: pressing it takes the word off the list."
@@ -619,6 +571,46 @@
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
   },
+  "ytPosNoun": {
+    "message": "s.",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "vb.",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "adj.",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "adv.",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "prep.",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "conj.",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "pron.",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "interj.",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "num.",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "expr.",
+    "description": "Short part-of-speech label: phrase."
+  },
   "dupCopyTitle": {
     "message": "Lingogram rulează de două ori",
     "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
@@ -634,10 +626,6 @@
   "ctxMenuSave": {
     "message": "Salvează în Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "Evidențiază cuvintele mele pe site-uri",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "Termină configurarea",
@@ -779,10 +767,6 @@
     "message": "Sesiunea a expirat. Cuvintele noi rămân pe acest dispozitiv până te conectezi din nou.",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "Subtitrări pe {site}",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "Evidențiază pe {site}",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -799,61 +783,13 @@
     "message": "Evidențierea este dezactivată pe toate site-urile",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "Reîncarcă pagina pentru a aplica modificarea.",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "Setări",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "Setări",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "Cuvintele mele",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Unde funcționează Lingogram",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "Subtitrări duble și lista de cuvinte lângă videoclip.",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "Cuvintele salvate sunt evidențiate pe orice pagină citești. Indică un cuvânt ca să-i vezi traducerea.",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "Fără evidențiere pe:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "Evidențiază din nou cuvintele pe {site}",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "Cont",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "Neconectat",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "Cuvintele tale sunt păstrate în acest browser. Conectează-te ca să le ai pe fiecare dispozitiv.",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "Sesiunea a expirat",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "Conectează-te din nou ca să ajungă cuvintele noi în contul tău.",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "Cuvintele mele",

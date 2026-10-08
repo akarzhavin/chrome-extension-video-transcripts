@@ -35,6 +35,14 @@
     "message": "चुनें…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "इस वीडियो में उपलब्ध",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "अन्य भाषाएँ",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "सबटाइटल खोजे जा रहे हैं…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "उपशीर्षक",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "रेटिंग दें",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Lingogram पसंद आया?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "अब तक आपने काफ़ी शब्द सहेज लिए हैं।",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "वेब स्टोर पर आपकी रेटिंग हमारे लिए बहुत मायने रखती है। इसी से दूसरे हम तक पहुँचते हैं।",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "हाँ!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "खास नहीं",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "इसमें क्या कमी है?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "क्या ठीक नहीं लगा? क्या बदलेंगे?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "शुक्रिया, इससे बहुत मदद मिलती है।",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "भेजा नहीं गया। फिर से?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "रहने दें",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "भेजें",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "भेज रहे हैं…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "सुनकर अच्छा लगा",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "अभी नहीं",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "{count} शब्द सहेजे गए",
@@ -147,10 +215,6 @@
     "message": "पठन मोड",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "मोड",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "टेक्स्ट",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "रीसेट",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "वीडियो पर सबटाइटल बंद हैं",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "तेज़ भूरी लोमड़ी",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "अनुवाद पूर्वावलोकन",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "सेटिंग",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "इस वीडियो में उपलब्ध",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "अन्य भाषाएँ",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "रेटिंग दें",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Lingogram पसंद आया?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "अब तक आपने काफ़ी शब्द सहेज लिए हैं।",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "वेब स्टोर पर आपकी रेटिंग हमारे लिए बहुत मायने रखती है। इसी से दूसरे हम तक पहुँचते हैं।",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "हाँ!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "खास नहीं",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "बताने के लिए शुक्रिया।",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "इसमें क्या कमी है?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "क्या ठीक नहीं लगा? क्या बदलेंगे?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "शुक्रिया, इससे बहुत मदद मिलती है।",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "भेजा नहीं गया। फिर से?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "रहने दें",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "भेजें",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "भेज रहे हैं…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "सुनकर अच्छा लगा",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "अभी नहीं",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "Lingogram मेन्यू",
@@ -399,10 +379,6 @@
     "message": "साइन इन पेज नहीं खुल सका। फिर से कोशिश करें।",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "सहेजा गया: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "हटाया नहीं जा सका: {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "लोड हो रहा है…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(ईमेल अज्ञात)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "चुनें…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "मैं सीख रहा हूँ",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "मेरी मातृभाषा",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "इस सबटाइटल का अगला शब्द दिखाएँ",
@@ -515,6 +475,10 @@
     "message": "अनुवाद लोड होने से पहले ही सबटाइटल लिंक की मियाद खत्म हो गई। दोबारा खोजने से आमतौर पर यह ठीक हो जाता है।",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} अक्षर शेष",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "समस्या की रिपोर्ट करें",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "सेटिंग",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "{n} अक्षर शेष",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "गोपनीयता",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "गुमनाम उपयोग आँकड़े साझा करें",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "बस “सबटाइटल लोड हुए” और “शब्द सहेजा गया” जैसी गिनतियाँ। आपका खाता, आप जो वीडियो देखते हैं या जो शब्द सहेजते हैं, वे कभी नहीं।",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "बंद करें",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "सबटाइटल यहाँ दिखेंगे",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "अनुवाद यहाँ दिखेगा",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "सबटाइटल ले जाने के लिए खींचें",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "पिछली पंक्ति",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "पंक्ति फिर से चलाएँ",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "अगली पंक्ति",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -599,10 +555,6 @@
     "message": "सेव करें",
     "description": "Heart button label: save the looked-up word to the dictionary."
   },
-  "ytLookupSaved": {
-    "message": "सेव हो गया",
-    "description": "Heart button label after a successful save."
-  },
   "ytLookupRemove": {
     "message": "हटाएं",
     "description": "Label on a saved word’s heart: pressing it takes the word off the list."
@@ -619,6 +571,46 @@
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
   },
+  "ytPosNoun": {
+    "message": "सं.",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "क्रि.",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "वि.",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "क्रि.वि.",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "परसर्ग",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "समु.",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "सर्व.",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "विस्म.",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "संख्या",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "वाक्यांश",
+    "description": "Short part-of-speech label: phrase."
+  },
   "dupCopyTitle": {
     "message": "Lingogram दो बार चल रहा है",
     "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
@@ -634,10 +626,6 @@
   "ctxMenuSave": {
     "message": "Lingogram में सेव करें",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "वेबसाइटों पर मेरे शब्द हाइलाइट करें",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "सेटअप पूरा करें",
@@ -779,10 +767,6 @@
     "message": "आपका साइन इन समाप्त हो गया। नए शब्द इस डिवाइस पर तब तक रखे जाएँगे, जब तक आप दोबारा साइन इन नहीं करते।",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "{site} पर सबटाइटल",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "{site} पर हाइलाइट करें",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -799,61 +783,13 @@
     "message": "सभी वेबसाइटों पर हाइलाइट बंद है",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "बदलाव लागू करने के लिए पेज रीलोड करें।",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "सेटिंग",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "सेटिंग",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "मेरे शब्द",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Lingogram कहाँ काम करता है",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "दोहरे सबटाइटल और वीडियो के बगल में शब्दों की सूची।",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "आपके सेव किए शब्द हर उस पेज पर हाइलाइट होते हैं जिसे आप पढ़ते हैं। किसी शब्द पर कर्सर ले जाएँ, अनुवाद दिख जाएगा।",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "इन साइटों पर हाइलाइट नहीं:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "{site} पर शब्द फिर से हाइलाइट करें",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "खाता",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "साइन इन नहीं है",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "आपके शब्द इस ब्राउज़र में रखे हैं। हर डिवाइस पर पाने के लिए साइन इन करें।",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "साइन इन समाप्त हो गया",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "नए शब्द आपके खाते में पहुँचें, इसके लिए फिर से साइन इन करें।",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "मेरे शब्द",

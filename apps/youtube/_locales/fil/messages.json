@@ -35,6 +35,14 @@
     "message": "Pumili…",
     "description": "Placeholder option in a language dropdown."
   },
+  "ytLangGroupAvailable": {
+    "message": "Available sa video na ito",
+    "description": "Dropdown group heading for subtitle languages the current video offers."
+  },
+  "ytLangGroupOther": {
+    "message": "Iba pang wika",
+    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
+  },
   "ytSearchingTitle": {
     "message": "Naghahanap ng mga subtitle…",
     "description": "Status banner heading while looking for subtitles."
@@ -66,6 +74,66 @@
   "ytSidebarTitle": {
     "message": "Mga Subtitle",
     "description": "Sidebar panel header title."
+  },
+  "ytRateButton": {
+    "message": "I-rate",
+    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
+  },
+  "ytRateQ": {
+    "message": "Nagugustuhan ang Lingogram?",
+    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
+  },
+  "ytRateQSub": {
+    "message": "Marami ka nang naipong salita.",
+    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
+  },
+  "ytRateStep2": {
+    "message": "Malaki ang halaga sa amin ng rating mo sa Web Store. Doon kami natutuklasan ng iba.",
+    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
+  },
+  "ytRateYes": {
+    "message": "Oo!",
+    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
+  },
+  "ytRateNo": {
+    "message": "Hindi masyado",
+    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
+  },
+  "ytRateFeedbackTitle": {
+    "message": "Ano ang kulang?",
+    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
+  },
+  "ytRateFeedbackHint": {
+    "message": "Ano ang hindi bagay? Ano ang babaguhin mo?",
+    "description": "Placeholder inside the feedback textarea."
+  },
+  "ytRateFeedbackSent": {
+    "message": "Salamat, malaking tulong ito.",
+    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
+  },
+  "ytRateFeedbackFailed": {
+    "message": "Hindi naipadala. Ulitin?",
+    "description": "Error shown when sending feedback failed; the user can retry."
+  },
+  "ytRateSkip": {
+    "message": "Laktawan",
+    "description": "Dismiss button on the feedback form shown after a negative answer."
+  },
+  "ytRateSend": {
+    "message": "Ipadala",
+    "description": "Submit button on the feedback form."
+  },
+  "ytRateSending": {
+    "message": "Ipinapadala…",
+    "description": "Submit button label while the feedback is in flight."
+  },
+  "ytRateThanksYes": {
+    "message": "Buti naman",
+    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
+  },
+  "ytRateLater": {
+    "message": "Hindi ngayon",
+    "description": "Dismiss button on the rating prompt."
   },
   "ytWordsSaved": {
     "message": "{count} salita ang naka-save",
@@ -147,10 +215,6 @@
     "message": "Mode ng pagbasa",
     "description": "Settings panel group header for reading-mode toggles."
   },
-  "ytModesLabel": {
-    "message": "Mga mode",
-    "description": "Tiny uppercase label inside the sidebar quick-mode cluster (Dual/Guess/On-screen buttons). Keep it one short word."
-  },
   "ytGroupText": {
     "message": "Teksto",
     "description": "Settings panel group header for subtitle text appearance: font, size, color."
@@ -231,93 +295,9 @@
     "message": "I-reset",
     "description": "Button that restores the default overlay appearance."
   },
-  "ytOverlayOffNote": {
-    "message": "Naka-off ang subtitle sa video",
-    "description": "Note shown in the style preview when the on-video overlay is disabled."
-  },
-  "ytPreviewSampleMain": {
-    "message": "Ang mabilis na kayumangging soro",
-    "description": "Sample subtitle line shown in the style preview when no video subtitle is loaded."
-  },
-  "ytPreviewSampleSub": {
-    "message": "Preview ng pagsasalin",
-    "description": "Sample translation line shown in the style preview."
-  },
   "ytSettingsTitle": {
     "message": "Mga Setting",
     "description": "Sidebar header title while the settings panel is open."
-  },
-  "ytLangGroupAvailable": {
-    "message": "Available sa video na ito",
-    "description": "Dropdown group heading for subtitle languages the current video offers."
-  },
-  "ytLangGroupOther": {
-    "message": "Iba pang wika",
-    "description": "Dropdown group heading for languages not available in the current video (shown disabled)."
-  },
-  "ytRateButton": {
-    "message": "I-rate",
-    "description": "Primary button on the rating prompt; opens the extension's Web Store review page."
-  },
-  "ytRateQ": {
-    "message": "Nagugustuhan ang Lingogram?",
-    "description": "Step 1 of the rating prompt: asks whether the user likes the extension before any store link is offered."
-  },
-  "ytRateQSub": {
-    "message": "Marami ka nang naipong salita.",
-    "description": "Subtitle under the step-1 question of the rating prompt; reminds the user of the value they got."
-  },
-  "ytRateStep2": {
-    "message": "Malaki ang halaga sa amin ng rating mo sa Web Store. Doon kami natutuklasan ng iba.",
-    "description": "Body of step 2 of the rating prompt: a gratitude-framed ask for a Web Store rating, shown only after the user said yes."
-  },
-  "ytRateYes": {
-    "message": "Oo!",
-    "description": "Positive answer on step 1 of the rating prompt; leads to the star step."
-  },
-  "ytRateNo": {
-    "message": "Hindi masyado",
-    "description": "Negative answer on step 1 of the rating prompt; thanks the user and closes."
-  },
-  "ytRateThanks": {
-    "message": "Salamat sa pagsabi.",
-    "description": "Shown briefly after a negative answer on the rating prompt, then the card closes itself."
-  },
-  "ytRateFeedbackTitle": {
-    "message": "Ano ang kulang?",
-    "description": "Title of the feedback form shown after a negative answer on the rating prompt."
-  },
-  "ytRateFeedbackHint": {
-    "message": "Ano ang hindi bagay? Ano ang babaguhin mo?",
-    "description": "Placeholder inside the feedback textarea."
-  },
-  "ytRateFeedbackSent": {
-    "message": "Salamat, malaking tulong ito.",
-    "description": "Confirmation shown briefly after feedback is sent, then the card closes."
-  },
-  "ytRateFeedbackFailed": {
-    "message": "Hindi naipadala. Ulitin?",
-    "description": "Error shown when sending feedback failed; the user can retry."
-  },
-  "ytRateSkip": {
-    "message": "Laktawan",
-    "description": "Dismiss button on the feedback form shown after a negative answer."
-  },
-  "ytRateSend": {
-    "message": "Ipadala",
-    "description": "Submit button on the feedback form."
-  },
-  "ytRateSending": {
-    "message": "Ipinapadala…",
-    "description": "Submit button label while the feedback is in flight."
-  },
-  "ytRateThanksYes": {
-    "message": "Buti naman",
-    "description": "Title of step 2 of the rating prompt, acknowledging the user's positive answer."
-  },
-  "ytRateLater": {
-    "message": "Hindi ngayon",
-    "description": "Dismiss button on the rating prompt."
   },
   "ytMenuLabel": {
     "message": "Menu ng Lingogram",
@@ -399,10 +379,6 @@
     "message": "Hindi mabuksan ang sign-in page. Subukan ulit.",
     "description": "Error shown when the browser could not open the Lingogram sign-in tab."
   },
-  "ytQuickAddPill": {
-    "message": "+ Lingogram",
-    "description": "Button that appears over a selected word to save it. 'Lingogram' is the product name; keep the leading plus sign."
-  },
   "ytQuickAddSaved": {
     "message": "Na-save: {term}",
     "description": "Confirmation after a word is saved. {term} is the word the user selected and must be kept."
@@ -416,28 +392,12 @@
     "description": "Error shown when saving a word failed. {error} is a technical message and must be kept."
   },
   "ytQuickAddRemoveFailed": {
-    "message": "Couldn't remove: {error}",
+    "message": "Hindi naalis: {error}",
     "description": "Error shown when taking a word off the saved list failed. {error} is a technical message and must be kept."
   },
   "ytPopupLoading": {
     "message": "Naglo-load…",
     "description": "Placeholder while the toolbar popup fetches the account status."
-  },
-  "ytPopupUnknownEmail": {
-    "message": "(hindi alam ang email)",
-    "description": "Shown in the popup when the signed-in account has no email address on record."
-  },
-  "ytPopupSelect": {
-    "message": "Pumili…",
-    "description": "Placeholder option in the language dropdowns before a language is chosen."
-  },
-  "ytPopupLearning": {
-    "message": "Nag-aaral ako ng",
-    "description": "Label for the dropdown where the user picks the language they are learning."
-  },
-  "ytPopupNative": {
-    "message": "Ang aking sariling wika",
-    "description": "Label for the dropdown where the user picks their own native language."
   },
   "ytGuessRevealAria": {
     "message": "Ipakita ang susunod na salita ng subtitle na ito",
@@ -515,6 +475,10 @@
     "message": "Nag-expire ang link ng subtitle bago pa ma-load ang salin. Karaniwang naaayos ito ng muling paghahanap.",
     "description": "Hover explanation when the translated track failed for a recoverable reason other than rate limiting."
   },
+  "ytFeedbackCharsLeft": {
+    "message": "{n} character na natitira",
+    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
+  },
   "ytFeedbackLink": {
     "message": "Mag-ulat ng problema",
     "description": "Entry point at the bottom of the settings panel that opens the feedback screen."
@@ -539,10 +503,6 @@
     "message": "Mga Setting",
     "description": "Back chip on the feedback screen that returns to settings."
   },
-  "ytFeedbackCharsLeft": {
-    "message": "{n} character na natitira",
-    "description": "Byte-budget counter on the feedback form, shown only near the limit. {n} is replaced in code with the number remaining. It is aria-live, so the unit must be in the string — a bare number announces as meaningless."
-  },
   "ytGroupPrivacy": {
     "message": "Privacy",
     "description": "Settings panel group header for the anonymous-usage-analytics opt-out toggle."
@@ -551,36 +511,32 @@
     "message": "Ibahagi ang anonymous na istatistika ng paggamit",
     "description": "Label for the checkbox that turns anonymous product analytics on or off. On by default."
   },
-  "ytPrivacyAnalyticsHint": {
-    "message": "Mga bilang tulad ng “na-load ang subtitles” at “na-save ang salita”. Hinding-hindi ang iyong account, ang mga video na pinapanood mo, o ang mga salitang sine-save mo.",
-    "description": "Explanatory text under the analytics checkbox, stating exactly what is and is not collected. Keep the two quoted event names natural in the target language."
-  },
   "ytNotificationClose": {
     "message": "Isara",
     "description": "Accessible label and tooltip for the close button on the notification banner in the sidebar. Short imperative verb, like a close button on a dialog."
   },
   "ytOverlayPreviewMain": {
-    "message": "Subtitles appear here",
+    "message": "Dito lalabas ang mga subtitle",
     "description": "Stand-in caption shown while positioning, when the video has no subtitle track."
   },
   "ytOverlayPreviewSub": {
-    "message": "Translation appears here",
+    "message": "Dito lalabas ang salin",
     "description": "Stand-in translation line shown beneath the placeholder caption."
   },
   "ytOverlayDragHandle": {
-    "message": "Drag to move the subtitles",
+    "message": "I-drag para ilipat ang mga subtitle",
     "description": "Tooltip/aria-label for the grip on the captions that drags them around the player."
   },
   "ytOverlayCuePrev": {
-    "message": "Previous line",
+    "message": "Nakaraang linya",
     "description": "Tooltip/aria-label for the ‹ button under the on-screen captions: jump back to the previous subtitle line."
   },
   "ytOverlayCueReplay": {
-    "message": "Replay line",
+    "message": "I-replay ang linya",
     "description": "Tooltip/aria-label for the ↺ button under the on-screen captions: play the current subtitle line again from its start."
   },
   "ytOverlayCueNext": {
-    "message": "Next line",
+    "message": "Susunod na linya",
     "description": "Tooltip/aria-label for the › button under the on-screen captions: jump to the next subtitle line."
   },
   "ytLookupLoading": {
@@ -599,10 +555,6 @@
     "message": "I-save",
     "description": "Heart button label: save the looked-up word to the dictionary."
   },
-  "ytLookupSaved": {
-    "message": "Na-save",
-    "description": "Heart button label after a successful save."
-  },
   "ytLookupRemove": {
     "message": "Alisin",
     "description": "Label on a saved word’s heart: pressing it takes the word off the list."
@@ -619,6 +571,46 @@
     "message": "AI",
     "description": "Word screen source badge: the answer came from the language model."
   },
+  "ytPosNoun": {
+    "message": "png.",
+    "description": "Short part-of-speech label: noun. Keep it abbreviated — it renders as a small chip."
+  },
+  "ytPosVerb": {
+    "message": "pnd.",
+    "description": "Short part-of-speech label: verb."
+  },
+  "ytPosAdj": {
+    "message": "pnr.",
+    "description": "Short part-of-speech label: adjective."
+  },
+  "ytPosAdv": {
+    "message": "pnb.",
+    "description": "Short part-of-speech label: adverb."
+  },
+  "ytPosPrep": {
+    "message": "pu.",
+    "description": "Short part-of-speech label: preposition."
+  },
+  "ytPosConj": {
+    "message": "pt.",
+    "description": "Short part-of-speech label: conjunction."
+  },
+  "ytPosPron": {
+    "message": "ph.",
+    "description": "Short part-of-speech label: pronoun."
+  },
+  "ytPosIntj": {
+    "message": "pd.",
+    "description": "Short part-of-speech label: interjection."
+  },
+  "ytPosNum": {
+    "message": "pm.",
+    "description": "Short part-of-speech label: numeral."
+  },
+  "ytPosPhrase": {
+    "message": "parirala",
+    "description": "Short part-of-speech label: phrase."
+  },
   "dupCopyTitle": {
     "message": "Umaandar nang dalawang beses ang Lingogram",
     "description": "Title of a banner in the subtitle panel: two installed copies of this extension are both enabled on the page."
@@ -634,10 +626,6 @@
   "ctxMenuSave": {
     "message": "I-save sa Lingogram",
     "description": "Right-click menu item shown on selected text on any website; saves the selection to the user's Lingogram word list. Keep the brand name Lingogram unchanged."
-  },
-  "popupPageHighlightLabel": {
-    "message": "I-highlight ang aking mga salita sa mga website",
-    "description": "Popup toggle: mark the user's saved vocabulary words in the text of any web page they read."
   },
   "popupFinishSetup": {
     "message": "Tapusin ang pag-set up",
@@ -779,10 +767,6 @@
     "message": "Nag-expire ang session mo. Mananatili sa device na ito ang mga bagong salita hanggang mag-sign in ka ulit.",
     "description": "Toolbar popup: notice shown when the session expired (the red '!' on the toolbar icon)."
   },
-  "popupSubtitlesOn": {
-    "message": "Mga subtitle sa {site}",
-    "description": "Switch label. {site} is replaced with the site's name (YouTube, Netflix or HDrezka), which is not translated."
-  },
   "popupHighlightOnSite": {
     "message": "I-highlight sa {site}",
     "description": "Popup switch label for the current tab's site. {site} is the site's hostname without a leading 'www.' (for example en.wikipedia.org); it is replaced in code and not translated."
@@ -799,61 +783,13 @@
     "message": "Naka-off ang pag-highlight sa lahat ng website",
     "description": "Popup row text when highlighting is switched off for all websites; there is no switch then, only the 'Manage sites' link under it."
   },
-  "popupReloadHint": {
-    "message": "I-reload ang page para ma-apply ang pagbabago.",
-    "description": "Short line shown after a site switch was changed: the change reaches pages that are already open only after they are reloaded."
-  },
   "popupSettingsLink": {
     "message": "Mga Setting",
     "description": "Link in the toolbar popup, and on the My words page, that opens the settings."
   },
-  "settingsTitle": {
-    "message": "Mga Setting",
-    "description": "Title of the extension's own settings page."
-  },
   "settingsMyWords": {
     "message": "Aking mga salita",
     "description": "Link in the settings page header to the page with the words saved in this browser."
-  },
-  "settingsGroupWorks": {
-    "message": "Saan gumagana ang Lingogram",
-    "description": "Settings page: small group heading above the on/off switches for the sites where the extension works."
-  },
-  "settingsYoutubeHint": {
-    "message": "Dobleng subtitle at ang listahan ng salita sa tabi ng video.",
-    "description": "Settings page: hint under the 'Subtitles on YouTube' switch."
-  },
-  "settingsHighlightHint": {
-    "message": "Naka-highlight sa bawat page na binabasa mo ang mga salitang na-save mo. Ituro ang isang salita para makita ang salin nito.",
-    "description": "Settings page: hint under the 'Highlight my words on websites' switch."
-  },
-  "settingsHighlightOffOn": {
-    "message": "Hindi naka-highlight sa:",
-    "description": "Settings page: lead-in to the list of sites where highlighting was switched off from the popup."
-  },
-  "settingsHighlightOnAgain": {
-    "message": "I-highlight muli ang mga salita sa {site}",
-    "description": "Settings page: accessible name of the small remove button next to a site in the 'Not highlighted on' list. {site} is the hostname, replaced in code."
-  },
-  "settingsGroupAccount": {
-    "message": "Account",
-    "description": "Settings page: small group heading above the account section."
-  },
-  "settingsNotSignedIn": {
-    "message": "Hindi naka-sign in",
-    "description": "Settings page, account section: title shown when the learner has no account session."
-  },
-  "settingsNotSignedInHint": {
-    "message": "Nakatago sa browser na ito ang mga salita mo. Mag-sign in para nasa lahat ng device mo ang mga ito.",
-    "description": "Settings page, account section: hint under 'Not signed in'."
-  },
-  "settingsSignedOutTitle": {
-    "message": "Nag-expire ang session mo",
-    "description": "Settings page, account section: title shown when the session expired."
-  },
-  "settingsSignedOutHint": {
-    "message": "Mag-sign in ulit para mapunta sa account mo ang mga bagong salita.",
-    "description": "Settings page, account section: hint under 'You were signed out'."
   },
   "wordsTitle": {
     "message": "Aking mga salita",

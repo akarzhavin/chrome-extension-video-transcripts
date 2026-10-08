@@ -68,6 +68,7 @@ beforeEach(() => {
 describe('state', () => {
     test('the YouTube edition: its two sites, version, languages, and the switches', async () => {
         store['lang.v1'] = { learning: 'en', native: 'ru' };
+        // A site switched off by an older version: the state no longer reports it.
         store['prefs.v1'] = { pageHighlight: false, analyticsEnabled: false, siteNetflix: false };
         const s: any = await handleSettingsMessage(msg('state'), yt);
         expect(s).toMatchObject({
@@ -81,8 +82,8 @@ describe('state', () => {
             analyticsEnabled: false,
         });
         expect(s.sites).toEqual([
-            { id: 'youtube', name: 'YouTube', enabled: true },
-            { id: 'netflix', name: 'Netflix', enabled: false },
+            { id: 'youtube', name: 'YouTube' },
+            { id: 'netflix', name: 'Netflix' },
         ]);
         expect(s.languages.length).toBeGreaterThan(10);
         expect(s.languages[0]).toEqual({ code: expect.any(String), label: expect.any(String), native: expect.any(String) });
@@ -91,7 +92,7 @@ describe('state', () => {
     test('the HDrezka edition: its one site and its own language list', async () => {
         const s: any = await handleSettingsMessage(msg('state'), rezka);
         expect(s.edition).toBe('rezka');
-        expect(s.sites).toEqual([{ id: 'rezka', name: 'HDrezka', enabled: true }]);
+        expect(s.sites).toEqual([{ id: 'rezka', name: 'HDrezka' }]);
         expect(s.languages.map((l: any) => l.code)).toEqual(['en', 'ru', 'uk']);
     });
 
@@ -103,17 +104,17 @@ describe('state', () => {
 });
 
 describe('set', () => {
-    test('writes languages, the two switches and the sites in one message', async () => {
+    test('writes languages and the two switches in one message', async () => {
         const r = await handleSettingsMessage(
             msg('set', {
                 languages: { learning: 'en', native: 'ru' },
-                prefs: { pageHighlight: false, analyticsEnabled: false, sites: { youtube: true, netflix: false } },
+                prefs: { pageHighlight: false, analyticsEnabled: false },
             }),
             yt,
         );
         expect(r).toEqual({ ok: true });
         expect(store['lang.v1']).toEqual({ learning: 'en', native: 'ru' });
-        expect(store['prefs.v1']).toMatchObject({ pageHighlight: false, analyticsEnabled: false, siteYoutube: true, siteNetflix: false });
+        expect(store['prefs.v1']).toMatchObject({ pageHighlight: false, analyticsEnabled: false });
     });
 
     const refusals: Array<[string, Record<string, unknown>, any, string]> = [
@@ -125,10 +126,8 @@ describe('set', () => {
         ['a non-boolean pageHighlight', { prefs: { pageHighlight: 'no' } }, yt, 'pageHighlight must be a boolean'],
         ['a non-boolean analyticsEnabled', { prefs: { analyticsEnabled: 0 } }, yt, 'analyticsEnabled must be a boolean'],
         ['an unknown pref', { prefs: { theme: 'dark' } }, yt, 'unknown key: prefs.theme'],
-        ['a site of the other edition', { prefs: { sites: { rezka: false } } }, yt, 'site not in this edition: rezka'],
-        ['netflix on the HDrezka edition', { prefs: { sites: { netflix: false } } }, rezka, 'site not in this edition: netflix'],
-        ['an unknown site', { prefs: { sites: { hulu: false } } }, yt, 'unknown key: prefs.sites.hulu'],
-        ['a non-boolean site switch', { prefs: { sites: { youtube: 'off' } } }, yt, 'sites.youtube must be a boolean'],
+        // The video sites have no switch any more: the old message is refused, not stored.
+        ['a site switch', { prefs: { sites: { youtube: false } } }, yt, 'unknown key: prefs.sites'],
         ['prefs that is not an object', { prefs: true }, yt, 'prefs must be an object'],
         ['an unknown top-level key', { colour: 'red' }, yt, 'unknown key: colour'],
     ];
@@ -140,7 +139,7 @@ describe('set', () => {
         const r = await handleSettingsMessage(
             msg('set', {
                 languages: { learning: 'en', native: 'ru' },
-                prefs: { pageHighlight: false, sites: { rezka: false } },
+                prefs: { pageHighlight: false, sites: { youtube: false } },
             }),
             yt,
         );
