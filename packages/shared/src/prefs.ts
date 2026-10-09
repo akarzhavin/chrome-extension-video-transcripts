@@ -111,6 +111,9 @@ export interface Prefs {
     // page highlight is off although pageHighlight is on. GLOBAL, stored only
     // in this browser. Set by the per-site switch in the popup.
     highlightOffHosts: string[];
+    // The second line from Lingogram's AI translation of the learning track
+    // (english spec 023) instead of the site's own native track. GLOBAL; off by default.
+    aiTranslate: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -368,6 +371,7 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         resolved.debugMode = DEFAULT_PREFS.debugMode;
     }
     if (typeof resolved.pageHighlight !== 'boolean') resolved.pageHighlight = DEFAULT_PREFS.pageHighlight;
+    if (typeof resolved.aiTranslate !== 'boolean') resolved.aiTranslate = DEFAULT_PREFS.aiTranslate;
     // Stored garbage (not a list, or non-strings in it) must not reach the
     // content script. A fresh array: DEFAULT_PREFS' own must never be handed out.
     resolved.highlightOffHosts = Array.isArray(resolved.highlightOffHosts)
@@ -428,6 +432,7 @@ const DEFAULT_PREFS: Prefs = {
     debugMode: DEFAULT_DEBUG_MODE,
     pageHighlight: true,
     highlightOffHosts: [],
+    aiTranslate: false,
 };
 
 export type VideoSite = 'youtube' | 'netflix' | 'rezka';

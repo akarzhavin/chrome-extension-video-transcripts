@@ -77,9 +77,19 @@ export class AppState {
         return this.hasTrackFor(this.secondaryLangLabel);
     }
 
+    // The AI translation track (english spec 023), when the learner switched it
+    // on: it takes the second line over any native track the site shipped.
+    preferredSecondaryName?: string;
+
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
+    }
+
+    removeTrack(name: string): void {
+        const before = this.tracks.length;
+        this.tracks = this.tracks.filter((t) => t.name !== name);
+        if (this.tracks.length !== before) this.applyPreferences();
     }
 
     reset(): void {
@@ -97,6 +107,14 @@ export class AppState {
     }
 
     applyPreferences(): void {
+        this.applyLanguagePreferences();
+        const ai = this.preferredSecondaryName
+            ? this.tracks.findIndex((t) => t.name === this.preferredSecondaryName)
+            : -1;
+        if (ai !== -1 && ai !== this.activeTrackIndex) this.secondaryTrackIndex = ai;
+    }
+
+    private applyLanguagePreferences(): void {
         // Re-deriving indexes from the preference undoes any manual swap, so
         // the flag must follow.
         this.swapped = false;
