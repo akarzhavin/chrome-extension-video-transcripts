@@ -17,7 +17,8 @@ import {
     lookupPhraseCached,
 } from '../lookup';
 import { exchangeCustomToken } from './firebaseRest';
-import { addFeedback, addInboxWord, addNoSubsReport, listInboxWords, removeInboxWord } from './firestoreRest';
+import { addFeedback, addInboxWord, addNoSubsReport, freshIdToken, listInboxWords, removeInboxWord } from './firestoreRest';
+import { requestPart, storeTrack, type PartRequest, type StoredTrack } from '../subtitle-ai/worker';
 import {
     activateMirrorTerms,
     activeWordCount,
@@ -75,6 +76,8 @@ export type AuthAction =
     | 'GET_NOTIFICATION'
     | 'DISMISS_NOTIFICATION'
     | 'LOOKUP_WORD'
+    | 'SUBTITLE_AI_PART'
+    | 'SUBTITLE_AI_STORE'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
@@ -104,6 +107,8 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'GET_NOTIFICATION',
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
+    'SUBTITLE_AI_PART',
+    'SUBTITLE_AI_STORE',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -820,6 +825,16 @@ export async function handleAuthMessage(
                 console.debug('[Lingogram] notification lookup failed:', err);
                 return { ok: true, notification: null };
             }
+        }
+        case 'SUBTITLE_AI_PART':
+        case 'SUBTITLE_AI_STORE': {
+            // Server-side subtitle translation (english spec 023). Authed, so it
+            // runs here where the token lives; outcomes are values, never throws.
+            if (!config.apiBaseUrl) return { ok: false, code: 'unavailable' };
+            const deps = { fetch: (u: string, i: RequestInit) => fetch(u, i), token: (r: boolean) => freshIdToken(config, r), now: Date.now };
+            return request.action === 'SUBTITLE_AI_PART'
+                ? requestPart(config, request.part as PartRequest, deps)
+                : storeTrack(config, request.track as StoredTrack, deps);
         }
         case 'LOOKUP_WORD': {
             // Anonymous word lookup for the hover strip and the sidebar's word
