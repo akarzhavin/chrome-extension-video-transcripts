@@ -13,6 +13,7 @@
 // in to (sibling.ts, ownsSharedFeatures), and the other hides its item.
 
 import { adoptAnalyticsOptOut, answerAnalyticsRequest } from './analytics-consent';
+import { adoptAiTranslate, answerAiTranslateRequest } from './subtitle-ai/sync';
 import { handleAuthMessage } from './auth/background';
 import { AUTH_UID_KEY, getAuthState, SIBLING_KEYS } from './auth/storage';
 import { answerHighlightRequest, takeHighlightPrefsFrom } from './highlight-prefs';
@@ -120,6 +121,8 @@ export function installContextMenuSave(): void {
     chrome.runtime.onInstalled.addListener((details) => {
         // A learner who opted out of stats in the other edition is out here too.
         if (details?.reason === 'install') void adoptAnalyticsOptOut();
+        // Likewise the AI translation switch, on if it is on there (dev builds only).
+        if (__EXT_ENV__ === 'dev' && details?.reason === 'install') void adoptAiTranslate();
         void syncMenu();
         tellSibling();
     });
@@ -148,6 +151,10 @@ export function installContextMenuSave(): void {
             }
             if (message.op === 'analyticsGet' || message.op === 'analyticsSet') {
                 void answerAnalyticsRequest(message).then(sendResponse);
+                return true;
+            }
+            if (__EXT_ENV__ === 'dev' && (message.op === 'aiTranslateGet' || message.op === 'aiTranslateSet')) {
+                void answerAiTranslateRequest(message).then(sendResponse);
                 return true;
             }
             void getAuthState().then((state) => sendResponse({ ok: true, signedIn: !!state } satisfies SiblingStatus));

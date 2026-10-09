@@ -500,6 +500,9 @@ without an account nothing is sent. While it is on, the Extension asks our serve
 to translate the subtitle track in the language you are learning into your native
 language, and shows the result as the second line, in place of the site's own
 track in your language if it has one. Turning the switch off stops it at once.
+If both Lingogram editions are installed, switching it in one does the same in the
+other, inside your browser, and an edition installed later starts with it on if it
+is on in the other.
 
 **What is sent.** For the video you are watching, the Extension takes the subtitle
 track in the language you are learning: the text of each line and its start and

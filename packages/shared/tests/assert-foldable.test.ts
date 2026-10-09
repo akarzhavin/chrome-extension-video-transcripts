@@ -51,6 +51,7 @@ function makeTree(): string {
         'packages/shared/src/SidebarUI.ts',
         'packages/shared/src/subtitle-ai/worker.ts',
         'packages/shared/src/subtitle-ai/controller.ts',
+        'packages/shared/src/subtitle-ai/sync.ts',
         'packages/shared/src/auth/background.ts',
     ]) {
         const dest = join(dir, rel);

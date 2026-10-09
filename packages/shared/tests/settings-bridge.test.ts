@@ -291,9 +291,14 @@ describe('AI translation (dev builds only)', () => {
         expect(s.aiTranslate).toBe(false);
     });
 
-    test('set stores it, and state reads it back', async () => {
+    test('set stores it, tells the other edition, and state reads it back', async () => {
         expect(await handleSettingsMessage(msg('set', { prefs: { aiTranslate: true } }), yt)).toEqual({ ok: true });
         expect((store['prefs.v1'] as any).aiTranslate).toBe(true);
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith('hmdkmkimdbomemfcjmgeclchbcdbhabj', {
+            type: 'lingogram-sibling',
+            op: 'aiTranslateSet',
+            on: true,
+        });
         expect(((await handleSettingsMessage(msg('state'), yt)) as any).aiTranslate).toBe(true);
     });
 

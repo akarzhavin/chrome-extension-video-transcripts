@@ -107,6 +107,9 @@ export const AI_TRANSLATE_MARKERS = [
     '/dictionary/subtitles/',
     'subtitle_tracks',
     'write_limits',
+    // The switch kept in step between the editions (subtitle-ai/sync.ts).
+    'aiTranslateGet',
+    'aiTranslateSet',
 ];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the

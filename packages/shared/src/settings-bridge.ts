@@ -9,6 +9,7 @@
 // message is validated first and nothing is stored unless every part is valid.
 
 import { setAnalyticsEverywhere } from './analytics-consent';
+import { setAiTranslateEverywhere } from './subtitle-ai/sync';
 import { handleAuthMessage } from './auth/background';
 import { setPendingAuthNonce } from './auth/storage';
 import { normalizeHost } from './highlight-hosts';
@@ -161,8 +162,10 @@ export async function handleSettingsMessage(msg: SettingsMessage, opts: BridgeOp
             if (typeof v === 'string') return { ok: false, error: v };
             if (v.languages) await saveLanguagePrefs(v.languages, 'site');
             // The stats choice is one for both editions: written here and there.
-            const { analyticsEnabled, ...own } = v.prefs;
+            const { analyticsEnabled, aiTranslate, ...own } = v.prefs;
             if (analyticsEnabled !== undefined) await setAnalyticsEverywhere(analyticsEnabled);
+            // So is the AI translation switch (dev builds only; validateSet refuses it elsewhere).
+            if (__EXT_ENV__ === 'dev' && aiTranslate !== undefined) await setAiTranslateEverywhere(aiTranslate);
             if (Object.keys(own).length > 0) await savePrefs(own);
             if (Object.keys(v.highlight).length > 0 && !(await saveHighlightPrefs(v.highlight))) {
                 return { ok: false, error: 'the edition that highlights words did not save the change' };

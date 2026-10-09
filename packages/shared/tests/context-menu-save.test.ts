@@ -410,6 +410,32 @@ describe('two editions installed side by side', () => {
         expect(ops.includes('analyticsGet')).toBe(asks);
     });
 
+    it('stores the AI translation switch the sibling sends, from the sibling only', async () => {
+        await asEdition(EDITION_IDS.youtube, true);
+        const set = (global as any).chrome.storage.local.set as jest.Mock;
+        set.mockClear();
+        const reply = await new Promise((resolve) => {
+            expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateSet', on: true }, { id: EDITION_IDS.rezka }, resolve)).toBe(true);
+        });
+        expect(reply).toEqual({ ok: true });
+        expect(set.mock.calls.map(([o]) => o['prefs.v1']?.aiTranslate)).toContain(true);
+        const fromStranger = jest.fn();
+        expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateSet', on: true }, { id: DEV_ID }, fromStranger)).toBe(false);
+        expect(fromStranger).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['install', true],
+        ['update', false],
+    ])('on %s, asks the other edition whether AI translation is on: %s', async (reason, asks) => {
+        await asEdition(EDITION_IDS.rezka, false);
+        sendMessage.mockClear();
+        listeners.installed!({ reason } as any);
+        await flush();
+        const ops = sendMessage.mock.calls.map(([, m]) => (m as any).op);
+        expect(ops.includes('aiTranslateGet')).toBe(asks);
+    });
+
     it('signing in moves the item here, and tells the other edition', async () => {
         siblingAnswers(EDITION_IDS.youtube, { ok: true, signedIn: true });
         await asEdition(EDITION_IDS.rezka, false);
