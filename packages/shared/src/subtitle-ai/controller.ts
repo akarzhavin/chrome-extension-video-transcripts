@@ -22,9 +22,11 @@ export interface AiHost {
     later(fn: () => void, ms: number): void;
 }
 
-// The backend's grid: a short track is one part, a longer one parts of 100.
+// The backend's grid: a short track is one part; else a short first part (the
+// first lines come fast), then parts of 100.
 const PART = 100;
-const SHORT_TRACK = 150;
+const FIRST_PART = 30;
+const SHORT_TRACK = 30;
 // The part being watched and the next one; the rest waits for playback.
 const AHEAD = 2;
 const IDLE_MS = 3000;
@@ -82,7 +84,8 @@ export class AiTranslator {
         const n = this.track!.cues.length;
         if (n <= SHORT_TRACK) return [[0, n]];
         const out: [number, number][] = [];
-        for (let from = 0; from < n; from += PART) out.push([from, Math.min(n, from + PART)]);
+        out.push([0, FIRST_PART]);
+        for (let from = FIRST_PART; from < n; from += PART) out.push([from, Math.min(n, from + PART)]);
         return out;
     }
 
