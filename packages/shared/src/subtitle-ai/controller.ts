@@ -25,8 +25,8 @@ export interface AiHost {
 // The backend's grid: a short track is one part; else a short first part (the
 // first lines come fast), then parts of 100.
 const PART = 100;
-const FIRST_PART = 30;
-const SHORT_TRACK = 30;
+const FIRST_PART = 20;
+const SHORT_TRACK = 20;
 // The part being watched and the next one; the rest waits for playback.
 const AHEAD = 2;
 const IDLE_MS = 3000;

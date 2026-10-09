@@ -56,7 +56,7 @@ describe('AiTranslator', () => {
 
         const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
         expect(h.state.tracks[h.state.secondaryTrackIndex]).toBe(ai);
-        expect(h.sent[0]).toMatchObject({ action: 'SUBTITLE_AI_PART', part: { lang: 'ru', from: 0, to: 30 } });
+        expect(h.sent[0]).toMatchObject({ action: 'SUBTITLE_AI_PART', part: { lang: 'ru', from: 0, to: 20 } });
         expect((h.sent[0].part as { fingerprint: string }).fingerprint).toMatch(/^[0-9a-f]{64}$/);
         expect(ai.subtitles[5].text).toBe('ru 5');
         expect(ai.subtitles[5].startTime).toBe(10);
@@ -70,16 +70,16 @@ describe('AiTranslator', () => {
         new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
         await settle();
         await settle();
-        expect(h.sent.map((m) => (m.part as { from: number }).from)).toEqual([430, 530]);
+        expect(h.sent.map((m) => (m.part as { from: number }).from)).toEqual([420, 520]);
     });
 
-    test('the backend grid: a short first part, then steps of 100', async () => {
+    test('the backend grid: a 20-cue first part, then steps of 100', async () => {
         const h = host([lines, lines, lines]);
         h.state.addTrack('English', cues(250));
         new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
         await settle();
         await settle();
-        expect(h.sent.map((m) => [(m.part as { from: number }).from, (m.part as { to: number }).to])).toEqual([[0, 30], [30, 130]]);
+        expect(h.sent.map((m) => [(m.part as { from: number }).from, (m.part as { to: number }).to])).toEqual([[0, 20], [20, 120]]);
     });
 
     test('an unknown track is stored once, then asked for again', async () => {
