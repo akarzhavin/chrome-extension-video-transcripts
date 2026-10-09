@@ -57,6 +57,7 @@ import {
 } from './transcript/saved-marks';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
+import type { AiStatus } from './subtitle-ai/controller';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -634,6 +635,7 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
+        langGroup.appendChild(this.buildAiTranslateRow());
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2241,6 +2243,61 @@ export class SidebarUI {
         return () => {
             this.refreshHooks = this.refreshHooks.filter(f => f !== fn);
         };
+    }
+
+    private aiStatusEl: HTMLElement | null = null;
+
+    /** The "AI translation" switch (english spec 023): the second line from Lingogram's AI. */
+    private buildAiTranslateRow(): HTMLElement {
+        const wrap = document.createElement('div');
+        wrap.className = 'vtt-ai-translate';
+
+        const label = document.createElement('label');
+        label.htmlFor = 'vtt-ai-toggle';
+        label.className = 'vtt-panel-row';
+        label.title = msg('ytAiTranslateTip', 'Lingogram translates the subtitles with AI and shows them as the second line.');
+        const text = document.createElement('span');
+        text.className = 'vtt-privacy-text';
+        text.textContent = msg('ytAiTranslate', 'AI translation of the second line');
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.id = 'vtt-ai-toggle';
+        box.className = 'vtt-switch-input';
+        const track = document.createElement('span');
+        track.className = 'vtt-switch';
+        track.setAttribute('aria-hidden', 'true');
+        label.append(text, box, track);
+
+        const status = document.createElement('div');
+        status.id = 'vtt-ai-status';
+        status.className = 'vtt-ai-status';
+        status.setAttribute('aria-live', 'polite');
+        this.aiStatusEl = status;
+
+        void loadPrefs().then((p) => {
+            box.checked = p.aiTranslate;
+        });
+        box.addEventListener('change', () => {
+            void savePrefs({ aiTranslate: box.checked });
+        });
+
+        wrap.append(label, status);
+        return wrap;
+    }
+
+    setAiStatus(s: AiStatus | null): void {
+        if (!this.aiStatusEl) return;
+        const text: Record<AiStatus, string> = {
+            working: msg('ytAiStatusWorking', 'Translating…'),
+            ready: msg('ytAiStatusReady', 'AI translation is on'),
+            auth: msg('ytAiStatusAuth', 'Sign in again to use AI translation'),
+            quota: msg('ytAiStatusQuota', "Today's AI translation limit is reached"),
+            limit: msg('ytAiStatusLimit', 'Too many new videos today — try again later'),
+            unavailable: msg('ytAiStatusUnavailable', 'AI translation is temporarily unavailable'),
+            unsupported: msg('ytAiStatusUnsupported', 'AI translation does not cover this language pair'),
+        };
+        this.aiStatusEl.textContent = s ? text[s] : '';
     }
 
     refresh(): void {

@@ -99,6 +99,8 @@ export interface ReprocessOptions {
 import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
+import { attachAiTranslation } from '../../../../packages/shared/src/subtitle-ai/attach';
+import { browserAiDeps } from '../../../../packages/shared/src/subtitle-ai/browser';
 
 export const STALLED_REQUEST_MS = 12_000;
 
@@ -502,6 +504,15 @@ export abstract class BaseVttApp implements AppInterface {
             // Apply newly-chosen languages to the video already on screen.
             if (prefs) this.reprocessCurrentVideo();
         });
+
+        // Server-side AI translation of the second line, while its switch is on.
+        attachAiTranslation({
+            state: this.state,
+            site: platformOf(location.hostname),
+            refresh: () => this.ui.refresh(),
+            langPrefs: () => this.langPrefs,
+            setStatus: (s) => this.ui.setAiStatus(s),
+        }, browserAiDeps());
     }
 
     applyLangPrefsToState(): void {

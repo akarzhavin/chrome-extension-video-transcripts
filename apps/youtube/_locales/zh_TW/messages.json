@@ -834,5 +834,41 @@
   "wordsEmptyText": {
     "message": "點一下字幕中的單字，再按「儲存」。你儲存的單字會顯示在這裡。",
     "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
+  },
+  "ytAiTranslate": {
+    "message": "AI translation of the second line",
+    "description": "Settings switch: show Lingogram's AI translation as the second subtitle line."
+  },
+  "ytAiTranslateTip": {
+    "message": "Lingogram translates the subtitles with AI and shows them as the second line.",
+    "description": "Tooltip of the AI translation switch."
+  },
+  "ytAiStatusWorking": {
+    "message": "Translating…",
+    "description": "AI translation status: parts are being translated."
+  },
+  "ytAiStatusReady": {
+    "message": "AI translation is on",
+    "description": "AI translation status: lines are arriving."
+  },
+  "ytAiStatusAuth": {
+    "message": "Sign in again to use AI translation",
+    "description": "AI translation status: the sign-in must be renewed."
+  },
+  "ytAiStatusQuota": {
+    "message": "Today's AI translation limit is reached",
+    "description": "AI translation status: the daily allowance is used up."
+  },
+  "ytAiStatusLimit": {
+    "message": "Too many new videos today — try again later",
+    "description": "AI translation status: the daily limit of new videos is reached."
+  },
+  "ytAiStatusUnavailable": {
+    "message": "AI translation is temporarily unavailable",
+    "description": "AI translation status: the service cannot translate right now."
+  },
+  "ytAiStatusUnsupported": {
+    "message": "AI translation does not cover this language pair",
+    "description": "AI translation status: the languages are not supported."
   }
 }
