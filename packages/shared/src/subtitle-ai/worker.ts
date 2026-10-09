@@ -42,6 +42,9 @@ export interface StoredTrack {
 
 export type StoreReply = { ok: true } | { ok: false; reason: 'refused' | 'too_long' | 'auth' | 'network' };
 
+// The id goes into a URL path and a Firestore document name: nothing but the fingerprint.
+const FINGERPRINT = /^[0-9a-f]{64}$/;
+
 function retryAfterMs(res: Response): number | undefined {
     const s = Number(res.headers.get('Retry-After'));
     return Number.isFinite(s) && s > 0 ? s * 1000 : undefined;
@@ -57,6 +60,7 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
+    if (!FINGERPRINT.test(req.fingerprint)) return { ok: false, code: 'invalid' };
     const url = `${cfg.apiBaseUrl}/dictionary/subtitles/${req.fingerprint}/part`;
     const ask = async (refresh: boolean) => {
         const { idToken } = await deps.token(refresh);
@@ -111,6 +115,7 @@ const int = (n: number) => ({ integerValue: String(n) });
  * looks the same: the caller asks the backend once more.
  */
 export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: WorkerDeps): Promise<StoreReply> {
+    if (!FINGERPRINT.test(track.fingerprint)) return { ok: false, reason: 'refused' };
     let approx = 200;
     for (const c of track.cues) approx += new TextEncoder().encode(c.text).length + 48;
     if (approx > MAX_DOC_BYTES) return { ok: false, reason: 'too_long' };

@@ -56,6 +56,14 @@ describe('requestPart', () => {
         expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2 });
     });
 
+    // The id lands in a URL path: anything but the 64-hex fingerprint is refused before any request.
+    test.each(['../write_limits/u1', 'A'.repeat(64), 'a'.repeat(63), 'a'.repeat(64) + '?x=1'])(
+        'a malformed track id %s is invalid, with no request', async (fp) => {
+            const d = deps([]);
+            expect(await requestPart(cfg, { fingerprint: fp, lang: 'ru', from: 0, to: 2 }, d)).toEqual({ ok: false, code: 'invalid' });
+            expect(d.calls).toHaveLength(0);
+        });
+
     test('a 401 refreshes the token once and asks again', async () => {
         const d = deps([reply(401, {}), reply(200, { from: 0, to: 1, lines: ['x'], quota: {} })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d);
@@ -144,6 +152,13 @@ describe('storeTrack', () => {
         const d = deps([limitsDoc(20261009, 30)]);
         expect(await storeTrack(cfg, track, d)).toEqual({ ok: false, reason: 'refused' });
         expect(d.calls).toHaveLength(1);
+    });
+
+    // The id lands in a Firestore document path: only the 64-hex fingerprint is stored.
+    test('a malformed track id is refused, with no request', async () => {
+        const d = deps([]);
+        expect(await storeTrack(cfg, { ...track, fingerprint: '../write_limits/u2' }, d)).toEqual({ ok: false, reason: 'refused' });
+        expect(d.calls).toHaveLength(0);
     });
 
     test('a track past Firestore\'s 1 MiB document limit is too long, with no request', async () => {
