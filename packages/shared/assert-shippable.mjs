@@ -94,6 +94,21 @@ export const DEBUG_TRACE_MARKERS = [
     '__lingogramSaveDiag',
 ];
 
+/**
+ * Strings only the AI translation of the second line (english spec 023) puts in
+ * a bundle. Dev-only until it ships; assert-foldable.mjs checks each still
+ * occurs in the source, so a rename cannot turn this rule into a no-op.
+ * (Not `aiTranslate`: the prefs key stays, forced off. Not the ytAi* message
+ * names: _locales/ is copied verbatim.)
+ */
+export const AI_TRANSLATE_MARKERS = [
+    'SUBTITLE_AI_',
+    'vtt-ai-',
+    '/dictionary/subtitles/',
+    'subtitle_tracks',
+    'write_limits',
+];
+
 // Each rule is a distinct way a build can be unshippable. Kept separate so the
 // failure message names the actual problem instead of "something looks off".
 const RULES = [
@@ -173,6 +188,11 @@ const RULES = [
         // feature is a gate that reports on the sample.
         test: (s) => DEBUG_TRACE_MARKERS.some((marker) => s.includes(marker)),
         why: 'the subtitle diagnostics recorder is compiled in (built with EXT_ENV=dev) — it captures signed caption URLs and posts them to the page',
+    },
+    {
+        id: 'ai-translate',
+        test: (s) => AI_TRANSLATE_MARKERS.some((marker) => s.includes(marker)),
+        why: 'the AI translation of the second line is compiled in (built with EXT_ENV=dev) — it is not released yet',
     },
     {
         id: 'localhost-origin',

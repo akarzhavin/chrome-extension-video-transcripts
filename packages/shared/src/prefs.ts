@@ -371,7 +371,8 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         resolved.debugMode = DEFAULT_PREFS.debugMode;
     }
     if (typeof resolved.pageHighlight !== 'boolean') resolved.pageHighlight = DEFAULT_PREFS.pageHighlight;
-    if (typeof resolved.aiTranslate !== 'boolean') resolved.aiTranslate = DEFAULT_PREFS.aiTranslate;
+    // Dev-only until it ships: a prod build never turns it on, whatever is stored.
+    if (__EXT_ENV__ !== 'dev' || typeof resolved.aiTranslate !== 'boolean') resolved.aiTranslate = DEFAULT_PREFS.aiTranslate;
     // Stored garbage (not a list, or non-strings in it) must not reach the
     // content script. A fresh array: DEFAULT_PREFS' own must never be handed out.
     resolved.highlightOffHosts = Array.isArray(resolved.highlightOffHosts)

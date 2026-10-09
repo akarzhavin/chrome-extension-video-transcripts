@@ -424,7 +424,8 @@ export class VttApp implements AppInterface {
         });
 
         // Server-side AI translation of the second line, while its switch is on.
-        attachAiTranslation({
+        // Dev-only until it ships (english spec 023).
+        if (__EXT_ENV__ === 'dev') attachAiTranslation({
             state: this.state,
             site: platformOf(location.hostname),
             refresh: () => this.ui.refresh(),

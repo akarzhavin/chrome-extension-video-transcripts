@@ -85,8 +85,8 @@ export type AuthAction =
 
 // Membership here is what isAuthAction() filters on, so an action missing from
 // this set is dropped before the handler ever sees it — silently, with no error
-// anywhere. (The DEV_* actions are the deliberate exception: they're matched by
-// prefix below so their names never appear in a prod bundle.)
+// anywhere. (The DEV_* and SUBTITLE_AI_* actions are the deliberate exception:
+// they're matched by prefix below so their names never appear in a prod bundle.)
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
@@ -107,8 +107,6 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'GET_NOTIFICATION',
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
-    'SUBTITLE_AI_PART',
-    'SUBTITLE_AI_STORE',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -116,7 +114,8 @@ export function isAuthAction(action: unknown): action is AuthAction {
     if ((AUTH_ACTIONS as ReadonlySet<string>).has(action)) return true;
     // Dev actions are matched by prefix rather than by name, so no dev action
     // string appears in a prod bundle. Folds away entirely in prod builds.
-    return __EXT_ENV__ === 'dev' && action.startsWith('DEV_');
+    // AI translation (english spec 023) is dev-only until it ships.
+    return __EXT_ENV__ === 'dev' && (action.startsWith('DEV_') || action.startsWith('SUBTITLE_AI_'));
 }
 
 // Save diagnostics (debug/save-diag-worker.ts): a collector per ADD_WORD /
@@ -536,11 +535,25 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
+// Server-side subtitle translation (english spec 023). Authed, so it runs here
+// where the token lives; outcomes are values, never throws.
+function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
+    if (!config.apiBaseUrl) return Promise.resolve({ ok: false, code: 'unavailable' });
+    const deps = { fetch: (u: string, i: RequestInit) => fetch(u, i), token: (r: boolean) => freshIdToken(config, r), now: Date.now };
+    if (request.action === 'SUBTITLE_AI_PART') return requestPart(config, request.part as PartRequest, deps);
+    if (request.action === 'SUBTITLE_AI_STORE') return storeTrack(config, request.track as StoredTrack, deps);
+    return Promise.resolve({ ok: false, code: 'invalid' });
+}
+
 export async function handleAuthMessage(
     request: AuthMessage,
     sender?: chrome.runtime.MessageSender,
 ): Promise<unknown> {
     await devEnvReady();
+    // Outside the switch: case labels survive the minifier, this guard folds.
+    if (__EXT_ENV__ === 'dev' && String(request.action).startsWith('SUBTITLE_AI_')) {
+        return handleSubtitleAi(request);
+    }
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();
@@ -825,16 +838,6 @@ export async function handleAuthMessage(
                 console.debug('[Lingogram] notification lookup failed:', err);
                 return { ok: true, notification: null };
             }
-        }
-        case 'SUBTITLE_AI_PART':
-        case 'SUBTITLE_AI_STORE': {
-            // Server-side subtitle translation (english spec 023). Authed, so it
-            // runs here where the token lives; outcomes are values, never throws.
-            if (!config.apiBaseUrl) return { ok: false, code: 'unavailable' };
-            const deps = { fetch: (u: string, i: RequestInit) => fetch(u, i), token: (r: boolean) => freshIdToken(config, r), now: Date.now };
-            return request.action === 'SUBTITLE_AI_PART'
-                ? requestPart(config, request.part as PartRequest, deps)
-                : storeTrack(config, request.track as StoredTrack, deps);
         }
         case 'LOOKUP_WORD': {
             // Anonymous word lookup for the hover strip and the sidebar's word

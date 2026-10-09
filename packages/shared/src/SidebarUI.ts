@@ -635,7 +635,8 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
-        langGroup.appendChild(this.buildAiTranslateRow());
+        // AI translation (english spec 023) is dev-only until it ships; the release gate checks it.
+        if (__EXT_ENV__ === 'dev') langGroup.appendChild(this.buildAiTranslateRow());
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2258,6 +2259,7 @@ export class SidebarUI {
 
     /** The "AI translation" switch (english spec 023): the second line from Lingogram's AI. */
     private buildAiTranslateRow(): HTMLElement {
+        if (__EXT_ENV__ !== 'dev') return document.createElement('span');
         const wrap = document.createElement('div');
         wrap.className = 'vtt-ai-translate';
 
@@ -2296,7 +2298,7 @@ export class SidebarUI {
     }
 
     setAiStatus(s: AiStatus | null): void {
-        if (!this.aiStatusEl) return;
+        if (__EXT_ENV__ !== 'dev' || !this.aiStatusEl) return;
         const text: Record<AiStatus, string> = {
             working: msg('ytAiStatusWorking', 'Translating…'),
             ready: msg('ytAiStatusReady', 'AI translation is on'),

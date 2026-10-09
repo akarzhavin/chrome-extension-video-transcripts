@@ -76,3 +76,25 @@ test('the status line says what the translation is doing, and nothing when it is
     ui.setAiStatus(null);
     expect(status()).toBe('');
 });
+
+describe('in a production build', () => {
+    // Dev-only until it ships (english spec 023): absent, not hidden.
+    afterEach(() => {
+        (global as any).__EXT_ENV__ = 'dev';
+    });
+
+    test('the switch and its status line are never built', async () => {
+        (global as any).__EXT_ENV__ = 'prod';
+        const ui = build();
+        await flush();
+        expect(document.getElementById('vtt-ai-toggle')).toBeNull();
+        expect(document.getElementById('vtt-ai-status')).toBeNull();
+        expect(() => ui.setAiStatus('ready')).not.toThrow();
+    });
+
+    test('a stored choice reads as off', async () => {
+        await savePrefs({ aiTranslate: true });
+        (global as any).__EXT_ENV__ = 'prod';
+        expect((await loadPrefs()).aiTranslate).toBe(false);
+    });
+});
