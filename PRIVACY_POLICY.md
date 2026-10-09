@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 7, 2026
+**Last updated:** October 9, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
@@ -59,6 +59,10 @@ translate.google.com when you import your saved phrases (Section 1h).
   one website in the toolbar popup (Section 1b). Resting the pointer
   on a marked word shows its translation, and only that word is sent to look it up;
   a marked phrase of more than one word goes to Google Translate first (Section 1e).
+* **AI translation of the second line is off until you switch it on.** If you
+  switch it on while signed in, the subtitle track of the video you watch is sent
+  to us and translated by **OpenAI**. The stored track and its translation carry
+  no account ID and serve everyone who watches the same subtitles (Section 1i).
 * We do **not** sell your data, show ads, run advertising trackers, build
   advertising profiles, or track your browsing history.
 
@@ -132,6 +136,8 @@ collect and process:
   many subtitle tracks had loaded. Reports
   are sent only while you are signed in, are capped at one per account per day, and
   are used solely to investigate the failure.
+* **AI translation**, only if you switch it on — see Section 1i: the subtitle track
+  of the video, stored without your user ID, and a daily write counter under it.
 * **Feedback** you send while signed in carries your user ID so we can reply — see
   Section 1g, which also covers feedback sent without an account.
 
@@ -151,7 +157,8 @@ the session needs renewing, so it can tell you to sign in again.
 We do **not** collect: your browsing history, the videos you watch or the pages you
 read (beyond the subtitle text you explicitly save, the paragraph around a word you
 save from the right-click menu, the subtitle lines accompanying a word you look
-up as described in Section 1e, the site name attached to a feedback message you
+up as described in Section 1e, the subtitle track of a video you switched AI
+translation on for as described in Section 1i, the site name attached to a feedback message you
 send, and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a
 coarse platform label such as `youtube` or `rezka`, never a video or a URL),
@@ -483,6 +490,61 @@ translations, the other side of each pair, and phrases in other languages are no
 saved or sent anywhere. Words you removed from Lingogram earlier are not brought
 back.
 
+### i. AI translation of the second subtitle line
+
+**Off until you switch it on.** The Extension's sidebar settings have a switch,
+**"AI translation of the second line"**. It works only while you are signed in;
+without an account nothing is sent. While it is on, the Extension asks our server
+to translate the subtitle track in the language you are learning into your native
+language, and shows the result as the second line, in place of the site's own
+track in your language if it has one. Turning the switch off stops it at once.
+
+**What is sent.** For the video you are watching, the Extension takes the subtitle
+track in the language you are learning: the text of each line and its start and
+end time, with formatting tags removed. From it, it computes a **fingerprint**, a
+one-way hash of the language, the times and the text, which names the track. It then
+asks our dictionary service for the translation of a range of lines, sending the
+fingerprint, your native language and the line numbers, with your sign-in token.
+Lines are asked for around the point you are watching, further ahead as the video
+plays, and again after you jump. If no one has sent that track before, the
+Extension stores it once in our Firebase database (Section 4) and asks again. The
+stored track contains the fingerprint, the language, a label of the site
+(`youtube`, `netflix` or `rezka`), the number of lines, the total length, the lines
+themselves, and when it was stored and when it expires. It contains **no user ID**,
+no video address, title or ID, and nothing else about you.
+
+**A write counter under your user ID.** So that one account cannot fill the
+database, each store also updates a small record under your user ID: the time of
+your last store, the day, and how many tracks you stored that day (at most 30 a
+day, at least 20 seconds apart). It holds no fingerprint and no text.
+
+**How the server translates.** The dictionary service checks the stored track and
+copies it into its own database. It then asks an AI model run by **OpenAI**
+through the OpenAI API to translate it part by part, sending the text of those
+lines, the rest of the track or the stretch of it around them (so names and tone
+stay consistent), and the two languages. OpenAI receives no account identifier,
+no IP address of yours and nothing about the video beyond its subtitle text, and
+processes the request as our service provider under its API data-usage terms.
+Every translated part is kept, so a later viewer of the same subtitles, you or
+anyone else, gets it without a new request to OpenAI.
+
+**Shared, not tied to you.** The stored track and its translations carry no
+account identifier, and the service does not record which account asked for
+which track. To keep each account within its daily limit (currently 60,000
+translated characters), it counts, per user ID and day, the characters translated
+and the model tokens used: numbers only, no fingerprint and no text. Its logs
+record the outcome of each request, the language, how many lines were served or
+translated, the tokens used and the time taken; never your user ID, the
+fingerprint or any subtitle text. Like any web request, a request reaches our
+server from your IP address, and the server's request logs may record that address
+with the address requested, which contains the fingerprint (Section 6). If one
+account is refused many times within ten minutes, the service sends the developer
+an alert through **Telegram** naming that account's user ID, so the abuse can be
+looked into.
+
+AI translation adds no analytics events (Section 1c). The **"Share anonymous usage
+stats"** switch does not stop it; the AI translation switch does.
+
 ## 2. How We Use Your Information
 
 We use the information above **only** to:
@@ -495,6 +557,9 @@ We use the information above **only** to:
 * enforce a reasonable daily limit on saved words to prevent abuse;
 * answer the word lookups you make (Section 1e), through our dictionary service and
   the providers it uses (kaikki.org and OpenAI) and, for phrases, Google Translate;
+* translate the subtitle track of a video into your language when you switch AI
+  translation on (Section 1i), through OpenAI, and keep each account within its
+  daily limit;
 * investigate the subtitle-loading failures you explicitly report via the
   **"Reload page"** button, so we can fix them;
 * read the feedback you send, and reply to it if you are signed in or left a reply
@@ -505,7 +570,7 @@ We use the information above **only** to:
   of you.
 
 We do not use your information for advertising, profiling, or any purpose beyond
-providing the sync, word lookup, diagnostics, and feedback features and the aggregate usage
+providing the sync, word lookup, AI translation, diagnostics, and feedback features and the aggregate usage
 counting described here.
 
 ## 3. Local Storage (On Your Device)
@@ -514,7 +579,8 @@ The Extension uses your browser's extension storage (`chrome.storage`) to keep, 
 your device only:
 
 * your language and subtitle layout preferences, whether your saved words are
-  marked on web pages, and which video sites the Extension is switched on for;
+  marked on web pages, whether AI translation of the second line is on (Section
+  1i), and which video sites the Extension is switched on for;
 * the **list of websites** (host names only, such as `en.wikipedia.org`) where you
   switched the marking of your saved words off from the toolbar popup. It is never
   sent to our servers; it is shown to the settings page of our website and shared
@@ -561,8 +627,8 @@ This local data never leaves your browser except where Section 4 describes (save
 words synced to the cloud, and kept words uploaded when you sign in). Signing out
 removes the authentication tokens, email, user ID, and the local list of words
 synced from your account from your device; the words kept in your browser stay.
-What the Extension sends while you use it is listed in Sections 1c, 1e, 1f, 1g and
-1h; none of it is read from the storage described here, apart from the analytics
+What the Extension sends while you use it is listed in Sections 1c, 1e, 1f, 1g, 1h
+and 1i; none of it is read from the storage described here, apart from the analytics
 identifier those sections name, for feedback sent while signed in, your user ID,
 and the word the My words page looks up, which comes from the kept words.
 
@@ -589,6 +655,13 @@ and, when that has no entry, the **OpenAI API** (the word or phrase, your langua
 and the subtitle lines that came with it), as described in Section 1e. OpenAI
 processes these requests as our service provider under its API terms; see
 https://openai.com/policies/privacy-policy.
+
+AI translation (Section 1i) stores the subtitle track in the same Firebase
+database. The Extension can create a track but never read, change or delete one;
+only our dictionary service reads it. The service translates the track with the
+**OpenAI API** as described there, and alerts the developer through **Telegram**
+(Telegram Messenger Inc., https://telegram.org/privacy) in the case Section 1i
+names.
 
 The anonymous usage events described in Section 1c are sent to **Google Analytics 4**
 (via the Measurement Protocol) unless you turn analytics off. Google processes those
@@ -626,8 +699,10 @@ infrastructure and analytics providers described in Section 4; Google Translate,
 which receives the text of a phrase you select or point at (Section 1e); kaikki.org,
 which our dictionary service asks about a looked-up word, and OpenAI, which it asks
 about a word or phrase with its subtitle lines when the dictionary has no entry
-(Section 1e); or where required by law. None of them receives your name, email or
-account identifier from us. We do not use your data for advertising.
+(Section 1e), and with the subtitle text of a track you switched AI translation on
+for (Section 1i); Telegram, which carries the developer's alerts (Section 1i); or
+where required by law. None of them receives your name or email from us, and only
+that Telegram alert ever carries an account identifier. We do not use your data for advertising.
 
 ## 6. Data Retention and Deletion
 
@@ -656,6 +731,13 @@ account identifier from us. We do not use your data for advertising.
   logs also record the IP address of each request. Logs are kept under Google
   Cloud's standard retention (30 days) and serve to keep the service running.
   Requests passed to OpenAI are handled under OpenAI's API data-usage terms.
+* **AI translation** (Section 1i): a stored track stays in our Firebase database
+  for at most 30 days, then expires on its own. In the dictionary service's
+  database, a track and its translations stay until no one has used them for 30
+  days. They carry no account identifier, so they cannot be found or deleted per
+  person and are not deleted with your account. The daily counts per user ID are
+  deleted after 8 days; the write counter under your user ID is covered by account
+  deletion requests.
 * **Anonymous usage events** are retained by Google Analytics for **2 months**, then
   deleted. Because these events carry no account identifier, **we cannot look up or
   delete the events belonging to a specific person — and neither can you.** There is
@@ -670,7 +752,8 @@ account identifier from us. We do not use your data for advertising.
   **support@lingogram.ai** from the address your account uses (Section 10).
   Deletion is done by hand: we delete your sign-in account (email, name and user
   ID), your saved words wherever we keep them, including words marked as removed,
-  your diagnostic reports, and feedback sent while signed in, and confirm by email
+  your diagnostic reports, feedback sent while signed in, and your AI-translation
+  write counter and daily counts, and confirm by email
   within 30 days.
 
 ## 7. Security
