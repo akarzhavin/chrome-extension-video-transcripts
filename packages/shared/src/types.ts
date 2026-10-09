@@ -14,6 +14,8 @@ export interface Subtitle {
   line?: number;
   /** AI track only: its part is being translated now (shown as a placeholder). */
   pending?: boolean;
+  /** AI track only: the cue broke a backend rule and was never sent (shown as a dash). */
+  skipped?: boolean;
 }
 
 export interface Track {

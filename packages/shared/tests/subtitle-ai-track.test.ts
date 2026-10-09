@@ -61,7 +61,8 @@ describe('prepareTrack', () => {
         const r = prepareTrack([
             sub(0, 2, 'Kept.'),
             sub(2, 2.2, 'Too short.'),            // under 300 ms
-            sub(3, 3.5, 'x'.repeat(13)),          // 26 cps
+            sub(3, 3.5, 'x'.repeat(13)),          // 26 cps: a short line said fast, kept
+            sub(3.6, 4.1, 'z'.repeat(26)),        // 52 cps
             sub(4, 6, ''),                        // nothing to translate
             sub(5, 7, 'Also kept.'),
             sub(4.9, 8, 'Starts before the previous one.'),
@@ -69,8 +70,8 @@ describe('prepareTrack', () => {
             sub(9, 11, 'Last.'),
         ], 'en', 'youtube');
         if ('error' in r) throw new Error(r.error);
-        expect(r.cues.map((c) => c.text)).toEqual(['Kept.', 'Also kept.', 'Last.']);
-        expect(r.index).toEqual([0, 4, 7]);
+        expect(r.cues.map((c) => c.text)).toEqual(['Kept.', 'x'.repeat(13), 'Also kept.', 'Last.']);
+        expect(r.index).toEqual([0, 2, 5, 8]);
     });
 
     test('control and invisible characters are removed, not sent', () => {

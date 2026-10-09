@@ -2220,7 +2220,7 @@ export class SidebarUI {
         }
     }
 
-    private buildSecondaryTextElement(overlap: { text: string; pending?: boolean }[], className = 'vtt-sub-text'): HTMLDivElement | null {
+    private buildSecondaryTextElement(overlap: { text: string; pending?: boolean; skipped?: boolean }[], className = 'vtt-sub-text'): HTMLDivElement | null {
         // A duplicated cue (some tracks repeat a line byte-for-byte) must not
         // show its text twice on one line.
         const texts = [...new Set(overlap.map(s => s.text))];
@@ -2232,6 +2232,10 @@ export class SidebarUI {
         if (!div.textContent.trim() && overlap.some(s => s.pending)) {
             div.classList.add('vtt-pending');
             div.textContent = '···';
+        } else if (!div.textContent.trim() && overlap.some(s => s.skipped)) {
+            // Left out on purpose (it broke a backend rule), not a failure.
+            div.classList.add('vtt-skipped');
+            div.textContent = '—';
         }
         return div;
     }

@@ -65,7 +65,13 @@ export class AiTranslator {
         this.track = prepared;
         const state = this.host.state;
         state.preferredSecondaryName = this.aiName;
-        state.addTrack(this.aiName, source.subtitles.map((s) => ({ startTime: s.startTime, endTime: s.endTime, text: '' })));
+        const sent = new Set(prepared.index);
+        state.addTrack(this.aiName, source.subtitles.map((s, i) => ({
+            startTime: s.startTime,
+            endTime: s.endTime,
+            text: '',
+            ...(!sent.has(i) && s.text.trim() ? { skipped: true } : {}),
+        })));
         this.ai = state.tracks.find((t) => t.name === this.aiName) ?? null;
         this.host.setStatus?.('working');
         this.host.refresh();

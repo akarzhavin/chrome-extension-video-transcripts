@@ -176,6 +176,18 @@ describe('AiTranslator', () => {
         expect(ai.subtitles.map((s) => s.text)).toEqual(['ru 0', '', 'ru 1', 'ru 2', 'ru 3']);
     });
 
+    test('a refused cue with text is marked skipped, so it reads as left out on purpose', () => {
+        const h = host([() => new Promise(() => {}) as unknown as Reply]);
+        const subs = cues(5);
+        subs[1] = { startTime: 2, endTime: 2.1, text: 'Too short.' };
+        subs[3] = { startTime: 6, endTime: 7, text: '  ' };
+        h.state.addTrack('English', subs);
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai.subtitles.map((s) => !!s.skipped)).toEqual([false, true, false, false, false]);
+        expect(ai.subtitles[1].pending).toBeFalsy();
+    });
+
     test('stop takes the AI track away', async () => {
         const h = host([lines]);
         h.state.addTrack('English', cues(10));

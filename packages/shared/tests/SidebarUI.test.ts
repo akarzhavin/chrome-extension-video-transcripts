@@ -3450,6 +3450,17 @@ describe('the transcript list', () => {
         expect(itemAt(1).querySelector('.vtt-sub-text')?.textContent ?? '').toBe('');
     });
 
+    test('an AI line left out on purpose shows a dash', () => {
+        state.displayMode = 'dual';
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha' }]);
+        state.addTrack('Russian · AI', [{ startTime: 0, endTime: 2, text: '', skipped: true }]);
+        ui.renderSubtitles();
+
+        const sub = itemAt(0).querySelector('.vtt-sub-text')!;
+        expect(sub.classList.contains('vtt-skipped')).toBe(true);
+        expect(sub.textContent).toBe('—');
+    });
+
     // §6.15, T5.13. The translation is the answer to the puzzle. Showing it
     // while words are still masked hands over the meaning the user is working
     // to reconstruct — the mode stops being a puzzle at all.

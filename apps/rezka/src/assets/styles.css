@@ -2606,6 +2606,11 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     animation: vtt-pending-pulse 1.4s ease-in-out infinite;
 }
 
+.vtt-sub-text.vtt-skipped,
+.vtt-overlay-sub.vtt-skipped {
+    opacity: 0.35;
+}
+
 @keyframes vtt-pending-pulse {
     50% { opacity: 0.15; }
 }

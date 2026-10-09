@@ -22,6 +22,8 @@ const MAX_DURATION_MS = 4 * 3600 * 1000;
 const MAX_CUE_TEXT = 500;
 const MIN_CUE_MS = 300;
 const MAX_CHARS_PER_SEC = 25;
+// One cue may run fast (a short line said quickly); the whole track may not.
+const MAX_CUE_CHARS_PER_SEC = 50;
 
 export interface WireCue {
     start_ms: number;
@@ -76,7 +78,7 @@ export function prepareTrack(
         const n = runes(text);
         const dur = end_ms - start_ms;
         if (n === 0 || start_ms < 0 || start_ms < lastStart || dur < MIN_CUE_MS) continue;
-        if (n > MAX_CUE_TEXT || n * 1000 > MAX_CHARS_PER_SEC * dur) continue;
+        if (n > MAX_CUE_TEXT || n * 1000 > MAX_CUE_CHARS_PER_SEC * dur) continue;
         cues.push({ start_ms, end_ms, text });
         index.push(i);
         lastStart = start_ms;
