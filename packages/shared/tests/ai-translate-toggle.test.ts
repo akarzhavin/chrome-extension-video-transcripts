@@ -3,8 +3,8 @@
  */
 
 /**
- * The "AI translation" switch in the settings panel's Languages group: it
- * stores aiTranslate and shows what the translation is doing.
+ * The AI translation in the sidebar: only its status line. The switch lives on
+ * the site's settings page (settings-bridge.ts).
  */
 
 const prefsStore: Record<string, unknown> = {};
@@ -45,25 +45,13 @@ beforeEach(() => {
     for (const k of Object.keys(prefsStore)) delete prefsStore[k];
 });
 
-test('the switch sits in the Languages group, off by default, and stores the choice', async () => {
+test('the sidebar has no switch, only the status line in the Languages group', async () => {
     build();
     await flush();
-    const box = document.getElementById('vtt-ai-toggle') as HTMLInputElement;
-    expect(box).not.toBeNull();
-    expect(document.getElementById('vtt-track-selectors')!.parentElement!.contains(box)).toBe(true);
-    expect(box.checked).toBe(false);
-
-    box.checked = true;
-    box.dispatchEvent(new Event('change'));
-    await flush();
-    expect((await loadPrefs()).aiTranslate).toBe(true);
-});
-
-test('it shows the stored choice', async () => {
-    await savePrefs({ aiTranslate: true });
-    build();
-    await flush();
-    expect((document.getElementById('vtt-ai-toggle') as HTMLInputElement).checked).toBe(true);
+    expect(document.getElementById('vtt-ai-toggle')).toBeNull();
+    const status = document.getElementById('vtt-ai-status')!;
+    expect(document.getElementById('vtt-track-selectors')!.parentElement!.contains(status)).toBe(true);
+    expect(status.textContent).toBe('');
 });
 
 test('the status line says what the translation is doing, and nothing when it is off', () => {
@@ -83,11 +71,10 @@ describe('in a production build', () => {
         (global as any).__EXT_ENV__ = 'dev';
     });
 
-    test('the switch and its status line are never built', async () => {
+    test('the status line is never built', async () => {
         (global as any).__EXT_ENV__ = 'prod';
         const ui = build();
         await flush();
-        expect(document.getElementById('vtt-ai-toggle')).toBeNull();
         expect(document.getElementById('vtt-ai-status')).toBeNull();
         expect(() => ui.setAiStatus('ready')).not.toThrow();
     });

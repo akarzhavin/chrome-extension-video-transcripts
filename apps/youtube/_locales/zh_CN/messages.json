@@ -835,14 +835,6 @@
     "message": "点击字幕中的单词，再点“保存”。你保存的单词会显示在这里。",
     "description": "My words page: text shown when no word is saved. 'Save' is the label of the save button on the word card."
   },
-  "ytAiTranslate": {
-    "message": "AI translation of the second line",
-    "description": "Settings switch: show Lingogram's AI translation as the second subtitle line."
-  },
-  "ytAiTranslateTip": {
-    "message": "Lingogram translates the subtitles with AI and shows them as the second line.",
-    "description": "Tooltip of the AI translation switch."
-  },
   "ytAiStatusWorking": {
     "message": "Translating…",
     "description": "AI translation status: parts are being translated."

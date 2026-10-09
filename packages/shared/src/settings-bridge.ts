@@ -51,6 +51,8 @@ export interface SettingsSnapshot {
     analyticsEnabled: boolean;
     /** Sites the page highlight is switched off on (the popup's per-site switch). */
     highlightOffHosts: string[];
+    /** AI translation of the second line (english spec 023); dev builds only, so the page shows it only when present. */
+    aiTranslate?: boolean;
 }
 
 async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
@@ -74,6 +76,7 @@ async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
         pageHighlight: highlight.pageHighlight,
         analyticsEnabled: prefs.analyticsEnabled,
         highlightOffHosts: highlight.highlightOffHosts,
+        ...(__EXT_ENV__ === 'dev' ? { aiTranslate: prefs.aiTranslate } : {}),
     };
 }
 
@@ -124,13 +127,16 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
     if (msg.prefs !== undefined) {
         const p = msg.prefs;
         if (!isPlain(p)) return 'prefs must be an object';
-        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'highlightHost']);
+        const keys = ['pageHighlight', 'analyticsEnabled', 'highlightHost'];
+        if (__EXT_ENV__ === 'dev') keys.push('aiTranslate');
+        const bad = strayKey(p, keys);
         if (bad) return `unknown key: prefs.${bad}`;
-        for (const k of ['pageHighlight', 'analyticsEnabled'] as const) {
+        for (const k of ['pageHighlight', 'analyticsEnabled', 'aiTranslate'] as const) {
             if (p[k] === undefined) continue;
             if (typeof p[k] !== 'boolean') return `${k} must be a boolean`;
         }
         if (typeof p.analyticsEnabled === 'boolean') out.prefs.analyticsEnabled = p.analyticsEnabled;
+        if (typeof p.aiTranslate === 'boolean') out.prefs.aiTranslate = p.aiTranslate;
         if (typeof p.pageHighlight === 'boolean') out.highlight.pageHighlight = p.pageHighlight;
         if (p.highlightHost !== undefined) {
             const h = p.highlightHost;

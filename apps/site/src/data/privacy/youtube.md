@@ -423,7 +423,8 @@ address names the Extension so it can reach it.
 with its own message type and the same check of who is asking. To show its
 switches, it asks the Extension for your settings: your two languages, the
 languages on offer, whether each video site, the highlighting of your words and
-the usage stats (Section 1c) are on, the list of websites where you switched the
+the usage stats (Section 1c) and the AI translation (Section 1i) are on, the list
+of websites where you switched the
 marking of your words off (Section 1b), whether you are signed in (a yes or no, not
 your email address), and the Extension's version and edition. When you change a
 setting there, the page passes the new value to the Extension, which checks it
@@ -491,8 +492,9 @@ back.
 
 ### i. AI translation of the second subtitle line
 
-**Off until you switch it on.** The Extension's sidebar settings have a switch,
-**"AI translation of the second line"**. It works only while you are signed in;
+**Off until you switch it on.** The Extension's settings page on our website
+(Section 1f) has a switch, **"AI translation of the second line"**; the sidebar shows
+what the translation is doing. It works only while you are signed in;
 without an account nothing is sent. While it is on, the Extension asks our server
 to translate the subtitle track in the language you are learning into your native
 language, and shows the result as the second line, in place of the site's own

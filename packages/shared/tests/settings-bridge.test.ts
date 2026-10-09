@@ -281,6 +281,38 @@ describe('sites without highlight', () => {
     });
 });
 
+describe('AI translation (dev builds only)', () => {
+    afterEach(() => {
+        (global as any).__EXT_ENV__ = 'dev';
+    });
+
+    test('state carries the switch, off by default', async () => {
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect(s.aiTranslate).toBe(false);
+    });
+
+    test('set stores it, and state reads it back', async () => {
+        expect(await handleSettingsMessage(msg('set', { prefs: { aiTranslate: true } }), yt)).toEqual({ ok: true });
+        expect((store['prefs.v1'] as any).aiTranslate).toBe(true);
+        expect(((await handleSettingsMessage(msg('state'), yt)) as any).aiTranslate).toBe(true);
+    });
+
+    test('a non-boolean is refused and nothing is written', async () => {
+        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslate: 'yes' } }), yt);
+        expect(r).toEqual({ ok: false, error: 'aiTranslate must be a boolean' });
+        expect(store['prefs.v1']).toBeUndefined();
+    });
+
+    test('a production build neither shows nor accepts it', async () => {
+        (global as any).__EXT_ENV__ = 'prod';
+        const s: any = await handleSettingsMessage(msg('state'), yt);
+        expect('aiTranslate' in s).toBe(false);
+        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslate: true } }), yt);
+        expect(r).toEqual({ ok: false, error: 'unknown key: prefs.aiTranslate' });
+        expect(store['prefs.v1']).toBeUndefined();
+    });
+});
+
 describe('beginSignIn', () => {
     test('issues a one-shot challenge and keeps it for the handoff', async () => {
         const r: any = await handleSettingsMessage(msg('beginSignIn'), yt);

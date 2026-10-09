@@ -636,7 +636,8 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
         // AI translation (english spec 023) is dev-only until it ships; the release gate checks it.
-        if (__EXT_ENV__ === 'dev') langGroup.appendChild(this.buildAiTranslateRow());
+        // Its switch is on the site's settings page; here only what it is doing.
+        if (__EXT_ENV__ === 'dev') langGroup.appendChild(this.buildAiStatusRow());
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2257,44 +2258,15 @@ export class SidebarUI {
 
     private aiStatusEl: HTMLElement | null = null;
 
-    /** The "AI translation" switch (english spec 023): the second line from Lingogram's AI. */
-    private buildAiTranslateRow(): HTMLElement {
+    /** What the AI translation is doing; empty while it is off. */
+    private buildAiStatusRow(): HTMLElement {
         if (__EXT_ENV__ !== 'dev') return document.createElement('span');
-        const wrap = document.createElement('div');
-        wrap.className = 'vtt-ai-translate';
-
-        const label = document.createElement('label');
-        label.htmlFor = 'vtt-ai-toggle';
-        label.className = 'vtt-panel-row';
-        label.title = msg('ytAiTranslateTip', 'Lingogram translates the subtitles with AI and shows them as the second line.');
-        const text = document.createElement('span');
-        text.className = 'vtt-privacy-text';
-        text.textContent = msg('ytAiTranslate', 'AI translation of the second line');
-
-        const box = document.createElement('input');
-        box.type = 'checkbox';
-        box.id = 'vtt-ai-toggle';
-        box.className = 'vtt-switch-input';
-        const track = document.createElement('span');
-        track.className = 'vtt-switch';
-        track.setAttribute('aria-hidden', 'true');
-        label.append(text, box, track);
-
         const status = document.createElement('div');
         status.id = 'vtt-ai-status';
         status.className = 'vtt-ai-status';
         status.setAttribute('aria-live', 'polite');
         this.aiStatusEl = status;
-
-        void loadPrefs().then((p) => {
-            box.checked = p.aiTranslate;
-        });
-        box.addEventListener('change', () => {
-            void savePrefs({ aiTranslate: box.checked });
-        });
-
-        wrap.append(label, status);
-        return wrap;
+        return status;
     }
 
     setAiStatus(s: AiStatus | null): void {
