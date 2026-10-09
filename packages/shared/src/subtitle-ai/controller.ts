@@ -111,6 +111,7 @@ export class AiTranslator {
         }
         const [from, to] = this.parts()[p];
         this.busy = true;
+        this.mark(from, to, true);
         let reply: PartReply;
         try {
             reply = (await this.host.send({
@@ -169,13 +170,33 @@ export class AiTranslator {
         const index = this.track!.index;
         lines.forEach((line, k) => {
             const cue = this.ai!.subtitles[index[from + k]];
-            if (cue) cue.text = line;
+            if (cue) {
+                cue.text = line;
+                cue.pending = false;
+            }
         });
         this.host.refresh();
     }
 
+    // Tells "being translated" apart from "not asked for yet"; a part waiting
+    // on a retry stays marked, it is still on its way.
+    private mark(from: number, to: number, on: boolean): void {
+        if (!this.ai) return;
+        const index = this.track!.index;
+        let changed = false;
+        for (let k = from; k < to; k++) {
+            const cue = this.ai.subtitles[index[k]];
+            if (cue && !cue.text && !!cue.pending !== on) {
+                cue.pending = on;
+                changed = true;
+            }
+        }
+        if (changed) this.host.refresh();
+    }
+
     private halt(status: AiStatus): void {
         this.stopped = true;
+        if (this.track) this.mark(0, this.track.cues.length, false);
         this.host.setStatus?.(status);
     }
 }

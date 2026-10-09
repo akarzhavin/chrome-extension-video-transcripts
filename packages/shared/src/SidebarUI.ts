@@ -2220,7 +2220,7 @@ export class SidebarUI {
         }
     }
 
-    private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
+    private buildSecondaryTextElement(overlap: { text: string; pending?: boolean }[], className = 'vtt-sub-text'): HTMLDivElement | null {
         // A duplicated cue (some tracks repeat a line byte-for-byte) must not
         // show its text twice on one line.
         const texts = [...new Set(overlap.map(s => s.text))];
@@ -2228,6 +2228,11 @@ export class SidebarUI {
         const div = document.createElement('div');
         div.className = className;
         div.textContent = texts.join(' ');
+        // An AI line still being translated (spec 023); blank means not asked for yet.
+        if (!div.textContent.trim() && overlap.some(s => s.pending)) {
+            div.classList.add('vtt-pending');
+            div.textContent = '···';
+        }
         return div;
     }
 

@@ -2597,6 +2597,26 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     opacity: 0.55;
 }
 
+/* An AI translation on its way (spec 023): faint and breathing, unlike a
+   blank line, which means its part has not been asked for yet. */
+.vtt-sub-text.vtt-pending,
+.vtt-overlay-sub.vtt-pending {
+    opacity: 0.45;
+    letter-spacing: 0.2em;
+    animation: vtt-pending-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes vtt-pending-pulse {
+    50% { opacity: 0.15; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vtt-sub-text.vtt-pending,
+    .vtt-overlay-sub.vtt-pending {
+        animation: none;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .vtt-cue-nav,
     .vtt-cue-nav-btn {

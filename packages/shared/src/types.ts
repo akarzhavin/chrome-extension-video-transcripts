@@ -12,6 +12,8 @@ export interface Subtitle {
    * `line` is the only thing that says which half is the top one.
    */
   line?: number;
+  /** AI track only: its part is being translated now (shown as a placeholder). */
+  pending?: boolean;
 }
 
 export interface Track {

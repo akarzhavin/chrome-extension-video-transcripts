@@ -82,6 +82,38 @@ describe('AiTranslator', () => {
         expect(h.sent.map((m) => [(m.part as { from: number }).from, (m.part as { to: number }).to])).toEqual([[0, 20], [20, 120]]);
     });
 
+    test('cues of the part being translated are marked pending; later parts are not', async () => {
+        let release!: (r: Reply) => void;
+        const h = host([(m) => new Promise<Reply>((r) => { release = () => r(lines(m)); }) as unknown as Reply]);
+        h.state.addTrack('English', cues(250));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        await settle();
+        const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai.subtitles[0].pending).toBe(true);
+        expect(ai.subtitles[19].pending).toBe(true);
+        expect(ai.subtitles[20].pending).toBeFalsy();
+        release({});
+        await settle();
+        expect(ai.subtitles[0]).toMatchObject({ text: 'ru 0' });
+        expect(ai.subtitles[0].pending).toBeFalsy();
+    });
+
+    test('a waiting retry stays pending; a stop clears the marks', async () => {
+        const h = host([() => ({ ok: false, code: 'unavailable', retryAfterMs: 10000 })]);
+        h.state.addTrack('English', cues(10));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        await settle();
+        const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai.subtitles[3].pending).toBe(true);
+
+        const h2 = host([() => ({ ok: false, code: 'quota', resetsAt: 1 })]);
+        h2.state.addTrack('English', cues(10));
+        new AiTranslator(h2, 'en', 'ru').start(h2.state.tracks[0]);
+        await settle();
+        const ai2 = h2.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai2.subtitles.some((c) => c.pending)).toBe(false);
+    });
+
     test('an unknown track is stored once, then asked for again', async () => {
         const h = host([() => ({ ok: false, code: 'track_unknown' }), () => ({ ok: true }), lines]);
         h.state.addTrack('English', cues(10));
