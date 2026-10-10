@@ -505,7 +505,8 @@ export abstract class BaseVttApp implements AppInterface {
             if (prefs) this.reprocessCurrentVideo();
         });
 
-        // Server-side AI translation of the second line, while its switch is on.
+        // Server-side AI translation of the second line, in Dual when the site
+        // gives no native track.
         // Dev-only until it ships.
         if (__EXT_ENV__ === 'dev') attachAiTranslation({
             state: this.state,

@@ -109,8 +109,8 @@ export class AppState {
         return this.hasTrackFor(this.secondaryLangLabel);
     }
 
-    // The AI translation track, when the learner switched it
-    // on: it takes the second line over any native track the site shipped.
+    // The AI translation track while it runs: it takes the second line, also
+    // over a native track when the dev switch forces the translation.
     preferredSecondaryName?: string;
 
     addTrack(name: string, subtitles: Subtitle[]): void {

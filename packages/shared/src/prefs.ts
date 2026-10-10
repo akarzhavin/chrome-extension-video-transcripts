@@ -111,8 +111,8 @@ export interface Prefs {
     // page highlight is off although pageHighlight is on. GLOBAL, stored only
     // in this browser. Set by the per-site switch in the popup.
     highlightOffHosts: string[];
-    // The second line from Lingogram's AI translation of the learning track
-    // instead of the site's own native track. GLOBAL; off by default.
+    // Dev builds only: the AI translation of the learning track takes the
+    // second line even when the site has a native track. GLOBAL; off by default.
     aiTranslate: boolean;
 }
 
