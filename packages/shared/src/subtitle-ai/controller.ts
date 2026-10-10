@@ -19,17 +19,19 @@ export type AiStatus =
     | 'unavailable'
     | 'unsupported';
 
+/** The page and the browser, as the AI translation sees them. */
 export interface AiHost {
     state: AppState;
     site: string;
     refresh(): void;
-    /** Repaint only the lines that changed; refresh() when absent. */
+    /** Repaint only the AI lines that changed; refresh() when absent. */
     refreshLines?(): void;
+    /** null: no AI translation running. */
+    setStatus?(s: AiStatus | null): void;
     /** A message to the service worker. */
     send(msg: object): Promise<unknown>;
     /** Playback position, seconds. */
     currentTime(): number;
-    setStatus?(s: AiStatus): void;
     later(fn: () => void, ms: number): void;
 }
 

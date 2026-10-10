@@ -16,9 +16,9 @@ function host(replies: ((msg: Reply) => Reply)[], time = 0) {
     const sent: Reply[] = [];
     const timers: (() => void)[] = [];
     const delays: number[] = [];
-    const statuses: AiStatus[] = [];
+    const statuses: (AiStatus | null)[] = [];
     let refreshed = 0;
-    const h: AiHost & { sent: Reply[]; timers: (() => void)[]; delays: number[]; statuses: AiStatus[]; refreshed: () => number; time: number } = {
+    const h: AiHost & { sent: Reply[]; timers: (() => void)[]; delays: number[]; statuses: (AiStatus | null)[]; refreshed: () => number; time: number } = {
         state: new AppState(),
         site: 'rezka',
         sent,

@@ -7,20 +7,14 @@
 
 import type { AppState, StateEvent } from '../AppState';
 import { labelForLanguage, type LanguagePrefs } from '../languages';
-import { AI_SUFFIX, AiTranslator, type AiStatus } from './controller';
+import { AI_SUFFIX, AiTranslator, type AiHost } from './controller';
 
-export interface AiApp {
-    state: AppState;
-    site: string;
-    refresh(): void;
-    /** Repaint only the AI lines that changed. */
-    refreshLines?(): void;
-    langPrefs(): LanguagePrefs | null;
-    setStatus(s: AiStatus | null): void;
-}
+/** The page's side of the host; the browser's side comes with AttachDeps. */
+export type AiApp = Omit<AiHost, keyof BrowserSide> & { langPrefs(): LanguagePrefs | null };
 
-export interface AttachDeps {
-    send(msg: object): Promise<unknown>;
+type BrowserSide = Pick<AiHost, 'send' | 'currentTime' | 'later'>;
+
+export interface AttachDeps extends BrowserSide {
     /** The dev-only switch: translate even over a native track. */
     forced(): Promise<boolean>;
     onForcedChange(cb: (on: boolean) => void): void;
@@ -28,8 +22,6 @@ export interface AttachDeps {
     onPairChange(cb: () => void): void;
     /** The viewer seeked: a part the server could not translate is asked again. */
     onSeek(cb: () => void): void;
-    later(fn: () => void, ms: number): void;
-    currentTime(): number;
 }
 
 export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
@@ -41,7 +33,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         if (!t) return;
         t.stop();
         t = null;
-        app.setStatus(null);
+        app.setStatus?.(null);
     };
 
     const sync = () => {
@@ -58,20 +50,8 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         if (t && (t.source !== source || t.learning !== prefs!.learning || t.native !== prefs!.native)) stop();
         if (!t) {
             if (state.displayMode !== 'dual') return;
-            t = new AiTranslator(
-                {
-                    state,
-                    site: app.site,
-                    refresh: () => app.refresh(),
-                    refreshLines: app.refreshLines ? () => app.refreshLines!() : undefined,
-                    send: deps.send,
-                    currentTime: deps.currentTime,
-                    setStatus: (s) => app.setStatus(s),
-                    later: deps.later,
-                },
-                prefs!.learning,
-                prefs!.native,
-            );
+            const { send, currentTime, later } = deps;
+            t = new AiTranslator({ ...app, send, currentTime, later }, prefs!.learning, prefs!.native);
             t.start(source!);
             return;
         }
