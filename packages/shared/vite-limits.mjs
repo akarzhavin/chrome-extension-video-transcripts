@@ -21,6 +21,24 @@ const LIMITS_CANDIDATES = [
     resolve(HERE, '../../../../english/infrastructure/lingogram-limits.json'),
 ].filter(Boolean);
 
+const SUBTITLE_DEFAULTS = {
+    SUBTITLE_LANGS: [
+        'en', 'ru', 'uk', 'be', 'kk', 'de', 'fr', 'es', 'it', 'pt', 'pl', 'cs', 'sk', 'tr',
+        'ar', 'he', 'fa', 'hi', 'ja', 'ko', 'zh', 'vi', 'th', 'id', 'nl', 'sv', 'no', 'da', 'fi', 'el', 'hu', 'ro',
+        'bg', 'sr', 'hr', 'lt', 'lv', 'et', 'ka', 'hy', 'az', 'uz',
+    ],
+    SUBTITLE_SITES: ['rezka', 'netflix', 'youtube'],
+    SUBTITLE_TTL_DAYS: 14,
+    SUBTITLE_MAX_CUES: 4000,
+    SUBTITLE_MAX_DURATION_MS: 14400000,
+    SUBTITLE_MAX_CUE_TEXT: 500,
+    SUBTITLE_MIN_CUE_MS: 300,
+    SUBTITLE_MAX_CHARS_PER_SEC: 25,
+    SUBTITLE_MAX_CUE_CHARS_PER_SEC: 50,
+    SUBTITLE_WRITES_PER_DAY: 30,
+    SUBTITLE_MIN_INTERVAL_S: 20,
+};
+
 const DEFAULTS = {
     MAX_WORDS_PER_DAY: 500,
     MIN_INTERVAL_MS: 100,
@@ -45,6 +63,9 @@ const DEFAULTS = {
         // exactly the way /uninstall/ did.
         'site',
     ],
+    // Subtitle translation (english spec 023, T058); the backend refuses a
+    // track breaking them, so the extension leaves such cues out first.
+    ...SUBTITLE_DEFAULTS,
 };
 
 export function loadLingogramLimits() {
@@ -71,6 +92,9 @@ export function limitDefines(limits) {
         __LIMIT_MAX_CONTEXT_BYTES__: JSON.stringify(limits.MAX_CONTEXT_BYTES),
         __LIMIT_MAX_TITLE_BYTES__: JSON.stringify(limits.MAX_TITLE_BYTES),
         __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: JSON.stringify(limits.MAX_FEEDBACK_TEXT_BYTES),
+        __LIMIT_SUBTITLE__: JSON.stringify(
+            Object.fromEntries(Object.keys(SUBTITLE_DEFAULTS).map((k) => [k, limits[k] ?? SUBTITLE_DEFAULTS[k]])),
+        ),
     };
 }
 

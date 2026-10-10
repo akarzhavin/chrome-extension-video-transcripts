@@ -7,8 +7,8 @@
 import type { AuthConfig } from '../auth/config';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
-// Mirror SUBTITLE_* in english/infrastructure/lingogram-limits.json.
-const WRITES_PER_DAY = 30;
+// From english/infrastructure/lingogram-limits.json, injected at build time (T058).
+const WRITES_PER_DAY = __LIMIT_SUBTITLE__.SUBTITLE_WRITES_PER_DAY;
 // Firestore's document limit is 1 MiB; field names and framing need headroom.
 const MAX_DOC_BYTES = 1_000_000;
 

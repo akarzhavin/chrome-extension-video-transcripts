@@ -27,6 +27,7 @@ const VITE_LIMITS = resolve(__dirname, '../vite-limits.mjs');
 // ITS directory (one level up from this one) so the two stay in step.
 const SHARED_DIR = resolve(__dirname, '..');
 const CANONICAL = [
+    ...(process.env.LINGOGRAM_LIMITS_PATH ? [process.env.LINGOGRAM_LIMITS_PATH] : []),
     resolve(SHARED_DIR, '../../../../infrastructure/lingogram-limits.json'),
     resolve(SHARED_DIR, '../../../../english/infrastructure/lingogram-limits.json'),
 ].find((p) => existsSync(p));
@@ -93,6 +94,24 @@ describeIfCanonical('DEFAULTS mirror lingogram-limits.json', () => {
         'MAX_FEEDBACK_TEXT_BYTES',
     ])('agrees on %s', (key) => {
         expect(fallback[key]).toBe(canonical[key]);
+    });
+
+    // T058: the subtitle keys the extension reads (english spec 023); a
+    // canonical file from before spec 023 has none to compare.
+    (canonical.SUBTITLE_LANGS ? it.each : it.skip.each)([
+        'SUBTITLE_LANGS',
+        'SUBTITLE_SITES',
+        'SUBTITLE_TTL_DAYS',
+        'SUBTITLE_MAX_CUES',
+        'SUBTITLE_MAX_DURATION_MS',
+        'SUBTITLE_MAX_CUE_TEXT',
+        'SUBTITLE_MIN_CUE_MS',
+        'SUBTITLE_MAX_CHARS_PER_SEC',
+        'SUBTITLE_MAX_CUE_CHARS_PER_SEC',
+        'SUBTITLE_WRITES_PER_DAY',
+        'SUBTITLE_MIN_INTERVAL_S',
+    ])('agrees on %s', (key) => {
+        expect(fallback[key]).toEqual(canonical[key]);
     });
 });
 

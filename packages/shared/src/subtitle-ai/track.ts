@@ -8,22 +8,19 @@
 import type { Subtitle } from '../types';
 import { sha256 } from '../word-key';
 
-// Mirror SUBTITLE_* in english/infrastructure/lingogram-limits.json and
-// dictionary-service's track rules; a drift shows up as `invalid_track`.
-export const SUBTITLE_LANGS: readonly string[] = [
-    'en', 'ru', 'uk', 'be', 'kk', 'de', 'fr', 'es', 'it', 'pt', 'pl', 'cs', 'sk', 'tr',
-    'ar', 'he', 'fa', 'hi', 'ja', 'ko', 'zh', 'vi', 'th', 'id', 'nl', 'sv', 'no', 'da', 'fi', 'el', 'hu', 'ro',
-    'bg', 'sr', 'hr', 'lt', 'lv', 'et', 'ka', 'hy', 'az', 'uz',
-];
-export const SUBTITLE_SITES: readonly string[] = ['rezka', 'netflix', 'youtube'];
-export const SUBTITLE_TTL_DAYS = 14;
-const MAX_CUES = 4000;
-const MAX_DURATION_MS = 4 * 3600 * 1000;
-const MAX_CUE_TEXT = 500;
-const MIN_CUE_MS = 300;
-const MAX_CHARS_PER_SEC = 25;
+// From english/infrastructure/lingogram-limits.json, injected at build time
+// (T058); the backend holds the same numbers, and a drift shows up as `invalid_track`.
+const LIMITS = __LIMIT_SUBTITLE__;
+export const SUBTITLE_LANGS: readonly string[] = LIMITS.SUBTITLE_LANGS;
+export const SUBTITLE_SITES: readonly string[] = LIMITS.SUBTITLE_SITES;
+export const SUBTITLE_TTL_DAYS = LIMITS.SUBTITLE_TTL_DAYS;
+const MAX_CUES = LIMITS.SUBTITLE_MAX_CUES;
+const MAX_DURATION_MS = LIMITS.SUBTITLE_MAX_DURATION_MS;
+const MAX_CUE_TEXT = LIMITS.SUBTITLE_MAX_CUE_TEXT;
+const MIN_CUE_MS = LIMITS.SUBTITLE_MIN_CUE_MS;
+const MAX_CHARS_PER_SEC = LIMITS.SUBTITLE_MAX_CHARS_PER_SEC;
 // One cue may run fast (a short line said quickly); the whole track may not.
-const MAX_CUE_CHARS_PER_SEC = 50;
+const MAX_CUE_CHARS_PER_SEC = LIMITS.SUBTITLE_MAX_CUE_CHARS_PER_SEC;
 
 export interface WireCue {
     start_ms: number;

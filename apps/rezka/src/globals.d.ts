@@ -16,6 +16,20 @@ declare const __EXT_HOME_TARGET_NAME__: string;
 /** The target a fresh dev install starts on; '' = the build's own. */
 declare const __EXT_DEV_DEFAULT_TARGET__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
+/** Subtitle limits shared with the backend (english spec 023, T058), from lingogram-limits.json. */
+declare const __LIMIT_SUBTITLE__: {
+    SUBTITLE_LANGS: string[];
+    SUBTITLE_SITES: string[];
+    SUBTITLE_TTL_DAYS: number;
+    SUBTITLE_MAX_CUES: number;
+    SUBTITLE_MAX_DURATION_MS: number;
+    SUBTITLE_MAX_CUE_TEXT: number;
+    SUBTITLE_MIN_CUE_MS: number;
+    SUBTITLE_MAX_CHARS_PER_SEC: number;
+    SUBTITLE_MAX_CUE_CHARS_PER_SEC: number;
+    SUBTITLE_WRITES_PER_DAY: number;
+    SUBTITLE_MIN_INTERVAL_S: number;
+};
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_SOURCE_URL_BYTES__: number;
