@@ -26,8 +26,16 @@ interface Detected {
  * Loads the built interceptor over a stubbed fetch, feeds it one CDN response,
  * and returns everything it announced via VTT_URL_DETECTED.
  */
-async function runInterceptor(responseBody: string): Promise<Detected[]> {
+let resets = 0;
+// One listener for the whole file: each run loads the bundle again, and a
+// listener per run would count one reset several times.
+window.addEventListener('message', (e: MessageEvent) => {
+    if (e.data && e.data.type === 'VTT_TRACKS_RESET') resets++;
+});
+
+async function runInterceptor(responseBody: string, url = '/ajax/get_cdn_series/?t=1'): Promise<Detected[]> {
     const detected: Detected[] = [];
+    resets = 0;
     window.addEventListener('message', (e: MessageEvent) => {
         if (e.data && e.data.type === 'VTT_URL_DETECTED') {
             detected.push({ url: e.data.url, label: e.data.label });
@@ -41,7 +49,7 @@ async function runInterceptor(responseBody: string): Promise<Detected[]> {
     // The bundle is an IIFE that patches window.fetch on load.
     new Function(readFileSync(BUNDLE, 'utf-8'))();
 
-    await (window as any).fetch('/ajax/get_cdn_series/?t=1');
+    await (window as any).fetch(url);
     // Let the body-reading promise chain and postMessage delivery settle.
     await new Promise((r) => setTimeout(r, 0));
     return detected;
@@ -96,5 +104,29 @@ describe('rezka network interceptor: track labels', () => {
             'Оригинал (+субтитры) (реж.)',
         ]);
         expect(new Set(detected.map((d) => d.url)).size).toBe(2);
+    });
+});
+
+// T059 (english spec 023): an episode or translation without subtitles is a
+// new player listing too; the previous video's tracks must go, or the AI
+// translator keeps working on them.
+describe('rezka network interceptor: a new listing resets the tracks', () => {
+    test('a listing without any .vtt still announces a reset', async () => {
+        await runInterceptor(JSON.stringify({ success: true, url: '[720p]https://stream.voidboost.com/a/720.mp4', subtitle: false }));
+        expect(resets).toBe(1);
+    });
+
+    test('a listing with tracks announces one as before', async () => {
+        await runInterceptor(JSON.stringify({ success: true, subtitle: '[English]https://static.voidboost.com/a/en.vtt' }));
+        expect(resets).toBe(1);
+    });
+
+    test('thumbnails and failed or non-player answers do not', async () => {
+        await runInterceptor(JSON.stringify({ success: true, url: 'x' }), '/ajax/get_cdn_tiles/1/');
+        expect(resets).toBe(0);
+        await runInterceptor(JSON.stringify({ success: false, message: 'Ошибка' }));
+        expect(resets).toBe(0);
+        await runInterceptor(JSON.stringify({ success: true }), '/ajax/favorites/');
+        expect(resets).toBe(0);
     });
 });

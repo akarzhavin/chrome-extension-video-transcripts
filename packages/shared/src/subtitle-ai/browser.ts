@@ -1,5 +1,6 @@
 // The real dependencies of attachAiTranslation in a content script.
 
+import { onLanguagePrefsChanged } from '../languages';
 import { sendMessageGuarded } from '../messaging';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { AttachDeps } from './attach';
@@ -16,8 +17,9 @@ export function browserAiDeps(): AttachDeps {
                 cb(p.aiTranslate);
             });
         },
-        every: (fn, ms) => {
-            setInterval(fn, ms);
+        // Runs after the app's own listener (registered first), which updates its langPrefs.
+        onPairChange: (cb) => {
+            onLanguagePrefsChanged(() => cb());
         },
         later: (fn, ms) => {
             setTimeout(fn, ms);

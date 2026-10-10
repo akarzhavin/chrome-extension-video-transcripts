@@ -2,6 +2,11 @@ import { LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { pairSecondaryToMain } from './track-pairing';
 
+/** What AppState tells its subscribers (english spec 023, T059). */
+export type StateEvent =
+    | { type: 'reset' }
+    | { type: 'track'; name: string };
+
 export class AppState {
     tracks: Track[] = [];
     activeTrackIndex: number = 0;
@@ -22,6 +27,17 @@ export class AppState {
     selectedLearningCode?: string;
     selectedNativeCode?: string;
     displayMode: 'single' | 'dual' | 'guess' = 'dual';
+    private listeners = new Set<(e: StateEvent) => void>();
+
+    /** Calls fn on reset and on every track added; returns the unsubscribe. */
+    subscribe(fn: (e: StateEvent) => void): () => void {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+    }
+
+    private emit(e: StateEvent): void {
+        for (const fn of [...this.listeners]) fn(e);
+    }
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;
@@ -84,6 +100,7 @@ export class AppState {
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
+        this.emit({ type: 'track', name });
     }
 
     removeTrack(name: string): void {
@@ -104,6 +121,7 @@ export class AppState {
         // it. The user's selected learning/native codes persist (they're the
         // language pair, not video state) so the picker keeps its selection.
         this.languageCatalog = undefined;
+        this.emit({ type: 'reset' });
     }
 
     applyPreferences(): void {
