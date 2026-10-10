@@ -1,7 +1,7 @@
 # Privacy Policy — Dual Subtitles for HDrezka — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 9, 2026
+**Last updated:** October 10, 2026
 
 This Privacy Policy explains what information the **Dual Subtitles for HDrezka —
 Lingogram** browser extension ("the Extension") collects, how it is used, where it
@@ -523,7 +523,10 @@ stay consistent), and the two languages. OpenAI receives no account identifier,
 no IP address of yours and nothing about the video beyond its subtitle text, and
 processes the request as our service provider under its API data-usage terms.
 Every translated part is kept, so a later viewer of the same subtitles, you or
-anyone else, gets it without a new request to OpenAI.
+anyone else, gets it without a new request to OpenAI. The stored track expires
+from our Firebase database 14 days after it was stored; the dictionary service's
+copy and its translations are deleted once no one has used them for 3 days
+(Section 6).
 
 **Shared, not tied to you.** The stored track and its translations carry no
 account identifier, and the service does not record which account asked for
@@ -723,8 +726,8 @@ that Telegram alert ever carries an account identifier. We do not use your data 
   Cloud's standard retention (30 days) and serve to keep the service running.
   Requests passed to OpenAI are handled under OpenAI's API data-usage terms.
 * **AI translation** (Section 1i): a stored track stays in our Firebase database
-  for at most 30 days, then expires on its own. In the dictionary service's
-  database, a track and its translations stay until no one has used them for 30
+  for at most 14 days, then expires on its own. In the dictionary service's
+  database, a track and its translations stay until no one has used them for 3
   days. They carry no account identifier, so they cannot be found or deleted per
   person and are not deleted with your account. The daily counts per user ID are
   deleted after 8 days; the write counter under your user ID is covered by account

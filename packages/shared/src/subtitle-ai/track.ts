@@ -16,7 +16,7 @@ export const SUBTITLE_LANGS: readonly string[] = [
     'bg', 'sr', 'hr', 'lt', 'lv', 'et', 'ka', 'hy', 'az', 'uz',
 ];
 export const SUBTITLE_SITES: readonly string[] = ['rezka', 'netflix', 'youtube'];
-export const SUBTITLE_TTL_DAYS = 30;
+export const SUBTITLE_TTL_DAYS = 14;
 const MAX_CUES = 4000;
 const MAX_DURATION_MS = 4 * 3600 * 1000;
 const MAX_CUE_TEXT = 500;

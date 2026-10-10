@@ -129,7 +129,7 @@ describe('storeTrack', () => {
         expect(Object.keys(f).sort()).toEqual(['cue_count', 'cues', 'duration_ms', 'expire_at', 'site', 'source_lang']);
         expect(f.cue_count).toEqual({ integerValue: '2' });
         expect(f.duration_ms).toEqual({ integerValue: '3000' });
-        expect(f.expire_at).toEqual({ timestampValue: new Date(Date.UTC(2026, 10, 8, 12)).toISOString() });
+        expect(f.expire_at).toEqual({ timestampValue: new Date(Date.UTC(2026, 9, 23, 12)).toISOString() }); // 14 days (T053)
         expect(f.cues.arrayValue.values[1]).toEqual({
             mapValue: { fields: { start_ms: { integerValue: '1000' }, end_ms: { integerValue: '3000' }, text: { stringValue: 'Bye.' } } },
         });
