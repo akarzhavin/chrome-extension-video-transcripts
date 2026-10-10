@@ -174,4 +174,18 @@ describe('storeTrack', () => {
         expect(await storeTrack(cfg, big, d)).toEqual({ ok: false, reason: 'too_long' });
         expect(d.calls).toHaveLength(0);
     });
+    // T071: the user id is one path segment, however odd.
+    test.each(['u/../../subtitle_tracks/x', 'u?mask=1', 'u#x'])('the user id %s stays one path segment', async (uid) => {
+        const d = deps([reply(404, {}), reply(200, {})]);
+        d.token = async () => ({ idToken: 'tok1', uid });
+        expect(await storeTrack(cfg, track, d)).toEqual({ ok: true });
+        const enc = encodeURIComponent(uid);
+        const url = new URL(d.calls[0].url);
+        expect(url.search).toBe('');
+        expect(url.hash).toBe('');
+        expect(url.pathname.split('/').pop()).toBe(enc);
+        expect(url.pathname.endsWith(`/documents/write_limits/${enc}`)).toBe(true);
+        const { writes } = JSON.parse(d.calls[1].init.body as string);
+        expect(writes[0].update.name).toBe(`projects/proj/databases/(default)/documents/write_limits/${enc}`);
+    });
 });

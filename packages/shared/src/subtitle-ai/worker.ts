@@ -136,10 +136,12 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
         return { ok: false, reason: 'auth' };
     }
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.idToken}` };
+    // The id comes from the user's own token, but goes into a path: one segment, always (T071).
+    const limits = `${docs}/write_limits/${encodeURIComponent(auth.uid)}`;
     const now = deps.now();
     const today = dayBucket(now);
     try {
-        const cur = await deps.fetch(`${cfg.firestoreUrl}/v1/${docs}/write_limits/${auth.uid}`, { method: 'GET', headers });
+        const cur = await deps.fetch(`${cfg.firestoreUrl}/v1/${limits}`, { method: 'GET', headers });
         let count = 1;
         if (cur.ok) {
             const f = ((await body(cur)).fields ?? {}) as Record<string, { integerValue?: string }>;
@@ -151,7 +153,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
 
         const writes = [
             {
-                update: { name: `${docs}/write_limits/${auth.uid}`, fields: { day: int(today), day_count: int(count) } },
+                update: { name: limits, fields: { day: int(today), day_count: int(count) } },
                 updateTransforms: [{ fieldPath: 'last_at', setToServerValue: 'REQUEST_TIME' }],
             },
             {
