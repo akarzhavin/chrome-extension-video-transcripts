@@ -137,7 +137,7 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
     });
 
-    test('the registry holds exactly the sixteen non-dev actions', () => {
+    test('the registry holds exactly the eighteen non-dev actions', () => {
         // Fails loudly when an action is added to the union but not the Set —
         // which it did twice during this feature, for REMOVE_WORD and then for
         // SYNC_WORDS, exactly as intended. A name present in only one of the
@@ -153,6 +153,20 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('OPEN_EXTENSION_PAGE')).toBe(true);
         expect(AUTH_ACTIONS.has('LOCAL_WORDS_LIST')).toBe(true);
         expect(AUTH_ACTIONS.has('LOCAL_WORD_SET_TRANSLATION')).toBe(true);
+    });
+
+    test('the AI translation actions pass only in a dev build, by prefix', () => {
+        // Named in the set, they would ship in the prod bundle.
+        expect(AUTH_ACTIONS.has('SUBTITLE_AI_PART' as never)).toBe(false);
+        expect(isAuthAction('SUBTITLE_AI_PART')).toBe(true);
+        expect(isAuthAction('SUBTITLE_AI_STORE')).toBe(true);
+        (global as any).__EXT_ENV__ = 'prod';
+        try {
+            expect(isAuthAction('SUBTITLE_AI_PART')).toBe(false);
+            expect(isAuthAction('SUBTITLE_AI_STORE')).toBe(false);
+        } finally {
+            (global as any).__EXT_ENV__ = 'dev';
+        }
     });
 
     test('an unknown analytics event is rejected at the boundary', async () => {

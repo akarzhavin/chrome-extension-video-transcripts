@@ -41,7 +41,7 @@ import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { watchForDuplicateCopy } from './content/duplicate-copy-notice';
 import { buildFeedbackScreen, FeedbackScreenHost } from './content/feedback-screen';
-import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
+import { SidebarElements, AppInterface, DisplayMode, Subtitle, Track, TrackRole, SliderRowElements } from './types';
 import { PeekController } from './transcript/peek';
 import {
     fillMaskedWordsInto,
@@ -57,6 +57,7 @@ import {
 } from './transcript/saved-marks';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
+import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -634,6 +635,18 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
+        // AI translation is dev-only until it ships; the release gate checks it.
+        // Its switch is on the site's settings page; here only what it is doing.
+        if (__EXT_ENV__ === 'dev') {
+            const status = document.createElement('div');
+            status.id = 'vtt-ai-status';
+            status.className = 'vtt-ai-status';
+            status.setAttribute('aria-live', 'polite');
+            langGroup.appendChild(status);
+            this.setAiStatus = (s) => {
+                status.textContent = s ? aiStatusText(s) : '';
+            };
+        }
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2037,7 +2050,7 @@ export class SidebarUI {
     }
 
     /** Direct mode pick — what every mode control calls. */
-    setMode(mode: 'single' | 'dual' | 'guess'): void {
+    setMode(mode: DisplayMode): void {
         if (!this.state.setDisplayMode(mode)) return;
         this.refresh();
         savePrefs({ displayMode: this.state.displayMode });
@@ -2218,7 +2231,7 @@ export class SidebarUI {
         }
     }
 
-    private buildSecondaryTextElement(overlap: { text: string }[], className = 'vtt-sub-text'): HTMLDivElement | null {
+    private buildSecondaryTextElement(overlap: { text: string; pending?: boolean; skipped?: boolean }[], className = 'vtt-sub-text'): HTMLDivElement | null {
         // A duplicated cue (some tracks repeat a line byte-for-byte) must not
         // show its text twice on one line.
         const texts = [...new Set(overlap.map(s => s.text))];
@@ -2226,6 +2239,15 @@ export class SidebarUI {
         const div = document.createElement('div');
         div.className = className;
         div.textContent = texts.join(' ');
+        // An AI line still being translated; blank means not asked for yet.
+        if (!div.textContent.trim() && overlap.some(s => s.pending)) {
+            div.classList.add('vtt-pending');
+            div.textContent = '···';
+        } else if (!div.textContent.trim() && overlap.some(s => s.skipped)) {
+            // Left out on purpose (it broke a backend rule), not a failure.
+            div.classList.add('vtt-skipped');
+            div.textContent = '—';
+        }
         return div;
     }
 
@@ -2242,6 +2264,9 @@ export class SidebarUI {
             this.refreshHooks = this.refreshHooks.filter(f => f !== fn);
         };
     }
+
+    /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
+    setAiStatus: (s: AiStatus | null) => void = () => {};
 
     refresh(): void {
         this.updateControls();
@@ -2345,10 +2370,12 @@ export class SidebarUI {
         // rather than `disabled`: a disabled button fires no pointer events, so
         // its tooltip could never appear. The click handler enforces off.
         if (qmDualBtn) {
-            const hint = (!hasMultiple && this.app.missingTrackHint?.()) || '';
-            qmDualBtn.disabled = !hasMultiple && !hint;
-            qmDualBtn.setAttribute?.('aria-disabled', String(!hasMultiple));
-            qmDualBtn.classList?.toggle('vtt-qm-blocked', !hasMultiple && !!hint);
+            // The AI translation can supply the second line on demand.
+            const canDual = this.state.canPickDual();
+            const hint = (!canDual && this.app.missingTrackHint?.()) || '';
+            qmDualBtn.disabled = !canDual && !hint;
+            qmDualBtn.setAttribute?.('aria-disabled', String(!canDual));
+            qmDualBtn.classList?.toggle('vtt-qm-blocked', !canDual && !!hint);
             if (qmDualBtn.dataset) {
                 // Keep the mode's own name at the top even when explaining why
                 // it's off — the tooltip still has to answer "what is this
@@ -2528,6 +2555,39 @@ export class SidebarUI {
         markSavedPhrasesIn(this.elements.list);
     }
 
+    /**
+     * Re-reads every row's second line and patches only the rows whose line
+     * changed. An AI part arriving touches its own
+     * rows; the rest of the list — the current-line highlight, saved-phrase
+     * marks, the scroll position — stays as it is. A list that no longer
+     * matches the track is rebuilt instead.
+     */
+    updateSecondaryLines(): void {
+        const list = this.elements.list;
+        const mainTrack = this.state.getMainTrack();
+        if (!list || !mainTrack) return;
+        const items = list.querySelectorAll<HTMLDivElement>(':scope > .vtt-item');
+        if (items.length !== mainTrack.length) {
+            this.refresh();
+            return;
+        }
+        items.forEach((item) => {
+            const index = Number(item.dataset.index);
+            const sub = mainTrack[index];
+            if (!sub) return;
+            const next = this.showsSecondary(index) ? this.buildSecondaryTextElement(this.state.getPairedSecondary(sub)) : null;
+            const cur = item.querySelector<HTMLElement>(':scope > .vtt-sub-text');
+            if (!cur && !next) return;
+            if (cur && next) {
+                if (cur.textContent !== next.textContent || cur.className !== next.className) cur.replaceWith(next);
+            } else if (cur) {
+                cur.remove();
+            } else {
+                item.appendChild(next!);
+            }
+        });
+    }
+
     private createSubtitleItem(index: number): HTMLDivElement {
         const item = document.createElement('div');
         item.className = 'vtt-item';
@@ -2566,8 +2626,8 @@ export class SidebarUI {
             this.revealOrSeek(index, sub);
         });
 
-        if (this.state.isFullyRevealed(index)) {
-            item.classList.add('fully-revealed');
+        if (this.state.isFullyRevealed(index)) item.classList.add('fully-revealed');
+        if (this.showsSecondary(index)) {
             const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
@@ -2721,7 +2781,7 @@ export class SidebarUI {
         fillPlainWordsInto(mainText, sub.text, isSaved);
         item.appendChild(mainText);
 
-        if (this.state.displayMode === 'dual') {
+        if (this.showsSecondary(index)) {
             const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
@@ -2938,7 +2998,7 @@ export class SidebarUI {
         // A preview line is not the playing line, so it gets no guess-mode
         // translation gate — the point is to show the block's real shape,
         // which in dual mode means both rows.
-        if (sub ? this.shouldShowOverlayTranslation(lineIndex) : this.state.displayMode !== 'single') {
+        if (sub ? this.showsSecondary(lineIndex) : this.state.displayMode !== 'single') {
             const subDiv = placeholder
                 ? this.buildPlaceholderSecondary()
                 : this.buildSecondaryTextElement(this.state.getPairedSecondary(shown), 'vtt-overlay-sub');
@@ -3583,7 +3643,8 @@ export class SidebarUI {
         return mainDiv;
     }
 
-    private shouldShowOverlayTranslation(index: number): boolean {
+    /** The second line under a subtitle: always in Dual, once fully revealed in Guess. */
+    private showsSecondary(index: number): boolean {
         if (this.state.displayMode === 'dual') return true;
         if (this.state.displayMode === 'guess') return this.state.isFullyRevealed(index);
         return false;

@@ -34,7 +34,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEBUG_TRACE_MARKERS } from './assert-shippable.mjs';
+import { AI_TRANSLATE_MARKERS, DEBUG_TRACE_MARKERS } from './assert-shippable.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = process.argv[2] ?? join(here, '..', '..');
@@ -231,6 +231,29 @@ const fail = (why) => findings.push(why);
             if (code.includes('DIAG_BUILD')) return;
             fail(`${rel}:${i + 1}: save-diagnostics call not gated on DIAG_BUILD\n        ${line.trim()}`);
         });
+    }
+}
+
+// ── 5. The AI-translation markers still describe the feature ───────────────
+//
+// The output gate refuses a bundle carrying any of them. A marker the source no
+// longer uses matches nothing, and the rule would pass a build that ships the
+// feature under a new name.
+{
+    const files = [
+        'packages/shared/src/subtitle-ai/worker.ts',
+        'packages/shared/src/subtitle-ai/controller.ts',
+        'packages/shared/src/subtitle-ai/ai-switch.ts',
+        'packages/shared/src/SidebarUI.ts',
+        'packages/shared/src/auth/background.ts',
+    ];
+    const src = files.map((rel) => read(rel) ?? '').join('\n');
+    const stale = AI_TRANSLATE_MARKERS.filter((name) => !src.includes(name));
+    if (stale.length) {
+        fail(
+            `AI_TRANSLATE_MARKERS lists names the source no longer uses: ${stale.join(', ')}\n` +
+            '      Update the list in assert-shippable.mjs to what the feature now emits.',
+        );
     }
 }
 

@@ -49,6 +49,10 @@ function makeTree(): string {
         'apps/youtube/src/content/debug-recorder.ts',
         'apps/youtube/src/content/debug-ui.ts',
         'packages/shared/src/SidebarUI.ts',
+        'packages/shared/src/subtitle-ai/worker.ts',
+        'packages/shared/src/subtitle-ai/controller.ts',
+        'packages/shared/src/subtitle-ai/ai-switch.ts',
+        'packages/shared/src/auth/background.ts',
     ]) {
         const dest = join(dir, rel);
         mkdirSync(join(dest, '..'), { recursive: true });
@@ -213,6 +217,20 @@ describe('drift between the source and the release gate', () => {
 
         expect(code).toBe(1);
         expect(output).toMatch(/no longer uses: LG_TRACE_BATCH/);
+    });
+});
+
+describe('the AI translation markers', () => {
+    // The release gate refuses a bundle carrying them; renamed in the source,
+    // they would match nothing and pass a build that ships the feature.
+    it('refuses a marker the source no longer uses', () => {
+        const dir = makeTree();
+        edit(dir, 'packages/shared/src/subtitle-ai/worker.ts', (s) => s.replace(/write_limits/g, 'write_quota'));
+
+        const { code, output } = runGate(dir);
+
+        expect(code).toBe(1);
+        expect(output).toMatch(/AI_TRANSLATE_MARKERS lists names the source no longer uses: subtitle_write_limits/);
     });
 });
 

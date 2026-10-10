@@ -13,6 +13,7 @@
 
 import { platformOf, type Platform } from './analytics';
 import { BOTTOM_NUDGE_RANGE, INLINE_NUDGE_RANGE, type NudgeRange } from './overlay-position';
+import type { DisplayMode } from './types';
 
 // Font size is a percentage (50-400, step 5) rather than a 3-way token: a
 // fixed small/medium/large left the whole 100-150% range — where most people
@@ -48,7 +49,7 @@ export type OverlayFontFamily =
     | 'smallCaps';
 
 export interface Prefs {
-    displayMode: 'single' | 'dual' | 'guess';
+    displayMode: DisplayMode;
     overlayEnabled: boolean;
     sidebarCollapsed: boolean;
     // On-video overlay appearance. Most fields are preset tokens (not raw px)
@@ -111,6 +112,9 @@ export interface Prefs {
     // page highlight is off although pageHighlight is on. GLOBAL, stored only
     // in this browser. Set by the per-site switch in the popup.
     highlightOffHosts: string[];
+    // Dev builds only: the AI translation of the learning track takes the
+    // second line even when the site has a native track. GLOBAL; off by default.
+    aiTranslateForce: boolean;
 }
 
 // Exported for analytics-bg's gate, which reads the raw blob directly: it
@@ -368,6 +372,8 @@ function resolve(raw: unknown, scope: PrefScope): Prefs {
         resolved.debugMode = DEFAULT_PREFS.debugMode;
     }
     if (typeof resolved.pageHighlight !== 'boolean') resolved.pageHighlight = DEFAULT_PREFS.pageHighlight;
+    // Dev-only until it ships: a prod build never turns it on, whatever is stored.
+    if (__EXT_ENV__ !== 'dev' || typeof resolved.aiTranslateForce !== 'boolean') resolved.aiTranslateForce = DEFAULT_PREFS.aiTranslateForce;
     // Stored garbage (not a list, or non-strings in it) must not reach the
     // content script. A fresh array: DEFAULT_PREFS' own must never be handed out.
     resolved.highlightOffHosts = Array.isArray(resolved.highlightOffHosts)
@@ -428,6 +434,7 @@ const DEFAULT_PREFS: Prefs = {
     debugMode: DEFAULT_DEBUG_MODE,
     pageHighlight: true,
     highlightOffHosts: [],
+    aiTranslateForce: false,
 };
 
 export type VideoSite = 'youtube' | 'netflix' | 'rezka';

@@ -10,48 +10,24 @@
 
 import { track } from './analytics-bg';
 import { loadPrefs, savePrefs } from './prefs';
-import { SIBLING_MESSAGE_TYPE, siblingIdsOf } from './sibling';
+import { answerPrefRequest, setPrefEverywhere, siblingHas, type SiblingPref } from './sibling-pref';
 
-export type AnalyticsRequest =
-    | { type: typeof SIBLING_MESSAGE_TYPE; op: 'analyticsGet' }
-    | { type: typeof SIBLING_MESSAGE_TYPE; op: 'analyticsSet'; on: boolean };
+const ANALYTICS: SiblingPref = {
+    getOp: 'analyticsGet',
+    setOp: 'analyticsSet',
+    read: async () => (await loadPrefs()).analyticsEnabled,
+    async apply(on) {
+        // Reported BEFORE the flag is written: the event is the last one the gate
+        // lets through. Only when it is on right now, so a repeated "off" does not
+        // report an opt-out that already happened.
+        if (!on && (await loadPrefs()).analyticsEnabled) await track('analytics_opt_out');
+        await savePrefs({ analyticsEnabled: on });
+    },
+};
 
-/** Stores the choice in this edition. */
-async function applyLocal(on: boolean): Promise<void> {
-    // Reported BEFORE the flag is written: the event is the last one the gate
-    // lets through. Only when it is on right now, so a repeated "off" does not
-    // report an opt-out that already happened.
-    if (!on && (await loadPrefs()).analyticsEnabled) await track('analytics_opt_out');
-    await savePrefs({ analyticsEnabled: on });
-}
+export const setAnalyticsEverywhere = (on: boolean) => setPrefEverywhere(ANALYTICS, on);
 
-/** Stores the choice here and in the other edition, if it is installed. */
-export async function setAnalyticsEverywhere(on: boolean): Promise<void> {
-    await applyLocal(on);
-    await Promise.all(
-        siblingIdsOf(chrome.runtime.id).map(async (id) => {
-            try {
-                await chrome.runtime.sendMessage(id, { type: SIBLING_MESSAGE_TYPE, op: 'analyticsSet', on } satisfies AnalyticsRequest);
-            } catch {
-                // not installed, or too old to know the op
-            }
-        }),
-    );
-}
-
-/**
- * The other edition's get and set. Returns null for any other message, so the
- * caller can pass it on.
- */
-export async function answerAnalyticsRequest(message: unknown): Promise<{ ok: boolean; on?: boolean; error?: string } | null> {
-    const m = message as Partial<AnalyticsRequest> & { on?: unknown };
-    if (m?.type !== SIBLING_MESSAGE_TYPE) return null;
-    if (m.op === 'analyticsGet') return { ok: true, on: (await loadPrefs()).analyticsEnabled };
-    if (m.op !== 'analyticsSet') return null;
-    if (typeof m.on !== 'boolean') return { ok: false, error: 'on must be a boolean' };
-    await applyLocal(m.on);
-    return { ok: true };
-}
+export const answerAnalyticsRequest = (message: unknown) => answerPrefRequest(ANALYTICS, message);
 
 /**
  * On a fresh install: if the other edition is already opted out, so is this
@@ -59,18 +35,5 @@ export async function answerAnalyticsRequest(message: unknown): Promise<{ ok: bo
  * leaves the default alone.
  */
 export async function adoptAnalyticsOptOut(): Promise<void> {
-    for (const id of siblingIdsOf(chrome.runtime.id)) {
-        try {
-            const res = (await chrome.runtime.sendMessage(id, {
-                type: SIBLING_MESSAGE_TYPE,
-                op: 'analyticsGet',
-            } satisfies AnalyticsRequest)) as { ok?: boolean; on?: unknown } | undefined;
-            if (res?.ok === true && res.on === false) {
-                await savePrefs({ analyticsEnabled: false });
-                return;
-            }
-        } catch {
-            // that id is not installed
-        }
-    }
+    if (await siblingHas(ANALYTICS, false)) await savePrefs({ analyticsEnabled: false });
 }

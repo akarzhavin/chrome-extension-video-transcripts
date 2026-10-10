@@ -37,7 +37,7 @@ function makeChromeStorage() {
 const chromeStorage = makeChromeStorage();
 (global as any).chrome = { storage: chromeStorage, runtime: { id: 'test-extension-id' } };
 
-import { loadPrefs, onPrefsChanged, savePrefs } from '../src/prefs';
+import { loadPrefs, onPrefsChanged, PREFS_KEY, savePrefs } from '../src/prefs';
 
 /** Run `fn` with __EXT_ENV__ pinned, then restore it. */
 function withEnv<T>(env: 'dev' | 'prod', fn: () => T): T {
@@ -78,9 +78,18 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            aiTranslateForce: false,
             highlightOffHosts: [],
             theme: 'dark',
         });
+    });
+
+    test('aiTranslateForce is off until switched on, round-trips, and a junk value reads as off', async () => {
+        expect((await loadPrefs()).aiTranslateForce).toBe(false);
+        await savePrefs({ aiTranslateForce: true });
+        expect((await loadPrefs()).aiTranslateForce).toBe(true);
+        await chrome.storage.local.set({ [PREFS_KEY]: { aiTranslateForce: 'yes' } });
+        expect((await loadPrefs()).aiTranslateForce).toBe(false);
     });
 
     test('overlay style prefs round-trip and merge independently', async () => {
@@ -195,6 +204,7 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
+            aiTranslateForce: false,
             highlightOffHosts: [],
             theme: 'dark',
         });

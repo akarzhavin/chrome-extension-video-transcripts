@@ -1,6 +1,12 @@
-import { LanguageChoice, Subtitle, Track } from './types';
+import { DisplayMode, LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { pairSecondaryToMain } from './track-pairing';
+
+/** What AppState tells its subscribers. */
+export type StateEvent =
+    | { type: 'reset' }
+    | { type: 'track'; name: string }
+    | { type: 'mode'; mode: DisplayMode };
 
 export class AppState {
     tracks: Track[] = [];
@@ -21,7 +27,33 @@ export class AppState {
     languageCatalog?: LanguageChoice[];
     selectedLearningCode?: string;
     selectedNativeCode?: string;
-    displayMode: 'single' | 'dual' | 'guess' = 'dual';
+    private mode: DisplayMode = 'dual';
+    private listeners = new Set<(e: StateEvent) => void>();
+
+    // An accessor, so the panel's direct assignments (prefs) notify too.
+    get displayMode(): DisplayMode {
+        return this.mode;
+    }
+
+    set displayMode(mode: DisplayMode) {
+        if (mode === this.mode) return;
+        this.mode = mode;
+        this.emit({ type: 'mode', mode });
+    }
+
+    /** Calls fn on reset, on every track added and on a display-mode change; returns the unsubscribe. */
+    subscribe(fn: (e: StateEvent) => void): () => void {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+    }
+
+    private emit(e: StateEvent): void {
+        for (const fn of [...this.listeners]) fn(e);
+    }
+
+    // The AI translation can supply the second line:
+    // Dual stays selectable with one track, and picking it starts the translation.
+    secondLineOnDemand = false;
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;
@@ -77,9 +109,20 @@ export class AppState {
         return this.hasTrackFor(this.secondaryLangLabel);
     }
 
+    // The AI translation track while it runs: it takes the second line, also
+    // over a native track when the dev switch forces the translation.
+    preferredSecondaryName?: string;
+
     addTrack(name: string, subtitles: Subtitle[]): void {
         this.tracks.push({ name, subtitles });
         this.applyPreferences();
+        this.emit({ type: 'track', name });
+    }
+
+    removeTrack(name: string): void {
+        const before = this.tracks.length;
+        this.tracks = this.tracks.filter((t) => t.name !== name);
+        if (this.tracks.length !== before) this.applyPreferences();
     }
 
     reset(): void {
@@ -94,9 +137,18 @@ export class AppState {
         // it. The user's selected learning/native codes persist (they're the
         // language pair, not video state) so the picker keeps its selection.
         this.languageCatalog = undefined;
+        this.emit({ type: 'reset' });
     }
 
     applyPreferences(): void {
+        this.applyLanguagePreferences();
+        const ai = this.preferredSecondaryName
+            ? this.tracks.findIndex((t) => t.name === this.preferredSecondaryName)
+            : -1;
+        if (ai !== -1 && ai !== this.activeTrackIndex) this.secondaryTrackIndex = ai;
+    }
+
+    private applyLanguagePreferences(): void {
         // Re-deriving indexes from the preference undoes any manual swap, so
         // the flag must follow.
         this.swapped = false;
@@ -197,6 +249,11 @@ export class AppState {
         return this.tracks.length > 1;
     }
 
+    /** Dual has a second line to show: a second track, or the AI translation on demand. */
+    canPickDual(): boolean {
+        return this.hasMultipleTracks() || this.secondLineOnDemand;
+    }
+
     swapTracks(): boolean {
         if (this.hasMultipleTracks()) {
             [this.activeTrackIndex, this.secondaryTrackIndex] = [this.secondaryTrackIndex, this.activeTrackIndex];
@@ -214,9 +271,9 @@ export class AppState {
      * Returns whether anything changed (dual needs a second track; picking the
      * active mode is a no-op).
      */
-    setDisplayMode(mode: 'single' | 'dual' | 'guess'): boolean {
+    setDisplayMode(mode: DisplayMode): boolean {
         if (mode === this.displayMode) return false;
-        if (mode === 'dual' && !this.hasMultipleTracks()) return false;
+        if (mode === 'dual' && !this.canPickDual()) return false;
         this.displayMode = mode;
         if (mode === 'guess') this.resetGuessState();
         return true;
@@ -227,7 +284,7 @@ export class AppState {
     // lands on dual (the translation came back), while leaving dual lands on
     // single (the translation went away).
     toggleDualMode(): boolean {
-        if (!this.hasMultipleTracks()) return false;
+        if (!this.canPickDual()) return false;
         return this.setDisplayMode(this.displayMode === 'dual' ? 'single' : 'dual');
     }
 
@@ -235,7 +292,7 @@ export class AppState {
         if (this.displayMode !== 'guess') return this.setDisplayMode('guess');
         // With one track "dual" is rejected, which would strand the shortcut
         // in guess mode — fall back to single there.
-        return this.setDisplayMode(this.hasMultipleTracks() ? 'dual' : 'single');
+        return this.setDisplayMode(this.canPickDual() ? 'dual' : 'single');
     }
 
     // How many maskable units the line holds. Must match how SidebarUI renders

@@ -4,6 +4,7 @@
 
 import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
+import { AiTranslator } from '../src/subtitle-ai/controller';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
 import { WordScreen } from '../src/lookup/word-screen';
@@ -103,6 +104,62 @@ describe('SidebarUI', () => {
         // The embed's configuration. `dispose()` must not be assumed present.
         const embedUi = new SidebarUI(new AppState(), mockApp);
         expect(() => embedUi.destroy()).not.toThrow();
+    });
+
+    // An AI part arriving patches only the rows whose second line changed.
+    test('a part arriving keeps untouched rows as the same nodes and the highlight on the current line', () => {
+        const main: Subtitle[] = Array.from({ length: 6 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}` }));
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', main);
+        state.preferredSecondaryName = 'Russian · AI';
+        state.addTrack('Russian · AI', main.map((c, i) => ({ ...c, text: i < 3 ? `ru ${i}` : '', pending: i >= 3 })));
+        state.displayMode = 'dual';
+        ui.renderSubtitles();
+        ui.highlightSubtitle(2.5); // cue 1
+        const list = ui.elements.list!;
+        const items = [...list.querySelectorAll<HTMLElement>('.vtt-item')];
+        const subs = items.map((it) => it.querySelector('.vtt-sub-text'));
+        expect(subs[4]?.textContent).toBe('···');
+
+        const ai = state.tracks.find((t) => t.name === 'Russian · AI')!;
+        ai.subtitles[3].text = 'ru 3';
+        ai.subtitles[3].pending = false;
+        ui.updateSecondaryLines();
+
+        const after = [...list.querySelectorAll<HTMLElement>('.vtt-item')];
+        after.forEach((it, i) => expect(it).toBe(items[i]));
+        [0, 1, 2, 4, 5].forEach((i) => expect(after[i].querySelector('.vtt-sub-text')).toBe(subs[i]));
+        expect(after[3].querySelector('.vtt-sub-text')?.textContent).toBe('ru 3');
+        expect(after[3].querySelector('.vtt-pending')).toBeNull();
+        expect(after[1].classList.contains('active-sub')).toBe(true);
+        expect(list.querySelectorAll('.active-sub')).toHaveLength(1);
+        expect(state.currentIndex).toBe(1);
+    });
+
+    // A part the server could not have ready stays pending, shown as '···'.
+    test('lines of a part not ready yet stay pending and show ···', async () => {
+        const main: Subtitle[] = Array.from({ length: 10 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}.` }));
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', main);
+        state.displayMode = 'dual';
+        const t = new AiTranslator({
+            state,
+            site: 'rezka',
+            refresh: () => ui.refresh(),
+            refreshLines: () => ui.updateSecondaryLines(),
+            currentTime: () => 0,
+            later: () => {},
+            send: async () => ({
+                ok: true, from: 0, to: 10, skipped: [], pending: [5, 6, 7, 8, 9],
+                lines: Array.from({ length: 10 }, (_, k) => (k < 5 ? `ru ${k}` : '')),
+            }),
+        }, 'en', 'ru');
+        t.start(state.tracks[0]);
+        for (let i = 0; i < 3; i++) await new Promise((r) => setTimeout(r, 0));
+        const rows = [...ui.elements.list!.querySelectorAll<HTMLElement>('.vtt-item .vtt-sub-text')];
+        expect(rows.map((r) => r.textContent)).toEqual(['ru 0', 'ru 1', 'ru 2', 'ru 3', 'ru 4', '···', '···', '···', '···', '···']);
+        expect(rows[7].classList.contains('vtt-pending')).toBe(true);
+        t.stop();
     });
 
     test('highlightSubtitle should find the correct subtitle for time', () => {
@@ -3434,6 +3491,32 @@ describe('the transcript list', () => {
     const list = (): HTMLElement => document.getElementById('vtt-list')!;
     const itemAt = (i: number): HTMLElement =>
         list().querySelector(`.vtt-item[data-index="${i}"]`) as HTMLElement;
+
+    // An AI line being translated shows a placeholder; one not asked
+    // for yet stays blank, so the two waits read differently.
+    test('a pending AI line shows a placeholder, a line not yet asked for does not', () => {
+        state.displayMode = 'dual';
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha' }, { startTime: 3, endTime: 5, text: 'beta' }]);
+        state.addTrack('Russian · AI', [{ startTime: 0, endTime: 2, text: '', pending: true }, { startTime: 3, endTime: 5, text: '' }]);
+        ui.renderSubtitles();
+
+        const pending = itemAt(0).querySelector('.vtt-sub-text')!;
+        expect(pending.classList.contains('vtt-pending')).toBe(true);
+        expect(pending.textContent).toBe('···');
+        expect(itemAt(1).querySelector('.vtt-pending')).toBeNull();
+        expect(itemAt(1).querySelector('.vtt-sub-text')?.textContent ?? '').toBe('');
+    });
+
+    test('an AI line left out on purpose shows a dash', () => {
+        state.displayMode = 'dual';
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha' }]);
+        state.addTrack('Russian · AI', [{ startTime: 0, endTime: 2, text: '', skipped: true }]);
+        ui.renderSubtitles();
+
+        const sub = itemAt(0).querySelector('.vtt-sub-text')!;
+        expect(sub.classList.contains('vtt-skipped')).toBe(true);
+        expect(sub.textContent).toBe('—');
+    });
 
     // §6.15, T5.13. The translation is the answer to the puzzle. Showing it
     // while words are still masked hands over the meaning the user is working

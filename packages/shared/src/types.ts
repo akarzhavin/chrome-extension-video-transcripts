@@ -1,3 +1,6 @@
+/** How the subtitle list shows the second line: none, always, or once a line is guessed. */
+export type DisplayMode = 'single' | 'dual' | 'guess';
+
 export interface Subtitle {
   startTime: number;
   endTime: number;
@@ -12,6 +15,10 @@ export interface Subtitle {
    * `line` is the only thing that says which half is the top one.
    */
   line?: number;
+  /** AI track only: its part is being translated now (shown as a placeholder). */
+  pending?: boolean;
+  /** AI track only: the cue broke a backend rule and was never sent (shown as a dash). */
+  skipped?: boolean;
 }
 
 export interface Track {

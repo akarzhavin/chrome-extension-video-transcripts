@@ -1,4 +1,4 @@
-import { msg as i18nMsg } from '@video-transcripts/shared';
+import { msg as i18nMsg, type DisplayMode } from '@video-transcripts/shared';
 // By relative path, not through the package barrel: messaging.ts is kept off
 // src/index.ts so it cannot reach the embed's bundle. The background scripts
 // import analytics-bg the same way, for the same reason.
@@ -95,7 +95,6 @@ const CC_ICON =
     `<path class="vtt-ytp-cc-fill" fill="currentColor" fill-rule="evenodd" d="${CC_INVERTED}"/>` +
     `</svg>`;
 
-type ModeKey = 'single' | 'dual' | 'guess';
 
 // Rows are menuitems: role="menu" only maps to a real menu for assistive tech if
 // its children carry menuitem roles, and a roving tabindex (one -1 by default,
@@ -143,7 +142,7 @@ class PlayerMenu {
     private panelLabel!: HTMLSpanElement;
     private downloadRow!: HTMLButtonElement;
     private settingsRow!: HTMLButtonElement;
-    private modeBtns: Record<ModeKey, HTMLButtonElement>;
+    private modeBtns: Record<DisplayMode, HTMLButtonElement>;
     private unsubscribeRefresh: (() => void) | null = null;
     private wakeTimer: number | null = null;
     private cooldownTimer: number | null = null;
@@ -365,7 +364,7 @@ class PlayerMenu {
         return page;
     }
 
-    private buildModesPage(): { page: HTMLDivElement; buttons: Record<ModeKey, HTMLButtonElement> } {
+    private buildModesPage(): { page: HTMLDivElement; buttons: Record<DisplayMode, HTMLButtonElement> } {
         const page = document.createElement('div');
         page.className = 'vtt-ytp-page';
         page.dataset.page = 'modes';
@@ -388,7 +387,7 @@ class PlayerMenu {
         group.setAttribute('role', 'group');
         group.setAttribute('aria-label', t('ytMenuModes', 'Mode'));
 
-        const make = (key: ModeKey, label: string, shortcut?: string): HTMLButtonElement => {
+        const make = (key: DisplayMode, label: string, shortcut?: string): HTMLButtonElement => {
             // menuitemradio, not radio: inside a menu the radio role is invalid
             // (it wants a radiogroup parent that is not itself in a menu), and
             // it costs nothing — aria-checked works identically on both.
@@ -410,7 +409,7 @@ class PlayerMenu {
             return btn;
         };
 
-        const buttons: Record<ModeKey, HTMLButtonElement> = {
+        const buttons: Record<DisplayMode, HTMLButtonElement> = {
             single: make('single', t('ytMenuModeSingle', 'Original only')),
             dual: make('dual', t('ytMenuModeDual', 'Both languages'), 'Shift+D'),
             guess: make('guess', t('ytMenuModeGuess', 'Guess the word'), 'Shift+G'),
@@ -419,12 +418,12 @@ class PlayerMenu {
         return { page, buttons };
     }
 
-    private currentMode(): ModeKey {
+    private currentMode(): DisplayMode {
         const mode = this.app.state.displayMode;
         return mode === 'dual' || mode === 'guess' ? mode : 'single';
     }
 
-    private pickMode(key: ModeKey): void {
+    private pickMode(key: DisplayMode): void {
         this.app.ui.setMode(key);
         this.showPage('root');
         this.render();
@@ -476,17 +475,17 @@ class PlayerMenu {
     private render(): void {
         this.renderCc();
         const mode = this.currentMode();
-        const labels: Record<ModeKey, string> = {
+        const labels: Record<DisplayMode, string> = {
             single: t('ytMenuModeSingle', 'Original only'),
             dual: t('ytMenuModeDual', 'Both languages'),
             guess: t('ytMenuModeGuess', 'Guess the word'),
         };
         this.modesValue.textContent = labels[mode];
-        (Object.keys(this.modeBtns) as ModeKey[]).forEach((key) => {
+        (Object.keys(this.modeBtns) as DisplayMode[]).forEach((key) => {
             this.modeBtns[key].setAttribute('aria-checked', String(key === mode));
         });
-        // Dual needs a second track to have anything to show.
-        this.modeBtns.dual.disabled = !this.app.state.hasMultipleTracks();
+        // Dual needs a second line: a second track, or the AI translation on demand.
+        this.modeBtns.dual.disabled = !this.app.state.canPickDual();
 
         const collapsed = this.app.ui.isCollapsed();
         this.panelLabel.textContent = collapsed
