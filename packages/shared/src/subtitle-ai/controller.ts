@@ -50,12 +50,21 @@ const MAX_RETRIES = 3;
 
 export const AI_SUFFIX = ' · AI';
 
+// The backend's grid as [from, to) cue ranges.
+function splitParts(n: number): [number, number][] {
+    if (n <= SHORT_TRACK) return [[0, n]];
+    const out: [number, number][] = [[0, FIRST_PART]];
+    for (let from = FIRST_PART; from < n; from += PART) out.push([from, Math.min(n, from + PART)]);
+    return out;
+}
+
 // Every refusal, from the server or the track store, in one table:
 // the status the viewer sees, and what follows. 'stop' ends translation of
 // this video; 'wait' leaves the part until a viewer event (seek, new video,
-// return to Dual); 'retry' follows the Retry-After rule above.
-type Refusal = PartCode | 'store_refused' | 'store_too_long' | 'store_auth' | 'store_network';
-const REFUSALS: Record<Exclude<Refusal, 'track_unknown'>, { status: AiStatus; then: 'stop' | 'wait' | 'retry' }> = {
+// return to Dual); 'retry' follows the Retry-After rule above. track_unknown
+// is no refusal: the track is stored and the part asked again.
+type Refusal = Exclude<PartCode, 'track_unknown'> | 'store_refused' | 'store_too_long' | 'store_auth' | 'store_network';
+const REFUSALS: Record<Refusal, { status: AiStatus; then: 'stop' | 'wait' | 'retry' }> = {
     auth: { status: 'auth', then: 'stop' },
     quota: { status: 'quota', then: 'stop' },
     rate_limited: { status: 'rate', then: 'wait' },
@@ -71,17 +80,18 @@ const REFUSALS: Record<Exclude<Refusal, 'track_unknown'>, { status: AiStatus; th
 
 export class AiTranslator {
     source: Track | null = null;
+    // Null before start and once stopped: nothing more is asked for.
     private track: PreparedTrack | null = null;
+    private parts: [number, number][] = [];
     private ai: Track | null = null;
     private done = new Set<number>();
-    // Parts the server could not translate now; asked again on a viewer event.
-    private unavailable = new Set<number>();
+    // Parts the server could not translate now, or not all of yet; asked again on a viewer event.
+    private waitingForViewer = new Set<number>();
     private retries = new Map<number, number>();
     // Bumped by a viewer event: a timer set before it no longer ticks.
     private generation = 0;
     private stored = false;
     private busy = false;
-    private stopped = false;
     // Outside Dual: no new requests, the lines already in stay.
     private paused = false;
 
@@ -101,10 +111,10 @@ export class AiTranslator {
         if ('error' in prepared || this.learning === this.native) {
             const unsupported = this.learning === this.native || ('error' in prepared && prepared.error === 'unsupported');
             this.host.setStatus?.(unsupported ? 'unsupported' : 'unavailable');
-            this.stopped = true;
             return;
         }
         this.track = prepared;
+        this.parts = splitParts(prepared.cues.length);
         const state = this.host.state;
         state.preferredSecondaryName = this.aiName;
         const sent = new Set(prepared.index);
@@ -128,9 +138,9 @@ export class AiTranslator {
 
     /** A seek, or a return to Dual: ask again for what the server could not translate. */
     viewerEvent(): void {
-        if (!this.track || this.stopped) return;
+        if (!this.track) return;
         this.generation++;
-        this.unavailable.clear();
+        this.waitingForViewer.clear();
         this.retries.clear();
         void this.tick();
     }
@@ -143,20 +153,11 @@ export class AiTranslator {
     }
 
     stop(): void {
-        this.stopped = true;
+        this.track = null;
         const state = this.host.state;
         if (state.preferredSecondaryName === this.aiName) state.preferredSecondaryName = undefined;
         state.removeTrack(this.aiName);
         this.host.refresh();
-    }
-
-    private parts(): [number, number][] {
-        const n = this.track!.cues.length;
-        if (n <= SHORT_TRACK) return [[0, n]];
-        const out: [number, number][] = [];
-        out.push([0, FIRST_PART]);
-        for (let from = FIRST_PART; from < n; from += PART) out.push([from, Math.min(n, from + PART)]);
-        return out;
     }
 
     private nextPart(): number | null {
@@ -164,10 +165,9 @@ export class AiTranslator {
         const cues = this.track!.cues;
         let k = cues.findIndex((c) => c.end_ms >= ms);
         if (k === -1) k = cues.length - 1;
-        const parts = this.parts();
-        const cur = parts.findIndex(([from, to]) => k >= from && k < to);
-        for (let p = cur; p < Math.min(parts.length, cur + AHEAD); p++) {
-            if (!this.done.has(p) && !this.unavailable.has(p)) return p;
+        const cur = this.parts.findIndex(([from, to]) => k >= from && k < to);
+        for (let p = cur; p < Math.min(this.parts.length, cur + AHEAD); p++) {
+            if (!this.done.has(p) && !this.waitingForViewer.has(p)) return p;
         }
         return null;
     }
@@ -184,33 +184,33 @@ export class AiTranslator {
     }
 
     private async step(): Promise<void> {
-        if (this.stopped || this.busy || this.paused) return;
+        if (!this.track || this.busy || this.paused) return;
         const p = this.nextPart();
         if (p === null) {
             this.later(IDLE_MS);
             return;
         }
-        const [from, to] = this.parts()[p];
+        const [from, to] = this.parts[p];
         this.busy = true;
-        this.mark(from, to, true);
+        this.markPart(p, true);
         let reply: PartReply;
         try {
             reply = (await this.host.send({
                 action: 'SUBTITLE_AI_PART',
-                part: { fingerprint: this.track!.fingerprint, lang: this.native, from, to },
+                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to },
             })) as PartReply;
         } catch {
             reply = { ok: false, code: 'unavailable' };
         }
         this.busy = false;
-        if (this.stopped) return;
+        if (!this.track) return;
 
         if (reply.ok) {
             const pending = reply.pending ?? [];
             this.fill(reply.from, reply.lines, reply.skipped ?? [], pending);
             // A part not all ready: its pending cues stay marked, and it
             // is asked again on a viewer event, like a part unavailable now.
-            if (pending.length) this.unavailable.add(p);
+            if (pending.length) this.waitingForViewer.add(p);
             else this.done.add(p);
             this.host.setStatus?.('ready');
             void this.tick();
@@ -224,29 +224,28 @@ export class AiTranslator {
         this.refused(reply.code in REFUSALS ? reply.code : 'unavailable', p, reply.retryAfterMs);
     }
 
-    private refused(code: Exclude<Refusal, 'track_unknown'>, p: number, retryAfterMs?: number): void {
+    private refused(code: Refusal, p: number, retryAfterMs?: number): void {
         const { status, then } = REFUSALS[code];
         if (then === 'stop') return this.halt(status);
-        const [from, to] = this.parts()[p];
-        if (then === 'retry') return this.unavailableNow(p, from, to, retryAfterMs);
-        this.waitForViewer(p, from, to, status);
+        if (then === 'retry') return this.unavailableNow(p, retryAfterMs);
+        this.waitForViewer(p, status);
     }
 
     // Retry a short Retry-After a few times; else the part waits for
     // the viewer (seek, new video, return to Dual), with no timer retry.
-    private unavailableNow(p: number, from: number, to: number, retryAfterMs?: number): void {
+    private unavailableNow(p: number, retryAfterMs?: number): void {
         const n = this.retries.get(p) ?? 0;
         if (retryAfterMs !== undefined && retryAfterMs <= MAX_RETRY_AFTER_MS && n < MAX_RETRIES) {
             this.retries.set(p, n + 1);
             this.later(retryAfterMs);
             return;
         }
-        this.waitForViewer(p, from, to, 'unavailable');
+        this.waitForViewer(p, 'unavailable');
     }
 
-    private waitForViewer(p: number, from: number, to: number, status: AiStatus): void {
-        this.unavailable.add(p);
-        this.mark(from, to, false);
+    private waitForViewer(p: number, status: AiStatus): void {
+        this.waitingForViewer.add(p);
+        this.markPart(p, false);
         this.host.setStatus?.(status);
         void this.tick();
     }
@@ -262,7 +261,7 @@ export class AiTranslator {
         } catch {
             reply = { ok: false, reason: 'network' };
         }
-        if (this.stopped) return;
+        if (!this.track) return;
         if (!reply.ok && reply.reason === 'network') {
             // Nothing was stored: store again when the viewer comes back to it.
             this.stored = false;
@@ -291,6 +290,11 @@ export class AiTranslator {
         this.refreshLines();
     }
 
+    private markPart(p: number, on: boolean): void {
+        const [from, to] = this.parts[p];
+        this.mark(from, to, on);
+    }
+
     // Tells "being translated" apart from "not asked for yet"; a part waiting
     // on a retry stays marked, it is still on its way.
     private mark(from: number, to: number, on: boolean): void {
@@ -314,8 +318,8 @@ export class AiTranslator {
     }
 
     private halt(status: AiStatus): void {
-        this.stopped = true;
         if (this.track) this.mark(0, this.track.cues.length, false);
+        this.track = null;
         this.host.setStatus?.(status);
     }
 }
