@@ -17,6 +17,8 @@ interface Vector {
     source_lang: string;
     cues: [number, number, string][];
     fingerprint: string;
+    /** The site's text before cleaning; the cues carry what is hashed. */
+    raw?: string[];
 }
 
 const VECTORS_REL = 'services/dictionary-service/internal/subtrans/testdata/fingerprint-vectors.json';
@@ -46,6 +48,18 @@ describe('fingerprint', () => {
         const cues: WireCue[] = v.cues.map(([start_ms, end_ms, text]) => ({ start_ms, end_ms, text }));
         expect(fingerprint(v.source_lang, cues)).toBe(v.fingerprint);
     });
+
+    // T055: the cleaned text is what is hashed, so cleaning is part of the contract.
+    test('raw site text cleans into the vector and its fingerprint', () => {
+        const withRaw = VECTORS.filter((v) => v.raw);
+        expect(withRaw.length).toBeGreaterThan(0);
+        for (const v of withRaw) {
+            const r = prepareTrack(v.raw!.map((text, i) => sub(v.cues[i][0] / 1000, v.cues[i][1] / 1000, text)), v.source_lang, 'rezka');
+            if ('error' in r) throw new Error(r.error);
+            expect(r.cues.map((c) => c.text)).toEqual(v.cues.map((c) => c[2]));
+            expect(r.fingerprint).toBe(v.fingerprint);
+        }
+    });
 });
 
 describe('prepareTrack', () => {
@@ -72,6 +86,12 @@ describe('prepareTrack', () => {
         if ('error' in r) throw new Error(r.error);
         expect(r.cues.map((c) => c.text)).toEqual(['Kept.', 'x'.repeat(13), 'Also kept.', 'Last.']);
         expect(r.index).toEqual([0, 2, 5, 8]);
+    });
+
+    test('ASS override blocks are stripped like tags; other braces stay', () => {
+        const r = prepareTrack([sub(0, 2, '{\\an8}Up {\\i1}here{\\i0}, {not a block}')], 'en', 'rezka');
+        if ('error' in r) throw new Error(r.error);
+        expect(r.cues[0].text).toBe('Up here, {not a block}');
     });
 
     test('control and invisible characters are removed, not sent', () => {

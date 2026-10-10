@@ -44,10 +44,13 @@ export interface PreparedTrack {
 export type PrepareError = 'unsupported' | 'empty' | 'too_long' | 'too_dense';
 
 const MARKUP = /<\s*\/?\s*[A-Za-z][^>]*>/g;
+// ASS/SSA override blocks ({\an8}, {\i1}) are markup too; the backend refuses them.
+const ASS_OVERRIDE = /\{\\[^}]*\}/g;
 const INVISIBLE = /[\p{Cc}\p{Cf}]/gu;
 
 function clean(text: string): string {
     return text
+        .replace(ASS_OVERRIDE, '')
         .replace(MARKUP, '')
         .replace(/[\t\r\n]+/g, ' ')
         .replace(INVISIBLE, '')
