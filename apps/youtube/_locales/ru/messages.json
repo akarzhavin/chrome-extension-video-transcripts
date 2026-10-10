@@ -859,6 +859,14 @@
     "message": "AI-перевод временно недоступен",
     "description": "AI translation status: the service cannot translate right now."
   },
+  "ytAiStatusRate": {
+    "message": "Слишком много запросов — попробуйте через минуту",
+    "description": "AI translation status: the per-minute request limit is reached; it frees in a minute."
+  },
+  "ytAiStatusTooLong": {
+    "message": "Эти субтитры слишком длинные для AI-перевода",
+    "description": "AI translation status: the track is too long to store for translation."
+  },
   "ytAiStatusUnsupported": {
     "message": "AI-перевод не поддерживает эту пару языков",
     "description": "AI translation status: the languages are not supported."

@@ -6,9 +6,18 @@ import type { AppState } from '../AppState';
 import { labelForLanguage } from '../languages';
 import type { Track } from '../types';
 import { prepareTrack, type PreparedTrack } from './track';
-import type { PartReply, StoreReply } from './worker';
+import type { PartCode, PartReply, StoreReply } from './worker';
 
-export type AiStatus = 'working' | 'ready' | 'auth' | 'quota' | 'limit' | 'unavailable' | 'unsupported';
+export type AiStatus =
+    | 'working'
+    | 'ready'
+    | 'auth'
+    | 'quota'
+    | 'rate'
+    | 'limit'
+    | 'too_long'
+    | 'unavailable'
+    | 'unsupported';
 
 export interface AiHost {
     state: AppState;
@@ -36,6 +45,25 @@ const MAX_RETRY_AFTER_MS = 60_000;
 const MAX_RETRIES = 3;
 
 export const AI_SUFFIX = ' · AI';
+
+// Every refusal, from the server or the track store, in one table (T064):
+// the status the viewer sees, and what follows. 'stop' ends translation of
+// this video; 'wait' leaves the part until a viewer event (seek, new video,
+// return to Dual); 'retry' is the 503 rule of T062.
+type Refusal = PartCode | 'store_refused' | 'store_too_long' | 'store_auth' | 'store_network';
+const REFUSALS: Record<Exclude<Refusal, 'track_unknown'>, { status: AiStatus; then: 'stop' | 'wait' | 'retry' }> = {
+    auth: { status: 'auth', then: 'stop' },
+    quota: { status: 'quota', then: 'stop' },
+    rate_limited: { status: 'rate', then: 'wait' },
+    invalid: { status: 'unavailable', then: 'stop' },
+    quarantined: { status: 'unavailable', then: 'stop' },
+    unavailable: { status: 'unavailable', then: 'retry' },
+    // Still unknown after storing: the store refused it (a write limit).
+    store_refused: { status: 'limit', then: 'stop' },
+    store_too_long: { status: 'too_long', then: 'stop' },
+    store_auth: { status: 'auth', then: 'stop' },
+    store_network: { status: 'unavailable', then: 'wait' },
+};
 
 export class AiTranslator {
     source: Track | null = null;
@@ -169,19 +197,20 @@ export class AiTranslator {
             void this.tick();
             return;
         }
-        switch (reply.code) {
-            case 'track_unknown':
-                if (this.stored) return this.halt('limit');
-                this.stored = true;
-                return this.store();
-            case 'auth':
-            case 'quota':
-                return this.halt(reply.code);
-            case 'unavailable':
-                return this.unavailableNow(p, from, to, reply.retryAfterMs);
-            default:
-                return this.halt('unavailable');
+        if (reply.code === 'track_unknown') {
+            if (this.stored) return this.refused('store_refused', p);
+            this.stored = true;
+            return this.store(p);
         }
+        this.refused(reply.code in REFUSALS ? reply.code : 'unavailable', p, reply.retryAfterMs);
+    }
+
+    private refused(code: Exclude<Refusal, 'track_unknown'>, p: number, retryAfterMs?: number): void {
+        const { status, then } = REFUSALS[code];
+        if (then === 'stop') return this.halt(status);
+        const [from, to] = this.parts()[p];
+        if (then === 'retry') return this.unavailableNow(p, from, to, retryAfterMs);
+        this.waitForViewer(p, from, to, status);
     }
 
     // T062: retry a short Retry-After a few times; else the part waits for
@@ -193,13 +222,17 @@ export class AiTranslator {
             this.later(retryAfterMs);
             return;
         }
+        this.waitForViewer(p, from, to, 'unavailable');
+    }
+
+    private waitForViewer(p: number, from: number, to: number, status: AiStatus): void {
         this.unavailable.add(p);
         this.mark(from, to, false);
-        this.host.setStatus?.('unavailable');
+        this.host.setStatus?.(status);
         void this.tick();
     }
 
-    private async store(): Promise<void> {
+    private async store(p: number): Promise<void> {
         const t = this.track!;
         let reply: StoreReply;
         try {
@@ -211,8 +244,12 @@ export class AiTranslator {
             reply = { ok: false, reason: 'network' };
         }
         if (this.stopped) return;
-        if (!reply.ok && reply.reason === 'too_long') return this.halt('unavailable');
-        if (!reply.ok && reply.reason === 'auth') return this.halt('auth');
+        if (!reply.ok && reply.reason === 'network') {
+            // Nothing was stored: store again when the viewer comes back to it.
+            this.stored = false;
+            return this.refused('store_network', p);
+        }
+        if (!reply.ok && reply.reason !== 'refused') return this.refused(`store_${reply.reason}`, p);
         // Stored, or refused because someone else stored it first: ask once more.
         void this.tick();
     }

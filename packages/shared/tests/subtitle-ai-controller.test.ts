@@ -275,4 +275,39 @@ describe('AiTranslator', () => {
             expect(h.sent).toHaveLength(2);
         });
     });
+    // T064: each refusal reason has its own status and message.
+    describe('each refusal reason gets its own status (T064)', () => {
+        test('a network error while storing the track is not "limit"', async () => {
+            const h = host([
+                () => ({ ok: false, code: 'track_unknown' }),
+                () => ({ ok: false, reason: 'network' }),
+                () => ({ ok: false, code: 'track_unknown' }),
+            ]);
+            h.state.addTrack('English', cues(10));
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle(); await settle(); await settle();
+            expect(h.statuses).not.toContain('limit');
+            expect(h.statuses[h.statuses.length - 1]).toBe('unavailable');
+        });
+
+        test('the per-minute limit says "try in a minute", not "tomorrow"', async () => {
+            const h = host([() => ({ ok: false, code: 'rate_limited', retryAfterMs: 60000 })]);
+            h.state.addTrack('English', cues(10));
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle();
+            expect(h.statuses[h.statuses.length - 1]).toBe('rate');
+            expect(h.statuses).not.toContain('quota');
+        });
+
+        test('a track too long to store has its own message, not "unavailable"', async () => {
+            const h = host([
+                () => ({ ok: false, code: 'track_unknown' }),
+                () => ({ ok: false, reason: 'too_long' }),
+            ]);
+            h.state.addTrack('English', cues(10));
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle(); await settle();
+            expect(h.statuses[h.statuses.length - 1]).toBe('too_long');
+        });
+    });
 });

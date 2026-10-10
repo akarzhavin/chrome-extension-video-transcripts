@@ -2276,7 +2276,9 @@ export class SidebarUI {
             ready: msg('ytAiStatusReady', 'AI translation is on'),
             auth: msg('ytAiStatusAuth', 'Sign in again to use AI translation'),
             quota: msg('ytAiStatusQuota', "Today's AI translation limit is reached"),
+            rate: msg('ytAiStatusRate', 'Too many requests — try again in a minute'),
             limit: msg('ytAiStatusLimit', 'Too many new videos today — try again later'),
+            too_long: msg('ytAiStatusTooLong', 'These subtitles are too long for AI translation'),
             unavailable: msg('ytAiStatusUnavailable', 'AI translation is temporarily unavailable'),
             unsupported: msg('ytAiStatusUnsupported', 'AI translation does not cover this language pair'),
         };

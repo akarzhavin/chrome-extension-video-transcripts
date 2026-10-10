@@ -767,6 +767,14 @@
     "message": "AI translation is temporarily unavailable",
     "description": "AI translation status: the service cannot translate right now."
   },
+  "ytAiStatusRate": {
+    "message": "Too many requests — try again in a minute",
+    "description": "AI translation status: the per-minute request limit is reached; it frees in a minute."
+  },
+  "ytAiStatusTooLong": {
+    "message": "These subtitles are too long for AI translation",
+    "description": "AI translation status: the track is too long to store for translation."
+  },
   "ytAiStatusUnsupported": {
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."

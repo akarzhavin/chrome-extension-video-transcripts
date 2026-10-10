@@ -26,7 +26,7 @@ export interface PartRequest {
     to: number;
 }
 
-export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'invalid' | 'quarantined' | 'unavailable';
+export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
 
 export type PartReply =
     | { ok: true; from: number; to: number; lines: string[]; skipped: number[] }
@@ -97,9 +97,11 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         case 422:
             return { ok: false, code: 'invalid' };
         case 429:
-            return typeof b.resets_at === 'number'
-                ? { ok: false, code: 'quota', resetsAt: b.resets_at }
-                : { ok: false, code: 'quota', ...(retryAfterMs(res) ? { retryAfterMs: retryAfterMs(res) } : {}) };
+            // The daily quota resets tomorrow; the per-minute limit in a minute (T064).
+            if (b.code === 'quota_exceeded' || (b.code === undefined && typeof b.resets_at === 'number')) {
+                return { ok: false, code: 'quota', ...(typeof b.resets_at === 'number' ? { resetsAt: b.resets_at } : {}) };
+            }
+            return { ok: false, code: 'rate_limited', ...(retryAfterMs(res) ? { retryAfterMs: retryAfterMs(res) } : {}) };
         case 503:
             if (b.code === 'quarantined') return { ok: false, code: 'quarantined' };
             return { ok: false, code: 'unavailable', ...(retryAfterMs(res) ? { retryAfterMs: retryAfterMs(res) } : {}) };

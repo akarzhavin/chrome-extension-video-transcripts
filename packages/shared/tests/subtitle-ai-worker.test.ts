@@ -84,7 +84,7 @@ describe('requestPart', () => {
         [403, {}, {}, { ok: false, code: 'auth' }],
         [422, { code: 'invalid_track' }, {}, { ok: false, code: 'invalid' }],
         [429, { code: 'quota_exceeded', resets_at: 77 }, {}, { ok: false, code: 'quota', resetsAt: 77 }],
-        [429, { code: 'rate_limited' }, { 'Retry-After': '60' }, { ok: false, code: 'quota', retryAfterMs: 60000 }],
+        [429, { code: 'rate_limited' }, { 'Retry-After': '60' }, { ok: false, code: 'rate_limited', retryAfterMs: 60000 }],
         [503, { code: 'quarantined' }, {}, { ok: false, code: 'quarantined' }],
         [503, { code: 'unavailable' }, { 'Retry-After': '10' }, { ok: false, code: 'unavailable', retryAfterMs: 10000 }],
         [500, {}, {}, { ok: false, code: 'unavailable' }],
