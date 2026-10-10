@@ -22,6 +22,12 @@ export function browserAiDeps(): AttachDeps {
         onPairChange: (cb) => {
             onLanguagePrefsChanged(() => cb());
         },
+        // Media events do not bubble; a capturing listener sees every video's.
+        onSeek: (cb) => {
+            document.addEventListener('seeked', (e) => {
+                if (e.target instanceof HTMLVideoElement) cb();
+            }, true);
+        },
         later: (fn, ms) => {
             setTimeout(fn, ms);
         },

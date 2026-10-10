@@ -30,7 +30,10 @@ const SHORT_TRACK = 20;
 // The part being watched and the next one; the rest waits for playback.
 const AHEAD = 2;
 const IDLE_MS = 3000;
-const RETRY_MS = 15000;
+// A 503 is retried on a timer only when the server says it passes soon, and
+// only a few times per part; otherwise the part waits for the viewer (T062).
+const MAX_RETRY_AFTER_MS = 60_000;
+const MAX_RETRIES = 3;
 
 export const AI_SUFFIX = ' · AI';
 
@@ -39,6 +42,11 @@ export class AiTranslator {
     private track: PreparedTrack | null = null;
     private ai: Track | null = null;
     private done = new Set<number>();
+    // Parts the server could not translate now; asked again on a viewer event.
+    private unavailable = new Set<number>();
+    private retries = new Map<number, number>();
+    // Bumped by a viewer event: a timer set before it no longer ticks.
+    private generation = 0;
     private stored = false;
     private busy = false;
     private stopped = false;
@@ -83,7 +91,23 @@ export class AiTranslator {
     setPaused(paused: boolean): void {
         if (paused === this.paused) return;
         this.paused = paused;
-        if (!paused && this.track) void this.tick();
+        if (!paused) this.viewerEvent(); // a return to Dual
+    }
+
+    /** A seek, or a return to Dual: ask again for what the server could not translate. */
+    viewerEvent(): void {
+        if (!this.track || this.stopped) return;
+        this.generation++;
+        this.unavailable.clear();
+        this.retries.clear();
+        void this.tick();
+    }
+
+    private later(ms: number): void {
+        const g = this.generation;
+        this.host.later(() => {
+            if (g === this.generation) void this.tick();
+        }, ms);
     }
 
     stop(): void {
@@ -111,7 +135,7 @@ export class AiTranslator {
         const parts = this.parts();
         const cur = parts.findIndex(([from, to]) => k >= from && k < to);
         for (let p = cur; p < Math.min(parts.length, cur + AHEAD); p++) {
-            if (!this.done.has(p)) return p;
+            if (!this.done.has(p) && !this.unavailable.has(p)) return p;
         }
         return null;
     }
@@ -120,7 +144,7 @@ export class AiTranslator {
         if (this.stopped || this.busy || this.paused) return;
         const p = this.nextPart();
         if (p === null) {
-            this.host.later(() => void this.tick(), IDLE_MS);
+            this.later(IDLE_MS);
             return;
         }
         const [from, to] = this.parts()[p];
@@ -154,11 +178,25 @@ export class AiTranslator {
             case 'quota':
                 return this.halt(reply.code);
             case 'unavailable':
-                this.host.later(() => void this.tick(), reply.retryAfterMs ?? RETRY_MS);
-                return;
+                return this.unavailableNow(p, from, to, reply.retryAfterMs);
             default:
                 return this.halt('unavailable');
         }
+    }
+
+    // T062: retry a short Retry-After a few times; else the part waits for
+    // the viewer (seek, new video, return to Dual), with no timer retry.
+    private unavailableNow(p: number, from: number, to: number, retryAfterMs?: number): void {
+        const n = this.retries.get(p) ?? 0;
+        if (retryAfterMs !== undefined && retryAfterMs <= MAX_RETRY_AFTER_MS && n < MAX_RETRIES) {
+            this.retries.set(p, n + 1);
+            this.later(retryAfterMs);
+            return;
+        }
+        this.unavailable.add(p);
+        this.mark(from, to, false);
+        this.host.setStatus?.('unavailable');
+        void this.tick();
     }
 
     private async store(): Promise<void> {

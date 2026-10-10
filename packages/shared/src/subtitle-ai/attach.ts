@@ -24,6 +24,8 @@ export interface AttachDeps {
     onForcedChange(cb: (on: boolean) => void): void;
     /** The language pair changed (HDrezka changes it without a reset). */
     onPairChange(cb: () => void): void;
+    /** The viewer seeked: a part the server could not translate is asked again (T062). */
+    onSeek(cb: () => void): void;
     later(fn: () => void, ms: number): void;
     currentTime(): number;
 }
@@ -79,6 +81,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         sync();
     });
     deps.onPairChange(sync);
+    deps.onSeek(() => t?.viewerEvent());
     deps.onForcedChange((on) => {
         forced = on;
         sync();

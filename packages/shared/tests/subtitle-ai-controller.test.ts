@@ -15,13 +15,15 @@ type Reply = Record<string, unknown>;
 function host(replies: ((msg: Reply) => Reply)[], time = 0) {
     const sent: Reply[] = [];
     const timers: (() => void)[] = [];
+    const delays: number[] = [];
     const statuses: AiStatus[] = [];
     let refreshed = 0;
-    const h: AiHost & { sent: Reply[]; timers: (() => void)[]; statuses: AiStatus[]; refreshed: () => number; time: number } = {
+    const h: AiHost & { sent: Reply[]; timers: (() => void)[]; delays: number[]; statuses: AiStatus[]; refreshed: () => number; time: number } = {
         state: new AppState(),
         site: 'rezka',
         sent,
         timers,
+        delays,
         statuses,
         time,
         refreshed: () => refreshed,
@@ -34,7 +36,7 @@ function host(replies: ((msg: Reply) => Reply)[], time = 0) {
             return next(msg as Reply);
         },
         setStatus: (s) => { statuses.push(s); },
-        later: (fn) => { timers.push(fn); },
+        later: (fn, ms) => { timers.push(fn); delays.push(ms); },
     };
     h.state.setLanguagePreferences('English', 'Russian');
     return h;
@@ -217,5 +219,60 @@ describe('AiTranslator', () => {
         new AiTranslator(h, 'xx', 'ru').start(h.state.tracks[0]);
         expect(h.statuses).toEqual(['unsupported']);
         expect(h.sent).toHaveLength(0);
+    });
+    // T062: retry only what passes by itself; otherwise wait for the viewer.
+    describe('a part the server cannot translate now (T062)', () => {
+        const runTimers = async (h: ReturnType<typeof host>, rounds = 6) => {
+            for (let i = 0; i < rounds; i++) {
+                for (const fn of h.timers.splice(0)) fn();
+                await settle();
+            }
+        };
+        const down = (retryAfterMs?: number) => () => ({ ok: false, code: 'unavailable', ...(retryAfterMs ? { retryAfterMs } : {}) });
+
+        test('a Retry-After of 5 s is retried after 5 s, at most 3 times', async () => {
+            const h = host([down(5000), down(5000), down(5000), down(5000), lines]);
+            h.state.addTrack('English', cues(10));
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle();
+            await runTimers(h);
+            expect(h.sent).toHaveLength(4); // the first ask and three retries
+            expect(h.delays.slice(0, 3)).toEqual([5000, 5000, 5000]);
+            expect(h.statuses[h.statuses.length - 1]).toBe('unavailable');
+            const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+            expect(ai.subtitles[3].pending).toBeFalsy();
+        });
+
+        test.each([
+            ['a Retry-After past 60 s', 61_000],
+            ['no Retry-After', undefined],
+        ])('%s: nothing more is asked until a seek', async (_name, ms) => {
+            const h = host([down(ms), lines]);
+            h.state.addTrack('English', cues(10));
+            const t = new AiTranslator(h, 'en', 'ru');
+            t.start(h.state.tracks[0]);
+            await settle();
+            await runTimers(h);
+            expect(h.sent).toHaveLength(1);
+            expect(h.statuses[h.statuses.length - 1]).toBe('unavailable');
+            t.viewerEvent(); // a seek
+            await settle();
+            expect(h.sent).toHaveLength(2);
+            expect(h.state.tracks.find((tr) => tr.name === 'Russian · AI')!.subtitles[3].text).toBe('ru 3');
+        });
+
+        test('a return to Dual asks again', async () => {
+            const h = host([down(), lines]);
+            h.state.addTrack('English', cues(10));
+            const t = new AiTranslator(h, 'en', 'ru');
+            t.start(h.state.tracks[0]);
+            await settle();
+            t.setPaused(true);
+            await runTimers(h);
+            expect(h.sent).toHaveLength(1);
+            t.setPaused(false);
+            await settle();
+            expect(h.sent).toHaveLength(2);
+        });
     });
 });

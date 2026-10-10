@@ -20,12 +20,13 @@ const PAIR: LanguagePrefs = { learning: 'en', native: 'ru' } as LanguagePrefs;
 
 type Sent = { part: { fingerprint: string; from: number; to: number } };
 
-function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null } = {}) {
+function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown } = {}) {
     const state = new AppState();
     state.setLanguagePreferences('English', 'Russian');
     let prefs = opts.prefs === undefined ? PAIR : opts.prefs;
     let forcedListener: (on: boolean) => void = () => {};
     let pairListener: () => void = () => {};
+    let seekListener: () => void = () => {};
     const timers: (() => void)[] = [];
     const sent: Sent[] = [];
     let time = 0;
@@ -33,11 +34,13 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null } = {}) {
         send: async (msg) => {
             sent.push(msg as Sent);
             const p = (msg as Sent).part;
+            if (opts.reply) return opts.reply(p);
             return { ok: true, from: p.from, to: p.to, lines: Array.from({ length: p.to - p.from }, () => 'ru'), skipped: [] };
         },
         forced: async () => !!opts.forced,
         onForcedChange: (cb) => { forcedListener = cb; },
         onPairChange: (cb) => { pairListener = cb; },
+        onSeek: (cb) => { seekListener = cb; },
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
     };
@@ -46,6 +49,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null } = {}) {
     return {
         state, sent, statuses,
         seek: (t: number) => { time = t; },
+        seeked: () => seekListener(),
         // Fire every pending timer once, as the browser would over time.
         runTimers: async () => {
             for (const fn of timers.splice(0)) fn();
@@ -201,5 +205,27 @@ describe('attachAiTranslation translates only in Dual, only without a native tra
         s.state.addTrack('English', cues(10));
         await settle();
         expect(s.sent).toHaveLength(0);
+    });
+});
+
+describe('attachAiTranslation asks again on a seek (T062)', () => {
+    test('a part the server could not translate is asked for again after a seek, not on a timer', async () => {
+        let down = true;
+        const s = setup({
+            reply: (p) => (down
+                ? { ok: false, code: 'unavailable' }
+                : { ok: true, from: p.from, to: p.to, lines: Array.from({ length: p.to - p.from }, () => 'ru'), skipped: [] }),
+        });
+        await settle();
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.sent).toHaveLength(1);
+        down = false;
+        await s.runTimers();
+        await s.runTimers();
+        expect(s.sent).toHaveLength(1);
+        s.seeked();
+        await settle();
+        expect(s.sent).toHaveLength(2);
     });
 });
