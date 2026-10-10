@@ -549,6 +549,15 @@ account is refused many times within ten minutes, the service sends the develope
 an alert through **Telegram** naming that account's user ID, so the abuse can be
 looked into.
 
+**Answers that fail our checks.** Every translation is checked automatically
+before it is kept or shown. When the model's answer fails a check, the service
+keeps a sample for the developer to review and improve the checks: the track's
+fingerprint, the two languages, the line numbers asked for, which check failed and
+on which line, that line's subtitle text and the model's answer, their lengths and
+the limit, and the time. A sample carries no account identifier. The developer is
+alerted through Telegram with the check's name, the two languages and the sample's
+number, never the text. Samples are deleted after 14 days (Section 6).
+
 AI translation adds no analytics events (Section 1c). The **"Share anonymous usage
 stats"** switch does not stop it; the AI translation switch does.
 
@@ -663,7 +672,7 @@ AI translation (Section 1i) stores the subtitle track in the same Firebase
 database. The Extension can create a track but never read, change or delete one;
 only our dictionary service reads it. The service translates the track with the
 **OpenAI API** as described there, and alerts the developer through **Telegram**
-(Telegram Messenger Inc., https://telegram.org/privacy) in the case Section 1i
+(Telegram Messenger Inc., https://telegram.org/privacy) in the cases Section 1i
 names.
 
 The anonymous usage events described in Section 1c are sent to **Google Analytics 4**
@@ -747,7 +756,8 @@ that Telegram alert ever carries an account identifier. We do not use your data 
   days. They carry no account identifier, so they cannot be found or deleted per
   person and are not deleted with your account. The daily counts per user ID are
   deleted after 8 days; the write counter under your user ID is covered by account
-  deletion requests.
+  deletion requests. Samples of answers that failed the checks are deleted after
+  14 days.
 * **Anonymous usage events** are retained by Google Analytics for **2 months**, then
   deleted. Because these events carry no account identifier, **we cannot look up or
   delete the events belonging to a specific person — and neither can you.** There is
