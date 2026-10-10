@@ -1,5 +1,5 @@
 /**
- * The AI translation switch, one for both editions (subtitle-ai/ai-switch.ts), the
+ * The switch forcing AI translation, one for both editions (subtitle-ai/ai-switch.ts), the
  * way analytics-consent.test.ts checks the stats choice.
  */
 const store: Record<string, unknown> = {};
@@ -23,11 +23,11 @@ const sendMessage = jest.fn();
     },
 };
 
-import { adoptAiTranslate, answerAiTranslateRequest, setAiTranslateEverywhere } from '../src/subtitle-ai/ai-switch';
+import { adoptAiTranslateForce, answerAiTranslateForceRequest, setAiTranslateForceEverywhere } from '../src/subtitle-ai/ai-switch';
 
 const T = 'lingogram-sibling';
 const REZKA = 'hmdkmkimdbomemfcjmgeclchbcdbhabj';
-const flag = () => (store['prefs.v1'] as any)?.aiTranslate;
+const flag = () => (store['prefs.v1'] as any)?.aiTranslateForce;
 
 beforeEach(() => {
     for (const k of Object.keys(store)) delete store[k];
@@ -36,46 +36,46 @@ beforeEach(() => {
 
 describe('a change on the settings page', () => {
     test('is stored here and sent to the other edition', async () => {
-        await setAiTranslateEverywhere(true);
+        await setAiTranslateForceEverywhere(true);
         expect(flag()).toBe(true);
-        expect(sendMessage).toHaveBeenCalledWith(REZKA, { type: T, op: 'aiTranslateSet', on: true });
+        expect(sendMessage).toHaveBeenCalledWith(REZKA, { type: T, op: 'aiTranslateForceSet', on: true });
     });
 
     test('is stored here when the other edition is not installed', async () => {
         sendMessage.mockRejectedValue(new Error('Could not establish connection'));
-        await expect(setAiTranslateEverywhere(true)).resolves.toBeUndefined();
+        await expect(setAiTranslateForceEverywhere(true)).resolves.toBeUndefined();
         expect(flag()).toBe(true);
     });
 });
 
 describe('answering the other edition', () => {
     test('set: stores the switch', async () => {
-        expect(await answerAiTranslateRequest({ type: T, op: 'aiTranslateSet', on: true })).toEqual({ ok: true });
+        expect(await answerAiTranslateForceRequest({ type: T, op: 'aiTranslateForceSet', on: true })).toEqual({ ok: true });
         expect(flag()).toBe(true);
     });
 
     test('set: refuses a value that is not a boolean, and writes nothing', async () => {
-        const r = await answerAiTranslateRequest({ type: T, op: 'aiTranslateSet', on: 'yes' });
+        const r = await answerAiTranslateForceRequest({ type: T, op: 'aiTranslateForceSet', on: 'yes' });
         expect(r?.ok).toBe(false);
         expect(store['prefs.v1']).toBeUndefined();
     });
 
     test('get: this edition’s switch', async () => {
-        store['prefs.v1'] = { aiTranslate: true };
-        expect(await answerAiTranslateRequest({ type: T, op: 'aiTranslateGet' })).toEqual({ ok: true, on: true });
+        store['prefs.v1'] = { aiTranslateForce: true };
+        expect(await answerAiTranslateForceRequest({ type: T, op: 'aiTranslateForceGet' })).toEqual({ ok: true, on: true });
     });
 
     test('leaves other messages to other listeners', async () => {
-        expect(await answerAiTranslateRequest({ type: T, op: 'analyticsGet' })).toBeNull();
-        expect(await answerAiTranslateRequest({ type: 'other', op: 'aiTranslateGet' })).toBeNull();
+        expect(await answerAiTranslateForceRequest({ type: T, op: 'analyticsGet' })).toBeNull();
+        expect(await answerAiTranslateForceRequest({ type: 'other', op: 'aiTranslateForceGet' })).toBeNull();
     });
 });
 
 describe('a fresh install', () => {
     test('is on when the other edition has it on', async () => {
         sendMessage.mockResolvedValue({ ok: true, on: true });
-        await adoptAiTranslate();
-        expect(sendMessage).toHaveBeenCalledWith(REZKA, { type: T, op: 'aiTranslateGet' });
+        await adoptAiTranslateForce();
+        expect(sendMessage).toHaveBeenCalledWith(REZKA, { type: T, op: 'aiTranslateForceGet' });
         expect(flag()).toBe(true);
     });
 
@@ -84,13 +84,13 @@ describe('a fresh install', () => {
         ['too old to answer', { ok: false, error: 'unknown op' }],
     ])('keeps the default when the other edition is %s', async (_, reply) => {
         sendMessage.mockResolvedValue(reply);
-        await adoptAiTranslate();
+        await adoptAiTranslateForce();
         expect(store['prefs.v1']).toBeUndefined();
     });
 
     test('keeps the default when the other edition is not installed', async () => {
         sendMessage.mockRejectedValue(new Error('Could not establish connection'));
-        await adoptAiTranslate();
+        await adoptAiTranslateForce();
         expect(store['prefs.v1']).toBeUndefined();
     });
 });

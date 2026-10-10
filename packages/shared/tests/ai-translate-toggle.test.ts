@@ -80,8 +80,8 @@ describe('in a production build', () => {
     });
 
     test('a stored choice reads as off', async () => {
-        await savePrefs({ aiTranslate: true });
+        await savePrefs({ aiTranslateForce: true });
         (global as any).__EXT_ENV__ = 'prod';
-        expect((await loadPrefs()).aiTranslate).toBe(false);
+        expect((await loadPrefs()).aiTranslateForce).toBe(false);
     });
 });

@@ -415,12 +415,12 @@ describe('two editions installed side by side', () => {
         const set = (global as any).chrome.storage.local.set as jest.Mock;
         set.mockClear();
         const reply = await new Promise((resolve) => {
-            expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateSet', on: true }, { id: EDITION_IDS.rezka }, resolve)).toBe(true);
+            expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateForceSet', on: true }, { id: EDITION_IDS.rezka }, resolve)).toBe(true);
         });
         expect(reply).toEqual({ ok: true });
-        expect(set.mock.calls.map(([o]) => o['prefs.v1']?.aiTranslate)).toContain(true);
+        expect(set.mock.calls.map(([o]) => o['prefs.v1']?.aiTranslateForce)).toContain(true);
         const fromStranger = jest.fn();
-        expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateSet', on: true }, { id: DEV_ID }, fromStranger)).toBe(false);
+        expect(listeners.external!({ type: 'lingogram-sibling', op: 'aiTranslateForceSet', on: true }, { id: DEV_ID }, fromStranger)).toBe(false);
         expect(fromStranger).not.toHaveBeenCalled();
     });
 
@@ -433,7 +433,7 @@ describe('two editions installed side by side', () => {
         listeners.installed!({ reason } as any);
         await flush();
         const ops = sendMessage.mock.calls.map(([, m]) => (m as any).op);
-        expect(ops.includes('aiTranslateGet')).toBe(asks);
+        expect(ops.includes('aiTranslateForceGet')).toBe(asks);
     });
 
     it('signing in moves the item here, and tells the other edition', async () => {

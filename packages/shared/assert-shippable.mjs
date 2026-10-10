@@ -98,7 +98,7 @@ export const DEBUG_TRACE_MARKERS = [
  * Strings only the AI translation of the second line puts in
  * a bundle. Dev-only until it ships; assert-foldable.mjs checks each still
  * occurs in the source, so a rename cannot turn this rule into a no-op.
- * (Not `aiTranslate`: the prefs key stays, forced off. Not the ytAi* message
+ * (Not `aiTranslateForce`: the prefs key ships, forced off. Not the ytAi* message
  * names: _locales/ is copied verbatim.)
  */
 export const AI_TRANSLATE_MARKERS = [
@@ -107,9 +107,9 @@ export const AI_TRANSLATE_MARKERS = [
     '/dictionary/subtitles/',
     'subtitle_tracks',
     'subtitle_write_limits',
-    // The switch kept in step between the editions (subtitle-ai/ai-switch.ts).
-    'aiTranslateGet',
-    'aiTranslateSet',
+    // The force switch kept in step between the editions (subtitle-ai/ai-switch.ts).
+    'aiTranslateForceGet',
+    'aiTranslateForceSet',
 ];
 
 // Each rule is a distinct way a build can be unshippable. Kept separate so the

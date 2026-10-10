@@ -9,13 +9,13 @@ export function browserAiDeps(): AttachDeps {
     return {
         send: (msg) => sendMessageGuarded(msg),
         // The dev-only switch; prefs read it as false outside a dev build.
-        forced: async () => (await loadPrefs()).aiTranslate,
+        forced: async () => (await loadPrefs()).aiTranslateForce,
         onForcedChange: (cb) => {
             let last: boolean | undefined;
             onPrefsChanged((p) => {
-                if (p.aiTranslate === last) return;
-                last = p.aiTranslate;
-                cb(p.aiTranslate);
+                if (p.aiTranslateForce === last) return;
+                last = p.aiTranslateForce;
+                cb(p.aiTranslateForce);
             });
         },
         // Runs after the app's own listener (registered first), which updates its langPrefs.

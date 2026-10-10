@@ -78,18 +78,18 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
-            aiTranslate: false,
+            aiTranslateForce: false,
             highlightOffHosts: [],
             theme: 'dark',
         });
     });
 
-    test('aiTranslate is off until switched on, round-trips, and a junk value reads as off', async () => {
-        expect((await loadPrefs()).aiTranslate).toBe(false);
-        await savePrefs({ aiTranslate: true });
-        expect((await loadPrefs()).aiTranslate).toBe(true);
-        await chrome.storage.local.set({ [PREFS_KEY]: { aiTranslate: 'yes' } });
-        expect((await loadPrefs()).aiTranslate).toBe(false);
+    test('aiTranslateForce is off until switched on, round-trips, and a junk value reads as off', async () => {
+        expect((await loadPrefs()).aiTranslateForce).toBe(false);
+        await savePrefs({ aiTranslateForce: true });
+        expect((await loadPrefs()).aiTranslateForce).toBe(true);
+        await chrome.storage.local.set({ [PREFS_KEY]: { aiTranslateForce: 'yes' } });
+        expect((await loadPrefs()).aiTranslateForce).toBe(false);
     });
 
     test('overlay style prefs round-trip and merge independently', async () => {
@@ -204,7 +204,7 @@ describe('prefs', () => {
             analyticsEnabled: true,
             debugMode: true, // __EXT_ENV__ is 'dev' under jest (see jest.setup.ts)
             pageHighlight: true,
-            aiTranslate: false,
+            aiTranslateForce: false,
             highlightOffHosts: [],
             theme: 'dark',
         });

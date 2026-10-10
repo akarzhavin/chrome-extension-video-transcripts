@@ -288,32 +288,32 @@ describe('AI translation (dev builds only)', () => {
 
     test('state carries the switch, off by default', async () => {
         const s: any = await handleSettingsMessage(msg('state'), yt);
-        expect(s.aiTranslate).toBe(false);
+        expect(s.aiTranslateForce).toBe(false);
     });
 
     test('set stores it, tells the other edition, and state reads it back', async () => {
-        expect(await handleSettingsMessage(msg('set', { prefs: { aiTranslate: true } }), yt)).toEqual({ ok: true });
-        expect((store['prefs.v1'] as any).aiTranslate).toBe(true);
+        expect(await handleSettingsMessage(msg('set', { prefs: { aiTranslateForce: true } }), yt)).toEqual({ ok: true });
+        expect((store['prefs.v1'] as any).aiTranslateForce).toBe(true);
         expect(chrome.runtime.sendMessage).toHaveBeenCalledWith('hmdkmkimdbomemfcjmgeclchbcdbhabj', {
             type: 'lingogram-sibling',
-            op: 'aiTranslateSet',
+            op: 'aiTranslateForceSet',
             on: true,
         });
-        expect(((await handleSettingsMessage(msg('state'), yt)) as any).aiTranslate).toBe(true);
+        expect(((await handleSettingsMessage(msg('state'), yt)) as any).aiTranslateForce).toBe(true);
     });
 
     test('a non-boolean is refused and nothing is written', async () => {
-        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslate: 'yes' } }), yt);
-        expect(r).toEqual({ ok: false, error: 'aiTranslate must be a boolean' });
+        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslateForce: 'yes' } }), yt);
+        expect(r).toEqual({ ok: false, error: 'aiTranslateForce must be a boolean' });
         expect(store['prefs.v1']).toBeUndefined();
     });
 
     test('a production build neither shows nor accepts it', async () => {
         (global as any).__EXT_ENV__ = 'prod';
         const s: any = await handleSettingsMessage(msg('state'), yt);
-        expect('aiTranslate' in s).toBe(false);
-        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslate: true } }), yt);
-        expect(r).toEqual({ ok: false, error: 'unknown key: prefs.aiTranslate' });
+        expect('aiTranslateForce' in s).toBe(false);
+        const r: any = await handleSettingsMessage(msg('set', { prefs: { aiTranslateForce: true } }), yt);
+        expect(r).toEqual({ ok: false, error: 'unknown key: prefs.aiTranslateForce' });
         expect(store['prefs.v1']).toBeUndefined();
     });
 });
