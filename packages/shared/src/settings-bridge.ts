@@ -9,7 +9,7 @@
 // message is validated first and nothing is stored unless every part is valid.
 
 import { setAnalyticsEverywhere } from './analytics-consent';
-import { setAiTranslateEverywhere } from './subtitle-ai/sync';
+import { setAiTranslateEverywhere } from './subtitle-ai/ai-switch';
 import { handleAuthMessage } from './auth/background';
 import { setPendingAuthNonce } from './auth/storage';
 import { normalizeHost } from './highlight-hosts';

@@ -107,7 +107,7 @@ export const AI_TRANSLATE_MARKERS = [
     '/dictionary/subtitles/',
     'subtitle_tracks',
     'subtitle_write_limits',
-    // The switch kept in step between the editions (subtitle-ai/sync.ts).
+    // The switch kept in step between the editions (subtitle-ai/ai-switch.ts).
     'aiTranslateGet',
     'aiTranslateSet',
 ];

@@ -1,5 +1,5 @@
 /**
- * The AI translation switch, one for both editions (subtitle-ai/sync.ts), the
+ * The AI translation switch, one for both editions (subtitle-ai/ai-switch.ts), the
  * way analytics-consent.test.ts checks the stats choice.
  */
 const store: Record<string, unknown> = {};
@@ -23,7 +23,7 @@ const sendMessage = jest.fn();
     },
 };
 
-import { adoptAiTranslate, answerAiTranslateRequest, setAiTranslateEverywhere } from '../src/subtitle-ai/sync';
+import { adoptAiTranslate, answerAiTranslateRequest, setAiTranslateEverywhere } from '../src/subtitle-ai/ai-switch';
 
 const T = 'lingogram-sibling';
 const REZKA = 'hmdkmkimdbomemfcjmgeclchbcdbhabj';

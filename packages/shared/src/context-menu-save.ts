@@ -13,7 +13,7 @@
 // in to (sibling.ts, ownsSharedFeatures), and the other hides its item.
 
 import { adoptAnalyticsOptOut, answerAnalyticsRequest } from './analytics-consent';
-import { adoptAiTranslate, answerAiTranslateRequest } from './subtitle-ai/sync';
+import { adoptAiTranslate, answerAiTranslateRequest } from './subtitle-ai/ai-switch';
 import { handleAuthMessage } from './auth/background';
 import { AUTH_UID_KEY, getAuthState, SIBLING_KEYS } from './auth/storage';
 import { answerHighlightRequest, takeHighlightPrefsFrom } from './highlight-prefs';

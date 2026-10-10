@@ -79,7 +79,7 @@ export type SiblingMessage = {
     type: typeof SIBLING_MESSAGE_TYPE;
     // highlightGet / highlightSet: the highlight settings, kept by the edition that paints (highlight-prefs.ts).
     // analyticsGet / analyticsSet: the stats choice, one for both editions (analytics-consent.ts).
-    // aiTranslateGet / aiTranslateSet: the AI translation switch, likewise; dev builds only (subtitle-ai/sync.ts).
+    // aiTranslateGet / aiTranslateSet: the AI translation switch, likewise; dev builds only (subtitle-ai/ai-switch.ts).
     op: 'status' | 'sync' | 'highlightGet' | 'highlightSet' | 'analyticsGet' | 'analyticsSet' | 'aiTranslateGet' | 'aiTranslateSet';
 };
 export type SiblingStatus = { ok: true; signedIn: boolean };
