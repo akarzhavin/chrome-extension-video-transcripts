@@ -49,11 +49,11 @@ function deps(answers: Response[]): WorkerDeps & { calls: { url: string; init: R
 describe('requestPart', () => {
     test('asks the edge with the bearer token for exactly the range', async () => {
         const d = deps([reply(200, { from: 0, to: 2, lines: ['а', 'б'], quota: { used_chars: 2, limit_chars: 10, resets_at: 9 } })]);
-        const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 2 }, d);
+        const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 2, window: 2 }, d);
         expect(r).toEqual({ ok: true, from: 0, to: 2, lines: ['а', 'б'], skipped: [], pending: [] });
         expect(d.calls[0].url).toBe(`https://api.test/dictionary/subtitles/${FP}/part`);
         expect((d.calls[0].init.headers as Record<string, string>).Authorization).toBe('Bearer tok1');
-        expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2 });
+        expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2, window: 2 });
     });
 
     // A line that failed the server's checks comes back in `skipped`.

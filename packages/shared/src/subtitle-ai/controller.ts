@@ -52,13 +52,20 @@ export interface AiHost {
     later(fn: () => void, ms: number): void;
 }
 
-// The backend's grid: a short track is one part; else a short first part (the
-// first lines come fast), then parts of 100.
-const PART = 100;
+// The backend's grid: cells of 20 cues, shared by every viewer.
+const PART = 20;
 const FIRST_PART = 20;
 const SHORT_TRACK = 20;
-// The part being watched and the next one; the rest waits for playback.
+// The cell being watched and the next one; the rest waits for playback.
 const AHEAD = 2;
+// The dynamic window: how many cells one request covers. It grows with
+// playback watched since the start or the last seek, so a video opened for a
+// few seconds is not translated ahead; the server takes only 1, 2 or 5.
+const MIN_WINDOW = 1;
+const MID_WINDOW = 2;
+const MAX_WINDOW = 5;
+const WINDOW_MID_AFTER_S = 60;
+const WINDOW_MAX_AFTER_S = 180;
 const IDLE_MS = 3000;
 // A 503 is retried on a timer only when the server says it passes soon, and
 // only a few times per part; otherwise the part waits for the viewer.
@@ -111,6 +118,10 @@ export class AiTranslator {
     private busy = false;
     // Outside Dual: no new requests, the lines already in stay.
     private paused = false;
+    // Playback position (s) of the start or the last viewer event.
+    private watchedFrom = 0;
+    // The cells [first, end) of the request in flight or waiting on a retry.
+    private asking: [number, number] = [0, 0];
 
     constructor(
         private host: AiHost,
@@ -132,6 +143,7 @@ export class AiTranslator {
         }
         this.track = prepared;
         this.parts = splitParts(prepared.cues.length);
+        this.watchedFrom = this.host.currentTime();
         const state = this.host.state;
         state.preferredSecondaryName = this.aiName;
         const sent = new Set(prepared.index);
@@ -156,6 +168,7 @@ export class AiTranslator {
     /** A seek, or a return to Dual: ask again for what the server could not translate. */
     viewerEvent(): void {
         if (!this.track) return;
+        this.watchedFrom = this.host.currentTime();
         this.generation++;
         this.waitingForViewer.clear();
         this.retries.clear();
@@ -189,6 +202,20 @@ export class AiTranslator {
         return null;
     }
 
+    private window(): number {
+        const watched = this.host.currentTime() - this.watchedFrom;
+        if (watched >= WINDOW_MAX_AFTER_S) return MAX_WINDOW;
+        return watched >= WINDOW_MID_AFTER_S ? MID_WINDOW : MIN_WINDOW;
+    }
+
+    // The cells from p on that one request covers: up to the window, while
+    // they are neither done nor waiting.
+    private cellsFrom(p: number, window: number): [number, number] {
+        let end = p + 1;
+        while (end < Math.min(this.parts.length, p + window) && !this.done.has(end) && !this.waitingForViewer.has(end)) end++;
+        return [p, end];
+    }
+
     // An error stop is shown, never silent: the viewer sees the status;
     // the AI track and the lines already in it stay.
     private async tick(): Promise<void> {
@@ -207,14 +234,16 @@ export class AiTranslator {
             this.later(IDLE_MS);
             return;
         }
-        const [from, to] = this.parts[p];
+        const window = this.window();
+        this.asking = this.cellsFrom(p, window);
+        const [from, to] = this.cellRange(this.asking);
         this.busy = true;
-        this.markPart(p, true);
+        this.mark(from, to, true);
         let reply: PartReply;
         try {
             reply = (await this.host.send({
                 action: 'SUBTITLE_AI_PART',
-                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to },
+                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to, window },
             })) as PartReply;
         } catch {
             reply = { ok: false, code: 'unavailable' };
@@ -225,10 +254,13 @@ export class AiTranslator {
         if (reply.ok) {
             const pending = reply.pending ?? [];
             this.fill(reply.from, reply.lines, reply.skipped ?? [], pending);
-            // A part not all ready: its pending cues stay marked, and it
-            // is asked again on a viewer event, like a part unavailable now.
-            if (pending.length) this.waitingForViewer.add(p);
-            else this.done.add(p);
+            // A cell not all ready: its pending cues stay marked, and it
+            // is asked again on a viewer event, like a cell unavailable now.
+            for (let c = this.asking[0]; c < this.asking[1]; c++) {
+                const [cf, ct] = this.parts[c];
+                if (pending.some((i) => i >= cf && i < ct)) this.waitingForViewer.add(c);
+                else this.done.add(c);
+            }
             this.host.setStatus?.('ready');
             void this.tick();
             return;
@@ -245,7 +277,7 @@ export class AiTranslator {
         const { status, then } = REFUSALS[code];
         if (then === 'stop') return this.halt(status);
         if (then === 'retry') return this.unavailableNow(p, retryAfterMs);
-        this.waitForViewer(p, status);
+        this.waitForViewer(status);
     }
 
     // Retry a short Retry-After a few times; else the part waits for
@@ -257,12 +289,14 @@ export class AiTranslator {
             this.later(retryAfterMs);
             return;
         }
-        this.waitForViewer(p, 'unavailable');
+        this.waitForViewer('unavailable');
     }
 
-    private waitForViewer(p: number, status: AiStatus): void {
-        this.waitingForViewer.add(p);
-        this.markPart(p, false);
+    // Every cell of the request waits for the viewer.
+    private waitForViewer(status: AiStatus): void {
+        for (let c = this.asking[0]; c < this.asking[1]; c++) this.waitingForViewer.add(c);
+        const [from, to] = this.cellRange(this.asking);
+        this.mark(from, to, false);
         this.host.setStatus?.(status);
         void this.tick();
     }
@@ -307,9 +341,9 @@ export class AiTranslator {
         this.refreshLines();
     }
 
-    private markPart(p: number, on: boolean): void {
-        const [from, to] = this.parts[p];
-        this.mark(from, to, on);
+    // The cue range [from, to) of cells [first, end).
+    private cellRange([first, end]: [number, number]): [number, number] {
+        return [this.parts[first][0], this.parts[end - 1][1]];
     }
 
     // Tells "being translated" apart from "not asked for yet"; a part waiting

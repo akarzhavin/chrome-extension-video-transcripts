@@ -72,16 +72,64 @@ describe('AiTranslator', () => {
         new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
         await settle();
         await settle();
-        expect(h.sent.map((m) => (m.part as { from: number }).from)).toEqual([420, 520]);
+        expect(h.sent.map((m) => (m.part as { from: number }).from)).toEqual([440, 460]);
     });
 
-    test('the backend grid: a 20-cue first part, then steps of 100', async () => {
+    test('the backend grid: cells of 20 cues', async () => {
         const h = host([lines, lines, lines]);
         h.state.addTrack('English', cues(250));
         new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
         await settle();
         await settle();
-        expect(h.sent.map((m) => [(m.part as { from: number }).from, (m.part as { to: number }).to])).toEqual([[0, 20], [20, 120]]);
+        expect(h.sent.map((m) => [(m.part as { from: number }).from, (m.part as { to: number }).to])).toEqual([[0, 20], [20, 40]]);
+    });
+
+    describe('the window grows with continuous watching', () => {
+        const asked = (m: Reply) => {
+            const p = m.part as { from: number; to: number; window: number };
+            return [p.from, p.to, p.window];
+        };
+        // Plays on to `seconds` and lets the idle timer fire.
+        const playTo = async (h: ReturnType<typeof host>, seconds: number) => {
+            h.time = seconds;
+            h.timers.splice(0).forEach((fn) => fn());
+            await settle();
+            await settle();
+        };
+
+        test('a fresh start asks one cell at a time', async () => {
+            const h = host([lines, lines]);
+            h.state.addTrack('English', cues(500));
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle();
+            await settle();
+            expect(h.sent.map(asked)).toEqual([[0, 20, 1], [20, 40, 1]]);
+        });
+
+        test('two cells after a minute of watching, five after three', async () => {
+            const h = host([lines, lines, lines, lines]);
+            h.state.addTrack('English', cues(500)); // a cue every 2 s
+            new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+            await settle();
+            await settle();
+            await playTo(h, 62); // cue 31, cell 1: cell 2 is next
+            await playTo(h, 182); // cue 91, cell 4
+            expect(h.sent.map(asked).slice(2)).toEqual([[40, 80, 2], [80, 180, 5]]);
+        });
+
+        test('a seek drops back to one cell', async () => {
+            const h = host([lines, lines, lines, lines]);
+            h.state.addTrack('English', cues(500));
+            const t = new AiTranslator(h, 'en', 'ru');
+            t.start(h.state.tracks[0]);
+            await settle();
+            await settle();
+            await playTo(h, 62);
+            h.time = 600; // cue 300
+            t.viewerEvent();
+            await settle();
+            expect(h.sent.map(asked)[3]).toEqual([300, 320, 1]);
+        });
     });
 
     test('cues of the part being translated are marked pending; later parts are not', async () => {

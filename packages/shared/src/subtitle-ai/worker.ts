@@ -29,6 +29,8 @@ export interface PartRequest {
     lang: string;
     from: number;
     to: number;
+    /** Cells one model call may cover; the server clamps it to 1, 2 or 5. */
+    window?: number;
 }
 
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
@@ -72,7 +74,7 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         return deps.fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({ lang: req.lang, from: req.from, to: req.to }),
+            body: JSON.stringify({ lang: req.lang, from: req.from, to: req.to, window: req.window }),
         });
     };
     let res: Response;
