@@ -168,7 +168,18 @@ export class AiTranslator {
         return null;
     }
 
+    // An error stop is shown, never silent (T066): the viewer sees the status;
+    // the AI track and the lines already in it stay.
     private async tick(): Promise<void> {
+        try {
+            await this.step();
+        } catch {
+            this.busy = false;
+            this.halt('unavailable');
+        }
+    }
+
+    private async step(): Promise<void> {
         if (this.stopped || this.busy || this.paused) return;
         const p = this.nextPart();
         if (p === null) {
@@ -200,7 +211,7 @@ export class AiTranslator {
         if (reply.code === 'track_unknown') {
             if (this.stored) return this.refused('store_refused', p);
             this.stored = true;
-            return this.store(p);
+            return await this.store(p);
         }
         this.refused(reply.code in REFUSALS ? reply.code : 'unavailable', p, reply.retryAfterMs);
     }

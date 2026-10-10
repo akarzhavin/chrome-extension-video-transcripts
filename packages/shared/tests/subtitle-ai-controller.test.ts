@@ -310,4 +310,16 @@ describe('AiTranslator', () => {
             expect(h.statuses[h.statuses.length - 1]).toBe('too_long');
         });
     });
+    // T066: a translation that stops on an error says so; the AI track stays.
+    test('an error stop shows the error status and keeps the AI track', async () => {
+        const h = host([(m) => ({ ...lines(m), lines: null })]);
+        h.state.addTrack('English', cues(10));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        await settle(); await settle();
+        expect(h.statuses[h.statuses.length - 1]).toBe('unavailable');
+        const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai).toBeDefined();
+        expect(ai.subtitles.some((c) => c.pending)).toBe(false);
+        expect(h.timers).toHaveLength(0);
+    });
 });
