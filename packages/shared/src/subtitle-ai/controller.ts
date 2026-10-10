@@ -204,8 +204,12 @@ export class AiTranslator {
         if (this.stopped) return;
 
         if (reply.ok) {
-            this.fill(reply.from, reply.lines, reply.skipped ?? []);
-            this.done.add(p);
+            const pending = reply.pending ?? [];
+            this.fill(reply.from, reply.lines, reply.skipped ?? [], pending);
+            // A part not all ready (T068): its pending cues stay marked, and it
+            // is asked again on a viewer event, like a part unavailable now.
+            if (pending.length) this.unavailable.add(p);
+            else this.done.add(p);
             this.host.setStatus?.('ready');
             void this.tick();
             return;
@@ -267,13 +271,16 @@ export class AiTranslator {
         void this.tick();
     }
 
-    private fill(from: number, lines: string[], skipped: number[]): void {
+    private fill(from: number, lines: string[], skipped: number[], pending: number[]): void {
         if (!this.ai) return;
         const index = this.track!.index;
         const dropped = new Set(skipped);
+        const waiting = new Set(pending);
         lines.forEach((line, k) => {
             const cue = this.ai!.subtitles[index[from + k]];
-            if (cue) {
+            if (cue && waiting.has(from + k)) {
+                cue.pending = true;
+            } else if (cue) {
                 cue.text = dropped.has(from + k) ? '' : line;
                 cue.pending = false;
                 if (dropped.has(from + k)) cue.skipped = true;

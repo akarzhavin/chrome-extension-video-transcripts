@@ -29,7 +29,7 @@ export interface PartRequest {
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
 
 export type PartReply =
-    | { ok: true; from: number; to: number; lines: string[]; skipped: number[] }
+    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[] }
     | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number };
 
 export interface StoredTrack {
@@ -82,11 +82,13 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         const lines = Array.isArray(b.lines) ? b.lines.map((l) => (typeof l === 'string' ? l : '')) : [];
         const from = Number(b.from);
         const to = Number(b.to);
+        const inRange = (v: unknown): number[] =>
+            Array.isArray(v) ? v.filter((i): i is number => Number.isInteger(i) && i >= from && i < to) : [];
         // Cues whose line failed the server's checks (T057); shown as a dash.
-        const skipped = Array.isArray(b.skipped)
-            ? b.skipped.filter((i): i is number => Number.isInteger(i) && i >= from && i < to)
-            : [];
-        return { ok: true, from, to, lines, skipped };
+        const skipped = inRange(b.skipped);
+        // Cues whose part was not ready (T068); they stay on their way.
+        const pending = inRange(b.pending);
+        return { ok: true, from, to, lines, skipped, pending };
     }
     switch (res.status) {
         case 401:

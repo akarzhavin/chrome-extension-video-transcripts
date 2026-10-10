@@ -4,6 +4,7 @@
 
 import { SidebarUI } from '../src/SidebarUI';
 import { AppState } from '../src/AppState';
+import { AiTranslator } from '../src/subtitle-ai/controller';
 import { Subtitle, AppInterface } from '../src/types';
 import { loadPrefs, savePrefs } from '../src/prefs';
 import { WordScreen } from '../src/lookup/word-screen';
@@ -133,6 +134,32 @@ describe('SidebarUI', () => {
         expect(after[1].classList.contains('active-sub')).toBe(true);
         expect(list.querySelectorAll('.active-sub')).toHaveLength(1);
         expect(state.currentIndex).toBe(1);
+    });
+
+    // T068: a part the server could not have ready stays pending, shown as '···'.
+    test('lines of a part not ready yet stay pending and show ···', async () => {
+        const main: Subtitle[] = Array.from({ length: 10 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}.` }));
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', main);
+        state.displayMode = 'dual';
+        const t = new AiTranslator({
+            state,
+            site: 'rezka',
+            refresh: () => ui.refresh(),
+            refreshLines: () => ui.updateSecondaryLines(),
+            currentTime: () => 0,
+            later: () => {},
+            send: async () => ({
+                ok: true, from: 0, to: 10, skipped: [], pending: [5, 6, 7, 8, 9],
+                lines: Array.from({ length: 10 }, (_, k) => (k < 5 ? `ru ${k}` : '')),
+            }),
+        }, 'en', 'ru');
+        t.start(state.tracks[0]);
+        for (let i = 0; i < 3; i++) await new Promise((r) => setTimeout(r, 0));
+        const rows = [...ui.elements.list!.querySelectorAll<HTMLElement>('.vtt-item .vtt-sub-text')];
+        expect(rows.map((r) => r.textContent)).toEqual(['ru 0', 'ru 1', 'ru 2', 'ru 3', 'ru 4', '···', '···', '···', '···', '···']);
+        expect(rows[7].classList.contains('vtt-pending')).toBe(true);
+        t.stop();
     });
 
     test('highlightSubtitle should find the correct subtitle for time', () => {

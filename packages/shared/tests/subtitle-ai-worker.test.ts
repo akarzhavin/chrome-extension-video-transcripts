@@ -50,7 +50,7 @@ describe('requestPart', () => {
     test('asks the edge with the bearer token for exactly the range', async () => {
         const d = deps([reply(200, { from: 0, to: 2, lines: ['а', 'б'], quota: { used_chars: 2, limit_chars: 10, resets_at: 9 } })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 2 }, d);
-        expect(r).toEqual({ ok: true, from: 0, to: 2, lines: ['а', 'б'], skipped: [] });
+        expect(r).toEqual({ ok: true, from: 0, to: 2, lines: ['а', 'б'], skipped: [], pending: [] });
         expect(d.calls[0].url).toBe(`https://api.test/dictionary/subtitles/${FP}/part`);
         expect((d.calls[0].init.headers as Record<string, string>).Authorization).toBe('Bearer tok1');
         expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2 });
@@ -60,7 +60,14 @@ describe('requestPart', () => {
     test('passes on the skipped cue indices, and only integers in the range', async () => {
         const d = deps([reply(200, { from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11, 99, 'x', 10.5], quota: {} })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 10, to: 13 }, d);
-        expect(r).toEqual({ ok: true, from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11] });
+        expect(r).toEqual({ ok: true, from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11], pending: [] });
+    });
+
+    // T068: cues whose part was not ready come back in `pending`.
+    test('passes on the pending cue indices, and only integers in the range', async () => {
+        const d = deps([reply(200, { from: 0, to: 4, lines: ['а', 'б', '', ''], skipped: [], pending: [2, 3, 7, 'x'], quota: {} })]);
+        const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 4 }, d);
+        expect(r).toEqual({ ok: true, from: 0, to: 4, lines: ['а', 'б', '', ''], skipped: [], pending: [2, 3] });
     });
 
     // The id lands in a URL path: anything but the 64-hex fingerprint is refused before any request.
