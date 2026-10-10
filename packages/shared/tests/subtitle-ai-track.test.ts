@@ -21,27 +21,30 @@ interface Vector {
     raw?: string[];
 }
 
-const VECTORS_REL = 'services/dictionary-service/internal/subtrans/testdata/fingerprint-vectors.json';
+// A copy of the backend's vectors (english repo,
+// services/dictionary-service/internal/subtrans/testdata/fingerprint-vectors.json),
+// so this suite never depends on another checkout's path (T063).
+const VECTORS_FILE = resolve(__dirname, 'fixtures/subtitle-fingerprint-vectors.json');
 
-// No built-in fallback: a vector check that quietly finds nothing checks nothing.
-function loadVectors(): Vector[] {
-    const workspace = resolve(__dirname, '../../../../..');
-    const tried = [
-        ...(process.env.LINGOGRAM_SUBTITLE_VECTORS_PATH ? [process.env.LINGOGRAM_SUBTITLE_VECTORS_PATH] : []),
-        resolve(workspace, 'english', VECTORS_REL),
-        resolve(workspace, 'english/.claude/worktrees/023-subtitle-auto-translate', VECTORS_REL),
-    ];
-    const found = tried.find((p) => existsSync(p));
-    if (!found) throw new Error(`fingerprint vectors not found; tried:\n  ${tried.join('\n  ')}`);
-    return (JSON.parse(readFileSync(found, 'utf8')) as { vectors: Vector[] }).vectors;
+function loadVectors(path: string): Vector[] {
+    return (JSON.parse(readFileSync(path, 'utf8')) as { vectors: Vector[] }).vectors;
 }
 
-const VECTORS = loadVectors();
+const VECTORS = loadVectors(VECTORS_FILE);
 const sub = (startTime: number, endTime: number, text: string) => ({ startTime, endTime, text });
 
 describe('fingerprint', () => {
     test('the vectors were found', () => {
         expect(VECTORS.length).toBeGreaterThan(3);
+    });
+
+    // The copy drifting from the backend's would make the check pass on stale
+    // vectors; compared whenever the backend's file is given or beside us.
+    test('the copy matches the backend\'s vectors, where they can be read', () => {
+        const backend = process.env.LINGOGRAM_SUBTITLE_VECTORS_PATH
+            ?? resolve(__dirname, '../../../../../english/services/dictionary-service/internal/subtrans/testdata/fingerprint-vectors.json');
+        if (!existsSync(backend)) return;
+        expect(loadVectors(VECTORS_FILE)).toEqual(loadVectors(backend));
     });
 
     test.each(VECTORS)('$name', (v) => {
