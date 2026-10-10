@@ -1,5 +1,5 @@
-// Service-worker half of server-side subtitle translation (english repo, spec
-// 023, contracts/subtitle-part-endpoint.md and firestore-subtitle-tracks.md).
+// Service-worker half of server-side subtitle translation (contracts/
+// subtitle-part-endpoint.md and firestore-subtitle-tracks.md in the english repo).
 //
 // Every outcome is returned, never thrown: a thrown "Firestore commit 403"
 // matches background.ts' isAuthFailure and would sign the learner out.
