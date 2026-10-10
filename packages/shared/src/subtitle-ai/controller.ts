@@ -23,6 +23,8 @@ export interface AiHost {
     state: AppState;
     site: string;
     refresh(): void;
+    /** Repaint only the lines that changed (T067); refresh() when absent. */
+    refreshLines?(): void;
     /** A message to the service worker. */
     send(msg: object): Promise<unknown>;
     /** Playback position, seconds. */
@@ -277,7 +279,7 @@ export class AiTranslator {
                 if (dropped.has(from + k)) cue.skipped = true;
             }
         });
-        this.host.refresh();
+        this.refreshLines();
     }
 
     // Tells "being translated" apart from "not asked for yet"; a part waiting
@@ -293,7 +295,13 @@ export class AiTranslator {
                 changed = true;
             }
         }
-        if (changed) this.host.refresh();
+        if (changed) this.refreshLines();
+    }
+
+    // Lines changed, not the track list: the panel patches those rows only (T067).
+    private refreshLines(): void {
+        if (this.host.refreshLines) this.host.refreshLines();
+        else this.host.refresh();
     }
 
     private halt(status: AiStatus): void {

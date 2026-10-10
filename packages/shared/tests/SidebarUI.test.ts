@@ -105,6 +105,36 @@ describe('SidebarUI', () => {
         expect(() => embedUi.destroy()).not.toThrow();
     });
 
+    // T067: an AI part arriving patches only the rows whose second line changed.
+    test('a part arriving keeps untouched rows as the same nodes and the highlight on the current line', () => {
+        const main: Subtitle[] = Array.from({ length: 6 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}` }));
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', main);
+        state.preferredSecondaryName = 'Russian · AI';
+        state.addTrack('Russian · AI', main.map((c, i) => ({ ...c, text: i < 3 ? `ru ${i}` : '', pending: i >= 3 })));
+        state.displayMode = 'dual';
+        ui.renderSubtitles();
+        ui.highlightSubtitle(2.5); // cue 1
+        const list = ui.elements.list!;
+        const items = [...list.querySelectorAll<HTMLElement>('.vtt-item')];
+        const subs = items.map((it) => it.querySelector('.vtt-sub-text'));
+        expect(subs[4]?.textContent).toBe('···');
+
+        const ai = state.tracks.find((t) => t.name === 'Russian · AI')!;
+        ai.subtitles[3].text = 'ru 3';
+        ai.subtitles[3].pending = false;
+        ui.updateSecondaryLines();
+
+        const after = [...list.querySelectorAll<HTMLElement>('.vtt-item')];
+        after.forEach((it, i) => expect(it).toBe(items[i]));
+        [0, 1, 2, 4, 5].forEach((i) => expect(after[i].querySelector('.vtt-sub-text')).toBe(subs[i]));
+        expect(after[3].querySelector('.vtt-sub-text')?.textContent).toBe('ru 3');
+        expect(after[3].querySelector('.vtt-pending')).toBeNull();
+        expect(after[1].classList.contains('active-sub')).toBe(true);
+        expect(list.querySelectorAll('.active-sub')).toHaveLength(1);
+        expect(state.currentIndex).toBe(1);
+    });
+
     test('highlightSubtitle should find the correct subtitle for time', () => {
         const subs: Subtitle[] = [
             { startTime: 0, endTime: 2, text: 'First' },

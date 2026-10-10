@@ -2572,6 +2572,42 @@ export class SidebarUI {
         markSavedPhrasesIn(this.elements.list);
     }
 
+    /**
+     * Re-reads every row's second line and patches only the rows whose line
+     * changed (english spec 023, T067). An AI part arriving touches its own
+     * rows; the rest of the list — the current-line highlight, saved-phrase
+     * marks, the scroll position — stays as it is. A list that no longer
+     * matches the track is rebuilt instead.
+     */
+    updateSecondaryLines(): void {
+        const list = this.elements.list;
+        const mainTrack = this.state.getMainTrack();
+        if (!list || !mainTrack) return;
+        const items = list.querySelectorAll<HTMLDivElement>(':scope > .vtt-item');
+        if (items.length !== mainTrack.length) {
+            this.refresh();
+            return;
+        }
+        const guess = this.state.displayMode === 'guess';
+        items.forEach((item) => {
+            const index = Number(item.dataset.index);
+            const sub = mainTrack[index];
+            if (!sub) return;
+            // The same rule as buildPlainItem / buildGuessItem.
+            const shows = guess ? this.state.isFullyRevealed(index) : this.state.displayMode === 'dual';
+            const next = shows ? this.buildSecondaryTextElement(this.state.getPairedSecondary(sub)) : null;
+            const cur = item.querySelector<HTMLElement>(':scope > .vtt-sub-text');
+            if (!cur && !next) return;
+            if (cur && next) {
+                if (cur.textContent !== next.textContent || cur.className !== next.className) cur.replaceWith(next);
+            } else if (cur) {
+                cur.remove();
+            } else {
+                item.appendChild(next!);
+            }
+        });
+    }
+
     private createSubtitleItem(index: number): HTMLDivElement {
         const item = document.createElement('div');
         item.className = 'vtt-item';

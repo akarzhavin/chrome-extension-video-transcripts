@@ -322,4 +322,17 @@ describe('AiTranslator', () => {
         expect(ai.subtitles.some((c) => c.pending)).toBe(false);
         expect(h.timers).toHaveLength(0);
     });
+    // T067: lines arriving repaint only the lines, never the whole panel.
+    test('a part arriving refreshes the lines only, not the whole panel', async () => {
+        const h = host([lines]);
+        let lineRefreshes = 0;
+        h.refreshLines = () => { lineRefreshes++; };
+        h.state.addTrack('English', cues(10));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        const full = h.refreshed();
+        await settle();
+        expect(h.state.tracks.find((tr) => tr.name === 'Russian · AI')!.subtitles[3].text).toBe('ru 3');
+        expect(lineRefreshes).toBeGreaterThan(0);
+        expect(h.refreshed()).toBe(full);
+    });
 });

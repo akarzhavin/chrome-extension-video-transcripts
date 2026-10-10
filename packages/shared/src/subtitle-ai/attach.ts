@@ -13,6 +13,8 @@ export interface AiApp {
     state: AppState;
     site: string;
     refresh(): void;
+    /** Repaint only the AI lines that changed (T067). */
+    refreshLines?(): void;
     langPrefs(): LanguagePrefs | null;
     setStatus(s: AiStatus | null): void;
 }
@@ -61,6 +63,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
                     state,
                     site: app.site,
                     refresh: () => app.refresh(),
+                    refreshLines: app.refreshLines ? () => app.refreshLines!() : undefined,
                     send: deps.send,
                     currentTime: deps.currentTime,
                     setStatus: (s) => app.setStatus(s),

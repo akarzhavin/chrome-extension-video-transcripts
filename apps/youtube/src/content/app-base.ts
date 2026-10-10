@@ -511,6 +511,7 @@ export abstract class BaseVttApp implements AppInterface {
             state: this.state,
             site: platformOf(location.hostname),
             refresh: () => this.ui.refresh(),
+            refreshLines: () => this.ui.updateSecondaryLines(),
             langPrefs: () => this.langPrefs,
             setStatus: (s) => this.ui.setAiStatus(s),
         }, browserAiDeps());
