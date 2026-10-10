@@ -131,7 +131,7 @@ export class AiTranslator {
         if (this.stopped) return;
 
         if (reply.ok) {
-            this.fill(reply.from, reply.lines);
+            this.fill(reply.from, reply.lines, reply.skipped ?? []);
             this.done.add(p);
             this.host.setStatus?.('ready');
             void this.tick();
@@ -171,14 +171,16 @@ export class AiTranslator {
         void this.tick();
     }
 
-    private fill(from: number, lines: string[]): void {
+    private fill(from: number, lines: string[], skipped: number[]): void {
         if (!this.ai) return;
         const index = this.track!.index;
+        const dropped = new Set(skipped);
         lines.forEach((line, k) => {
             const cue = this.ai!.subtitles[index[from + k]];
             if (cue) {
-                cue.text = line;
+                cue.text = dropped.has(from + k) ? '' : line;
                 cue.pending = false;
+                if (dropped.has(from + k)) cue.skipped = true;
             }
         });
         this.host.refresh();

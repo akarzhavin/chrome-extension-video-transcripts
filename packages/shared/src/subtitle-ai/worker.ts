@@ -29,7 +29,7 @@ export interface PartRequest {
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'invalid' | 'quarantined' | 'unavailable';
 
 export type PartReply =
-    | { ok: true; from: number; to: number; lines: string[] }
+    | { ok: true; from: number; to: number; lines: string[]; skipped: number[] }
     | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number };
 
 export interface StoredTrack {
@@ -80,7 +80,13 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
     const b = await body(res);
     if (res.ok) {
         const lines = Array.isArray(b.lines) ? b.lines.map((l) => (typeof l === 'string' ? l : '')) : [];
-        return { ok: true, from: Number(b.from), to: Number(b.to), lines };
+        const from = Number(b.from);
+        const to = Number(b.to);
+        // Cues whose line failed the server's checks (T057); shown as a dash.
+        const skipped = Array.isArray(b.skipped)
+            ? b.skipped.filter((i): i is number => Number.isInteger(i) && i >= from && i < to)
+            : [];
+        return { ok: true, from, to, lines, skipped };
     }
     switch (res.status) {
         case 401:

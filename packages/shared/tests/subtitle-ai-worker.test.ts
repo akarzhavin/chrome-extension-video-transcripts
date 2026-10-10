@@ -50,10 +50,17 @@ describe('requestPart', () => {
     test('asks the edge with the bearer token for exactly the range', async () => {
         const d = deps([reply(200, { from: 0, to: 2, lines: ['а', 'б'], quota: { used_chars: 2, limit_chars: 10, resets_at: 9 } })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 2 }, d);
-        expect(r).toEqual({ ok: true, from: 0, to: 2, lines: ['а', 'б'] });
+        expect(r).toEqual({ ok: true, from: 0, to: 2, lines: ['а', 'б'], skipped: [] });
         expect(d.calls[0].url).toBe(`https://api.test/dictionary/subtitles/${FP}/part`);
         expect((d.calls[0].init.headers as Record<string, string>).Authorization).toBe('Bearer tok1');
         expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2 });
+    });
+
+    // T057: a line that failed the server's checks comes back in `skipped`.
+    test('passes on the skipped cue indices, and only integers in the range', async () => {
+        const d = deps([reply(200, { from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11, 99, 'x', 10.5], quota: {} })]);
+        const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 10, to: 13 }, d);
+        expect(r).toEqual({ ok: true, from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11] });
     });
 
     // The id lands in a URL path: anything but the 64-hex fingerprint is refused before any request.

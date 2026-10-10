@@ -188,6 +188,18 @@ describe('AiTranslator', () => {
         expect(ai.subtitles[1].pending).toBeFalsy();
     });
 
+    // T057: a line the server dropped is shown as a dash, the rest of the part as usual.
+    test('a line the server skipped reads as left out, not as still coming', async () => {
+        const h = host([(m) => ({ ...lines(m), skipped: [3] })]);
+        h.state.addTrack('English', cues(10));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        await settle();
+        const ai = h.state.tracks.find((tr) => tr.name === 'Russian · AI')!;
+        expect(ai.subtitles[3]).toMatchObject({ text: '', skipped: true, pending: false });
+        expect(ai.subtitles[2]).toMatchObject({ text: 'ru 2', pending: false });
+        expect(ai.subtitles[2].skipped).toBeFalsy();
+    });
+
     test('stop takes the AI track away', async () => {
         const h = host([lines]);
         h.state.addTrack('English', cues(10));
