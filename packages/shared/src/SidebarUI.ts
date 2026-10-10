@@ -57,7 +57,7 @@ import {
 } from './transcript/saved-marks';
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
-import type { AiStatus } from './subtitle-ai/controller';
+import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
@@ -637,7 +637,16 @@ export class SidebarUI {
         langGroup.appendChild(fields);
         // AI translation is dev-only until it ships; the release gate checks it.
         // Its switch is on the site's settings page; here only what it is doing.
-        if (__EXT_ENV__ === 'dev') langGroup.appendChild(this.buildAiStatusRow());
+        if (__EXT_ENV__ === 'dev') {
+            const status = document.createElement('div');
+            status.id = 'vtt-ai-status';
+            status.className = 'vtt-ai-status';
+            status.setAttribute('aria-live', 'polite');
+            langGroup.appendChild(status);
+            this.setAiStatus = (s) => {
+                status.textContent = s ? aiStatusText(s) : '';
+            };
+        }
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2256,34 +2265,8 @@ export class SidebarUI {
         };
     }
 
-    private aiStatusEl: HTMLElement | null = null;
-
-    /** What the AI translation is doing; empty while it is off. */
-    private buildAiStatusRow(): HTMLElement {
-        if (__EXT_ENV__ !== 'dev') return document.createElement('span');
-        const status = document.createElement('div');
-        status.id = 'vtt-ai-status';
-        status.className = 'vtt-ai-status';
-        status.setAttribute('aria-live', 'polite');
-        this.aiStatusEl = status;
-        return status;
-    }
-
-    setAiStatus(s: AiStatus | null): void {
-        if (__EXT_ENV__ !== 'dev' || !this.aiStatusEl) return;
-        const text: Record<AiStatus, string> = {
-            working: msg('ytAiStatusWorking', 'Translating…'),
-            ready: msg('ytAiStatusReady', 'AI translation is on'),
-            auth: msg('ytAiStatusAuth', 'Sign in again to use AI translation'),
-            quota: msg('ytAiStatusQuota', "Today's AI translation limit is reached"),
-            rate: msg('ytAiStatusRate', 'Too many requests — try again in a minute'),
-            limit: msg('ytAiStatusLimit', 'Too many new videos today — try again later'),
-            too_long: msg('ytAiStatusTooLong', 'These subtitles are too long for AI translation'),
-            unavailable: msg('ytAiStatusUnavailable', 'AI translation is temporarily unavailable'),
-            unsupported: msg('ytAiStatusUnsupported', 'AI translation does not cover this language pair'),
-        };
-        this.aiStatusEl.textContent = s ? text[s] : '';
-    }
+    /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
+    setAiStatus: (s: AiStatus | null) => void = () => {};
 
     refresh(): void {
         this.updateControls();
@@ -2588,14 +2571,11 @@ export class SidebarUI {
             this.refresh();
             return;
         }
-        const guess = this.state.displayMode === 'guess';
         items.forEach((item) => {
             const index = Number(item.dataset.index);
             const sub = mainTrack[index];
             if (!sub) return;
-            // The same rule as buildPlainItem / buildGuessItem.
-            const shows = guess ? this.state.isFullyRevealed(index) : this.state.displayMode === 'dual';
-            const next = shows ? this.buildSecondaryTextElement(this.state.getPairedSecondary(sub)) : null;
+            const next = this.showsSecondary(index) ? this.buildSecondaryTextElement(this.state.getPairedSecondary(sub)) : null;
             const cur = item.querySelector<HTMLElement>(':scope > .vtt-sub-text');
             if (!cur && !next) return;
             if (cur && next) {
@@ -2646,8 +2626,8 @@ export class SidebarUI {
             this.revealOrSeek(index, sub);
         });
 
-        if (this.state.isFullyRevealed(index)) {
-            item.classList.add('fully-revealed');
+        if (this.state.isFullyRevealed(index)) item.classList.add('fully-revealed');
+        if (this.showsSecondary(index)) {
             const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
@@ -2801,7 +2781,7 @@ export class SidebarUI {
         fillPlainWordsInto(mainText, sub.text, isSaved);
         item.appendChild(mainText);
 
-        if (this.state.displayMode === 'dual') {
+        if (this.showsSecondary(index)) {
             const subText = this.buildSecondaryTextElement(this.state.getPairedSecondary(sub));
             if (subText) item.appendChild(subText);
         }
@@ -3018,7 +2998,7 @@ export class SidebarUI {
         // A preview line is not the playing line, so it gets no guess-mode
         // translation gate — the point is to show the block's real shape,
         // which in dual mode means both rows.
-        if (sub ? this.shouldShowOverlayTranslation(lineIndex) : this.state.displayMode !== 'single') {
+        if (sub ? this.showsSecondary(lineIndex) : this.state.displayMode !== 'single') {
             const subDiv = placeholder
                 ? this.buildPlaceholderSecondary()
                 : this.buildSecondaryTextElement(this.state.getPairedSecondary(shown), 'vtt-overlay-sub');
@@ -3663,7 +3643,8 @@ export class SidebarUI {
         return mainDiv;
     }
 
-    private shouldShowOverlayTranslation(index: number): boolean {
+    /** The second line under a subtitle: always in Dual, once fully revealed in Guess. */
+    private showsSecondary(index: number): boolean {
         if (this.state.displayMode === 'dual') return true;
         if (this.state.displayMode === 'guess') return this.state.isFullyRevealed(index);
         return false;

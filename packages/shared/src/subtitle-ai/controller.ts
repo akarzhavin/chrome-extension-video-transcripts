@@ -3,6 +3,7 @@
 // playback, so a film is paid for as it is watched rather than up front.
 
 import type { AppState } from '../AppState';
+import { msg } from '../i18n';
 import { labelForLanguage } from '../languages';
 import type { Track } from '../types';
 import { prepareTrack, type PreparedTrack } from './track';
@@ -18,6 +19,22 @@ export type AiStatus =
     | 'too_long'
     | 'unavailable'
     | 'unsupported';
+
+/** The status line's text for each status. */
+export function aiStatusText(s: AiStatus): string {
+    const text: Record<AiStatus, string> = {
+        working: msg('ytAiStatusWorking', 'Translating…'),
+        ready: msg('ytAiStatusReady', 'AI translation is on'),
+        auth: msg('ytAiStatusAuth', 'Sign in again to use AI translation'),
+        quota: msg('ytAiStatusQuota', "Today's AI translation limit is reached"),
+        rate: msg('ytAiStatusRate', 'Too many requests — try again in a minute'),
+        limit: msg('ytAiStatusLimit', 'Too many new videos today — try again later'),
+        too_long: msg('ytAiStatusTooLong', 'These subtitles are too long for AI translation'),
+        unavailable: msg('ytAiStatusUnavailable', 'AI translation is temporarily unavailable'),
+        unsupported: msg('ytAiStatusUnsupported', 'AI translation does not cover this language pair'),
+    };
+    return text[s];
+}
 
 /** The page and the browser, as the AI translation sees them. */
 export interface AiHost {
