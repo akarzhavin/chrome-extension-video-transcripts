@@ -21,7 +21,7 @@ import {
     installQuickAddOverlay,
     refreshAuthStatusBadge,
 } from '@video-transcripts/shared';
-import type { AppInterface } from '@video-transcripts/shared';
+import type { AppInterface, DisplayMode } from '@video-transcripts/shared';
 import { installChromeShim } from './chrome-shim';
 import { installQuickAddPill } from './pill';
 import { EMBED_CSS } from './embed-css';
@@ -626,7 +626,7 @@ function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): (
         if (!row) return;
         const { act, mode } = row.dataset;
         if (mode) {
-            state.displayMode = mode as 'single' | 'dual' | 'guess';
+            state.displayMode = mode as DisplayMode;
             ui.refresh();
             renderMenu();
             closeMenu();

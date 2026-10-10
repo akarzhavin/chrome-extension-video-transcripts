@@ -1,4 +1,4 @@
-import { LanguageChoice, Subtitle, Track } from './types';
+import { DisplayMode, LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { pairSecondaryToMain } from './track-pairing';
 
@@ -6,7 +6,7 @@ import { pairSecondaryToMain } from './track-pairing';
 export type StateEvent =
     | { type: 'reset' }
     | { type: 'track'; name: string }
-    | { type: 'mode'; mode: 'single' | 'dual' | 'guess' };
+    | { type: 'mode'; mode: DisplayMode };
 
 export class AppState {
     tracks: Track[] = [];
@@ -27,15 +27,15 @@ export class AppState {
     languageCatalog?: LanguageChoice[];
     selectedLearningCode?: string;
     selectedNativeCode?: string;
-    private mode: 'single' | 'dual' | 'guess' = 'dual';
+    private mode: DisplayMode = 'dual';
     private listeners = new Set<(e: StateEvent) => void>();
 
     // An accessor, so the panel's direct assignments (prefs) notify too.
-    get displayMode(): 'single' | 'dual' | 'guess' {
+    get displayMode(): DisplayMode {
         return this.mode;
     }
 
-    set displayMode(mode: 'single' | 'dual' | 'guess') {
+    set displayMode(mode: DisplayMode) {
         if (mode === this.mode) return;
         this.mode = mode;
         this.emit({ type: 'mode', mode });
@@ -271,7 +271,7 @@ export class AppState {
      * Returns whether anything changed (dual needs a second track; picking the
      * active mode is a no-op).
      */
-    setDisplayMode(mode: 'single' | 'dual' | 'guess'): boolean {
+    setDisplayMode(mode: DisplayMode): boolean {
         if (mode === this.displayMode) return false;
         if (mode === 'dual' && !this.canPickDual()) return false;
         this.displayMode = mode;

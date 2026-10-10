@@ -129,6 +129,24 @@ function approxDocBytes(cues: WireCue[]): number {
     return cues.reduce((n, c) => n + utf8.encode(c.text).length + CUE_BYTES, DOC_BYTES);
 }
 
+/** A track as Firestore REST fields; it expires SUBTITLE_TTL_DAYS after `now`. */
+function encodeTrackDoc(track: StoredTrack, now: number) {
+    return {
+        source_lang: { stringValue: track.sourceLang },
+        site: { stringValue: track.site },
+        cue_count: int(track.cues.length),
+        duration_ms: int(track.durationMs),
+        cues: {
+            arrayValue: {
+                values: track.cues.map((c) => ({
+                    mapValue: { fields: { start_ms: int(c.start_ms), end_ms: int(c.end_ms), text: { stringValue: c.text } } },
+                })),
+            },
+        },
+        expire_at: { timestampValue: new Date(now + SUBTITLE_TTL_DAYS * DAY_MS).toISOString() },
+    };
+}
+
 /**
  * Creates subtitle_tracks/{fingerprint} and advances subtitle_write_limits/{uid}
  * in one commit, as the rules require. Any refusal — exists, too soon, over the day —
@@ -167,23 +185,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
                 updateTransforms: [{ fieldPath: 'lastWriteAt', setToServerValue: 'REQUEST_TIME' }],
             },
             {
-                update: {
-                    name: `${docs}/subtitle_tracks/${track.fingerprint}`,
-                    fields: {
-                        source_lang: { stringValue: track.sourceLang },
-                        site: { stringValue: track.site },
-                        cue_count: int(track.cues.length),
-                        duration_ms: int(track.durationMs),
-                        cues: {
-                            arrayValue: {
-                                values: track.cues.map((c) => ({
-                                    mapValue: { fields: { start_ms: int(c.start_ms), end_ms: int(c.end_ms), text: { stringValue: c.text } } },
-                                })),
-                            },
-                        },
-                        expire_at: { timestampValue: new Date(now + SUBTITLE_TTL_DAYS * DAY_MS).toISOString() },
-                    },
-                },
+                update: { name: `${docs}/subtitle_tracks/${track.fingerprint}`, fields: encodeTrackDoc(track, now) },
                 currentDocument: { exists: false },
                 updateTransforms: [{ fieldPath: 'created_at', setToServerValue: 'REQUEST_TIME' }],
             },

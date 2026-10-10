@@ -1,3 +1,6 @@
+/** How the subtitle list shows the second line: none, always, or once a line is guessed. */
+export type DisplayMode = 'single' | 'dual' | 'guess';
+
 export interface Subtitle {
   startTime: number;
   endTime: number;

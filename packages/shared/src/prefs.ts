@@ -13,6 +13,7 @@
 
 import { platformOf, type Platform } from './analytics';
 import { BOTTOM_NUDGE_RANGE, INLINE_NUDGE_RANGE, type NudgeRange } from './overlay-position';
+import type { DisplayMode } from './types';
 
 // Font size is a percentage (50-400, step 5) rather than a 3-way token: a
 // fixed small/medium/large left the whole 100-150% range — where most people
@@ -48,7 +49,7 @@ export type OverlayFontFamily =
     | 'smallCaps';
 
 export interface Prefs {
-    displayMode: 'single' | 'dual' | 'guess';
+    displayMode: DisplayMode;
     overlayEnabled: boolean;
     sidebarCollapsed: boolean;
     // On-video overlay appearance. Most fields are preset tokens (not raw px)

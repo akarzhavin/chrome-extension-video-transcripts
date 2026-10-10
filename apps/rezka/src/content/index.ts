@@ -31,8 +31,7 @@ import {
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
-import { attachAiTranslation } from '../../../../packages/shared/src/subtitle-ai/attach';
-import { browserAiDeps } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
 // the English default when a key is missing (or outside an extension context).
@@ -426,14 +425,7 @@ export class VttApp implements AppInterface {
         // Server-side AI translation of the second line, in Dual when the site
         // gives no native track.
         // Dev-only until it ships.
-        if (__EXT_ENV__ === 'dev') attachAiTranslation({
-            state: this.state,
-            site: platformOf(location.hostname),
-            refresh: () => this.ui.refresh(),
-            refreshLines: () => this.ui.updateSecondaryLines(),
-            langPrefs: () => this.langPrefs,
-            setStatus: (s) => this.ui.setAiStatus(s),
-        }, browserAiDeps());
+        if (__EXT_ENV__ === 'dev') attachAiTranslationTo(this);
     }
 
     // DEV-ONLY i18n override. chrome.i18n follows the browser UI locale, which

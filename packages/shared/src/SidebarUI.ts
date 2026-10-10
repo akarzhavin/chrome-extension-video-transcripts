@@ -41,7 +41,7 @@ import { applyTheme, stopThemeTracking } from './content/theme';
 import { isContextOrphaned, showOrphanNotice } from './content/orphan-notice';
 import { watchForDuplicateCopy } from './content/duplicate-copy-notice';
 import { buildFeedbackScreen, FeedbackScreenHost } from './content/feedback-screen';
-import { SidebarElements, AppInterface, Subtitle, Track, TrackRole, SliderRowElements } from './types';
+import { SidebarElements, AppInterface, DisplayMode, Subtitle, Track, TrackRole, SliderRowElements } from './types';
 import { PeekController } from './transcript/peek';
 import {
     fillMaskedWordsInto,
@@ -2050,7 +2050,7 @@ export class SidebarUI {
     }
 
     /** Direct mode pick — what every mode control calls. */
-    setMode(mode: 'single' | 'dual' | 'guess'): void {
+    setMode(mode: DisplayMode): void {
         if (!this.state.setDisplayMode(mode)) return;
         this.refresh();
         savePrefs({ displayMode: this.state.displayMode });

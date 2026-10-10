@@ -1,9 +1,30 @@
-// The real dependencies of attachAiTranslation in a content script.
+// attachAiTranslation in a content script, with its real dependencies.
 
-import { onLanguagePrefsChanged } from '../languages';
+import type { AppState } from '../AppState';
+import { platformOf } from '../analytics';
+import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
 import { loadPrefs, onPrefsChanged } from '../prefs';
-import type { AttachDeps } from './attach';
+import type { SidebarUI } from '../SidebarUI';
+import { attachAiTranslation, type AttachDeps } from './attach';
+
+/** What both apps have: their state, their sidebar and the language pair, read when needed. */
+export interface AiTranslatedApp {
+    state: AppState;
+    ui: Pick<SidebarUI, 'refresh' | 'updateSecondaryLines' | 'setAiStatus'>;
+    langPrefs: LanguagePrefs | null;
+}
+
+export function attachAiTranslationTo(app: AiTranslatedApp): void {
+    attachAiTranslation({
+        state: app.state,
+        site: platformOf(location.hostname),
+        refresh: () => app.ui.refresh(),
+        refreshLines: () => app.ui.updateSecondaryLines(),
+        langPrefs: () => app.langPrefs,
+        setStatus: (s) => app.ui.setAiStatus(s),
+    }, browserAiDeps());
+}
 
 export function browserAiDeps(): AttachDeps {
     return {
