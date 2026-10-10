@@ -11,6 +11,11 @@ import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 const WRITES_PER_DAY = __LIMIT_SUBTITLE__.SUBTITLE_WRITES_PER_DAY;
 // Firestore's document limit is 1 MiB; field names and framing need headroom.
 const MAX_DOC_BYTES = 1_000_000;
+// A track document's size, roughly: its own fields, then per cue the text plus
+// the map and the two times around it.
+const DOC_BYTES = 200;
+const CUE_BYTES = 48;
+const DAY_MS = 86_400_000;
 
 export interface WorkerDeps {
     fetch: (url: string, init: RequestInit) => Promise<Response>;
@@ -119,6 +124,11 @@ const dayBucket = (ms: number): number => {
 
 const int = (n: number) => ({ integerValue: String(n) });
 
+function approxDocBytes(cues: WireCue[]): number {
+    const utf8 = new TextEncoder();
+    return cues.reduce((n, c) => n + utf8.encode(c.text).length + CUE_BYTES, DOC_BYTES);
+}
+
 /**
  * Creates subtitle_tracks/{fingerprint} and advances write_limits/{uid} in one
  * commit, as the rules require. Any refusal — exists, too soon, over the day —
@@ -126,9 +136,7 @@ const int = (n: number) => ({ integerValue: String(n) });
  */
 export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: WorkerDeps): Promise<StoreReply> {
     if (!FINGERPRINT.test(track.fingerprint)) return { ok: false, reason: 'refused' };
-    let approx = 200;
-    for (const c of track.cues) approx += new TextEncoder().encode(c.text).length + 48;
-    if (approx > MAX_DOC_BYTES) return { ok: false, reason: 'too_long' };
+    if (approxDocBytes(track.cues) > MAX_DOC_BYTES) return { ok: false, reason: 'too_long' };
 
     const docs = `projects/${cfg.projectId}/databases/(default)/documents`;
     let auth: { idToken: string; uid: string };
@@ -173,7 +181,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
                                 })),
                             },
                         },
-                        expire_at: { timestampValue: new Date(now + SUBTITLE_TTL_DAYS * 86_400_000).toISOString() },
+                        expire_at: { timestampValue: new Date(now + SUBTITLE_TTL_DAYS * DAY_MS).toISOString() },
                     },
                 },
                 currentDocument: { exists: false },
