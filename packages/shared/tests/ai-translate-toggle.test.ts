@@ -66,7 +66,7 @@ test('the status line says what the translation is doing, and nothing when it is
 });
 
 describe('in a production build', () => {
-    // Dev-only until it ships (english spec 023): absent, not hidden.
+    // Dev-only until it ships: absent, not hidden.
     afterEach(() => {
         (global as any).__EXT_ENV__ = 'dev';
     });

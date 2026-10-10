@@ -232,7 +232,7 @@ describe('assert-shippable', () => {
     });
 
     describe('the AI translation of the second line', () => {
-        // Dev-only until it ships (english spec 023): the store version must
+        // Dev-only until it ships: the store version must
         // carry neither the switch nor the worker that calls the backend.
         it('refuses a background bundle carrying the worker actions', () => {
             const { code, output } = runGate(

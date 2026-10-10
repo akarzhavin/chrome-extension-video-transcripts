@@ -7,7 +7,7 @@
 import type { AuthConfig } from '../auth/config';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
-// From english/infrastructure/lingogram-limits.json, injected at build time (T058).
+// From english/infrastructure/lingogram-limits.json, injected at build time.
 const WRITES_PER_DAY = __LIMIT_SUBTITLE__.SUBTITLE_WRITES_PER_DAY;
 // Firestore's document limit is 1 MiB; field names and framing need headroom.
 const MAX_DOC_BYTES = 1_000_000;
@@ -84,9 +84,9 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         const to = Number(b.to);
         const inRange = (v: unknown): number[] =>
             Array.isArray(v) ? v.filter((i): i is number => Number.isInteger(i) && i >= from && i < to) : [];
-        // Cues whose line failed the server's checks (T057); shown as a dash.
+        // Cues whose line failed the server's checks; shown as a dash.
         const skipped = inRange(b.skipped);
-        // Cues whose part was not ready (T068); they stay on their way.
+        // Cues whose part was not ready; they stay on their way.
         const pending = inRange(b.pending);
         return { ok: true, from, to, lines, skipped, pending };
     }
@@ -99,7 +99,7 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         case 422:
             return { ok: false, code: 'invalid' };
         case 429:
-            // The daily quota resets tomorrow; the per-minute limit in a minute (T064).
+            // The daily quota resets tomorrow; the per-minute limit in a minute.
             if (b.code === 'quota_exceeded' || (b.code === undefined && typeof b.resets_at === 'number')) {
                 return { ok: false, code: 'quota', ...(typeof b.resets_at === 'number' ? { resetsAt: b.resets_at } : {}) };
             }
@@ -138,7 +138,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
         return { ok: false, reason: 'auth' };
     }
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.idToken}` };
-    // The id comes from the user's own token, but goes into a path: one segment, always (T071).
+    // The id comes from the user's own token, but goes into a path: one segment, always.
     const limits = `${docs}/write_limits/${encodeURIComponent(auth.uid)}`;
     const now = deps.now();
     const today = dayBucket(now);

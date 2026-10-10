@@ -107,7 +107,7 @@ describe('rezka network interceptor: track labels', () => {
     });
 });
 
-// T059 (english spec 023): an episode or translation without subtitles is a
+// An episode or translation without subtitles is a
 // new player listing too; the previous video's tracks must go, or the AI
 // translator keeps working on them.
 describe('rezka network interceptor: a new listing resets the tracks', () => {

@@ -104,7 +104,7 @@ import { FEATURES } from '../config';
     // HDrezka's markup. get_cdn_tiles is excluded — those are the thumbnail
     // sprite sheets, they match the endpoint pattern above and fire constantly.
     // A listing without any .vtt (an episode or translation with no subtitles)
-    // resets too, or the previous video's tracks stay (english spec 023 T059).
+    // resets too, or the previous video's tracks stay.
     function announceNewTrackSet(url: string, text: string): void {
         if (/get_cdn_tiles/i.test(url)) return;
         const listing = /get_cdn_/i.test(url) && /"success"\s*:\s*true/.test(text || '');

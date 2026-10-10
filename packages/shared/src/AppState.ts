@@ -2,7 +2,7 @@ import { LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { pairSecondaryToMain } from './track-pairing';
 
-/** What AppState tells its subscribers (english spec 023, T059/T061). */
+/** What AppState tells its subscribers. */
 export type StateEvent =
     | { type: 'reset' }
     | { type: 'track'; name: string }
@@ -51,7 +51,7 @@ export class AppState {
         for (const fn of [...this.listeners]) fn(e);
     }
 
-    // The AI translation can supply the second line (english spec 023, T061):
+    // The AI translation can supply the second line:
     // Dual stays selectable with one track, and picking it starts the translation.
     secondLineOnDemand = false;
     overlayEnabled: boolean = true;
@@ -109,7 +109,7 @@ export class AppState {
         return this.hasTrackFor(this.secondaryLangLabel);
     }
 
-    // The AI translation track (english spec 023), when the learner switched it
+    // The AI translation track, when the learner switched it
     // on: it takes the second line over any native track the site shipped.
     preferredSecondaryName?: string;
 

@@ -1,4 +1,4 @@
-// Content-script half of server-side subtitle translation (english spec 023):
+// Content-script half of server-side subtitle translation:
 // an AI track in the native language, filled part by part just ahead of
 // playback, so a film is paid for as it is watched rather than up front.
 
@@ -23,7 +23,7 @@ export interface AiHost {
     state: AppState;
     site: string;
     refresh(): void;
-    /** Repaint only the lines that changed (T067); refresh() when absent. */
+    /** Repaint only the lines that changed; refresh() when absent. */
     refreshLines?(): void;
     /** A message to the service worker. */
     send(msg: object): Promise<unknown>;
@@ -42,16 +42,16 @@ const SHORT_TRACK = 20;
 const AHEAD = 2;
 const IDLE_MS = 3000;
 // A 503 is retried on a timer only when the server says it passes soon, and
-// only a few times per part; otherwise the part waits for the viewer (T062).
+// only a few times per part; otherwise the part waits for the viewer.
 const MAX_RETRY_AFTER_MS = 60_000;
 const MAX_RETRIES = 3;
 
 export const AI_SUFFIX = ' · AI';
 
-// Every refusal, from the server or the track store, in one table (T064):
+// Every refusal, from the server or the track store, in one table:
 // the status the viewer sees, and what follows. 'stop' ends translation of
 // this video; 'wait' leaves the part until a viewer event (seek, new video,
-// return to Dual); 'retry' is the 503 rule of T062.
+// return to Dual); 'retry' follows the Retry-After rule above.
 type Refusal = PartCode | 'store_refused' | 'store_too_long' | 'store_auth' | 'store_network';
 const REFUSALS: Record<Exclude<Refusal, 'track_unknown'>, { status: AiStatus; then: 'stop' | 'wait' | 'retry' }> = {
     auth: { status: 'auth', then: 'stop' },
@@ -80,7 +80,7 @@ export class AiTranslator {
     private stored = false;
     private busy = false;
     private stopped = false;
-    // Outside Dual (T061): no new requests, the lines already in stay.
+    // Outside Dual: no new requests, the lines already in stay.
     private paused = false;
 
     constructor(
@@ -170,7 +170,7 @@ export class AiTranslator {
         return null;
     }
 
-    // An error stop is shown, never silent (T066): the viewer sees the status;
+    // An error stop is shown, never silent: the viewer sees the status;
     // the AI track and the lines already in it stay.
     private async tick(): Promise<void> {
         try {
@@ -206,7 +206,7 @@ export class AiTranslator {
         if (reply.ok) {
             const pending = reply.pending ?? [];
             this.fill(reply.from, reply.lines, reply.skipped ?? [], pending);
-            // A part not all ready (T068): its pending cues stay marked, and it
+            // A part not all ready: its pending cues stay marked, and it
             // is asked again on a viewer event, like a part unavailable now.
             if (pending.length) this.unavailable.add(p);
             else this.done.add(p);
@@ -230,7 +230,7 @@ export class AiTranslator {
         this.waitForViewer(p, from, to, status);
     }
 
-    // T062: retry a short Retry-After a few times; else the part waits for
+    // Retry a short Retry-After a few times; else the part waits for
     // the viewer (seek, new video, return to Dual), with no timer retry.
     private unavailableNow(p: number, from: number, to: number, retryAfterMs?: number): void {
         const n = this.retries.get(p) ?? 0;
@@ -305,7 +305,7 @@ export class AiTranslator {
         if (changed) this.refreshLines();
     }
 
-    // Lines changed, not the track list: the panel patches those rows only (T067).
+    // Lines changed, not the track list: the panel patches those rows only.
     private refreshLines(): void {
         if (this.host.refreshLines) this.host.refreshLines();
         else this.host.refresh();

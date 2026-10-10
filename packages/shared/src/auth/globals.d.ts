@@ -19,7 +19,7 @@ declare const __EXT_DEV_DEFAULT_TARGET__: string;
 // Named __EXT_*__ so assert-shippable's unsubstituted-define rule covers it.
 declare const __EXT_API_BASE_URL__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
-/** Subtitle limits shared with the backend (english spec 023, T058), from lingogram-limits.json. */
+/** Subtitle limits shared with the backend, from lingogram-limits.json. */
 declare const __LIMIT_SUBTITLE__: {
     SUBTITLE_LANGS: string[];
     SUBTITLE_SITES: string[];

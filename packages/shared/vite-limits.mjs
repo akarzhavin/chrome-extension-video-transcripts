@@ -63,8 +63,8 @@ const DEFAULTS = {
         // exactly the way /uninstall/ did.
         'site',
     ],
-    // Subtitle translation (english spec 023, T058); the backend refuses a
-    // track breaking them, so the extension leaves such cues out first.
+    // Subtitle translation; the backend refuses a track breaking them, so the
+    // extension leaves such cues out first.
     ...SUBTITLE_DEFAULTS,
 };
 

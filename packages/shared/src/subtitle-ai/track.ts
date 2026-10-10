@@ -1,5 +1,5 @@
 // The track the extension hands to the Lingogram backend for translation
-// (english repo, spec 023, contracts/firestore-subtitle-tracks.md).
+// (contracts/firestore-subtitle-tracks.md in the english repo).
 //
 // The backend refuses a whole track for one bad cue and never repairs one
 // (repairing would change the fingerprint), so every cue it would refuse is
@@ -8,8 +8,8 @@
 import type { Subtitle } from '../types';
 import { sha256 } from '../word-key';
 
-// From english/infrastructure/lingogram-limits.json, injected at build time
-// (T058); the backend holds the same numbers, and a drift shows up as `invalid_track`.
+// From english/infrastructure/lingogram-limits.json, injected at build time;
+// the backend holds the same numbers, and a drift shows up as `invalid_track`.
 const LIMITS = __LIMIT_SUBTITLE__;
 export const SUBTITLE_LANGS: readonly string[] = LIMITS.SUBTITLE_LANGS;
 export const SUBTITLE_SITES: readonly string[] = LIMITS.SUBTITLE_SITES;

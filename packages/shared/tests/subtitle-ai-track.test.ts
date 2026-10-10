@@ -1,6 +1,6 @@
 /**
- * Server-side subtitle translation (english repo, spec 023): the track the
- * extension stores and the fingerprint it is stored under.
+ * Server-side subtitle translation: the track the extension stores and the
+ * fingerprint it is stored under.
  *
  * The fingerprint is checked only against the golden vectors the Go backend
  * generated: if the two sides disagree by one byte, the backend discards the
@@ -23,7 +23,7 @@ interface Vector {
 
 // A copy of the backend's vectors (english repo,
 // services/dictionary-service/internal/subtrans/testdata/fingerprint-vectors.json),
-// so this suite never depends on another checkout's path (T063).
+// so this suite never depends on another checkout's path.
 const VECTORS_FILE = resolve(__dirname, 'fixtures/subtitle-fingerprint-vectors.json');
 
 function loadVectors(path: string): Vector[] {
@@ -52,7 +52,7 @@ describe('fingerprint', () => {
         expect(fingerprint(v.source_lang, cues)).toBe(v.fingerprint);
     });
 
-    // T055: the cleaned text is what is hashed, so cleaning is part of the contract.
+    // The cleaned text is what is hashed, so cleaning is part of the contract.
     test('raw site text cleans into the vector and its fingerprint', () => {
         const withRaw = VECTORS.filter((v) => v.raw);
         expect(withRaw.length).toBeGreaterThan(0);

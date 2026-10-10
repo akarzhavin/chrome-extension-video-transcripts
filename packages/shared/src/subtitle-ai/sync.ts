@@ -1,4 +1,4 @@
-// The AI translation switch, one for both editions (english spec 023), the way
+// The AI translation switch, one for both editions, the way
 // analytics-consent.ts keeps the stats choice: written here and passed to the
 // other edition; an edition installed later starts from the other one's "on".
 // Dev-only until it ships: every caller is behind the __EXT_ENV__ literal.

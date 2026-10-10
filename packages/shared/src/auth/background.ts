@@ -114,7 +114,7 @@ export function isAuthAction(action: unknown): action is AuthAction {
     if ((AUTH_ACTIONS as ReadonlySet<string>).has(action)) return true;
     // Dev actions are matched by prefix rather than by name, so no dev action
     // string appears in a prod bundle. Folds away entirely in prod builds.
-    // AI translation (english spec 023) is dev-only until it ships.
+    // AI translation is dev-only until it ships.
     return __EXT_ENV__ === 'dev' && (action.startsWith('DEV_') || action.startsWith('SUBTITLE_AI_'));
 }
 
@@ -535,7 +535,7 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
-// Server-side subtitle translation (english spec 023). Authed, so it runs here
+// Server-side subtitle translation. Authed, so it runs here
 // where the token lives; outcomes are values, never throws.
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
     if (!config.apiBaseUrl) return Promise.resolve({ ok: false, code: 'unavailable' });

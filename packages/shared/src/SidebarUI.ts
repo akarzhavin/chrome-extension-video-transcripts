@@ -635,7 +635,7 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
-        // AI translation (english spec 023) is dev-only until it ships; the release gate checks it.
+        // AI translation is dev-only until it ships; the release gate checks it.
         // Its switch is on the site's settings page; here only what it is doing.
         if (__EXT_ENV__ === 'dev') langGroup.appendChild(this.buildAiStatusRow());
         settingsPanel.appendChild(langGroup);
@@ -2230,7 +2230,7 @@ export class SidebarUI {
         const div = document.createElement('div');
         div.className = className;
         div.textContent = texts.join(' ');
-        // An AI line still being translated (spec 023); blank means not asked for yet.
+        // An AI line still being translated; blank means not asked for yet.
         if (!div.textContent.trim() && overlap.some(s => s.pending)) {
             div.classList.add('vtt-pending');
             div.textContent = '···';
@@ -2387,7 +2387,7 @@ export class SidebarUI {
         // rather than `disabled`: a disabled button fires no pointer events, so
         // its tooltip could never appear. The click handler enforces off.
         if (qmDualBtn) {
-            // The AI translation can supply the second line on demand (spec 023 T061).
+            // The AI translation can supply the second line on demand.
             const canDual = this.state.canPickDual();
             const hint = (!canDual && this.app.missingTrackHint?.()) || '';
             qmDualBtn.disabled = !canDual && !hint;
@@ -2574,7 +2574,7 @@ export class SidebarUI {
 
     /**
      * Re-reads every row's second line and patches only the rows whose line
-     * changed (english spec 023, T067). An AI part arriving touches its own
+     * changed. An AI part arriving touches its own
      * rows; the rest of the list — the current-line highlight, saved-phrase
      * marks, the scroll position — stays as it is. A list that no longer
      * matches the track is rebuilt instead.

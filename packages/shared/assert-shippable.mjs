@@ -95,7 +95,7 @@ export const DEBUG_TRACE_MARKERS = [
 ];
 
 /**
- * Strings only the AI translation of the second line (english spec 023) puts in
+ * Strings only the AI translation of the second line puts in
  * a bundle. Dev-only until it ships; assert-foldable.mjs checks each still
  * occurs in the source, so a rename cannot turn this rule into a no-op.
  * (Not `aiTranslate`: the prefs key stays, forced off. Not the ytAi* message

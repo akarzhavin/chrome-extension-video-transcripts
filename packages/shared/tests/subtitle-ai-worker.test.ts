@@ -1,6 +1,6 @@
 /**
- * The service-worker half of server-side subtitle translation (english repo,
- * spec 023): asking for translated parts and storing a track in Firestore.
+ * The service-worker half of server-side subtitle translation: asking for
+ * translated parts and storing a track in Firestore.
  * Every answer is a value, never a throw: a thrown "Firestore commit 403"
  * would match background.ts' isAuthFailure and sign the learner out.
  */
@@ -56,14 +56,14 @@ describe('requestPart', () => {
         expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2 });
     });
 
-    // T057: a line that failed the server's checks comes back in `skipped`.
+    // A line that failed the server's checks comes back in `skipped`.
     test('passes on the skipped cue indices, and only integers in the range', async () => {
         const d = deps([reply(200, { from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11, 99, 'x', 10.5], quota: {} })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 10, to: 13 }, d);
         expect(r).toEqual({ ok: true, from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11], pending: [] });
     });
 
-    // T068: cues whose part was not ready come back in `pending`.
+    // Cues whose part was not ready come back in `pending`.
     test('passes on the pending cue indices, and only integers in the range', async () => {
         const d = deps([reply(200, { from: 0, to: 4, lines: ['а', 'б', '', ''], skipped: [], pending: [2, 3, 7, 'x'], quota: {} })]);
         const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 4 }, d);
@@ -143,7 +143,7 @@ describe('storeTrack', () => {
         expect(Object.keys(f).sort()).toEqual(['cue_count', 'cues', 'duration_ms', 'expire_at', 'site', 'source_lang']);
         expect(f.cue_count).toEqual({ integerValue: '2' });
         expect(f.duration_ms).toEqual({ integerValue: '3000' });
-        expect(f.expire_at).toEqual({ timestampValue: new Date(Date.UTC(2026, 9, 23, 12)).toISOString() }); // 14 days (T053)
+        expect(f.expire_at).toEqual({ timestampValue: new Date(Date.UTC(2026, 9, 23, 12)).toISOString() }); // 14 days
         expect(f.cues.arrayValue.values[1]).toEqual({
             mapValue: { fields: { start_ms: { integerValue: '1000' }, end_ms: { integerValue: '3000' }, text: { stringValue: 'Bye.' } } },
         });
@@ -181,7 +181,7 @@ describe('storeTrack', () => {
         expect(await storeTrack(cfg, big, d)).toEqual({ ok: false, reason: 'too_long' });
         expect(d.calls).toHaveLength(0);
     });
-    // T071: the user id is one path segment, however odd.
+    // The user id is one path segment, however odd.
     test.each(['u/../../subtitle_tracks/x', 'u?mask=1', 'u#x'])('the user id %s stays one path segment', async (uid) => {
         const d = deps([reply(404, {}), reply(200, {})]);
         d.token = async () => ({ idToken: 'tok1', uid });

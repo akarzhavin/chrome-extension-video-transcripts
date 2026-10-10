@@ -190,7 +190,7 @@ describe('AiTranslator', () => {
         expect(ai.subtitles[1].pending).toBeFalsy();
     });
 
-    // T057: a line the server dropped is shown as a dash, the rest of the part as usual.
+    // A line the server dropped is shown as a dash, the rest of the part as usual.
     test('a line the server skipped reads as left out, not as still coming', async () => {
         const h = host([(m) => ({ ...lines(m), skipped: [3] })]);
         h.state.addTrack('English', cues(10));
@@ -220,8 +220,8 @@ describe('AiTranslator', () => {
         expect(h.statuses).toEqual(['unsupported']);
         expect(h.sent).toHaveLength(0);
     });
-    // T062: retry only what passes by itself; otherwise wait for the viewer.
-    describe('a part the server cannot translate now (T062)', () => {
+    // Retry only what passes by itself; otherwise wait for the viewer.
+    describe('a part the server cannot translate now', () => {
         const runTimers = async (h: ReturnType<typeof host>, rounds = 6) => {
             for (let i = 0; i < rounds; i++) {
                 for (const fn of h.timers.splice(0)) fn();
@@ -275,8 +275,8 @@ describe('AiTranslator', () => {
             expect(h.sent).toHaveLength(2);
         });
     });
-    // T064: each refusal reason has its own status and message.
-    describe('each refusal reason gets its own status (T064)', () => {
+    // Each refusal reason has its own status and message.
+    describe('each refusal reason gets its own status', () => {
         test('a network error while storing the track is not "limit"', async () => {
             const h = host([
                 () => ({ ok: false, code: 'track_unknown' }),
@@ -310,7 +310,7 @@ describe('AiTranslator', () => {
             expect(h.statuses[h.statuses.length - 1]).toBe('too_long');
         });
     });
-    // T066: a translation that stops on an error says so; the AI track stays.
+    // A translation that stops on an error says so; the AI track stays.
     test('an error stop shows the error status and keeps the AI track', async () => {
         const h = host([(m) => ({ ...lines(m), lines: null })]);
         h.state.addTrack('English', cues(10));
@@ -322,7 +322,7 @@ describe('AiTranslator', () => {
         expect(ai.subtitles.some((c) => c.pending)).toBe(false);
         expect(h.timers).toHaveLength(0);
     });
-    // T067: lines arriving repaint only the lines, never the whole panel.
+    // Lines arriving repaint only the lines, never the whole panel.
     test('a part arriving refreshes the lines only, not the whole panel', async () => {
         const h = host([lines]);
         let lineRefreshes = 0;

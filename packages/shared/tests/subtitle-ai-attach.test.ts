@@ -1,8 +1,8 @@
 /**
  * attachAiTranslation: the loaded tracks, the display mode, the language pair
  * and the dev switch decide when an AiTranslator runs and on which track.
- * It follows AppState's events (T059), not a poll, and translates only in
- * Dual and only without a native track from the site (T061).
+ * It follows AppState's events and translates only in Dual and only without
+ * a native track from the site.
  */
 
 import { AppState } from '../src/AppState';
@@ -61,7 +61,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
     };
 }
 
-describe('attachAiTranslation follows events (T059)', () => {
+describe('attachAiTranslation follows events', () => {
     test('a learning track arriving starts the translator at once, no poll', async () => {
         const s = setup();
         await settle();
@@ -123,7 +123,7 @@ describe('attachAiTranslation follows events (T059)', () => {
     });
 });
 
-describe('attachAiTranslation translates only in Dual, only without a native track (T061)', () => {
+describe('attachAiTranslation translates only in Dual, only without a native track', () => {
     test('no native track and Dual: it asks', async () => {
         const s = setup();
         await settle();
@@ -208,7 +208,7 @@ describe('attachAiTranslation translates only in Dual, only without a native tra
     });
 });
 
-describe('attachAiTranslation asks again on a seek (T062)', () => {
+describe('attachAiTranslation asks again on a seek', () => {
     test('a part the server could not translate is asked for again after a seek, not on a timer', async () => {
         let down = true;
         const s = setup({

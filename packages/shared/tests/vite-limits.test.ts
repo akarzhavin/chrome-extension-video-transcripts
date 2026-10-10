@@ -96,8 +96,8 @@ describeIfCanonical('DEFAULTS mirror lingogram-limits.json', () => {
         expect(fallback[key]).toBe(canonical[key]);
     });
 
-    // T058: the subtitle keys the extension reads (english spec 023); a
-    // canonical file from before spec 023 has none to compare.
+    // The subtitle keys the extension reads; an older canonical file has none
+    // to compare.
     (canonical.SUBTITLE_LANGS ? it.each : it.skip.each)([
         'SUBTITLE_LANGS',
         'SUBTITLE_SITES',

@@ -506,7 +506,7 @@ export abstract class BaseVttApp implements AppInterface {
         });
 
         // Server-side AI translation of the second line, while its switch is on.
-        // Dev-only until it ships (english spec 023).
+        // Dev-only until it ships.
         if (__EXT_ENV__ === 'dev') attachAiTranslation({
             state: this.state,
             site: platformOf(location.hostname),

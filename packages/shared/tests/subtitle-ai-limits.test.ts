@@ -1,7 +1,7 @@
 /**
- * T058 (english spec 023): the subtitle numbers the extension shares with the
- * backend come from infrastructure/lingogram-limits.json, injected at build
- * time as __LIMIT_SUBTITLE__, never hardcoded in track.ts or worker.ts.
+ * The subtitle numbers the extension shares with the backend come from
+ * infrastructure/lingogram-limits.json, injected at build time as
+ * __LIMIT_SUBTITLE__, never hardcoded in track.ts or worker.ts.
  */
 
 import { execFileSync } from 'node:child_process';

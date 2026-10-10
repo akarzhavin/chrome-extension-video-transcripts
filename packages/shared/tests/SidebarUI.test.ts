@@ -106,7 +106,7 @@ describe('SidebarUI', () => {
         expect(() => embedUi.destroy()).not.toThrow();
     });
 
-    // T067: an AI part arriving patches only the rows whose second line changed.
+    // An AI part arriving patches only the rows whose second line changed.
     test('a part arriving keeps untouched rows as the same nodes and the highlight on the current line', () => {
         const main: Subtitle[] = Array.from({ length: 6 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}` }));
         state.setLanguagePreferences('English', 'Russian');
@@ -136,7 +136,7 @@ describe('SidebarUI', () => {
         expect(state.currentIndex).toBe(1);
     });
 
-    // T068: a part the server could not have ready stays pending, shown as '···'.
+    // A part the server could not have ready stays pending, shown as '···'.
     test('lines of a part not ready yet stay pending and show ···', async () => {
         const main: Subtitle[] = Array.from({ length: 10 }, (_, i) => ({ startTime: i * 2, endTime: i * 2 + 1.5, text: `Line ${i}.` }));
         state.setLanguagePreferences('English', 'Russian');
@@ -3492,7 +3492,7 @@ describe('the transcript list', () => {
     const itemAt = (i: number): HTMLElement =>
         list().querySelector(`.vtt-item[data-index="${i}"]`) as HTMLElement;
 
-    // Spec 023: an AI line being translated shows a placeholder; one not asked
+    // An AI line being translated shows a placeholder; one not asked
     // for yet stays blank, so the two waits read differently.
     test('a pending AI line shows a placeholder, a line not yet asked for does not', () => {
         state.displayMode = 'dual';

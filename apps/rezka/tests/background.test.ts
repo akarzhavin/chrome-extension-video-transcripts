@@ -156,7 +156,7 @@ describe('message action registry', () => {
     });
 
     test('the AI translation actions pass only in a dev build, by prefix', () => {
-        // Named in the set, they would ship in the prod bundle (english spec 023).
+        // Named in the set, they would ship in the prod bundle.
         expect(AUTH_ACTIONS.has('SUBTITLE_AI_PART' as never)).toBe(false);
         expect(isAuthAction('SUBTITLE_AI_PART')).toBe(true);
         expect(isAuthAction('SUBTITLE_AI_STORE')).toBe(true);

@@ -2597,7 +2597,7 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     opacity: 0.55;
 }
 
-/* An AI translation on its way (spec 023): faint and breathing, unlike a
+/* An AI translation on its way: faint and breathing, unlike a
    blank line, which means its part has not been asked for yet. */
 .vtt-sub-text.vtt-pending,
 .vtt-overlay-sub.vtt-pending {

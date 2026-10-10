@@ -52,7 +52,7 @@ export interface SettingsSnapshot {
     analyticsEnabled: boolean;
     /** Sites the page highlight is switched off on (the popup's per-site switch). */
     highlightOffHosts: string[];
-    /** AI translation of the second line (english spec 023); dev builds only, so the page shows it only when present. */
+    /** AI translation of the second line; dev builds only, so the page shows it only when present. */
     aiTranslate?: boolean;
 }
 

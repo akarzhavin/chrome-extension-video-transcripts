@@ -1,9 +1,9 @@
 // Runs an AiTranslator on the loaded learning track, into the learner's native
-// language (english spec 023). It follows events, not a poll (T059): a new
-// video (reset) stops it at once, a learning track arriving starts it, a new
-// language pair restarts it. It translates only in Dual and only when the site
-// gives no native track (T061): leaving Dual pauses it, a native track arriving
-// stops it for good. The dev switch forces it over a native track.
+// language, driven by AppState's events: a new video (reset) stops it at once,
+// a learning track arriving starts it, a new language pair restarts it. It
+// translates only in Dual and only when the site gives no native track:
+// leaving Dual pauses it, a native track arriving stops it for good. The dev
+// switch forces it over a native track.
 
 import type { AppState, StateEvent } from '../AppState';
 import { labelForLanguage, type LanguagePrefs } from '../languages';
@@ -13,7 +13,7 @@ export interface AiApp {
     state: AppState;
     site: string;
     refresh(): void;
-    /** Repaint only the AI lines that changed (T067). */
+    /** Repaint only the AI lines that changed. */
     refreshLines?(): void;
     langPrefs(): LanguagePrefs | null;
     setStatus(s: AiStatus | null): void;
@@ -26,7 +26,7 @@ export interface AttachDeps {
     onForcedChange(cb: (on: boolean) => void): void;
     /** The language pair changed (HDrezka changes it without a reset). */
     onPairChange(cb: () => void): void;
-    /** The viewer seeked: a part the server could not translate is asked again (T062). */
+    /** The viewer seeked: a part the server could not translate is asked again. */
     onSeek(cb: () => void): void;
     later(fn: () => void, ms: number): void;
     currentTime(): number;

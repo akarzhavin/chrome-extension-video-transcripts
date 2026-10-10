@@ -112,7 +112,7 @@ export interface Prefs {
     // in this browser. Set by the per-site switch in the popup.
     highlightOffHosts: string[];
     // The second line from Lingogram's AI translation of the learning track
-    // (english spec 023) instead of the site's own native track. GLOBAL; off by default.
+    // instead of the site's own native track. GLOBAL; off by default.
     aiTranslate: boolean;
 }
 
