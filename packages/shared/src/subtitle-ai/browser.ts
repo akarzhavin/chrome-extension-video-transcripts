@@ -8,8 +8,9 @@ import type { AttachDeps } from './attach';
 export function browserAiDeps(): AttachDeps {
     return {
         send: (msg) => sendMessageGuarded(msg),
-        enabled: async () => (await loadPrefs()).aiTranslate,
-        onEnabledChange: (cb) => {
+        // The dev-only switch; prefs read it as false outside a dev build.
+        forced: async () => (await loadPrefs()).aiTranslate,
+        onForcedChange: (cb) => {
             let last: boolean | undefined;
             onPrefsChanged((p) => {
                 if (p.aiTranslate === last) return;

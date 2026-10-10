@@ -2385,10 +2385,12 @@ export class SidebarUI {
         // rather than `disabled`: a disabled button fires no pointer events, so
         // its tooltip could never appear. The click handler enforces off.
         if (qmDualBtn) {
-            const hint = (!hasMultiple && this.app.missingTrackHint?.()) || '';
-            qmDualBtn.disabled = !hasMultiple && !hint;
-            qmDualBtn.setAttribute?.('aria-disabled', String(!hasMultiple));
-            qmDualBtn.classList?.toggle('vtt-qm-blocked', !hasMultiple && !!hint);
+            // The AI translation can supply the second line on demand (spec 023 T061).
+            const canDual = this.state.canPickDual();
+            const hint = (!canDual && this.app.missingTrackHint?.()) || '';
+            qmDualBtn.disabled = !canDual && !hint;
+            qmDualBtn.setAttribute?.('aria-disabled', String(!canDual));
+            qmDualBtn.classList?.toggle('vtt-qm-blocked', !canDual && !!hint);
             if (qmDualBtn.dataset) {
                 // Keep the mode's own name at the top even when explaining why
                 // it's off — the tooltip still has to answer "what is this

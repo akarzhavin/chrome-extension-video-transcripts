@@ -2,10 +2,11 @@ import { LanguageChoice, Subtitle, Track } from './types';
 import { tokenizeForGuess, isMaskableToken } from './guess-tokenize';
 import { pairSecondaryToMain } from './track-pairing';
 
-/** What AppState tells its subscribers (english spec 023, T059). */
+/** What AppState tells its subscribers (english spec 023, T059/T061). */
 export type StateEvent =
     | { type: 'reset' }
-    | { type: 'track'; name: string };
+    | { type: 'track'; name: string }
+    | { type: 'mode'; mode: 'single' | 'dual' | 'guess' };
 
 export class AppState {
     tracks: Track[] = [];
@@ -26,10 +27,21 @@ export class AppState {
     languageCatalog?: LanguageChoice[];
     selectedLearningCode?: string;
     selectedNativeCode?: string;
-    displayMode: 'single' | 'dual' | 'guess' = 'dual';
+    private mode: 'single' | 'dual' | 'guess' = 'dual';
     private listeners = new Set<(e: StateEvent) => void>();
 
-    /** Calls fn on reset and on every track added; returns the unsubscribe. */
+    // An accessor, so the panel's direct assignments (prefs) notify too.
+    get displayMode(): 'single' | 'dual' | 'guess' {
+        return this.mode;
+    }
+
+    set displayMode(mode: 'single' | 'dual' | 'guess') {
+        if (mode === this.mode) return;
+        this.mode = mode;
+        this.emit({ type: 'mode', mode });
+    }
+
+    /** Calls fn on reset, on every track added and on a display-mode change; returns the unsubscribe. */
     subscribe(fn: (e: StateEvent) => void): () => void {
         this.listeners.add(fn);
         return () => this.listeners.delete(fn);
@@ -38,6 +50,10 @@ export class AppState {
     private emit(e: StateEvent): void {
         for (const fn of [...this.listeners]) fn(e);
     }
+
+    // The AI translation can supply the second line (english spec 023, T061):
+    // Dual stays selectable with one track, and picking it starts the translation.
+    secondLineOnDemand = false;
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;
@@ -233,6 +249,11 @@ export class AppState {
         return this.tracks.length > 1;
     }
 
+    /** Dual has a second line to show: a second track, or the AI translation on demand. */
+    canPickDual(): boolean {
+        return this.hasMultipleTracks() || this.secondLineOnDemand;
+    }
+
     swapTracks(): boolean {
         if (this.hasMultipleTracks()) {
             [this.activeTrackIndex, this.secondaryTrackIndex] = [this.secondaryTrackIndex, this.activeTrackIndex];
@@ -252,7 +273,7 @@ export class AppState {
      */
     setDisplayMode(mode: 'single' | 'dual' | 'guess'): boolean {
         if (mode === this.displayMode) return false;
-        if (mode === 'dual' && !this.hasMultipleTracks()) return false;
+        if (mode === 'dual' && !this.canPickDual()) return false;
         this.displayMode = mode;
         if (mode === 'guess') this.resetGuessState();
         return true;
@@ -263,7 +284,7 @@ export class AppState {
     // lands on dual (the translation came back), while leaving dual lands on
     // single (the translation went away).
     toggleDualMode(): boolean {
-        if (!this.hasMultipleTracks()) return false;
+        if (!this.canPickDual()) return false;
         return this.setDisplayMode(this.displayMode === 'dual' ? 'single' : 'dual');
     }
 
@@ -271,7 +292,7 @@ export class AppState {
         if (this.displayMode !== 'guess') return this.setDisplayMode('guess');
         // With one track "dual" is rejected, which would strand the shortcut
         // in guess mode — fall back to single there.
-        return this.setDisplayMode(this.hasMultipleTracks() ? 'dual' : 'single');
+        return this.setDisplayMode(this.canPickDual() ? 'dual' : 'single');
     }
 
     // How many maskable units the line holds. Must match how SidebarUI renders

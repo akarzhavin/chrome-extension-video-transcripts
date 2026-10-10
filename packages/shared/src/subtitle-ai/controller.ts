@@ -42,6 +42,8 @@ export class AiTranslator {
     private stored = false;
     private busy = false;
     private stopped = false;
+    // Outside Dual (T061): no new requests, the lines already in stay.
+    private paused = false;
 
     constructor(
         private host: AiHost,
@@ -78,6 +80,12 @@ export class AiTranslator {
         void this.tick();
     }
 
+    setPaused(paused: boolean): void {
+        if (paused === this.paused) return;
+        this.paused = paused;
+        if (!paused && this.track) void this.tick();
+    }
+
     stop(): void {
         this.stopped = true;
         const state = this.host.state;
@@ -109,7 +117,7 @@ export class AiTranslator {
     }
 
     private async tick(): Promise<void> {
-        if (this.stopped || this.busy) return;
+        if (this.stopped || this.busy || this.paused) return;
         const p = this.nextPart();
         if (p === null) {
             this.host.later(() => void this.tick(), IDLE_MS);

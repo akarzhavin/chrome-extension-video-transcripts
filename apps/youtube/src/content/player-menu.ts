@@ -485,8 +485,8 @@ class PlayerMenu {
         (Object.keys(this.modeBtns) as ModeKey[]).forEach((key) => {
             this.modeBtns[key].setAttribute('aria-checked', String(key === mode));
         });
-        // Dual needs a second track to have anything to show.
-        this.modeBtns.dual.disabled = !this.app.state.hasMultipleTracks();
+        // Dual needs a second line: a second track, or the AI translation on demand.
+        this.modeBtns.dual.disabled = !this.app.state.canPickDual();
 
         const collapsed = this.app.ui.isCollapsed();
         this.panelLabel.textContent = collapsed

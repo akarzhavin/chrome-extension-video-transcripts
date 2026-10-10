@@ -1,7 +1,8 @@
 /**
- * attachAiTranslation: the switch, the loaded tracks and the language pair
- * decide when an AiTranslator runs and on which track.
- * It follows AppState's events (T059), not a poll.
+ * attachAiTranslation: the loaded tracks, the display mode, the language pair
+ * and the dev switch decide when an AiTranslator runs and on which track.
+ * It follows AppState's events (T059), not a poll, and translates only in
+ * Dual and only without a native track from the site (T061).
  */
 
 import { AppState } from '../src/AppState';
@@ -19,11 +20,11 @@ const PAIR: LanguagePrefs = { learning: 'en', native: 'ru' } as LanguagePrefs;
 
 type Sent = { part: { fingerprint: string; from: number; to: number } };
 
-function setup(opts: { enabled?: boolean; prefs?: LanguagePrefs | null } = {}) {
+function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null } = {}) {
     const state = new AppState();
     state.setLanguagePreferences('English', 'Russian');
     let prefs = opts.prefs === undefined ? PAIR : opts.prefs;
-    let switchListener: (on: boolean) => void = () => {};
+    let forcedListener: (on: boolean) => void = () => {};
     let pairListener: () => void = () => {};
     const timers: (() => void)[] = [];
     const sent: Sent[] = [];
@@ -34,8 +35,8 @@ function setup(opts: { enabled?: boolean; prefs?: LanguagePrefs | null } = {}) {
             const p = (msg as Sent).part;
             return { ok: true, from: p.from, to: p.to, lines: Array.from({ length: p.to - p.from }, () => 'ru'), skipped: [] };
         },
-        enabled: async () => opts.enabled ?? true,
-        onEnabledChange: (cb) => { switchListener = cb; },
+        forced: async () => !!opts.forced,
+        onForcedChange: (cb) => { forcedListener = cb; },
         onPairChange: (cb) => { pairListener = cb; },
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
@@ -50,7 +51,7 @@ function setup(opts: { enabled?: boolean; prefs?: LanguagePrefs | null } = {}) {
             for (const fn of timers.splice(0)) fn();
             await settle();
         },
-        toggle: (on: boolean) => switchListener(on),
+        setForced: (on: boolean) => forcedListener(on),
         setPair: (p: LanguagePrefs | null) => { prefs = p; pairListener(); },
         aiNames: () => state.tracks.map((t) => t.name),
     };
@@ -118,20 +119,80 @@ describe('attachAiTranslation follows events (T059)', () => {
     });
 });
 
-
-describe('attachAiTranslation and its switch', () => {
-    test('switched off, nothing is asked; switching on starts it, off again removes it', async () => {
-        const s = setup({ enabled: false });
+describe('attachAiTranslation translates only in Dual, only without a native track (T061)', () => {
+    test('no native track and Dual: it asks', async () => {
+        const s = setup();
         await settle();
         s.state.addTrack('English', cues(10));
         await settle();
+        expect(s.state.displayMode).toBe('dual');
+        expect(s.sent).toHaveLength(1);
+    });
+
+    test('the site gives a native track: nothing is asked', async () => {
+        const s = setup();
+        await settle();
+        s.state.addTrack('Russian', cues(10, 'Ru'));
+        s.state.addTrack('English', cues(10));
+        await settle();
         expect(s.sent).toHaveLength(0);
-        s.toggle(true);
+        expect(s.aiNames()).toEqual(['Russian', 'English']);
+    });
+
+    test('Dual -> single pauses it; Dual stays selectable and resumes it', async () => {
+        const s = setup();
+        await settle();
+        s.state.addTrack('English', cues(300));
+        await settle();
+        const before = s.sent.length;
+        expect(s.state.setDisplayMode('single')).toBe(true);
+        s.seek(400);
+        await s.runTimers();
+        await s.runTimers();
+        expect(s.sent).toHaveLength(before); // paused: no new requests
+        expect(s.aiNames()).toEqual(['English', 'Russian · AI']); // what was filled stays
+        expect(s.state.setDisplayMode('dual')).toBe(true);
+        await settle();
+        expect(s.sent.length).toBeGreaterThan(before);
+    });
+
+    test('starting outside Dual with one track: Dual can be picked, and picking it starts the translator', async () => {
+        const s = setup();
+        await settle();
+        s.state.setDisplayMode('guess');
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.sent).toHaveLength(0);
+        expect(s.state.setDisplayMode('dual')).toBe(true);
         await settle();
         expect(s.sent).toHaveLength(1);
-        s.toggle(false);
-        expect(s.aiNames()).toEqual(['English']);
-        expect(s.statuses[s.statuses.length - 1]).toBeNull();
+    });
+
+    test('a native track arriving mid-way stops it for good: the site wins', async () => {
+        const s = setup();
+        await settle();
+        s.state.addTrack('English', cues(300));
+        await settle();
+        const before = s.sent.length;
+        s.state.addTrack('Russian', cues(300, 'Ru'));
+        await settle();
+        expect(s.aiNames()).toEqual(['English', 'Russian']);
+        s.seek(400);
+        await s.runTimers();
+        await s.runTimers();
+        expect(s.sent).toHaveLength(before);
+    });
+
+    test('the dev switch forces it even over a native track', async () => {
+        const s = setup({ forced: true });
+        await settle();
+        s.state.addTrack('Russian', cues(10, 'Ru'));
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.sent).toHaveLength(1);
+        s.setForced(false);
+        await settle();
+        expect(s.aiNames()).toEqual(['Russian', 'English']);
     });
 
     test('no language pair chosen: nothing to translate into', async () => {

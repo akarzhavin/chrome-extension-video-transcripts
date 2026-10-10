@@ -53,10 +53,11 @@ translate.google.com when you import your saved phrases (Section 1h).
   one website in the toolbar popup (Section 1b). Resting the pointer
   on a marked word shows its translation, and only that word is sent to look it up;
   a marked phrase of more than one word goes to Google Translate first (Section 1e).
-* **AI translation of the second line is off until you switch it on.** If you
-  switch it on while signed in, the subtitle track of the video you watch is sent
-  to us and translated by **OpenAI**. The stored track and its translation carry
-  no account ID and serve everyone who watches the same subtitles (Section 1i).
+* **AI translation of the second line runs only when the site has none in your
+  language.** Then, while you are signed in and in the "Dual" mode, the
+  subtitle track of the video you watch is sent to us and translated by
+  **OpenAI**. The stored track and its translation carry no account ID and serve
+  everyone who watches the same subtitles (Section 1i).
 * We do **not** sell your data, show ads, run advertising trackers, build
   advertising profiles, or track your browsing history.
 
@@ -128,8 +129,8 @@ collect and process:
   many subtitle tracks had loaded. Reports
   are sent only while you are signed in, are capped at one per account per day, and
   are used solely to investigate the failure.
-* **AI translation**, only if you switch it on — see Section 1i: the subtitle track
-  of the video, stored without your user ID, and a daily write counter under it.
+* **AI translation**, only when the site has no subtitles in your language — see
+  Section 1i: the subtitle track of the video, stored without your user ID, and a daily write counter under it.
 * **Feedback** you send while signed in carries your user ID so we can reply — see
   Section 1g, which also covers feedback sent without an account.
 
@@ -149,8 +150,8 @@ the session needs renewing, so it can tell you to sign in again.
 We do **not** collect: your browsing history, the videos you watch or the pages you
 read (beyond the subtitle text you explicitly save, the paragraph around a word you
 save from the right-click menu, the subtitle lines accompanying a word you look
-up as described in Section 1e, the subtitle track of a video you switched AI
-translation on for as described in Section 1i, the site name attached to a feedback message you
+up as described in Section 1e, the subtitle track of a video AI
+translation ran on as described in Section 1i, the site name attached to a feedback message you
 send, and the single video address included in a
 diagnostic report you explicitly trigger; the analytics in Section 1c record only a coarse platform label
 such as `rezka`, never a video or a URL), IP-based location
@@ -416,7 +417,7 @@ address names the Extension so it can reach it.
 with its own message type and the same check of who is asking. To show its
 switches, it asks the Extension for your settings: your two languages, the
 languages on offer, whether each video site, the highlighting of your words and
-the usage stats (Section 1c) and the AI translation (Section 1i) are on, the list
+the usage stats (Section 1c) are on, the list
 of websites where you switched the
 marking of your words off (Section 1b), whether you are signed in (a yes or no, not
 your email address), and the Extension's version and edition. When you change a
@@ -485,16 +486,16 @@ back.
 
 ### i. AI translation of the second subtitle line
 
-**Off until you switch it on.** The Extension's settings page on our website
-(Section 1f) has a switch, **"AI translation of the second line"**; the sidebar shows
-what the translation is doing. It works only while you are signed in;
-without an account nothing is sent. While it is on, the Extension asks our server
-to translate the subtitle track in the language you are learning into your native
-language, and shows the result as the second line, in place of the site's own
-track in your language if it has one. Turning the switch off stops it at once.
-If both Lingogram editions are installed, switching it in one does the same in the
-other, inside your browser, and an edition installed later starts with it on if it
-is on in the other.
+**Only when the site has no subtitles in your language.** There is no switch: AI
+translation starts by itself, and only while you are signed in, the sidebar is in
+**"Dual"** mode (both lines), and the video site offers subtitles in the language you
+are learning but none in your native language; without an account nothing is
+sent. The Extension then asks our server to translate the subtitle track in the
+language you are learning into your native language and shows the result as the
+second line; the sidebar shows what the translation is doing. Choosing another
+mode pauses it (lines already translated stay) and choosing "Dual" again
+resumes it. If the site's own subtitles in your language appear, they are shown
+instead and nothing more is sent for that video.
 
 **What is sent.** For the video you are watching, the Extension takes the subtitle
 track in the language you are learning: the text of each line and its start and
@@ -552,7 +553,7 @@ alerted through Telegram with the check's name, the two languages and the sample
 number, never the text. Samples are deleted after 14 days (Section 6).
 
 AI translation adds no analytics events (Section 1c). The **"Share anonymous usage
-stats"** switch does not stop it; the AI translation switch does.
+stats"** switch does not stop it; a mode other than "Dual" pauses it.
 
 ## 2. How We Use Your Information
 
@@ -566,8 +567,8 @@ We use the information above **only** to:
 * enforce a reasonable daily limit on saved words to prevent abuse;
 * answer the word lookups you make (Section 1e), through our dictionary service and
   the providers it uses (kaikki.org and OpenAI) and, for phrases, Google Translate;
-* translate the subtitle track of a video into your language when you switch AI
-  translation on (Section 1i), through OpenAI, and keep each account within its
+* translate the subtitle track of a video into your language when the site has
+  none (Section 1i), through OpenAI, and keep each account within its
   daily limit;
 * investigate the subtitle-loading failures you explicitly report via the
   **"Reload page"** button, so we can fix them;
@@ -588,8 +589,7 @@ The Extension uses your browser's extension storage (`chrome.storage`) to keep, 
 your device only:
 
 * your language and subtitle layout preferences, whether your saved words are
-  marked on web pages, whether AI translation of the second line is on (Section
-  1i), and which video sites the Extension is switched on for;
+  marked on web pages, and which video sites the Extension is switched on for;
 * the **list of websites** (host names only, such as `en.wikipedia.org`) where you
   switched the marking of your saved words off from the toolbar popup. It is never
   sent to our servers; it is shown to the settings page of our website and shared
@@ -702,8 +702,8 @@ infrastructure and analytics providers described in Section 4; Google Translate,
 which receives the text of a phrase you select or point at (Section 1e); kaikki.org,
 which our dictionary service asks about a looked-up word, and OpenAI, which it asks
 about a word or phrase with its subtitle lines when the dictionary has no entry
-(Section 1e), and with the subtitle text of a track you switched AI translation on
-for (Section 1i); Telegram, which carries the developer's alerts (Section 1i); or
+(Section 1e), and with the subtitle text of a track AI translation ran on
+(Section 1i); Telegram, which carries the developer's alerts (Section 1i); or
 where required by law. None of them receives your name or email from us, and only
 that Telegram alert ever carries an account identifier. We do not use your data for advertising.
 
