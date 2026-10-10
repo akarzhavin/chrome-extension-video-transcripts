@@ -58,7 +58,7 @@ test('worker.ts takes the daily write count from the injected limits', async () 
     const deps = {
         fetch: async (url: string) => {
             calls.push(url);
-            return { ok: true, status: 200, json: async () => ({ fields: { day: { integerValue: '20261009' }, day_count: { integerValue: '2' } } }) } as unknown as Response;
+            return { ok: true, status: 200, json: async () => ({ fields: { dayBucket: { integerValue: '20261009' }, dailyCount: { integerValue: '2' } } }) } as unknown as Response;
         },
         token: async () => ({ idToken: 't', uid: 'u1' }),
         now: () => Date.UTC(2026, 9, 9, 12),

@@ -230,7 +230,7 @@ describe('the AI translation markers', () => {
         const { code, output } = runGate(dir);
 
         expect(code).toBe(1);
-        expect(output).toMatch(/AI_TRANSLATE_MARKERS lists names the source no longer uses: write_limits/);
+        expect(output).toMatch(/AI_TRANSLATE_MARKERS lists names the source no longer uses: subtitle_write_limits/);
     });
 });
 

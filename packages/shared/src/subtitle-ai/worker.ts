@@ -130,8 +130,8 @@ function approxDocBytes(cues: WireCue[]): number {
 }
 
 /**
- * Creates subtitle_tracks/{fingerprint} and advances write_limits/{uid} in one
- * commit, as the rules require. Any refusal — exists, too soon, over the day —
+ * Creates subtitle_tracks/{fingerprint} and advances subtitle_write_limits/{uid}
+ * in one commit, as the rules require. Any refusal — exists, too soon, over the day —
  * looks the same: the caller asks the backend once more.
  */
 export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: WorkerDeps): Promise<StoreReply> {
@@ -147,7 +147,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
     }
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.idToken}` };
     // The id comes from the user's own token, but goes into a path: one segment, always.
-    const limits = `${docs}/write_limits/${encodeURIComponent(auth.uid)}`;
+    const limits = `${docs}/subtitle_write_limits/${encodeURIComponent(auth.uid)}`;
     const now = deps.now();
     const today = dayBucket(now);
     try {
@@ -155,7 +155,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
         let count = 1;
         if (cur.ok) {
             const f = ((await body(cur)).fields ?? {}) as Record<string, { integerValue?: string }>;
-            if (Number(f.day?.integerValue) === today) count = Number(f.day_count?.integerValue ?? 0) + 1;
+            if (Number(f.dayBucket?.integerValue) === today) count = Number(f.dailyCount?.integerValue ?? 0) + 1;
         } else if (cur.status !== 404) {
             return { ok: false, reason: 'refused' };
         }
@@ -163,8 +163,8 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
 
         const writes = [
             {
-                update: { name: limits, fields: { day: int(today), day_count: int(count) } },
-                updateTransforms: [{ fieldPath: 'last_at', setToServerValue: 'REQUEST_TIME' }],
+                update: { name: limits, fields: { dayBucket: int(today), dailyCount: int(count) } },
+                updateTransforms: [{ fieldPath: 'lastWriteAt', setToServerValue: 'REQUEST_TIME' }],
             },
             {
                 update: {

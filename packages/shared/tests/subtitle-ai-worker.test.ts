@@ -71,7 +71,7 @@ describe('requestPart', () => {
     });
 
     // The id lands in a URL path: anything but the 64-hex fingerprint is refused before any request.
-    test.each(['../write_limits/u1', 'A'.repeat(64), 'a'.repeat(63), 'a'.repeat(64) + '?x=1'])(
+    test.each(['../subtitle_write_limits/u1', 'A'.repeat(64), 'a'.repeat(63), 'a'.repeat(64) + '?x=1'])(
         'a malformed track id %s is invalid, with no request', async (fp) => {
             const d = deps([]);
             expect(await requestPart(cfg, { fingerprint: fp, lang: 'ru', from: 0, to: 2 }, d)).toEqual({ ok: false, code: 'invalid' });
@@ -123,18 +123,18 @@ const track = {
 
 describe('storeTrack', () => {
     const limitsDoc = (day: number, count: number) =>
-        reply(200, { fields: { day: { integerValue: String(day) }, day_count: { integerValue: String(count) } } });
+        reply(200, { fields: { dayBucket: { integerValue: String(day) }, dailyCount: { integerValue: String(count) } } });
 
     test('one commit: the counter advanced and the track created, never overwritten', async () => {
         const d = deps([limitsDoc(20261009, 3), reply(200, {})]);
         expect(await storeTrack(cfg, track, d)).toEqual({ ok: true });
 
-        expect(d.calls[0].url).toBe('https://fs.test/v1/projects/proj/databases/(default)/documents/write_limits/u1');
+        expect(d.calls[0].url).toBe('https://fs.test/v1/projects/proj/databases/(default)/documents/subtitle_write_limits/u1');
         const { writes } = JSON.parse(d.calls[1].init.body as string);
         const base = 'projects/proj/databases/(default)/documents';
-        expect(writes[0].update.name).toBe(`${base}/write_limits/u1`);
-        expect(writes[0].update.fields).toEqual({ day: { integerValue: '20261009' }, day_count: { integerValue: '4' } });
-        expect(writes[0].updateTransforms).toEqual([{ fieldPath: 'last_at', setToServerValue: 'REQUEST_TIME' }]);
+        expect(writes[0].update.name).toBe(`${base}/subtitle_write_limits/u1`);
+        expect(writes[0].update.fields).toEqual({ dayBucket: { integerValue: '20261009' }, dailyCount: { integerValue: '4' } });
+        expect(writes[0].updateTransforms).toEqual([{ fieldPath: 'lastWriteAt', setToServerValue: 'REQUEST_TIME' }]);
 
         expect(writes[1].update.name).toBe(`${base}/subtitle_tracks/${FP}`);
         expect(writes[1].currentDocument).toEqual({ exists: false });
@@ -153,7 +153,7 @@ describe('storeTrack', () => {
         for (const first of [limitsDoc(20261008, 30), reply(404, {})]) {
             const d = deps([first, reply(200, {})]);
             expect(await storeTrack(cfg, track, d)).toEqual({ ok: true });
-            expect(JSON.parse(d.calls[1].init.body as string).writes[0].update.fields.day_count).toEqual({ integerValue: '1' });
+            expect(JSON.parse(d.calls[1].init.body as string).writes[0].update.fields.dailyCount).toEqual({ integerValue: '1' });
         }
     });
 
@@ -171,7 +171,7 @@ describe('storeTrack', () => {
     // The id lands in a Firestore document path: only the 64-hex fingerprint is stored.
     test('a malformed track id is refused, with no request', async () => {
         const d = deps([]);
-        expect(await storeTrack(cfg, { ...track, fingerprint: '../write_limits/u2' }, d)).toEqual({ ok: false, reason: 'refused' });
+        expect(await storeTrack(cfg, { ...track, fingerprint: '../subtitle_write_limits/u2' }, d)).toEqual({ ok: false, reason: 'refused' });
         expect(d.calls).toHaveLength(0);
     });
 
@@ -191,8 +191,8 @@ describe('storeTrack', () => {
         expect(url.search).toBe('');
         expect(url.hash).toBe('');
         expect(url.pathname.split('/').pop()).toBe(enc);
-        expect(url.pathname.endsWith(`/documents/write_limits/${enc}`)).toBe(true);
+        expect(url.pathname.endsWith(`/documents/subtitle_write_limits/${enc}`)).toBe(true);
         const { writes } = JSON.parse(d.calls[1].init.body as string);
-        expect(writes[0].update.name).toBe(`projects/proj/databases/(default)/documents/write_limits/${enc}`);
+        expect(writes[0].update.name).toBe(`projects/proj/databases/(default)/documents/subtitle_write_limits/${enc}`);
     });
 });
