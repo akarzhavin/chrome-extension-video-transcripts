@@ -193,6 +193,17 @@ describe('sidebar badge', () => {
         expect(top.querySelector('#vtt-ai-badge')).toBeNull();
     });
 
+    test('the badge ships its CSS in styles.css, not as an injected style', () => {
+        const css = require('fs').readFileSync(require('path').join(__dirname, '../../../apps/rezka/src/assets/styles.css'), 'utf8') as string;
+        mountAIBadge(header());
+        expect(document.querySelector('style')).toBeNull();
+        expect(css).toContain('#vtt-ai-badge');
+        expect(css).toContain('#vtt-ai-panel');
+        expect(css).toContain('#vtt-ai-warn');
+        expect(css).not.toMatch(/#vtt-ai-badge\s*\{[^}]*!important/);
+        expect(css).not.toMatch(/vtt-lookup-open #vtt-ai-badge\s*\{[^}]*!important/);
+    });
+
     test('a click opens the bars with the swap the chip was', async () => {
         const top = header();
         const swapped = jest.fn();

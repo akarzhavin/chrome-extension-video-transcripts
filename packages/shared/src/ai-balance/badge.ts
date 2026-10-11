@@ -9,52 +9,9 @@ import { formatTokens, limitText, tokensLeft } from './format';
 import { loadBalance, onBalance } from './store';
 import type { AIBalance } from './types';
 import { takeWarning } from './warn';
+import { showWarningNote } from './warning-note';
 
-const STYLE_ID = 'vtt-ai-badge-style';
 const ON = 'vtt-ai-on';
-const WARN_MS = 8000;
-
-const CSS = `
-#vtt-header-top.${ON} #vtt-langpair { display: none; }
-#vtt-ai-badge { position: absolute; left: 16px; display: none; -webkit-user-select: none; user-select: none; }
-#vtt-header-top.${ON} #vtt-ai-badge { display: flex; }
-#vtt-ai-badge button {
-    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
-    background: rgba(124, 90, 255, 0.16); border: 1px solid rgba(124, 90, 255, 0.32);
-    color: #e3e5ff; font: 600 12px/1.2 inherit; cursor: pointer;
-}
-#vtt-ai-badge button:hover { background: rgba(124, 90, 255, 0.28); }
-#vtt-ai-badge.vtt-ai-out button { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); }
-#vtt-ai-panel {
-    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: 240px; padding: 12px;
-    border-radius: 12px; background: #1f2230; border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); color: #e8e9f3; font-size: 12px;
-}
-#vtt-ai-panel .lg-ai-row { margin-bottom: 10px; }
-#vtt-ai-panel .lg-ai-head { display: flex; justify-content: space-between; font-weight: 600; }
-#vtt-ai-panel .lg-ai-track { height: 6px; margin: 5px 0 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
-#vtt-ai-panel .lg-ai-fill { height: 100%; border-radius: 3px; background: #8b7bff; }
-#vtt-ai-panel .lg-ai-fill.lg-ai-high { background: #f2b488; }
-#vtt-ai-panel .lg-ai-fill.lg-ai-full { background: #f87171; }
-#vtt-ai-panel .lg-ai-reset, #vtt-ai-panel .lg-ai-note { opacity: 0.7; }
-#vtt-ai-panel .lg-ai-note { margin-bottom: 8px; }
-#vtt-ai-panel .vtt-ai-swap {
-    width: 100%; margin-top: 2px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
-    background: transparent; border: 1px solid rgba(255, 255, 255, 0.18); color: inherit; font: inherit;
-}
-#vtt-ai-warn {
-    margin: 6px 16px 0; padding: 6px 10px; border-radius: 8px; font-size: 12px;
-    background: rgba(242, 180, 136, 0.16); border: 1px solid rgba(242, 180, 136, 0.4); color: #f7d9c2;
-}
-`;
-
-function ensureStyle(doc: Document): void {
-    if (doc.getElementById(STYLE_ID)) return;
-    const style = doc.createElement('style');
-    style.id = STYLE_ID;
-    style.textContent = CSS;
-    (doc.head ?? doc.documentElement).appendChild(style);
-}
 
 /** Asks the worker for the balance once, as the sidebar opens; answered by a storage write. */
 function requestRefresh(): void {
@@ -68,7 +25,6 @@ function requestRefresh(): void {
 /** Mounts the badge into the sidebar header; returns the unmount. */
 export function mountAIBadge(headerTop: HTMLElement): () => void {
     const doc = headerTop.ownerDocument;
-    ensureStyle(doc);
     const badge = doc.createElement('div');
     badge.id = 'vtt-ai-badge';
     const button = doc.createElement('button');
@@ -134,7 +90,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
             close();
             open();
         }
-        void takeWarning(b).then((w) => w && warn(headerTop, w));
+        void takeWarning(b).then((w) => w && showWarningNote(headerTop, w));
     };
 
     void loadBalance().then(show);
@@ -147,18 +103,4 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         badge.remove();
         headerTop.classList.remove(ON);
     };
-}
-
-function warn(headerTop: HTMLElement, window: 'day' | 'month'): void {
-    const doc = headerTop.ownerDocument;
-    doc.getElementById('vtt-ai-warn')?.remove();
-    const note = doc.createElement('div');
-    note.id = 'vtt-ai-warn';
-    note.setAttribute('role', 'status');
-    note.textContent =
-        window === 'month'
-            ? msg('aiWarnMonth', 'AI is almost used up for this month')
-            : msg('aiWarnDay', 'AI is almost used up for today');
-    headerTop.after(note);
-    setTimeout(() => note.remove(), WARN_MS);
 }
