@@ -4,6 +4,12 @@
 
 import { parseBalance, type AIBalance } from './types';
 import { saveBalance } from './store';
+import { getAuthState } from '../auth/storage';
+
+// A sign-out during the call already cleared the balance; it must not come back.
+async function saveIfSignedIn(b: AIBalance): Promise<void> {
+    if (await getAuthState()) await saveBalance(b);
+}
 
 export interface BalanceDeps {
     fetch: (url: string, init: RequestInit) => Promise<Response>;
@@ -24,7 +30,7 @@ export async function refreshBalance(baseUrl: string, deps: BalanceDeps): Promis
         if (res.status === 401) res = await ask(true);
         if (!res.ok) return null;
         const b = parseBalance(await res.json());
-        if (b) await saveBalance(b);
+        if (b) await saveIfSignedIn(b);
         return b;
     } catch {
         return null;
@@ -34,5 +40,5 @@ export async function refreshBalance(baseUrl: string, deps: BalanceDeps): Promis
 /** Keeps a balance an AI answer carried; a missing or malformed one is ignored. */
 export async function keepBalance(raw: unknown): Promise<void> {
     const b = parseBalance(raw);
-    if (b) await saveBalance(b);
+    if (b) await saveIfSignedIn(b);
 }

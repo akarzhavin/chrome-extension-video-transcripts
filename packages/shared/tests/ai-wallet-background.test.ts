@@ -160,6 +160,7 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         handleAuthMessage({ action: 'SUBTITLE_AI_PART', part: { fingerprint: FP, lang: 'ru', from: 0, to: 1 } }) as Promise<any>;
 
     test('a translated part carries the balance into storage', async () => {
+        await signIn();
         fetchMock().mockResolvedValue(json({ from: 0, to: 1, lines: ['x'], wallet: wallet(5) }));
         const reply = await part();
         expect(reply.ok).toBe(true);
@@ -168,6 +169,7 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
     });
 
     test('a spent wallet (429) still carries the balance and the window', async () => {
+        await signIn();
         fetchMock().mockResolvedValue(json({ code: 'quota_exceeded', resets_at: 123, window: 'month', wallet: wallet(10_000_000) }, 429));
         const reply = await part();
         expect(reply).toMatchObject({ ok: false, code: 'quota', resetsAt: 123, window: 'month' });

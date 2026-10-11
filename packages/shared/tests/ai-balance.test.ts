@@ -54,6 +54,7 @@ const wire = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = n
 const balance = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = null): AIBalance =>
     parseBalance(wire(dayUsed, monthUsed, exhausted), 1)!;
 const flush = () => new Promise((r) => setTimeout(r, 0));
+const signIn = () => Object.assign(store, { 'auth.idToken': 'tok', 'auth.uid': 'u1' });
 
 beforeEach(() => {
     for (const k of Object.keys(store)) delete store[k];
@@ -112,6 +113,7 @@ describe('store', () => {
     });
 
     test('keepBalance ignores what is not a balance', async () => {
+        signIn();
         await keepBalance({ nope: 1 });
         expect(store[BALANCE_KEY]).toBeUndefined();
         await keepBalance(wire(9));
@@ -215,6 +217,7 @@ describe('sidebar badge', () => {
 
 describe('refreshBalance', () => {
     test('retries a 401 with a fresh token and keeps the answer', async () => {
+        signIn();
         const fetch = jest
             .fn()
             .mockResolvedValueOnce({ ok: false, status: 401 })
@@ -438,6 +441,14 @@ describe('rules a broken line would slip past', () => {
         expect(fill(500_000)).toContain('lg-ai-full');
         expect(fill(400_000)).toContain('lg-ai-high');
         expect(fill(100_000)).toBe('lg-ai-fill');
+    });
+
+    test('a sign-out during the call keeps the balance gone', async () => {
+        // Signed out while the answer was on its way: clearAuthState already ran.
+        await keepBalance(wire(9));
+        const fetch = jest.fn(async () => ({ ok: true, status: 200, json: async () => wire(42) }));
+        await refreshBalance('https://api.example', { fetch, token: async () => ({ idToken: 't' }) } as never);
+        expect(store[BALANCE_KEY]).toBeUndefined();
     });
 
     test('an unknown exhausted value reads as not exhausted', () => {
