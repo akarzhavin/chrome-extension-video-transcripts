@@ -29,7 +29,8 @@ const removed: string[][] = [];
                 Object.assign(store, items);
                 return Promise.resolve();
             }),
-            remove: jest.fn((keys: string[]) => {
+            remove: jest.fn((key: string | string[]) => {
+                const keys = Array.isArray(key) ? key : [key];
                 removed.push(keys);
                 keys.forEach((k) => delete store[k]);
                 return Promise.resolve();
@@ -74,8 +75,8 @@ describe('signing out', () => {
         // see the file header for the two keys that must never appear here.
         await signedIn();
         await clearAuthState();
-        expect(removed).toHaveLength(1);
-        expect([...removed[0]].sort()).toEqual(
+        
+        expect(removed.flat().sort()).toEqual(
             ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
         );
     });

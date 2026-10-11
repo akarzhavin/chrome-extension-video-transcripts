@@ -38,7 +38,7 @@ jest.mock('../src/analytics-bg', () => ({
 
 import { handleAuthMessage } from '../src/auth/background';
 import { setAuthState } from '../src/auth/storage';
-import { BALANCE_KEY } from '../src/ai-balance/store';
+
 import { clearLookupCache } from '../src/lookup';
 
 const FP = 'a'.repeat(64);
@@ -60,6 +60,7 @@ const json = (body: unknown, status = 200) =>
     ({ ok: status >= 200 && status < 300, status, json: async () => body, headers: new Headers() }) as unknown as Response;
 const fetchMock = () => (global as any).fetch as jest.Mock;
 const headersOf = (call: number) => (fetchMock().mock.calls[call][1] as RequestInit).headers as Record<string, string>;
+const BALANCE_KEY = 'ai.balance';
 const storedUsed = () => (store[BALANCE_KEY] as { day: { used: number } } | undefined)?.day.used;
 
 const signIn = () =>

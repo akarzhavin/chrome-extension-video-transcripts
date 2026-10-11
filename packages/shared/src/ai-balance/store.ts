@@ -3,8 +3,9 @@
 // reaches all open tabs without the worker messaging each.
 
 import { parseBalance, type AIBalance } from './types';
+import { clearWarned } from './warn';
 
-export const BALANCE_KEY = 'ai.balance';
+const BALANCE_KEY = 'ai.balance';
 
 export async function saveBalance(b: AIBalance): Promise<void> {
     await chrome.storage.local.set({ [BALANCE_KEY]: b });
@@ -20,9 +21,10 @@ export async function loadBalance(): Promise<AIBalance | null> {
     }
 }
 
-/** Dropped with the credentials: it is this account's budget. */
-export async function clearBalance(): Promise<void> {
+/** Dropped with the credentials: the balance and the warned marks are this account's. */
+export async function clearAccountAI(): Promise<void> {
     await chrome.storage.local.remove(BALANCE_KEY);
+    await clearWarned();
 }
 
 /** Calls back on every change of the stored balance; returns the unsubscribe. */

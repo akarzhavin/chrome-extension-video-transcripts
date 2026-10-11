@@ -4,7 +4,12 @@
 import { isHigh } from './format';
 import type { AIBalance } from './types';
 
-export const WARNED_KEYS = { day: 'ai.warned.day', month: 'ai.warned.month' } as const;
+const WARNED_KEYS = { day: 'ai.warned.day', month: 'ai.warned.month' } as const;
+
+/** Warned marks belong to the account: the next one must be warned. */
+export async function clearWarned(): Promise<void> {
+    await chrome.storage.local.remove([WARNED_KEYS.day, WARNED_KEYS.month]);
+}
 
 /** The window's identity, from the UTC day before its reset: YYYYMMDD or YYYYMM. */
 export function windowKey(window: 'day' | 'month', b: AIBalance): string {

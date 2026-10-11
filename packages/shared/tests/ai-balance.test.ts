@@ -36,13 +36,14 @@ const sendMessage = jest.fn();
 
 import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
 import { formatTokens, limitText, localDate, localTime, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
-import { BALANCE_KEY, clearBalance, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
+import { clearAccountAI, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
 import { takeWarning, windowKey } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
 import { aiNoticeHtml, emptyNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
 import { mountAIBadge } from '../src/ai-balance/badge';
 import { keepBalance, refreshBalance } from '../src/ai-balance/fetch';
 
+const BALANCE_KEY = 'ai.balance';
 const DAY_RESET = Date.UTC(2026, 9, 12);
 const MONTH_RESET = Date.UTC(2026, 10, 1);
 const wire = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = null) => ({
@@ -113,7 +114,7 @@ describe('store', () => {
         const off = onBalance((b) => seen.push(b));
         await saveBalance(balance(5));
         expect((await loadBalance())?.day.used).toBe(5);
-        await clearBalance();
+        await clearAccountAI();
         expect(await loadBalance()).toBeNull();
         off();
         await saveBalance(balance(6));
@@ -126,6 +127,16 @@ describe('store', () => {
         expect(store[BALANCE_KEY]).toBeUndefined();
         await keepBalance(wire(9));
         expect((await loadBalance())?.day.used).toBe(9);
+    });
+});
+
+describe('clearAccountAI', () => {
+    test('drops the balance and the warned marks, so the next account is warned again', async () => {
+        await saveBalance(balance(450_000));
+        expect(await takeWarning(balance(450_000))).toBe('day');
+        await clearAccountAI();
+        expect(await loadBalance()).toBeNull();
+        expect(await takeWarning(balance(450_000))).toBe('day');
     });
 });
 
@@ -187,7 +198,7 @@ describe('sidebar badge', () => {
         await saveBalance(balance(310_000));
         expect(top.classList.contains('vtt-ai-on')).toBe(true);
         expect(top.querySelector('#vtt-ai-badge button')!.textContent).toBe('AI 190k');
-        await clearBalance();
+        await clearAccountAI();
         expect(top.classList.contains('vtt-ai-on')).toBe(false);
         unmount();
         expect(top.querySelector('#vtt-ai-badge')).toBeNull();
