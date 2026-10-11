@@ -22,8 +22,9 @@ import { platformOf } from '../analytics';
 import { msg } from '../i18n';
 import { HEART_SVG, posLabel } from '../lookup/icons';
 import { hasLookupContent, posTags, showsLemma, stripDefinition, stripTranslations } from '../lookup/shape';
-import type { LookupResult } from '../lookup/types';
-import { emptyNoticeHtml, wireAINotice } from '../ai-balance/notice';
+import type { LookupAnswer } from '../lookup/types';
+import { wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml } from '../lookup/empty-notice';
 
 /** A saved word under the pointer, as the card needs it. */
 export interface PageMark {
@@ -110,7 +111,7 @@ const CARD_CSS = `
 
 interface LookupResponse {
     ok: boolean;
-    result?: LookupResult;
+    result?: LookupAnswer;
     error?: string;
 }
 
@@ -218,7 +219,7 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
         return saved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save');
     }
 
-    function renderResult(mark: PageMark, r: LookupResult): void {
+    function renderResult(mark: PageMark, r: LookupAnswer): void {
         const el = ensureCard();
         let body = '<div class="body">';
         const note = hasLookupContent(r) ? '' : emptyNoticeHtml(r);

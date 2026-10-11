@@ -557,7 +557,7 @@ describe('LOOKUP_WORD route — a phrase goes to Google first', () => {
         it('marks an empty answer produced because Google failed, and does not cache it', async () => {
             const asked = network(captcha, captcha, async () => jsonResponse(oneWordFromService));
             const res = await ask('give it a shot');
-            expect(res.result).toMatchObject({ translations: [], google_failed: true });
+            expect(res.result).toMatchObject({ translations: [], googleFailed: true });
             await ask('give it a shot');
             expect(asked.filter((a) => a === 'service')).toHaveLength(2);
         });
@@ -565,7 +565,7 @@ describe('LOOKUP_WORD route — a phrase goes to Google first', () => {
         it('does not blame Google when it answered with an echo', async () => {
             network(async () => gtxReply('give it a shot'), async () => pageReply('give it a shot'), async () => jsonResponse(oneWordFromService));
             const res = await ask('give it a shot');
-            expect(res.result.google_failed).toBeUndefined();
+            expect(res.result.googleFailed).toBeUndefined();
         });
     });
 

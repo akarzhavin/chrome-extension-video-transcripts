@@ -8,6 +8,7 @@
 // file — they post LOOKUP_WORD and let the worker answer.
 import {
     LOOKUP_TIMEOUT_MS,
+    LookupAnswer,
     LookupPartOfSpeech,
     LookupRequest,
     LookupResult,
@@ -95,7 +96,7 @@ function isStr(v: unknown): v is string {
 // time a common word recurs. The server keeps its own context-aware cache.
 /** A cached answer, with the moment it stops counting (Infinity = never). */
 interface CacheEntry {
-    result: LookupResult;
+    result: LookupAnswer;
     until: number;
 }
 
@@ -121,7 +122,7 @@ export async function lookupCached(
     baseUrl: string,
     req: LookupRequest,
     detail: boolean,
-): Promise<{ result: LookupResult; cached: boolean }> {
+): Promise<{ result: LookupAnswer; cached: boolean }> {
     return throughCache(detail, req, () => fetchLookup(baseUrl, req));
 }
 
@@ -139,7 +140,7 @@ export async function lookupPhraseCached(
     baseUrl: string,
     req: LookupRequest,
     detail: boolean,
-): Promise<{ result: LookupResult; cached: boolean }> {
+): Promise<{ result: LookupAnswer; cached: boolean }> {
     return throughCache(detail, req, async () => {
         let googleError: unknown = null;
         try {
@@ -148,7 +149,7 @@ export async function lookupPhraseCached(
         } catch (err) {
             googleError = err;
         }
-        const nothing = (source: string, extra: Partial<LookupResult> = {}): LookupResult => ({
+        const nothing = (source: string, extra: Partial<LookupAnswer> = {}): LookupAnswer => ({
             term: req.term,
             lemma: req.term,
             translations: [],
@@ -172,7 +173,7 @@ export async function lookupPhraseCached(
         return nothing(fallback.source, {
             ...(fallback.ai_status ? { ai_status: fallback.ai_status } : {}),
             ...(fallback.wallet ? { wallet: fallback.wallet } : {}),
-            ...(googleError ? { google_failed: true as const } : {}),
+            ...(googleError ? { googleFailed: true as const } : {}),
         });
     });
 }
@@ -180,8 +181,8 @@ export async function lookupPhraseCached(
 async function throughCache(
     detail: boolean,
     req: LookupRequest,
-    fetchAnswer: () => Promise<LookupResult>,
-): Promise<{ result: LookupResult; cached: boolean }> {
+    fetchAnswer: () => Promise<LookupAnswer>,
+): Promise<{ result: LookupAnswer; cached: boolean }> {
     const key = cacheKey(detail, req.targetLang, req.term);
     const hit = cache.get(key);
     if (hit && !expired(hit)) return { result: hit.result, cached: true };
@@ -189,7 +190,7 @@ async function throughCache(
     // A skipped model part is about this caller now (signed out, wallet
     // empty), not about the word: the key has no account in it, so it is
     // never kept, and the next ask after a sign-in or a reset goes through.
-    if (result.ai_status || result.google_failed) return { result, cached: false };
+    if (result.ai_status || result.googleFailed) return { result, cached: false };
     // An empty answer is cached too — re-asking on every hover would burn the
     // rate limit on typos — but only briefly. The service does NOT store one
     // (its own cache treats "no content" as a miss), because empty is not

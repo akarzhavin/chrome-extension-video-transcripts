@@ -14,6 +14,7 @@
 // ── Wire contract ──────────────────────────────────────────────────────────
 export type {
     LookupResult,
+    LookupAnswer,
     LookupRequest,
     LookupExample,
     LookupSense,

@@ -39,7 +39,8 @@ import { formatTokens, limitText, localDate, localTime, percentUsed, statusText,
 import { clearAccountAI, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
 import { takeWarning, windowKey } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
-import { aiNoticeHtml, emptyNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
+import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
+import { emptyNoticeHtml } from '../src/lookup/empty-notice';
 import { mountAIBadge } from '../src/ai-balance/badge';
 import { keepBalance, refreshBalance } from '../src/ai-balance/fetch';
 
@@ -432,11 +433,11 @@ describe('the notice on an empty phrase card', () => {
     });
 
     test('Google failed and nothing else answered: try again', () => {
-        expect(text(emptyNoticeHtml({ ...phrase, google_failed: true }))).toBe('Google did not answer, try again');
+        expect(text(emptyNoticeHtml({ ...phrase, googleFailed: true }))).toBe('Google did not answer, try again');
     });
 
     test('the AI status wins over a Google failure', () => {
-        expect(text(emptyNoticeHtml({ ...phrase, google_failed: true, ai_status: 'limit_day' }))).toMatch(/^AI limit for today/);
+        expect(text(emptyNoticeHtml({ ...phrase, googleFailed: true, ai_status: 'limit_day' }))).toMatch(/^AI limit for today/);
     });
 
     test('a word keeps the card wording, and a plain empty answer has no notice', () => {

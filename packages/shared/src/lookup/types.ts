@@ -42,8 +42,12 @@ export interface LookupResult {
     ai_status?: AIStatus;
     /** A signed-in caller's AI balance, raw; the worker keeps it, views read storage. */
     wallet?: unknown;
-    /** Set by the worker, not the service: an empty phrase answer because Google did not answer. */
-    google_failed?: true;
+}
+
+/** What LOOKUP_WORD hands a content script: the wire answer plus what only the worker knows. */
+export interface LookupAnswer extends LookupResult {
+    /** An empty phrase answer because Google did not answer. */
+    googleFailed?: true;
 }
 
 export interface LookupRequest {
