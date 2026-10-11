@@ -9,6 +9,7 @@
 // message is validated first and nothing is stored unless every part is valid.
 
 import { setAnalyticsEverywhere } from './analytics-consent';
+import { setAiTranslateForceEverywhere } from './subtitle-ai/ai-switch';
 import { handleAuthMessage } from './auth/background';
 import { setPendingAuthNonce } from './auth/storage';
 import { normalizeHost } from './highlight-hosts';
@@ -51,6 +52,8 @@ export interface SettingsSnapshot {
     analyticsEnabled: boolean;
     /** Sites the page highlight is switched off on (the popup's per-site switch). */
     highlightOffHosts: string[];
+    /** Force AI translation of the second line over a native track; dev builds only, so the page shows it only when present. */
+    aiTranslateForce?: boolean;
 }
 
 async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
@@ -74,6 +77,7 @@ async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
         pageHighlight: highlight.pageHighlight,
         analyticsEnabled: prefs.analyticsEnabled,
         highlightOffHosts: highlight.highlightOffHosts,
+        ...(__EXT_ENV__ === 'dev' ? { aiTranslateForce: prefs.aiTranslateForce } : {}),
     };
 }
 
@@ -124,13 +128,16 @@ function validateSet(msg: SettingsMessage, opts: BridgeOptions): ValidSet | stri
     if (msg.prefs !== undefined) {
         const p = msg.prefs;
         if (!isPlain(p)) return 'prefs must be an object';
-        const bad = strayKey(p, ['pageHighlight', 'analyticsEnabled', 'highlightHost']);
+        const keys = ['pageHighlight', 'analyticsEnabled', 'highlightHost'];
+        if (__EXT_ENV__ === 'dev') keys.push('aiTranslateForce');
+        const bad = strayKey(p, keys);
         if (bad) return `unknown key: prefs.${bad}`;
-        for (const k of ['pageHighlight', 'analyticsEnabled'] as const) {
+        for (const k of ['pageHighlight', 'analyticsEnabled', 'aiTranslateForce'] as const) {
             if (p[k] === undefined) continue;
             if (typeof p[k] !== 'boolean') return `${k} must be a boolean`;
         }
         if (typeof p.analyticsEnabled === 'boolean') out.prefs.analyticsEnabled = p.analyticsEnabled;
+        if (typeof p.aiTranslateForce === 'boolean') out.prefs.aiTranslateForce = p.aiTranslateForce;
         if (typeof p.pageHighlight === 'boolean') out.highlight.pageHighlight = p.pageHighlight;
         if (p.highlightHost !== undefined) {
             const h = p.highlightHost;
@@ -155,8 +162,10 @@ export async function handleSettingsMessage(msg: SettingsMessage, opts: BridgeOp
             if (typeof v === 'string') return { ok: false, error: v };
             if (v.languages) await saveLanguagePrefs(v.languages, 'site');
             // The stats choice is one for both editions: written here and there.
-            const { analyticsEnabled, ...own } = v.prefs;
+            const { analyticsEnabled, aiTranslateForce, ...own } = v.prefs;
             if (analyticsEnabled !== undefined) await setAnalyticsEverywhere(analyticsEnabled);
+            // So is the switch forcing AI translation (dev builds only; validateSet refuses it elsewhere).
+            if (__EXT_ENV__ === 'dev' && aiTranslateForce !== undefined) await setAiTranslateForceEverywhere(aiTranslateForce);
             if (Object.keys(own).length > 0) await savePrefs(own);
             if (Object.keys(v.highlight).length > 0 && !(await saveHighlightPrefs(v.highlight))) {
                 return { ok: false, error: 'the edition that highlights words did not save the change' };

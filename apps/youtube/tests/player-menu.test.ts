@@ -97,6 +97,7 @@ function makeApp(over: Partial<{
             overlayEnabled: over.overlayEnabled ?? true,
             tracks,
             hasMultipleTracks: () => over.multiple ?? true,
+            canPickDual: () => over.multiple ?? true,
             // Default to the happy case (both halves found) unless a test is
             // about a missing one.
             hasLearningTrack: () => over.learningTrack ?? tracks.length > 0,

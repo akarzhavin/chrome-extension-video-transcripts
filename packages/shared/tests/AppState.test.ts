@@ -539,3 +539,35 @@ describe('AppState language-pair preferences', () => {
         expect(state.hasNativeTrack()).toBe(true);
     });
 });
+
+describe('AppState: the AI translation track', () => {
+    const cue = (text: string) => [{ startTime: 0, endTime: 1, text } as Subtitle];
+
+    test('when preferred, it takes the second line even if the site shipped a native track', () => {
+        const state = new AppState();
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', cue('en'));
+        state.addTrack('Russian', cue('ru'));
+        state.addTrack('Russian · AI', cue('ai'));
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian');
+
+        state.preferredSecondaryName = 'Russian · AI';
+        state.applyPreferences();
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English');
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian · AI');
+    });
+
+    test('removing it gives the second line back to what is left', () => {
+        const state = new AppState();
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', cue('en'));
+        state.addTrack('Russian', cue('ru'));
+        state.preferredSecondaryName = 'Russian · AI';
+        state.addTrack('Russian · AI', cue('ai'));
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian · AI');
+
+        state.removeTrack('Russian · AI');
+        expect(state.tracks.map((t) => t.name)).toEqual(['English', 'Russian']);
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian');
+    });
+});

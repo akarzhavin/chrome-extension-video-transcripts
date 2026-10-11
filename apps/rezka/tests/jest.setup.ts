@@ -23,6 +23,23 @@
 (global as any).__LIMIT_MAX_CONTEXT_BYTES__ = 2048;
 (global as any).__LIMIT_MAX_TITLE_BYTES__ = 512;
 (global as any).__LIMIT_MAX_FEEDBACK_TEXT_BYTES__ = 2000;
+(global as any).__LIMIT_SUBTITLE__ = {
+    SUBTITLE_LANGS: [
+        'en', 'ru', 'uk', 'be', 'kk', 'de', 'fr', 'es', 'it', 'pt', 'pl', 'cs', 'sk', 'tr',
+        'ar', 'he', 'fa', 'hi', 'ja', 'ko', 'zh', 'vi', 'th', 'id', 'nl', 'sv', 'no', 'da', 'fi', 'el', 'hu', 'ro',
+        'bg', 'sr', 'hr', 'lt', 'lv', 'et', 'ka', 'hy', 'az', 'uz',
+    ],
+    SUBTITLE_SITES: ['rezka', 'netflix', 'youtube'],
+    SUBTITLE_TTL_DAYS: 14,
+    SUBTITLE_MAX_CUES: 4000,
+    SUBTITLE_MAX_DURATION_MS: 14400000,
+    SUBTITLE_MAX_CUE_TEXT: 500,
+    SUBTITLE_MIN_CUE_MS: 300,
+    SUBTITLE_MAX_CHARS_PER_SEC: 25,
+    SUBTITLE_MAX_CUE_CHARS_PER_SEC: 50,
+    SUBTITLE_WRITES_PER_DAY: 30,
+    SUBTITLE_MIN_INTERVAL_S: 20,
+};
 // GA4 build constants. A non-empty secret here keeps the analytics module's
 // "unconfigured build" early-return from silently short-circuiting every test
 // that means to exercise the real path; tests that want the no-op path

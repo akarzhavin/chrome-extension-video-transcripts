@@ -28,6 +28,16 @@ async function ensureFreshToken(cfg: AuthConfig, diag?: WorkerDiag): Promise<Aut
     return next;
 }
 
+/** The ID token and uid for an authed edge call; refresh=true forces a new token (after a 401). */
+export async function freshIdToken(cfg: AuthConfig, refresh = false): Promise<{ idToken: string; uid: string }> {
+    let state = await ensureFreshToken(cfg);
+    if (refresh) {
+        state = { ...state, ...(await refreshTracked(cfg, state.refreshToken)) };
+        await setAuthState(state);
+    }
+    return { idToken: state.idToken, uid: state.uid };
+}
+
 /** refreshIdToken, reported to the save diagnostics when there are any. */
 async function refreshTracked(
     cfg: AuthConfig,

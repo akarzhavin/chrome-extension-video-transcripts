@@ -231,6 +231,33 @@ describe('assert-shippable', () => {
         });
     });
 
+    describe('the AI translation of the second line', () => {
+        // Dev-only until it ships: the store version must
+        // carry neither the switch nor the worker that calls the backend.
+        it('refuses a background bundle carrying the worker actions', () => {
+            const { code, output } = runGate(
+                makeBuild({ background: healthyBackground() + '\nconst a = "SUBTITLE_AI_PART";' }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/AI translation of the second line is compiled in/);
+        });
+
+        it('refuses a content bundle carrying the switch', () => {
+            const { code, output } = runGate(
+                makeBuild({ extraFiles: { 'src/content/index.js': 'box.id = "vtt-ai-toggle";' } }),
+            );
+            expect(code).toBe(1);
+            expect(output).toMatch(/src\/content\/index\.js/);
+        });
+
+        it('refuses a bundle carrying the backend route', () => {
+            const { code } = runGate(
+                makeBuild({ background: healthyBackground() + '\nfetch(b + "/dictionary/subtitles/" + id + "/part");' }),
+            );
+            expect(code).toBe(1);
+        });
+    });
+
     describe('host permissions', () => {
         const withHosts = (...extra: string[]) => {
             const m = healthyManifest();
