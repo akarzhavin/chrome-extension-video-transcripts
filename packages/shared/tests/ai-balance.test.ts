@@ -1,0 +1,235 @@
+/**
+ * The AI wallet on the client (english repo, spec 024): parsing the server's
+ * balance, keeping it in storage for every view, the sidebar badge, the card
+ * notice and the once-per-window warning.
+ */
+
+type Listener = (changes: Record<string, { newValue?: unknown }>, area: string) => void;
+const listeners = new Set<Listener>();
+const store: Record<string, unknown> = {};
+const local = {
+    get: jest.fn(async (key: string | string[]) => {
+        const out: Record<string, unknown> = {};
+        for (const k of Array.isArray(key) ? key : [key]) if (k in store) out[k] = store[k];
+        return out;
+    }),
+    set: jest.fn(async (obj: Record<string, unknown>) => {
+        Object.assign(store, obj);
+        const changes = Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, { newValue: v }]));
+        listeners.forEach((l) => l(changes, 'local'));
+    }),
+    remove: jest.fn(async (key: string | string[]) => {
+        const keys = Array.isArray(key) ? key : [key];
+        keys.forEach((k) => delete store[k]);
+        listeners.forEach((l) => l(Object.fromEntries(keys.map((k) => [k, { newValue: undefined }])), 'local'));
+    }),
+};
+const sendMessage = jest.fn();
+(global as any).chrome = {
+    runtime: { id: 'test', sendMessage, lastError: undefined, getManifest: () => ({ version: '0.0.0' }) },
+    storage: {
+        local,
+        onChanged: { addListener: (l: Listener) => listeners.add(l), removeListener: (l: Listener) => listeners.delete(l) },
+    },
+    i18n: { getMessage: () => '' },
+};
+
+import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
+import { formatTokens, limitText, percentUsed, statusText } from '../src/ai-balance/format';
+import { BALANCE_KEY, clearBalance, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
+import { takeWarning, windowKey } from '../src/ai-balance/warn';
+import { renderBars } from '../src/ai-balance/bars';
+import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
+import { mountAIBadge } from '../src/ai-balance/badge';
+import { keepBalance, refreshBalance } from '../src/ai-balance/fetch';
+
+const DAY_RESET = Date.UTC(2026, 9, 12);
+const MONTH_RESET = Date.UTC(2026, 10, 1);
+const wire = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = null) => ({
+    day: { used: dayUsed, limit: 500_000, resets_at: DAY_RESET },
+    month: { used: monthUsed, limit: 10_000_000, resets_at: MONTH_RESET },
+    exhausted,
+    warn_ratio: 0.8,
+});
+const balance = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = null): AIBalance =>
+    parseBalance(wire(dayUsed, monthUsed, exhausted), 1)!;
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+beforeEach(() => {
+    for (const k of Object.keys(store)) delete store[k];
+    listeners.clear();
+    sendMessage.mockReset();
+    document.body.innerHTML = '';
+});
+
+describe('parseBalance', () => {
+    test('reads the wire shape and a stored one alike', () => {
+        const b = balance(310_000);
+        expect(b.day).toEqual({ used: 310_000, limit: 500_000, resetsAt: DAY_RESET });
+        expect(b.warnRatio).toBe(0.8);
+        expect(parseBalance(b)).toEqual(b);
+    });
+
+    test('refuses anything that is not a balance', () => {
+        expect(parseBalance(null)).toBeNull();
+        expect(parseBalance({ day: { used: 1 } })).toBeNull();
+        expect(parseBalance({ ...wire(1), warn_ratio: 7 })?.warnRatio).toBe(0.8);
+        expect(parseAIStatus('limit_month')).toBe('limit_month');
+        expect(parseAIStatus('nope')).toBeUndefined();
+    });
+});
+
+describe('format', () => {
+    test('percent caps at 100 and tokens left read compactly', () => {
+        expect(percentUsed(balance(310_000).day)).toBe(62);
+        expect(percentUsed(balance(600_000).day)).toBe(100);
+        expect(formatTokens(190_400)).toBe('190k');
+        expect(formatTokens(1_250_000)).toBe('1.2M');
+        expect(formatTokens(-3)).toBe('0');
+    });
+
+    test('the limit message names the window', () => {
+        expect(limitText('day', null)).toMatch(/^AI limit for today reached/);
+        expect(limitText('month', balance(1))).toMatch(/^AI limit for this month reached, resets on /);
+        expect(statusText('sign_in_required', null)).toBe('Sign in so AI can complete the card');
+    });
+});
+
+describe('store', () => {
+    test('a saved balance reaches every listener and is gone on clear', async () => {
+        const seen: (AIBalance | null)[] = [];
+        const off = onBalance((b) => seen.push(b));
+        await saveBalance(balance(5));
+        expect((await loadBalance())?.day.used).toBe(5);
+        await clearBalance();
+        expect(await loadBalance()).toBeNull();
+        off();
+        await saveBalance(balance(6));
+        expect(seen.map((b) => b?.day.used ?? null)).toEqual([5, null]);
+    });
+
+    test('keepBalance ignores what is not a balance', async () => {
+        await keepBalance({ nope: 1 });
+        expect(store[BALANCE_KEY]).toBeUndefined();
+        await keepBalance(wire(9));
+        expect((await loadBalance())?.day.used).toBe(9);
+    });
+});
+
+describe('takeWarning', () => {
+    test('warns once per window, the month first, never an exhausted one', async () => {
+        expect(await takeWarning(balance(100_000))).toBeNull();
+        expect(await takeWarning(balance(400_000, 8_000_000))).toBe('month');
+        expect(await takeWarning(balance(400_000, 8_000_000))).toBe('day');
+        expect(await takeWarning(balance(450_000, 8_100_000))).toBeNull();
+        expect(await takeWarning(balance(500_000, 8_100_000, 'day'))).toBeNull();
+        expect(windowKey('day', balance(1))).toBe('20261011');
+        expect(windowKey('month', balance(1))).toBe('202610');
+    });
+});
+
+describe('renderBars', () => {
+    test('two bars with their share, and the limit when one ran out', () => {
+        const el = renderBars(balance(310_000, 1_800_000));
+        const bars = [...el.querySelectorAll('[role=progressbar]')];
+        expect(bars.map((b) => b.getAttribute('aria-valuenow'))).toEqual(['62', '18']);
+        expect(el.querySelector('.lg-ai-note')).toBeNull();
+        expect(renderBars(balance(500_000, 1, 'day')).querySelector('.lg-ai-note')?.textContent).toMatch(/today/);
+    });
+});
+
+describe('card notice', () => {
+    test('signed out: the line and a sign-in button that starts the sign-in', () => {
+        const box = document.createElement('div');
+        box.innerHTML = aiNoticeHtml('sign_in_required');
+        wireAINotice(box);
+        expect(box.textContent).toContain('Sign in so AI can complete the card');
+        box.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+        expect(sendMessage).toHaveBeenCalledWith({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'lookup' }, expect.any(Function));
+    });
+
+    test('a limit fills its reset from the stored balance', async () => {
+        await saveBalance(balance(500_000, 1, 'day'));
+        const box = document.createElement('div');
+        box.innerHTML = aiNoticeHtml('limit_day');
+        wireAINotice(box);
+        await flush();
+        expect(box.querySelector('[data-ai-signin]')).toBeNull();
+        expect(box.textContent).toMatch(/AI limit for today reached, resets at \d/);
+    });
+});
+
+describe('sidebar badge', () => {
+    function header(): HTMLElement {
+        document.body.innerHTML = '<div id="vtt-header-top"><div id="vtt-langpair">EN ⇄ RU</div></div>';
+        return document.getElementById('vtt-header-top')!;
+    }
+
+    test('signed out the language chip stays; signed in the badge takes its slot', async () => {
+        const top = header();
+        const unmount = mountAIBadge(top);
+        await flush();
+        expect(sendMessage).toHaveBeenCalledWith({ action: 'AI_BALANCE_REFRESH' }, expect.any(Function));
+        expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        await saveBalance(balance(310_000));
+        expect(top.classList.contains('vtt-ai-on')).toBe(true);
+        expect(top.querySelector('#vtt-ai-badge button')!.textContent).toBe('AI 190k');
+        await clearBalance();
+        expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        unmount();
+        expect(top.querySelector('#vtt-ai-badge')).toBeNull();
+    });
+
+    test('a click opens the bars with the swap the chip was', async () => {
+        const top = header();
+        const swapped = jest.fn();
+        top.querySelector('#vtt-langpair')!.addEventListener('click', swapped);
+        await saveBalance(balance(100_000));
+        mountAIBadge(top);
+        await flush();
+        top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!.click();
+        const panel = top.querySelector('#vtt-ai-panel')!;
+        expect(panel.querySelectorAll('[role=progressbar]')).toHaveLength(2);
+        panel.querySelector<HTMLButtonElement>('.vtt-ai-swap')!.click();
+        expect(swapped).toHaveBeenCalledTimes(1);
+        document.body.click();
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+    });
+
+    test('crossing the warn ratio says so once', async () => {
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        await saveBalance(balance(420_000));
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')?.textContent).toBe('AI is almost used up for today');
+        document.getElementById('vtt-ai-warn')!.remove();
+        await saveBalance(balance(430_000));
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')).toBeNull();
+    });
+});
+
+describe('refreshBalance', () => {
+    test('retries a 401 with a fresh token and keeps the answer', async () => {
+        const fetch = jest
+            .fn()
+            .mockResolvedValueOnce({ ok: false, status: 401 })
+            .mockResolvedValueOnce({ ok: true, status: 200, json: async () => wire(42) });
+        const token = jest.fn(async (refresh: boolean) => ({ idToken: refresh ? 'fresh' : 'stale' }));
+        const b = await refreshBalance('https://api.example', { fetch, token });
+        expect(b?.day.used).toBe(42);
+        expect(fetch.mock.calls[1][0]).toBe('https://api.example/dictionary/ai/balance');
+        expect(fetch.mock.calls[1][1].headers.Authorization).toBe('Bearer fresh');
+        expect((await loadBalance())?.day.used).toBe(42);
+    });
+
+    test('signed out or unreachable is null, nothing stored', async () => {
+        const token = jest.fn(async () => {
+            throw new Error('Not signed in');
+        });
+        expect(await refreshBalance('https://api.example', { fetch: jest.fn(), token })).toBeNull();
+        expect(await refreshBalance('', { fetch: jest.fn(), token })).toBeNull();
+        expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+});

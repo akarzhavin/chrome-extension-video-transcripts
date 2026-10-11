@@ -8,6 +8,7 @@
 // file — they post LOOKUP_WORD and let the worker answer.
 import {
     LOOKUP_TIMEOUT_MS,
+    LookupAIStatus,
     LookupPartOfSpeech,
     LookupRequest,
     LookupResult,
@@ -28,7 +29,10 @@ export async function fetchLookup(baseUrl: string, req: LookupRequest): Promise<
     try {
         res = await fetch(`${baseUrl.replace(/\/+$/, '')}/dictionary/lookup`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(req.idToken ? { Authorization: `Bearer ${req.idToken}` } : {}),
+            },
             body: JSON.stringify({
                 term: req.term,
                 target_lang: req.targetLang,
@@ -71,7 +75,13 @@ function normalizeLookup(raw: Partial<LookupResult>, term: string): LookupResult
             })),
         })),
         source: typeof raw.source === 'string' ? raw.source : '',
+        ...(isAIStatus(raw.ai_status) ? { ai_status: raw.ai_status } : {}),
+        ...(raw.wallet && typeof raw.wallet === 'object' ? { wallet: raw.wallet } : {}),
     };
+}
+
+function isAIStatus(v: unknown): v is LookupAIStatus {
+    return v === 'sign_in_required' || v === 'limit_day' || v === 'limit_month';
 }
 
 function isStr(v: unknown): v is string {
@@ -171,6 +181,10 @@ async function throughCache(
     const hit = cache.get(key);
     if (hit && !expired(hit)) return { result: hit.result, cached: true };
     const result = await fetchAnswer();
+    // A skipped model part is about this caller now (signed out, wallet
+    // empty), not about the word: the key has no account in it, so it is
+    // never kept, and the next ask after a sign-in or a reset goes through.
+    if (result.ai_status) return { result, cached: false };
     // An empty answer is cached too — re-asking on every hover would burn the
     // rate limit on typos — but only briefly. The service does NOT store one
     // (its own cache treats "no content" as a miss), because empty is not

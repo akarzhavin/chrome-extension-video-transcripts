@@ -870,5 +870,45 @@
   "ytAiStatusUnsupported": {
     "message": "AI-переклад не підтримує цю пару мов",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Залишилось AI-токенів на сьогодні",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiToday": {
+    "message": "Сьогодні",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "Цього місяця",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Скидання о $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Скидання $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Ліміт AI на сьогодні вичерпано, скидання о $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Ліміт AI на місяць вичерпано, скидання $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiSignInCard": {
+    "message": "Увійдіть, щоб AI доповнив картку",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "AI на сьогодні майже витрачено",
+    "description": "One-time notice at 80% of the daily AI budget."
+  },
+  "aiWarnMonth": {
+    "message": "AI на цей місяць майже витрачено",
+    "description": "One-time notice at 80% of the monthly AI budget."
   }
 }

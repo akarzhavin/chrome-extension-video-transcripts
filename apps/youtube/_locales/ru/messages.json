@@ -870,5 +870,45 @@
   "ytAiStatusUnsupported": {
     "message": "AI-перевод не поддерживает эту пару языков",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Осталось AI-токенов на сегодня",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiToday": {
+    "message": "Сегодня",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "В этом месяце",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Сброс в $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Сброс $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Лимит AI на сегодня исчерпан, сброс в $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Лимит AI на месяц исчерпан, сброс $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiSignInCard": {
+    "message": "Войдите, чтобы AI дополнил карточку",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "AI на сегодня почти израсходован",
+    "description": "One-time notice at 80% of the daily AI budget."
+  },
+  "aiWarnMonth": {
+    "message": "AI на этот месяц почти израсходован",
+    "description": "One-time notice at 80% of the monthly AI budget."
   }
 }

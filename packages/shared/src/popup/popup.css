@@ -495,3 +495,14 @@ input:focus-visible {
 }
 .menu .error { margin: 8px 10px 4px; }
 .mload { padding: 8px 10px; }
+
+/* AI usage (spec 024): today and this month, under the vocabulary row. */
+.mai { padding: 8px 14px 4px; }
+.lg-ai-row { margin-bottom: 8px; font-size: 12px; }
+.lg-ai-head { display: flex; justify-content: space-between; color: var(--lg-text); font-weight: 600; }
+.lg-ai-track { height: 6px; margin: 4px 0 2px; border-radius: 3px; background: var(--lg-surface); overflow: hidden; }
+.lg-ai-fill { height: 100%; border-radius: 3px; background: var(--lg-accent); }
+.lg-ai-fill.lg-ai-high { background: #d97706; }
+.lg-ai-fill.lg-ai-full { background: var(--lg-danger); }
+.lg-ai-reset, .lg-ai-note { color: var(--lg-text-dim); font-size: 11px; }
+.lg-ai-note { margin-bottom: 6px; }

@@ -56,6 +56,14 @@ describe('requestPart', () => {
         expect(JSON.parse(d.calls[0].init.body as string)).toEqual({ lang: 'ru', from: 0, to: 2, window: 2 });
     });
 
+    // Spec 024: the AI balance rides along for the worker to keep.
+    test('passes on the wallet the reply carried', async () => {
+        const wallet = { day: { used: 50, limit: 500000, resets_at: 9 } };
+        const d = deps([reply(200, { from: 0, to: 1, lines: ['x'], wallet })]);
+        const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d);
+        expect(r).toEqual({ ok: true, from: 0, to: 1, lines: ['x'], skipped: [], pending: [], wallet });
+    });
+
     // A line that failed the server's checks comes back in `skipped`.
     test('passes on the skipped cue indices, and only integers in the range', async () => {
         const d = deps([reply(200, { from: 10, to: 13, lines: ['а', '', 'в'], skipped: [11, 99, 'x', 10.5], quota: {} })]);
@@ -91,6 +99,8 @@ describe('requestPart', () => {
         [403, {}, {}, { ok: false, code: 'auth' }],
         [422, { code: 'invalid_track' }, {}, { ok: false, code: 'invalid' }],
         [429, { code: 'quota_exceeded', resets_at: 77 }, {}, { ok: false, code: 'quota', resetsAt: 77 }],
+        [429, { code: 'quota_exceeded', resets_at: 77, window: 'month', wallet: { w: 1 } }, {},
+            { ok: false, code: 'quota', resetsAt: 77, window: 'month', wallet: { w: 1 } }],
         [429, { code: 'rate_limited' }, { 'Retry-After': '60' }, { ok: false, code: 'rate_limited', retryAfterMs: 60000 }],
         [503, { code: 'quarantined' }, {}, { ok: false, code: 'quarantined' }],
         [503, { code: 'unavailable' }, { 'Retry-After': '10' }, { ok: false, code: 'unavailable', retryAfterMs: 10000 }],

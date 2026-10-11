@@ -17,6 +17,9 @@ import { accent, menuRow } from './menu';
 import { renderSiteSwitch } from './site-switch';
 import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { mountDevBackendChip } from './dev-backend-chip';
+import { renderBars } from '../ai-balance/bars';
+import { loadBalance } from '../ai-balance/store';
+import { parseBalance, type AIBalance } from '../ai-balance/types';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
 // and the edition-specific blocks (video sites, setup) are left out.
@@ -109,6 +112,7 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
                     onClick: () => openAndClose(vocabUrl()),
                 }),
             );
+            root.appendChild(aiBlock());
             return;
         case 'device': {
             root.appendChild(
@@ -179,6 +183,22 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
             return;
         }
     }
+}
+
+// Today's and this month's AI use (spec 024): the stored balance at once, then
+// one refresh as the popup opens; empty until either answers.
+function aiBlock(): HTMLElement {
+    const box = el('div', 'mai');
+    box.hidden = true;
+    const paint = (b: AIBalance | null) => {
+        box.replaceChildren(...(b ? [renderBars(b)] : []));
+        box.hidden = !b;
+    };
+    void loadBalance().then(paint);
+    void send<{ ok: boolean; balance?: unknown }>({ action: 'AI_BALANCE_REFRESH' })
+        .then((r) => r.ok && paint(parseBalance(r.balance)))
+        .catch(() => undefined);
+    return box;
 }
 
 async function signIn(root: HTMLElement, button: HTMLButtonElement, status: AuthStatus | undefined): Promise<void> {

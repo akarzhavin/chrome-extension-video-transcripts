@@ -277,6 +277,22 @@ describe('fetchLookup', () => {
         });
     });
 
+    // Spec 024: the token lets the model complete the card from the caller's wallet.
+    it('sends the signed-in token and passes on the AI status and wallet', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '',
+            ai_status: 'limit_day', wallet: { day: { used: 1, limit: 2, resets_at: 3 } },
+        }));
+        const r = await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru', idToken: 'tok' });
+        const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+        expect((init as RequestInit).headers).toMatchObject({ Authorization: 'Bearer tok' });
+        expect(r.ai_status).toBe('limit_day');
+        expect(r.wallet).toEqual({ day: { used: 1, limit: 2, resets_at: 3 } });
+        (global.fetch as jest.Mock).mockClear();
+        await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru' });
+        expect(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).headers).not.toHaveProperty('Authorization');
+    });
+
     it('throws on a non-200 — an unknown word is a 200, never an error', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({ detail: 'x' }, 429));
         await expect(fetchLookup('https://api.test', { term: 'a', targetLang: 'ru' }))
@@ -321,6 +337,17 @@ describe('lookupCached', () => {
         expect(a.cached).toBe(false);
         expect(b.cached).toBe(true);
         expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+    // The key has no account in it: a refusal for this caller must not answer
+    // the same word after a sign-in or a reset.
+    it('never keeps an answer whose model part was skipped', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '', ai_status: 'sign_in_required',
+        }));
+        await lookupCached('https://api.test', { term: 'zxqv', targetLang: 'ru' }, false);
+        const again = await lookupCached('https://api.test', { term: 'zxqv', targetLang: 'ru' }, false);
+        expect(again.cached).toBe(false);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
     });
     it('keys the languages apart', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse(dictAnswer));

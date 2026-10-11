@@ -59,6 +59,7 @@ import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
+import { mountAIBadge } from './ai-balance/badge';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -538,6 +539,8 @@ export class SidebarUI {
         settingsBtn.innerHTML = ICONS.gear;
         settingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
         headerTop.appendChild(settingsBtn);
+        // Today's AI tokens in the language chip's slot while signed in (spec 024).
+        this.teardown.push(mountAIBadge(headerTop));
         header.appendChild(headerTop);
 
         // Sub-header: a single row under the title holding the language-pair

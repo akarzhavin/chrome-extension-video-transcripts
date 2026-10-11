@@ -39,6 +39,7 @@ import { assertTermFits } from './term-limit';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import { loadLanguagePrefs } from '../languages';
+import { keepBalance, refreshBalance } from '../ai-balance/fetch';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -76,6 +77,7 @@ export type AuthAction =
     | 'GET_NOTIFICATION'
     | 'DISMISS_NOTIFICATION'
     | 'LOOKUP_WORD'
+    | 'AI_BALANCE_REFRESH'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
     // Dev-only backend switch. The names are declared for type-checking only;
@@ -107,6 +109,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'GET_NOTIFICATION',
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
+    'AI_BALANCE_REFRESH',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -540,7 +543,12 @@ export function devEnvReady(): Promise<void> {
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
     if (!config.apiBaseUrl) return Promise.resolve({ ok: false, code: 'unavailable' });
     const deps = { fetch: (u: string, i: RequestInit) => fetch(u, i), token: (r: boolean) => freshIdToken(config, r), now: Date.now };
-    if (request.action === 'SUBTITLE_AI_PART') return requestPart(config, request.part as PartRequest, deps);
+    if (request.action === 'SUBTITLE_AI_PART') {
+        return requestPart(config, request.part as PartRequest, deps).then(async (reply) => {
+            if (reply.wallet) await keepBalance(reply.wallet);
+            return reply;
+        });
+    }
     if (request.action === 'SUBTITLE_AI_STORE') return storeTrack(config, request.track as StoredTrack, deps);
     return Promise.resolve({ ok: false, code: 'invalid' });
 }
@@ -839,16 +847,28 @@ export async function handleAuthMessage(
                 return { ok: true, notification: null };
             }
         }
+        case 'AI_BALANCE_REFRESH': {
+            // One read when a view opens; the answer reaches every view through
+            // storage (ai-balance/store.ts). Signed out there is nothing to read.
+            if (!(await getAuthState())) return { ok: false };
+            const balance = await refreshBalance(config.apiBaseUrl, {
+                fetch: (u, i) => fetch(u, i),
+                token: (r) => freshIdToken(config, r),
+            });
+            return balance ? { ok: true, balance } : { ok: false };
+        }
         case 'LOOKUP_WORD': {
-            // Anonymous word lookup for the hover strip and the sidebar's word
-            // screen. Runs here rather than in the content script because the
-            // edge's CORS allow-list has no chrome-extension:// origin — a page
-            // fetch dies on the preflight, while the worker (host-permitted,
-            // no Origin) goes straight through.
+            // Word lookup for the hover strip and the sidebar's word screen.
+            // Runs here rather than in the content script because the edge's
+            // CORS allow-list has no chrome-extension:// origin — a page fetch
+            // dies on the preflight, while the worker (host-permitted, no
+            // Origin) goes straight through.
             //
-            // No auth, no retry, no badge: the route is public, and a miss is
-            // answered by the next hover. An unconfigured build (no
-            // EXT_API_BASE_URL) reports ok:false once per call and stays quiet.
+            // The dictionary answers anyone; the token, when signed in, lets
+            // the model complete the card from this account's AI wallet (spec
+            // 024). No retry, no badge: a miss is answered by the next hover.
+            // An unconfigured build (no EXT_API_BASE_URL) reports ok:false
+            // once per call and stays quiet.
             const term = String(request.term ?? '').trim();
             const targetLang = String(request.targetLang ?? '').trim();
             if (!term || !targetLang) return { ok: false, error: 'term and targetLang required' };
@@ -872,12 +892,19 @@ export async function handleAuthMessage(
                 : { maxPartsOfSpeech: 3, maxSenses: 3, maxExamples: 1 };
             const site = String(request.site ?? '');
             const started = Date.now();
+            // Signed out, or the token will not refresh: the lookup goes
+            // anonymous and the card offers a sign-in for its AI part.
+            let idToken: string | undefined;
+            if (await getAuthState()) {
+                idToken = await freshIdToken(config, false).then((t) => t.idToken, () => undefined);
+            }
             try {
                 const { result, cached } = await (phrase ? lookupPhraseCached : lookupCached)(
                     config.apiBaseUrl,
-                    { term, targetLang, context, ...limits },
+                    { term, targetLang, context, idToken, ...limits },
                     level !== 'strip',
                 );
+                if (!cached && result.wallet) await keepBalance(result.wallet);
                 // Shape only — the deny-list in analytics.ts would strip the
                 // word anyway, so it is never offered. `source` is what drives
                 // the dictionary/model/cache mix decision on the server side.

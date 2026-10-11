@@ -144,7 +144,7 @@ describe('message action registry', () => {
         // two type-checks cleanly and is then dropped by isAuthAction with no
         // error at all: the message is never handled and the caller's promise
         // never settles.
-        expect(AUTH_ACTIONS.size).toBe(16);
+        expect(AUTH_ACTIONS.size).toBe(17);
         // Named as well as counted: a count alone stays green if one action is
         // added while another is dropped in the same edit.
         expect(AUTH_ACTIONS.has('ADD_WORD')).toBe(true);
@@ -153,6 +153,7 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('OPEN_EXTENSION_PAGE')).toBe(true);
         expect(AUTH_ACTIONS.has('LOCAL_WORDS_LIST')).toBe(true);
         expect(AUTH_ACTIONS.has('LOCAL_WORD_SET_TRANSLATION')).toBe(true);
+        expect(AUTH_ACTIONS.has('AI_BALANCE_REFRESH')).toBe(true);
     });
 
     test('the AI translation actions pass only in a dev build, by prefix', () => {

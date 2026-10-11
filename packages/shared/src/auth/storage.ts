@@ -1,3 +1,5 @@
+import { BALANCE_KEY } from '../ai-balance/store';
+
 export interface AuthState {
     idToken: string;
     refreshToken: string;
@@ -311,6 +313,8 @@ export async function clearAuthState(): Promise<void> {
         // saved-word count and the rating flag two keys up are deliberately not
         // in this list, because the person is the same person.
         WORD_KEYS.mirror,
+        // This account's AI budget (ai-balance/store.ts), numbers only.
+        BALANCE_KEY,
     ]);
 }
 

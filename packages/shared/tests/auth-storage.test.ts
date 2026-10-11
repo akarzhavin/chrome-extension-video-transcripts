@@ -66,7 +66,7 @@ const signedIn = () =>
     } as any);
 
 describe('signing out', () => {
-    test('removes the five credential keys and the mirror, and nothing else', async () => {
+    test('removes the five credential keys, the mirror and the AI balance, and nothing else', async () => {
         // The mirror joined this list with the saved-word feature (FR-009): it
         // names the words THIS account saved, so leaving it would show them to
         // whoever signs in next on the profile. The list is still pinned
@@ -76,7 +76,7 @@ describe('signing out', () => {
         await clearAuthState();
         expect(removed).toHaveLength(1);
         expect([...removed[0]].sort()).toEqual(
-            ['auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
+            ['ai.balance', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
         );
     });
 

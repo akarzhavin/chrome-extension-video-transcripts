@@ -30,6 +30,9 @@ export interface LookupPartOfSpeech {
     senses: LookupSense[];
 }
 
+/** Why an answer has no model part (spec 024); absent when it was not skipped. */
+export type LookupAIStatus = 'sign_in_required' | 'limit_day' | 'limit_month';
+
 /** The wire shape of one answer, exactly as the service returns it. */
 export interface LookupResult {
     term: string;
@@ -37,11 +40,16 @@ export interface LookupResult {
     translations: string[];
     parts_of_speech: LookupPartOfSpeech[];
     source: string;
+    ai_status?: LookupAIStatus;
+    /** A signed-in caller's AI balance, raw; the worker keeps it, views read storage. */
+    wallet?: unknown;
 }
 
 export interface LookupRequest {
     term: string;
     targetLang: string;
+    /** The signed-in caller's ID token: lets the model complete the card from their wallet. */
+    idToken?: string;
     /** The subtitle line the word was selected from; improves sense order. */
     context?: string;
     maxPartsOfSpeech?: number;
