@@ -1,4 +1,4 @@
-import { labelForLanguage, LanguagePrefs } from '@video-transcripts/shared';
+import { genderMarked, labelForLanguage, LanguagePrefs, SUPPORTED_LANGUAGES } from '@video-transcripts/shared';
 
 export interface CaptionTrack {
     baseUrl: string;
@@ -114,4 +114,34 @@ export function planTrackRequests(
     }
 
     return { requests, primaryLabel: learningLabel, secondaryLabel: nativeLabel };
+}
+
+/** A track the AI translation may take the gender of "I" and "you" from. */
+export interface SecondTrackSource {
+    /** Base language code, e.g. 'es' for 'es-419'. */
+    lang: string;
+    kind: 'manual' | 'auto';
+    baseUrl: string;
+    tlang?: string;
+}
+
+/**
+ * The AI translation's gender-hint candidates (english repo, spec 023
+ * FR-011b): the video's human tracks other than the learning one, in YouTube's
+ * order, then YouTube's machine translation of the learning track into each
+ * language that shows the gender of "I" and "you". Only the best-ranked are
+ * ever fetched (subtitle-ai/second.ts).
+ */
+export function secondTrackSources(prefs: LanguagePrefs, tracks: CaptionTrack[]): SecondTrackSource[] {
+    const base = (t: CaptionTrack) => t.lang.split(/[-_]/)[0].toLowerCase();
+    const manual: SecondTrackSource[] = tracks
+        .filter((t) => t.kind !== 'asr' && !matchesLang(t, prefs.learning))
+        .map((t) => ({ lang: base(t), kind: 'manual', baseUrl: t.baseUrl }));
+    // Translated from the learning track itself, so its cues share its timings.
+    const learning = findTrack(tracks, prefs.learning);
+    const auto: SecondTrackSource[] = learning
+        ? SUPPORTED_LANGUAGES.filter((l) => genderMarked(l.code) && l.code !== prefs.learning)
+            .map((l) => ({ lang: l.code, kind: 'auto', baseUrl: learning.baseUrl, tlang: l.code }))
+        : [];
+    return [...manual, ...auto];
 }

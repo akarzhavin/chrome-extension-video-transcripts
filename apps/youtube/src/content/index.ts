@@ -16,7 +16,8 @@ import {
 import { installLookupStrip } from '@video-transcripts/shared';
 import { BaseVttApp, ReprocessOptions, SIDEBAR_CHROME_CSS } from './app-base';
 import { parseJson3 } from './json3';
-import { CaptionTrack, TrackRequest, planTrackRequests } from './trackPlan';
+import { CaptionTrack, SecondTrackSource, TrackRequest, planTrackRequests, secondTrackSources } from './trackPlan';
+import type { SecondCandidate } from '../../../../packages/shared/src/subtitle-ai/second';
 import type { YtVttResultMessage } from './timedtext-fetch';
 import { demoLinesFor, baseLangCode } from './demo-subs';
 import { DEMO_UI_BY_LANG } from './demo-ui';
@@ -50,6 +51,8 @@ function t(key: string, fallback: string): string {
  * extension reload) doesn't strand the listener.
  */
 const NATIVE_CC_QUERY_TIMEOUT_MS = 2000;
+// A gender-hint track that does not answer is skipped, as subs-export skips one.
+const SECOND_FETCH_TIMEOUT_MS = 15_000;
 
 // ── Promo demo mode ──────────────────────────────────────────────────────
 // Loading any watch page with `#vtt-demo` in the URL fills the sidebar with
@@ -188,6 +191,9 @@ if (DEMO_MODE) {
 class YouTubeVttApp extends BaseVttApp {
     detector: YouTubeCaptionDetector;
     demoGen = 0;   // bumped on each demo state apply; stale timeouts bail out
+    // The video's caption list, as the page script last sent it.
+    captionCatalog: { videoId: string; tracks: CaptionTrack[] } | null = null;
+    private secondFetches = 0;
 
     constructor() {
         super();
@@ -279,6 +285,38 @@ class YouTubeVttApp extends BaseVttApp {
             }
         });
         this.detector.start();
+    }
+
+    /** The AI translation's gender-hint candidates for the video on screen. */
+    secondTracks(): SecondCandidate[] {
+        const cat = this.captionCatalog;
+        if (!this.langPrefs || !cat || cat.videoId !== this.getVideoId()) return [];
+        return secondTrackSources(this.langPrefs, cat.tracks).map((src) => ({
+            lang: src.lang,
+            kind: src.kind,
+            load: () => this.fetchSecond(src, cat.videoId),
+        }));
+    }
+
+    // One fetch through the page-script bridge under its own key, which the
+    // app's own result handler does not know and so ignores.
+    private fetchSecond(src: SecondTrackSource, videoId: string): Promise<Subtitle[]> {
+        const key = `second:${src.lang}:${src.kind}:${++this.secondFetches}`;
+        return new Promise((resolve) => {
+            const done = (subs: Subtitle[]) => {
+                clearTimeout(timer);
+                window.removeEventListener('message', onMessage);
+                resolve(subs);
+            };
+            const onMessage = (event: MessageEvent) => {
+                if (event.source !== window || event.data?.type !== 'YT_VTT_RESULT' || event.data.url !== key) return;
+                const m = event.data as YtVttResultMessage;
+                done(m.ok ? parseJson3(m.text) : []);
+            };
+            const timer = setTimeout(() => done([]), SECOND_FETCH_TIMEOUT_MS);
+            window.addEventListener('message', onMessage);
+            window.postMessage({ type: 'YT_FETCH_VTT', url: key, baseUrl: src.baseUrl, videoId, tlang: src.tlang }, '*');
+        });
     }
 
     // ── YouTube caption fetch protocol ──────────────────────────────────────
@@ -857,6 +895,7 @@ class YouTubeCaptionDetector {
             this.app.resetForNewVideo();
         }
 
+        this.app.captionCatalog = { videoId, tracks };
         if (this.captionsLoadedForVideo === videoId) return;
         const probe = this.probeNextLoad;
 

@@ -1,4 +1,4 @@
-import { planTrackRequests, CaptionTrack } from '../src/content/trackPlan';
+import { planTrackRequests, secondTrackSources, CaptionTrack } from '../src/content/trackPlan';
 
 const track = (lang: string, name = lang): CaptionTrack => ({
     baseUrl: `https://yt/${lang}`,
@@ -157,5 +157,30 @@ describe('planTrackRequests', () => {
         )!;
         expect(plan.requests[0].tlang).toBeUndefined();
         expect(plan.requests[1].tlang).toBe('ru');
+    });
+});
+
+// The AI translation's gender hint (english repo, spec 023 T113): the video's
+// human tracks, then YouTube's machine translation of the learning track into
+// each language that shows the gender of "I" and "you".
+describe('secondTrackSources', () => {
+    const prefs = { learning: 'en', native: 'ru' };
+    const tracks = [
+        { baseUrl: 'asr-en', lang: 'en', name: 'English (auto)', kind: 'asr' },
+        { baseUrl: 'en', lang: 'en', name: 'English' },
+        { baseUrl: 'es', lang: 'es-419', name: 'Spanish' },
+        { baseUrl: 'asr-de', lang: 'de', name: 'German (auto)', kind: 'asr' },
+    ];
+
+    test('human tracks other than the learning one, by base language, in YouTube order', () => {
+        const manual = secondTrackSources(prefs, tracks).filter((s) => s.kind === 'manual');
+        expect(manual).toEqual([{ lang: 'es', kind: 'manual', baseUrl: 'es' }]);
+    });
+
+    test('machine translations of the human learning track into the 22 gendered languages', () => {
+        const auto = secondTrackSources(prefs, tracks).filter((s) => s.kind === 'auto');
+        expect(auto).toHaveLength(22);
+        expect(auto.every((s) => s.baseUrl === 'en' && s.tlang === s.lang)).toBe(true);
+        expect(auto.map((s) => s.lang)).toContain('ru');
     });
 });
