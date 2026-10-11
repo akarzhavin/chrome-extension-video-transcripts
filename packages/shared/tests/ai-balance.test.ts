@@ -92,6 +92,8 @@ describe('format', () => {
         expect(limitText('day', null)).toMatch(/^AI limit for today reached/);
         expect(limitText('month', balance(1))).toMatch(/^AI limit for this month reached, resets on /);
         expect(statusText('sign_in_required', null)).toBe('Sign in so AI can complete the card');
+        expect(statusText('ai_paused', null)).toMatch(/^AI is paused for today for everyone/);
+        expect(parseAIStatus('ai_paused')).toBe('ai_paused');
     });
 });
 

@@ -20,7 +20,7 @@ export interface AIBalance {
 }
 
 /** Why the model part of an answer is missing. */
-export type AIStatus = 'sign_in_required' | 'limit_day' | 'limit_month';
+export type AIStatus = 'sign_in_required' | 'limit_day' | 'limit_month' | 'ai_paused';
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
@@ -52,5 +52,5 @@ export function parseBalance(raw: unknown, now: number = Date.now()): AIBalance 
 }
 
 export function parseAIStatus(raw: unknown): AIStatus | undefined {
-    return raw === 'sign_in_required' || raw === 'limit_day' || raw === 'limit_month' ? raw : undefined;
+    return raw === 'sign_in_required' || raw === 'limit_day' || raw === 'limit_month' || raw === 'ai_paused' ? raw : undefined;
 }

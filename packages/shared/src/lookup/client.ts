@@ -81,7 +81,7 @@ function normalizeLookup(raw: Partial<LookupResult>, term: string): LookupResult
 }
 
 function isAIStatus(v: unknown): v is LookupAIStatus {
-    return v === 'sign_in_required' || v === 'limit_day' || v === 'limit_month';
+    return v === 'sign_in_required' || v === 'limit_day' || v === 'limit_month' || v === 'ai_paused';
 }
 
 function isStr(v: unknown): v is string {

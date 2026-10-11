@@ -31,7 +31,7 @@ export interface LookupPartOfSpeech {
 }
 
 /** Why an answer has no model part (spec 024); absent when it was not skipped. */
-export type LookupAIStatus = 'sign_in_required' | 'limit_day' | 'limit_month';
+export type LookupAIStatus = 'sign_in_required' | 'limit_day' | 'limit_month' | 'ai_paused';
 
 /** The wire shape of one answer, exactly as the service returns it. */
 export interface LookupResult {
