@@ -39,7 +39,7 @@ import { formatTokens, limitText, localDate, localTime, percentUsed, statusText,
 import { BALANCE_KEY, clearBalance, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
 import { takeWarning, windowKey } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
-import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
+import { aiNoticeHtml, emptyNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
 import { mountAIBadge } from '../src/ai-balance/badge';
 import { keepBalance, refreshBalance } from '../src/ai-balance/fetch';
 
@@ -392,6 +392,34 @@ describe('store and fetch edges', () => {
         const fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ nope: 1 }) });
         expect(await refreshBalance('https://api.example', { fetch, token: async () => ({ idToken: 't' }) })).toBeNull();
         expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+});
+
+describe('the notice on an empty phrase card', () => {
+    const phrase = { term: 'give it a shot', lemma: 'give it a shot', translations: [], parts_of_speech: [], source: '' };
+    const text = (html: string) => {
+        const d = document.createElement('div');
+        d.innerHTML = html;
+        return d.textContent;
+    };
+
+    test('signed out: AI will translate, with a sign-in button', () => {
+        const html = emptyNoticeHtml({ ...phrase, ai_status: 'sign_in_required' });
+        expect(text(html)).toContain('Sign in \u2014 AI will translate');
+        expect(html).toContain('data-ai-signin');
+    });
+
+    test('Google failed and nothing else answered: try again', () => {
+        expect(text(emptyNoticeHtml({ ...phrase, google_failed: true }))).toBe('Google did not answer, try again');
+    });
+
+    test('the AI status wins over a Google failure', () => {
+        expect(text(emptyNoticeHtml({ ...phrase, google_failed: true, ai_status: 'limit_day' }))).toMatch(/^AI limit for today/);
+    });
+
+    test('a word keeps the card wording, and a plain empty answer has no notice', () => {
+        expect(text(emptyNoticeHtml({ ...phrase, lemma: 'shot', ai_status: 'sign_in_required' }))).toContain('Sign in so AI can complete the card');
+        expect(emptyNoticeHtml(phrase)).toBe('');
     });
 });
 

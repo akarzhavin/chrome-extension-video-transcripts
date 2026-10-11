@@ -6,17 +6,28 @@ import { msg } from '../i18n';
 import { statusText } from './format';
 import { loadBalance } from './store';
 import type { AIStatus } from './types';
+import type { LookupResult } from '../lookup/types';
+import { isPhrase } from '../lookup/shape';
 
 const esc = (s: string): string =>
     s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 
 /** The notice as markup; wire it with wireAINotice once it is in the DOM. */
-export function aiNoticeHtml(status: AIStatus): string {
+export function aiNoticeHtml(status: AIStatus, phrase = false): string {
     const button =
         status === 'sign_in_required'
             ? ` <button type="button" class="lg-ai-signin" data-ai-signin="1">${esc(msg('popupSignInLead', 'Sign in'))}</button>`
             : '';
-    return `<span class="lg-ai-notice" data-ai-status="${esc(status)}">${esc(statusText(status, null))}</span>${button}`;
+    return `<span class="lg-ai-notice" data-ai-status="${esc(status)}">${esc(statusText(status, null, phrase))}</span>${button}`;
+}
+
+/** The notice for an empty answer (AI skipped, or Google failed on a phrase); '' when neither. */
+export function emptyNoticeHtml(r: LookupResult): string {
+    if (r.ai_status) return aiNoticeHtml(r.ai_status, isPhrase(r.lemma));
+    if (r.google_failed) {
+        return `<span class="lg-ai-notice">${esc(msg('lookupGoogleFailed', 'Google did not answer, try again'))}</span>`;
+    }
+    return '';
 }
 
 /** Fills the reset time from the stored balance and makes the sign-in button work. */

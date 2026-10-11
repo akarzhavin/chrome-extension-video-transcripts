@@ -43,6 +43,8 @@ export interface LookupResult {
     ai_status?: LookupAIStatus;
     /** A signed-in caller's AI balance, raw; the worker keeps it, views read storage. */
     wallet?: unknown;
+    /** Set by the worker, not the service: an empty phrase answer because Google did not answer. */
+    google_failed?: true;
 }
 
 export interface LookupRequest {

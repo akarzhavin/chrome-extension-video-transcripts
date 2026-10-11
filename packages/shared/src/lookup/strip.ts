@@ -51,7 +51,7 @@ import {
     stripTranslations,
 } from './shape';
 import type { SelectionPayload } from '../content/quick-add-overlay';
-import { aiNoticeHtml, wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml, wireAINotice } from '../ai-balance/notice';
 import {
     buildContextForIndex,
     getSelectionPayload,
@@ -491,8 +491,9 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         const saved = savedWords.has(word);
 
         let body = '<div class="vtt-lookup-body">';
-        if (empty && r.ai_status) {
-            body += `<span class="vtt-lookup-muted">${aiNoticeHtml(r.ai_status)}</span>`;
+        const note = empty ? emptyNoticeHtml(r) : '';
+        if (note) {
+            body += `<span class="vtt-lookup-muted">${note}</span>`;
         } else if (empty) {
             body += `<span class="vtt-lookup-muted">${escapeHtml(msg('ytLookupNone', 'No translation'))}</span>`;
         } else {
@@ -548,7 +549,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
         el.innerHTML = body + acts;
         el.dataset.word = word;
-        if (empty && r.ai_status) wireAINotice(el);
+        if (empty && (r.ai_status || r.google_failed)) wireAINotice(el);
 
         el.onclick = (e) => {
             const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');

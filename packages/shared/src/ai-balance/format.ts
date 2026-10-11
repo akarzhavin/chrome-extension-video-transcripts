@@ -48,7 +48,8 @@ export function limitText(window: 'day' | 'month', b: AIBalance | null): string 
 }
 
 /** The card notice for an answer whose model part was skipped. */
-export function statusText(status: AIStatus, b: AIBalance | null): string {
+export function statusText(status: AIStatus, b: AIBalance | null, phrase = false): string {
+    if (status === 'sign_in_required' && phrase) return msg('aiSignInTranslate', 'Sign in \u2014 AI will translate');
     if (status === 'sign_in_required') return msg('aiSignInCard', 'Sign in so AI can complete the card');
     if (status === 'ai_paused') return msg('aiPaused', 'AI is paused for today for everyone. The dictionary still works.');
     return limitText(status === 'limit_month' ? 'month' : 'day', b);

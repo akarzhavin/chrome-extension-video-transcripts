@@ -525,6 +525,43 @@ describe('LOOKUP_WORD route — a phrase goes to Google first', () => {
         expect(res.result.parts_of_speech).toEqual([]);
     });
 
+    describe('the service answering a phrase with an empty or one-word result', () => {
+        const wallet = { day: { used: 1, limit: 500_000, resets_at: 9_000_000_000_000 }, month: { used: 1, limit: 10_000_000, resets_at: 9_000_000_000_000 }, exhausted: null, warn_ratio: 0.8 };
+        const signedOut: LookupResult = { ...oneWordFromService, ai_status: 'sign_in_required', wallet };
+        afterEach(() => { for (const k of Object.keys(chromeStorage.local._store)) delete chromeStorage.local._store[k]; });
+        const stored = (): unknown => (chromeStorage.local._store as Record<string, unknown>)['ai.balance'];
+
+        it('keeps ai_status and wallet, and the wallet reaches storage', async () => {
+            // keepBalance stores only for a signed-in account.
+            Object.assign(chromeStorage.local._store, { 'auth.idToken': 't', 'auth.uid': 'u', 'auth.expiresAt': Date.now() + 3_600_000 });
+            network(captcha, captcha, async () => jsonResponse(signedOut));
+            const res = await ask('give it a shot');
+            expect(res.result).toMatchObject({ translations: [], ai_status: 'sign_in_required', wallet });
+            expect(stored()).toBeDefined();
+        });
+
+        it('does not cache an answer that lacks its AI part', async () => {
+            const asked = network(captcha, captcha, async () => jsonResponse(signedOut));
+            await ask('give it a shot');
+            await ask('give it a shot');
+            expect(asked.filter((a) => a === 'service')).toHaveLength(2);
+        });
+
+        it('marks an empty answer produced because Google failed, and does not cache it', async () => {
+            const asked = network(captcha, captcha, async () => jsonResponse(oneWordFromService));
+            const res = await ask('give it a shot');
+            expect(res.result).toMatchObject({ translations: [], google_failed: true });
+            await ask('give it a shot');
+            expect(asked.filter((a) => a === 'service')).toHaveLength(2);
+        });
+
+        it('does not blame Google when it answered with an echo', async () => {
+            network(async () => gtxReply('give it a shot'), async () => pageReply('give it a shot'), async () => jsonResponse(oneWordFromService));
+            const res = await ask('give it a shot');
+            expect(res.result.google_failed).toBeUndefined();
+        });
+    });
+
     it('a word never goes to Google', async () => {
         const asked = network(async () => gtxReply('якорь'), async () => pageReply('якорь'), async () => jsonResponse(dictAnswer));
         const res = await ask('anchor');

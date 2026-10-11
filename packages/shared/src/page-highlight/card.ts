@@ -23,7 +23,7 @@ import { msg } from '../i18n';
 import { HEART_SVG, posLabel } from '../lookup/icons';
 import { hasLookupContent, posTags, showsLemma, stripDefinition, stripTranslations } from '../lookup/shape';
 import type { LookupResult } from '../lookup/types';
-import { aiNoticeHtml, wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml, wireAINotice } from '../ai-balance/notice';
 
 /** A saved word under the pointer, as the card needs it. */
 export interface PageMark {
@@ -221,9 +221,9 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
     function renderResult(mark: PageMark, r: LookupResult): void {
         const el = ensureCard();
         let body = '<div class="body">';
-        const aiSkipped = !hasLookupContent(r) && r.ai_status;
-        if (aiSkipped && r.ai_status) {
-            body += `<span class="muted">${aiNoticeHtml(r.ai_status)}</span>`;
+        const note = hasLookupContent(r) ? '' : emptyNoticeHtml(r);
+        if (note) {
+            body += `<span class="muted">${note}</span>`;
         } else if (!hasLookupContent(r)) {
             body += `<span class="muted">${escapeHtml(msg('ytLookupNone', 'No translation'))}</span>`;
         } else {
@@ -241,7 +241,7 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
             body +
             `<div class="acts"><button type="button" class="btn heart saved" data-act="heart">` +
             `${HEART_SVG}<span>${escapeHtml(heartLabel(true))}</span></button></div>`;
-        if (aiSkipped) wireAINotice(el);
+        if (note) wireAINotice(el);
         const btn = el.querySelector<HTMLButtonElement>('.heart')!;
         let saved = true;
         // What Remove names: the stored forms at first, the key once Save has

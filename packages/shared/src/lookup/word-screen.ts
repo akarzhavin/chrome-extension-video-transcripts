@@ -18,7 +18,7 @@ import { msg } from '../i18n';
 import { removeTerm, saveTerm, sendMessage } from '../content/quick-add-overlay';
 import { HEART_SVG, ICON_EXTERNAL, posLabel } from './icons';
 import { isContextual, hasLookupContent, oxfordLookupUrl, showsLemma } from './shape';
-import { aiNoticeHtml, wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml, wireAINotice } from '../ai-balance/notice';
 import { LookupResult } from './types';
 
 /**
@@ -330,8 +330,9 @@ export class WordScreen {
         if (!hasLookupContent(r)) {
             const none = document.createElement('div');
             none.className = 'vtt-lookup-article-pending';
-            if (r.ai_status) {
-                none.innerHTML = aiNoticeHtml(r.ai_status);
+            const note = emptyNoticeHtml(r);
+            if (note) {
+                none.innerHTML = note;
                 wireAINotice(none);
             } else {
                 none.textContent = msg('ytLookupNone', 'No translation');

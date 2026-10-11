@@ -151,12 +151,13 @@ export async function lookupPhraseCached(
         } catch (err) {
             googleError = err;
         }
-        const nothing = (source: string): LookupResult => ({
+        const nothing = (source: string, extra: Partial<LookupResult> = {}): LookupResult => ({
             term: req.term,
             lemma: req.term,
             translations: [],
             parts_of_speech: [],
             source,
+            ...extra,
         });
         if (!baseUrl) {
             if (googleError) throw googleError;
@@ -168,7 +169,14 @@ export async function lookupPhraseCached(
         // the dictionary and the model alike. A card that shows one word's
         // meaning under three selected words is worse than an honest "No
         // translation", so only an answer about a phrase is kept.
-        return isPhrase(fallback.lemma) ? fallback : nothing(fallback.source);
+        if (isPhrase(fallback.lemma)) return fallback;
+        // The AI part and the balance still belong to this caller; the failure
+        // flag keeps the empty answer out of the cache (throughCache).
+        return nothing(fallback.source, {
+            ...(fallback.ai_status ? { ai_status: fallback.ai_status } : {}),
+            ...(fallback.wallet ? { wallet: fallback.wallet } : {}),
+            ...(googleError ? { google_failed: true as const } : {}),
+        });
     });
 }
 
@@ -184,7 +192,7 @@ async function throughCache(
     // A skipped model part is about this caller now (signed out, wallet
     // empty), not about the word: the key has no account in it, so it is
     // never kept, and the next ask after a sign-in or a reset goes through.
-    if (result.ai_status) return { result, cached: false };
+    if (result.ai_status || result.google_failed) return { result, cached: false };
     // An empty answer is cached too — re-asking on every hover would burn the
     // rate limit on typos — but only briefly. The service does NOT store one
     // (its own cache treats "no content" as a miss), because empty is not
