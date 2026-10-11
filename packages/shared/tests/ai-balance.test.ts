@@ -479,6 +479,12 @@ describe('rules a broken line would slip past', () => {
         expect(fill(100_000)).toBe('lg-ai-fill');
     });
 
+    test('amber follows the balance warnRatio, as the warning does', async () => {
+        const b = { ...balance(300_000, 1), warnRatio: 0.5 };
+        expect(renderBars(b).querySelector('.lg-ai-fill')!.className).toContain('lg-ai-high');
+        expect(await takeWarning(b)).toBe('day');
+    });
+
     test('a sign-out during the call keeps the balance gone', async () => {
         // Signed out while the answer was on its way: clearAuthState already ran.
         await keepBalance(wire(9));

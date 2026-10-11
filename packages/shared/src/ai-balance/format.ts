@@ -7,6 +7,10 @@ export function percentUsed(w: AIWindow): number {
     return Math.floor((w.used * 100) / w.limit);
 }
 
+/** Past the warn ratio but not yet spent: the amber bar and the one-time warning. */
+export const isHigh = (w: AIWindow, warnRatio: number): boolean =>
+    w.limit > 0 && w.used >= warnRatio * w.limit && w.used < w.limit;
+
 /** Tokens left, compact: 380k, 1.2M. */
 export function formatTokens(n: number): string {
     const left = Math.max(0, Math.floor(n));

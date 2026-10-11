@@ -1,6 +1,7 @@
 // The one-time warning when a window crosses its warn ratio: remembered per
 // window, so it shows once a day and once a month, whichever view saw it first.
 
+import { isHigh } from './format';
 import type { AIBalance } from './types';
 
 export const WARNED_KEYS = { day: 'ai.warned.day', month: 'ai.warned.month' } as const;
@@ -12,15 +13,13 @@ export function windowKey(window: 'day' | 'month', b: AIBalance): string {
     return window === 'day' ? ym + String(d.getUTCDate()).padStart(2, '0') : ym;
 }
 
-const crossed = (used: number, limit: number, ratio: number) => limit > 0 && used >= ratio * limit && used < limit;
-
 /**
  * The window to warn about now, if any (the month first), recorded so it is
  * not warned again; null otherwise. An exhausted window is said by the limit
  * message instead.
  */
 export async function takeWarning(b: AIBalance): Promise<'day' | 'month' | null> {
-    const due = (['month', 'day'] as const).filter((w) => crossed(b[w].used, b[w].limit, b.warnRatio));
+    const due = (['month', 'day'] as const).filter((w) => isHigh(b[w], b.warnRatio));
     if (due.length === 0) return null;
     try {
         const seen = await chrome.storage.local.get([WARNED_KEYS.day, WARNED_KEYS.month]);

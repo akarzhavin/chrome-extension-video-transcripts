@@ -1,5 +1,5 @@
 import { msg } from '../i18n';
-import { limitText, percentUsed, resetsAtText, resetsOnText } from './format';
+import { isHigh, limitText, percentUsed, resetsAtText, resetsOnText } from './format';
 import type { AIBalance, AIWindow } from './types';
 
 /**
@@ -9,8 +9,8 @@ import type { AIBalance, AIWindow } from './types';
 export function renderBars(b: AIBalance, doc: Document = document): HTMLElement {
     const root = doc.createElement('div');
     root.className = 'lg-ai-bars';
-    root.appendChild(bar(doc, msg('aiToday', 'Today'), b.day, resetsAtText(b.day)));
-    root.appendChild(bar(doc, msg('aiMonth', 'This month'), b.month, resetsOnText(b.month)));
+    root.appendChild(bar(doc, msg('aiToday', 'Today'), b.day, b.warnRatio, resetsAtText(b.day)));
+    root.appendChild(bar(doc, msg('aiMonth', 'This month'), b.month, b.warnRatio, resetsOnText(b.month)));
     if (b.exhausted) {
         const note = doc.createElement('div');
         note.className = 'lg-ai-note';
@@ -20,7 +20,7 @@ export function renderBars(b: AIBalance, doc: Document = document): HTMLElement 
     return root;
 }
 
-function bar(doc: Document, label: string, w: AIWindow, reset: string): HTMLElement {
+function bar(doc: Document, label: string, w: AIWindow, warnRatio: number, reset: string): HTMLElement {
     const pct = percentUsed(w);
     const row = doc.createElement('div');
     row.className = 'lg-ai-row';
@@ -42,7 +42,7 @@ function bar(doc: Document, label: string, w: AIWindow, reset: string): HTMLElem
     track.setAttribute('aria-valuenow', String(pct));
     track.title = `${w.used.toLocaleString()} / ${w.limit.toLocaleString()}`;
     const fill = doc.createElement('div');
-    fill.className = `lg-ai-fill${pct >= 100 ? ' lg-ai-full' : pct >= 80 ? ' lg-ai-high' : ''}`;
+    fill.className = `lg-ai-fill${pct >= 100 ? ' lg-ai-full' : isHigh(w, warnRatio) ? ' lg-ai-high' : ''}`;
     fill.style.width = `${pct}%`;
     track.appendChild(fill);
     const foot = doc.createElement('div');
