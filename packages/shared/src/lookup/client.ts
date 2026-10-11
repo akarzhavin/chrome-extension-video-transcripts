@@ -196,7 +196,9 @@ async function throughCache(
         const oldest = cache.keys().next().value;
         if (oldest !== undefined) cache.delete(oldest);
     }
-    cache.set(key, { result, until });
+    // The balance is this caller's, and the key has no account in it.
+    const { wallet: _wallet, ...kept } = result;
+    cache.set(key, { result: kept, until });
     return { result, cached: false };
 }
 

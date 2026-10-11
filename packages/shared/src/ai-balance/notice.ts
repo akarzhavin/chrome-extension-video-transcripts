@@ -16,7 +16,7 @@ export function aiNoticeHtml(status: AIStatus): string {
         status === 'sign_in_required'
             ? ` <button type="button" class="lg-ai-signin" data-ai-signin="1">${esc(msg('popupSignInLead', 'Sign in'))}</button>`
             : '';
-    return `<span class="lg-ai-notice" data-ai-status="${status}">${esc(statusText(status, null))}</span>${button}`;
+    return `<span class="lg-ai-notice" data-ai-status="${esc(status)}">${esc(statusText(status, null))}</span>${button}`;
 }
 
 /** Fills the reset time from the stored balance and makes the sign-in button work. */
