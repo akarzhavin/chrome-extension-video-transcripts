@@ -277,6 +277,13 @@ describe('fetchLookup', () => {
         });
     });
 
+    it('drops an ai_status it does not know', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '', ai_status: 'bogus',
+        }));
+        expect(await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru' })).not.toHaveProperty('ai_status');
+    });
+
     // Spec 024: the token lets the model complete the card from the caller's wallet.
     it('sends the signed-in token and passes on the AI status and wallet', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({

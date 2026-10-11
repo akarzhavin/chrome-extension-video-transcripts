@@ -1,9 +1,10 @@
 // The wire contract for POST /dictionary/lookup, plus the message contract a
 // content script uses to reach it.
 //
-// Zero imports, deliberately: a service worker, a content script and a test
+// Type-only imports, deliberately: a service worker, a content script and a test
 // all need these shapes, and none of them should drag the client, the cache or
 // any DOM code along to get them.
+import type { AIStatus } from '../ai-balance/types';
 
 /**
  * Longest term worth sending. The service refuses past 200 runes, so anything
@@ -30,9 +31,6 @@ export interface LookupPartOfSpeech {
     senses: LookupSense[];
 }
 
-/** Why an answer has no model part (spec 024); absent when it was not skipped. */
-export type LookupAIStatus = 'sign_in_required' | 'limit_day' | 'limit_month' | 'ai_paused';
-
 /** The wire shape of one answer, exactly as the service returns it. */
 export interface LookupResult {
     term: string;
@@ -40,7 +38,8 @@ export interface LookupResult {
     translations: string[];
     parts_of_speech: LookupPartOfSpeech[];
     source: string;
-    ai_status?: LookupAIStatus;
+    /** Why the answer has no model part (spec 024); absent when it was not skipped. */
+    ai_status?: AIStatus;
     /** A signed-in caller's AI balance, raw; the worker keeps it, views read storage. */
     wallet?: unknown;
     /** Set by the worker, not the service: an empty phrase answer because Google did not answer. */

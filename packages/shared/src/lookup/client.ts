@@ -8,11 +8,11 @@
 // file — they post LOOKUP_WORD and let the worker answer.
 import {
     LOOKUP_TIMEOUT_MS,
-    LookupAIStatus,
     LookupPartOfSpeech,
     LookupRequest,
     LookupResult,
 } from './types';
+import { parseAIStatus } from '../ai-balance/types';
 import { hasLookupContent, isPhrase } from './shape';
 import { fetchGooglePhrase } from './google-web';
 
@@ -57,6 +57,7 @@ export async function fetchLookup(baseUrl: string, req: LookupRequest): Promise<
 // boundary and is rendered verbatim — a defensive fill here beats optional
 // chaining sprinkled through every renderer.
 function normalizeLookup(raw: Partial<LookupResult>, term: string): LookupResult {
+    const aiStatus = parseAIStatus(raw.ai_status);
     return {
         term: typeof raw.term === 'string' ? raw.term : term,
         lemma: typeof raw.lemma === 'string' ? raw.lemma : term,
@@ -75,13 +76,9 @@ function normalizeLookup(raw: Partial<LookupResult>, term: string): LookupResult
             })),
         })),
         source: typeof raw.source === 'string' ? raw.source : '',
-        ...(isAIStatus(raw.ai_status) ? { ai_status: raw.ai_status } : {}),
+        ...(aiStatus ? { ai_status: aiStatus } : {}),
         ...(raw.wallet && typeof raw.wallet === 'object' ? { wallet: raw.wallet } : {}),
     };
-}
-
-function isAIStatus(v: unknown): v is LookupAIStatus {
-    return v === 'sign_in_required' || v === 'limit_day' || v === 'limit_month' || v === 'ai_paused';
 }
 
 function isStr(v: unknown): v is string {
