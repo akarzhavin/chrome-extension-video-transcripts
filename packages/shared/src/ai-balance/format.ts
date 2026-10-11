@@ -28,22 +28,23 @@ export function localDate(ms: number): string {
 }
 
 export function resetsAtText(w: AIWindow): string {
-    return msg('aiResetsAt', 'Resets at $1').replace('$1', localTime(w.resetsAt));
+    return msg('aiResetsAt', 'Resets at $1', [localTime(w.resetsAt)]);
 }
 
 export function resetsOnText(w: AIWindow): string {
-    return msg('aiResetsOn', 'Resets on $1').replace('$1', localDate(w.resetsAt));
+    return msg('aiResetsOn', 'Resets on $1', [localDate(w.resetsAt)]);
 }
 
 /** What to say when a window ran out. */
 export function limitText(window: 'day' | 'month', b: AIBalance | null): string {
-    const text =
+    const key = window === 'month' ? 'aiLimitMonth' : 'aiLimitDay';
+    const fallback =
         window === 'month'
-            ? msg('aiLimitMonth', 'AI limit for this month reached, resets on $1')
-            : msg('aiLimitDay', 'AI limit for today reached, resets at $1');
+            ? 'AI limit for this month reached, resets on $1'
+            : 'AI limit for today reached, resets at $1';
     // No balance yet: no reset to name, so the clause after the comma goes.
-    if (!b) return text.split(',')[0];
-    return text.replace('$1', window === 'month' ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt));
+    if (!b) return msg(key, fallback).split(',')[0];
+    return msg(key, fallback, [window === 'month' ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt)]);
 }
 
 /** The card notice for an answer whose model part was skipped. */

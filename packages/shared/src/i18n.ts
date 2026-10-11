@@ -9,15 +9,20 @@ export function setI18nOverride(map: Record<string, string> | null): void {
     overrides = map;
 }
 
-/** Localized message for `key`, falling back to chrome.i18n, then `fallback`. */
-export function msg(key: string, fallback: string): string {
-    if (overrides && overrides[key]) return overrides[key];
+// Chrome only fills $1.. itself for its own messages; overrides and fallbacks need the same.
+const fill = (text: string, subs?: string[]): string =>
+    subs ? text.replace(/\$(\d)/g, (_, n) => subs[Number(n) - 1] ?? '') : text;
+
+/** Localized message for `key`, falling back to chrome.i18n, then `fallback`; `subs` fill $1, $2... */
+export function msg(key: string, fallback: string, subs?: string[]): string {
+    if (overrides && overrides[key]) return fill(overrides[key], subs);
     try {
         if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
-            return chrome.i18n.getMessage(key) || fallback;
+            const got = subs ? chrome.i18n.getMessage(key, subs) : chrome.i18n.getMessage(key);
+            if (got) return got;
         }
     } catch {
         /* not running in an extension context */
     }
-    return fallback;
+    return fill(fallback, subs);
 }
