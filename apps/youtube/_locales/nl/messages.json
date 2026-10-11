@@ -872,55 +872,55 @@
     "description": "AI translation status: the languages are not supported."
   },
   "aiBadgeTitle": {
-    "message": "AI tokens left today",
+    "message": "AI-tokens over vandaag",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
   "aiToday": {
-    "message": "Today",
+    "message": "Vandaag",
     "description": "AI usage bar label for the current day."
   },
   "aiMonth": {
-    "message": "This month",
+    "message": "Deze maand",
     "description": "AI usage bar label for the current month."
   },
   "aiResetsAt": {
-    "message": "Resets at $1",
+    "message": "Reset om $1",
     "description": "Under the daily AI bar; $1 is a local time like 03:00."
   },
   "aiResetsOn": {
-    "message": "Resets on $1",
+    "message": "Reset op $1",
     "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
   },
   "aiLimitDay": {
-    "message": "AI limit for today reached, resets at $1",
+    "message": "AI-limiet voor vandaag bereikt, reset om $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
   "aiLimitMonth": {
-    "message": "AI limit for this month reached, resets on $1",
+    "message": "AI-limiet voor deze maand bereikt, reset op $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
   },
   "aiSignInCard": {
-    "message": "Sign in so AI can complete the card",
+    "message": "Log in zodat AI de kaart aanvult",
     "description": "Word card without sign-in: the AI part needs an account."
   },
   "aiWarnDay": {
-    "message": "AI is almost used up for today",
+    "message": "AI is voor vandaag bijna op",
     "description": "One-time notice at 80% of the daily AI budget."
   },
   "aiWarnMonth": {
-    "message": "AI is almost used up for this month",
+    "message": "AI is voor deze maand bijna op",
     "description": "One-time notice at 80% of the monthly AI budget."
   },
   "aiPaused": {
-    "message": "AI is paused for today for everyone. The dictionary still works.",
+    "message": "AI is vandaag voor iedereen gepauzeerd. Het woordenboek werkt nog.",
     "description": "Word card: the shared AI budget is spent for today; the dictionary still answers."
   },
   "aiSignInTranslate": {
-    "message": "Sign in — AI will translate",
+    "message": "Log in — AI vertaalt",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
   "lookupGoogleFailed": {
-    "message": "Google did not answer, try again",
+    "message": "Google antwoordde niet, probeer het opnieuw",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
   }
 }
