@@ -895,9 +895,17 @@
     "message": "இன்றைய AI வரம்பு எட்டப்பட்டது, $1 மணிக்கு மீட்டமையும்",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "இன்றைய AI வரம்பு எட்டப்பட்டது",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "இந்த மாத AI வரம்பு எட்டப்பட்டது, $1 அன்று மீட்டமையும்",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "இந்த மாத AI வரம்பு எட்டப்பட்டது",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI அட்டையை முடிக்க உள்நுழையவும்",

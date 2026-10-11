@@ -895,9 +895,17 @@
     "message": "আজকের AI সীমা শেষ, $1-এ রিসেট হবে",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "আজকের AI সীমা শেষ",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "এই মাসের AI সীমা শেষ, $1-এ রিসেট হবে",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "এই মাসের AI সীমা শেষ",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI কার্ডটি সম্পূর্ণ করতে সাইন ইন করুন",

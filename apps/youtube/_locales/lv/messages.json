@@ -895,9 +895,17 @@
     "message": "Šodienas AI limits sasniegts, atiestatīsies plkst. $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Šodienas AI limits sasniegts",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Šī mēneša AI limits sasniegts, atiestatīsies $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Šī mēneša AI limits sasniegts",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Pierakstieties, lai AI pabeigtu karti",

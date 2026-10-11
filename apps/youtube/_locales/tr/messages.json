@@ -895,9 +895,17 @@
     "message": "Bugünkü AI sınırına ulaşıldı, $1 saatinde sıfırlanır",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Bugünkü AI sınırına ulaşıldı",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Bu ayki AI sınırına ulaşıldı, $1 tarihinde sıfırlanır",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Bu ayki AI sınırına ulaşıldı",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI'ın kartı tamamlaması için giriş yapın",

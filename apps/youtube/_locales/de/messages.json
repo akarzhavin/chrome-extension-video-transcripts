@@ -895,9 +895,17 @@
     "message": "AI-Limit für heute erreicht, Zurücksetzung um $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "AI-Limit für heute erreicht",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "AI-Limit für diesen Monat erreicht, Zurücksetzung am $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "AI-Limit für diesen Monat erreicht",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Melde dich an, damit AI die Karte vervollständigt",

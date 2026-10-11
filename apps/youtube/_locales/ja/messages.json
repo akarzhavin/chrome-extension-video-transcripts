@@ -892,12 +892,20 @@
     "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
   },
   "aiLimitDay": {
-    "message": "今日のAI上限に達しました,$1にリセットされます",
+    "message": "今日のAI上限に達しました、$1にリセットされます",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "今日のAI上限に達しました",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
-    "message": "今月のAI上限に達しました,$1にリセットされます",
+    "message": "今月のAI上限に達しました、$1にリセットされます",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "今月のAI上限に達しました",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "ログインするとAIがカードを完成させます",

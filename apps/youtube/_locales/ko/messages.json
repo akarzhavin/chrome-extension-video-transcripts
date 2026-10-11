@@ -895,9 +895,17 @@
     "message": "오늘의 AI 한도에 도달했습니다, $1에 초기화됩니다",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "오늘의 AI 한도에 도달했습니다",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "이번 달 AI 한도에 도달했습니다, $1에 초기화됩니다",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "이번 달 AI 한도에 도달했습니다",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "로그인하면 AI가 카드를 완성합니다",

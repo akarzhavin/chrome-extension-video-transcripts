@@ -895,9 +895,17 @@
     "message": "የዛሬው የAI ገደብ ደርሷል, ዳግም የሚጀምረው በ$1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "የዛሬው የAI ገደብ ደርሷል",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "የዚህ ወር የAI ገደብ ደርሷል, ዳግም የሚጀምረው በ$1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "የዚህ ወር የAI ገደብ ደርሷል",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI ካርዱን እንዲያጠናቅቅ ይግቡ",

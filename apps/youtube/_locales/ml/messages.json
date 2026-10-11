@@ -895,9 +895,17 @@
     "message": "ഇന്നത്തെ AI പരിധി എത്തി, $1-ന് റീസെറ്റ് ആകും",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "ഇന്നത്തെ AI പരിധി എത്തി",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "ഈ മാസത്തെ AI പരിധി എത്തി, $1-ന് റീസെറ്റ് ആകും",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "ഈ മാസത്തെ AI പരിധി എത്തി",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI കാർഡ് പൂർത്തിയാക്കാൻ സൈൻ ഇൻ ചെയ്യുക",

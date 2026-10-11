@@ -41,14 +41,14 @@ export function resetsOnText(w: AIWindow): string {
 
 /** What to say when a window ran out. */
 export function limitText(window: 'day' | 'month', b: AIBalance | null): string {
-    const key = window === 'month' ? 'aiLimitMonth' : 'aiLimitDay';
-    const fallback =
-        window === 'month'
-            ? 'AI limit for this month reached, resets on $1'
-            : 'AI limit for today reached, resets at $1';
-    // No balance yet: no reset to name, so the clause after the comma goes.
-    if (!b) return msg(key, fallback).split(',')[0];
-    return msg(key, fallback, [window === 'month' ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt)]);
+    const month = window === 'month';
+    // No balance yet: no reset to name, so the short message without the clause.
+    if (!b) return msg(month ? 'aiLimitMonthShort' : 'aiLimitDayShort', month ? 'AI limit for this month reached' : 'AI limit for today reached');
+    return msg(
+        month ? 'aiLimitMonth' : 'aiLimitDay',
+        month ? 'AI limit for this month reached, resets on $1' : 'AI limit for today reached, resets at $1',
+        [month ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt)],
+    );
 }
 
 /** The card notice for an answer whose model part was skipped. */

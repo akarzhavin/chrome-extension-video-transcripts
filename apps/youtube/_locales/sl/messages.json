@@ -895,9 +895,17 @@
     "message": "Dnevna omejitev AI dosežena, ponastavitev ob $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Dnevna omejitev AI dosežena",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Mesečna omejitev AI dosežena, ponastavitev $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Mesečna omejitev AI dosežena",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Prijavite se, da AI dopolni kartico",

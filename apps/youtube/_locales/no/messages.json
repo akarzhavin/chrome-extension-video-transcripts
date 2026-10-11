@@ -895,9 +895,17 @@
     "message": "AI-grensen for i dag er nådd, nullstilles kl. $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "AI-grensen for i dag er nådd",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "AI-grensen for denne måneden er nådd, nullstilles $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "AI-grensen for denne måneden er nådd",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Logg inn så AI kan fullføre kortet",

@@ -895,9 +895,17 @@
     "message": "Дневният лимит на AI е достигнат, нулиране в $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Дневният лимит на AI е достигнат",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Месечният лимит на AI е достигнат, нулиране на $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Месечният лимит на AI е достигнат",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Влезте, за да допълни AI картата",

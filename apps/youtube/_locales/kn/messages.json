@@ -895,9 +895,17 @@
     "message": "ಇಂದಿನ AI ಮಿತಿ ತಲುಪಿದೆ, $1 ಕ್ಕೆ ರೀಸೆಟ್ ಆಗುತ್ತದೆ",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "ಇಂದಿನ AI ಮಿತಿ ತಲುಪಿದೆ",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "ಈ ತಿಂಗಳ AI ಮಿತಿ ತಲುಪಿದೆ, $1 ರಂದು ರೀಸೆಟ್ ಆಗುತ್ತದೆ",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "ಈ ತಿಂಗಳ AI ಮಿತಿ ತಲುಪಿದೆ",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "AI ಕಾರ್ಡ್ ಪೂರ್ಣಗೊಳಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",

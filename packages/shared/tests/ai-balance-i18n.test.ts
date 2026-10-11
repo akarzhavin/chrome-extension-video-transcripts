@@ -2,6 +2,8 @@
 const MESSAGES: Record<string, string> = {
     aiResetsAt: 'Resets at $1',
     aiResetsOn: 'Resets on $1',
+    aiLimitDayShort: 'AI limit for today reached',
+    aiLimitMonthShort: 'AI limit for this month reached',
     aiLimitDay: 'AI limit for today reached, resets at $1',
     aiLimitMonth: 'AI limit for this month reached, resets on $1',
 };
@@ -52,7 +54,11 @@ describe('reset time texts', () => {
         expect(limitText('month', b)).toBe(`AI limit for this month reached, resets on ${localDate(RESET)}`);
     });
 
-    it('limitText without a balance drops the clause after the comma', () => {
+    it('limitText without a balance says the short message, whatever the locale punctuation', () => {
         expect(limitText('day', null)).toBe('AI limit for today reached');
+        expect(limitText('month', null)).toBe('AI limit for this month reached');
+        setI18nOverride({ aiLimitDay: '今日のAI上限に達しました、$1にリセットされます', aiLimitDayShort: '今日のAI上限に達しました' });
+        expect(limitText('day', null)).toBe('今日のAI上限に達しました');
+        setI18nOverride(null);
     });
 });

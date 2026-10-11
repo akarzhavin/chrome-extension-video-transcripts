@@ -895,9 +895,17 @@
     "message": "Đã đạt giới hạn AI hôm nay, đặt lại lúc $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Đã đạt giới hạn AI hôm nay",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Đã đạt giới hạn AI tháng này, đặt lại vào $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Đã đạt giới hạn AI tháng này",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Đăng nhập để AI hoàn thiện thẻ",

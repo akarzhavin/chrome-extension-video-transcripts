@@ -895,9 +895,17 @@
     "message": "Denný limit AI dosiahnutý, obnoví sa o $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "Denný limit AI dosiahnutý",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
     "message": "Mesačný limit AI dosiahnutý, obnoví sa $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Mesačný limit AI dosiahnutý",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "Prihláste sa, aby AI doplnila kartu",

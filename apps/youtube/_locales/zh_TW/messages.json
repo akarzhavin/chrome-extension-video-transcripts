@@ -892,12 +892,20 @@
     "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
   },
   "aiLimitDay": {
-    "message": "今日 AI 額度已用完,將於 $1 重設",
+    "message": "今日 AI 額度已用完，將於 $1 重設",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "今日 AI 額度已用完",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
-    "message": "本月 AI 額度已用完,將於 $1 重設",
+    "message": "本月 AI 額度已用完，將於 $1 重設",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "本月 AI 額度已用完",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "登入後 AI 可補全卡片",

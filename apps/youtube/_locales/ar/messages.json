@@ -892,12 +892,20 @@
     "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
   },
   "aiLimitDay": {
-    "message": "تم بلوغ حد AI لليوم, يُعاد التعيين عند $1",
+    "message": "تم بلوغ حد AI لليوم، يُعاد التعيين عند $1",
     "description": "The daily AI budget ran out; $1 is the local reset time."
   },
+  "aiLimitDayShort": {
+    "message": "تم بلوغ حد AI لليوم",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
   "aiLimitMonth": {
-    "message": "تم بلوغ حد AI لهذا الشهر, يُعاد التعيين في $1",
+    "message": "تم بلوغ حد AI لهذا الشهر، يُعاد التعيين في $1",
     "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "تم بلوغ حد AI لهذا الشهر",
+    "description": "The monthly AI budget ran out, without the reset date."
   },
   "aiSignInCard": {
     "message": "سجّل الدخول ليكمل AI البطاقة",
