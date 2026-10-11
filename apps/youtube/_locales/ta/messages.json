@@ -849,7 +849,7 @@
   },
   "ytAiStatusQuota": {
     "message": "The AI limit is reached",
-    "description": "AI translation status: the daily allowance is used up."
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Too many new videos today — try again later",
@@ -913,11 +913,11 @@
   },
   "aiWarnDay": {
     "message": "இன்றைய AI கிட்டத்தட்ட தீர்ந்துவிட்டது",
-    "description": "One-time notice at 80% of the daily AI budget."
+    "description": "One-time notice when the daily AI budget passes its warning share."
   },
   "aiWarnMonth": {
     "message": "இந்த மாத AI கிட்டத்தட்ட தீர்ந்துவிட்டது",
-    "description": "One-time notice at 80% of the monthly AI budget."
+    "description": "One-time notice when the monthly AI budget passes its warning share."
   },
   "aiPaused": {
     "message": "AI இன்று அனைவருக்கும் இடைநிறுத்தப்பட்டுள்ளது. அகராதி இன்னும் வேலை செய்கிறது.",

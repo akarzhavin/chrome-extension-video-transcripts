@@ -849,7 +849,7 @@
   },
   "ytAiStatusQuota": {
     "message": "Дневной лимит AI-перевода исчерпан",
-    "description": "AI translation status: the daily allowance is used up."
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Сегодня слишком много новых видео — попробуйте позже",
@@ -913,11 +913,11 @@
   },
   "aiWarnDay": {
     "message": "AI на сегодня почти израсходован",
-    "description": "One-time notice at 80% of the daily AI budget."
+    "description": "One-time notice when the daily AI budget passes its warning share."
   },
   "aiWarnMonth": {
     "message": "AI на этот месяц почти израсходован",
-    "description": "One-time notice at 80% of the monthly AI budget."
+    "description": "One-time notice when the monthly AI budget passes its warning share."
   },
   "aiPaused": {
     "message": "AI на сегодня на паузе у всех. Словарь работает.",

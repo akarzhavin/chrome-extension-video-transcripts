@@ -381,27 +381,43 @@ describe('state 3: signed in', () => {
             expect(pcts()).toEqual(['20', '1']);
         });
 
-        test('the refresh reply repaints them', async () => {
+        // The worker answers a refresh by writing storage; the popup hears it there.
+        const stores = (used: number) => {
+            prefsStore['ai.balance'] = wallet(used);
+            storageListeners.forEach((l) => l({ 'ai.balance': { newValue: wallet(used) } }, 'local'));
+        };
+
+        test('a balance the refresh stores repaints them', async () => {
             prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(250_000) }), 0));
+            withRefresh((cb) => setTimeout(() => (stores(250_000), cb({ ok: true })), 0));
             await mount();
             await nextTick();
             expect(ai().hidden).toBe(false);
             expect(pcts()).toEqual(['50', '2']);
         });
 
+        test('the refresh reply itself paints nothing', async () => {
+            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(400_000) }), 0));
+            await mount();
+            await nextTick();
+            expect(ai().hidden).toBe(true);
+        });
+
         // A reply that beats the storage read must not be painted over by it.
         test('a refresh answered before the storage read keeps the fresh numbers', async () => {
             prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => cb({ ok: true, balance: wallet(250_000) }));
+            withRefresh((cb) => {
+                storageListeners.forEach((l) => l({ 'ai.balance': { newValue: wallet(250_000) } }, 'local'));
+                cb({ ok: true });
+            });
             await mount();
             await nextTick();
             expect(pcts()).toEqual(['50', '2']);
         });
 
-        test('with nothing stored, a refresh reply alone shows them', async () => {
-            // Answered after the storage read, as the network always is.
-            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(400_000) }), 0));
+        test('with nothing stored, a balance the refresh stores shows them', async () => {
+            // Written after the storage read, as the network always is.
+            withRefresh((cb) => setTimeout(() => (stores(400_000), cb({ ok: true })), 0));
             await mount();
             await nextTick();
             expect(ai().hidden).toBe(false);
@@ -428,15 +444,6 @@ describe('state 3: signed in', () => {
             await mount();
             expect(ai().hidden).toBe(false);
             expect(pcts()[0]).toBe('20');
-        });
-
-        test('an ok refresh with a malformed balance keeps the stored one', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: { nope: 1 } }), 0));
-            await mount();
-            await nextTick();
-            expect(ai().hidden).toBe(false);
-            expect(pcts()).toEqual(['20', '1']);
         });
 
         // Let the previous test's late refreshes land, then forget their listeners.

@@ -15,9 +15,11 @@ const getMessage = jest.fn((key: string, subs?: string | string[]) => {
 (global as any).chrome = { i18n: { getMessage } };
 
 import { msg, setI18nOverride } from '../src/i18n';
-import { limitText, localDate, localTime, resetsAtText, resetsOnText } from '../src/ai-balance/format';
+import { limitText, resetsAtText, resetsOnText } from '../src/ai-balance/format';
 import { parseBalance } from '../src/ai-balance/types';
 
+const localTime = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const localDate = (ms: number) => new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' });
 const RESET = Date.UTC(2026, 9, 12, 3, 0);
 const b = parseBalance(
     {

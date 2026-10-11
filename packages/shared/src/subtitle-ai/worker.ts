@@ -38,7 +38,7 @@ export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'in
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
     | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; wallet?: unknown }
-    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; window?: 'day' | 'month'; wallet?: unknown };
+    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
 
 export interface StoredTrack {
     fingerprint: string;
@@ -113,7 +113,6 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
                     ok: false,
                     code: 'quota',
                     ...(typeof b.resets_at === 'number' ? { resetsAt: b.resets_at } : {}),
-                    ...(b.window === 'day' || b.window === 'month' ? { window: b.window } : {}),
                     ...(b.wallet ? { wallet: b.wallet } : {}),
                 };
             }

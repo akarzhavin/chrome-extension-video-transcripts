@@ -22,12 +22,12 @@ export function formatTokens(n: number): string {
 export const tokensLeft = (w: AIWindow): number => Math.max(0, w.limit - w.used);
 
 /** The reset's local time of day, e.g. 03:00. */
-export function localTime(ms: number): string {
+function localTime(ms: number): string {
     return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 /** The reset's local date, e.g. 1 Nov. */
-export function localDate(ms: number): string {
+function localDate(ms: number): string {
     return new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' });
 }
 

@@ -169,11 +169,11 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         expect(storedUsed()).toBe(5);
     });
 
-    test('a spent wallet (429) still carries the balance and the window', async () => {
+    test('a spent wallet (429) still carries the balance', async () => {
         await signIn();
         fetchMock().mockResolvedValue(json({ code: 'quota_exceeded', resets_at: 123, window: 'month', wallet: wallet(10_000_000) }, 429));
         const reply = await part();
-        expect(reply).toMatchObject({ ok: false, code: 'quota', resetsAt: 123, window: 'month' });
+        expect(reply).toMatchObject({ ok: false, code: 'quota', resetsAt: 123 });
         expect(storedUsed()).toBe(10_000_000);
     });
 

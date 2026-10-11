@@ -4,7 +4,8 @@ import { msg } from '../i18n';
 
 const NOTE_MS = 8000;
 
-export function showWarningNote(headerTop: HTMLElement, window: 'day' | 'month'): void {
+/** Shows the note for a few seconds; returns the cancel that removes it at once. */
+export function showWarningNote(headerTop: HTMLElement, window: 'day' | 'month'): () => void {
     const doc = headerTop.ownerDocument;
     doc.getElementById('vtt-ai-warn')?.remove();
     const note = doc.createElement('div');
@@ -15,5 +16,9 @@ export function showWarningNote(headerTop: HTMLElement, window: 'day' | 'month')
             ? msg('aiWarnMonth', 'AI is almost used up for this month')
             : msg('aiWarnDay', 'AI is almost used up for today');
     headerTop.after(note);
-    setTimeout(() => note.remove(), NOTE_MS);
+    const timer = setTimeout(() => note.remove(), NOTE_MS);
+    return () => {
+        clearTimeout(timer);
+        note.remove();
+    };
 }

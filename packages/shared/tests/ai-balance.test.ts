@@ -35,9 +35,9 @@ const sendMessage = jest.fn();
 };
 
 import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
-import { formatTokens, limitText, localDate, localTime, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
+import { formatTokens, limitText, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
 import { clearAccountAI, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
-import { takeWarning, windowKey } from '../src/ai-balance/warn';
+import { takeWarning } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
 import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
 import { emptyNoticeHtml } from '../src/lookup/empty-notice';
@@ -45,6 +45,8 @@ import { mountAIBadge } from '../src/ai-balance/badge';
 import { keepBalance, refreshBalance } from '../src/ai-balance/fetch';
 
 const BALANCE_KEY = 'ai.balance';
+const localTime = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const localDate = (ms: number) => new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' });
 const DAY_RESET = Date.UTC(2026, 9, 12);
 const MONTH_RESET = Date.UTC(2026, 10, 1);
 const wire = (dayUsed: number, monthUsed = dayUsed, exhausted: string | null = null) => ({
@@ -148,8 +150,13 @@ describe('takeWarning', () => {
         expect(await takeWarning(balance(400_000, 8_000_000))).toBe('day');
         expect(await takeWarning(balance(450_000, 8_100_000))).toBeNull();
         expect(await takeWarning(balance(500_000, 8_100_000, 'day'))).toBeNull();
-        expect(windowKey('day', balance(1))).toBe('20261011');
-        expect(windowKey('month', balance(1))).toBe('202610');
+    });
+
+    test('a window is remembered by the UTC day or month before its reset', async () => {
+        await takeWarning(balance(400_000, 8_000_000));
+        await takeWarning(balance(400_000, 8_000_000));
+        expect(store['ai.warned.month']).toBe('202610');
+        expect(store['ai.warned.day']).toBe('20261011');
     });
 });
 
@@ -184,6 +191,17 @@ describe('card notice', () => {
     });
 });
 
+describe('card notice edges', () => {
+    test('a status the dataset should not carry is left alone', async () => {
+        await saveBalance(balance(500_000, 1, 'day'));
+        const box = document.createElement('div');
+        box.innerHTML = '<span class="lg-ai-notice" data-ai-status="bogus">as rendered</span>';
+        wireAINotice(box);
+        await flush();
+        expect(box.textContent).toBe('as rendered');
+    });
+});
+
 describe('sidebar badge', () => {
     function header(): HTMLElement {
         document.body.innerHTML = '<div id="vtt-header-top"><div id="vtt-langpair">EN ⇄ RU</div></div>';
@@ -214,6 +232,24 @@ describe('sidebar badge', () => {
         expect(css).toContain('#vtt-ai-warn');
         expect(css).not.toMatch(/#vtt-ai-badge\s*\{[^}]*!important/);
         expect(css).not.toMatch(/vtt-lookup-open #vtt-ai-badge\s*\{[^}]*!important/);
+    });
+
+    test('unmounting cancels the pending warning timer', async () => {
+        jest.useFakeTimers();
+        try {
+            const top = header();
+            const unmount = mountAIBadge(top);
+            await saveBalance(balance(450_000));
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(document.getElementById('vtt-ai-warn')).not.toBeNull();
+            unmount();
+            expect(jest.getTimerCount()).toBe(0);
+            expect(document.getElementById('vtt-ai-warn')).toBeNull();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('a click opens the bars with the swap the chip was', async () => {

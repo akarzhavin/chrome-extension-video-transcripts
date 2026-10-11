@@ -12,7 +12,7 @@ export async function clearWarned(): Promise<void> {
 }
 
 /** The window's identity, from the UTC day before its reset: YYYYMMDD or YYYYMM. */
-export function windowKey(window: 'day' | 'month', b: AIBalance): string {
+function windowKey(window: 'day' | 'month', b: AIBalance): string {
     const d = new Date((window === 'day' ? b.day.resetsAt : b.month.resetsAt) - 1);
     const ym = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
     return window === 'day' ? ym + String(d.getUTCDate()).padStart(2, '0') : ym;

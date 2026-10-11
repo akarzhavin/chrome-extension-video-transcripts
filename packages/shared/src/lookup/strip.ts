@@ -51,6 +51,7 @@ import {
     stripTranslations,
 } from './shape';
 import type { SelectionPayload } from '../content/quick-add-overlay';
+import { escapeHtml } from '../escape-html';
 import { wireAINotice } from '../ai-balance/notice';
 import { emptyNoticeHtml } from './empty-notice';
 import {
@@ -1079,9 +1080,4 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         clearTimeout(hideTimer);
         removeStrip();
     };
-}
-
-function escapeHtml(s: string): string {
-    return s.replace(/[&<>"]/g, (c) =>
-        c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;');
 }

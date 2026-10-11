@@ -23,6 +23,7 @@ import { msg } from '../i18n';
 import { HEART_SVG, posLabel } from '../lookup/icons';
 import { hasLookupContent, posTags, showsLemma, stripDefinition, stripTranslations } from '../lookup/shape';
 import type { LookupAnswer } from '../lookup/types';
+import { escapeHtml } from '../escape-html';
 import { wireAINotice } from '../ai-balance/notice';
 import { emptyNoticeHtml } from '../lookup/empty-notice';
 
@@ -113,10 +114,6 @@ interface LookupResponse {
     ok: boolean;
     result?: LookupAnswer;
     error?: string;
-}
-
-function escapeHtml(s: string): string {
-    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
 /** Mounts the card's listeners on `doc`; returns the uninstaller. */

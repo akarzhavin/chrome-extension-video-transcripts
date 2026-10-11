@@ -19,7 +19,7 @@ import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { mountDevBackendChip } from './dev-backend-chip';
 import { renderBars } from '../ai-balance/bars';
 import { loadBalance, onBalance } from '../ai-balance/store';
-import { parseBalance, type AIBalance } from '../ai-balance/types';
+import type { AIBalance } from '../ai-balance/types';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
 // and the edition-specific blocks (video sites, setup) are left out.
@@ -197,24 +197,17 @@ function aiBlock(): HTMLElement {
         box.replaceChildren(...(b ? [renderBars(b)] : []));
         box.hidden = !b;
     };
-    // The refresh is fresher than storage: once it painted, a late read must not undo it.
-    let fresh = false;
-    void loadBalance().then((b) => !fresh && paint(b));
+    // A change heard live is newer than a read still in flight.
+    let live = false;
+    void loadBalance().then((b) => !live && paint(b));
     // One live subscription: a re-render replaces the block, so drop the old one first.
     stopBalance();
     stopBalance = onBalance((b) => {
-        fresh = true;
+        live = true;
         paint(b);
     });
-    void send<{ ok: boolean; balance?: unknown }>({ action: 'AI_BALANCE_REFRESH' })
-        .then((r) => {
-            const b = r.ok ? parseBalance(r.balance) : null;
-            if (b) {
-                fresh = true;
-                paint(b);
-            }
-        })
-        .catch(() => undefined);
+    // The worker answers by writing storage, which onBalance hears.
+    void send({ action: 'AI_BALANCE_REFRESH' }).catch(() => undefined);
     return box;
 }
 

@@ -6,7 +6,7 @@ import { escapeHtml } from '../escape-html';
 import { msg } from '../i18n';
 import { statusText } from './format';
 import { loadBalance } from './store';
-import type { AIStatus } from './types';
+import { parseAIStatus, type AIStatus } from './types';
 
 
 /** The notice as markup; wire it with wireAINotice once it is in the DOM. */
@@ -21,7 +21,7 @@ export function aiNoticeHtml(status: AIStatus, phrase = false): string {
 /** Fills the reset time from the stored balance and makes the sign-in button work. */
 export function wireAINotice(root: HTMLElement): void {
     const notice = root.querySelector<HTMLElement>('.lg-ai-notice');
-    const status = notice?.dataset.aiStatus as AIStatus | undefined;
+    const status = parseAIStatus(notice?.dataset.aiStatus);
     if (notice && status && status !== 'sign_in_required') {
         void loadBalance().then((b) => {
             if (b) notice.textContent = statusText(status, b);
