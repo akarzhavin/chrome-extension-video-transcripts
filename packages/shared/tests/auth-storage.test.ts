@@ -76,7 +76,7 @@ describe('signing out', () => {
         await clearAuthState();
         expect(removed).toHaveLength(1);
         expect([...removed[0]].sort()).toEqual(
-            ['ai.balance', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
+            ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
         );
     });
 

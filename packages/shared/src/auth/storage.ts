@@ -1,4 +1,5 @@
 import { BALANCE_KEY } from '../ai-balance/store';
+import { WARNED_KEYS } from '../ai-balance/warn';
 
 export interface AuthState {
     idToken: string;
@@ -315,6 +316,9 @@ export async function clearAuthState(): Promise<void> {
         WORD_KEYS.mirror,
         // This account's AI budget (ai-balance/store.ts), numbers only.
         BALANCE_KEY,
+        // Warned-window marks belong to the account too: the next one must be warned.
+        WARNED_KEYS.day,
+        WARNED_KEYS.month,
     ]);
 }
 
