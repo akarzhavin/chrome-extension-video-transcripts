@@ -35,7 +35,7 @@ const sendMessage = jest.fn();
 };
 
 import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
-import { formatTokens, limitText, percentUsed, statusText } from '../src/ai-balance/format';
+import { formatTokens, limitText, localDate, localTime, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
 import { BALANCE_KEY, clearBalance, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
 import { takeWarning, windowKey } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
@@ -413,5 +413,34 @@ describe('card notice edges', () => {
 
     test('a root without a notice is left alone', () => {
         expect(() => wireAINotice(document.createElement('div'))).not.toThrow();
+    });
+});
+
+describe('rules a broken line would slip past', () => {
+    test('a spent window gets the limit message, not the 80% warning', async () => {
+        expect(await takeWarning(balance(500_000, 100_000, 'day'))).toBeNull();
+        expect(await takeWarning(balance(1, 10_000_000, 'month'))).toBeNull();
+    });
+
+    test('tokens left never go below zero', () => {
+        expect(tokensLeft(balance(600_000).day)).toBe(0);
+        expect(tokensLeft(balance(400_000).day)).toBe(100_000);
+    });
+
+    test('the month limit names the month reset, the day limit the day reset', () => {
+        const b = balance(1);
+        expect(limitText('month', b)).toBe(`AI limit for this month reached, resets on ${localDate(MONTH_RESET)}`);
+        expect(limitText('day', b)).toBe(`AI limit for today reached, resets at ${localTime(DAY_RESET)}`);
+    });
+
+    test('a full window is red, 80% amber', () => {
+        const fill = (used: number) => renderBars(balance(used, 1)).querySelector('.lg-ai-fill')!.className;
+        expect(fill(500_000)).toContain('lg-ai-full');
+        expect(fill(400_000)).toContain('lg-ai-high');
+        expect(fill(100_000)).toBe('lg-ai-fill');
+    });
+
+    test('an unknown exhausted value reads as not exhausted', () => {
+        expect(parseBalance({ ...wire(1), exhausted: 'week' })?.exhausted).toBeNull();
     });
 });
