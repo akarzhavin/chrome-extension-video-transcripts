@@ -33,6 +33,8 @@ const storageLocal = {
     }),
 };
 
+const storageListeners = new Set<(c: any, a: string) => void>();
+
 (global as any).chrome = {
     runtime: {
         id: 'test-extension-id',
@@ -44,7 +46,13 @@ const storageLocal = {
     },
     tabs: { create: tabsCreateMock, query: tabsQueryMock },
     i18n: { getMessage: () => '', getUILanguage: () => 'en' }, // English fallbacks
-    storage: { local: storageLocal, onChanged: { addListener: jest.fn() } },
+    storage: {
+        local: storageLocal,
+        onChanged: {
+            addListener: (l: (c: any, a: string) => void) => storageListeners.add(l),
+            removeListener: (l: (c: any, a: string) => void) => storageListeners.delete(l),
+        },
+    },
 };
 
 import { readFileSync } from 'fs';
@@ -70,6 +78,7 @@ beforeEach(() => {
     tabsQueryMock.mockReset().mockResolvedValue([]);
     window.close = jest.fn();
     for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+    storageListeners.clear();
     storageLocal.get.mockClear();
     storageLocal.set.mockClear();
     jest.resetModules();
@@ -428,6 +437,47 @@ describe('state 3: signed in', () => {
             await nextTick();
             expect(ai().hidden).toBe(false);
             expect(pcts()).toEqual(['20', '1']);
+        });
+
+        // Let the previous test's late refreshes land, then forget their listeners.
+        const settle = async () => {
+            await nextTick();
+            await nextTick();
+            storageListeners.clear();
+        };
+
+        test('repaint on a balance change while open, and stop on pagehide', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh(() => undefined);
+            await settle();
+            await mount();
+            await nextTick();
+            const change = (used: number) =>
+                storageListeners.forEach((l) => l({ 'ai.balance': { newValue: { ...wallet(used), fetchedAt: 1 } } }, 'local'));
+            change(250_000);
+            expect(pcts()[0]).toBe('50');
+            window.dispatchEvent(new Event('pagehide'));
+            change(400_000);
+            expect(pcts()[0]).toBe('50');
+        });
+
+        test('a re-render leaves one balance listener, not one per render', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh(() => undefined);
+            await settle();
+            await mount();
+            await mount();
+            await nextTick();
+            // Other popup code listens on storage too; the balance one is the one naming its key.
+            expect([...storageListeners].filter((l) => l.toString().includes('BALANCE_KEY'))).toHaveLength(1);
+        });
+
+        test('a balance cleared in storage hides the block', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh(() => undefined);
+            await mount();
+            storageListeners.forEach((l) => l({ 'ai.balance': { newValue: undefined } }, 'local'));
+            expect(ai().hidden).toBe(true);
         });
 
         test('signed out there is no AI block', async () => {

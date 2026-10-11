@@ -18,7 +18,7 @@ import { renderSiteSwitch } from './site-switch';
 import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { mountDevBackendChip } from './dev-backend-chip';
 import { renderBars } from '../ai-balance/bars';
-import { loadBalance } from '../ai-balance/store';
+import { loadBalance, onBalance } from '../ai-balance/store';
 import { parseBalance, type AIBalance } from '../ai-balance/types';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
@@ -185,8 +185,11 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
     }
 }
 
-// Today's and this month's AI use (spec 024): the stored balance at once, then
-// one refresh as the popup opens; empty until either answers.
+let stopBalance: () => void = () => {};
+window.addEventListener('pagehide', () => stopBalance());
+
+// Today's and this month's AI use (spec 024): the stored balance at once, one
+// refresh as the popup opens, then live changes; empty until one answers.
 function aiBlock(): HTMLElement {
     const box = el('div', 'mai');
     box.hidden = true;
@@ -197,6 +200,12 @@ function aiBlock(): HTMLElement {
     // The refresh is fresher than storage: once it painted, a late read must not undo it.
     let fresh = false;
     void loadBalance().then((b) => !fresh && paint(b));
+    // One live subscription: a re-render replaces the block, so drop the old one first.
+    stopBalance();
+    stopBalance = onBalance((b) => {
+        fresh = true;
+        paint(b);
+    });
     void send<{ ok: boolean; balance?: unknown }>({ action: 'AI_BALANCE_REFRESH' })
         .then((r) => {
             const b = r.ok ? parseBalance(r.balance) : null;
