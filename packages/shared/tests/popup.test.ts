@@ -344,6 +344,99 @@ describe('state 3: signed in', () => {
         await mount();
         expect(visibleRows()).toEqual(['My vocabulary [0]', '---', 'Settings']);
     });
+
+    // Spec 024: today's and this month's AI use, from storage and one refresh.
+    describe('the AI bars', () => {
+        const wallet = (used: number) => ({
+            day: { used, limit: 500_000, resets_at: Date.UTC(2026, 9, 12) },
+            month: { used, limit: 10_000_000, resets_at: Date.UTC(2026, 10, 1) },
+            exhausted: null,
+            warn_ratio: 0.8,
+        });
+        const status = { signedIn: true, email: 'reader@example.com', inboxCount: 1 };
+        const ai = () => root().querySelector<HTMLElement>('.mai')!;
+        const pcts = () => [...ai().querySelectorAll('[role=progressbar]')].map((b) => b.getAttribute('aria-valuenow'));
+        function withRefresh(reply: (cb: (r: unknown) => void) => void): void {
+            sendMessageMock.mockImplementation((msg: any, cb: any) => {
+                if (typeof cb !== 'function') return;
+                if (msg?.action === 'AI_BALANCE_REFRESH') reply(cb);
+                else cb(msg?.action === 'AUTH_STATUS' ? status : {});
+            });
+        }
+
+        test('show the stored balance at once', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh(() => undefined); // the refresh never answers
+            await mount();
+            expect(ai().hidden).toBe(false);
+            expect(pcts()).toEqual(['20', '1']);
+        });
+
+        test('the refresh reply repaints them', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(250_000) }), 0));
+            await mount();
+            await nextTick();
+            expect(ai().hidden).toBe(false);
+            expect(pcts()).toEqual(['50', '3']);
+        });
+
+        // A reply that beats the storage read must not be painted over by it.
+        test('a refresh answered before the storage read keeps the fresh numbers', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh((cb) => cb({ ok: true, balance: wallet(250_000) }));
+            await mount();
+            await nextTick();
+            expect(pcts()).toEqual(['50', '3']);
+        });
+
+        test('with nothing stored, a refresh reply alone shows them', async () => {
+            // Answered after the storage read, as the network always is.
+            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(400_000) }), 0));
+            await mount();
+            await nextTick();
+            expect(ai().hidden).toBe(false);
+            expect(pcts()[0]).toBe('80');
+        });
+
+        test('an ok:false refresh leaves them hidden when nothing is stored', async () => {
+            withRefresh((cb) => cb({ ok: false }));
+            await mount();
+            expect(ai().hidden).toBe(true);
+            expect(ai().children).toHaveLength(0);
+        });
+
+        test('a failed refresh keeps the stored ones', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh((cb) => {
+                (chrome.runtime as any).lastError = { message: 'no receiver' };
+                try {
+                    cb(undefined);
+                } finally {
+                    (chrome.runtime as any).lastError = undefined;
+                }
+            });
+            await mount();
+            expect(ai().hidden).toBe(false);
+            expect(pcts()[0]).toBe('20');
+        });
+
+        test('an ok refresh with a malformed balance keeps the stored one', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: { nope: 1 } }), 0));
+            await mount();
+            await nextTick();
+            expect(ai().hidden).toBe(false);
+            expect(pcts()).toEqual(['20', '1']);
+        });
+
+        test('signed out there is no AI block', async () => {
+            prefsStore['ai.balance'] = wallet(100_000);
+            withStatus({ signedIn: false });
+            await mount();
+            expect(root().querySelector('.mai')).toBeNull();
+        });
+    });
 });
 
 describe('state 4: the session expired', () => {

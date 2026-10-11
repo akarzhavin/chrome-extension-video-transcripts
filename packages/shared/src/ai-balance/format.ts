@@ -37,12 +37,13 @@ export function resetsOnText(w: AIWindow): string {
 
 /** What to say when a window ran out. */
 export function limitText(window: 'day' | 'month', b: AIBalance | null): string {
-    if (window === 'month') {
-        const when = b ? localDate(b.month.resetsAt) : '';
-        return msg('aiLimitMonth', 'AI limit for this month reached, resets on $1').replace('$1', when).replace(/,\s*$/, '');
-    }
-    const when = b ? localTime(b.day.resetsAt) : '';
-    return msg('aiLimitDay', 'AI limit for today reached, resets at $1').replace('$1', when).replace(/,\s*$/, '');
+    const text =
+        window === 'month'
+            ? msg('aiLimitMonth', 'AI limit for this month reached, resets on $1')
+            : msg('aiLimitDay', 'AI limit for today reached, resets at $1');
+    // No balance yet: no reset to name, so the clause after the comma goes.
+    if (!b) return text.split(',')[0];
+    return text.replace('$1', window === 'month' ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt));
 }
 
 /** The card notice for an answer whose model part was skipped. */

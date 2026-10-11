@@ -349,6 +349,17 @@ describe('lookupCached', () => {
         expect(again.cached).toBe(false);
         expect(global.fetch).toHaveBeenCalledTimes(2);
     });
+    // The balance is the caller's; the cache key has no account in it.
+    it('hands the wallet to the first caller only — the cached answer has none', async () => {
+        const wallet = { day: { used: 1, limit: 2, resets_at: 3 } };
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({ ...dictAnswer, wallet }));
+        const first = await lookupCached('https://api.test', { term: 'anchor', targetLang: 'ru' }, false);
+        const second = await lookupCached('https://api.test', { term: 'anchor', targetLang: 'ru' }, false);
+        expect(first.result.wallet).toEqual(wallet);
+        expect(second.cached).toBe(true);
+        expect(second.result).not.toHaveProperty('wallet');
+        expect(second.result.translations).toEqual(dictAnswer.translations);
+    });
     it('keys the languages apart', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse(dictAnswer));
         await lookupCached('https://api.test', { term: 'anchor', targetLang: 'ru' }, false);
@@ -2093,6 +2104,32 @@ describe('the card tells an empty answer apart from a failed one', () => {
         expect(emptyHtml).not.toBe(errorHtml);
         expect(emptyIsAlert).toBe(false); // "no entry" does not interrupt
         expect(card()!.querySelector('[role="alert"]')).not.toBeNull();
+        teardown();
+    });
+
+    // Spec 024: an empty answer whose model part was skipped says why.
+    it('signed out: the AI notice with a sign-in button from the lookup', async () => {
+        const teardown = await show({ ok: true, result: { ...emptyAnswer, ai_status: 'sign_in_required' } });
+        expect(card()?.textContent).toContain('Sign in so AI can complete the card');
+        expect(card()?.textContent).not.toContain('No translation');
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        card()!.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+            { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'lookup' }, expect.any(Function),
+        );
+        teardown();
+    });
+
+    it.each([
+        ['limit_day', /^AI limit for today reached/],
+        ['limit_month', /^AI limit for this month reached/],
+        ['ai_paused', /^AI is paused for today for everyone/],
+    ])('%s: its own notice, no sign-in button', async (status, text) => {
+        const teardown = await show({ ok: true, result: { ...emptyAnswer, ai_status: status } });
+        const notice = card()!.querySelector('.lg-ai-notice')!;
+        expect(notice.textContent).toMatch(text);
+        expect(card()!.querySelector('[data-ai-signin]')).toBeNull();
+        expect(card()!.textContent).not.toContain('No translation');
         teardown();
     });
 

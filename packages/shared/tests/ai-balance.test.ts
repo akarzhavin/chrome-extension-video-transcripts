@@ -89,7 +89,8 @@ describe('format', () => {
     });
 
     test('the limit message names the window', () => {
-        expect(limitText('day', null)).toMatch(/^AI limit for today reached/);
+        expect(limitText('day', null)).toBe('AI limit for today reached');
+        expect(limitText('month', null)).toBe('AI limit for this month reached');
         expect(limitText('month', balance(1))).toMatch(/^AI limit for this month reached, resets on /);
         expect(statusText('sign_in_required', null)).toBe('Sign in so AI can complete the card');
         expect(statusText('ai_paused', null)).toMatch(/^AI is paused for today for everyone/);
@@ -233,5 +234,184 @@ describe('refreshBalance', () => {
         expect(await refreshBalance('https://api.example', { fetch: jest.fn(), token })).toBeNull();
         expect(await refreshBalance('', { fetch: jest.fn(), token })).toBeNull();
         expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+});
+
+describe('badge edges', () => {
+    function header(withChip = true): HTMLElement {
+        document.body.innerHTML = `<div id="vtt-header-top">${withChip ? '<div id="vtt-langpair">EN ⇄ RU</div>' : ''}</div>`;
+        return document.getElementById('vtt-header-top')!;
+    }
+
+    test('an open panel re-renders with the new numbers', async () => {
+        const top = header();
+        await saveBalance(balance(100_000));
+        mountAIBadge(top);
+        await flush();
+        top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!.click();
+        const now = () => [...top.querySelectorAll('#vtt-ai-panel [role=progressbar]')].map((b) => b.getAttribute('aria-valuenow'));
+        expect(now()[0]).toBe('20');
+        await saveBalance(balance(300_000));
+        expect(top.querySelectorAll('#vtt-ai-panel')).toHaveLength(1);
+        expect(now()[0]).toBe('60');
+        expect(top.querySelector('#vtt-ai-badge button')!.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    test('a spent window turns the badge red and titles it with the limit', async () => {
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        await saveBalance(balance(500_000, 1, 'day'));
+        const badge = top.querySelector('#vtt-ai-badge')!;
+        expect(badge.classList.contains('vtt-ai-out')).toBe(true);
+        expect(badge.querySelector('button')!.title).toMatch(/^AI limit for today reached/);
+        await saveBalance(balance(1));
+        expect(badge.classList.contains('vtt-ai-out')).toBe(false);
+        expect(badge.querySelector('button')!.title).toBe('AI tokens left today');
+    });
+
+    test('the month warning, Escape closes, a second click closes, no chip no swap', async () => {
+        const top = header(false);
+        mountAIBadge(top);
+        await flush();
+        const button = top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
+        button.click();
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull(); // nothing to open yet
+        await saveBalance(balance(100_000, 8_500_000));
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')?.textContent).toBe('AI is almost used up for this month');
+        button.click();
+        expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
+        expect(top.querySelector('#vtt-ai-panel .vtt-ai-swap')).toBeNull();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+        button.click();
+        top.querySelector<HTMLElement>('#vtt-ai-panel')!.click(); // inside: stays
+        expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
+        button.click();
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+    });
+
+    test('the warning note goes away by itself', async () => {
+        jest.useFakeTimers();
+        try {
+            const top = header();
+            mountAIBadge(top);
+            await saveBalance(balance(420_000));
+            await jest.advanceTimersByTimeAsync(0);
+            expect(document.getElementById('vtt-ai-warn')).not.toBeNull();
+            await jest.advanceTimersByTimeAsync(8000);
+            expect(document.getElementById('vtt-ai-warn')).toBeNull();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    test('an orphaned context: the refresh ask throwing does not break the mount', () => {
+        sendMessage.mockImplementation(() => {
+            throw new Error('Extension context invalidated');
+        });
+        const top = header();
+        expect(() => mountAIBadge(top)).not.toThrow();
+        expect(top.querySelector('#vtt-ai-badge')).not.toBeNull();
+    });
+
+    test('the refresh callback reads lastError without throwing', () => {
+        sendMessage.mockImplementation((_m: unknown, cb: () => void) => cb());
+        expect(() => mountAIBadge(header())).not.toThrow();
+    });
+});
+
+describe('store and fetch edges', () => {
+    test('loadBalance is null when storage throws', async () => {
+        local.get.mockImplementationOnce(async () => {
+            throw new Error('gone');
+        });
+        expect(await loadBalance()).toBeNull();
+    });
+
+    test('onBalance is a no-op unsubscribe when the listener cannot be added', () => {
+        const onChanged = (global as any).chrome.storage.onChanged;
+        const add = onChanged.addListener;
+        onChanged.addListener = () => {
+            throw new Error('gone');
+        };
+        try {
+            const off = onBalance(() => undefined);
+            expect(() => off()).not.toThrow();
+        } finally {
+            onChanged.addListener = add;
+        }
+    });
+
+    test('unsubscribing in an orphaned context does not throw', () => {
+        const onChanged = (global as any).chrome.storage.onChanged;
+        const remove = onChanged.removeListener;
+        const off = onBalance(() => undefined);
+        onChanged.removeListener = () => {
+            throw new Error('gone');
+        };
+        try {
+            expect(() => off()).not.toThrow();
+        } finally {
+            onChanged.removeListener = remove;
+        }
+    });
+
+    test('onBalance ignores other areas and other keys', () => {
+        const seen = jest.fn();
+        onBalance(seen);
+        listeners.forEach((l) => l({ [BALANCE_KEY]: { newValue: wire(1) } }, 'sync'));
+        listeners.forEach((l) => l({ other: { newValue: 1 } }, 'local'));
+        expect(seen).not.toHaveBeenCalled();
+    });
+
+    test('a non-ok answer is null and stores nothing', async () => {
+        const fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
+        const token = jest.fn(async () => ({ idToken: 't' }));
+        expect(await refreshBalance('https://api.example/', { fetch, token })).toBeNull();
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch.mock.calls[0][0]).toBe('https://api.example/dictionary/ai/balance');
+        expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+
+    test('a malformed ok answer is null and stores nothing', async () => {
+        const fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ nope: 1 }) });
+        expect(await refreshBalance('https://api.example', { fetch, token: async () => ({ idToken: 't' }) })).toBeNull();
+        expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+});
+
+describe('card notice edges', () => {
+    test('the sign-in click survives an orphaned context', () => {
+        sendMessage.mockImplementation(() => {
+            throw new Error('Extension context invalidated');
+        });
+        const box = document.createElement('div');
+        box.innerHTML = aiNoticeHtml('sign_in_required');
+        wireAINotice(box);
+        expect(() => box.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click()).not.toThrow();
+    });
+
+    test('the sign-in callback reads lastError; a limit with nothing stored keeps the plain text', async () => {
+        sendMessage.mockImplementation((_m: unknown, cb: () => void) => cb());
+        const box = document.createElement('div');
+        box.innerHTML = aiNoticeHtml('sign_in_required');
+        wireAINotice(box);
+        box.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+
+        const lim = document.createElement('div');
+        lim.innerHTML = aiNoticeHtml('limit_month');
+        wireAINotice(lim);
+        await flush();
+        expect(lim.textContent).toMatch(/^AI limit for this month reached/);
+        expect(percentUsed({ used: 0, limit: 0, resetsAt: 0 })).toBe(100);
+    });
+
+    test('a root without a notice is left alone', () => {
+        expect(() => wireAINotice(document.createElement('div'))).not.toThrow();
     });
 });

@@ -194,9 +194,17 @@ function aiBlock(): HTMLElement {
         box.replaceChildren(...(b ? [renderBars(b)] : []));
         box.hidden = !b;
     };
-    void loadBalance().then(paint);
+    // The refresh is fresher than storage: once it painted, a late read must not undo it.
+    let fresh = false;
+    void loadBalance().then((b) => !fresh && paint(b));
     void send<{ ok: boolean; balance?: unknown }>({ action: 'AI_BALANCE_REFRESH' })
-        .then((r) => r.ok && paint(parseBalance(r.balance)))
+        .then((r) => {
+            const b = r.ok ? parseBalance(r.balance) : null;
+            if (b) {
+                fresh = true;
+                paint(b);
+            }
+        })
         .catch(() => undefined);
     return box;
 }

@@ -215,3 +215,44 @@ test('Escape and scrolling close it', async () => {
     window.dispatchEvent(new Event('scroll'));
     expect(card()).toBeNull();
 });
+
+// Spec 024: an empty answer whose model part was skipped says why.
+describe('an empty answer', () => {
+    const empty = { term: 'scrap', lemma: 'scrap', translations: [], parts_of_speech: [], source: '' };
+
+    test('with no AI status still reads "No translation"', async () => {
+        replies.LOOKUP_WORD = { ok: true, result: empty };
+        await openCard();
+        expect(card()!.textContent).toContain('No translation');
+        expect(card()!.querySelector('.lg-ai-notice')).toBeNull();
+    });
+
+    test('signed out: the AI notice and a sign-in button from the lookup', async () => {
+        const sendMessage = jest.fn();
+        (global as any).chrome.runtime = { sendMessage, lastError: undefined };
+        try {
+            replies.LOOKUP_WORD = { ok: true, result: { ...empty, ai_status: 'sign_in_required' } };
+            await openCard();
+            expect(card()!.textContent).toContain('Sign in so AI can complete the card');
+            expect(card()!.textContent).not.toContain('No translation');
+            card()!.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+            expect(sendMessage).toHaveBeenCalledWith({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'lookup' }, expect.any(Function));
+            // The heart still works next to the notice.
+            expect(heart().textContent).toBe('Remove');
+        } finally {
+            delete (global as any).chrome.runtime;
+        }
+    });
+
+    test.each([
+        ['limit_day', /^AI limit for today reached/],
+        ['limit_month', /^AI limit for this month reached/],
+        ['ai_paused', /^AI is paused for today for everyone/],
+    ])('%s: its own notice, no sign-in button', async (status, text) => {
+        replies.LOOKUP_WORD = { ok: true, result: { ...empty, ai_status: status } };
+        await openCard();
+        expect(card()!.querySelector('.lg-ai-notice')!.textContent).toMatch(text);
+        expect(card()!.querySelector('[data-ai-signin]')).toBeNull();
+        expect(card()!.textContent).not.toContain('No translation');
+    });
+});

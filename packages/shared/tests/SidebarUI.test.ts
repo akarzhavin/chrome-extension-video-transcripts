@@ -2705,6 +2705,17 @@ describe('SidebarUI', () => {
             expect(document.getElementById('vtt-sidebar')!.dataset.vttOwner).toBe('test-extension-id');
         });
 
+        // Spec 024: the AI badge sits in the header and goes with destroy().
+        test('mounts the AI badge in the header top, and destroy() removes it', () => {
+            const ui = new SidebarUI(new AppState(), mockApp);
+            expect(ui.init()).toBe(true);
+            const badge = document.getElementById('vtt-ai-badge');
+            expect(badge).not.toBeNull();
+            expect(badge!.parentElement!.id).toBe('vtt-header-top');
+            ui.destroy();
+            expect(document.getElementById('vtt-ai-badge')).toBeNull();
+        });
+
         // The franken-UI guard: a panel built by a different installed copy is
         // left strictly alone.
         test('yields to a sidebar owned by another extension copy', () => {
