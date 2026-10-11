@@ -2655,6 +2655,13 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     display: none;
 }
 
+/* The AI badge sits in the chip's spot; !important as its own rule is injected later. */
+#vtt-sidebar.vtt-settings-open #vtt-ai-badge,
+#vtt-sidebar.vtt-feedback-open #vtt-ai-badge,
+#vtt-sidebar.vtt-lookup-open #vtt-ai-badge {
+    display: none !important;
+}
+
 /* Orphaned-context notice: the extension was reloaded (a store auto-update, or
    a rebuild in development) and this content script can no longer reach the
    worker, so the transcript has stopped following the video.
