@@ -378,7 +378,7 @@ describe('state 3: signed in', () => {
             await mount();
             await nextTick();
             expect(ai().hidden).toBe(false);
-            expect(pcts()).toEqual(['50', '3']);
+            expect(pcts()).toEqual(['50', '2']);
         });
 
         // A reply that beats the storage read must not be painted over by it.
@@ -387,7 +387,7 @@ describe('state 3: signed in', () => {
             withRefresh((cb) => cb({ ok: true, balance: wallet(250_000) }));
             await mount();
             await nextTick();
-            expect(pcts()).toEqual(['50', '3']);
+            expect(pcts()).toEqual(['50', '2']);
         });
 
         test('with nothing stored, a refresh reply alone shows them', async () => {

@@ -81,6 +81,14 @@ describe('parseBalance', () => {
 });
 
 describe('format', () => {
+    test('percent rounds down and reaches 100 only when the window is spent', () => {
+        const w = (used: number) => ({ used, limit: 1000, resetsAt: 0 });
+        expect(percentUsed(w(999))).toBe(99);
+        expect(percentUsed(w(996))).toBe(99);
+        expect(percentUsed(w(1000))).toBe(100);
+        expect(percentUsed(w(1200))).toBe(100);
+    });
+
     test('percent caps at 100 and tokens left read compactly', () => {
         expect(percentUsed(balance(310_000).day)).toBe(62);
         expect(percentUsed(balance(600_000).day)).toBe(100);

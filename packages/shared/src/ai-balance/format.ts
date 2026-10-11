@@ -1,10 +1,10 @@
 import { msg } from '../i18n';
 import type { AIBalance, AIStatus, AIWindow } from './types';
 
-/** Share of the window used, 0–100; a window may overrun by one call. */
+/** Share used, 0–100, rounded down: 100 only when the window is spent. */
 export function percentUsed(w: AIWindow): number {
-    if (w.limit <= 0) return 100;
-    return Math.min(100, Math.round((w.used * 100) / w.limit));
+    if (w.limit <= 0 || w.used >= w.limit) return 100;
+    return Math.floor((w.used * 100) / w.limit);
 }
 
 /** Tokens left, compact: 380k, 1.2M. */
