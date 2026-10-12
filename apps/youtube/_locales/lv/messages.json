@@ -875,6 +875,10 @@
     "message": "Šodien atlikuši AI žetoni",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Demo režīms: AI ir bezmaksas dienas un mēneša limita ietvaros",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Šodien",
     "description": "AI usage bar label for the current day."

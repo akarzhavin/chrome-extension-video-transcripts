@@ -875,6 +875,10 @@
     "message": "توکن‌های AI باقی‌مانده امروز",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "حالت دمو: AI در محدوده سقف روزانه و ماهانه رایگان است",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "امروز",
     "description": "AI usage bar label for the current day."

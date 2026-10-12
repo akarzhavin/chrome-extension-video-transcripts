@@ -875,6 +875,10 @@
     "message": "આજે બાકી AI ટોકન",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "ડેમો મોડ: દૈનિક અને માસિક મર્યાદામાં AI મફત છે",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "આજે",
     "description": "AI usage bar label for the current day."

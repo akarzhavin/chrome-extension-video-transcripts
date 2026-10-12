@@ -76,7 +76,8 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         const out = b.exhausted !== null;
         badge.classList.toggle('vtt-ai-out', out);
         button.textContent = `AI ${formatTokens(tokensLeft(b.day))}`;
-        button.title = out ? limitText(b.exhausted ?? 'day', b) : msg('aiBadgeTitle', 'AI tokens left today');
+        const what = out ? limitText(b.exhausted ?? 'day', b) : msg('aiBadgeTitle', 'AI tokens left today');
+        button.title = `${what}\n${msg('aiBadgeDemo', 'Demo mode: AI is free within a daily and a monthly limit')}`;
         button.setAttribute('aria-label', button.title);
         if (panel) {
             close();

@@ -875,6 +875,10 @@
     "message": "Token AI còn lại hôm nay",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Chế độ demo: AI miễn phí trong giới hạn theo ngày và theo tháng",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Hôm nay",
     "description": "AI usage bar label for the current day."

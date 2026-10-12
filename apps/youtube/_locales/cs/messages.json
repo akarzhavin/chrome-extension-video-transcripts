@@ -875,6 +875,10 @@
     "message": "Dnešní zbývající tokeny AI",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Demo režim: AI je zdarma v rámci denního a měsíčního limitu",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Dnes",
     "description": "AI usage bar label for the current day."

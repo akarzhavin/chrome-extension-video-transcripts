@@ -875,6 +875,10 @@
     "message": "Jetons AI restants aujourd'hui",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Mode démo : l'AI est gratuite dans la limite quotidienne et mensuelle",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Aujourd'hui",
     "description": "AI usage bar label for the current day."

@@ -875,6 +875,10 @@
     "message": "今日剩余 AI 令牌",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "演示模式：AI 在每日和每月额度内免费",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "今天",
     "description": "AI usage bar label for the current day."

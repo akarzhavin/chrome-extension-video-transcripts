@@ -875,6 +875,10 @@
     "message": "Tokenuri AI rămase astăzi",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Mod demo: AI este gratuit în limita zilnică și lunară",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Astăzi",
     "description": "AI usage bar label for the current day."

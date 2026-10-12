@@ -350,7 +350,21 @@ describe('badge edges', () => {
         expect(badge.querySelector('button')!.title).toMatch(/^AI limit for today reached/);
         await saveBalance(balance(1));
         expect(badge.classList.contains('vtt-ai-out')).toBe(false);
-        expect(badge.querySelector('button')!.title).toBe('AI tokens left today');
+        expect(badge.querySelector('button')!.title).toMatch(/^AI tokens left today\n/);
+    });
+
+    // Hovering explains the number and that AI runs in demo mode, spent or not.
+    test('the hover text says what the number is and that this is demo mode', async () => {
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        await saveBalance(balance(1));
+        const demo = 'Demo mode: AI is free within a daily and a monthly limit';
+        const button = top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
+        expect(button.title).toBe(`AI tokens left today\n${demo}`);
+        expect(button.getAttribute('aria-label')).toBe(button.title);
+        await saveBalance(balance(500_000, 1, 'day'));
+        expect(button.title).toMatch(/^AI limit for today reached.*\nDemo mode: /s);
     });
 
     test('the month warning, Escape closes, a second click closes', async () => {

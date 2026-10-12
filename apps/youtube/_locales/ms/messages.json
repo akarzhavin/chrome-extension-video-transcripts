@@ -875,6 +875,10 @@
     "message": "Token AI tinggal hari ini",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Mod demo: AI percuma dalam had harian dan bulanan",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Hari ini",
     "description": "AI usage bar label for the current day."

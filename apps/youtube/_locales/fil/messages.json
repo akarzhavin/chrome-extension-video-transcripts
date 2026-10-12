@@ -875,6 +875,10 @@
     "message": "Natitirang AI token ngayon",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Demo mode: libre ang AI sa loob ng pang-araw-araw at buwanang limit",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Ngayon",
     "description": "AI usage bar label for the current day."

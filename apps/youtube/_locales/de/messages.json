@@ -875,6 +875,10 @@
     "message": "Heute verbleibende AI-Tokens",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "Demomodus: AI ist innerhalb eines Tages- und Monatslimits kostenlos",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "Heute",
     "description": "AI usage bar label for the current day."

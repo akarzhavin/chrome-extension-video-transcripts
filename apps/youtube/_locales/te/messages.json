@@ -875,6 +875,10 @@
     "message": "ఈ రోజు మిగిలిన AI టోకెన్లు",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "డెమో మోడ్: రోజువారీ, నెలవారీ పరిమితి లోపల AI ఉచితం",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "ఈ రోజు",
     "description": "AI usage bar label for the current day."

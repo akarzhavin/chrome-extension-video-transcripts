@@ -875,6 +875,10 @@
     "message": "رموز AI المتبقية اليوم",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "الوضع التجريبي: AI مجاني ضمن حد يومي وشهري",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "اليوم",
     "description": "AI usage bar label for the current day."

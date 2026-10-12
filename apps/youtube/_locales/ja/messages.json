@@ -875,6 +875,10 @@
     "message": "今日の残りAIトークン",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "デモモード：AIは1日および月間の上限内で無料です",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "今日",
     "description": "AI usage bar label for the current day."

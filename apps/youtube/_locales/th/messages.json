@@ -875,6 +875,10 @@
     "message": "โทเค็น AI ที่เหลือวันนี้",
     "description": "Sidebar AI badge tooltip: what the number is."
   },
+  "aiBadgeDemo": {
+    "message": "โหมดเดโม: AI ใช้ฟรีภายในขีดจำกัดรายวันและรายเดือน",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
   "aiToday": {
     "message": "วันนี้",
     "description": "AI usage bar label for the current day."
