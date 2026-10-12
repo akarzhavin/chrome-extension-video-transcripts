@@ -879,6 +879,18 @@
     "message": "حالت دمو: AI در محدوده سقف روزانه و ماهانه رایگان است",
     "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
   },
+  "aiLeft": {
+    "message": "باقی‌مانده",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 از $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "حالت دمو · AI در این محدوده‌ها رایگان است",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
   "aiToday": {
     "message": "امروز",
     "description": "AI usage bar label for the current day."

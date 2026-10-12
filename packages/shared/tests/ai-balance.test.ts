@@ -160,13 +160,42 @@ describe('takeWarning', () => {
     });
 });
 
+// The dropdown, variant B of the badge canvas (owner, 2026-10-12): it speaks in
+// "left", like the badge, and closes with the demo-mode line.
 describe('renderBars', () => {
-    test('two bars with their share, and the limit when one ran out', () => {
+    const rows = (el: HTMLElement) =>
+        [...el.querySelectorAll('.lg-ai-row')].map((r) => ({
+            label: r.querySelector('.lg-ai-label')!.textContent,
+            value: r.querySelector('.lg-ai-value')!.textContent,
+            bar: r.querySelector('[role=progressbar]')!.getAttribute('aria-valuenow'),
+            amount: r.querySelector('.lg-ai-amount')!.textContent,
+            reset: r.querySelector('.lg-ai-reset')!.textContent,
+        }));
+
+    test('each window shows the share left, the tokens left of the limit, and its reset', () => {
         const el = renderBars(balance(310_000, 1_800_000));
-        const bars = [...el.querySelectorAll('[role=progressbar]')];
-        expect(bars.map((b) => b.getAttribute('aria-valuenow'))).toEqual(['62', '18']);
+        expect(rows(el)).toEqual([
+            { label: 'Today', value: '38% left', bar: '38', amount: '190k of 500k', reset: `Resets at ${localTime(DAY_RESET)}` },
+            { label: 'This month', value: '82% left', bar: '82', amount: '8.2M of 10M', reset: `Resets on ${localDate(MONTH_RESET)}` },
+        ]);
+    });
+
+    test('the share left rounds down, so a sliver used never reads as 100%', () => {
+        expect(rows(renderBars(balance(1)))[0].value).toBe('99% left');
+    });
+
+    test('a spent window says so in its own row; no separate note line', () => {
+        const el = renderBars(balance(500_000, 1, 'day'));
+        const [day] = rows(el);
+        expect(day).toMatchObject({ value: '0% left', bar: '0', amount: 'AI limit for today reached' });
+        expect(el.querySelector('.lg-ai-row')!.classList.contains('lg-ai-spent')).toBe(true);
         expect(el.querySelector('.lg-ai-note')).toBeNull();
-        expect(renderBars(balance(500_000, 1, 'day')).querySelector('.lg-ai-note')?.textContent).toMatch(/today/);
+    });
+
+    test('the demo-mode line closes the dropdown', () => {
+        const el = renderBars(balance(1));
+        expect(el.lastElementChild!.className).toBe('lg-ai-demo');
+        expect(el.lastElementChild!.textContent).toBe('Demo mode · AI is free within these limits');
     });
 });
 
@@ -333,10 +362,10 @@ describe('badge edges', () => {
         await flush();
         top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!.click();
         const now = () => [...top.querySelectorAll('#vtt-ai-panel [role=progressbar]')].map((b) => b.getAttribute('aria-valuenow'));
-        expect(now()[0]).toBe('20');
+        expect(now()[0]).toBe('80'); // share left
         await saveBalance(balance(300_000));
         expect(top.querySelectorAll('#vtt-ai-panel')).toHaveLength(1);
-        expect(now()[0]).toBe('60');
+        expect(now()[0]).toBe('40');
         expect(top.querySelector('#vtt-ai-badge button')!.getAttribute('aria-expanded')).toBe('true');
     });
 

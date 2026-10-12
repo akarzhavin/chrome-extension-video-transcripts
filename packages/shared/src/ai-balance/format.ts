@@ -7,6 +7,12 @@ export function percentUsed(w: AIWindow): number {
     return Math.floor((w.used * 100) / w.limit);
 }
 
+/** Share left, 0–100, rounded down: 100 only when nothing is used. */
+export function percentLeft(w: AIWindow): number {
+    if (w.limit <= 0 || w.used >= w.limit) return 0;
+    return Math.floor(((w.limit - w.used) * 100) / w.limit);
+}
+
 /** Past the warn ratio but not yet spent: the amber bar and the one-time warning. */
 export const isHigh = (w: AIWindow, warnRatio: number): boolean =>
     w.limit > 0 && w.used >= warnRatio * w.limit && w.used < w.limit;

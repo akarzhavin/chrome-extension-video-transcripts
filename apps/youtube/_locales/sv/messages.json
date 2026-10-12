@@ -879,6 +879,18 @@
     "message": "Demoläge: AI är gratis inom en daglig och en månatlig gräns",
     "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
   },
+  "aiLeft": {
+    "message": "kvar",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 av $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "Demoläge · AI är gratis inom dessa gränser",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
   "aiToday": {
     "message": "I dag",
     "description": "AI usage bar label for the current day."
