@@ -186,7 +186,6 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
 }
 
 let stopBalance: () => void = () => {};
-window.addEventListener('pagehide', () => stopBalance());
 
 // Today's and this month's AI use (spec 024): the stored balance at once, one
 // refresh as the popup opens, then live changes; empty until one answers.
@@ -275,6 +274,8 @@ function renderSetupLink(root: HTMLElement): void {
 
 export function initPopup(opts?: { edition?: Edition }): void {
     edition = opts?.edition ?? null;
+    // Here, not at module top: the service worker imports this package and has no window.
+    window.addEventListener('pagehide', () => stopBalance());
     const root = document.getElementById('root');
     if (!root) {
         console.error('[Lingogram] popup: #root not found');
