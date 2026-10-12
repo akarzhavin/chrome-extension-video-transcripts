@@ -40,7 +40,7 @@ import { createSavedWords } from './saved-words';
 import { loadMirror, onMirrorChanged } from '../word-mirror';
 import { savedPhraseAt, type SavedPhraseRun } from '../transcript/saved-marks';
 import { loadLanguagePrefs } from '../languages';
-import type { LookupResult } from './types';
+import type { LookupAnswer } from './types';
 import { MAX_LOOKUP_TERM_LEN } from './types';
 import {
     hasLookupContent,
@@ -51,6 +51,9 @@ import {
     stripTranslations,
 } from './shape';
 import type { SelectionPayload } from '../content/quick-add-overlay';
+import { escapeHtml } from '../escape-html';
+import { wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml } from './empty-notice';
 import {
     buildContextForIndex,
     getSelectionPayload,
@@ -269,7 +272,7 @@ function runAnchor(run: SavedPhraseRun): Anchor {
 
 interface LookupResponse {
     ok: boolean;
-    result?: LookupResult;
+    result?: LookupAnswer;
     error?: string;
 }
 
@@ -484,13 +487,16 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         errorTimer = setTimeout(() => removeStrip(), ERROR_HIDE_MS);
     }
 
-    function renderResult(anchor: Anchor, word: string, context: string, r: LookupResult): void {
+    function renderResult(anchor: Anchor, word: string, context: string, r: LookupAnswer): void {
         const el = ensureStrip();
         const empty = !hasLookupContent(r);
         const saved = savedWords.has(word);
 
         let body = '<div class="vtt-lookup-body">';
-        if (empty) {
+        const note = empty ? emptyNoticeHtml(r) : '';
+        if (note) {
+            body += `<span class="vtt-lookup-muted">${note}</span>`;
+        } else if (empty) {
             body += `<span class="vtt-lookup-muted">${escapeHtml(msg('ytLookupNone', 'No translation'))}</span>`;
         } else {
             const tags = posTags(r);
@@ -545,6 +551,7 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
 
         el.innerHTML = body + acts;
         el.dataset.word = word;
+        if (empty && (r.ai_status || r.googleFailed)) wireAINotice(el);
 
         el.onclick = (e) => {
             const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
@@ -1073,9 +1080,4 @@ export function installLookupStrip(opts: LookupStripOptions = {}): () => void {
         clearTimeout(hideTimer);
         removeStrip();
     };
-}
-
-function escapeHtml(s: string): string {
-    return s.replace(/[&<>"]/g, (c) =>
-        c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;');
 }

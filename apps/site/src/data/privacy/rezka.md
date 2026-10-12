@@ -1,7 +1,7 @@
 # Privacy Policy — Dual Subtitles for HDrezka — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 10, 2026
+**Last updated:** October 11, 2026
 
 This Privacy Policy explains what information the **Dual Subtitles for HDrezka —
 Lingogram** browser extension ("the Extension") collects, how it is used, where it
@@ -352,15 +352,19 @@ request contains:
   or listed on the My words page, nothing is sent but the word and the language:
   not its sentence, not the page, not the address.
 
-**This happens whether or not you are signed in**, and the request carries no
-account identifier, no email, no analytics identifier, and nothing that ties one
-lookup to another or to you. We use it to answer that lookup, and we do not build
-a history of your lookups against any identity.
+**The dictionary answers whether or not you are signed in.** Signed out, the
+request carries no account identifier, no email, no analytics identifier, and
+nothing that ties one lookup to another or to you. Signed in, it also carries your
+sign-in token, because an AI answer is charged to your account's AI budget (Section
+1j); the service uses it only to count AI usage and does not record which words
+you looked up against your account. We do not build a history of your lookups
+against any identity.
 
 **How our dictionary service answers.** The service runs on Google Cloud. It first
 looks the word up in Wiktionary data published by **kaikki.org**, sending only the
 word, from our server. When that has no entry (typically a phrase, a rare word or a
-name), or when the dictionary is unavailable, the service asks an AI model run by
+name), or when the dictionary is unavailable, and only if you are signed in, the
+service asks an AI model run by
 **OpenAI** through the OpenAI API, sending the word or phrase, your language and the
 subtitle lines that came with it. Neither receives your IP address, an account
 identifier or anything else about you; OpenAI processes the request as our service
@@ -531,9 +535,8 @@ copy and its translations are deleted once no one has used them for 3 days
 
 **Shared, not tied to you.** The stored track and its translations carry no
 account identifier, and the service does not record which account asked for
-which track. To keep each account within its daily limit (currently 60,000
-translated characters), it counts, per user ID and day, the characters translated
-and the model tokens used: numbers only, no fingerprint and no text. Its logs
+which track. The model tokens a translation uses count against your account's AI
+budget (Section 1j). Its logs
 record the outcome of each request, the language, how many lines were served or
 translated, the tokens used and the time taken; never your user ID, the
 fingerprint or any subtitle text. Like any web request, a request reaches our
@@ -554,6 +557,17 @@ number, never the text. Samples are deleted after 14 days (Section 6).
 
 AI translation adds no analytics events (Section 1c). The **"Share anonymous usage
 stats"** switch does not stop it; a mode other than "Dual" pauses it.
+
+### j. Your AI budget
+
+**We count AI usage per account.** Every request to the AI model, whether to
+translate subtitles (Section 1i) or to complete a word card (Section 1e), is
+charged to one budget on your account, with a daily and a monthly limit. For this
+the dictionary service stores, per user ID and day, the number of model tokens
+used: numbers only, no words, subtitle text, fingerprints or videos. They are kept
+for 400 days. Answers that come from the dictionary or from what was already
+translated cost nothing. The Extension keeps the latest remaining budget in your
+browser's local storage to show it, and removes it when you sign out.
 
 ## 2. How We Use Your Information
 

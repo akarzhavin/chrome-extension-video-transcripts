@@ -118,6 +118,19 @@ describe('takeovers hide the language-pair chip', () => {
         const missing = [...states].filter((cls) => !hiding.includes(`.${cls} #vtt-langpair`));
         expect(missing).toEqual([]);
     });
+
+    it('hides the AI badge in the same states', () => {
+        const states = new Set<string>();
+        for (const m of CSS.matchAll(/#vtt-sidebar\.(vtt-[a-z]+-open)\b/g)) states.add(m[1]);
+        const rules: string[] = [];
+        const re = /([^{}]+)\{([^{}]*)\}/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(CSS))) {
+            if (m[1].includes('#vtt-ai-badge') && /display\s*:\s*none/.test(m[2])) rules.push(m[1]);
+        }
+        const hiding = rules.join(',');
+        expect([...states].filter((cls) => !hiding.includes(`.${cls} #vtt-ai-badge`))).toEqual([]);
+    });
 });
 
 describe('the collapse tab on the word screen', () => {

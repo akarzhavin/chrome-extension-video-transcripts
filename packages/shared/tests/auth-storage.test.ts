@@ -29,7 +29,8 @@ const removed: string[][] = [];
                 Object.assign(store, items);
                 return Promise.resolve();
             }),
-            remove: jest.fn((keys: string[]) => {
+            remove: jest.fn((key: string | string[]) => {
+                const keys = Array.isArray(key) ? key : [key];
                 removed.push(keys);
                 keys.forEach((k) => delete store[k]);
                 return Promise.resolve();
@@ -66,7 +67,7 @@ const signedIn = () =>
     } as any);
 
 describe('signing out', () => {
-    test('removes the five credential keys and the mirror, and nothing else', async () => {
+    test('removes the five credential keys, the mirror and the AI balance, and nothing else', async () => {
         // The mirror joined this list with the saved-word feature (FR-009): it
         // names the words THIS account saved, so leaving it would show them to
         // whoever signs in next on the profile. The list is still pinned
@@ -74,10 +75,18 @@ describe('signing out', () => {
         // see the file header for the two keys that must never appear here.
         await signedIn();
         await clearAuthState();
-        expect(removed).toHaveLength(1);
-        expect([...removed[0]].sort()).toEqual(
-            ['auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
+        
+        expect(removed.flat().sort()).toEqual(
+            ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'words.v1'],
         );
+    });
+
+    test('drops the AI balance and warned marks even when the credential removal fails', async () => {
+        Object.assign(store, { 'ai.balance': { x: 1 }, 'ai.warned.day': 'd', 'ai.warned.month': 'm' });
+        const remove = (global as any).chrome.storage.local.remove as jest.Mock;
+        remove.mockImplementationOnce(() => Promise.reject(new Error('boom')));
+        await expect(clearAuthState()).rejects.toThrow('boom');
+        expect(Object.keys(store).filter((k) => k.startsWith('ai.'))).toEqual([]);
     });
 
     test('leaves no session behind', async () => {

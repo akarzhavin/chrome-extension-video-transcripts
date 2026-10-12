@@ -848,8 +848,8 @@
     "description": "AI translation status: the sign-in must be renewed."
   },
   "ytAiStatusQuota": {
-    "message": "Today's AI translation limit is reached",
-    "description": "AI translation status: the daily allowance is used up."
+    "message": "The AI limit is reached",
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Too many new videos today — try again later",
@@ -870,5 +870,81 @@
   "ytAiStatusUnsupported": {
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Dnešné zostávajúce tokeny AI",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiBadgeDemo": {
+    "message": "Demo režim: AI je zadarmo v rámci denného a mesačného limitu",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
+  "aiLeft": {
+    "message": "zostáva",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 z $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "Demo režim · AI je v týchto limitoch zadarmo",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
+  "aiToday": {
+    "message": "Dnes",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "Tento mesiac",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Obnoví sa o $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Obnoví sa $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Denný limit AI dosiahnutý, obnoví sa o $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitDayShort": {
+    "message": "Denný limit AI dosiahnutý",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Mesačný limit AI dosiahnutý, obnoví sa $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Mesačný limit AI dosiahnutý",
+    "description": "The monthly AI budget ran out, without the reset date."
+  },
+  "aiSignInCard": {
+    "message": "Prihláste sa, aby AI doplnila kartu",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "AI je na dnes takmer vyčerpaná",
+    "description": "One-time notice when the daily AI budget passes its warning share."
+  },
+  "aiWarnMonth": {
+    "message": "AI je na tento mesiac takmer vyčerpaná",
+    "description": "One-time notice when the monthly AI budget passes its warning share."
+  },
+  "aiPaused": {
+    "message": "AI je dnes pre všetkých pozastavená. Slovník stále funguje.",
+    "description": "Word card: the shared AI budget is spent for today; the dictionary still answers."
+  },
+  "aiSignInTranslate": {
+    "message": "Prihláste sa — AI preloží",
+    "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
+  },
+  "lookupGoogleFailed": {
+    "message": "Google neodpovedal, skúste to znova",
+    "description": "Phrase card: Google did not answer and no other source did; the next try may work."
   }
 }

@@ -26,7 +26,7 @@ export function aiStatusText(s: AiStatus): string {
         working: msg('ytAiStatusWorking', 'Translating…'),
         ready: msg('ytAiStatusReady', 'AI translation is on'),
         auth: msg('ytAiStatusAuth', 'Sign in again to use AI translation'),
-        quota: msg('ytAiStatusQuota', "Today's AI translation limit is reached"),
+        quota: msg('ytAiStatusQuota', 'The AI limit is reached'),
         rate: msg('ytAiStatusRate', 'Too many requests — try again in a minute'),
         limit: msg('ytAiStatusLimit', 'Too many new videos today — try again later'),
         too_long: msg('ytAiStatusTooLong', 'These subtitles are too long for AI translation'),

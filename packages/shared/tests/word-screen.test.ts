@@ -238,6 +238,47 @@ describe('the article', () => {
         expect(h.panel.textContent).toContain("Couldn't load");
     });
 
+    // Spec 024: an empty answer whose model part was skipped says why.
+    const empty: LookupResult = { term: 'zzxq', lemma: 'zzxq', translations: [], parts_of_speech: [], source: '' };
+
+    it('an empty answer with no AI status still reads "No translation"', async () => {
+        const h = harness();
+        stubMessaging(empty);
+        h.screen.open('zzxq', 'zzxq here');
+        await flush();
+        expect(h.panel.querySelector('.vtt-lookup-article-pending')!.textContent).toBe('No translation');
+        expect(h.panel.querySelector('.lg-ai-notice')).toBeNull();
+    });
+
+    it('signed out: the AI notice and a sign-in button from the lookup', async () => {
+        const h = harness();
+        stubMessaging({ ...empty, ai_status: 'sign_in_required' });
+        h.screen.open('zzxq', 'zzxq here');
+        await flush();
+        const box = h.panel.querySelector('.vtt-lookup-article-pending')!;
+        expect(box.textContent).toContain('Sign in so AI can complete the card');
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        box.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+            { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'lookup' }, expect.any(Function),
+        );
+    });
+
+    it.each([
+        ['limit_day', /^AI limit for today reached/],
+        ['limit_month', /^AI limit for this month reached/],
+        ['ai_paused', /^AI is paused for today for everyone/],
+    ] as const)('%s: its own notice, no sign-in button', async (status, text) => {
+        const h = harness();
+        stubMessaging({ ...empty, ai_status: status });
+        h.screen.open('zzxq', 'zzxq here');
+        await flush();
+        const box = h.panel.querySelector('.vtt-lookup-article-pending')!;
+        expect(box.querySelector('.lg-ai-notice')!.textContent).toMatch(text);
+        expect(box.querySelector('[data-ai-signin]')).toBeNull();
+        expect(box.textContent).not.toContain('No translation');
+    });
+
     it('says so when there is no native language to translate into', async () => {
         const h = harness({ langPrefs: () => null });
         h.screen.open('going', 'we are going home');

@@ -277,6 +277,29 @@ describe('fetchLookup', () => {
         });
     });
 
+    it('drops an ai_status it does not know', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '', ai_status: 'bogus',
+        }));
+        expect(await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru' })).not.toHaveProperty('ai_status');
+    });
+
+    // Spec 024: the token lets the model complete the card from the caller's wallet.
+    it('sends the signed-in token and passes on the AI status and wallet', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '',
+            ai_status: 'limit_day', wallet: { day: { used: 1, limit: 2, resets_at: 3 } },
+        }));
+        const r = await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru', idToken: 'tok' });
+        const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+        expect((init as RequestInit).headers).toMatchObject({ Authorization: 'Bearer tok' });
+        expect(r.ai_status).toBe('limit_day');
+        expect(r.wallet).toEqual({ day: { used: 1, limit: 2, resets_at: 3 } });
+        (global.fetch as jest.Mock).mockClear();
+        await fetchLookup('https://api.test', { term: 'zxqv', targetLang: 'ru' });
+        expect(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).headers).not.toHaveProperty('Authorization');
+    });
+
     it('throws on a non-200 — an unknown word is a 200, never an error', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({ detail: 'x' }, 429));
         await expect(fetchLookup('https://api.test', { term: 'a', targetLang: 'ru' }))
@@ -321,6 +344,28 @@ describe('lookupCached', () => {
         expect(a.cached).toBe(false);
         expect(b.cached).toBe(true);
         expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+    // The key has no account in it: a refusal for this caller must not answer
+    // the same word after a sign-in or a reset.
+    it('never keeps an answer whose model part was skipped', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({
+            term: 'zxqv', lemma: 'zxqv', translations: [], parts_of_speech: [], source: '', ai_status: 'sign_in_required',
+        }));
+        await lookupCached('https://api.test', { term: 'zxqv', targetLang: 'ru' }, false);
+        const again = await lookupCached('https://api.test', { term: 'zxqv', targetLang: 'ru' }, false);
+        expect(again.cached).toBe(false);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+    // The balance is the caller's; the cache key has no account in it.
+    it('hands the wallet to the first caller only — the cached answer has none', async () => {
+        const wallet = { day: { used: 1, limit: 2, resets_at: 3 } };
+        (global.fetch as jest.Mock).mockResolvedValue(jsonResponse({ ...dictAnswer, wallet }));
+        const first = await lookupCached('https://api.test', { term: 'anchor', targetLang: 'ru' }, false);
+        const second = await lookupCached('https://api.test', { term: 'anchor', targetLang: 'ru' }, false);
+        expect(first.result.wallet).toEqual(wallet);
+        expect(second.cached).toBe(true);
+        expect(second.result).not.toHaveProperty('wallet');
+        expect(second.result.translations).toEqual(dictAnswer.translations);
     });
     it('keys the languages apart', async () => {
         (global.fetch as jest.Mock).mockResolvedValue(jsonResponse(dictAnswer));
@@ -485,6 +530,43 @@ describe('LOOKUP_WORD route — a phrase goes to Google first', () => {
         expect(res.ok).toBe(true);
         expect(res.result.translations).toEqual([]);
         expect(res.result.parts_of_speech).toEqual([]);
+    });
+
+    describe('the service answering a phrase with an empty or one-word result', () => {
+        const wallet = { day: { used: 1, limit: 500_000, resets_at: 9_000_000_000_000 }, month: { used: 1, limit: 10_000_000, resets_at: 9_000_000_000_000 }, exhausted: null, warn_ratio: 0.8 };
+        const signedOut: LookupResult = { ...oneWordFromService, ai_status: 'sign_in_required', wallet };
+        afterEach(() => { for (const k of Object.keys(chromeStorage.local._store)) delete chromeStorage.local._store[k]; });
+        const stored = (): unknown => (chromeStorage.local._store as Record<string, unknown>)['ai.balance'];
+
+        it('keeps ai_status and wallet, and the wallet reaches storage', async () => {
+            // keepBalance stores only for a signed-in account.
+            Object.assign(chromeStorage.local._store, { 'auth.idToken': 't', 'auth.uid': 'u', 'auth.expiresAt': Date.now() + 3_600_000 });
+            network(captcha, captcha, async () => jsonResponse(signedOut));
+            const res = await ask('give it a shot');
+            expect(res.result).toMatchObject({ translations: [], ai_status: 'sign_in_required', wallet });
+            expect(stored()).toBeDefined();
+        });
+
+        it('does not cache an answer that lacks its AI part', async () => {
+            const asked = network(captcha, captcha, async () => jsonResponse(signedOut));
+            await ask('give it a shot');
+            await ask('give it a shot');
+            expect(asked.filter((a) => a === 'service')).toHaveLength(2);
+        });
+
+        it('marks an empty answer produced because Google failed, and does not cache it', async () => {
+            const asked = network(captcha, captcha, async () => jsonResponse(oneWordFromService));
+            const res = await ask('give it a shot');
+            expect(res.result).toMatchObject({ translations: [], googleFailed: true });
+            await ask('give it a shot');
+            expect(asked.filter((a) => a === 'service')).toHaveLength(2);
+        });
+
+        it('does not blame Google when it answered with an echo', async () => {
+            network(async () => gtxReply('give it a shot'), async () => pageReply('give it a shot'), async () => jsonResponse(oneWordFromService));
+            const res = await ask('give it a shot');
+            expect(res.result.googleFailed).toBeUndefined();
+        });
     });
 
     it('a word never goes to Google', async () => {
@@ -2066,6 +2148,32 @@ describe('the card tells an empty answer apart from a failed one', () => {
         expect(emptyHtml).not.toBe(errorHtml);
         expect(emptyIsAlert).toBe(false); // "no entry" does not interrupt
         expect(card()!.querySelector('[role="alert"]')).not.toBeNull();
+        teardown();
+    });
+
+    // Spec 024: an empty answer whose model part was skipped says why.
+    it('signed out: the AI notice with a sign-in button from the lookup', async () => {
+        const teardown = await show({ ok: true, result: { ...emptyAnswer, ai_status: 'sign_in_required' } });
+        expect(card()?.textContent).toContain('Sign in so AI can complete the card');
+        expect(card()?.textContent).not.toContain('No translation');
+        (chrome.runtime.sendMessage as jest.Mock).mockClear();
+        card()!.querySelector<HTMLButtonElement>('[data-ai-signin]')!.click();
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
+            { action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'lookup' }, expect.any(Function),
+        );
+        teardown();
+    });
+
+    it.each([
+        ['limit_day', /^AI limit for today reached/],
+        ['limit_month', /^AI limit for this month reached/],
+        ['ai_paused', /^AI is paused for today for everyone/],
+    ])('%s: its own notice, no sign-in button', async (status, text) => {
+        const teardown = await show({ ok: true, result: { ...emptyAnswer, ai_status: status } });
+        const notice = card()!.querySelector('.lg-ai-notice')!;
+        expect(notice.textContent).toMatch(text);
+        expect(card()!.querySelector('[data-ai-signin]')).toBeNull();
+        expect(card()!.textContent).not.toContain('No translation');
         teardown();
     });
 

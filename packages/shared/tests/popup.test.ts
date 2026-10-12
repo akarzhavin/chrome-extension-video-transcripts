@@ -33,6 +33,8 @@ const storageLocal = {
     }),
 };
 
+const storageListeners = new Set<(c: any, a: string) => void>();
+
 (global as any).chrome = {
     runtime: {
         id: 'test-extension-id',
@@ -44,7 +46,13 @@ const storageLocal = {
     },
     tabs: { create: tabsCreateMock, query: tabsQueryMock },
     i18n: { getMessage: () => '', getUILanguage: () => 'en' }, // English fallbacks
-    storage: { local: storageLocal, onChanged: { addListener: jest.fn() } },
+    storage: {
+        local: storageLocal,
+        onChanged: {
+            addListener: (l: (c: any, a: string) => void) => storageListeners.add(l),
+            removeListener: (l: (c: any, a: string) => void) => storageListeners.delete(l),
+        },
+    },
 };
 
 import { readFileSync } from 'fs';
@@ -70,6 +78,7 @@ beforeEach(() => {
     tabsQueryMock.mockReset().mockResolvedValue([]);
     window.close = jest.fn();
     for (const k of Object.keys(prefsStore)) delete prefsStore[k];
+    storageListeners.clear();
     storageLocal.get.mockClear();
     storageLocal.set.mockClear();
     jest.resetModules();
@@ -343,6 +352,21 @@ describe('state 3: signed in', () => {
         withStatus({ signedIn: true, email: 'reader@example.com' });
         await mount();
         expect(visibleRows()).toEqual(['My vocabulary [0]', '---', 'Settings']);
+    });
+
+    // The AI limits live in the sidebar badge and on the site, not in the popup.
+    test('no AI limits block, and no balance request from the popup', async () => {
+        prefsStore['ai.balance'] = {
+            day: { used: 100_000, limit: 500_000, resets_at: Date.UTC(2026, 9, 12) },
+            month: { used: 100_000, limit: 10_000_000, resets_at: Date.UTC(2026, 10, 1) },
+            exhausted: null,
+            warn_ratio: 0.8,
+        };
+        await mount();
+        await nextTick();
+        expect(root().querySelector('.mai')).toBeNull();
+        expect(root().querySelector('[role=progressbar]')).toBeNull();
+        expect(sendMessageMock.mock.calls.map(([m]: any[]) => m?.action)).not.toContain('AI_BALANCE_REFRESH');
     });
 });
 

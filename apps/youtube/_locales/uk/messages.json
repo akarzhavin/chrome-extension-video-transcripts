@@ -849,7 +849,7 @@
   },
   "ytAiStatusQuota": {
     "message": "Денний ліміт AI-перекладу вичерпано",
-    "description": "AI translation status: the daily allowance is used up."
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Сьогодні забагато нових відео — спробуйте пізніше",
@@ -870,5 +870,81 @@
   "ytAiStatusUnsupported": {
     "message": "AI-переклад не підтримує цю пару мов",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Залишилось AI-токенів на сьогодні",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiBadgeDemo": {
+    "message": "Демо-режим: AI безкоштовний у межах денного та місячного ліміту",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
+  "aiLeft": {
+    "message": "залишилось",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 із $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "Демо-режим · AI безкоштовний у цих межах",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
+  "aiToday": {
+    "message": "Сьогодні",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "Цього місяця",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Скидання о $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Скидання $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Ліміт AI на сьогодні вичерпано, скидання о $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitDayShort": {
+    "message": "Ліміт AI на сьогодні вичерпано",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Ліміт AI на місяць вичерпано, скидання $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Ліміт AI на місяць вичерпано",
+    "description": "The monthly AI budget ran out, without the reset date."
+  },
+  "aiSignInCard": {
+    "message": "Увійдіть, щоб AI доповнив картку",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "AI на сьогодні майже витрачено",
+    "description": "One-time notice when the daily AI budget passes its warning share."
+  },
+  "aiWarnMonth": {
+    "message": "AI на цей місяць майже витрачено",
+    "description": "One-time notice when the monthly AI budget passes its warning share."
+  },
+  "aiPaused": {
+    "message": "AI на сьогодні на паузі в усіх. Словник працює.",
+    "description": "Word card: the shared AI budget is spent for today; the dictionary still answers."
+  },
+  "aiSignInTranslate": {
+    "message": "Увійдіть — AI перекладе",
+    "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
+  },
+  "lookupGoogleFailed": {
+    "message": "Google не відповів, спробуйте ще раз",
+    "description": "Phrase card: Google did not answer and no other source did; the next try may work."
   }
 }

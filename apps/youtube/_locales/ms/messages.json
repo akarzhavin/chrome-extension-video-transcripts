@@ -848,8 +848,8 @@
     "description": "AI translation status: the sign-in must be renewed."
   },
   "ytAiStatusQuota": {
-    "message": "Today's AI translation limit is reached",
-    "description": "AI translation status: the daily allowance is used up."
+    "message": "The AI limit is reached",
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Too many new videos today — try again later",
@@ -870,5 +870,81 @@
   "ytAiStatusUnsupported": {
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Token AI tinggal hari ini",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiBadgeDemo": {
+    "message": "Mod demo: AI percuma dalam had harian dan bulanan",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
+  "aiLeft": {
+    "message": "berbaki",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 daripada $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "Mod demo · AI percuma dalam had ini",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
+  "aiToday": {
+    "message": "Hari ini",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "Bulan ini",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Ditetapkan semula pada $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Ditetapkan semula pada $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Had AI hari ini dicapai, ditetapkan semula pada $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitDayShort": {
+    "message": "Had AI hari ini dicapai",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Had AI bulan ini dicapai, ditetapkan semula pada $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Had AI bulan ini dicapai",
+    "description": "The monthly AI budget ran out, without the reset date."
+  },
+  "aiSignInCard": {
+    "message": "Log masuk supaya AI melengkapkan kad",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "AI hari ini hampir habis",
+    "description": "One-time notice when the daily AI budget passes its warning share."
+  },
+  "aiWarnMonth": {
+    "message": "AI bulan ini hampir habis",
+    "description": "One-time notice when the monthly AI budget passes its warning share."
+  },
+  "aiPaused": {
+    "message": "AI dijeda hari ini untuk semua orang. Kamus masih berfungsi.",
+    "description": "Word card: the shared AI budget is spent for today; the dictionary still answers."
+  },
+  "aiSignInTranslate": {
+    "message": "Log masuk — AI akan menterjemah",
+    "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
+  },
+  "lookupGoogleFailed": {
+    "message": "Google tidak menjawab, cuba lagi",
+    "description": "Phrase card: Google did not answer and no other source did; the next try may work."
   }
 }

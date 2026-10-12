@@ -848,8 +848,8 @@
     "description": "AI translation status: the sign-in must be renewed."
   },
   "ytAiStatusQuota": {
-    "message": "Today's AI translation limit is reached",
-    "description": "AI translation status: the daily allowance is used up."
+    "message": "The AI limit is reached",
+    "description": "AI translation status: the AI limit (daily or monthly) is reached."
   },
   "ytAiStatusLimit": {
     "message": "Too many new videos today — try again later",
@@ -870,5 +870,81 @@
   "ytAiStatusUnsupported": {
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
+  },
+  "aiBadgeTitle": {
+    "message": "Tokens de AI restantes hoje",
+    "description": "Sidebar AI badge tooltip: what the number is."
+  },
+  "aiBadgeDemo": {
+    "message": "Modo de demonstração: a AI é gratuita dentro de um limite diário e mensal",
+    "description": "Second line of the sidebar AI badge tooltip: AI currently runs in a free demo mode with daily and monthly limits."
+  },
+  "aiLeft": {
+    "message": "restante",
+    "description": "Badge dropdown: small word after a percentage, e.g. \"97% left\" (share of the AI budget remaining)."
+  },
+  "aiOfLimit": {
+    "message": "$1 de $2",
+    "description": "Badge dropdown: tokens left of the limit, e.g. \"486k of 500k\". $1 = left, $2 = limit."
+  },
+  "aiDemoNote": {
+    "message": "Modo de demonstração · a AI é gratuita dentro destes limites",
+    "description": "Badge dropdown footer: AI currently runs in a free demo mode within the limits shown above."
+  },
+  "aiToday": {
+    "message": "Hoje",
+    "description": "AI usage bar label for the current day."
+  },
+  "aiMonth": {
+    "message": "Este mês",
+    "description": "AI usage bar label for the current month."
+  },
+  "aiResetsAt": {
+    "message": "Repõe às $1",
+    "description": "Under the daily AI bar; $1 is a local time like 03:00."
+  },
+  "aiResetsOn": {
+    "message": "Repõe a $1",
+    "description": "Under the monthly AI bar; $1 is a local date like 1 Nov."
+  },
+  "aiLimitDay": {
+    "message": "Limite de AI de hoje atingido, repõe às $1",
+    "description": "The daily AI budget ran out; $1 is the local reset time."
+  },
+  "aiLimitDayShort": {
+    "message": "Limite de AI de hoje atingido",
+    "description": "The daily AI budget ran out, without the reset time."
+  },
+  "aiLimitMonth": {
+    "message": "Limite de AI deste mês atingido, repõe a $1",
+    "description": "The monthly AI budget ran out; $1 is the local reset date."
+  },
+  "aiLimitMonthShort": {
+    "message": "Limite de AI deste mês atingido",
+    "description": "The monthly AI budget ran out, without the reset date."
+  },
+  "aiSignInCard": {
+    "message": "Inicie sessão para a AI completar o cartão",
+    "description": "Word card without sign-in: the AI part needs an account."
+  },
+  "aiWarnDay": {
+    "message": "A AI de hoje está quase esgotada",
+    "description": "One-time notice when the daily AI budget passes its warning share."
+  },
+  "aiWarnMonth": {
+    "message": "A AI deste mês está quase esgotada",
+    "description": "One-time notice when the monthly AI budget passes its warning share."
+  },
+  "aiPaused": {
+    "message": "A AI está em pausa hoje para todos. O dicionário continua a funcionar.",
+    "description": "Word card: the shared AI budget is spent for today; the dictionary still answers."
+  },
+  "aiSignInTranslate": {
+    "message": "Inicie sessão — a AI vai traduzir",
+    "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
+  },
+  "lookupGoogleFailed": {
+    "message": "O Google não respondeu, tente novamente",
+    "description": "Phrase card: Google did not answer and no other source did; the next try may work."
   }
 }

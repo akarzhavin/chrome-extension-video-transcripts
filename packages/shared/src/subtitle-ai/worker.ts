@@ -35,9 +35,10 @@ export interface PartRequest {
 
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
 
+// `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
-    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[] }
-    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number };
+    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; wallet?: unknown }
+    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
 
 export interface StoredTrack {
     fingerprint: string;
@@ -95,7 +96,7 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         const skipped = inRange(b.skipped);
         // Cues whose part was not ready; they stay on their way.
         const pending = inRange(b.pending);
-        return { ok: true, from, to, lines, skipped, pending };
+        return { ok: true, from, to, lines, skipped, pending, ...(b.wallet ? { wallet: b.wallet } : {}) };
     }
     switch (res.status) {
         case 401:
@@ -106,9 +107,14 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         case 422:
             return { ok: false, code: 'invalid' };
         case 429:
-            // The daily quota resets tomorrow; the per-minute limit in a minute.
+            // The AI wallet resets at its window's end; the per-minute limit in a minute.
             if (b.code === 'quota_exceeded' || (b.code === undefined && typeof b.resets_at === 'number')) {
-                return { ok: false, code: 'quota', ...(typeof b.resets_at === 'number' ? { resetsAt: b.resets_at } : {}) };
+                return {
+                    ok: false,
+                    code: 'quota',
+                    ...(typeof b.resets_at === 'number' ? { resetsAt: b.resets_at } : {}),
+                    ...(b.wallet ? { wallet: b.wallet } : {}),
+                };
             }
             return { ok: false, code: 'rate_limited', ...(retryAfterMs(res) ? { retryAfterMs: retryAfterMs(res) } : {}) };
         case 503:

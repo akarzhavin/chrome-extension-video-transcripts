@@ -1,0 +1,44 @@
+// Worker-only: GET /dictionary/ai/balance, asked once when a view opens.
+// Never imported by a content script (the edge's CORS list has no
+// chrome-extension:// origin; the worker sends none).
+
+import { parseBalance, type AIBalance } from './types';
+import { saveBalance } from './store';
+import { getAuthState } from '../auth/storage';
+
+// A sign-out during the call already cleared the balance; it must not come back.
+async function saveIfSignedIn(b: AIBalance): Promise<void> {
+    if (await getAuthState()) await saveBalance(b);
+}
+
+export interface BalanceDeps {
+    fetch: (url: string, init: RequestInit) => Promise<Response>;
+    /** refresh=true forces a new ID token (after a 401). Throws when not signed in. */
+    token: (refresh: boolean) => Promise<{ idToken: string }>;
+}
+
+/** The caller's balance, stored for every view; null when signed out or unreachable. */
+export async function refreshBalance(baseUrl: string, deps: BalanceDeps): Promise<AIBalance | null> {
+    if (!baseUrl) return null;
+    const url = `${baseUrl.replace(/\/+$/, '')}/dictionary/ai/balance`;
+    const ask = async (refresh: boolean) => {
+        const { idToken } = await deps.token(refresh);
+        return deps.fetch(url, { method: 'GET', headers: { Authorization: `Bearer ${idToken}` } });
+    };
+    try {
+        let res = await ask(false);
+        if (res.status === 401) res = await ask(true);
+        if (!res.ok) return null;
+        const b = parseBalance(await res.json());
+        if (b) await saveIfSignedIn(b);
+        return b;
+    } catch {
+        return null;
+    }
+}
+
+/** Keeps a balance an AI answer carried; a missing or malformed one is ignored. */
+export async function keepBalance(raw: unknown): Promise<void> {
+    const b = parseBalance(raw);
+    if (b) await saveIfSignedIn(b);
+}

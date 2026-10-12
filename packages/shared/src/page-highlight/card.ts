@@ -22,7 +22,10 @@ import { platformOf } from '../analytics';
 import { msg } from '../i18n';
 import { HEART_SVG, posLabel } from '../lookup/icons';
 import { hasLookupContent, posTags, showsLemma, stripDefinition, stripTranslations } from '../lookup/shape';
-import type { LookupResult } from '../lookup/types';
+import type { LookupAnswer } from '../lookup/types';
+import { escapeHtml } from '../escape-html';
+import { wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml } from '../lookup/empty-notice';
 
 /** A saved word under the pointer, as the card needs it. */
 export interface PageMark {
@@ -109,12 +112,8 @@ const CARD_CSS = `
 
 interface LookupResponse {
     ok: boolean;
-    result?: LookupResult;
+    result?: LookupAnswer;
     error?: string;
-}
-
-function escapeHtml(s: string): string {
-    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
 /** Mounts the card's listeners on `doc`; returns the uninstaller. */
@@ -217,10 +216,13 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
         return saved ? msg('ytLookupRemove', 'Remove') : msg('ytLookupSave', 'Save');
     }
 
-    function renderResult(mark: PageMark, r: LookupResult): void {
+    function renderResult(mark: PageMark, r: LookupAnswer): void {
         const el = ensureCard();
         let body = '<div class="body">';
-        if (!hasLookupContent(r)) {
+        const note = hasLookupContent(r) ? '' : emptyNoticeHtml(r);
+        if (note) {
+            body += `<span class="muted">${note}</span>`;
+        } else if (!hasLookupContent(r)) {
             body += `<span class="muted">${escapeHtml(msg('ytLookupNone', 'No translation'))}</span>`;
         } else {
             const tags = posTags(r);
@@ -237,6 +239,7 @@ export function installPageCard(deps: PageCardDeps, doc: Document = document): (
             body +
             `<div class="acts"><button type="button" class="btn heart saved" data-act="heart">` +
             `${HEART_SVG}<span>${escapeHtml(heartLabel(true))}</span></button></div>`;
+        if (note) wireAINotice(el);
         const btn = el.querySelector<HTMLButtonElement>('.heart')!;
         let saved = true;
         // What Remove names: the stored forms at first, the key once Save has

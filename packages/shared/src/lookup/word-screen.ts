@@ -18,7 +18,9 @@ import { msg } from '../i18n';
 import { removeTerm, saveTerm, sendMessage } from '../content/quick-add-overlay';
 import { HEART_SVG, ICON_EXTERNAL, posLabel } from './icons';
 import { isContextual, hasLookupContent, oxfordLookupUrl, showsLemma } from './shape';
-import { LookupResult } from './types';
+import { wireAINotice } from '../ai-balance/notice';
+import { emptyNoticeHtml } from './empty-notice';
+import { LookupAnswer } from './types';
 
 /**
  * What the word screen needs from the sidebar hosting it.
@@ -159,7 +161,7 @@ export class WordScreen {
             return;
         }
         try {
-            const res = await sendMessage<{ ok: boolean; result?: LookupResult }>({
+            const res = await sendMessage<{ ok: boolean; result?: LookupAnswer }>({
                 action: 'LOOKUP_WORD',
                 term,
                 context,
@@ -198,7 +200,7 @@ export class WordScreen {
     // translations, the cue it came from, then parts of speech in server order
     // (the first tag is the one this cue uses) with numbered senses. The save
     // button lives in a pinned footer so it never depends on article length.
-    private renderArticle(term: string, context: string, r: LookupResult): void {
+    private renderArticle(term: string, context: string, r: LookupAnswer): void {
         const panel = this.host.panel();
         if (!panel) return;
         panel.replaceChildren();
@@ -329,7 +331,13 @@ export class WordScreen {
         if (!hasLookupContent(r)) {
             const none = document.createElement('div');
             none.className = 'vtt-lookup-article-pending';
-            none.textContent = msg('ytLookupNone', 'No translation');
+            const note = emptyNoticeHtml(r);
+            if (note) {
+                none.innerHTML = note;
+                wireAINotice(none);
+            } else {
+                none.textContent = msg('ytLookupNone', 'No translation');
+            }
             scroll.appendChild(none);
         }
 
