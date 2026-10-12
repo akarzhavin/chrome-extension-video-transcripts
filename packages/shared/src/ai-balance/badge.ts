@@ -37,6 +37,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     let balance: AIBalance | null = null;
     let panel: HTMLElement | null = null;
     let cancelWarning = () => {};
+    let disposed = false;
 
     const close = () => {
         panel?.remove();
@@ -92,7 +93,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
             open();
         }
         void takeWarning(b).then((w) => {
-            if (!w) return;
+            if (!w || disposed) return;
             cancelWarning();
             cancelWarning = showWarningNote(headerTop, w);
         });
@@ -102,6 +103,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     requestRefresh();
     const unsubscribe = onBalance(show);
     return () => {
+        disposed = true;
         unsubscribe();
         cancelWarning();
         doc.removeEventListener('click', outside, true);

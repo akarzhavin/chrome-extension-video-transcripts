@@ -234,6 +234,21 @@ describe('sidebar badge', () => {
         expect(css).not.toMatch(/vtt-lookup-open #vtt-ai-badge\s*\{[^}]*!important/);
     });
 
+    test('a warning still being decided when the badge unmounts shows nothing', async () => {
+        jest.useFakeTimers();
+        try {
+            const top = header();
+            const unmount = mountAIBadge(top);
+            await saveBalance(balance(450_000));
+            unmount(); // takeWarning is still awaiting storage
+            for (let i = 0; i < 10; i++) await Promise.resolve();
+            expect(document.getElementById('vtt-ai-warn')).toBeNull();
+            expect(jest.getTimerCount()).toBe(0);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     test('unmounting cancels the pending warning timer', async () => {
         jest.useFakeTimers();
         try {

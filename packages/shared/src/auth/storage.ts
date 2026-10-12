@@ -301,20 +301,24 @@ export async function clearParkedAuthStates(): Promise<void> {
 }
 
 export async function clearAuthState(): Promise<void> {
-    await chrome.storage.local.remove([
-        KEYS.idToken,
-        KEYS.refreshToken,
-        KEYS.expiresAt,
-        KEYS.email,
-        KEYS.uid,
-        // The saved-word mirror goes with the credentials: it names the words
-        // THIS account saved, and leaving it behind would show them to whoever
-        // signs in next on this profile. Note what still stays — the lifetime
-        // saved-word count and the rating flag two keys up are deliberately not
-        // in this list, because the person is the same person.
-        WORD_KEYS.mirror,
-    ]);
-    await clearAccountAI();
+    // finally: the AI keys go even if the credential removal throws.
+    try {
+        await chrome.storage.local.remove([
+            KEYS.idToken,
+            KEYS.refreshToken,
+            KEYS.expiresAt,
+            KEYS.email,
+            KEYS.uid,
+            // The saved-word mirror goes with the credentials: it names the words
+            // THIS account saved, and leaving it behind would show them to whoever
+            // signs in next on this profile. Note what still stays — the lifetime
+            // saved-word count and the rating flag two keys up are deliberately not
+            // in this list, because the person is the same person.
+            WORD_KEYS.mirror,
+        ]);
+    } finally {
+        await clearAccountAI();
+    }
 }
 
 

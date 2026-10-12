@@ -81,6 +81,14 @@ describe('signing out', () => {
         );
     });
 
+    test('drops the AI balance and warned marks even when the credential removal fails', async () => {
+        Object.assign(store, { 'ai.balance': { x: 1 }, 'ai.warned.day': 'd', 'ai.warned.month': 'm' });
+        const remove = (global as any).chrome.storage.local.remove as jest.Mock;
+        remove.mockImplementationOnce(() => Promise.reject(new Error('boom')));
+        await expect(clearAuthState()).rejects.toThrow('boom');
+        expect(Object.keys(store).filter((k) => k.startsWith('ai.'))).toEqual([]);
+    });
+
     test('leaves no session behind', async () => {
         await signedIn();
         await clearAuthState();
