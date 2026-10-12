@@ -104,8 +104,10 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         arc.setAttribute('stroke-dasharray', `${(share * C).toFixed(2)} ${C.toFixed(2)}`);
         label.textContent = `AI ${spent !== null ? resetShort(spent, b) : formatTokens(tokensLeft(b.day))}`;
         const what = spent !== null ? limitText(spent, b) : msg('aiBadgeTitle', 'AI tokens left today');
-        button.title = `${what}\n${msg('aiBadgeDemo', 'Demo mode: AI is free within a daily and a monthly limit')}`;
-        button.setAttribute('aria-label', button.title);
+        // The panel's [data-tip] bubble: shows at once and on focus, unlike title.
+        const tip = `${what}\n${msg('aiBadgeDemo', 'Demo mode: AI is free within a daily and a monthly limit')}`;
+        button.setAttribute('data-tip', tip);
+        button.setAttribute('aria-label', tip);
         if (panel) {
             close();
             open();

@@ -2665,6 +2665,24 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     color: #e3e5ff; font: 600 12px/1.2 inherit; cursor: pointer;
 }
 #vtt-ai-badge button:hover { background: rgba(124, 90, 255, 0.28); }
+/* The #vtt-partial-notice bubble, two lines (what it is, demo mode); never over the open dropdown. */
+#vtt-ai-badge button[data-tip] { position: relative; }
+#vtt-ai-badge button[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 21;
+    width: max-content; max-width: 260px;
+    background: #14161f; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    color: #dfe3f0; border: 1px solid var(--vtt-hairline-strong); border-radius: 6px;
+    padding: 8px 10px; font-size: 11px; font-weight: 400; line-height: 1.45;
+    text-align: left; white-space: pre-line;
+    pointer-events: none; opacity: 0; transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+#vtt-ai-badge button[data-tip]:hover::after,
+#vtt-ai-badge button[data-tip]:focus-visible::after {
+    opacity: 1; transform: translateY(0); transition-delay: 0.15s;
+}
+#vtt-ai-badge button[aria-expanded="true"]::after { content: none; }
 #vtt-ai-badge .vtt-ai-ring { width: 18px; height: 18px; flex: none; transform: rotate(-90deg); }
 #vtt-ai-badge .vtt-ai-ring circle { fill: none; stroke-width: 2.5; }
 #vtt-ai-badge .vtt-ai-track { stroke: rgba(255, 255, 255, 0.14); }

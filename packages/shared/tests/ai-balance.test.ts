@@ -347,10 +347,10 @@ describe('badge edges', () => {
         await saveBalance(balance(500_000, 1, 'day'));
         const badge = top.querySelector('#vtt-ai-badge')!;
         expect(badge.classList.contains('vtt-ai-out')).toBe(true);
-        expect(badge.querySelector('button')!.title).toMatch(/^AI limit for today reached/);
+        expect(badge.querySelector('button')!.getAttribute('data-tip')).toMatch(/^AI limit for today reached/);
         await saveBalance(balance(1));
         expect(badge.classList.contains('vtt-ai-out')).toBe(false);
-        expect(badge.querySelector('button')!.title).toMatch(/^AI tokens left today\n/);
+        expect(badge.querySelector('button')!.getAttribute('data-tip')).toMatch(/^AI tokens left today\n/);
     });
 
     // The ring (owner, 2026-10-12): its arc is today's share left; spent, it is a closed red ring.
@@ -413,10 +413,12 @@ describe('badge edges', () => {
         await saveBalance(balance(1));
         const demo = 'Demo mode: AI is free within a daily and a monthly limit';
         const button = top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
-        expect(button.title).toBe(`AI tokens left today\n${demo}`);
-        expect(button.getAttribute('aria-label')).toBe(button.title);
+        // The panel's own instant bubble ([data-tip]), not the native title that waits ~1s.
+        expect(button.getAttribute('data-tip')).toBe(`AI tokens left today\n${demo}`);
+        expect(button.hasAttribute('title')).toBe(false);
+        expect(button.getAttribute('aria-label')).toBe(button.getAttribute('data-tip'));
         await saveBalance(balance(500_000, 1, 'day'));
-        expect(button.title).toMatch(/^AI limit for today reached.*\nDemo mode: /s);
+        expect(button.getAttribute('data-tip')).toMatch(/^AI limit for today reached.*\nDemo mode: /s);
     });
 
     test('the month warning, Escape closes, a second click closes', async () => {
