@@ -193,8 +193,8 @@ const GENDER_STRONG = ['ru', 'uk', 'pl', 'cs', 'sk', 'sl', 'sr', 'hr', 'hi', 'he
 const GENDER_ADJECTIVE = ['es', 'pt', 'it', 'fr', 'ro', 'el', 'bg', 'lv', 'lt'];
 // Often leave the gender of "I" unshown (Arabic past tense): last as a hint.
 const GENDER_HIDDEN = ['ar', 'th', 'vi'];
-/** Hint languages the cheap model is measured to read (english repo, spec 023 R21). */
-export const MINI_READS = ['ru'];
+/** Hint languages the cheap model is measured to read (english repo, spec 023 R21, spec 025 R1). */
+export const MINI_READS = ['ru', 'es'];
 // Breaks ties within a tier: the more widespread first.
 const PREVALENCE = ['ru', 'es', 'pt', 'fr', 'it', 'pl', 'uk', 'ar', 'hi', 'vi', 'he', 'cs', 'ro', 'el', 'th', 'bg', 'sr', 'hr', 'sk', 'lt', 'sl', 'lv'];
 const CLUSTER: Record<string, string> = {

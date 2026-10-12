@@ -67,7 +67,7 @@ describe('picking the second track', () => {
     test('at most three tracks are loaded', async () => {
         const loaded: string[] = [];
         const sparse = subs(50).filter((_, i) => i % 2 === 0);
-        const got = await pickSecond('uk', source(), ['ru', 'pl', 'cs', 'es'].map((l) => candidate(l, 'manual', sparse, loaded)));
+        const got = await pickSecond('uk', source(), ['ru', 'pl', 'cs', 'fr'].map((l) => candidate(l, 'manual', sparse, loaded)));
         expect(got).toBeNull();
         expect(loaded).toEqual(['ru/manual', 'pl/manual', 'cs/manual']);
     });
@@ -116,6 +116,6 @@ describe('languages', () => {
     });
 
     test('only a hint the cheap model is not measured to read needs the hint model', () => {
-        expect([needsHintModel('uk', 'ru'), needsHintModel('ru', 'ru'), needsHintModel('uk', 'es'), needsHintModel('ru', 'hi')]).toEqual([false, false, true, true]);
+        expect([needsHintModel('uk', 'ru'), needsHintModel('ru', 'ru'), needsHintModel('uk', 'es'), needsHintModel('uk', 'he'), needsHintModel('ru', 'hi')]).toEqual([false, false, false, true, true]);
     });
 });
