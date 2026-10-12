@@ -17,9 +17,6 @@ import { accent, menuRow } from './menu';
 import { renderSiteSwitch } from './site-switch';
 import { restoreEnvForPage } from '../auth/devEnvSwitch';
 import { mountDevBackendChip } from './dev-backend-chip';
-import { renderBars } from '../ai-balance/bars';
-import { loadBalance, onBalance } from '../ai-balance/store';
-import type { AIBalance } from '../ai-balance/types';
 
 // Which edition this popup belongs to; null = not told (tests, old callers),
 // and the edition-specific blocks (video sites, setup) are left out.
@@ -112,7 +109,6 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
                     onClick: () => openAndClose(vocabUrl()),
                 }),
             );
-            root.appendChild(aiBlock());
             return;
         case 'device': {
             root.appendChild(
@@ -185,31 +181,6 @@ function renderState(root: HTMLElement, status?: AuthStatus): void {
     }
 }
 
-let stopBalance: () => void = () => {};
-
-// Today's and this month's AI use (spec 024): the stored balance at once, one
-// refresh as the popup opens, then live changes; empty until one answers.
-function aiBlock(): HTMLElement {
-    const box = el('div', 'mai');
-    box.hidden = true;
-    const paint = (b: AIBalance | null) => {
-        box.replaceChildren(...(b ? [renderBars(b)] : []));
-        box.hidden = !b;
-    };
-    // A change heard live is newer than a read still in flight.
-    let live = false;
-    void loadBalance().then((b) => !live && paint(b));
-    // One live subscription: a re-render replaces the block, so drop the old one first.
-    stopBalance();
-    stopBalance = onBalance((b) => {
-        live = true;
-        paint(b);
-    });
-    // The worker answers by writing storage, which onBalance hears.
-    void send({ action: 'AI_BALANCE_REFRESH' }).catch(() => undefined);
-    return box;
-}
-
 async function signIn(root: HTMLElement, button: HTMLButtonElement, status: AuthStatus | undefined): Promise<void> {
     button.disabled = true;
     try {
@@ -274,8 +245,6 @@ function renderSetupLink(root: HTMLElement): void {
 
 export function initPopup(opts?: { edition?: Edition }): void {
     edition = opts?.edition ?? null;
-    // Here, not at module top: the service worker imports this package and has no window.
-    window.addEventListener('pagehide', () => stopBalance());
     const root = document.getElementById('root');
     if (!root) {
         console.error('[Lingogram] popup: #root not found');

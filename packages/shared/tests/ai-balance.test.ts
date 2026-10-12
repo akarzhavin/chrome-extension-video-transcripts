@@ -267,18 +267,16 @@ describe('sidebar badge', () => {
         }
     });
 
-    test('a click opens the bars with the swap the chip was', async () => {
+    test('a click opens the two bars and nothing else, the language chip present or not', async () => {
         const top = header();
-        const swapped = jest.fn();
-        top.querySelector('#vtt-langpair')!.addEventListener('click', swapped);
         await saveBalance(balance(100_000));
         mountAIBadge(top);
         await flush();
         top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!.click();
         const panel = top.querySelector('#vtt-ai-panel')!;
         expect(panel.querySelectorAll('[role=progressbar]')).toHaveLength(2);
-        panel.querySelector<HTMLButtonElement>('.vtt-ai-swap')!.click();
-        expect(swapped).toHaveBeenCalledTimes(1);
+        expect(panel.querySelectorAll('button')).toHaveLength(0);
+        expect(panel.textContent).not.toMatch(/Swap|Shift\+S/);
         document.body.click();
         expect(top.querySelector('#vtt-ai-panel')).toBeNull();
     });
@@ -355,7 +353,7 @@ describe('badge edges', () => {
         expect(badge.querySelector('button')!.title).toBe('AI tokens left today');
     });
 
-    test('the month warning, Escape closes, a second click closes, no chip no swap', async () => {
+    test('the month warning, Escape closes, a second click closes', async () => {
         const top = header(false);
         mountAIBadge(top);
         await flush();
@@ -367,7 +365,6 @@ describe('badge edges', () => {
         expect(document.getElementById('vtt-ai-warn')?.textContent).toBe('AI is almost used up for this month');
         button.click();
         expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
-        expect(top.querySelector('#vtt-ai-panel .vtt-ai-swap')).toBeNull();
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
         expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));

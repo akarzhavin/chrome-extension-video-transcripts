@@ -354,145 +354,19 @@ describe('state 3: signed in', () => {
         expect(visibleRows()).toEqual(['My vocabulary [0]', '---', 'Settings']);
     });
 
-    // Spec 024: today's and this month's AI use, from storage and one refresh.
-    describe('the AI bars', () => {
-        const wallet = (used: number) => ({
-            day: { used, limit: 500_000, resets_at: Date.UTC(2026, 9, 12) },
-            month: { used, limit: 10_000_000, resets_at: Date.UTC(2026, 10, 1) },
+    // The AI limits live in the sidebar badge and on the site, not in the popup.
+    test('no AI limits block, and no balance request from the popup', async () => {
+        prefsStore['ai.balance'] = {
+            day: { used: 100_000, limit: 500_000, resets_at: Date.UTC(2026, 9, 12) },
+            month: { used: 100_000, limit: 10_000_000, resets_at: Date.UTC(2026, 10, 1) },
             exhausted: null,
             warn_ratio: 0.8,
-        });
-        const status = { signedIn: true, email: 'reader@example.com', inboxCount: 1 };
-        const ai = () => root().querySelector<HTMLElement>('.mai')!;
-        const pcts = () => [...ai().querySelectorAll('[role=progressbar]')].map((b) => b.getAttribute('aria-valuenow'));
-        function withRefresh(reply: (cb: (r: unknown) => void) => void): void {
-            sendMessageMock.mockImplementation((msg: any, cb: any) => {
-                if (typeof cb !== 'function') return;
-                if (msg?.action === 'AI_BALANCE_REFRESH') reply(cb);
-                else cb(msg?.action === 'AUTH_STATUS' ? status : {});
-            });
-        }
-
-        test('show the stored balance at once', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh(() => undefined); // the refresh never answers
-            await mount();
-            expect(ai().hidden).toBe(false);
-            expect(pcts()).toEqual(['20', '1']);
-        });
-
-        // The worker answers a refresh by writing storage; the popup hears it there.
-        const stores = (used: number) => {
-            prefsStore['ai.balance'] = wallet(used);
-            storageListeners.forEach((l) => l({ 'ai.balance': { newValue: wallet(used) } }, 'local'));
         };
-
-        test('a balance the refresh stores repaints them', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => setTimeout(() => (stores(250_000), cb({ ok: true })), 0));
-            await mount();
-            await nextTick();
-            expect(ai().hidden).toBe(false);
-            expect(pcts()).toEqual(['50', '2']);
-        });
-
-        test('the refresh reply itself paints nothing', async () => {
-            withRefresh((cb) => setTimeout(() => cb({ ok: true, balance: wallet(400_000) }), 0));
-            await mount();
-            await nextTick();
-            expect(ai().hidden).toBe(true);
-        });
-
-        // A reply that beats the storage read must not be painted over by it.
-        test('a refresh answered before the storage read keeps the fresh numbers', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => {
-                storageListeners.forEach((l) => l({ 'ai.balance': { newValue: wallet(250_000) } }, 'local'));
-                cb({ ok: true });
-            });
-            await mount();
-            await nextTick();
-            expect(pcts()).toEqual(['50', '2']);
-        });
-
-        test('with nothing stored, a balance the refresh stores shows them', async () => {
-            // Written after the storage read, as the network always is.
-            withRefresh((cb) => setTimeout(() => (stores(400_000), cb({ ok: true })), 0));
-            await mount();
-            await nextTick();
-            expect(ai().hidden).toBe(false);
-            expect(pcts()[0]).toBe('80');
-        });
-
-        test('an ok:false refresh leaves them hidden when nothing is stored', async () => {
-            withRefresh((cb) => cb({ ok: false }));
-            await mount();
-            expect(ai().hidden).toBe(true);
-            expect(ai().children).toHaveLength(0);
-        });
-
-        test('a failed refresh keeps the stored ones', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh((cb) => {
-                (chrome.runtime as any).lastError = { message: 'no receiver' };
-                try {
-                    cb(undefined);
-                } finally {
-                    (chrome.runtime as any).lastError = undefined;
-                }
-            });
-            await mount();
-            expect(ai().hidden).toBe(false);
-            expect(pcts()[0]).toBe('20');
-        });
-
-        // Let the previous test's late refreshes land, then forget their listeners.
-        const settle = async () => {
-            await nextTick();
-            await nextTick();
-            storageListeners.clear();
-        };
-
-        test('repaint on a balance change while open, and stop on pagehide', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh(() => undefined);
-            await settle();
-            await mount();
-            await nextTick();
-            const change = (used: number) =>
-                storageListeners.forEach((l) => l({ 'ai.balance': { newValue: { ...wallet(used), fetchedAt: 1 } } }, 'local'));
-            change(250_000);
-            expect(pcts()[0]).toBe('50');
-            window.dispatchEvent(new Event('pagehide'));
-            change(400_000);
-            expect(pcts()[0]).toBe('50');
-        });
-
-        test('a re-render leaves one balance listener, not one per render', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh(() => undefined);
-            await settle();
-            await mount();
-            await mount();
-            await nextTick();
-            // Other popup code listens on storage too; the balance one is the one naming its key.
-            expect([...storageListeners].filter((l) => l.toString().includes('BALANCE_KEY'))).toHaveLength(1);
-        });
-
-        test('a balance cleared in storage hides the block', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withRefresh(() => undefined);
-            await mount();
-            storageListeners.forEach((l) => l({ 'ai.balance': { newValue: undefined } }, 'local'));
-            expect(ai().hidden).toBe(true);
-        });
-
-        test('signed out there is no AI block', async () => {
-            prefsStore['ai.balance'] = wallet(100_000);
-            withStatus({ signedIn: false });
-            await mount();
-            expect(root().querySelector('.mai')).toBeNull();
-        });
+        await mount();
+        await nextTick();
+        expect(root().querySelector('.mai')).toBeNull();
+        expect(root().querySelector('[role=progressbar]')).toBeNull();
+        expect(sendMessageMock.mock.calls.map(([m]: any[]) => m?.action)).not.toContain('AI_BALANCE_REFRESH');
     });
 });
 

@@ -2679,10 +2679,6 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 #vtt-ai-panel .lg-ai-fill.lg-ai-full { background: #f87171; }
 #vtt-ai-panel .lg-ai-reset, #vtt-ai-panel .lg-ai-note { opacity: 0.7; }
 #vtt-ai-panel .lg-ai-note { margin-bottom: 8px; }
-#vtt-ai-panel .vtt-ai-swap {
-    width: 100%; margin-top: 2px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
-    background: transparent; border: 1px solid rgba(255, 255, 255, 0.18); color: inherit; font: inherit;
-}
 #vtt-ai-warn {
     margin: 6px 16px 0; padding: 6px 10px; border-radius: 8px; font-size: 12px;
     background: rgba(242, 180, 136, 0.16); border: 1px solid rgba(242, 180, 136, 0.4); color: #f7d9c2;

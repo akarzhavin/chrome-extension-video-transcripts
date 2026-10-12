@@ -1,7 +1,6 @@
 // The sidebar's AI badge (spec 024): in the header slot the language-pair chip
 // holds, while signed in it shows today's tokens left; a click opens the two
-// bars, with the swap the chip used to be (Shift+S still swaps). Signed out
-// there is no balance, and the chip is back.
+// bars (Shift+S still swaps). Signed out there is no balance, and the chip is back.
 
 import { msg } from '../i18n';
 import { renderBars } from './bars';
@@ -50,15 +49,6 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         panel.id = 'vtt-ai-panel';
         panel.setAttribute('role', 'dialog');
         panel.appendChild(renderBars(balance, doc));
-        const chip = doc.getElementById('vtt-langpair');
-        if (chip) {
-            const swap = doc.createElement('button');
-            swap.type = 'button';
-            swap.className = 'vtt-ai-swap';
-            swap.textContent = `${chip.textContent?.trim() ?? ''} · ${msg('ytModeSwap', 'Swap')} (Shift+S)`;
-            swap.addEventListener('click', () => chip.click());
-            panel.appendChild(swap);
-        }
         badge.appendChild(panel);
         button.setAttribute('aria-expanded', 'true');
     };
