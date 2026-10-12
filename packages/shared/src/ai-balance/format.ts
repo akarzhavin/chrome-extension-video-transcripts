@@ -39,6 +39,11 @@ export function resetsOnText(w: AIWindow): string {
     return msg('aiResetsOn', 'Resets on $1', [localDate(w.resetsAt)]);
 }
 
+/** The spent window's reset, short: a time for the day, a date for the month. */
+export function resetShort(window: 'day' | 'month', b: AIBalance): string {
+    return window === 'month' ? localDate(b.month.resetsAt) : localTime(b.day.resetsAt);
+}
+
 /** What to say when a window ran out. */
 export function limitText(window: 'day' | 'month', b: AIBalance | null): string {
     const month = window === 'month';

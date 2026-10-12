@@ -353,6 +353,58 @@ describe('badge edges', () => {
         expect(badge.querySelector('button')!.title).toMatch(/^AI tokens left today\n/);
     });
 
+    // The ring (owner, 2026-10-12): its arc is today's share left; spent, it is a closed red ring.
+    describe('the ring', () => {
+        const C = 2 * Math.PI * 7;
+        const mounted = async (b: AIBalance) => {
+            const top = header();
+            await saveBalance(b);
+            mountAIBadge(top);
+            await flush();
+            const badge = top.querySelector<HTMLElement>('#vtt-ai-badge')!;
+            const arc = badge.querySelector<SVGCircleElement>('svg.vtt-ai-ring circle.vtt-ai-arc')!;
+            const share = () => Number(arc.getAttribute('stroke-dasharray')!.split(' ')[0]) / C;
+            return { badge, arc, share, label: () => badge.querySelector('button')!.textContent!.trim() };
+        };
+
+        test('the arc is the share left today, next to the tokens left', async () => {
+            const r = await mounted(balance(100_000));
+            expect(r.share()).toBeCloseTo(0.8, 2);
+            expect(r.label()).toBe('AI 400k');
+            expect(r.badge.className).toBe('');
+        });
+
+        test('past the warn ratio the badge turns amber', async () => {
+            const r = await mounted(balance(420_000));
+            expect(r.share()).toBeCloseTo(0.16, 2);
+            expect(r.badge.classList.contains('vtt-ai-high')).toBe(true);
+            expect(r.badge.classList.contains('vtt-ai-out')).toBe(false);
+        });
+
+        test('spent today: a closed red ring, no cross, and the reset time instead of zero', async () => {
+            const r = await mounted(balance(500_000, 1, 'day'));
+            expect(r.share()).toBeCloseTo(1, 3);
+            expect(r.badge.classList.contains('vtt-ai-out')).toBe(true);
+            expect(r.badge.classList.contains('vtt-ai-high')).toBe(false);
+            expect(r.badge.querySelectorAll('svg.vtt-ai-ring path, svg.vtt-ai-ring line')).toHaveLength(0);
+            expect(r.label()).toBe(`AI ${localTime(DAY_RESET)}`);
+        });
+
+        test('spent this month: the same closed ring, and the reset date', async () => {
+            const r = await mounted(balance(10_000, 10_000_000, 'month'));
+            expect(r.share()).toBeCloseTo(1, 3);
+            expect(r.badge.classList.contains('vtt-ai-out')).toBe(true);
+            expect(r.label()).toBe(`AI ${localDate(MONTH_RESET)}`);
+        });
+
+        test('the ring follows a new balance in place', async () => {
+            const r = await mounted(balance(100_000));
+            await saveBalance(balance(250_000));
+            expect(r.share()).toBeCloseTo(0.5, 2);
+            expect(r.badge.querySelectorAll('svg.vtt-ai-ring')).toHaveLength(1);
+        });
+    });
+
     // Hovering explains the number and that AI runs in demo mode, spent or not.
     test('the hover text says what the number is and that this is demo mode', async () => {
         const top = header();
