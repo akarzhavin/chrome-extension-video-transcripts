@@ -191,9 +191,16 @@ export function onLanguagePrefsChanged(cb: (prefs: LanguagePrefs | null) => void
 // need no second track.
 const GENDER_STRONG = ['ru', 'uk', 'pl', 'cs', 'sk', 'sl', 'sr', 'hr', 'hi', 'he', 'ar', 'th', 'vi'];
 const GENDER_ADJECTIVE = ['es', 'pt', 'it', 'fr', 'ro', 'el', 'bg', 'lv', 'lt'];
-const FAMILY: Record<string, string> = {
-    ru: 'slavic', uk: 'slavic', pl: 'slavic', cs: 'slavic', sk: 'slavic', sl: 'slavic', sr: 'slavic', hr: 'slavic', bg: 'slavic',
-    es: 'romance', pt: 'romance', it: 'romance', fr: 'romance', ro: 'romance',
+// Often leave the gender of "I" unshown (Arabic past tense): last as a hint.
+const GENDER_HIDDEN = ['ar', 'th', 'vi'];
+/** Hint languages the cheap model is measured to read (english repo, spec 023 R21). */
+export const MINI_READS = ['ru'];
+// Breaks ties within a tier: the more widespread first.
+const PREVALENCE = ['ru', 'es', 'pt', 'fr', 'it', 'pl', 'uk', 'ar', 'hi', 'vi', 'he', 'cs', 'ro', 'el', 'th', 'bg', 'sr', 'hr', 'sk', 'lt', 'sl', 'lv'];
+const CLUSTER: Record<string, string> = {
+    ru: 'baltoslavic', uk: 'baltoslavic', pl: 'baltoslavic', cs: 'baltoslavic', sk: 'baltoslavic', sl: 'baltoslavic',
+    sr: 'baltoslavic', hr: 'baltoslavic', bg: 'baltoslavic', lv: 'baltoslavic', lt: 'baltoslavic',
+    es: 'romance', pt: 'romance', it: 'romance', fr: 'romance', ro: 'romance', el: 'romance',
     he: 'semitic', ar: 'semitic',
 };
 
@@ -202,21 +209,33 @@ export function genderMarked(code: string): boolean {
     return GENDER_STRONG.includes(code) || GENDER_ADJECTIVE.includes(code);
 }
 
-// Same family; Baltic counts as close to Slavic.
-function closeLang(target: string, lang: string): boolean {
-    const f = FAMILY[target];
-    return !!f && (FAMILY[lang] === f || (f === 'slavic' && (lang === 'lv' || lang === 'lt')));
+// 1 best: the target itself, one the cheap model reads, strong, adjective-only, gender hidden.
+function hintTier(target: string, lang: string): number {
+    if (lang === target) return 1;
+    if (MINI_READS.includes(lang)) return 2;
+    if (GENDER_HIDDEN.includes(lang)) return 5;
+    return GENDER_STRONG.includes(lang) ? 3 : 4;
 }
 
 /**
- * How good a second track in `lang` is for a translation into `target`, 1 best:
- * the target itself, a close strong language, any strong one, a close
- * adjective one, any adjective one. 0: no use.
+ * Orders a second track's language for a translation into `target`, lower
+ * first (english repo, spec 025): by tier, then the target's cluster, then
+ * prevalence. 0: no use. Mirrors dictionary-service subtrans.SecondRank.
  */
 export function secondRank(target: string, lang: string): number {
     if (!genderMarked(target) || !genderMarked(lang)) return 0;
-    if (lang === target) return 1;
-    const strong = GENDER_STRONG.includes(lang);
-    if (strong) return closeLang(target, lang) ? 2 : 3;
-    return closeLang(target, lang) ? 4 : 5;
+    const cluster = CLUSTER[target];
+    return hintTier(target, lang) * 100 + PREVALENCE.indexOf(lang) + 1 + (cluster && CLUSTER[lang] === cluster ? 0 : 50);
+}
+
+/** A hint in `lang` is one the cheap model cannot read: the server sends it to its hint model. */
+export function needsHintModel(target: string, lang: string): boolean {
+    return lang !== target && !MINI_READS.includes(lang);
+}
+
+/** The whole order as text, one target a line: the parity test's subject. */
+export function secondOrderTable(): string {
+    const langs = [...GENDER_STRONG, ...GENDER_ADJECTIVE].sort();
+    const lines = langs.map((t) => `${t}: ${[...langs].sort((a, b) => secondRank(t, a) - secondRank(t, b)).join(' ')}`);
+    return `mini: ${MINI_READS.join(' ')}\n${lines.join('\n')}\n`;
 }

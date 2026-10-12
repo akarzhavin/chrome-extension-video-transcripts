@@ -1,6 +1,6 @@
 // The second subtitle track the server genders "I" and "you" from (english
-// repo, spec 023 FR-011b): a track in a gendered language a human, or the
-// site's machine translation, already gendered. The server checks the same
+// repo, spec 023 FR-011b, spec 025): a track in a gendered language a human
+// already gendered. The server checks the same
 // rank and coverage again; this side only decides which one to fetch and send.
 
 import { genderMarked, secondRank } from '../languages';
@@ -9,6 +9,8 @@ import { prepareTrack, type PreparedTrack, type WireCue } from './track';
 
 /** Share of the spoken source cues the alignment must cover (server `SecondCoverage`). */
 export const SECOND_COVERAGE = 0.8;
+/** Tracks loaded at most per pick: a popular video lists dozens. */
+export const SECOND_TRIES = 3;
 // Server's MaxSilentTag and sound-tag shape: such cues are not dialogue.
 const MAX_SILENT_TAG = 40;
 const SOUND_TAG = /^(\[[^\]]*\]|\([^)]*\)|[♪♫\s]+)$/u;
@@ -84,38 +86,25 @@ export function coverage(src: readonly WireCue[], al: number[][]): number {
 }
 
 /**
- * The second track for a translation of `src` into `target`, or null: manual
- * tracks before machine ones, then by language rank; within a rank only
- * tracks covering SECOND_COVERAGE count, the fuller first, then the site's
- * order. Only the best rank with a usable track is fetched.
+ * The second track for a translation of `src` into `target`, or null (english
+ * repo, spec 025): human tracks only — a machine one guesses gender from the
+ * same English line — by language rank, then the site's order; the first of
+ * at most SECOND_TRIES covering SECOND_COVERAGE is taken.
  */
 export async function pickSecond(target: string, src: PreparedTrack, candidates: readonly SecondCandidate[]): Promise<PreparedTrack | null> {
     if (!genderMarked(target)) return null;
-    const groups = new Map<number, { c: SecondCandidate; order: number }[]>();
-    candidates.forEach((c, order) => {
-        const rank = secondRank(target, c.lang);
-        if (rank === 0) return;
-        const key = (c.kind === 'manual' ? 0 : 10) + rank;
-        groups.set(key, [...(groups.get(key) ?? []), { c, order }]);
-    });
-    for (const key of [...groups.keys()].sort((a, b) => a - b)) {
-        const tried = await Promise.all(
-            groups.get(key)!.map(async ({ c, order }) => {
-                let subs: Subtitle[];
-                try {
-                    subs = await c.load();
-                } catch {
-                    return null;
-                }
-                const p = prepareTrack(subs, c.lang, src.site);
-                if ('error' in p) return null;
-                return { p, order, cover: coverage(src.cues, align(src.cues, p.cues)) };
-            }),
-        );
-        const usable = tried
-            .filter((t): t is NonNullable<typeof t> => !!t && t.cover >= SECOND_COVERAGE)
-            .sort((a, b) => b.cover - a.cover || a.order - b.order);
-        if (usable.length > 0) return usable[0].p;
+    const ranked = candidates
+        .filter((c) => c.kind === 'manual' && secondRank(target, c.lang) > 0)
+        .sort((a, b) => secondRank(target, a.lang) - secondRank(target, b.lang));
+    for (const c of ranked.slice(0, SECOND_TRIES)) {
+        let subs: Subtitle[];
+        try {
+            subs = await c.load();
+        } catch {
+            continue;
+        }
+        const p = prepareTrack(subs, c.lang, src.site);
+        if (!('error' in p) && coverage(src.cues, align(src.cues, p.cues)) >= SECOND_COVERAGE) return p;
     }
     return null;
 }

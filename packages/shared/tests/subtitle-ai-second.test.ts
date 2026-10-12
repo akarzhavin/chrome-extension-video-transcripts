@@ -3,7 +3,9 @@
  * the english repo's specs/023): which one is picked, and how it is aligned.
  */
 
-import { genderMarked, secondRank, SUPPORTED_LANGUAGES } from '../src/languages';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { genderMarked, needsHintModel, secondOrderTable, secondRank, SUPPORTED_LANGUAGES } from '../src/languages';
 import { align, coverage, pickSecond, type SecondCandidate } from '../src/subtitle-ai/second';
 import { prepareTrack, type PreparedTrack } from '../src/subtitle-ai/track';
 import type { Subtitle } from '../src/types';
@@ -28,32 +30,46 @@ const candidate = (lang: string, kind: 'manual' | 'auto', s: Subtitle[], loaded:
 });
 
 describe('picking the second track', () => {
-    test('target ru with es manual and ru auto-translated: es, a human track beats any machine one', async () => {
-        const got = await pickSecond('ru', source(), [candidate('ru', 'auto', subs(50, 'Строка')), candidate('es', 'manual', subs(50, 'Línea'))]);
-        expect(got?.sourceLang).toBe('es');
+    // Spec 025, User Story 1.
+    test.each([
+        ['uk', [['ru', 'auto'], ['es', 'manual'], ['tr', 'manual']], 'es'],
+        ['fr', [['it', 'manual'], ['ru', 'manual']], 'ru'],
+        ['pl', [['ar', 'manual'], ['cs', 'manual']], 'cs'],
+        ['ru', [['uk', 'manual'], ['ru', 'manual']], 'ru'],
+    ] as const)('target %s among %j: %s', async (target, tracks, want) => {
+        const got = await pickSecond(target, source(), tracks.map(([lang, kind]) => candidate(lang, kind, subs(50, lang))));
+        expect(got?.sourceLang).toBe(want);
     });
 
-    test('target ru with ru manual and uk manual: ru, the target language first', async () => {
-        const got = await pickSecond('ru', source(), [candidate('uk', 'manual', subs(50, 'Рядок')), candidate('ru', 'manual', subs(50, 'Строка'))]);
-        expect(got?.sourceLang).toBe('ru');
+    test('a machine track is never a hint and never loaded: it guesses gender from the same English line', async () => {
+        const loaded: string[] = [];
+        expect(await pickSecond('uk', source(), [candidate('ru', 'auto', subs(50), loaded), candidate('pl', 'auto', subs(50), loaded)])).toBeNull();
+        expect(loaded).toEqual([]);
     });
 
     test('a track covering less than 80% of the source cues is skipped for the next', async () => {
         const sparse = subs(50, 'Строка').filter((_, i) => i % 10 < 7);
-        const got = await pickSecond('ru', source(), [candidate('ru', 'manual', sparse), candidate('pl', 'manual', subs(50, 'Linia'))]);
+        const got = await pickSecond('uk', source(), [candidate('ru', 'manual', sparse), candidate('pl', 'manual', subs(50, 'Linia'))]);
         expect(got?.sourceLang).toBe('pl');
     });
 
-    test('within a rank the fuller track, then the site order', async () => {
-        const most = subs(50, 'Строка').filter((_, i) => i % 10 !== 0); // 90%
-        expect((await pickSecond('ru', source(), [candidate('ru', 'manual', most), candidate('ru', 'manual', subs(50, 'Фраза'))]))?.cues[0].text).toBe('Фраза 0.');
-        expect((await pickSecond('ru', source(), [candidate('ru', 'manual', subs(50, 'Первая')), candidate('ru', 'manual', subs(50, 'Вторая'))]))?.cues[0].text).toBe('Первая 0.');
+    test('tracks are tried best first and the first usable one is taken; the same language keeps the site order', async () => {
+        const loaded: string[] = [];
+        const got = await pickSecond('uk', source(), [
+            candidate('fr', 'manual', subs(50), loaded),
+            candidate('ru', 'manual', subs(50, 'Первая'), loaded),
+            candidate('ru', 'manual', subs(50, 'Вторая'), loaded),
+        ]);
+        expect(got?.cues[0].text).toBe('Первая 0.');
+        expect(loaded).toEqual(['ru/manual']);
     });
 
-    test('only the best rank is loaded when it has a usable track', async () => {
+    test('at most three tracks are loaded', async () => {
         const loaded: string[] = [];
-        await pickSecond('ru', source(), [candidate('es', 'auto', subs(50), loaded), candidate('uk', 'manual', subs(50), loaded), candidate('fr', 'manual', subs(50), loaded)]);
-        expect(loaded).toEqual(['uk/manual']);
+        const sparse = subs(50).filter((_, i) => i % 2 === 0);
+        const got = await pickSecond('uk', source(), ['ru', 'pl', 'cs', 'es'].map((l) => candidate(l, 'manual', sparse, loaded)));
+        expect(got).toBeNull();
+        expect(loaded).toEqual(['ru/manual', 'pl/manual', 'cs/manual']);
     });
 
     test('a target that shows no gender of "I" and "you" loads nothing', async () => {
@@ -89,10 +105,17 @@ describe('languages', () => {
         );
     });
 
-    test('the ranks match the server: the target, close strong, any strong, close adjective, any adjective', () => {
-        expect(['ru', 'uk', 'he', 'bg', 'es'].map((l) => secondRank('ru', l))).toEqual([1, 2, 3, 4, 5]);
-        expect(['he', 'ar', 'ru', 'es'].map((l) => secondRank('he', l))).toEqual([1, 2, 3, 5]);
-        expect(['es', 'ru', 'pt', 'lv'].map((l) => secondRank('es', l))).toEqual([1, 3, 4, 5]);
-        expect([secondRank('ru', 'en'), secondRank('ru', 'de'), secondRank('en', 'ru')]).toEqual([0, 0, 0]);
+    test('genderless targets and hints rank nothing', () => {
+        expect([secondRank('ru', 'en'), secondRank('ru', 'de'), secondRank('ru', 'tr'), secondRank('en', 'ru')]).toEqual([0, 0, 0, 0]);
+    });
+
+    // fixtures/second-order.txt is a copy of dictionary-service's
+    // internal/subtrans/testdata/second-order.txt (spec 025 FR-008).
+    test('the order is the server\'s, target by target', () => {
+        expect(secondOrderTable()).toBe(readFileSync(resolve(__dirname, 'fixtures/second-order.txt'), 'utf8'));
+    });
+
+    test('only a hint the cheap model is not measured to read needs the hint model', () => {
+        expect([needsHintModel('uk', 'ru'), needsHintModel('ru', 'ru'), needsHintModel('uk', 'es'), needsHintModel('ru', 'hi')]).toEqual([false, false, true, true]);
     });
 });
