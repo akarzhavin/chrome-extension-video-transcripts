@@ -39,7 +39,7 @@ import { assertTermFits } from './term-limit';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import { loadLanguagePrefs } from '../languages';
-import { keepBalance, refreshBalance, refreshLimits } from '../ai-balance/fetch';
+import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -853,8 +853,8 @@ export async function handleAuthMessage(
             // read the server's default limits instead: the badge shows what
             // signing in unlocks, from the server rather than a hard-coded number.
             if (!(await getAuthState())) {
-                const limits = await refreshLimits(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i) });
-                return limits ? { ok: true, limits } : { ok: false };
+                const defaultAILimits = await refreshDefaultAILimits(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i) });
+                return defaultAILimits ? { ok: true, defaultAILimits } : { ok: false };
             }
             const balance = await refreshBalance(config.apiBaseUrl, {
                 fetch: (u, i) => fetch(u, i),

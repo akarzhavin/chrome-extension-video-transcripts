@@ -36,7 +36,7 @@ const sendMessage = jest.fn();
 
 import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
 import { formatTokens, limitText, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
-import { clearAccountAI, loadBalance, onBalance, saveBalance, saveLimits } from '../src/ai-balance/store';
+import { clearAccountAI, loadBalance, onBalance, saveBalance, saveDefaultAILimits } from '../src/ai-balance/store';
 import { takeWarning } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
 import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
@@ -240,7 +240,7 @@ describe('sidebar badge', () => {
     const button = (top: HTMLElement) => top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
 
     test('signed out it is the badge switched off: the server default allowance, and a panel with a quiet sign-in link', async () => {
-        await saveLimits({ day: 300_000, month: 6_000_000, at: 1 });
+        await saveDefaultAILimits({ day: 300_000, month: 6_000_000, at: 1 });
         const top = header();
         mountAIBadge(top);
         await flush();
@@ -280,7 +280,7 @@ describe('sidebar badge', () => {
         expect(top.querySelector('#vtt-ai-panel .lg-ai-off-text')).not.toBeNull();
         expect(top.querySelector('#vtt-ai-panel .lg-ai-off-free')).toBeNull();
         // The worker's answer lands in storage: the badge and the open panel pick it up.
-        await saveLimits({ day: 250_000, month: 5_000_000, at: 2 });
+        await saveDefaultAILimits({ day: 250_000, month: 5_000_000, at: 2 });
         expect(button(top).textContent).toBe('AI 250k');
         expect(top.querySelector('#vtt-ai-panel .lg-ai-off-free')!.textContent).toBe('250k free tokens a day');
     });

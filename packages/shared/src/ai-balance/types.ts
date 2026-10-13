@@ -20,7 +20,7 @@ export interface AIBalance {
 }
 
 /** The windows a new account gets (GET /dictionary/ai/limits), for a signed-out view. */
-export interface AILimits {
+export interface DefaultAILimits {
     day: number;
     month: number;
     /** When the worker received it. */
@@ -28,7 +28,7 @@ export interface AILimits {
 }
 
 /** The wire limits object (or a stored one), or null when it is not one. */
-export function parseLimits(raw: unknown, now: number = Date.now()): AILimits | null {
+export function parseDefaultAILimits(raw: unknown, now: number = Date.now()): DefaultAILimits | null {
     if (!raw || typeof raw !== 'object') return null;
     const r = raw as Record<string, unknown>;
     const limitOf = (w: unknown): number | null => {

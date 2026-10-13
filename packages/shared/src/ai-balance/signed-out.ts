@@ -7,8 +7,8 @@
 import { AUTH_STATE_KEYS, getAuthState } from '../auth/storage';
 import { msg } from '../i18n';
 import { formatTokens } from './format';
-import { loadLimits, onLimits } from './store';
-import type { AILimits } from './types';
+import { loadDefaultAILimits, onDefaultAILimits } from './store';
+import type { DefaultAILimits } from './types';
 
 /** On the header: the badge switched off. */
 const OFF = 'vtt-ai-off';
@@ -65,7 +65,7 @@ function startSignIn(): void {
 export function offMode(host: OffHost): OffMode {
     const { headerTop, badge, button, label, arc } = host;
     let signedIn: boolean | null = null; // null until read: no off badge flashes before we know
-    let limits: AILimits | null = null;
+    let defaultLimits: DefaultAILimits | null = null;
     let pinned = false;
     let hoverClose: ReturnType<typeof setTimeout> | undefined;
     let disposed = false;
@@ -85,7 +85,7 @@ export function offMode(host: OffHost): OffMode {
         }
         badge.classList.remove('vtt-ai-out', 'vtt-ai-high');
         arc.setAttribute('stroke-dasharray', `${host.circumference.toFixed(2)} ${host.circumference.toFixed(2)}`);
-        label.textContent = limits ? `AI ${formatTokens(limits.day)}` : 'AI';
+        label.textContent = defaultLimits ? `AI ${formatTokens(defaultLimits.day)}` : 'AI';
         if (host.isOpen()) {
             host.close();
             host.open();
@@ -102,10 +102,10 @@ export function offMode(host: OffHost): OffMode {
         why.textContent = text();
         box.appendChild(why);
         // Only a number the server gave: no line rather than a made-up one.
-        if (limits) {
+        if (defaultLimits) {
             const free = doc.createElement('p');
             free.className = 'lg-ai-off-free';
-            free.textContent = msg('aiFreeDaily', '{count} free tokens a day').replace('{count}', formatTokens(limits.day));
+            free.textContent = msg('aiFreeDaily', '{count} free tokens a day').replace('{count}', formatTokens(defaultLimits.day));
             box.appendChild(free);
         }
         const link = doc.createElement('button');
@@ -148,13 +148,13 @@ export function offMode(host: OffHost): OffMode {
     badge.addEventListener('mouseenter', enter);
     badge.addEventListener('mouseleave', leave);
 
-    const applyLimits = (d: AILimits | null) => {
+    const applyDefaultLimits = (d: DefaultAILimits | null) => {
         if (disposed) return;
-        limits = d;
+        defaultLimits = d;
         paint();
     };
-    void loadLimits().then(applyLimits);
-    const unsubscribeLimits = onLimits(applyLimits);
+    void loadDefaultAILimits().then(applyDefaultLimits);
+    const unsubscribeDefaultLimits = onDefaultAILimits(applyDefaultLimits);
 
     // Every check re-reads storage and only the latest one lands, so a slow
     // first read cannot overwrite a sign-in that happened while it was in flight.
@@ -192,7 +192,7 @@ export function offMode(host: OffHost): OffMode {
         dispose: () => {
             disposed = true;
             clearTimeout(hoverClose);
-            unsubscribeLimits();
+            unsubscribeDefaultLimits();
             try {
                 chrome.storage.onChanged.removeListener(onAuth);
             } catch {
