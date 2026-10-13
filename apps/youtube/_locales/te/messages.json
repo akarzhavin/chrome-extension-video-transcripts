@@ -943,6 +943,18 @@
     "message": "సైన్ ఇన్ చేయండి — AI అనువదిస్తుంది",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "సైన్ ఇన్ చేయండి",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "సైన్ ఇన్ చేయండి, AI సబ్‌టైటిల్స్‌లోని పదబంధాలను అనువదించి పద కార్డ్‌లను పూర్తి చేస్తుంది",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "రోజుకు {count} ఉచిత టోకెన్లు",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google సమాధానం ఇవ్వలేదు, మళ్లీ ప్రయత్నించండి",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

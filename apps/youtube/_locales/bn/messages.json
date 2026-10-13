@@ -943,6 +943,18 @@
     "message": "সাইন ইন করুন — AI অনুবাদ করবে",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "সাইন ইন করুন",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "সাইন ইন করুন, আর AI সাবটাইটেল থেকে বাক্যাংশ অনুবাদ করবে এবং শব্দের কার্ড সম্পূর্ণ করবে",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "প্রতিদিন {count} বিনামূল্যের টোকেন",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google উত্তর দেয়নি, আবার চেষ্টা করুন",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

@@ -88,7 +88,7 @@ async function dirtyEveryWay(page: import('@playwright/test').Page): Promise<voi
         document.getElementById('movie_player')?.classList.add('ad-showing');
         // Swap the reading order. Collapsing is NOT done here — see the note at
         // the top: it would close the two screens opened above.
-        (document.getElementById('vtt-langpair') as HTMLElement | null)?.click();
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS', key: 'S', shiftKey: true, bubbles: true }));
     });
 
     // Theatre view is YouTube's own persisted preference — the one piece of
@@ -98,7 +98,7 @@ async function dirtyEveryWay(page: import('@playwright/test').Page): Promise<voi
 
     // Scrolling comes LAST, and the order is load-bearing for the same reason
     // collapsing comes first: entering theatre view scrolls the page back to
-    // the top by itself. Measured — `scrolled 600`, `after-langpair 600`,
+    // the top by itself. Measured — `scrolled 600`, `after-swap 600`,
     // `after-theatre 0`. Scrolled earlier, this piece of dirt was gone before
     // the cleanup ran, and deleting the cleanup's own scrollTo left this check
     // green.

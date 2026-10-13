@@ -943,6 +943,18 @@
     "message": "وارد شوید — AI ترجمه می‌کند",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "وارد شوید",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "وارد شوید تا AI عبارت‌های زیرنویس را ترجمه کند و کارت‌های واژه را کامل کند",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "{count} توکن رایگان در روز",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google پاسخ نداد, دوباره تلاش کنید",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

@@ -36,7 +36,7 @@ const sendMessage = jest.fn();
 
 import { parseBalance, parseAIStatus, type AIBalance } from '../src/ai-balance/types';
 import { formatTokens, limitText, percentUsed, statusText, tokensLeft } from '../src/ai-balance/format';
-import { clearAccountAI, loadBalance, onBalance, saveBalance } from '../src/ai-balance/store';
+import { clearAccountAI, loadBalance, onBalance, saveBalance, saveDefaultAILimits } from '../src/ai-balance/store';
 import { takeWarning } from '../src/ai-balance/warn';
 import { renderBars } from '../src/ai-balance/bars';
 import { aiNoticeHtml, wireAINotice } from '../src/ai-balance/notice';
@@ -233,23 +233,167 @@ describe('card notice edges', () => {
 
 describe('sidebar badge', () => {
     function header(): HTMLElement {
-        document.body.innerHTML = '<div id="vtt-header-top"><div id="vtt-langpair">EN ⇄ RU</div></div>';
+        document.body.innerHTML = '<div id="vtt-header-top"></div>';
         return document.getElementById('vtt-header-top')!;
     }
 
-    test('signed out the language chip stays; signed in the badge takes its slot', async () => {
+    const button = (top: HTMLElement) => top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
+
+    test('signed out it is the badge switched off: the server default allowance, and a panel with a quiet sign-in link', async () => {
+        await saveDefaultAILimits({ day: 300_000, month: 6_000_000, at: 1 });
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(true);
+        expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        expect(button(top).textContent).toBe('AI 300k');
+        expect(button(top).hasAttribute('data-tip')).toBe(false); // hover opens the panel, not a bubble
+        expect(button(top).getAttribute('aria-label')).toBe('Sign in, and AI will translate phrases from the subtitles and complete word cards');
+        expect(button(top).getAttribute('aria-haspopup')).toBe('true');
+        // The ring is full: the whole allowance is on offer.
+        expect(top.querySelector('.vtt-ai-arc')!.getAttribute('stroke-dasharray')!.split(' ')[0]).toBe(
+            top.querySelector('.vtt-ai-arc')!.getAttribute('stroke-dasharray')!.split(' ')[1],
+        );
+
+        sendMessage.mockClear();
+        button(top).click();
+        // A click opens the panel, it does not start the sign-in by itself.
+        expect(sendMessage).not.toHaveBeenCalledWith(expect.objectContaining({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM' }), expect.any(Function));
+        const panel = top.querySelector('#vtt-ai-panel')!;
+        expect(panel.querySelector('.lg-ai-off-text')!.textContent).toBe('Sign in, and AI will translate phrases from the subtitles and complete word cards');
+        expect(panel.querySelector('.lg-ai-off-free')!.textContent).toBe('300k free tokens a day');
+        expect(panel.querySelectorAll('[role=progressbar]')).toHaveLength(0);
+        const link = panel.querySelector<HTMLButtonElement>('.lg-ai-signin')!;
+        expect(link.textContent).toBe('Sign in');
+        link.click();
+        expect(sendMessage).toHaveBeenCalledWith({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'ai_badge' }, expect.any(Function));
+        document.body.click();
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+    });
+
+    test('signed out with no default limits read yet: "AI" with no number, and no tokens line', async () => {
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        expect(button(top).textContent).toBe('AI');
+        button(top).click();
+        expect(top.querySelector('#vtt-ai-panel .lg-ai-off-text')).not.toBeNull();
+        expect(top.querySelector('#vtt-ai-panel .lg-ai-off-free')).toBeNull();
+        // The worker's answer lands in storage: the badge and the open panel pick it up.
+        await saveDefaultAILimits({ day: 250_000, month: 5_000_000, at: 2 });
+        expect(button(top).textContent).toBe('AI 250k');
+        expect(top.querySelector('#vtt-ai-panel .lg-ai-off-free')!.textContent).toBe('250k free tokens a day');
+    });
+
+    test('signed out, hover opens the same panel and leaving closes it; a click pins it', async () => {
+        jest.useFakeTimers();
+        try {
+            const top = header();
+            mountAIBadge(top);
+            // flush() is a timer and the timers are fake: three microtask
+            // turns let the storage reads (balance, limits, sign-in) land.
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+            const badge = top.querySelector<HTMLElement>('#vtt-ai-badge')!;
+            badge.dispatchEvent(new MouseEvent('mouseenter'));
+            expect(top.querySelector('#vtt-ai-panel .lg-ai-signin')).not.toBeNull();
+            badge.dispatchEvent(new MouseEvent('mouseleave'));
+            expect(top.querySelector('#vtt-ai-panel')).not.toBeNull(); // grace for crossing the gap
+            jest.advanceTimersByTime(200);
+            expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+
+            badge.dispatchEvent(new MouseEvent('mouseenter'));
+            button(top).click(); // pins
+            badge.dispatchEvent(new MouseEvent('mouseleave'));
+            jest.advanceTimersByTime(200);
+            expect(top.querySelector('#vtt-ai-panel')).not.toBeNull();
+            button(top).click(); // unpins and closes
+            expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    test('signed in, hover does not open the bars', async () => {
+        const top = header();
+        await saveBalance(balance(100_000));
+        mountAIBadge(top);
+        await flush();
+        top.querySelector<HTMLElement>('#vtt-ai-badge')!.dispatchEvent(new MouseEvent('mouseenter'));
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+        expect(button(top).getAttribute('data-tip')).toContain('AI tokens left today');
+    });
+
+    test('signing in swaps the off badge for the balance; signing out switches it off again', async () => {
         const top = header();
         const unmount = mountAIBadge(top);
         await flush();
         expect(sendMessage).toHaveBeenCalledWith({ action: 'AI_BALANCE_REFRESH' }, expect.any(Function));
-        expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        expect(top.classList.contains('vtt-ai-off')).toBe(true);
+        button(top).click();
+        expect(top.querySelector('#vtt-ai-panel .lg-ai-off-text')).not.toBeNull();
+
+        sendMessage.mockClear();
+        await local.set({ 'auth.uid': 'u1', 'auth.idToken': 'tok' });
+        await flush();
+        // Signed in, no balance yet: not off, the signed-out panel is gone, and the balance is asked for now.
+        expect(top.classList.contains('vtt-ai-off')).toBe(false);
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+        expect(sendMessage).toHaveBeenCalledWith({ action: 'AI_BALANCE_REFRESH' }, expect.any(Function));
+
         await saveBalance(balance(310_000));
         expect(top.classList.contains('vtt-ai-on')).toBe(true);
-        expect(top.querySelector('#vtt-ai-badge button')!.textContent).toBe('AI 190k');
+        expect(button(top).textContent).toBe('AI 190k');
+
         await clearAccountAI();
+        await local.remove(['auth.uid', 'auth.idToken']);
+        await flush();
         expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        expect(top.classList.contains('vtt-ai-off')).toBe(true);
+        expect(button(top).textContent).toBe('AI'); // no defaults read: no number
+
         unmount();
         expect(top.querySelector('#vtt-ai-badge')).toBeNull();
+        expect(top.classList.contains('vtt-ai-off')).toBe(false);
+    });
+
+    test('a sign-in during the first read is not overwritten by that read', async () => {
+        // The first read is held until the sign-in has landed.
+        let release!: () => void;
+        const gate = new Promise<void>((r) => (release = r));
+        const get = local.get.getMockImplementation()!;
+        local.get.mockImplementationOnce(async (key: string | string[]) => {
+            const out = await get(key); // signed out at this moment
+            await gate;
+            return out;
+        });
+        const top = header();
+        mountAIBadge(top);
+        await local.set({ 'auth.uid': 'u1', 'auth.idToken': 'tok' });
+        await flush();
+        release();
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(false);
+    });
+
+    test('a uid without a token is signed out, as the worker sees it', async () => {
+        store['auth.uid'] = 'u1';
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(true);
+    });
+
+    test('signed in without a balance yet it shows nothing, never the off badge', async () => {
+        signIn();
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(false);
+        expect(top.classList.contains('vtt-ai-on')).toBe(false);
+        button(top).click();
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
     });
 
     test('the badge ships its CSS in styles.css, not as an injected style', () => {
@@ -296,7 +440,7 @@ describe('sidebar badge', () => {
         }
     });
 
-    test('a click opens the two bars and nothing else, the language chip present or not', async () => {
+    test('a click opens the two bars and nothing else', async () => {
         const top = header();
         await saveBalance(balance(100_000));
         mountAIBadge(top);
@@ -350,8 +494,8 @@ describe('refreshBalance', () => {
 });
 
 describe('badge edges', () => {
-    function header(withChip = true): HTMLElement {
-        document.body.innerHTML = `<div id="vtt-header-top">${withChip ? '<div id="vtt-langpair">EN ⇄ RU</div>' : ''}</div>`;
+    function header(): HTMLElement {
+        document.body.innerHTML = '<div id="vtt-header-top"></div>';
         return document.getElementById('vtt-header-top')!;
     }
 
@@ -451,12 +595,13 @@ describe('badge edges', () => {
     });
 
     test('the month warning, Escape closes, a second click closes', async () => {
-        const top = header(false);
+        signIn(); // signed in, balance not read yet: nothing to open
+        const top = header();
         mountAIBadge(top);
         await flush();
         const button = top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
         button.click();
-        expect(top.querySelector('#vtt-ai-panel')).toBeNull(); // nothing to open yet
+        expect(top.querySelector('#vtt-ai-panel')).toBeNull();
         await saveBalance(balance(100_000, 8_500_000));
         await flush();
         expect(document.getElementById('vtt-ai-warn')?.textContent).toBe('AI is almost used up for this month');

@@ -39,6 +39,8 @@
     --vtt-success-border: rgba(52, 211, 153, 0.4);
 
     --vtt-danger: #f87171;
+    --vtt-danger-quiet: rgba(248, 113, 113, 0.14);
+    --vtt-danger-border: rgba(248, 113, 113, 0.4);
 
     /* Warning: something is degraded but working, and it will clear by itself
        (rate limiting is the case this exists for). Sits between --vtt-text-dim
@@ -49,6 +51,7 @@
        so it clears the 4.5:1 floor at 11px with margin. */
     --vtt-warning: #ffa257;
     --vtt-warning-quiet: rgba(255, 162, 87, 0.14);
+    --vtt-warning-border: rgba(255, 162, 87, 0.4);
 
     /* Text ramp. --vtt-text-dim is the floor for anything readable: at the
        10-12px the group headers use, lighter than this drops under 4.5:1 on
@@ -528,7 +531,7 @@
 }
 
 /* Baseline keyboard-focus ring for every control in the sidebar. Individual
-   controls (quick-mode segments, the language chip) override it with an inset
+   controls (quick-mode segments) override it with an inset
    or offset ring where a plain outline would be clipped by their own overflow,
    but nothing is left with the browser default the dark glass swallows.
    The settings panel is excluded — see the reset below it. */
@@ -769,8 +772,7 @@
 }
 
 /* -- Sub-header row: the icon-only quick-mode bar, one line under the title,
-   so modes are switchable without opening settings. (The language-pair chip
-   used to share this row; it lives in the header-top now.) Children carry
+   so modes are switchable without opening settings. Children carry
    their own vertical margins so the row collapses when the bar is absent. -- */
 #vtt-subheader {
     display: flex;
@@ -2629,36 +2631,28 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     }
 }
 
-/* ── Language-pair chip ─────────────────────────────────────────────────── */
-/* Header-left slot, the mirror of the settings gear on the right; the
-   centered title sits between them. #vtt-header-top's align-items centers the
-   chip vertically (absolute children take their static position, like the
-   gear). It's a button (swaps the pair), so block the text selection the
-   sidebar otherwise forces on for transcript quick-add. */
-#vtt-langpair {
-    display: flex;
-    position: absolute;
-    left: 16px;
-    min-width: 0;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-/* Every takeover puts its "‹ back" chip in this corner — the pair chip steps
-   aside rather than doubling up (language changes live inside settings
-   anyway). The word screen shipped without this line and rendered
-   "‹ Subtitles" straight over "EN ⇄ RU"; a fourth takeover must join this
-   list too, and lookup-theme.test.ts now fails if it forgets. */
-#vtt-sidebar.vtt-settings-open #vtt-langpair,
-#vtt-sidebar.vtt-feedback-open #vtt-langpair,
-#vtt-sidebar.vtt-lookup-open #vtt-langpair {
-    display: none;
-}
-
-/* The AI badge (spec 024) sits in the chip's spot. */
-#vtt-header-top.vtt-ai-on #vtt-langpair { display: none; }
+/* ── The AI badge (spec 024) ─────────────────────────────────────────────── */
+/* Header-left slot, the mirror of the settings gear on the right. */
 #vtt-ai-badge { position: absolute; left: 16px; display: none; -webkit-user-select: none; user-select: none; }
 #vtt-header-top.vtt-ai-on #vtt-ai-badge { display: flex; }
+/* Signed out: the same badge switched off. Grey where the accent would be, a
+   full grey ring for the default allowance; hover lights it up a little, since
+   a click opens the panel below. Kept above the takeover rule, which must
+   still win (same specificity, later in the sheet). */
+#vtt-header-top.vtt-ai-off #vtt-ai-badge { display: flex; }
+#vtt-header-top.vtt-ai-off #vtt-ai-badge button {
+    background: var(--vtt-wash-faint); border-color: var(--vtt-hairline-strong); color: var(--vtt-text-dim);
+}
+#vtt-header-top.vtt-ai-off #vtt-ai-badge button:hover { background: var(--vtt-chip-quiet); color: var(--vtt-text-soft); }
+#vtt-header-top.vtt-ai-off #vtt-ai-badge .vtt-ai-arc { stroke: currentColor; stroke-opacity: 0.45; stroke-linecap: butt; }
+/* The signed-out panel: one line of why, and a quiet link that starts the sign-in. */
+#vtt-ai-panel .lg-ai-off-text { margin: 0 0 4px; color: #e8e9f3; }
+#vtt-ai-panel .lg-ai-off-free { margin: 0 0 8px; color: #9a9db3; font-size: 11px; }
+#vtt-ai-panel .lg-ai-signin {
+    padding: 0; border: 0; background: none; color: #9a9db3; font: inherit; font-size: 11px; cursor: pointer;
+    text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.3); text-underline-offset: 2px;
+}
+#vtt-ai-panel .lg-ai-signin:hover { color: #e3e5ff; text-decoration-color: currentColor; }
 #vtt-ai-badge button {
     display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px 4px 7px; border-radius: 999px;
     background: rgba(124, 90, 255, 0.16); border: 1px solid rgba(124, 90, 255, 0.32);
@@ -2723,7 +2717,7 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     background: rgba(242, 180, 136, 0.16); border: 1px solid rgba(242, 180, 136, 0.4); color: #f7d9c2;
 }
 
-/* Takeovers hide it like the chip; after the show rule above, so same specificity wins. */
+/* Takeovers hide the badge; after the show rules above, so same specificity wins. */
 #vtt-sidebar.vtt-settings-open #vtt-ai-badge,
 #vtt-sidebar.vtt-feedback-open #vtt-ai-badge,
 #vtt-sidebar.vtt-lookup-open #vtt-ai-badge {
@@ -2894,7 +2888,7 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 /* Its own row under the sub-header: one track is missing while others play.
    Muted on purpose — it explains a gap, it doesn't announce a fault, and it
    must not compete with the subtitles it is apologising for. Matches the
-   sub-header's 16px gutter so it lines up with the language chip above. */
+   sub-header's 16px gutter so it lines up with the quick-mode bar above. */
 #vtt-partial-notice {
     position: relative; /* anchor for the [data-tip] bubble below */
     display: flex;
@@ -3002,62 +2996,6 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     opacity: 1;
     background: var(--vtt-hairline-strong);
 }
-
-#vtt-langpair .vtt-langpair-inner {
-    display: inline-flex;
-    align-items: center;
-    /* Always read learning → native left-to-right, even in an RTL sidebar. */
-    direction: ltr;
-    gap: 8px;
-    padding: 5px 13px;
-    border-radius: 999px;
-    background: var(--vtt-accent-quiet);
-    border: 1px solid var(--vtt-accent-border);
-    font-size: 12px;
-    font-weight: 600;
-    color: #dbeafe;
-    cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease;
-    max-width: 100%;
-    min-width: 0;
-}
-
-/* One span per language abbreviation so the swapped flip below reorders
-   whole languages. */
-#vtt-langpair .vtt-langpair-lang {
-    display: inline-flex;
-    align-items: center;
-}
-
-/* The chip is the swap control: when tracks are swapped, mirror the pair.
-   The arrow spins on click (same half-turn as the settings Swap chip). */
-#vtt-sidebar.vtt-swapped #vtt-langpair .vtt-langpair-inner {
-    flex-direction: row-reverse;
-}
-
-#vtt-langpair.vtt-pulse .vtt-langpair-arrow {
-    animation: vtt-spin 0.45s ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #vtt-langpair.vtt-pulse .vtt-langpair-arrow {
-        animation: none;
-    }
-}
-
-#vtt-langpair .vtt-langpair-inner:hover {
-    background: var(--vtt-accent-border);
-    border-color: var(--vtt-accent-border-strong);
-}
-
-#vtt-langpair:focus-visible { outline: none; }
-
-#vtt-langpair:focus-visible .vtt-langpair-inner {
-    border-color: var(--vtt-accent-ring);
-    box-shadow: 0 0 0 2px var(--vtt-accent-quiet);
-}
-
-#vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
 
 /* ── Onboarding picker & status banner ──────────────────────────────────── */
 #vtt-lang-onboarding,
@@ -3795,9 +3733,12 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     --vtt-success-border: rgba(21, 128, 61, 0.35);
 
     --vtt-danger: #c22828;
+    --vtt-danger-quiet: rgba(194, 40, 40, 0.10);
+    --vtt-danger-border: rgba(194, 40, 40, 0.35);
 
     --vtt-warning: #a1560a;
     --vtt-warning-quiet: rgba(161, 86, 10, 0.12);
+    --vtt-warning-border: rgba(161, 86, 10, 0.35);
 
     --vtt-text: #111111;
     --vtt-text-soft: #4a4a4a;
@@ -4043,24 +3984,19 @@ span.vtt-saved-run.vtt-saved-run-end::after {
    over a light pane — drop it rather than leave a no-op paint. */
 .vtt-light #vtt-list .vtt-masked-word::before { background: none; }
 
-/* ── Language pair chip ─────────────────────────────────────────────────── */
-/* This chip hardcodes a pale blue text colour in the base sheet, which is
-   invisible on light — and it is the language control, so it takes purple. */
-.vtt-light #vtt-langpair .vtt-langpair-inner {
-    background: rgba(123, 44, 255, 0.10);
-    border: 1px solid rgba(123, 44, 255, 0.35);
-    color: #111111;
-}
-
-.vtt-light #vtt-langpair .vtt-langpair-inner:hover {
-    background: rgba(123, 44, 255, 0.18);
-    border-color: rgba(123, 44, 255, 0.55);
-}
-
-.vtt-light #vtt-langpair:focus-visible .vtt-langpair-inner {
-    border-color: #7b2cff;
-    box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
-}
+/* ── AI badge ───────────────────────────────────────────────────────────── */
+/* The dark sheet draws it in light-on-dark alphas that vanish on white; the
+   panel and the bubble stay dark popovers. Signed out it is on tokens already.
+   The purple is the light theme's accent ring, which has no fill token. */
+.vtt-light #vtt-ai-badge button { background: rgba(123, 44, 255, 0.10); border-color: rgba(123, 44, 255, 0.35); color: var(--vtt-text); }
+.vtt-light #vtt-ai-badge button:hover { background: rgba(123, 44, 255, 0.18); }
+.vtt-light #vtt-ai-badge .vtt-ai-track { stroke: rgba(17, 17, 17, 0.12); }
+.vtt-light #vtt-ai-badge .vtt-ai-arc { stroke: #7b2cff; }
+.vtt-light #vtt-ai-badge.vtt-ai-high button { background: var(--vtt-warning-quiet); border-color: var(--vtt-warning-border); color: var(--vtt-warning); }
+.vtt-light #vtt-ai-badge.vtt-ai-high .vtt-ai-arc { stroke: var(--vtt-warning); }
+.vtt-light #vtt-ai-badge.vtt-ai-out button { background: var(--vtt-danger-quiet); border-color: var(--vtt-danger-border); color: var(--vtt-danger); }
+.vtt-light #vtt-ai-badge.vtt-ai-out .vtt-ai-arc { stroke: var(--vtt-danger); }
+.vtt-light #vtt-ai-warn { background: var(--vtt-warning-quiet); border-color: var(--vtt-warning-border); color: var(--vtt-warning); }
 
 /* ── Notification ───────────────────────────────────────────────────────── */
 .vtt-light #vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }

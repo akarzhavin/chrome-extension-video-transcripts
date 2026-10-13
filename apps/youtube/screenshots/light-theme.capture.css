@@ -269,24 +269,6 @@
 
 /* ── Fixes found in the first light capture ─────────────────────────────── */
 
-/* Language pair chip hardcodes color:#dbeafe (styles.css:2046) — pale blue on
-   the lime-tinted fill made the whole ES⇄EN chip disappear. Purple is the
-   palette's language accent, so the chip becomes the one purple element in the
-   header: a light purple fill under near-black text. */
-#vtt-langpair .vtt-langpair-inner {
-  background: rgba(123, 44, 255, 0.10);
-  border: 1px solid rgba(123, 44, 255, 0.35);
-  color: #111111;
-}
-#vtt-langpair .vtt-langpair-inner:hover {
-  background: rgba(123, 44, 255, 0.18);
-  border-color: rgba(123, 44, 255, 0.55);
-}
-#vtt-langpair:focus-visible .vtt-langpair-inner {
-  border-color: #7b2cff;
-  box-shadow: 0 0 0 2px rgba(123, 44, 255, 0.25);
-}
-
 /* The on-screen toggle is an independent switch; its TRACK carries the state
    (lime = on, via --vtt-accent above), so the button itself stays unfilled —
    filled lime next to the segment read as two active modes. */
