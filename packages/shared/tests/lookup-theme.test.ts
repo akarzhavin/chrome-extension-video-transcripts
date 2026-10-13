@@ -92,36 +92,20 @@ describe('lookup styles are theme-token driven', () => {
 
 /**
  * Every sidebar takeover parks its "‹ back" chip at the header's left edge —
- * the exact spot the language-pair chip owns in list mode. A takeover that
- * forgets to hide the chip renders its back chip straight over "EN ⇄ RU";
- * the word screen shipped with precisely that collision. This latch finds
- * every `#vtt-sidebar.vtt-*-open` state in the sheet and demands each one be
- * listed in the rule that hides #vtt-langpair, so a fourth takeover cannot
- * repeat the bug silently.
+ * the exact spot the AI badge owns in list mode. A takeover that forgets to
+ * hide the badge renders its back chip straight over it (the word screen once
+ * shipped with precisely that collision). This latch finds every
+ * `#vtt-sidebar.vtt-*-open` state in the sheet and demands each one be listed
+ * in the rule that hides #vtt-ai-badge, so a fourth takeover cannot repeat it.
  */
-describe('takeovers hide the language-pair chip', () => {
-    it('lists every vtt-*-open state in the #vtt-langpair display:none rule', () => {
+describe('takeovers hide the AI badge', () => {
+    it('lists every vtt-*-open state in the #vtt-ai-badge display:none rule', () => {
         const states = new Set<string>();
         for (const m of CSS.matchAll(/#vtt-sidebar\.(vtt-[a-z]+-open)\b/g)) states.add(m[1]);
-        // vtt-swapped etc. don't match; sanity-check the shape of the sheet.
+        // Sanity-check the shape of the sheet, so an empty set cannot pass.
         expect(states).toContain('vtt-settings-open');
         expect(states).toContain('vtt-lookup-open');
         expect(states.size).toBeGreaterThanOrEqual(3);
-
-        const rules: string[] = [];
-        const re = /([^{}]+)\{([^{}]*)\}/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(CSS))) {
-            if (m[1].includes('#vtt-langpair') && /display\s*:\s*none/.test(m[2])) rules.push(m[1]);
-        }
-        const hiding = rules.join(',');
-        const missing = [...states].filter((cls) => !hiding.includes(`.${cls} #vtt-langpair`));
-        expect(missing).toEqual([]);
-    });
-
-    it('hides the AI badge in the same states', () => {
-        const states = new Set<string>();
-        for (const m of CSS.matchAll(/#vtt-sidebar\.(vtt-[a-z]+-open)\b/g)) states.add(m[1]);
         const rules: string[] = [];
         const re = /([^{}]+)\{([^{}]*)\}/g;
         let m: RegExpExecArray | null;

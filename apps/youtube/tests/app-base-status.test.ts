@@ -279,8 +279,8 @@ describe('rate-limited subtitle failures', () => {
         expect(notice()!.dataset.tip).toContain('will not help');
     });
 
-    // The sub-header is a single flex row (language chip | mode buttons); a
-    // third child there squeezes both into an unreadable mess.
+    // The sub-header is a single flex row of mode buttons; an extra child
+    // there squeezes them into an unreadable mess.
     test('the notice is its own row, not stuffed into the sub-header', () => {
         const app = makeApp();
         app.addParsedTrack('English', [sub('hello')]);
@@ -627,77 +627,39 @@ describe('auto probe after the cooldown expires', () => {
 });
 
 /**
- * The language chip — behaviour map §7.
+ * Swapping the pair — behaviour map §7.
  *
- * The chip IS the swap control, and it is the discoverable one: Shift+S is the
- * shortcut for people who already know. Only the shortcut had a check, so the
- * chip's own handlers, the order it renders its two codes, its confirmation
- * pulse, and the deliberate decision never to remember a swap were all free to
- * break with every check still green.
+ * Shift+S is the only swap control since the header's language chip was
+ * removed, so its guarantees live here: it flips which track leads, a swap is
+ * never remembered, and with one language loaded it does nothing.
  */
-describe('the language pair chip', () => {
-    const chip = () => document.getElementById('vtt-langpair') as HTMLElement | null;
-    const codes = () =>
-        [...(chip()?.querySelectorAll('.vtt-langpair-lang') ?? [])].map((s) => s.textContent?.trim());
+describe('Shift+S swaps the pair', () => {
+    // The real listener, captured instead of attached: a document listener per
+    // test would pile up across the file and swap twice per key press.
+    function pressShiftS(app: TestApp): () => void {
+        let handler: ((e: KeyboardEvent) => void) | undefined;
+        const spy = jest.spyOn(document, 'addEventListener').mockImplementation(((type: string, fn: EventListener) => {
+            if (type === 'keydown') handler = fn as (e: KeyboardEvent) => void;
+        }) as typeof document.addEventListener);
+        app.setupKeyboardShortcuts();
+        spy.mockRestore();
+        expect(handler).toBeDefined();
+        return () => handler!(new KeyboardEvent('keydown', { code: 'KeyS', key: 'S', shiftKey: true }));
+    }
 
-    function withHeader(): TestApp {
+    function twoTracks(): TestApp {
         const app = makeApp();
-        // The chip mounts only into our own header slot — deliberately no
-        // fallback, so another installed copy's sidebar cannot receive it.
-        const header = document.createElement('div');
-        header.id = 'vtt-header-top';
-        document.body.appendChild(header);
         app.addParsedTrack('English', [sub('hello')]);
         app.addParsedTrack('Russian', [sub('privet')]);
-        app.updateLanguagePairChip();
         return app;
     }
 
-    test('it renders the learning language first, then the native one', () => {
-        withHeader();
-        expect(codes()).toEqual(['EN', 'RU']);
-    });
-
-    test('a click swaps which track leads', () => {
-        const app = withHeader();
-        const before = app.state.swapped;
-        chip()!.click();
-        expect(app.state.swapped).toBe(!before);
-    });
-
-    test('Enter and Space swap too — the chip is reachable by keyboard', () => {
-        const app = withHeader();
-        chip()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    test('each press flips which track leads', () => {
+        const app = twoTracks();
+        const press = pressShiftS(app);
+        press();
         expect(app.state.swapped).toBe(true);
-        chip()!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
-        expect(app.state.swapped).toBe(false);
-    });
-
-    test('every swap replays the confirmation pulse', () => {
-        // Removed, reflow, re-added. A class left on would animate once and
-        // then sit there silently on every swap after the first, and the end
-        // state is identical either way — so watch the removal itself by
-        // recording each call rather than the value at the end.
-        const app = withHeader();
-        chip()!.click();
-        expect(chip()!.classList.contains('vtt-pulse')).toBe(true);
-
-        const calls: string[] = [];
-        const el = chip()!;
-        const realRemove = el.classList.remove.bind(el.classList);
-        const realAdd = el.classList.add.bind(el.classList);
-        jest.spyOn(el.classList, 'remove').mockImplementation((...c: string[]) => {
-            if (c.includes('vtt-pulse')) calls.push('remove');
-            realRemove(...c);
-        });
-        jest.spyOn(el.classList, 'add').mockImplementation((...c: string[]) => {
-            if (c.includes('vtt-pulse')) calls.push('add');
-            realAdd(...c);
-        });
-
-        chip()!.click();
-        expect(calls).toEqual(['remove', 'add']);
-        expect(chip()!.classList.contains('vtt-pulse')).toBe(true);
+        press();
         expect(app.state.swapped).toBe(false);
     });
 
@@ -705,41 +667,32 @@ describe('the language pair chip', () => {
         // Deliberately session-only, unlike the mode and the panel state. A
         // stray savePrefs here would make a swapped order outlive the video
         // that prompted it.
-        const app = withHeader();
+        const app = twoTracks();
+        const press = pressShiftS(app);
         const set = (global as any).chrome.storage.local.set as jest.Mock;
-        // The stub must exist for the claim to be checkable at all: behind an
-        // `if (set)` the whole assertion silently stopped running the moment
-        // the stub was refactored away, and the check stayed green.
+        // The stub must exist for the claim to be checkable at all.
         expect(jest.isMockFunction(set)).toBe(true);
         set.mockClear();
-        chip()!.click();
+        press();
         expect(app.state.swapped).toBe(true);
         expect(set).not.toHaveBeenCalled();
     });
 
-    test('with one language loaded the chip stays, and a press does nothing', () => {
+    test('with one language loaded a press does nothing', () => {
         const app = makeApp();
-        const header = document.createElement('div');
-        header.id = 'vtt-header-top';
-        document.body.appendChild(header);
         app.addParsedTrack('English', [sub('hello')]);
-        app.updateLanguagePairChip();
-
-        expect(chip()).not.toBeNull();
-        expect(chip()!.hasAttribute('disabled')).toBe(false);
-        expect(chip()!.getAttribute('aria-disabled')).not.toBe('true');
-        chip()!.click();
+        pressShiftS(app)();
         expect(app.state.swapped).toBe(false); // silently nothing, not an error
     });
 
-    test('no chip at all before a language pair is chosen', () => {
-        const app = makeApp();
+    test('there is no language chip in the header', () => {
+        const app = twoTracks();
         const header = document.createElement('div');
         header.id = 'vtt-header-top';
         document.body.appendChild(header);
-        app.langPrefs = null;
-        app.updateLanguagePairChip();
-        expect(chip()).toBeNull();
+        app.updateOnboardingState();
+        expect(document.getElementById('vtt-langpair')).toBeNull();
+        header.remove();
     });
 });
 
@@ -1196,17 +1149,6 @@ describe('every mode control advertises its shortcut', () => {
 
     test('On-screen says Shift+O', () => {
         expect(tipOf('vtt-qm-overlay')).toBe('On-screen (Shift+O)');
-    });
-
-    // The swap control is the language chip, whose tooltip is a native title —
-    // the chip predates the data-tip mechanism the bar uses.
-    test('Swap says Shift+S', () => {
-        const app = makeApp();
-        const header = document.createElement('div');
-        header.id = 'vtt-header-top';
-        document.body.appendChild(header);
-        app.updateLanguagePairChip();
-        expect(document.getElementById('vtt-langpair')!.title).toBe('Swap (Shift+S)');
     });
 
     // Single is the one mode with no shortcut, and its tooltip is the label

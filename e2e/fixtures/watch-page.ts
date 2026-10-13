@@ -152,7 +152,8 @@ export async function normalise(page: Page, site: Site = DEFAULT_SITE): Promise<
         if (sidebar?.classList.contains('vtt-feedback-open')) click('vtt-feedback-back-btn');
         if (document.getElementById('vtt-settings-panel')?.classList.contains('open')) click('vtt-settings-btn');
         if (sidebar?.classList.contains('collapsed')) click('vtt-toggle-btn');
-        if (sidebar?.classList.contains('vtt-swapped')) click('vtt-langpair');
+        // Shift+S is the swap control (the header chip is gone).
+        if (sidebar?.classList.contains('vtt-swapped')) document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS', key: 'S', shiftKey: true, bubbles: true }));
     });
 
     // 11-13: the reading surface. The synthetic mouseenter one check dispatches

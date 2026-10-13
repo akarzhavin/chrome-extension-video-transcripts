@@ -195,8 +195,6 @@ export function mount(options: EmbedOptions): EmbedInstance {
     ];
     refreshAuthStatusBadge();
 
-    renderLanguagePairChip(state, ui, tracks);
-
     if (ownChrome) pageTeardown.push(renderPlayerChrome(container, player, state, ui));
     // The YouTube source has no fullscreen at all: its native button is
     // removed (player.ts, fs: 0) because it would full-screen the cross-origin
@@ -263,65 +261,6 @@ export function mount(options: EmbedOptions): EmbedInstance {
             restoreChrome();
         },
     };
-}
-
-// The "EN ⇄ RU" chip at the left edge of the sidebar's header, ported from the
-// extensions' app-base.ts (updateLanguagePairChip). It lives in each app
-// rather than in SidebarUI, so an embed that only implements AppInterface
-// would otherwise be missing it — and the chip is not decoration: it IS the
-// swap control, so without it the demo has no way to flip which language leads.
-function renderLanguagePairChip(state: AppState, ui: SidebarUI, tracks: EmbedTrack[]): void {
-    const headerTop = document.getElementById('vtt-header-top');
-    if (!headerTop || document.getElementById('vtt-langpair')) return;
-    // Only ever mount into OUR sidebar. #vtt-header-top is a shared id, so
-    // without this the chip lands in a foreign panel (see the ownership note in
-    // mount) and becomes a control that clicks but never changes anything.
-    if (!headerTop.closest('[data-lge-sidebar]')) return;
-
-    // Codes come from the tracks themselves; a track without `lang` shows its
-    // name instead, which is still readable ("English ⇄ Русский").
-    const codeFor = (index: number): string => {
-        const name = state.tracks[index]?.name;
-        const track = tracks.find((t) => t.name === name);
-        return track?.lang ? track.lang.toUpperCase() : (name ?? '');
-    };
-
-    const chip = document.createElement('div');
-    chip.id = 'vtt-langpair';
-    chip.setAttribute('role', 'button');
-    chip.setAttribute('tabindex', '0');
-    chip.setAttribute('aria-label', 'Swap');
-    chip.title = 'Swap (Shift+S)';
-
-    // Painted ONCE, in mount-time (preference) order — the same contract as
-    // the extension's updateLanguagePairChip. The visual flip on swap is done
-    // entirely by .vtt-swapped (set in updateControls), which row-reverses the
-    // inner span. Repainting from the live indexes here would flip the DOM as
-    // well: two reversals cancel and the chip looks frozen while the tracks
-    // underneath really do swap.
-    chip.innerHTML =
-        '<span class="vtt-langpair-inner">' +
-        `<span class="vtt-langpair-lang">${codeFor(state.activeTrackIndex)}</span>` +
-        '<span class="vtt-langpair-arrow">⇄</span>' +
-        `<span class="vtt-langpair-lang">${codeFor(state.secondaryTrackIndex)}</span>` +
-        '</span>';
-
-    const swap = (): void => {
-        if (!state.swapTracks()) return;
-        chip.classList.remove('vtt-pulse');
-        void chip.offsetWidth; // restart the animation
-        chip.classList.add('vtt-pulse');
-        ui.refresh();
-    };
-    chip.addEventListener('click', swap);
-    chip.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            swap();
-        }
-    });
-
-    headerTop.prepend(chip);
 }
 
 // The mascot from the extension's real player button

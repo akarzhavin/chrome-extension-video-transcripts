@@ -1,17 +1,24 @@
-// The sidebar's AI badge (spec 024): in the header slot the language-pair chip
-// holds, while signed in it shows a ring of today's share left and the tokens
-// left (spent: a closed red ring and the reset); a click opens the two bars
-// (Shift+S still swaps). Signed out there is no balance, and the chip is back.
+// The sidebar's AI badge (spec 024), at the header's left edge. Signed in it
+// shows a ring of today's share left and the tokens left (spent: a closed red
+// ring and the reset), and a click opens the two bars. Signed out it is the
+// same badge switched off: the server's default daily allowance in grey (just
+// "AI" until the worker has read it), and a hover or
+// a click opens a panel saying AI needs a sign-in and that the tokens are
+// free every day, with a quiet "Sign in" link. Signed in without a balance
+// yet (the first read in flight, or refused) it is hidden.
 
+import { AUTH_UID_KEY } from '../auth/storage';
 import { msg } from '../i18n';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
-import { loadBalance, onBalance } from './store';
-import type { AIBalance } from './types';
+import { loadBalance, loadDefaults, onBalance, onDefaults } from './store';
+import type { AIBalance, AIDefaults } from './types';
 import { takeWarning } from './warn';
 import { showWarningNote } from './warning-note';
 
 const ON = 'vtt-ai-on';
+/** Signed out: the badge switched off. */
+const OFF = 'vtt-ai-off';
 const SVG = 'http://www.w3.org/2000/svg';
 const R = 7;
 const C = 2 * Math.PI * R;
@@ -42,6 +49,25 @@ function requestRefresh(): void {
     }
 }
 
+/** Starts the sign-in, as the account row and the word card do. */
+function startSignIn(): void {
+    try {
+        chrome.runtime.sendMessage({ action: 'AUTH_SIGN_IN_VIA_LINGOGRAM', from: 'ai_badge' }, () => void chrome.runtime.lastError);
+    } catch {
+        /* orphaned context: nothing to start */
+    }
+}
+
+/** Whether an account is signed in: auth.uid is written on sign-in, removed on sign-out. */
+async function readSignedIn(): Promise<boolean> {
+    try {
+        const got = await chrome.storage.local.get(AUTH_UID_KEY);
+        return typeof got[AUTH_UID_KEY] === 'string' && got[AUTH_UID_KEY] !== '';
+    } catch {
+        return false;
+    }
+}
+
 /** Mounts the badge into the sidebar header; returns the unmount. */
 export function mountAIBadge(headerTop: HTMLElement): () => void {
     const doc = headerTop.ownerDocument;
@@ -58,6 +84,8 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     headerTop.prepend(badge);
 
     let balance: AIBalance | null = null;
+    let signedIn: boolean | null = null; // null until read: no chip flashes before we know
+    let defaults: AIDefaults | null = null; // the server's default windows, for the signed-out badge
     let panel: HTMLElement | null = null;
     let cancelWarning = () => {};
     let disposed = false;
@@ -67,36 +95,118 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         panel = null;
         button.setAttribute('aria-expanded', 'false');
     };
+    // Signed out: why the badge is off, and a quiet link that starts the sign-in.
+    const renderSignedOut = (): HTMLElement => {
+        const box = doc.createElement('div');
+        box.className = 'lg-ai-off';
+        const text = doc.createElement('p');
+        text.className = 'lg-ai-off-text';
+        text.textContent = msg('aiSignInToUse', 'Sign in, and AI will translate phrases from the subtitles and complete word cards');
+        box.appendChild(text);
+        // Only a number the server gave: no line rather than a made-up one.
+        if (defaults) {
+            const free = doc.createElement('p');
+            free.className = 'lg-ai-off-free';
+            free.textContent = msg('aiFreeDaily', '{count} free tokens a day').replace('{count}', formatTokens(defaults.day));
+            box.appendChild(free);
+        }
+        const link = doc.createElement('button');
+        link.type = 'button';
+        link.className = 'lg-ai-signin';
+        link.textContent = msg('aiChipSignIn', 'Sign in');
+        link.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startSignIn();
+        });
+        box.appendChild(link);
+        return box;
+    };
     const open = () => {
-        if (!balance) return;
+        if (!balance && signedIn !== false) return;
         panel = doc.createElement('div');
         panel.id = 'vtt-ai-panel';
         panel.setAttribute('role', 'dialog');
-        panel.appendChild(renderBars(balance, doc));
+        panel.appendChild(balance ? renderBars(balance, doc) : renderSignedOut());
         badge.appendChild(panel);
         button.setAttribute('aria-expanded', 'true');
     };
+    // Signed out, the panel also opens on hover; a click pins it so moving the
+    // mouse away does not close it. Signed in, hover shows the [data-tip]
+    // bubble and only a click opens the bars.
+    let pinned = false;
+    let hoverClose: ReturnType<typeof setTimeout> | undefined;
+    const isOff = () => !balance && signedIn === false;
     button.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (panel) close();
-        else open();
+        clearTimeout(hoverClose);
+        if (panel && (pinned || !isOff())) {
+            close();
+            pinned = false;
+            return;
+        }
+        if (!panel) open();
+        pinned = isOff();
+    });
+    badge.addEventListener('mouseenter', () => {
+        clearTimeout(hoverClose);
+        if (isOff() && !panel) open();
+    });
+    badge.addEventListener('mouseleave', () => {
+        if (!isOff() || pinned) return;
+        // The panel hangs 8px below the button: a short grace lets the mouse cross the gap.
+        hoverClose = setTimeout(() => {
+            if (!pinned) close();
+        }, 150);
     });
     const outside = (e: Event) => {
-        if (panel && !badge.contains(e.target as Node)) close();
+        if (panel && !badge.contains(e.target as Node)) {
+            close();
+            pinned = false;
+        }
     };
     const escape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') close();
+        if (e.key === 'Escape') {
+            close();
+            pinned = false;
+        }
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
+
+    // Signed out and no balance: the badge switched off, showing the default
+    // daily allowance; the panel explains and links to the sign-in.
+    const showSignedOut = () => {
+        const off = !balance && signedIn === false;
+        headerTop.classList.toggle(OFF, off);
+        if (!off) {
+            if (!balance && panel) {
+                close();
+                pinned = false;
+            }
+            return;
+        }
+        badge.classList.remove('vtt-ai-out', 'vtt-ai-high');
+        arc.setAttribute('stroke-dasharray', `${C.toFixed(2)} ${C.toFixed(2)}`);
+        label.textContent = defaults ? `AI ${formatTokens(defaults.day)}` : 'AI';
+        if (panel) {
+            close();
+            open();
+        }
+        // No [data-tip] bubble here: hover opens the panel itself.
+        button.removeAttribute('data-tip');
+        button.setAttribute('aria-label', msg('aiSignInToUse', 'Sign in, and AI will translate phrases from the subtitles and complete word cards'));
+        button.setAttribute('aria-haspopup', 'true');
+    };
 
     const show = (b: AIBalance | null) => {
         balance = b;
         headerTop.classList.toggle(ON, !!b);
         if (!b) {
             close();
+            showSignedOut();
             return;
         }
+        headerTop.classList.remove(OFF);
         const spent = b.exhausted;
         badge.classList.toggle('vtt-ai-out', spent !== null);
         badge.classList.toggle('vtt-ai-high', spent === null && isHigh(b.day, b.warnRatio));
@@ -122,13 +232,46 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     void loadBalance().then(show);
     requestRefresh();
     const unsubscribe = onBalance(show);
+    const applyDefaults = (d: AIDefaults | null) => {
+        if (disposed) return;
+        defaults = d;
+        showSignedOut();
+    };
+    void loadDefaults().then(applyDefaults);
+    const unsubscribeDefaults = onDefaults(applyDefaults);
+    void readSignedIn().then((v) => {
+        if (disposed) return;
+        signedIn = v;
+        showSignedOut();
+    });
+    // A sign-in or sign-out while the sidebar is open: swap the chip, and on a
+    // sign-in ask for the balance right away rather than at the next open.
+    const onAuth = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+        if (area !== 'local' || !(AUTH_UID_KEY in changes) || disposed) return;
+        const now = typeof changes[AUTH_UID_KEY].newValue === 'string' && changes[AUTH_UID_KEY].newValue !== '';
+        signedIn = now;
+        showSignedOut();
+        if (now) requestRefresh();
+    };
+    try {
+        chrome.storage.onChanged.addListener(onAuth);
+    } catch {
+        /* orphaned context */
+    }
     return () => {
         disposed = true;
+        clearTimeout(hoverClose);
         unsubscribe();
+        unsubscribeDefaults();
+        try {
+            chrome.storage.onChanged.removeListener(onAuth);
+        } catch {
+            /* orphaned context */
+        }
         cancelWarning();
         doc.removeEventListener('click', outside, true);
         doc.removeEventListener('keydown', escape);
         badge.remove();
-        headerTop.classList.remove(ON);
+        headerTop.classList.remove(ON, OFF);
     };
 }

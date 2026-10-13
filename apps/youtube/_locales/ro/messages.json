@@ -943,6 +943,18 @@
     "message": "Autentifică-te — AI va traduce",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiChipSignIn": {
+    "message": "Conectează-te",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "Autentifică-te, iar AI va traduce fraze din subtitrări și va completa cardurile de cuvinte",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "{count} tokeni gratuiți pe zi",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google nu a răspuns, încearcă din nou",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

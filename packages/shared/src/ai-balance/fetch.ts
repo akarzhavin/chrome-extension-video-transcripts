@@ -2,8 +2,8 @@
 // Never imported by a content script (the edge's CORS list has no
 // chrome-extension:// origin; the worker sends none).
 
-import { parseBalance, type AIBalance } from './types';
-import { saveBalance } from './store';
+import { parseBalance, parseDefaults, type AIBalance, type AIDefaults } from './types';
+import { saveBalance, saveDefaults } from './store';
 import { getAuthState } from '../auth/storage';
 
 // A sign-out during the call already cleared the balance; it must not come back.
@@ -41,4 +41,25 @@ export async function refreshBalance(baseUrl: string, deps: BalanceDeps): Promis
 export async function keepBalance(raw: unknown): Promise<void> {
     const b = parseBalance(raw);
     if (b) await saveIfSignedIn(b);
+}
+
+/**
+ * The server's default windows, GET /dictionary/ai/limits: public, no token.
+ * Read for a signed-out view, which shows what signing in unlocks; stored for
+ * every view. Null when unreachable or malformed, and nothing is stored.
+ */
+export async function refreshDefaults(
+    baseUrl: string,
+    fetchFn: (url: string, init: RequestInit) => Promise<Response>,
+): Promise<AIDefaults | null> {
+    if (!baseUrl) return null;
+    try {
+        const res = await fetchFn(`${baseUrl.replace(/\/+$/, '')}/dictionary/ai/limits`, { method: 'GET' });
+        if (!res.ok) return null;
+        const d = parseDefaults(await res.json());
+        if (d) await saveDefaults(d);
+        return d;
+    } catch {
+        return null;
+    }
 }

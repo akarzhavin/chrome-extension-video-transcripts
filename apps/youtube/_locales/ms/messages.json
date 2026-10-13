@@ -943,6 +943,18 @@
     "message": "Log masuk — AI akan menterjemah",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiChipSignIn": {
+    "message": "Log masuk",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "Log masuk, dan AI akan menterjemah frasa daripada sari kata serta melengkapkan kad perkataan",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "{count} token percuma sehari",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google tidak menjawab, cuba lagi",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

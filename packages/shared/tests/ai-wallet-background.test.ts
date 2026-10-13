@@ -75,9 +75,27 @@ beforeEach(() => {
 });
 
 describe('AI_BALANCE_REFRESH', () => {
-    test('signed out: ok:false and no network', async () => {
+    test('signed out: GETs the default windows, with no token, and stores them', async () => {
+        fetchMock().mockResolvedValue(json({ day: { limit: 123_000 }, month: { limit: 4_000_000 } }));
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaults: any };
+        expect(res.ok).toBe(true);
+        expect(res.defaults).toMatchObject({ day: 123_000, month: 4_000_000 });
+        const [url, init] = fetchMock().mock.calls[0];
+        expect(url).toBe('https://api.test/dictionary/ai/limits');
+        expect((init as RequestInit).headers).toBeUndefined();
+        expect(freshIdToken).not.toHaveBeenCalled();
+        expect(store['ai.limits']).toMatchObject({ day: 123_000, month: 4_000_000 });
+        expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+
+    test('signed out and the limits are unreachable or malformed: ok:false, nothing stored', async () => {
+        fetchMock().mockResolvedValueOnce(json({}, 503));
         expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
-        expect(fetchMock()).not.toHaveBeenCalled();
+        fetchMock().mockResolvedValueOnce(json({ day: { limit: 0 }, month: { limit: 1 } }));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        fetchMock().mockRejectedValueOnce(new Error('offline'));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        expect(store['ai.limits']).toBeUndefined();
     });
 
     test('signed in: GETs the balance with the bearer token and stores it', async () => {

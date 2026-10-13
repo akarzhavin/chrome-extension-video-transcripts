@@ -8,16 +8,11 @@
    these are combined. Every rule here consumes tokens that file defines and
    redefines none of them — see the token note below.
 
-   Two rules that mention this feature deliberately stayed behind in
-   styles.css, because they belong to the sidebar chassis rather than to us:
-
-     - the collapse tab's chevron/cross glyph swap. Its base rule is an
-       unconditional statement about an element the chassis builds; only the
-       override mentions .vtt-lookup-open.
-
-     - the #vtt-langpair hiding rule, which enumerates all three takeover
-       screens in ONE selector list. It cannot be split without duplicating
-       the rule, and lookup-theme.test.ts asserts that list stays exhaustive.
+   One rule that mentions this feature deliberately stayed behind in
+   styles.css, because it belongs to the sidebar chassis rather than to us:
+   the collapse tab's chevron/cross glyph swap. Its base rule is an
+   unconditional statement about an element the chassis builds; only the
+   override mentions .vtt-lookup-open.
 
    TOKENS: this file defines no --vtt-* token and carries no :root block. The
    palette lives in styles.css; forking it here would drift silently. A test
