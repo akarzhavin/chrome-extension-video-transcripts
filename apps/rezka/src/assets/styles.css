@@ -2714,7 +2714,7 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     background: rgba(242, 180, 136, 0.16); border: 1px solid rgba(242, 180, 136, 0.4); color: #f7d9c2;
 }
 
-/* Takeovers hide it like the chip; after the show rule above, so same specificity wins. */
+/* Takeovers hide the badge; after the show rules above, so same specificity wins. */
 #vtt-sidebar.vtt-settings-open #vtt-ai-badge,
 #vtt-sidebar.vtt-feedback-open #vtt-ai-badge,
 #vtt-sidebar.vtt-lookup-open #vtt-ai-badge {
@@ -3977,6 +3977,22 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 /* The frosted highlight is built from white-alpha gradients, which do nothing
    over a light pane — drop it rather than leave a no-op paint. */
 .vtt-light #vtt-list .vtt-masked-word::before { background: none; }
+
+/* ── AI badge ───────────────────────────────────────────────────────────── */
+/* The dark sheet draws it in light-on-dark alphas that vanish on white; the
+   panel and the bubble stay dark popovers. */
+.vtt-light #vtt-ai-badge button { background: rgba(123, 44, 255, 0.10); border-color: rgba(123, 44, 255, 0.35); color: #111111; }
+.vtt-light #vtt-ai-badge button:hover { background: rgba(123, 44, 255, 0.18); }
+.vtt-light #vtt-ai-badge .vtt-ai-track { stroke: rgba(17, 17, 17, 0.12); }
+.vtt-light #vtt-ai-badge .vtt-ai-arc { stroke: #7b2cff; }
+.vtt-light #vtt-ai-badge.vtt-ai-high button { background: var(--vtt-warning-quiet); border-color: rgba(161, 86, 10, 0.35); color: var(--vtt-warning); }
+.vtt-light #vtt-ai-badge.vtt-ai-high .vtt-ai-arc { stroke: var(--vtt-warning); }
+.vtt-light #vtt-ai-badge.vtt-ai-out button { background: rgba(194, 40, 40, 0.10); border-color: rgba(194, 40, 40, 0.35); color: var(--vtt-danger); }
+.vtt-light #vtt-ai-badge.vtt-ai-out .vtt-ai-arc { stroke: var(--vtt-danger); }
+.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge button { background: var(--vtt-wash-faint); border-color: rgba(17, 17, 17, 0.14); color: var(--vtt-text-dim); }
+.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge button:hover { background: var(--vtt-chip-quiet); color: var(--vtt-text-soft); }
+.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge .vtt-ai-arc { stroke: rgba(17, 17, 17, 0.25); }
+.vtt-light #vtt-ai-warn { background: var(--vtt-warning-quiet); border-color: rgba(161, 86, 10, 0.35); color: var(--vtt-warning); }
 
 /* ── Notification ───────────────────────────────────────────────────────── */
 .vtt-light #vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }

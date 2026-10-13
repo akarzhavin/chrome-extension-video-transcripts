@@ -3,7 +3,7 @@
 // chrome-extension:// origin; the worker sends none).
 
 import { parseBalance, parseDefaults, type AIBalance, type AIDefaults } from './types';
-import { saveBalance, saveDefaults } from './store';
+import { loadDefaults, saveBalance, saveDefaults } from './store';
 import { getAuthState } from '../auth/storage';
 
 // A sign-out during the call already cleared the balance; it must not come back.
@@ -43,20 +43,27 @@ export async function keepBalance(raw: unknown): Promise<void> {
     if (b) await saveIfSignedIn(b);
 }
 
+/** How long stored defaults stand in for a read: an operator setting, it rarely moves. */
+export const DEFAULTS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
 /**
  * The server's default windows, GET /dictionary/ai/limits: public, no token.
  * Read for a signed-out view, which shows what signing in unlocks; stored for
- * every view. Null when unreachable or malformed, and nothing is stored.
+ * every view. Stored ones younger than DEFAULTS_MAX_AGE_MS are reused without
+ * a request. Null when unreachable or malformed, and nothing is stored.
  */
 export async function refreshDefaults(
     baseUrl: string,
     fetchFn: (url: string, init: RequestInit) => Promise<Response>,
+    now: number = Date.now(),
 ): Promise<AIDefaults | null> {
     if (!baseUrl) return null;
+    const kept = await loadDefaults();
+    if (kept && now - kept.at >= 0 && now - kept.at < DEFAULTS_MAX_AGE_MS) return kept;
     try {
         const res = await fetchFn(`${baseUrl.replace(/\/+$/, '')}/dictionary/ai/limits`, { method: 'GET' });
         if (!res.ok) return null;
-        const d = parseDefaults(await res.json());
+        const d = parseDefaults(await res.json(), now);
         if (d) await saveDefaults(d);
         return d;
     } catch {

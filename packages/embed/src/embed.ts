@@ -552,6 +552,12 @@ function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): (
     const onDocClick = (): void => { if (!menu.hidden) closeMenu(); };
     const onDocKeydown = (e: KeyboardEvent): void => {
         if (e.key === 'Escape' && !menu.hidden) closeMenu();
+        // The extensions' swap shortcut: with the header chip gone it is the
+        // demo's only way to flip which language leads. Not while typing on the host page.
+        const t = e.target as HTMLElement | null;
+        if (e.shiftKey && e.code === 'KeyS' && !t?.closest?.('input, textarea, select, [contenteditable]')) {
+            if (state.swapTracks()) ui.refresh();
+        }
     };
     document.addEventListener('click', onDocClick);
     document.addEventListener('keydown', onDocKeydown);

@@ -134,6 +134,8 @@ export const ANALYTICS_SESSION_KEYS = {
 
 /** Written on sign-in and removed on sign-out: a change to it is a change of who is signed in. */
 export const AUTH_UID_KEY = KEYS.uid;
+/** Both keys getAuthState() needs; a change to either can flip it. */
+export const AUTH_STATE_KEYS: readonly string[] = [KEYS.idToken, KEYS.uid];
 
 export async function getAuthState(): Promise<AuthState | null> {
     const v = (await chrome.storage.local.get([

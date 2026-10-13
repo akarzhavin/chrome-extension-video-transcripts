@@ -7,7 +7,7 @@
 // free every day, with a quiet "Sign in" link. Signed in without a balance
 // yet (the first read in flight, or refused) it is hidden.
 
-import { AUTH_UID_KEY } from '../auth/storage';
+import { AUTH_STATE_KEYS, getAuthState } from '../auth/storage';
 import { msg } from '../i18n';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
@@ -58,11 +58,10 @@ function startSignIn(): void {
     }
 }
 
-/** Whether an account is signed in: auth.uid is written on sign-in, removed on sign-out. */
+/** Whether an account is signed in, by the worker's own rule (getAuthState), so the two never disagree. */
 async function readSignedIn(): Promise<boolean> {
     try {
-        const got = await chrome.storage.local.get(AUTH_UID_KEY);
-        return typeof got[AUTH_UID_KEY] === 'string' && got[AUTH_UID_KEY] !== '';
+        return (await getAuthState()) !== null;
     } catch {
         return false;
     }
@@ -239,19 +238,24 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     };
     void loadDefaults().then(applyDefaults);
     const unsubscribeDefaults = onDefaults(applyDefaults);
-    void readSignedIn().then((v) => {
-        if (disposed) return;
-        signedIn = v;
-        showSignedOut();
-    });
-    // A sign-in or sign-out while the sidebar is open: swap the chip, and on a
-    // sign-in ask for the balance right away rather than at the next open.
+    // Every check re-reads storage and only the latest one lands, so a slow
+    // first read cannot overwrite a sign-in that happened while it was in flight.
+    let check = 0;
+    const checkSignedIn = () => {
+        const mine = ++check;
+        void readSignedIn().then((now) => {
+            if (disposed || mine !== check) return;
+            const signedInNow = signedIn !== true && now;
+            signedIn = now;
+            showSignedOut();
+            // A sign-in while the sidebar is open: ask for the balance right away.
+            if (signedInNow && mine > 1) requestRefresh();
+        });
+    };
+    checkSignedIn();
     const onAuth = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-        if (area !== 'local' || !(AUTH_UID_KEY in changes) || disposed) return;
-        const now = typeof changes[AUTH_UID_KEY].newValue === 'string' && changes[AUTH_UID_KEY].newValue !== '';
-        signedIn = now;
-        showSignedOut();
-        if (now) requestRefresh();
+        if (area !== 'local' || disposed || !AUTH_STATE_KEYS.some((k) => k in changes)) return;
+        checkSignedIn();
     };
     try {
         chrome.storage.onChanged.addListener(onAuth);

@@ -334,6 +334,7 @@ describe('sidebar badge', () => {
 
         sendMessage.mockClear();
         await local.set({ 'auth.uid': 'u1', 'auth.idToken': 'tok' });
+        await flush();
         // Signed in, no balance yet: not off, the signed-out panel is gone, and the balance is asked for now.
         expect(top.classList.contains('vtt-ai-off')).toBe(false);
         expect(top.querySelector('#vtt-ai-panel')).toBeNull();
@@ -345,6 +346,7 @@ describe('sidebar badge', () => {
 
         await clearAccountAI();
         await local.remove(['auth.uid', 'auth.idToken']);
+        await flush();
         expect(top.classList.contains('vtt-ai-on')).toBe(false);
         expect(top.classList.contains('vtt-ai-off')).toBe(true);
         expect(button(top).textContent).toBe('AI'); // no defaults read: no number
@@ -352,6 +354,33 @@ describe('sidebar badge', () => {
         unmount();
         expect(top.querySelector('#vtt-ai-badge')).toBeNull();
         expect(top.classList.contains('vtt-ai-off')).toBe(false);
+    });
+
+    test('a sign-in during the first read is not overwritten by that read', async () => {
+        // The first read is held until the sign-in has landed.
+        let release!: () => void;
+        const gate = new Promise<void>((r) => (release = r));
+        const get = local.get.getMockImplementation()!;
+        local.get.mockImplementationOnce(async (key: string | string[]) => {
+            const out = await get(key); // signed out at this moment
+            await gate;
+            return out;
+        });
+        const top = header();
+        mountAIBadge(top);
+        await local.set({ 'auth.uid': 'u1', 'auth.idToken': 'tok' });
+        await flush();
+        release();
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(false);
+    });
+
+    test('a uid without a token is signed out, as the worker sees it', async () => {
+        store['auth.uid'] = 'u1';
+        const top = header();
+        mountAIBadge(top);
+        await flush();
+        expect(top.classList.contains('vtt-ai-off')).toBe(true);
     });
 
     test('signed in without a balance yet it shows nothing, never the off badge', async () => {

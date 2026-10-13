@@ -88,6 +88,23 @@ describe('AI_BALANCE_REFRESH', () => {
         expect(store[BALANCE_KEY]).toBeUndefined();
     });
 
+    test('signed out with defaults read under 6 hours ago: no request, the stored ones answer', async () => {
+        store['ai.limits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 5 * 3_600_000 };
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaults: any };
+        expect(res).toMatchObject({ ok: true, defaults: { day: 123_000 } });
+        expect(fetchMock()).not.toHaveBeenCalled();
+    });
+
+    test('signed out with defaults older than 6 hours (or from the future): read again', async () => {
+        fetchMock().mockResolvedValue(json({ day: { limit: 200_000 }, month: { limit: 4_000_000 } }));
+        store['ai.limits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 7 * 3_600_000 };
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        store['ai.limits'] = { day: 123_000, month: 4_000_000, at: Date.now() + 3_600_000 };
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        expect(fetchMock()).toHaveBeenCalledTimes(2);
+        expect(store['ai.limits']).toMatchObject({ day: 200_000 });
+    });
+
     test('signed out and the limits are unreachable or malformed: ok:false, nothing stored', async () => {
         fetchMock().mockResolvedValueOnce(json({}, 503));
         expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
