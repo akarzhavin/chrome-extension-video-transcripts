@@ -2,12 +2,12 @@
 // every view (sidebar, popup, cards) already listens there, so one write
 // reaches all open tabs without the worker messaging each.
 
-import { parseBalance, parseDefaults, type AIBalance, type AIDefaults } from './types';
+import { parseBalance, parseLimits, type AIBalance, type AILimits } from './types';
 import { clearWarned } from './warn';
 
 const BALANCE_KEY = 'ai.balance';
-/** Not the account's: the server's default windows, kept across sign-outs. */
-const DEFAULTS_KEY = 'ai.limits';
+/** Not the account's: the server's default limits, kept across sign-outs. */
+const LIMITS_KEY = 'ai.limits';
 
 export async function saveBalance(b: AIBalance): Promise<void> {
     await chrome.storage.local.set({ [BALANCE_KEY]: b });
@@ -49,25 +49,25 @@ export function onBalance(cb: (b: AIBalance | null) => void): () => void {
     };
 }
 
-export async function saveDefaults(d: AIDefaults): Promise<void> {
-    await chrome.storage.local.set({ [DEFAULTS_KEY]: d });
+export async function saveLimits(d: AILimits): Promise<void> {
+    await chrome.storage.local.set({ [LIMITS_KEY]: d });
 }
 
-/** The stored default windows; null when never read or unreadable. */
-export async function loadDefaults(): Promise<AIDefaults | null> {
+/** The stored default limits; null when never read or unreadable. */
+export async function loadLimits(): Promise<AILimits | null> {
     try {
-        const got = await chrome.storage.local.get(DEFAULTS_KEY);
-        return parseDefaults(got[DEFAULTS_KEY]);
+        const got = await chrome.storage.local.get(LIMITS_KEY);
+        return parseLimits(got[LIMITS_KEY]);
     } catch {
         return null;
     }
 }
 
-/** Calls back on every change of the stored default windows; returns the unsubscribe. */
-export function onDefaults(cb: (d: AIDefaults | null) => void): () => void {
+/** Calls back on every change of the stored default limits; returns the unsubscribe. */
+export function onLimits(cb: (d: AILimits | null) => void): () => void {
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-        if (area !== 'local' || !(DEFAULTS_KEY in changes)) return;
-        cb(parseDefaults(changes[DEFAULTS_KEY].newValue));
+        if (area !== 'local' || !(LIMITS_KEY in changes)) return;
+        cb(parseLimits(changes[LIMITS_KEY].newValue));
     };
     try {
         chrome.storage.onChanged.addListener(listener);

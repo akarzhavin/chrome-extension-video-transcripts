@@ -943,7 +943,7 @@
     "message": "登入 — AI 將為你翻譯",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "登入",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },

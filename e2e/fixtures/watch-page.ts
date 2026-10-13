@@ -152,7 +152,7 @@ export async function normalise(page: Page, site: Site = DEFAULT_SITE): Promise<
         if (sidebar?.classList.contains('vtt-feedback-open')) click('vtt-feedback-back-btn');
         if (document.getElementById('vtt-settings-panel')?.classList.contains('open')) click('vtt-settings-btn');
         if (sidebar?.classList.contains('collapsed')) click('vtt-toggle-btn');
-        // Shift+S is the swap control (the header chip is gone).
+        // Shift+S is the swap control.
         if (sidebar?.classList.contains('vtt-swapped')) document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS', key: 'S', shiftKey: true, bubbles: true }));
     });
 

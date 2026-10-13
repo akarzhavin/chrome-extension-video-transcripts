@@ -39,6 +39,8 @@
     --vtt-success-border: rgba(52, 211, 153, 0.4);
 
     --vtt-danger: #f87171;
+    --vtt-danger-quiet: rgba(248, 113, 113, 0.14);
+    --vtt-danger-border: rgba(248, 113, 113, 0.4);
 
     /* Warning: something is degraded but working, and it will clear by itself
        (rate limiting is the case this exists for). Sits between --vtt-text-dim
@@ -49,6 +51,7 @@
        so it clears the 4.5:1 floor at 11px with margin. */
     --vtt-warning: #ffa257;
     --vtt-warning-quiet: rgba(255, 162, 87, 0.14);
+    --vtt-warning-border: rgba(255, 162, 87, 0.4);
 
     /* Text ramp. --vtt-text-dim is the floor for anything readable: at the
        10-12px the group headers use, lighter than this drops under 4.5:1 on
@@ -2638,10 +2641,10 @@ span.vtt-saved-run.vtt-saved-run-end::after {
    still win (same specificity, later in the sheet). */
 #vtt-header-top.vtt-ai-off #vtt-ai-badge { display: flex; }
 #vtt-header-top.vtt-ai-off #vtt-ai-badge button {
-    background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.14); color: rgba(227, 229, 255, 0.55);
+    background: var(--vtt-wash-faint); border-color: var(--vtt-hairline-strong); color: var(--vtt-text-dim);
 }
-#vtt-header-top.vtt-ai-off #vtt-ai-badge button:hover { background: rgba(255, 255, 255, 0.09); color: rgba(227, 229, 255, 0.8); }
-#vtt-header-top.vtt-ai-off #vtt-ai-badge .vtt-ai-arc { stroke: rgba(255, 255, 255, 0.28); stroke-linecap: butt; }
+#vtt-header-top.vtt-ai-off #vtt-ai-badge button:hover { background: var(--vtt-chip-quiet); color: var(--vtt-text-soft); }
+#vtt-header-top.vtt-ai-off #vtt-ai-badge .vtt-ai-arc { stroke: currentColor; stroke-opacity: 0.45; stroke-linecap: butt; }
 /* The signed-out panel: one line of why, and a quiet link that starts the sign-in. */
 #vtt-ai-panel .lg-ai-off-text { margin: 0 0 4px; color: #e8e9f3; }
 #vtt-ai-panel .lg-ai-off-free { margin: 0 0 8px; color: #9a9db3; font-size: 11px; }
@@ -3730,9 +3733,12 @@ span.vtt-saved-run.vtt-saved-run-end::after {
     --vtt-success-border: rgba(21, 128, 61, 0.35);
 
     --vtt-danger: #c22828;
+    --vtt-danger-quiet: rgba(194, 40, 40, 0.10);
+    --vtt-danger-border: rgba(194, 40, 40, 0.35);
 
     --vtt-warning: #a1560a;
     --vtt-warning-quiet: rgba(161, 86, 10, 0.12);
+    --vtt-warning-border: rgba(161, 86, 10, 0.35);
 
     --vtt-text: #111111;
     --vtt-text-soft: #4a4a4a;
@@ -3980,19 +3986,17 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 
 /* ── AI badge ───────────────────────────────────────────────────────────── */
 /* The dark sheet draws it in light-on-dark alphas that vanish on white; the
-   panel and the bubble stay dark popovers. */
-.vtt-light #vtt-ai-badge button { background: rgba(123, 44, 255, 0.10); border-color: rgba(123, 44, 255, 0.35); color: #111111; }
+   panel and the bubble stay dark popovers. Signed out it is on tokens already.
+   The purple is the light theme's accent ring, which has no fill token. */
+.vtt-light #vtt-ai-badge button { background: rgba(123, 44, 255, 0.10); border-color: rgba(123, 44, 255, 0.35); color: var(--vtt-text); }
 .vtt-light #vtt-ai-badge button:hover { background: rgba(123, 44, 255, 0.18); }
 .vtt-light #vtt-ai-badge .vtt-ai-track { stroke: rgba(17, 17, 17, 0.12); }
 .vtt-light #vtt-ai-badge .vtt-ai-arc { stroke: #7b2cff; }
-.vtt-light #vtt-ai-badge.vtt-ai-high button { background: var(--vtt-warning-quiet); border-color: rgba(161, 86, 10, 0.35); color: var(--vtt-warning); }
+.vtt-light #vtt-ai-badge.vtt-ai-high button { background: var(--vtt-warning-quiet); border-color: var(--vtt-warning-border); color: var(--vtt-warning); }
 .vtt-light #vtt-ai-badge.vtt-ai-high .vtt-ai-arc { stroke: var(--vtt-warning); }
-.vtt-light #vtt-ai-badge.vtt-ai-out button { background: rgba(194, 40, 40, 0.10); border-color: rgba(194, 40, 40, 0.35); color: var(--vtt-danger); }
+.vtt-light #vtt-ai-badge.vtt-ai-out button { background: var(--vtt-danger-quiet); border-color: var(--vtt-danger-border); color: var(--vtt-danger); }
 .vtt-light #vtt-ai-badge.vtt-ai-out .vtt-ai-arc { stroke: var(--vtt-danger); }
-.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge button { background: var(--vtt-wash-faint); border-color: rgba(17, 17, 17, 0.14); color: var(--vtt-text-dim); }
-.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge button:hover { background: var(--vtt-chip-quiet); color: var(--vtt-text-soft); }
-.vtt-light #vtt-header-top.vtt-ai-off #vtt-ai-badge .vtt-ai-arc { stroke: rgba(17, 17, 17, 0.25); }
-.vtt-light #vtt-ai-warn { background: var(--vtt-warning-quiet); border-color: rgba(161, 86, 10, 0.35); color: var(--vtt-warning); }
+.vtt-light #vtt-ai-warn { background: var(--vtt-warning-quiet); border-color: var(--vtt-warning-border); color: var(--vtt-warning); }
 
 /* ── Notification ───────────────────────────────────────────────────────── */
 .vtt-light #vtt-notification.is-critical { background: rgba(194, 40, 40, 0.10); }

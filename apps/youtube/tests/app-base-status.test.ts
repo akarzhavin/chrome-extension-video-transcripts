@@ -629,9 +629,9 @@ describe('auto probe after the cooldown expires', () => {
 /**
  * Swapping the pair — behaviour map §7.
  *
- * Shift+S is the only swap control since the header's language chip was
- * removed, so its guarantees live here: it flips which track leads, a swap is
- * never remembered, and with one language loaded it does nothing.
+ * Shift+S is the only swap control, so its guarantees live here: it flips
+ * which track leads, a swap is never remembered, and with one language loaded
+ * it does nothing.
  */
 describe('Shift+S swaps the pair', () => {
     // The real listener, captured instead of attached: a document listener per
@@ -683,16 +683,6 @@ describe('Shift+S swaps the pair', () => {
         app.addParsedTrack('English', [sub('hello')]);
         pressShiftS(app)();
         expect(app.state.swapped).toBe(false); // silently nothing, not an error
-    });
-
-    test('there is no language chip in the header', () => {
-        const app = twoTracks();
-        const header = document.createElement('div');
-        header.id = 'vtt-header-top';
-        document.body.appendChild(header);
-        app.updateOnboardingState();
-        expect(document.getElementById('vtt-langpair')).toBeNull();
-        header.remove();
     });
 });
 

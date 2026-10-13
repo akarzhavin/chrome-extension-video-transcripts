@@ -7,11 +7,11 @@
 import { AUTH_STATE_KEYS, getAuthState } from '../auth/storage';
 import { msg } from '../i18n';
 import { formatTokens } from './format';
-import { loadDefaults, onDefaults } from './store';
-import type { AIDefaults } from './types';
+import { loadLimits, onLimits } from './store';
+import type { AILimits } from './types';
 
 /** On the header: the badge switched off. */
-export const OFF = 'vtt-ai-off';
+const OFF = 'vtt-ai-off';
 
 /** What the badge lends this mode: its parts and its panel shell. */
 export interface OffHost {
@@ -65,7 +65,7 @@ function startSignIn(): void {
 export function offMode(host: OffHost): OffMode {
     const { headerTop, badge, button, label, arc } = host;
     let signedIn: boolean | null = null; // null until read: no off badge flashes before we know
-    let defaults: AIDefaults | null = null;
+    let limits: AILimits | null = null;
     let pinned = false;
     let hoverClose: ReturnType<typeof setTimeout> | undefined;
     let disposed = false;
@@ -85,7 +85,7 @@ export function offMode(host: OffHost): OffMode {
         }
         badge.classList.remove('vtt-ai-out', 'vtt-ai-high');
         arc.setAttribute('stroke-dasharray', `${host.circumference.toFixed(2)} ${host.circumference.toFixed(2)}`);
-        label.textContent = defaults ? `AI ${formatTokens(defaults.day)}` : 'AI';
+        label.textContent = limits ? `AI ${formatTokens(limits.day)}` : 'AI';
         if (host.isOpen()) {
             host.close();
             host.open();
@@ -93,27 +93,25 @@ export function offMode(host: OffHost): OffMode {
         // No [data-tip] bubble here: hover opens the panel itself.
         button.removeAttribute('data-tip');
         button.setAttribute('aria-label', text());
-        button.setAttribute('aria-haspopup', 'true');
     };
 
     const panel = (doc: Document): HTMLElement => {
         const box = doc.createElement('div');
-        box.className = 'lg-ai-off';
         const why = doc.createElement('p');
         why.className = 'lg-ai-off-text';
         why.textContent = text();
         box.appendChild(why);
         // Only a number the server gave: no line rather than a made-up one.
-        if (defaults) {
+        if (limits) {
             const free = doc.createElement('p');
             free.className = 'lg-ai-off-free';
-            free.textContent = msg('aiFreeDaily', '{count} free tokens a day').replace('{count}', formatTokens(defaults.day));
+            free.textContent = msg('aiFreeDaily', '{count} free tokens a day').replace('{count}', formatTokens(limits.day));
             box.appendChild(free);
         }
         const link = doc.createElement('button');
         link.type = 'button';
         link.className = 'lg-ai-signin';
-        link.textContent = msg('aiChipSignIn', 'Sign in');
+        link.textContent = msg('aiBadgeSignIn', 'Sign in');
         link.addEventListener('click', (e) => {
             e.stopPropagation();
             startSignIn();
@@ -150,13 +148,13 @@ export function offMode(host: OffHost): OffMode {
     badge.addEventListener('mouseenter', enter);
     badge.addEventListener('mouseleave', leave);
 
-    const applyDefaults = (d: AIDefaults | null) => {
+    const applyLimits = (d: AILimits | null) => {
         if (disposed) return;
-        defaults = d;
+        limits = d;
         paint();
     };
-    void loadDefaults().then(applyDefaults);
-    const unsubscribeDefaults = onDefaults(applyDefaults);
+    void loadLimits().then(applyLimits);
+    const unsubscribeLimits = onLimits(applyLimits);
 
     // Every check re-reads storage and only the latest one lands, so a slow
     // first read cannot overwrite a sign-in that happened while it was in flight.
@@ -194,7 +192,7 @@ export function offMode(host: OffHost): OffMode {
         dispose: () => {
             disposed = true;
             clearTimeout(hoverClose);
-            unsubscribeDefaults();
+            unsubscribeLimits();
             try {
                 chrome.storage.onChanged.removeListener(onAuth);
             } catch {

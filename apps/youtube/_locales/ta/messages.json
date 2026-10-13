@@ -943,7 +943,7 @@
     "message": "உள்நுழையவும் — AI மொழிபெயர்க்கும்",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "உள்நுழையவும்",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },

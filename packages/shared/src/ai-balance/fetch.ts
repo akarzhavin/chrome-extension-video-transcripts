@@ -1,9 +1,10 @@
-// Worker-only: GET /dictionary/ai/balance, asked once when a view opens.
+// Worker-only: GET /dictionary/ai/balance (signed in) and /dictionary/ai/limits
+// (public), asked once when a view opens.
 // Never imported by a content script (the edge's CORS list has no
 // chrome-extension:// origin; the worker sends none).
 
-import { parseBalance, parseDefaults, type AIBalance, type AIDefaults } from './types';
-import { loadDefaults, saveBalance, saveDefaults } from './store';
+import { parseBalance, parseLimits, type AIBalance, type AILimits } from './types';
+import { loadLimits, saveBalance, saveLimits } from './store';
 import { getAuthState } from '../auth/storage';
 
 // A sign-out during the call already cleared the balance; it must not come back.
@@ -43,28 +44,28 @@ export async function keepBalance(raw: unknown): Promise<void> {
     if (b) await saveIfSignedIn(b);
 }
 
-/** How long stored defaults stand in for a read: an operator setting, it rarely moves. */
-export const DEFAULTS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+/** How long stored limits stand in for a read: an operator setting, it rarely moves. */
+const LIMITS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 /**
- * The server's default windows, GET /dictionary/ai/limits: public, no token.
+ * The server's default limits, GET /dictionary/ai/limits: public, no token.
  * Read for a signed-out view, which shows what signing in unlocks; stored for
- * every view. Stored ones younger than DEFAULTS_MAX_AGE_MS are reused without
+ * every view. Stored ones younger than LIMITS_MAX_AGE_MS are reused without
  * a request. Null when unreachable or malformed, and nothing is stored.
  */
-export async function refreshDefaults(
+export async function refreshLimits(
     baseUrl: string,
-    fetchFn: (url: string, init: RequestInit) => Promise<Response>,
+    deps: Pick<BalanceDeps, 'fetch'>,
     now: number = Date.now(),
-): Promise<AIDefaults | null> {
+): Promise<AILimits | null> {
     if (!baseUrl) return null;
-    const kept = await loadDefaults();
-    if (kept && now - kept.at >= 0 && now - kept.at < DEFAULTS_MAX_AGE_MS) return kept;
+    const kept = await loadLimits();
+    if (kept && now - kept.at >= 0 && now - kept.at < LIMITS_MAX_AGE_MS) return kept;
     try {
-        const res = await fetchFn(`${baseUrl.replace(/\/+$/, '')}/dictionary/ai/limits`, { method: 'GET' });
+        const res = await deps.fetch(`${baseUrl.replace(/\/+$/, '')}/dictionary/ai/limits`, { method: 'GET' });
         if (!res.ok) return null;
-        const d = parseDefaults(await res.json(), now);
-        if (d) await saveDefaults(d);
+        const d = parseLimits(await res.json(), now);
+        if (d) await saveLimits(d);
         return d;
     } catch {
         return null;

@@ -75,11 +75,11 @@ beforeEach(() => {
 });
 
 describe('AI_BALANCE_REFRESH', () => {
-    test('signed out: GETs the default windows, with no token, and stores them', async () => {
+    test('signed out: GETs the default limits, with no token, and stores them', async () => {
         fetchMock().mockResolvedValue(json({ day: { limit: 123_000 }, month: { limit: 4_000_000 } }));
-        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaults: any };
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; limits: any };
         expect(res.ok).toBe(true);
-        expect(res.defaults).toMatchObject({ day: 123_000, month: 4_000_000 });
+        expect(res.limits).toMatchObject({ day: 123_000, month: 4_000_000 });
         const [url, init] = fetchMock().mock.calls[0];
         expect(url).toBe('https://api.test/dictionary/ai/limits');
         expect((init as RequestInit).headers).toBeUndefined();
@@ -88,14 +88,14 @@ describe('AI_BALANCE_REFRESH', () => {
         expect(store[BALANCE_KEY]).toBeUndefined();
     });
 
-    test('signed out with defaults read under 6 hours ago: no request, the stored ones answer', async () => {
+    test('signed out with limits read under 6 hours ago: no request, the stored ones answer', async () => {
         store['ai.limits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 5 * 3_600_000 };
-        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaults: any };
-        expect(res).toMatchObject({ ok: true, defaults: { day: 123_000 } });
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; limits: any };
+        expect(res).toMatchObject({ ok: true, limits: { day: 123_000 } });
         expect(fetchMock()).not.toHaveBeenCalled();
     });
 
-    test('signed out with defaults older than 6 hours (or from the future): read again', async () => {
+    test('signed out with limits older than 6 hours (or from the future): read again', async () => {
         fetchMock().mockResolvedValue(json({ day: { limit: 200_000 }, month: { limit: 4_000_000 } }));
         store['ai.limits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 7 * 3_600_000 };
         await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });

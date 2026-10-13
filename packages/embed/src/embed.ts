@@ -194,6 +194,7 @@ export function mount(options: EmbedOptions): EmbedInstance {
         installAuthStatusBadge(),
     ];
     refreshAuthStatusBadge();
+    pageTeardown.push(wireSwapShortcut(state, ui));
 
     if (ownChrome) pageTeardown.push(renderPlayerChrome(container, player, state, ui));
     // The YouTube source has no fullscreen at all: its native button is
@@ -497,6 +498,18 @@ function renderPlayerChrome(container: HTMLElement, player: PlayerHandle, state:
     return wireLingogramPill(bar, state, ui);
 }
 
+// Shift+S, the extensions' swap shortcut and the demo's only swap control. Not
+// while the visitor types on the host page.
+function wireSwapShortcut(state: AppState, ui: SidebarUI): () => void {
+    const onKeydown = (e: KeyboardEvent): void => {
+        const target = e.target as HTMLElement | null;
+        if (!e.shiftKey || e.code !== 'KeyS' || target?.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (state.swapTracks()) ui.refresh();
+    };
+    document.addEventListener('keydown', onKeydown);
+    return () => document.removeEventListener('keydown', onKeydown);
+}
+
 // Wires the shared pill: the mascot's menu and the subtitle toggle. `root` is
 // whatever element the pill was rendered into.
 function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): () => void {
@@ -552,12 +565,6 @@ function wireLingogramPill(root: HTMLElement, state: AppState, ui: SidebarUI): (
     const onDocClick = (): void => { if (!menu.hidden) closeMenu(); };
     const onDocKeydown = (e: KeyboardEvent): void => {
         if (e.key === 'Escape' && !menu.hidden) closeMenu();
-        // The extensions' swap shortcut: with the header chip gone it is the
-        // demo's only way to flip which language leads. Not while typing on the host page.
-        const t = e.target as HTMLElement | null;
-        if (e.shiftKey && e.code === 'KeyS' && !t?.closest?.('input, textarea, select, [contenteditable]')) {
-            if (state.swapTracks()) ui.refresh();
-        }
     };
     document.addEventListener('click', onDocClick);
     document.addEventListener('keydown', onDocKeydown);

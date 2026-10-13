@@ -943,7 +943,7 @@
     "message": "Inicia sesión: la AI traducirá",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "Inicia sesión",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },

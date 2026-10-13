@@ -943,7 +943,7 @@
     "message": "સાઇન ઇન કરો — AI અનુવાદ કરશે",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "સાઇન ઇન કરો",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },

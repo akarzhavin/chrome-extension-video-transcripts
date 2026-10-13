@@ -943,7 +943,7 @@
     "message": "Mag-sign in — magsasalin ang AI",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "Mag-sign in",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },

@@ -943,7 +943,7 @@
     "message": "Jelentkezz be — az AI lefordítja",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
-  "aiChipSignIn": {
+  "aiBadgeSignIn": {
     "message": "Jelentkezz be",
     "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
   },
