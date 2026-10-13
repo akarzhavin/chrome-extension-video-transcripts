@@ -10,6 +10,7 @@
 //
 // Only the surface those modules actually touch is implemented, so a new
 // dependency fails loudly instead of silently half-working.
+import { AUTH_STATE_KEYS } from '@video-transcripts/shared';
 import type { EmbedOptions } from './types';
 
 interface ShimState {
@@ -29,19 +30,20 @@ export function installChromeShim(opts: EmbedOptions): () => void {
         email: opts.accountEmail ?? 'you@example.com',
     };
 
-    // The AI badge reads the sign-in from storage (auth/storage.ts keys), not
-    // from AUTH_STATUS, so storage answers for state.signedIn and a sign-in or
-    // sign-out reaches it as a change, as the worker's writes would.
+    // The AI badge reads the sign-in from storage (the keys getAuthState needs),
+    // not from AUTH_STATUS, so storage answers for state.signedIn and a sign-in
+    // or sign-out reaches it as a change, as the worker's writes would.
     type Changes = Record<string, { oldValue?: unknown; newValue?: unknown }>;
     const listeners = new Set<(changes: Changes, area: string) => void>();
-    const authEntries = (): Record<string, string> => (state.signedIn ? { 'auth.uid': 'demo', 'auth.idToken': 'demo' } : {});
+    const authEntries = (): Record<string, string> =>
+        state.signedIn ? Object.fromEntries(AUTH_STATE_KEYS.map((k) => [k, 'demo'])) : {};
     const setSignedIn = (v: boolean) => {
         if (state.signedIn === v) return;
         const before = authEntries();
         state.signedIn = v;
         const after = authEntries();
         const changes: Changes = {};
-        for (const k of ['auth.uid', 'auth.idToken']) changes[k] = { oldValue: before[k], newValue: after[k] };
+        for (const k of AUTH_STATE_KEYS) changes[k] = { oldValue: before[k], newValue: after[k] };
         for (const l of listeners) setTimeout(() => l(changes, 'local'), 0);
     };
     const storageGet = async (keys?: string | string[] | null): Promise<Record<string, unknown>> => {
