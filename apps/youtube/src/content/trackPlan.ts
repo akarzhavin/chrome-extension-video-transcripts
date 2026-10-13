@@ -130,10 +130,14 @@ export interface SecondTrackSource {
  * FR-011b): the video's human tracks other than the learning one, in YouTube's
  * order, then YouTube's machine translation of the learning track into each
  * language that shows the gender of "I" and "you". Only the best-ranked are
- * ever fetched (subtitle-ai/second.ts).
+ * ever fetched, and machine ones never since spec 025 (subtitle-ai/second.ts).
  */
 export function secondTrackSources(prefs: LanguagePrefs, tracks: CaptionTrack[]): SecondTrackSource[] {
-    const base = (t: CaptionTrack) => t.lang.split(/[-_]/)[0].toLowerCase();
+    // YouTube still labels Hebrew with the retired ISO code iw.
+    const base = (t: CaptionTrack) => {
+        const code = t.lang.split(/[-_]/)[0].toLowerCase();
+        return code === 'iw' ? 'he' : code;
+    };
     const manual: SecondTrackSource[] = tracks
         .filter((t) => t.kind !== 'asr' && !matchesLang(t, prefs.learning))
         .map((t) => ({ lang: base(t), kind: 'manual', baseUrl: t.baseUrl }));

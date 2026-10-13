@@ -177,6 +177,11 @@ describe('secondTrackSources', () => {
         expect(manual).toEqual([{ lang: 'es', kind: 'manual', baseUrl: 'es' }]);
     });
 
+    test("YouTube's legacy Hebrew code iw is he, so a Hebrew track can be a hint", () => {
+        const manual = secondTrackSources(prefs, [...tracks, { baseUrl: 'iw', lang: 'iw', name: 'Hebrew' }]).filter((s) => s.kind === 'manual');
+        expect(manual.map((s) => s.lang)).toEqual(['es', 'he']);
+    });
+
     test('machine translations of the human learning track into the 22 gendered languages', () => {
         const auto = secondTrackSources(prefs, tracks).filter((s) => s.kind === 'auto');
         expect(auto).toHaveLength(22);
