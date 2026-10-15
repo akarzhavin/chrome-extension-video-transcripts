@@ -400,6 +400,8 @@ export interface NoSubsReportInput {
 // one report per user per UTC day (a same-day second click is rejected and
 // swallowed — systemic breakage shows up as many users, not many clicks).
 export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput): Promise<void> {
+    // The caps come from lingogram-limits.json, the same numbers the rules enforce.
+    const D = __LIMIT_DIAG__;
     const state = await ensureFreshToken(cfg);
     const reportId = `${state.uid}_${todayBucket()}`;
     const name = `projects/${cfg.projectId}/databases/(default)/documents/diagnostics/${reportId}`;
@@ -409,16 +411,17 @@ export async function addNoSubsReport(cfg: AuthConfig, input: NoSubsReportInput)
                 name,
                 fields: {
                     kind: { stringValue: 'no_subs_after_retry' },
-                    site: { stringValue: truncateBytes(input.site, 100) },
-                    videoRef: { stringValue: truncateBytes(input.videoRef, 500) },
-                    version: { stringValue: truncateBytes(input.version, 32) },
-                    locale: { stringValue: truncateBytes(input.locale, 16) },
-                    learning: { stringValue: truncateBytes(input.learning, 16) },
-                    native: { stringValue: truncateBytes(input.native, 16) },
-                    failure: { stringValue: truncateBytes(input.failure ?? '', 32) },
+                    site: { stringValue: truncateBytes(input.site, D.MAX_DIAG_SITE_BYTES) },
+                    videoRef: { stringValue: truncateBytes(input.videoRef, D.MAX_DIAG_VIDEO_REF_BYTES) },
+                    version: { stringValue: truncateBytes(input.version, D.MAX_DIAG_VERSION_BYTES) },
+                    locale: { stringValue: truncateBytes(input.locale, D.MAX_DIAG_LOCALE_BYTES) },
+                    learning: { stringValue: truncateBytes(input.learning, D.MAX_DIAG_LOCALE_BYTES) },
+                    native: { stringValue: truncateBytes(input.native, D.MAX_DIAG_LOCALE_BYTES) },
+                    failure: { stringValue: truncateBytes(input.failure ?? '', D.MAX_DIAG_FAILURE_BYTES) },
                     status: { integerValue: String(input.status ?? 0) },
-                    attempts: { integerValue: String(input.attempts ?? 0) },
-                    tracksLoaded: { integerValue: String(input.tracksLoaded ?? 0) },
+                    // Clamped like the strings: the rules refuse a report above the caps.
+                    attempts: { integerValue: String(Math.min(input.attempts ?? 0, D.MAX_DIAG_ATTEMPTS)) },
+                    tracksLoaded: { integerValue: String(Math.min(input.tracksLoaded ?? 0, D.MAX_DIAG_TRACKS_LOADED)) },
                     source: { stringValue: cfg.source },
                 },
             },

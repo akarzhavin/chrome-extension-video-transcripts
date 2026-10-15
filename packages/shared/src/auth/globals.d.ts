@@ -32,7 +32,30 @@ interface SubtitleLimits {
     SUBTITLE_MAX_CUE_CHARS_PER_SEC: number;
     SUBTITLE_WRITES_PER_DAY: number;
     SUBTITLE_MIN_INTERVAL_S: number;
+    SUBTITLE_PART_SIZE: number;
+    SUBTITLE_FIRST_PART: number;
+    SUBTITLE_SHORT_TRACK: number;
+    SUBTITLE_WINDOW_MIN: number;
+    SUBTITLE_WINDOW_MID: number;
+    SUBTITLE_WINDOW_MAX: number;
+    SUBTITLE_WINDOW_MID_AFTER_S: number;
+    SUBTITLE_WINDOW_MAX_AFTER_S: number;
+    SUBTITLE_IDLE_MS: number;
+    SUBTITLE_RETRY_AFTER_CAP_S: number;
+    SUBTITLE_MAX_RETRIES: number;
+    SUBTITLE_READ_AHEAD: number;
 }
+interface DiagLimits {
+    MAX_DIAG_SITE_BYTES: number;
+    MAX_DIAG_VIDEO_REF_BYTES: number;
+    MAX_DIAG_VERSION_BYTES: number;
+    MAX_DIAG_LOCALE_BYTES: number;
+    MAX_DIAG_FAILURE_BYTES: number;
+    MAX_DIAG_ATTEMPTS: number;
+    MAX_DIAG_TRACKS_LOADED: number;
+}
+declare const __LIMIT_DIAG__: DiagLimits;
+
 declare const __LIMIT_SUBTITLE__: SubtitleLimits;
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
