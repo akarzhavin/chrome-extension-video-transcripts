@@ -110,7 +110,7 @@ describe('languages', () => {
     });
 
     // fixtures/second-order.txt is a copy of dictionary-service's
-    // internal/subtrans/testdata/second-order.txt (spec 025 FR-008).
+    // internal/features/subtitles/testdata/second-order.txt (spec 025 FR-008).
     test('the order is the server\'s, target by target', () => {
         expect(secondOrderTable()).toBe(readFileSync(resolve(__dirname, 'fixtures/second-order.txt'), 'utf8'));
     });

@@ -158,7 +158,7 @@ export function onLanguagePrefsChanged(cb: (prefs: LanguagePrefs | null) => void
 }
 
 // Gender of "I" and "you" in a translation (english repo, spec 023 FR-011b;
-// mirrors dictionary-service subtrans/gender.go). Strong: verbs or pronouns
+// mirrors dictionary-service features/subtitles/gender.go). Strong: verbs or pronouns
 // show it; adjective: only adjectives and participles. The other targets
 // need no second track.
 const GENDER_STRONG = ['ru', 'uk', 'pl', 'cs', 'sk', 'sl', 'sr', 'hr', 'hi', 'he', 'ar', 'th', 'vi'];
@@ -192,7 +192,7 @@ function hintTier(target: string, lang: string): number {
 /**
  * Orders a second track's language for a translation into `target`, lower
  * first (english repo, spec 025): by tier, then the target's cluster, then
- * prevalence. 0: no use. Mirrors dictionary-service subtrans.SecondRank.
+ * prevalence. 0: no use. Mirrors dictionary-service subtitles.SecondRank.
  */
 export function secondRank(target: string, lang: string): number {
     if (!genderMarked(target) || !genderMarked(lang)) return 0;
