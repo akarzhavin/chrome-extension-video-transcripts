@@ -31,13 +31,15 @@ export interface PartRequest {
     to: number;
     /** Cells one model call may cover; the server clamps it to 1, 2 or 5. */
     window?: number;
+    /** Fingerprint of a second track in a gendered language, the server's gender hint. */
+    second?: string;
 }
 
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
 
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
-    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; wallet?: unknown }
+    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; secondUnknown?: true; wallet?: unknown }
     | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
 
 export interface StoredTrack {
@@ -75,7 +77,10 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         return deps.fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({ lang: req.lang, from: req.from, to: req.to, window: req.window }),
+            body: JSON.stringify({
+                lang: req.lang, from: req.from, to: req.to, window: req.window,
+                ...(req.second && FINGERPRINT.test(req.second) ? { second: req.second } : {}),
+            }),
         });
     };
     let res: Response;
@@ -96,7 +101,12 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         const skipped = inRange(b.skipped);
         // Cues whose part was not ready; they stay on their way.
         const pending = inRange(b.pending);
-        return { ok: true, from, to, lines, skipped, pending, ...(b.wallet ? { wallet: b.wallet } : {}) };
+        // The named second track is not on the server yet: the caller stores it.
+        return {
+            ok: true, from, to, lines, skipped, pending,
+            ...(b.second_unknown === true ? { secondUnknown: true as const } : {}),
+            ...(b.wallet ? { wallet: b.wallet } : {}),
+        };
     }
     switch (res.status) {
         case 401:

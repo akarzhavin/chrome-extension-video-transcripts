@@ -156,3 +156,62 @@ export function onLanguagePrefsChanged(cb: (prefs: LanguagePrefs | null) => void
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
 }
+
+// Gender of "I" and "you" in a translation (english repo, spec 023 FR-011b;
+// mirrors dictionary-service features/subtitles/gender.go). Strong: verbs or pronouns
+// show it; adjective: only adjectives and participles. The other targets
+// need no second track.
+const GENDER_STRONG = ['ru', 'uk', 'pl', 'cs', 'sk', 'sl', 'sr', 'hr', 'hi', 'he', 'ar', 'th', 'vi'];
+const GENDER_ADJECTIVE = ['es', 'pt', 'it', 'fr', 'ro', 'el', 'bg', 'lv', 'lt'];
+// Often leave the gender of "I" unshown (Arabic past tense): last as a hint.
+const GENDER_HIDDEN = ['ar', 'th', 'vi'];
+/**
+ * Hint languages the cheap model is measured to read (english repo, spec 023 R21, spec 025 R1);
+ * admin-edited, released with the server's. Builds without the subtitle limits keep the default.
+ */
+export const MINI_READS: string[] =
+    typeof __LIMIT_SUBTITLE__ !== 'undefined' ? __LIMIT_SUBTITLE__.SUBTITLE_MINI_READS : ['ru', 'es'];
+// Breaks ties within a tier: the more widespread first.
+const PREVALENCE = ['ru', 'es', 'pt', 'fr', 'it', 'pl', 'uk', 'ar', 'hi', 'vi', 'he', 'cs', 'ro', 'el', 'th', 'bg', 'sr', 'hr', 'sk', 'lt', 'sl', 'lv'];
+const CLUSTER: Record<string, string> = {
+    ru: 'baltoslavic', uk: 'baltoslavic', pl: 'baltoslavic', cs: 'baltoslavic', sk: 'baltoslavic', sl: 'baltoslavic',
+    sr: 'baltoslavic', hr: 'baltoslavic', bg: 'baltoslavic', lv: 'baltoslavic', lt: 'baltoslavic',
+    es: 'romance', pt: 'romance', it: 'romance', fr: 'romance', ro: 'romance', el: 'romance',
+    he: 'semitic', ar: 'semitic',
+};
+
+/** The target shows the gender of "I" or "you": its translation wants a second track. */
+export function genderMarked(code: string): boolean {
+    return GENDER_STRONG.includes(code) || GENDER_ADJECTIVE.includes(code);
+}
+
+// 1 best: the target itself, one the cheap model reads, strong, adjective-only, gender hidden.
+function hintTier(target: string, lang: string): number {
+    if (lang === target) return 1;
+    if (MINI_READS.includes(lang)) return 2;
+    if (GENDER_HIDDEN.includes(lang)) return 5;
+    return GENDER_STRONG.includes(lang) ? 3 : 4;
+}
+
+/**
+ * Orders a second track's language for a translation into `target`, lower
+ * first (english repo, spec 025): by tier, then the target's cluster, then
+ * prevalence. 0: no use. Mirrors dictionary-service subtitles.SecondRank.
+ */
+export function secondRank(target: string, lang: string): number {
+    if (!genderMarked(target) || !genderMarked(lang)) return 0;
+    const cluster = CLUSTER[target];
+    return hintTier(target, lang) * 100 + PREVALENCE.indexOf(lang) + 1 + (cluster && CLUSTER[lang] === cluster ? 0 : 50);
+}
+
+/** A hint in `lang` is one the cheap model cannot read: the server sends it to its hint model. */
+export function needsHintModel(target: string, lang: string): boolean {
+    return lang !== target && !MINI_READS.includes(lang);
+}
+
+/** The whole order as text, one target a line: the parity test's subject. */
+export function secondOrderTable(): string {
+    const langs = [...GENDER_STRONG, ...GENDER_ADJECTIVE].sort();
+    const lines = langs.map((t) => `${t}: ${[...langs].sort((a, b) => secondRank(t, a) - secondRank(t, b)).join(' ')}`);
+    return `mini: ${MINI_READS.join(' ')}\n${lines.join('\n')}\n`;
+}

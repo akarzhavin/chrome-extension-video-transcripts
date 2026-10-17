@@ -4,8 +4,9 @@
 
 import type { AppState } from '../AppState';
 import { msg } from '../i18n';
-import { labelForLanguage } from '../languages';
+import { genderMarked, labelForLanguage } from '../languages';
 import type { Track } from '../types';
+import { pickSecond, type SecondCandidate } from './second';
 import { prepareTrack, type PreparedTrack } from './track';
 import type { PartCode, PartReply, StoreReply } from './worker';
 
@@ -50,6 +51,10 @@ export interface AiHost {
     /** Playback position, seconds. */
     currentTime(): number;
     later(fn: () => void, ms: number): void;
+    /** The site's other subtitle tracks, the gender hint's candidates; absent: none. */
+    secondTracks?(): SecondCandidate[];
+    /** Wall clock, ms; Date.now when absent. */
+    now?(): number;
 }
 
 // The grid, windows and timings ship in lingogram-limits.json, admin-edited and
@@ -74,6 +79,9 @@ const IDLE_MS = L.SUBTITLE_IDLE_MS;
 // only a few times per part; otherwise the part waits for the viewer.
 const MAX_RETRY_AFTER_MS = L.SUBTITLE_RETRY_AFTER_CAP_S * 1000;
 const MAX_RETRIES = L.SUBTITLE_MAX_RETRIES;
+// The store rules refuse two tracks within this interval (lingogram-limits.json);
+// the second track waits it out after the learning track, plus a margin.
+const STORE_INTERVAL_MS = L.SUBTITLE_MIN_INTERVAL_S * 1000 + 1000;
 
 export const AI_SUFFIX = ' · AI';
 
@@ -125,6 +133,10 @@ export class AiTranslator {
     private watchedFrom = 0;
     // The cells [first, end) of the request in flight or waiting on a retry.
     private asking: [number, number] = [0, 0];
+    // The gender hint (T113): named in every part request once picked.
+    private second: PreparedTrack | null = null;
+    private secondStore: 'no' | 'storing' | 'tried' = 'no';
+    private lastStoreAt: number | null = null;
 
     constructor(
         private host: AiHost,
@@ -146,6 +158,7 @@ export class AiTranslator {
         }
         this.track = prepared;
         this.parts = splitParts(prepared.cues.length);
+        if (genderMarked(this.native) && this.host.secondTracks) void this.findSecond(prepared);
         this.watchedFrom = this.host.currentTime();
         const state = this.host.state;
         state.preferredSecondaryName = this.aiName;
@@ -191,6 +204,50 @@ export class AiTranslator {
         if (state.preferredSecondaryName === this.aiName) state.preferredSecondaryName = undefined;
         state.removeTrack(this.aiName);
         this.host.refresh();
+    }
+
+    // Picked while the first parts are asked; they go without it.
+    private async findSecond(prepared: PreparedTrack): Promise<void> {
+        try {
+            const second = await pickSecond(this.native, prepared, this.host.secondTracks!());
+            if (this.track === prepared) this.second = second;
+        } catch {
+            // No hint: the server falls back to the text, a guess, neutral phrasing.
+        }
+    }
+
+    private now(): number {
+        return this.host.now ? this.host.now() : Date.now();
+    }
+
+    // The server does not hold the named second track: store it once, after
+    // the store interval; still unknown after that, stop naming it.
+    private secondUnknown(): void {
+        if (!this.second || this.secondStore === 'storing') return;
+        if (this.secondStore === 'tried') {
+            this.second = null;
+            return;
+        }
+        this.secondStore = 'storing';
+        const wait = this.lastStoreAt === null ? 0 : this.lastStoreAt + STORE_INTERVAL_MS - this.now();
+        if (wait > 0) this.host.later(() => void this.storeSecond(), wait);
+        else void this.storeSecond();
+    }
+
+    private async storeSecond(): Promise<void> {
+        const s = this.second;
+        if (!s || !this.track) return;
+        let reply: StoreReply;
+        try {
+            reply = (await this.host.send({
+                action: 'SUBTITLE_AI_STORE',
+                track: { fingerprint: s.fingerprint, sourceLang: s.sourceLang, site: s.site, durationMs: s.durationMs, cues: s.cues },
+            })) as StoreReply;
+        } catch {
+            reply = { ok: false, reason: 'network' };
+        }
+        if (reply.ok) this.lastStoreAt = this.now();
+        this.secondStore = !reply.ok && reply.reason === 'network' ? 'no' : 'tried';
     }
 
     private nextPart(): number | null {
@@ -246,7 +303,7 @@ export class AiTranslator {
         try {
             reply = (await this.host.send({
                 action: 'SUBTITLE_AI_PART',
-                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to, window },
+                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to, window, ...(this.second ? { second: this.second.fingerprint } : {}) },
             })) as PartReply;
         } catch {
             reply = { ok: false, code: 'unavailable' };
@@ -255,6 +312,7 @@ export class AiTranslator {
         if (!this.track) return;
 
         if (reply.ok) {
+            if (reply.secondUnknown) this.secondUnknown();
             const pending = reply.pending ?? [];
             this.fill(reply.from, reply.lines, reply.skipped ?? [], pending);
             // A cell not all ready: its pending cues stay marked, and it
@@ -316,6 +374,7 @@ export class AiTranslator {
             reply = { ok: false, reason: 'network' };
         }
         if (!this.track) return;
+        if (reply.ok) this.lastStoreAt = this.now();
         if (!reply.ok && reply.reason === 'network') {
             // Nothing was stored: store again when the viewer comes back to it.
             this.stored = false;

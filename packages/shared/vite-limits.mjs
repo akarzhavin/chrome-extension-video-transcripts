@@ -51,6 +51,10 @@ const SUBTITLE_DEFAULTS = {
     SUBTITLE_RETRY_AFTER_CAP_S: 60,
     SUBTITLE_MAX_RETRIES: 3,
     SUBTITLE_READ_AHEAD: 2,
+    // The gender hint (english repo spec 025): the server reads the same released values.
+    SUBTITLE_SECOND_COVERAGE: 80,
+    SUBTITLE_SECOND_TRIES: 3,
+    SUBTITLE_MINI_READS: ['ru', 'es'],
 };
 
 // Caps of a "no subtitles" diagnostics report; the Firestore rules enforce them.
