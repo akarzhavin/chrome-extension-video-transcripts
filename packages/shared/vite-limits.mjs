@@ -37,6 +37,31 @@ const SUBTITLE_DEFAULTS = {
     SUBTITLE_MAX_CUE_CHARS_PER_SEC: 50,
     SUBTITLE_WRITES_PER_DAY: 30,
     SUBTITLE_MIN_INTERVAL_S: 20,
+    // The backend's grid and windows, plus the controller's timings (spec 028):
+    // admin-edited, shipped with the release together with the server.
+    SUBTITLE_PART_SIZE: 20,
+    SUBTITLE_FIRST_PART: 20,
+    SUBTITLE_SHORT_TRACK: 20,
+    SUBTITLE_WINDOW_MIN: 1,
+    SUBTITLE_WINDOW_MID: 2,
+    SUBTITLE_WINDOW_MAX: 5,
+    SUBTITLE_WINDOW_MID_AFTER_S: 60,
+    SUBTITLE_WINDOW_MAX_AFTER_S: 180,
+    SUBTITLE_IDLE_MS: 3000,
+    SUBTITLE_RETRY_AFTER_CAP_S: 60,
+    SUBTITLE_MAX_RETRIES: 3,
+    SUBTITLE_READ_AHEAD: 2,
+};
+
+// Caps of a "no subtitles" diagnostics report; the Firestore rules enforce them.
+const DIAG_DEFAULTS = {
+    MAX_DIAG_SITE_BYTES: 100,
+    MAX_DIAG_VIDEO_REF_BYTES: 500,
+    MAX_DIAG_VERSION_BYTES: 32,
+    MAX_DIAG_LOCALE_BYTES: 16,
+    MAX_DIAG_FAILURE_BYTES: 32,
+    MAX_DIAG_ATTEMPTS: 16,
+    MAX_DIAG_TRACKS_LOADED: 64,
 };
 
 const DEFAULTS = {
@@ -66,6 +91,7 @@ const DEFAULTS = {
     // Subtitle translation; the backend refuses a track breaking them, so the
     // extension leaves such cues out first.
     ...SUBTITLE_DEFAULTS,
+    ...DIAG_DEFAULTS,
 };
 
 export function loadLingogramLimits() {
@@ -94,6 +120,9 @@ export function limitDefines(limits) {
         __LIMIT_MAX_FEEDBACK_TEXT_BYTES__: JSON.stringify(limits.MAX_FEEDBACK_TEXT_BYTES),
         __LIMIT_SUBTITLE__: JSON.stringify(
             Object.fromEntries(Object.keys(SUBTITLE_DEFAULTS).map((k) => [k, limits[k] ?? SUBTITLE_DEFAULTS[k]])),
+        ),
+        __LIMIT_DIAG__: JSON.stringify(
+            Object.fromEntries(Object.keys(DIAG_DEFAULTS).map((k) => [k, limits[k] ?? DIAG_DEFAULTS[k]])),
         ),
     };
 }

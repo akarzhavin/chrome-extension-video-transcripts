@@ -18,6 +18,7 @@ declare const __EXT_DEV_DEFAULT_TARGET__: string;
 declare const __LIMIT_MAX_WORDS_PER_DAY__: number;
 /** Subtitle limits shared with the backend, from lingogram-limits.json. */
 declare const __LIMIT_SUBTITLE__: SubtitleLimits; // declared in packages/shared/src/auth/globals.d.ts
+declare const __LIMIT_DIAG__: DiagLimits; // declared in packages/shared/src/auth/globals.d.ts
 declare const __LIMIT_MIN_INTERVAL_MS__: number;
 declare const __LIMIT_MAX_TERM_BYTES__: number;
 declare const __LIMIT_MAX_SOURCE_URL_BYTES__: number;
