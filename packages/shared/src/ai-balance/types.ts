@@ -19,6 +19,29 @@ export interface AIBalance {
     at: number;
 }
 
+/** The windows a new account gets (GET /dictionary/ai/limits), for a signed-out view. */
+export interface DefaultAILimits {
+    day: number;
+    month: number;
+    /** When the worker received it. */
+    at: number;
+}
+
+/** The wire limits object (or a stored one), or null when it is not one. */
+export function parseDefaultAILimits(raw: unknown, now: number = Date.now()): DefaultAILimits | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const r = raw as Record<string, unknown>;
+    const limitOf = (w: unknown): number | null => {
+        if (typeof w === 'number') return Number.isFinite(w) && w > 0 ? w : null; // stored form
+        const v = w && typeof w === 'object' ? num((w as Record<string, unknown>).limit) : null;
+        return v !== null && v > 0 ? v : null;
+    };
+    const day = limitOf(r.day);
+    const month = limitOf(r.month);
+    if (day === null || month === null) return null;
+    return { day, month, at: num(r.at) ?? now };
+}
+
 /** Why the model part of an answer is missing. */
 export type AIStatus = 'sign_in_required' | 'limit_day' | 'limit_month' | 'ai_paused';
 

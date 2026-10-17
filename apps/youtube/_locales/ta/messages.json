@@ -943,6 +943,18 @@
     "message": "உள்நுழையவும் — AI மொழிபெயர்க்கும்",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "உள்நுழையவும்",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "உள்நுழையவும், AI வசனங்களிலிருந்து சொற்றொடர்களை மொழிபெயர்த்து சொல் அட்டைகளை நிறைவு செய்யும்",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "ஒரு நாளைக்கு {count} இலவச டோக்கன்கள்",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google பதிலளிக்கவில்லை, மீண்டும் முயலவும்",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

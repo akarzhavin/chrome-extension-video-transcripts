@@ -943,6 +943,18 @@
     "message": "साइन इन करा — AI भाषांतर करेल",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "साइन इन करा",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "साइन इन करा, आणि AI उपशीर्षकांतील वाक्ये भाषांतरित करेल व शब्द कार्ड पूर्ण करेल",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "दररोज {count} मोफत टोकन",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google ने उत्तर दिले नाही, पुन्हा प्रयत्न करा",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

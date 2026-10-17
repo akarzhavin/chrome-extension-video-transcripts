@@ -57,28 +57,31 @@ export interface AiHost {
     now?(): number;
 }
 
-// The backend's grid: cells of 20 cues, shared by every viewer.
-const PART = 20;
-const FIRST_PART = 20;
-const SHORT_TRACK = 20;
-// The cell being watched and the next one; the rest waits for playback.
-const AHEAD = 2;
+// The grid, windows and timings ship in lingogram-limits.json, admin-edited and
+// released together with the server, which must cut the track the same way.
+const L = __LIMIT_SUBTITLE__;
+// The backend's grid: cells shared by every viewer.
+const PART = L.SUBTITLE_PART_SIZE;
+const FIRST_PART = L.SUBTITLE_FIRST_PART;
+const SHORT_TRACK = L.SUBTITLE_SHORT_TRACK;
+// The cell being watched and the next ones; the rest waits for playback.
+const AHEAD = L.SUBTITLE_READ_AHEAD;
 // The dynamic window: how many cells one request covers. It grows with
 // playback watched since the start or the last seek, so a video opened for a
-// few seconds is not translated ahead; the server takes only 1, 2 or 5.
-const MIN_WINDOW = 1;
-const MID_WINDOW = 2;
-const MAX_WINDOW = 5;
-const WINDOW_MID_AFTER_S = 60;
-const WINDOW_MAX_AFTER_S = 180;
-const IDLE_MS = 3000;
+// few seconds is not translated ahead; the server takes only these three.
+const MIN_WINDOW = L.SUBTITLE_WINDOW_MIN;
+const MID_WINDOW = L.SUBTITLE_WINDOW_MID;
+const MAX_WINDOW = L.SUBTITLE_WINDOW_MAX;
+const WINDOW_MID_AFTER_S = L.SUBTITLE_WINDOW_MID_AFTER_S;
+const WINDOW_MAX_AFTER_S = L.SUBTITLE_WINDOW_MAX_AFTER_S;
+const IDLE_MS = L.SUBTITLE_IDLE_MS;
 // A 503 is retried on a timer only when the server says it passes soon, and
 // only a few times per part; otherwise the part waits for the viewer.
-const MAX_RETRY_AFTER_MS = 60_000;
-const MAX_RETRIES = 3;
+const MAX_RETRY_AFTER_MS = L.SUBTITLE_RETRY_AFTER_CAP_S * 1000;
+const MAX_RETRIES = L.SUBTITLE_MAX_RETRIES;
 // The store rules refuse two tracks within this interval (lingogram-limits.json);
 // the second track waits it out after the learning track, plus a margin.
-const STORE_INTERVAL_MS = __LIMIT_SUBTITLE__.SUBTITLE_MIN_INTERVAL_S * 1000 + 1000;
+const STORE_INTERVAL_MS = L.SUBTITLE_MIN_INTERVAL_S * 1000 + 1000;
 
 export const AI_SUFFIX = ' · AI';
 

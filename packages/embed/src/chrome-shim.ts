@@ -10,6 +10,7 @@
 //
 // Only the surface those modules actually touch is implemented, so a new
 // dependency fails loudly instead of silently half-working.
+import { AUTH_STATE_KEYS } from '@video-transcripts/shared';
 import type { EmbedOptions } from './types';
 
 interface ShimState {
@@ -29,6 +30,30 @@ export function installChromeShim(opts: EmbedOptions): () => void {
         email: opts.accountEmail ?? 'you@example.com',
     };
 
+    // The AI badge reads the sign-in from storage (the keys getAuthState needs),
+    // not from AUTH_STATUS, so storage answers for state.signedIn and a sign-in
+    // or sign-out reaches it as a change, as the worker's writes would.
+    type Changes = Record<string, { oldValue?: unknown; newValue?: unknown }>;
+    const listeners = new Set<(changes: Changes, area: string) => void>();
+    const authEntries = (): Record<string, string> =>
+        state.signedIn ? Object.fromEntries(AUTH_STATE_KEYS.map((k) => [k, 'demo'])) : {};
+    const setSignedIn = (v: boolean) => {
+        if (state.signedIn === v) return;
+        const before = authEntries();
+        state.signedIn = v;
+        const after = authEntries();
+        const changes: Changes = {};
+        for (const k of AUTH_STATE_KEYS) changes[k] = { oldValue: before[k], newValue: after[k] };
+        for (const l of listeners) setTimeout(() => l(changes, 'local'), 0);
+    };
+    const storageGet = async (keys?: string | string[] | null): Promise<Record<string, unknown>> => {
+        const all = authEntries();
+        if (keys == null) return all;
+        const out: Record<string, unknown> = {};
+        for (const k of Array.isArray(keys) ? keys : [keys]) if (k in all) out[k] = all[k];
+        return out;
+    };
+
     const handle = (message: Record<string, unknown>): unknown => {
         switch (message.action) {
             case 'AUTH_STATUS':
@@ -37,12 +62,12 @@ export function installChromeShim(opts: EmbedOptions): () => void {
                     : { signedIn: false };
 
             case 'AUTH_SIGN_IN_VIA_LINGOGRAM':
-                state.signedIn = true;
+                setSignedIn(true);
                 opts.onSignInClick?.();
                 return { ok: true };
 
             case 'AUTH_SIGN_OUT':
-                state.signedIn = false;
+                setSignedIn(false);
                 return { ok: true };
 
             case 'ADD_WORD': {
@@ -78,8 +103,11 @@ export function installChromeShim(opts: EmbedOptions): () => void {
         // prefs.ts guards on chrome.storage.local, so leaving it out would be
         // fine — but answering keeps preference writes from throwing.
         storage: {
-            local: { get: async () => ({}), set: async () => {} },
-            onChanged: { addListener: () => {}, removeListener: () => {} },
+            local: { get: storageGet, set: async () => {} },
+            onChanged: {
+                addListener: (l: (changes: Changes, area: string) => void) => void listeners.add(l),
+                removeListener: (l: (changes: Changes, area: string) => void) => void listeners.delete(l),
+            },
         },
     };
 

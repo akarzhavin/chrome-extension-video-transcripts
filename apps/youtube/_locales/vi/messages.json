@@ -943,6 +943,18 @@
     "message": "Đăng nhập — AI sẽ dịch",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "Đăng nhập",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "Đăng nhập, AI sẽ dịch các cụm từ trong phụ đề và hoàn thiện thẻ từ",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "{count} token miễn phí mỗi ngày",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google không phản hồi, hãy thử lại",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

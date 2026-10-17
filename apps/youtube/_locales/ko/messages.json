@@ -943,6 +943,18 @@
     "message": "로그인 — AI가 번역합니다",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "로그인",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "로그인하면 AI가 자막의 문장을 번역하고 단어 카드를 완성합니다",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "하루 {count} 토큰 무료",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google이 응답하지 않았습니다, 다시 시도하세요",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

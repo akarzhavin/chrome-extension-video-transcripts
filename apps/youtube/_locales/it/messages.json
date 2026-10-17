@@ -943,6 +943,18 @@
     "message": "Accedi — l'AI tradurrà",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "Accedi",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "Accedi e l'AI tradurrà le frasi dei sottotitoli e completerà le schede delle parole",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "{count} token gratuiti al giorno",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google non ha risposto, riprova",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

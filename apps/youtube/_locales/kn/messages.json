@@ -943,6 +943,18 @@
     "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ — AI ಅನುವಾದಿಸುತ್ತದೆ",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "ಸೈನ್ ಇನ್ ಮಾಡಿ, AI ಉಪಶೀರ್ಷಿಕೆಗಳ ಪದಗುಚ್ಛಗಳನ್ನು ಅನುವಾದಿಸುತ್ತದೆ ಮತ್ತು ಪದ ಕಾರ್ಡ್‌ಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸುತ್ತದೆ",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "ದಿನಕ್ಕೆ {count} ಉಚಿತ ಟೋಕನ್‌ಗಳು",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google ಉತ್ತರಿಸಲಿಲ್ಲ, ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

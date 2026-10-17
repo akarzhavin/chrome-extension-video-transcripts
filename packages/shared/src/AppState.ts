@@ -13,9 +13,8 @@ export class AppState {
     activeTrackIndex: number = 0;
     secondaryTrackIndex: number = 0;
     // True while the display order is manually inverted relative to the
-    // learning→native preference (any swap entry point toggles it). Drives the
-    // language chip's visual order; reset whenever applyPreferences re-derives
-    // the indexes from the preference.
+    // learning→native preference (any swap entry point toggles it). Reset
+    // whenever applyPreferences re-derives the indexes from the preference.
     swapped: boolean = false;
 
     // When set (Netflix), the settings-panel dropdowns become language pickers

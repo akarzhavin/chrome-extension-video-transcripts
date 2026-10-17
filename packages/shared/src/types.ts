@@ -103,7 +103,7 @@ export interface SidebarElements {
   lookupBackBtn?: HTMLButtonElement;
   // Quick-mode bar in the sub-header: Single/Dual/Guess as a segmented radio
   // (the active segment expands into a labeled pill) plus the labeled
-  // On-screen switch. Swap lives on the language-pair chip.
+  // On-screen switch. Swap is Shift+S.
   quickModesBar?: HTMLDivElement;
   qmSingleBtn?: HTMLButtonElement;
   qmDualBtn?: HTMLButtonElement;

@@ -943,6 +943,18 @@
     "message": "登入 — AI 將為你翻譯",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "登入",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "登入後，AI 會翻譯字幕中的片語並補全單字卡片",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "每天 {count} 個免費 token",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google 未回應,請重試",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

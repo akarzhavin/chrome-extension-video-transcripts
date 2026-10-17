@@ -443,7 +443,6 @@ class YouTubeVttApp extends BaseVttApp {
 
         if (mode === 'onboarding') {
             this.langPrefs = null;
-            document.getElementById('vtt-langpair')?.remove();
             this.hideLanguageOnboarding();
             this.ui.refresh();                  // clear the subtitle list
             this.showLanguageOnboarding();
@@ -463,8 +462,8 @@ class YouTubeVttApp extends BaseVttApp {
         const nativeBase = baseLangCode(native);
         const learnLabel = labelForLanguage(learnBase);
         const nativeLabel = labelForLanguage(nativeBase);
-        // Full codes for the chip (the abbreviation strips the region itself);
-        // track labels stay base so AppState name-matching is unaffected.
+        // Full codes in the prefs; track labels stay base so AppState
+        // name-matching is unaffected.
         this.langPrefs = { learning: learn, native: native };
         this.state.setLanguagePreferences(learnLabel, nativeLabel);
 
@@ -482,7 +481,6 @@ class YouTubeVttApp extends BaseVttApp {
         this.state.addTrack(nativeLabel, nativeSubs);
 
         this.hideLanguageOnboarding();
-        this.updateLanguagePairChip();          // real chip
 
         if (mode === 'guess') {
             // Guess mode: words masked, revealed progressively. Stagger the reveal

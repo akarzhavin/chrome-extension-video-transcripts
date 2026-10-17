@@ -943,6 +943,18 @@
     "message": "സൈൻ ഇൻ ചെയ്യുക — AI വിവർത്തനം ചെയ്യും",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "സൈൻ ഇൻ ചെയ്യുക",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "സൈൻ ഇൻ ചെയ്യുക, AI സബ്‌ടൈറ്റിലുകളിലെ ശൈലികൾ വിവർത്തനം ചെയ്യുകയും വാക്ക് കാർഡുകൾ പൂർത്തിയാക്കുകയും ചെയ്യും",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "പ്രതിദിനം {count} സൗജന്യ ടോക്കണുകൾ",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Google മറുപടി നൽകിയില്ല, വീണ്ടും ശ്രമിക്കുക",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."

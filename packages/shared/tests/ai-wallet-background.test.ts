@@ -75,9 +75,44 @@ beforeEach(() => {
 });
 
 describe('AI_BALANCE_REFRESH', () => {
-    test('signed out: ok:false and no network', async () => {
-        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+    test('signed out: GETs the default limits, with no token, and stores them', async () => {
+        fetchMock().mockResolvedValue(json({ day: { limit: 123_000 }, month: { limit: 4_000_000 } }));
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaultAILimits: any };
+        expect(res.ok).toBe(true);
+        expect(res.defaultAILimits).toMatchObject({ day: 123_000, month: 4_000_000 });
+        const [url, init] = fetchMock().mock.calls[0];
+        expect(url).toBe('https://api.test/dictionary/ai/limits');
+        expect((init as RequestInit).headers).toBeUndefined();
+        expect(freshIdToken).not.toHaveBeenCalled();
+        expect(store['ai.defaultLimits']).toMatchObject({ day: 123_000, month: 4_000_000 });
+        expect(store[BALANCE_KEY]).toBeUndefined();
+    });
+
+    test('signed out with default limits read under 6 hours ago: no request, the stored ones answer', async () => {
+        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 5 * 3_600_000 };
+        const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaultAILimits: any };
+        expect(res).toMatchObject({ ok: true, defaultAILimits: { day: 123_000 } });
         expect(fetchMock()).not.toHaveBeenCalled();
+    });
+
+    test('signed out with default limits older than 6 hours (or from the future): read again', async () => {
+        fetchMock().mockResolvedValue(json({ day: { limit: 200_000 }, month: { limit: 4_000_000 } }));
+        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 7 * 3_600_000 };
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() + 3_600_000 };
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        expect(fetchMock()).toHaveBeenCalledTimes(2);
+        expect(store['ai.defaultLimits']).toMatchObject({ day: 200_000 });
+    });
+
+    test('signed out and the limits are unreachable or malformed: ok:false, nothing stored', async () => {
+        fetchMock().mockResolvedValueOnce(json({}, 503));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        fetchMock().mockResolvedValueOnce(json({ day: { limit: 0 }, month: { limit: 1 } }));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        fetchMock().mockRejectedValueOnce(new Error('offline'));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        expect(store['ai.defaultLimits']).toBeUndefined();
     });
 
     test('signed in: GETs the balance with the bearer token and stores it', async () => {

@@ -13,7 +13,6 @@ import {
     saveLanguagePrefs,
     onLanguagePrefsChanged,
     labelForLanguage,
-    shortCodeForLanguage,
     msg as i18nMsg,
     setI18nOverride,
     OncePerScope,
@@ -123,7 +122,7 @@ export class VttApp implements AppInterface {
         this.setupListeners();
         this.startVideoPolling();
         this.detector.start();
-        // The onboarding picker, language-pair chip and status banners belong to
+        // The onboarding picker and status banners belong to
         // the visible sidebar, which only renders in the top window (iframes get
         // a hidden one). Subtitle detection still runs in every frame.
         if (this.isTopWindow && this.uiOwned) void this.initLanguagePrefs();
@@ -402,7 +401,7 @@ export class VttApp implements AppInterface {
         }
     }
 
-    // ── Language prefs, onboarding, chip & status (top window only) ─────────
+    // ── Language prefs, onboarding & status (top window only) ───────────────
 
     async initLanguagePrefs(): Promise<void> {
         // Dev only: force the content-UI locale (incl. this banner) without
@@ -487,7 +486,6 @@ export class VttApp implements AppInterface {
     updateOnboardingState(): void {
         if (!this.uiOwned) return; // sidebar belongs to another extension copy
         if (!this.isWatchPage()) return; // not a player page → keep the sidebar quiet
-        this.updateLanguagePairChip();
         if (this.langPrefs) {
             this.hideLanguageOnboarding();
             this.scheduleNoSubtitlesCheck();
@@ -496,58 +494,6 @@ export class VttApp implements AppInterface {
             this.hideStatusBanner();
             this.showLanguageOnboarding();
         }
-    }
-
-    // An "EN ⇄ RU" chip at the header's left edge (mirroring the settings gear
-    // on the right) reflecting the chosen pair, so it's always clear which two
-    // languages are in play.
-    updateLanguagePairChip(): void {
-        // Mount ONLY into our own header slot, no fallbacks: the ids are
-        // shared across extension versions, so a fallback would graft the
-        // chip into a sidebar built by another installed copy.
-        const headerTop = document.getElementById('vtt-header-top');
-        const existing = document.getElementById('vtt-langpair');
-        if (!this.langPrefs) {
-            existing?.remove();
-            return;
-        }
-        const { learning, native } = this.langPrefs;
-        const chip = (existing as HTMLElement) ?? document.createElement('div');
-        chip.id = 'vtt-langpair';
-        // Compact abbreviations (EN ⇄ RU); each language is one span so the
-        // .vtt-swapped row-reverse flip reorders them cleanly. The
-        // bidirectional arrow advertises that the chip itself swaps.
-        chip.innerHTML =
-            '<span class="vtt-langpair-inner">' +
-            `<span class="vtt-langpair-lang">${shortCodeForLanguage(learning)}</span>` +
-            '<span class="vtt-langpair-arrow">⇄</span>' +
-            `<span class="vtt-langpair-lang">${shortCodeForLanguage(native)}</span>` +
-            '</span>';
-        // The chip IS the swap control: tapping the pair swaps which track is
-        // primary, and .vtt-swapped (set in updateControls) flips the visual
-        // order to match. Language changes live behind the settings gear.
-        if (!existing) {
-            const label = `${t('ytModeSwap', 'Swap')} (Shift+S)`;
-            chip.setAttribute('role', 'button');
-            chip.setAttribute('tabindex', '0');
-            chip.setAttribute('aria-label', t('ytModeSwap', 'Swap'));
-            chip.title = label;
-            const swap = () => {
-                if (!this.state.swapTracks()) return;
-                chip.classList.remove('vtt-pulse');
-                void chip.offsetWidth;
-                chip.classList.add('vtt-pulse');
-                this.ui.refresh();
-            };
-            chip.addEventListener('click', swap);
-            chip.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    swap();
-                }
-            });
-        }
-        if (!existing && headerTop) headerTop.prepend(chip);
     }
 
     showLanguageOnboarding(): void {

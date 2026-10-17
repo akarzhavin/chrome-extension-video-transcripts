@@ -108,7 +108,7 @@ test.describe('throttling by YouTube', () => {
 });
 
 /**
- * Behaviour map §18.1, §18.4 — the compact line under the language chip, and
+ * Behaviour map §18.1, §18.4 — the compact line under the header, and
  * which of its three wordings a given cause produces.
  *
  * The unit twins in `app-base-status.test.ts` carry the red for these (Art. A):

@@ -15,8 +15,7 @@ export interface EmbedTrack {
     /** Display name, e.g. "English" — also what the language pair matches on. */
     name: string;
     /**
-     * BCP-47 primary code, e.g. 'en'. Only the language-pair chip needs it (it
-     * shows EN ⇄ RU); omit it and the chip falls back to the track name.
+     * BCP-47 primary code, e.g. 'en'. The site's demo picks its pair by it.
      */
     lang?: string;
     lines: SubtitleLine[];

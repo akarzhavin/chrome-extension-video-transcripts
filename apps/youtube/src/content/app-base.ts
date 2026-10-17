@@ -7,7 +7,6 @@ import {
     saveLanguagePrefs,
     onLanguagePrefsChanged,
     labelForLanguage,
-    shortCodeForLanguage,
     msg as i18nMsg,
     OncePerScope,
     platformOf,
@@ -145,7 +144,7 @@ function t(key: string, fallback: string): string {
 }
 
 // Site-agnostic styling for the sidebar chrome the base app injects (language
-// onboarding, the searching/no-subtitles status banner, the language-pair chip).
+// onboarding, the searching/no-subtitles status banner).
 // Both the YouTube and Netflix layout overrides splice this in so the two sites
 // share identical panel styling; only the page-reflow rules differ per site.
 export const SIDEBAR_CHROME_CSS = `
@@ -302,57 +301,11 @@ export const SIDEBAR_CHROME_CSS = `
         border-color: rgba(248, 113, 113, 0.6);
         background: rgba(239, 68, 68, 0.16);
     }
-    /* Header-left slot, the mirror of the settings gear on the right; the
-       centered title sits between them, and #vtt-header-top's align-items
-       centers the chip vertically (absolute children take their static
-       position). It's a button (swaps the pair), so block the text selection
-       the sidebar forces on for transcript quick-add. */
-    #vtt-langpair {
-        display: flex;
-        position: absolute;
-        left: 16px;
-        min-width: 0;
-        -webkit-user-select: none;
-        user-select: none;
-    }
-    #vtt-langpair .vtt-langpair-inner {
-        display: inline-flex;
-        align-items: center;
-        /* Always read learning → native left-to-right, even when the sidebar
-           is RTL (which would otherwise flip the flex order). */
-        direction: ltr;
-        gap: 8px;
-        padding: 5px 13px;
-        border-radius: 999px;
-        background: rgba(124, 90, 255, 0.16);
-        border: 1px solid rgba(124, 90, 255, 0.32);
-        font-size: 12px;
-        font-weight: 600;
-        color: #e3e5ff;
-        cursor: pointer;
-        transition: background 120ms ease, border-color 120ms ease;
-        max-width: 100%;
-        min-width: 0;
-    }
-    #vtt-langpair .vtt-langpair-lang {
-        display: inline-flex;
-        align-items: center;
-    }
-    #vtt-langpair .vtt-langpair-inner:hover {
-        background: rgba(124, 90, 255, 0.28);
-        border-color: rgba(124, 90, 255, 0.55);
-    }
-    #vtt-langpair:focus-visible { outline: none; }
-    #vtt-langpair:focus-visible .vtt-langpair-inner {
-        border-color: rgba(124, 90, 255, 0.75);
-        box-shadow: 0 0 0 2px rgba(124, 90, 255, 0.35);
-    }
-    #vtt-langpair .vtt-langpair-arrow { opacity: 0.5; margin: 0 1px; }
 `;
 
 /**
  * Site-agnostic sidebar app: language onboarding, the "searching / no subtitles"
- * status flow, the language-pair chip, subtitle-track bookkeeping, playback-time
+ * status flow, subtitle-track bookkeeping, playback-time
  * highlighting, and keyboard shortcuts. Everything that differs per streaming
  * site (how a video is identified, how caption tracks are discovered/fetched,
  * how the player seeks, where the on-video overlay mounts) is left abstract for
@@ -520,7 +473,6 @@ export abstract class BaseVttApp implements AppInterface {
 
     updateOnboardingState(): void {
         if (!this.uiOwned) return;
-        this.updateLanguagePairChip();
         if (this.langPrefs) {
             this.hideLanguageOnboarding();
             this.scheduleNoSubtitlesCheck();
@@ -529,58 +481,6 @@ export abstract class BaseVttApp implements AppInterface {
             this.hideStatusBanner();
             this.showLanguageOnboarding();
         }
-    }
-
-    // An "EN ⇄ RU" chip at the header's left edge (mirroring the settings gear
-    // on the right) reflecting the chosen pair, so it's always clear which two
-    // languages are in play.
-    updateLanguagePairChip(): void {
-        // Mount ONLY into our own header slot, no fallbacks: the ids are
-        // shared across extension versions, so a fallback would graft the
-        // chip into a sidebar built by another installed copy.
-        const headerTop = document.getElementById('vtt-header-top');
-        const existing = document.getElementById('vtt-langpair');
-        if (!this.langPrefs) {
-            existing?.remove();
-            return;
-        }
-        const { learning, native } = this.langPrefs;
-        const chip = (existing as HTMLElement) ?? document.createElement('div');
-        chip.id = 'vtt-langpair';
-        // Compact abbreviations, no flags (EN ⇄ RU); each language is one span
-        // so the .vtt-swapped row-reverse flip reorders them cleanly. The
-        // bidirectional arrow advertises that the chip itself swaps.
-        chip.innerHTML =
-            '<span class="vtt-langpair-inner">' +
-            `<span class="vtt-langpair-lang">${shortCodeForLanguage(learning)}</span>` +
-            '<span class="vtt-langpair-arrow">⇄</span>' +
-            `<span class="vtt-langpair-lang">${shortCodeForLanguage(native)}</span>` +
-            '</span>';
-        // The chip IS the swap control: tapping the pair swaps which track is
-        // primary, and .vtt-swapped (set in updateControls) flips the visual
-        // order to match. Language changes live behind the settings gear.
-        if (!existing) {
-            const label = `${t('ytModeSwap', 'Swap')} (Shift+S)`;
-            chip.setAttribute('role', 'button');
-            chip.setAttribute('tabindex', '0');
-            chip.setAttribute('aria-label', t('ytModeSwap', 'Swap'));
-            chip.title = label;
-            const swap = () => {
-                if (!this.state.swapTracks()) return;
-                chip.classList.remove('vtt-pulse');
-                void chip.offsetWidth;
-                chip.classList.add('vtt-pulse');
-                this.ui.refresh();
-            };
-            chip.addEventListener('click', swap);
-            chip.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    swap();
-                }
-            });
-        }
-        if (!existing && headerTop) headerTop.prepend(chip);
     }
 
     showLanguageOnboarding(): void {
@@ -1537,14 +1437,14 @@ export abstract class BaseVttApp implements AppInterface {
         );
     }
 
-    // One quiet line under the language chip when a track is missing but others
+    // One quiet line under the header when a track is missing but others
     // are playing. Deliberately NOT the #vtt-status banner: that is a
     // full-width block above the transcript, and pushing the subtitles down to
     // apologise for a missing translation costs more than it explains.
     updatePartialFailureNotice(): void {
         // Its own row AFTER the sub-header, never inside it: #vtt-subheader is
-        // a single flex line (language chip | mode buttons) and a third child
-        // squeezes both of them into an unreadable mess.
+        // a single flex line of mode buttons, and an extra child squeezes
+        // them into an unreadable mess.
         const subheader = document.getElementById('vtt-subheader');
         document.getElementById('vtt-partial-notice')?.remove();
         if (!subheader?.parentElement) return;
@@ -1667,7 +1567,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     // Called after each failure. A partial failure (something did load) must
     // never raise the banner — the user is watching with the track that worked.
-    // It gets a quiet one-line notice under the language chip instead, which is
+    // It gets a quiet one-line notice under the header instead, which is
     // visible without going looking for it (the player-menu row only shows once
     // that menu is opened, which turned out to be too well hidden).
     evaluateSubtitleOutcome(): void {

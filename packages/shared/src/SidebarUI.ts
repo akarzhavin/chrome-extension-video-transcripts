@@ -539,16 +539,16 @@ export class SidebarUI {
         settingsBtn.innerHTML = ICONS.gear;
         settingsBtn.addEventListener('click', () => this.toggleSettingsPanel());
         headerTop.appendChild(settingsBtn);
-        // Today's AI tokens in the language chip's slot while signed in (spec 024).
+        // The AI badge at the header's left edge (spec 024): today's tokens
+        // while signed in; signed out, the same badge greyed with the default
+        // allowance, opening a sign-in panel.
         this.teardown.push(mountAIBadge(headerTop));
         header.appendChild(headerTop);
 
-        // Sub-header: a single row under the title holding the language-pair
-        // chip (app-level, prepended into this slot) on the left and the
-        // icon-only quick-mode bar (Swap · Dual · Guess · On-screen) on the
-        // right — modes switch without opening settings and without spending
-        // an extra row. Children carry their own vertical margins so the row
-        // collapses to nothing when both are absent.
+        // Sub-header: a single row under the title holding the icon-only
+        // quick-mode bar (Single · Dual · Guess · On-screen) — modes switch
+        // without opening settings. Children carry their own vertical margins
+        // so the row collapses to nothing when they are absent.
         const subheader = document.createElement('div');
         subheader.id = 'vtt-subheader';
         subheader.appendChild(this.buildQuickModes());
@@ -1126,9 +1126,8 @@ export class SidebarUI {
     // (icon + name), plus the independent On-screen toggle, permanently
     // labeled. The sole home for mode switching — the settings panel used to
     // carry a second copy. No "Modes" micro-label: the active pill and the
-    // toggle's caption name the cluster themselves. Swap lives on the
-    // language-pair chip (clicking the pair swaps the tracks), so it has no
-    // button here.
+    // toggle's caption name the cluster themselves. Swap is Shift+S, so it
+    // has no button here.
     private buildQuickModes(): HTMLDivElement {
         const bar = document.createElement('div');
         bar.id = 'vtt-quickmodes';
@@ -2390,8 +2389,7 @@ export class SidebarUI {
             }
         }
 
-        // The language chip doubles as the swap control: its visual order
-        // follows the actual display order (CSS flips it via .vtt-swapped).
+        // Marks the swapped display order on the panel; e2e reads it.
         this.elements.sidebar?.classList.toggle('vtt-swapped', this.state.swapped);
 
         const activeId = document.activeElement?.id;

@@ -1,11 +1,13 @@
-// The sidebar's AI badge (spec 024): in the header slot the language-pair chip
-// holds, while signed in it shows a ring of today's share left and the tokens
-// left (spent: a closed red ring and the reset); a click opens the two bars
-// (Shift+S still swaps). Signed out there is no balance, and the chip is back.
+// The sidebar's AI badge (spec 024), at the header's left edge. Signed in it
+// shows a ring of today's share left and the tokens left (spent: a closed red
+// ring and the reset), and a click opens the two bars. Signed out it is
+// switched off, see ./signed-out.ts. Signed in without a balance yet (the
+// first read in flight, or refused) it is hidden.
 
 import { msg } from '../i18n';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
+import { offMode } from './signed-out';
 import { loadBalance, onBalance } from './store';
 import type { AIBalance } from './types';
 import { takeWarning } from './warn';
@@ -68,24 +70,46 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         button.setAttribute('aria-expanded', 'false');
     };
     const open = () => {
-        if (!balance) return;
+        if (!balance && !off.isOff()) return;
         panel = doc.createElement('div');
         panel.id = 'vtt-ai-panel';
         panel.setAttribute('role', 'dialog');
-        panel.appendChild(renderBars(balance, doc));
+        panel.appendChild(balance ? renderBars(balance, doc) : off.panel(doc));
         badge.appendChild(panel);
         button.setAttribute('aria-expanded', 'true');
     };
+    const off = offMode({
+        headerTop,
+        badge,
+        button,
+        label,
+        arc,
+        circumference: C,
+        hasBalance: () => balance !== null,
+        isOpen: () => panel !== null,
+        open,
+        close,
+        signedIn: requestRefresh,
+    });
+
+    // Signed in, hover shows the [data-tip] bubble and a click toggles the bars.
     button.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (off.click()) return;
         if (panel) close();
         else open();
     });
     const outside = (e: Event) => {
-        if (panel && !badge.contains(e.target as Node)) close();
+        if (panel && !badge.contains(e.target as Node)) {
+            close();
+            off.reset();
+        }
     };
     const escape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') close();
+        if (e.key === 'Escape') {
+            close();
+            off.reset();
+        }
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
@@ -95,8 +119,10 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
         headerTop.classList.toggle(ON, !!b);
         if (!b) {
             close();
+            off.paint();
             return;
         }
+        off.paint();
         const spent = b.exhausted;
         badge.classList.toggle('vtt-ai-out', spent !== null);
         badge.classList.toggle('vtt-ai-high', spent === null && isHigh(b.day, b.warnRatio));
@@ -125,6 +151,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     return () => {
         disposed = true;
         unsubscribe();
+        off.dispose();
         cancelWarning();
         doc.removeEventListener('click', outside, true);
         doc.removeEventListener('keydown', escape);

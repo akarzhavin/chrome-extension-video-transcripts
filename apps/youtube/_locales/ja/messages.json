@@ -943,6 +943,18 @@
     "message": "ログイン — AIが翻訳します",
     "description": "Phrase card without sign-in: the AI part would translate it, but needs an account."
   },
+  "aiBadgeSignIn": {
+    "message": "ログイン",
+    "description": "Quiet link in the signed-out AI badge panel; a click starts the sign-in."
+  },
+  "aiSignInToUse": {
+    "message": "ログインすると、AIが字幕のフレーズを翻訳し、単語カードを完成させます",
+    "description": "Signed-out AI badge panel, first line (also its aria-label): what AI does once signed in."
+  },
+  "aiFreeDaily": {
+    "message": "1日{count}トークン無料",
+    "description": "Signed-out AI badge panel, second line. {count} is the default daily allowance, e.g. 500k."
+  },
   "lookupGoogleFailed": {
     "message": "Googleが応答しませんでした,もう一度お試しください",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
