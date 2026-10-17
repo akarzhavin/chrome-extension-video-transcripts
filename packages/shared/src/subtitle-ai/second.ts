@@ -7,10 +7,10 @@ import { genderMarked, secondRank } from '../languages';
 import type { Subtitle } from '../types';
 import { prepareTrack, type PreparedTrack, type WireCue } from './track';
 
-/** Share of the spoken source cues the alignment must cover (server `SecondCoverage`). */
-export const SECOND_COVERAGE = 0.8;
+/** Share of the spoken source cues the alignment must cover; the server reads the same released value. */
+export const SECOND_COVERAGE = __LIMIT_SUBTITLE__.SUBTITLE_SECOND_COVERAGE / 100;
 /** Tracks loaded at most per pick: a popular video lists dozens. */
-export const SECOND_TRIES = 3;
+export const SECOND_TRIES = __LIMIT_SUBTITLE__.SUBTITLE_SECOND_TRIES;
 // Server's MaxSilentTag and sound-tag shape: such cues are not dialogue.
 const MAX_SILENT_TAG = 40;
 const SOUND_TAG = /^(\[[^\]]*\]|\([^)]*\)|[♪♫\s]+)$/u;
