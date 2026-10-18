@@ -5,6 +5,7 @@
 // matches background.ts' isAuthFailure and would sign the learner out.
 
 import type { AuthConfig } from '../auth/config';
+import type { RefusalName } from '../limit-reports';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -22,6 +23,8 @@ export interface WorkerDeps {
     /** refresh=true forces a new ID token (after a 401). Throws when not signed in. */
     token: (refresh: boolean) => Promise<{ idToken: string; uid: string }>;
     now: () => number;
+    /** Hears a built-in limit refusing the track (spec 032); optional. */
+    refused?: (name: RefusalName) => void;
 }
 
 export interface PartRequest {
@@ -195,7 +198,10 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
         } else if (cur.status !== 404) {
             return { ok: false, reason: 'refused' };
         }
-        if (count > WRITES_PER_DAY) return { ok: false, reason: 'refused' };
+        if (count > WRITES_PER_DAY) {
+            deps.refused?.('SUBTITLE_WRITES_PER_DAY');
+            return { ok: false, reason: 'refused' };
+        }
 
         const writes = [
             {
@@ -213,6 +219,8 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
             headers,
             body: JSON.stringify({ writes }),
         });
+        // 409 is a track someone stored first; a 403 is the rules, cause unsaid.
+        if (res.status === 403) deps.refused?.('rules:tracks');
         return res.ok ? { ok: true } : { ok: false, reason: 'refused' };
     } catch {
         return { ok: false, reason: 'network' };
