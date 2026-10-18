@@ -7,7 +7,7 @@ import { msg } from '../i18n';
 import { genderMarked, labelForLanguage } from '../languages';
 import type { Track } from '../types';
 import { pickSecond, type SecondCandidate } from './second';
-import { prepareTrack, type PreparedTrack } from './track';
+import { prepareRefusal, prepareTrack, type PreparedTrack } from './track';
 import type { PartCode, PartReply, StoreReply } from './worker';
 
 export type AiStatus =
@@ -151,6 +151,10 @@ export class AiTranslator {
     start(source: Track): void {
         this.source = source;
         const prepared = prepareTrack(source.subtitles, this.learning, this.host.site);
+        const refused = this.learning === this.native ? null : prepareRefusal(prepared, this.learning);
+        // Once a day per language, or per track: the worker drops repeats of a subject.
+        const subject = refused === 'SUBTITLE_LANGS' ? this.learning : `${this.learning}:${source.subtitles.length}:${source.subtitles[source.subtitles.length - 1]?.endTime ?? 0}`;
+        if (refused) void this.host.send({ action: 'LIMIT_REFUSED', limit: refused, subject }).catch(() => undefined);
         if ('error' in prepared || this.learning === this.native) {
             const unsupported = this.learning === this.native || ('error' in prepared && prepared.error === 'unsupported');
             this.host.setStatus?.(unsupported ? 'unsupported' : 'unavailable');

@@ -6,6 +6,7 @@
 // left out here and `index` maps what was sent back to the site's cues.
 
 import type { Subtitle } from '../types';
+import type { RefusalName } from '../limit-reports';
 import { sha256 } from '../word-key';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time;
@@ -36,6 +37,8 @@ export interface PreparedTrack {
     index: number[];
     durationMs: number;
     fingerprint: string;
+    /** Lines past SUBTITLE_MAX_CUES were left out. */
+    cut?: true;
 }
 
 export type PrepareError = 'unsupported' | 'empty' | 'too_long' | 'too_dense';
@@ -71,7 +74,8 @@ export function prepareTrack(
     let lastStart = -1;
     let chars = 0;
     let lastEnd = 0;
-    for (let i = 0; i < subs.length && cues.length < MAX_CUES; i++) {
+    let cut = false;
+    for (let i = 0; i < subs.length; i++) {
         const start_ms = Math.round(subs[i].startTime * 1000);
         const end_ms = Math.round(subs[i].endTime * 1000);
         const text = clean(subs[i].text);
@@ -79,6 +83,10 @@ export function prepareTrack(
         const dur = end_ms - start_ms;
         if (n === 0 || start_ms < 0 || start_ms < lastStart || dur < MIN_CUE_MS) continue;
         if (n > MAX_CUE_TEXT || n * 1000 > MAX_CUE_CHARS_PER_SEC * dur) continue;
+        if (cues.length === MAX_CUES) {
+            cut = true; // a line that would be sent, past the most
+            break;
+        }
         cues.push({ start_ms, end_ms, text });
         index.push(i);
         lastStart = start_ms;
@@ -89,7 +97,22 @@ export function prepareTrack(
     // The backend also checks the whole timeline: cues stacked on one second
     // each pass alone and still read faster than anyone can.
     if (chars * 1000 > MAX_CHARS_PER_SEC * (lastEnd - cues[0].start_ms)) return { error: 'too_dense' };
-    return { sourceLang, site, cues, index, durationMs: lastEnd, fingerprint: fingerprint(sourceLang, cues) };
+    return { sourceLang, site, cues, index, durationMs: lastEnd, fingerprint: fingerprint(sourceLang, cues), ...(cut ? { cut: true as const } : {}) };
+}
+
+/** The built-in limit a prepared track ran into, for the refusal reports (spec 032). */
+export function prepareRefusal(p: PreparedTrack | { error: PrepareError }, sourceLang: string): RefusalName | null {
+    if (!('error' in p)) return p.cut ? 'SUBTITLE_MAX_CUES' : null;
+    switch (p.error) {
+        case 'unsupported':
+            return SUBTITLE_LANGS.includes(sourceLang) ? null : 'SUBTITLE_LANGS';
+        case 'too_long':
+            return 'SUBTITLE_MAX_DURATION_MS';
+        case 'too_dense':
+            return 'SUBTITLE_MAX_CHARS_PER_SEC';
+        default:
+            return null;
+    }
 }
 
 /** lowercase hex sha256 of `lang\n` + `start\tend\ttext\n` per cue (research R5). */

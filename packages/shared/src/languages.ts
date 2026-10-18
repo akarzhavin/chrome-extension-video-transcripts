@@ -167,7 +167,7 @@ const GENDER_ADJECTIVE = ['es', 'pt', 'it', 'fr', 'ro', 'el', 'bg', 'lv', 'lt'];
 const GENDER_HIDDEN = ['ar', 'th', 'vi'];
 /**
  * Hint languages the cheap model is measured to read (english repo, spec 023 R21, spec 025 R1);
- * admin-edited, released with the server's. Builds without the subtitle limits keep the default.
+ * set in code with the server's (english repo spec 032). Builds without the subtitle limits keep the default.
  */
 export const MINI_READS: string[] =
     typeof __LIMIT_SUBTITLE__ !== 'undefined' ? __LIMIT_SUBTITLE__.SUBTITLE_MINI_READS : ['ru', 'es'];

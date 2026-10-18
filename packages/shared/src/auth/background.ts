@@ -38,6 +38,14 @@ import { normalizeTerm } from '../word-key';
 import { assertTermFits } from './term-limit';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
+import {
+    createRefusalReports,
+    isRefusalName,
+    reportRefusal,
+    setRefusalSink,
+    wordRefusal,
+    type RefusalQueue,
+} from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
@@ -78,6 +86,7 @@ export type AuthAction =
     | 'DISMISS_NOTIFICATION'
     | 'LOOKUP_WORD'
     | 'AI_BALANCE_REFRESH'
+    | 'LIMIT_REFUSED'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
     // Dev-only backend switch. The names are declared for type-checking only;
@@ -110,6 +119,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
     'AI_BALANCE_REFRESH',
+    'LIMIT_REFUSED',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -500,6 +510,8 @@ async function runUpload(): Promise<UploadResult> {
                 // A term the account can never hold (longer than its limit) is
                 // dropped, not retried: left at the head of the queue it would
                 // block every word behind it at every trigger, for good.
+                const refused = wordRefusal(err);
+                if (refused) reportRefusal(refused, w.term);
                 if (message.startsWith('term must be')) {
                     await removeLocalWord(w.term);
                     left--;
@@ -542,7 +554,12 @@ export function devEnvReady(): Promise<void> {
 // where the token lives; outcomes are values, never throws.
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
     if (!config.apiBaseUrl) return Promise.resolve({ ok: false, code: 'unavailable' });
-    const deps = { fetch: (u: string, i: RequestInit) => fetch(u, i), token: (r: boolean) => freshIdToken(config, r), now: Date.now };
+    const deps = {
+        fetch: (u: string, i: RequestInit) => fetch(u, i),
+        token: (r: boolean) => freshIdToken(config, r),
+        now: Date.now,
+        refused: reportRefusal,
+    };
     if (request.action === 'SUBTITLE_AI_PART') {
         return requestPart(config, request.part as PartRequest, deps).then(async (reply) => {
             if (reply.wallet) await keepBalance(reply.wallet);
@@ -714,6 +731,8 @@ export async function handleAuthMessage(
                     await setNeedsReauthBadge();
                     return await saveLocally();
                 }
+                const refused = wordRefusal(err);
+                if (refused) reportRefusal(refused, term);
                 throw err;
             }
         }
@@ -804,6 +823,12 @@ export async function handleAuthMessage(
                 return { ok: false };
             }
         }
+        case 'LIMIT_REFUSED': {
+            const name = String(request.limit ?? '');
+            const subject = typeof request.subject === 'string' ? request.subject.slice(0, 200) : undefined;
+            if (isRefusalName(name)) reportRefusal(name, subject);
+            return { ok: true };
+        }
         case 'SEND_FEEDBACK': {
             // Free text from the rating prompt's "not really" branch. Runs
             // signed out too — see addFeedback. The card reports success or
@@ -821,6 +846,7 @@ export async function handleAuthMessage(
                 return { ok: true };
             } catch (err) {
                 console.warn('[Lingogram] feedback failed:', err);
+                if (err instanceof Error && err.message.startsWith('Firestore feedback commit 403')) reportRefusal('rules:feedback');
                 return { ok: false };
             }
         }
@@ -1107,8 +1133,31 @@ export async function migrateLegacyAuthState(): Promise<void> {
     }
 }
 
+const REFUSALS_KEY = 'limitRefusals';
+
+/** Refusal reports (spec 032): queued in session storage, sent by this worker. */
+export function installRefusalReports(): void {
+    const reports = createRefusalReports({
+        get apiBaseUrl() {
+            return config.apiBaseUrl;
+        },
+        version: chrome.runtime.getManifest?.().version ?? '',
+        fetch: (u, i) => fetch(u, i),
+        token: (r) => freshIdToken(config, r),
+        now: Date.now,
+        store: {
+            load: async () => (await chrome.storage.session.get(REFUSALS_KEY))[REFUSALS_KEY] as RefusalQueue | undefined,
+            save: (q) => chrome.storage.session.set({ [REFUSALS_KEY]: q }),
+        },
+        schedule: (ms, fn) => void setTimeout(fn, ms),
+    });
+    setRefusalSink((name, subject) => void reports.refused(name, subject));
+    void reports.flush();
+}
+
 export function installAuthBackground(): void {
     installAuthMessageHandler();
+    installRefusalReports();
     installExternalAuthHandoff();
     void migrateLegacyAuthState().then(restoreLocalState, restoreLocalState);
     // (a) Worker wake. Fire-and-forget beside the migration: a wake is the
