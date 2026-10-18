@@ -135,6 +135,37 @@ describe('refusal reports', () => {
         expect(d.saved?.items.MAX_WORDS_PER_DAY?.count).toBe(1);
     });
 
+    // One learner hitting one limit with the same word or video all day is one refusal.
+    test('the same subject is counted once a day', async () => {
+        const d = deps([reply(204), reply(204)]);
+        const r = createRefusalReports(d);
+        await r.refused('MAX_WORDS_PER_DAY', 'cat');
+        d.t += 61_000;
+        await r.refused('MAX_WORDS_PER_DAY', 'cat');
+        await r.refused('SUBTITLE_LANGS', 'cat');
+        expect(d.calls).toHaveLength(2);
+        expect(sent(d, 1).items).toEqual([{ limit: 'SUBTITLE_LANGS', count: 1 }]);
+        d.t += 24 * 3_600_000;
+        d.calls.length = 0;
+        const again = deps([reply(204)]);
+        again.t = d.t;
+        again.saved = d.saved;
+        await createRefusalReports(again).refused('MAX_WORDS_PER_DAY', 'cat');
+        expect(again.calls).toHaveLength(1);
+    });
+
+    test('a kept failure is tried again a minute later without another refusal', async () => {
+        const d = deps([reply(503), reply(204)]);
+        const r = createRefusalReports(d);
+        await r.refused('rules:tracks');
+        expect(d.timers).toHaveLength(1);
+        d.t = d.timers[0].at;
+        d.timers[0].fn();
+        await r.idle();
+        expect(d.calls).toHaveLength(2);
+        expect(d.saved?.items).toEqual({});
+    });
+
     test('no backend configured: nothing is sent', async () => {
         const d = deps([]);
         d.apiBaseUrl = '';

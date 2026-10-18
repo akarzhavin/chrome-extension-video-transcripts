@@ -39,12 +39,11 @@ import { assertTermFits } from './term-limit';
 import { isSiblingMessage } from '../sibling';
 import { attachDiag, createWorkerDiag, diagOf } from '../debug/save-diag-worker';
 import {
-    REFUSAL_NAMES,
     createRefusalReports,
+    isRefusalName,
     reportRefusal,
     setRefusalSink,
     wordRefusal,
-    type RefusalName,
     type RefusalQueue,
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
@@ -512,7 +511,7 @@ async function runUpload(): Promise<UploadResult> {
                 // dropped, not retried: left at the head of the queue it would
                 // block every word behind it at every trigger, for good.
                 const refused = wordRefusal(err);
-                if (refused) reportRefusal(refused);
+                if (refused) reportRefusal(refused, w.term);
                 if (message.startsWith('term must be')) {
                     await removeLocalWord(w.term);
                     left--;
@@ -733,7 +732,7 @@ export async function handleAuthMessage(
                     return await saveLocally();
                 }
                 const refused = wordRefusal(err);
-                if (refused) reportRefusal(refused);
+                if (refused) reportRefusal(refused, term);
                 throw err;
             }
         }
@@ -826,7 +825,8 @@ export async function handleAuthMessage(
         }
         case 'LIMIT_REFUSED': {
             const name = String(request.limit ?? '');
-            if (REFUSAL_NAMES.has(name)) reportRefusal(name as RefusalName);
+            const subject = typeof request.subject === 'string' ? request.subject.slice(0, 200) : undefined;
+            if (isRefusalName(name)) reportRefusal(name, subject);
             return { ok: true };
         }
         case 'SEND_FEEDBACK': {
@@ -1151,7 +1151,7 @@ export function installRefusalReports(): void {
         },
         schedule: (ms, fn) => void setTimeout(fn, ms),
     });
-    setRefusalSink((name) => void reports.refused(name));
+    setRefusalSink((name, subject) => void reports.refused(name, subject));
     void reports.flush();
 }
 

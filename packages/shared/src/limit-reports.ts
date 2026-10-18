@@ -3,22 +3,29 @@
 // the server ever knowing. Only the limit's name and a count leave the browser.
 // Combined, sent at most once a minute, dropped after a day; never throws.
 
-export type RefusalName =
-    | 'MAX_WORDS_PER_DAY'
-    | 'MAX_TERM_BYTES'
-    | 'SUBTITLE_WRITES_PER_DAY'
-    | 'SUBTITLE_MAX_CUES'
-    | 'SUBTITLE_MAX_DURATION_MS'
-    | 'SUBTITLE_MAX_CHARS_PER_SEC'
-    | 'SUBTITLE_LANGS'
+export const REFUSAL_NAMES = [
+    'MAX_WORDS_PER_DAY',
+    'MAX_TERM_BYTES',
+    'SUBTITLE_WRITES_PER_DAY',
+    'SUBTITLE_MAX_CUES',
+    'SUBTITLE_MAX_DURATION_MS',
+    'SUBTITLE_MAX_CHARS_PER_SEC',
+    'SUBTITLE_LANGS',
     // The rules said no and gave no cause.
-    | 'rules:words'
-    | 'rules:tracks'
-    | 'rules:feedback';
+    'rules:words',
+    'rules:tracks',
+    'rules:feedback',
+] as const;
+
+export type RefusalName = (typeof REFUSAL_NAMES)[number];
+
+export const isRefusalName = (s: string): s is RefusalName => (REFUSAL_NAMES as readonly string[]).includes(s);
 
 export interface RefusalQueue {
     items: Partial<Record<RefusalName, { count: number; since: number }>>;
     lastSent: number;
+    /** What was already counted today, as "name|subject"; never sent. */
+    seen?: { day: number; keys: string[] };
 }
 
 export interface ReportDeps {
@@ -33,11 +40,13 @@ export interface ReportDeps {
 }
 
 const GAP_MS = 60_000;
-const KEEP_MS = 86_400_000;
+const DAY_MS = 86_400_000;
 const MAX_COUNT = 100; // the server's cap per item
+const MAX_SEEN = 1000;
 
 export interface RefusalReports {
-    refused: (name: RefusalName) => Promise<void>;
+    /** subject (a word, a track) makes repeats of one refusal count once a day. */
+    refused: (name: RefusalName, subject?: string) => Promise<void>;
     /** Sends what waits, when the minute since the last report is up. */
     flush: () => Promise<void>;
     /** Resolves once queued work is done (tests). */
@@ -72,6 +81,14 @@ export function createRefusalReports(deps: ReportDeps): RefusalReports {
             /* best effort */
         }
     };
+    const later = (ms: number) => {
+        if (timer) return;
+        timer = true;
+        deps.schedule(ms, () => {
+            timer = false;
+            void serial(send);
+        });
+    };
 
     const post = async (body: string): Promise<number> => {
         const ask = async (refresh: boolean) => {
@@ -91,19 +108,13 @@ export function createRefusalReports(deps: ReportDeps): RefusalReports {
         const q = await load();
         const now = deps.now();
         for (const [name, it] of Object.entries(q.items) as [RefusalName, { count: number; since: number }][]) {
-            if (now - it.since > KEEP_MS) delete q.items[name];
+            if (now - it.since > DAY_MS) delete q.items[name];
         }
         const names = Object.keys(q.items) as RefusalName[];
         if (names.length === 0 || !deps.apiBaseUrl) return save(q);
         const wait = q.lastSent + GAP_MS - now;
         if (wait > 0) {
-            if (!timer) {
-                timer = true;
-                deps.schedule(wait, () => {
-                    timer = false;
-                    void serial(send);
-                });
-            }
+            later(wait);
             return save(q);
         }
         const items = names.map((limit) => ({ limit, count: Math.min(q.items[limit]!.count, MAX_COUNT) }));
@@ -123,13 +134,26 @@ export function createRefusalReports(deps: ReportDeps): RefusalReports {
                 else delete q.items[limit];
             }
         }
+        if (Object.keys(q.items).length > 0) later(GAP_MS);
         await save(q);
     };
 
+    // A repeat of name for subject today: already counted.
+    const repeat = (q: RefusalQueue, name: RefusalName, subject: string | undefined): boolean => {
+        if (subject === undefined) return false;
+        const day = Math.floor(deps.now() / DAY_MS);
+        if (q.seen?.day !== day) q.seen = { day, keys: [] };
+        const key = `${name}|${subject}`;
+        if (q.seen.keys.includes(key)) return true;
+        q.seen.keys = [...q.seen.keys, key].slice(-MAX_SEEN);
+        return false;
+    };
+
     return {
-        refused: (name) =>
+        refused: (name, subject) =>
             serial(async () => {
                 const q = await load();
+                if (repeat(q, name, subject)) return save(q);
                 const it = q.items[name];
                 if (it) it.count++;
                 else q.items[name] = { count: 1, since: deps.now() };
@@ -149,26 +173,13 @@ export function wordRefusal(err: unknown): RefusalName | null {
     return null;
 }
 
-export const REFUSAL_NAMES: ReadonlySet<string> = new Set<RefusalName>([
-    'MAX_WORDS_PER_DAY',
-    'MAX_TERM_BYTES',
-    'SUBTITLE_WRITES_PER_DAY',
-    'SUBTITLE_MAX_CUES',
-    'SUBTITLE_MAX_DURATION_MS',
-    'SUBTITLE_MAX_CHARS_PER_SEC',
-    'SUBTITLE_LANGS',
-    'rules:words',
-    'rules:tracks',
-    'rules:feedback',
-]);
-
-let sink: ((name: RefusalName) => void) | null = null;
+let sink: ((name: RefusalName, subject?: string) => void) | null = null;
 
 /** The worker sets where refusals go; elsewhere reportRefusal does nothing. */
-export function setRefusalSink(fn: ((name: RefusalName) => void) | null): void {
+export function setRefusalSink(fn: ((name: RefusalName, subject?: string) => void) | null): void {
     sink = fn;
 }
 
-export function reportRefusal(name: RefusalName): void {
-    sink?.(name);
+export function reportRefusal(name: RefusalName, subject?: string): void {
+    sink?.(name, subject);
 }

@@ -169,25 +169,25 @@ describe('storeTrack', () => {
 
     test('a refused commit is a value, not a thrown 403, and is reported without a cause', async () => {
         const refused: string[] = [];
-        const d = { ...deps([limitsDoc(20261009, 3), reply(403, { error: { status: 'PERMISSION_DENIED' } })]), refused: (n: string) => refused.push(n) };
+        const d = { ...deps([limitsDoc(20261009, 3), reply(403, { error: { status: 'PERMISSION_DENIED' } })]), refused: (n: string, subject?: string) => refused.push(`${n}|${subject}`) };
         expect(await storeTrack(cfg, track, d)).toEqual({ ok: false, reason: 'refused' });
-        expect(refused).toEqual(['rules:tracks']);
+        expect(refused).toEqual([`rules:tracks|${FP}`]);
     });
 
     // Spec 032: a track another viewer stored first is no limit.
     test('a track that already exists is not reported', async () => {
         const refused: string[] = [];
-        const d = { ...deps([limitsDoc(20261009, 3), reply(409, {})]), refused: (n: string) => refused.push(n) };
+        const d = { ...deps([limitsDoc(20261009, 3), reply(409, {})]), refused: (n: string, subject?: string) => refused.push(`${n}|${subject}`) };
         expect(await storeTrack(cfg, track, d)).toEqual({ ok: false, reason: 'refused' });
         expect(refused).toEqual([]);
     });
 
     test('over the daily count it does not even try, and reports the limit', async () => {
         const refused: string[] = [];
-        const d = { ...deps([limitsDoc(20261009, 30)]), refused: (n: string) => refused.push(n) };
+        const d = { ...deps([limitsDoc(20261009, 30)]), refused: (n: string, subject?: string) => refused.push(`${n}|${subject}`) };
         expect(await storeTrack(cfg, track, d)).toEqual({ ok: false, reason: 'refused' });
         expect(d.calls).toHaveLength(1);
-        expect(refused).toEqual(['SUBTITLE_WRITES_PER_DAY']);
+        expect(refused).toEqual([`SUBTITLE_WRITES_PER_DAY|${FP}`]);
     });
 
     // The id lands in a Firestore document path: only the 64-hex fingerprint is stored.

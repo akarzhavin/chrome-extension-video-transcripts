@@ -74,7 +74,8 @@ export function prepareTrack(
     let lastStart = -1;
     let chars = 0;
     let lastEnd = 0;
-    for (let i = 0; i < subs.length && cues.length < MAX_CUES; i++) {
+    let cut = false;
+    for (let i = 0; i < subs.length; i++) {
         const start_ms = Math.round(subs[i].startTime * 1000);
         const end_ms = Math.round(subs[i].endTime * 1000);
         const text = clean(subs[i].text);
@@ -82,6 +83,10 @@ export function prepareTrack(
         const dur = end_ms - start_ms;
         if (n === 0 || start_ms < 0 || start_ms < lastStart || dur < MIN_CUE_MS) continue;
         if (n > MAX_CUE_TEXT || n * 1000 > MAX_CUE_CHARS_PER_SEC * dur) continue;
+        if (cues.length === MAX_CUES) {
+            cut = true; // a line that would be sent, past the most
+            break;
+        }
         cues.push({ start_ms, end_ms, text });
         index.push(i);
         lastStart = start_ms;
@@ -92,7 +97,6 @@ export function prepareTrack(
     // The backend also checks the whole timeline: cues stacked on one second
     // each pass alone and still read faster than anyone can.
     if (chars * 1000 > MAX_CHARS_PER_SEC * (lastEnd - cues[0].start_ms)) return { error: 'too_dense' };
-    const cut = cues.length === MAX_CUES && index[index.length - 1] < subs.length - 1;
     return { sourceLang, site, cues, index, durationMs: lastEnd, fingerprint: fingerprint(sourceLang, cues), ...(cut ? { cut: true as const } : {}) };
 }
 

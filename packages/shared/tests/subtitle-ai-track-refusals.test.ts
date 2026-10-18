@@ -31,6 +31,11 @@ describe('prepareRefusal', () => {
         expect(prepareRefusal(p, 'en')).toBe('SUBTITLE_MAX_CUES');
     });
 
+    test('lines past the most that would be left out anyway are no cut', () => {
+        const p = prepareTrack([...lines(4000), sub(9000, 9001, '   ')], 'en', 'youtube');
+        expect(prepareRefusal(p, 'en')).toBeNull();
+    });
+
     test('a track that fits, or an empty one, is no limit', () => {
         expect(prepareRefusal(prepareTrack(lines(4000), 'en', 'youtube'), 'en')).toBeNull();
         expect(prepareRefusal(prepareTrack([sub(0, 1, '  ')], 'en', 'youtube'), 'en')).toBeNull();

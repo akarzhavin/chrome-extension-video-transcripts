@@ -267,7 +267,7 @@ describe('AiTranslator', () => {
         h.state.addTrack('English', cues(10));
         new AiTranslator(h, 'xx', 'ru').start(h.state.tracks[0]);
         expect(h.statuses).toEqual(['unsupported']);
-        expect(h.sent).toEqual([{ action: 'LIMIT_REFUSED', limit: 'SUBTITLE_LANGS' }]);
+        expect(h.sent).toEqual([{ action: 'LIMIT_REFUSED', limit: 'SUBTITLE_LANGS', subject: 'xx' }]);
     });
 
     test('learning and native the same is no refusal', () => {

@@ -24,7 +24,7 @@ export interface WorkerDeps {
     token: (refresh: boolean) => Promise<{ idToken: string; uid: string }>;
     now: () => number;
     /** Hears a built-in limit refusing the track (spec 032); optional. */
-    refused?: (name: RefusalName) => void;
+    refused?: (name: RefusalName, subject?: string) => void;
 }
 
 export interface PartRequest {
@@ -199,7 +199,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
             return { ok: false, reason: 'refused' };
         }
         if (count > WRITES_PER_DAY) {
-            deps.refused?.('SUBTITLE_WRITES_PER_DAY');
+            deps.refused?.('SUBTITLE_WRITES_PER_DAY', track.fingerprint);
             return { ok: false, reason: 'refused' };
         }
 
@@ -220,7 +220,7 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
             body: JSON.stringify({ writes }),
         });
         // 409 is a track someone stored first; a 403 is the rules, cause unsaid.
-        if (res.status === 403) deps.refused?.('rules:tracks');
+        if (res.status === 403) deps.refused?.('rules:tracks', track.fingerprint);
         return res.ok ? { ok: true } : { ok: false, reason: 'refused' };
     } catch {
         return { ok: false, reason: 'network' };
