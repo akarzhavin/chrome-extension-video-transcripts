@@ -6,6 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
+import { FEATURE_SECOND_TRACK } from '../features';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -43,8 +44,6 @@ export interface PartRequest {
 export type PartCode =
     | 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable' | 'feature_off';
 
-const SECOND_TRACK = 'subtitles.second_track';
-
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
     | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; secondUnknown?: true; wallet?: unknown }
@@ -78,13 +77,13 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
-    if (req.second && deps.features && !(await deps.features.has(SECOND_TRACK))) req = { ...req, second: undefined };
+    if (req.second && deps.features && !(await deps.features.has(FEATURE_SECOND_TRACK))) req = { ...req, second: undefined };
     const reply = await askPart(cfg, req, deps);
     if (reply.ok || reply.code !== 'feature_off') return reply;
     // A 404 feature_off names the feature: a refused hint is dropped and the part asked again.
     const feature = reply.feature ?? '';
     if (feature) await deps.features?.off(feature);
-    if (feature === SECOND_TRACK && req.second) return askPart(cfg, { ...req, second: undefined }, deps);
+    if (feature === FEATURE_SECOND_TRACK && req.second) return askPart(cfg, { ...req, second: undefined }, deps);
     return { ok: false, code: 'feature_off' };
 }
 

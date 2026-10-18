@@ -5,7 +5,6 @@
 
 export const FEATURE_SUBTITLES = 'subtitles.ai_translate';
 export const FEATURE_SECOND_TRACK = 'subtitles.second_track';
-export const FEATURE_PHRASE_LOOKUP = 'lookup.phrase_cloud';
 
 const KEY = 'features';
 /** How long an answer stands before the worker asks again. */
