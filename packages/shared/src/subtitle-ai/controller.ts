@@ -106,6 +106,8 @@ const REFUSALS: Record<Refusal, { status: AiStatus; then: 'stop' | 'wait' | 'ret
     invalid: { status: 'unavailable', then: 'stop' },
     quarantined: { status: 'unavailable', then: 'stop' },
     unavailable: { status: 'unavailable', then: 'retry' },
+    // The account does not have AI translation (spec 032-feature-rollout-admin).
+    feature_off: { status: 'unavailable', then: 'stop' },
     // Still unknown after storing: the store refused it (a write limit).
     store_refused: { status: 'limit', then: 'stop' },
     store_too_long: { status: 'too_long', then: 'stop' },

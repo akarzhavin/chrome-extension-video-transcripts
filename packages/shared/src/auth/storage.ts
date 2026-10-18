@@ -1,4 +1,5 @@
 import { clearAccountAI } from '../ai-balance/store';
+import { forgetFeatures } from '../features';
 
 export interface AuthState {
     idToken: string;
@@ -320,6 +321,7 @@ export async function clearAuthState(): Promise<void> {
         ]);
     } finally {
         await clearAccountAI();
+        await forgetFeatures();
     }
 }
 

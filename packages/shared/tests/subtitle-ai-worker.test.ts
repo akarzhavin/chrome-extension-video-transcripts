@@ -121,6 +121,51 @@ describe('requestPart', () => {
         d.token = async () => { throw new Error('Not signed in'); };
         expect(await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d)).toEqual({ ok: false, code: 'auth' });
     });
+
+    // Spec 032-feature-rollout-admin: the account may not have a gated feature.
+    describe('gated features', () => {
+        const SECOND = 'b'.repeat(64);
+        function gate(on: Record<string, boolean>) {
+            const off: string[] = [];
+            return {
+                off,
+                features: {
+                    has: async (k: string) => on[k] ?? false,
+                    off: async (k: string) => { off.push(k); },
+                },
+            };
+        }
+
+        test('the second track is not offered while the account lacks it', async () => {
+            const g = gate({});
+            const d = { ...deps([reply(200, { from: 0, to: 1, lines: ['x'] })]), features: g.features };
+            await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
+            expect(JSON.parse(d.calls[0].init.body as string).second).toBeUndefined();
+        });
+
+        test('a refused second track is dropped and the part asked again without it', async () => {
+            const g = gate({ 'subtitles.second_track': true });
+            const d = {
+                ...deps([
+                    reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
+                    reply(200, { from: 0, to: 1, lines: ['x'] }),
+                ]),
+                features: g.features,
+            };
+            const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
+            expect(r.ok).toBe(true);
+            expect(JSON.parse(d.calls[0].init.body as string).second).toBe(SECOND);
+            expect(JSON.parse(d.calls[1].init.body as string).second).toBeUndefined();
+            expect(g.off).toEqual(['subtitles.second_track']);
+        });
+
+        test('refused translation is feature_off, which stops, and is remembered', async () => {
+            const g = gate({});
+            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features: g.features };
+            expect(await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d)).toEqual({ ok: false, code: 'feature_off' });
+            expect(g.off).toEqual(['subtitles.ai_translate']);
+        });
+    });
 });
 
 const track = {

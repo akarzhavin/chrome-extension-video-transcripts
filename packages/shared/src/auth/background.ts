@@ -48,6 +48,7 @@ import {
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
+import { hasFeature, markFeatureOff, refreshFeatures, staleFeatures } from '../features';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -550,6 +551,12 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
+// The account's gated features, asked again once the last answer is ten minutes old.
+async function askFeaturesIfStale(): Promise<void> {
+    if (!(await staleFeatures())) return;
+    await refreshFeatures(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i), token: (r) => freshIdToken(config, r) });
+}
+
 // Server-side subtitle translation. Authed, so it runs here
 // where the token lives; outcomes are values, never throws.
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
@@ -559,9 +566,10 @@ function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
         token: (r: boolean) => freshIdToken(config, r),
         now: Date.now,
         refused: reportRefusal,
+        features: { has: hasFeature, off: markFeatureOff },
     };
     if (request.action === 'SUBTITLE_AI_PART') {
-        return requestPart(config, request.part as PartRequest, deps).then(async (reply) => {
+        return askFeaturesIfStale().then(() => requestPart(config, request.part as PartRequest, deps)).then(async (reply) => {
             if (reply.wallet) await keepBalance(reply.wallet);
             return reply;
         });
@@ -886,6 +894,7 @@ export async function handleAuthMessage(
                 fetch: (u, i) => fetch(u, i),
                 token: (r) => freshIdToken(config, r),
             });
+            void askFeaturesIfStale(); // a view opening is when features may have changed
             return balance ? { ok: true, balance } : { ok: false };
         }
         case 'LOOKUP_WORD': {

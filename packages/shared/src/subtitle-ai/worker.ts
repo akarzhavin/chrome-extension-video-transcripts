@@ -25,6 +25,8 @@ export interface WorkerDeps {
     now: () => number;
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
+    /** The account's gated features (spec 032-feature-rollout-admin); none: all asked for. */
+    features?: { has: (key: string) => Promise<boolean>; off: (key: string) => Promise<void> };
 }
 
 export interface PartRequest {
@@ -38,12 +40,15 @@ export interface PartRequest {
     second?: string;
 }
 
-export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
+export type PartCode =
+    | 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable' | 'feature_off';
+
+const SECOND_TRACK = 'subtitles.second_track';
 
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
     | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; secondUnknown?: true; wallet?: unknown }
-    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
+    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown; feature?: string };
 
 export interface StoredTrack {
     fingerprint: string;
@@ -73,6 +78,17 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
+    if (req.second && deps.features && !(await deps.features.has(SECOND_TRACK))) req = { ...req, second: undefined };
+    const reply = await askPart(cfg, req, deps);
+    if (reply.ok || reply.code !== 'feature_off') return reply;
+    // A 404 feature_off names the feature: a refused hint is dropped and the part asked again.
+    const feature = reply.feature ?? '';
+    if (feature) await deps.features?.off(feature);
+    if (feature === SECOND_TRACK && req.second) return askPart(cfg, { ...req, second: undefined }, deps);
+    return { ok: false, code: 'feature_off' };
+}
+
+async function askPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
     if (!FINGERPRINT.test(req.fingerprint)) return { ok: false, code: 'invalid' };
     const url = `${cfg.apiBaseUrl}/dictionary/subtitles/${req.fingerprint}/part`;
     const ask = async (refresh: boolean) => {
@@ -116,6 +132,7 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         case 403:
             return { ok: false, code: 'auth' };
         case 404:
+            if (b.code === 'feature_off') return { ok: false, code: 'feature_off', feature: String(b.feature ?? '') };
             return { ok: false, code: b.code === 'track_unknown' ? 'track_unknown' : 'unavailable' };
         case 422:
             return { ok: false, code: 'invalid' };
