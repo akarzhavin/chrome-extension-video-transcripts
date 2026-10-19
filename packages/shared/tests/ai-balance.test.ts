@@ -239,7 +239,7 @@ describe('sidebar badge', () => {
 
     const button = (top: HTMLElement) => top.querySelector<HTMLButtonElement>('#vtt-ai-badge button')!;
 
-    test('back on the tab it asks again, at most every 10 s, and hides itself when AI is off (spec 032)', async () => {
+    test('back on the tab it asks again, at most once a minute, and hides itself when AI is off (spec 032)', async () => {
         jest.useFakeTimers({ now: Date.UTC(2026, 9, 19, 7, 0, 0), doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'] });
         try {
             const top = header();
@@ -251,8 +251,11 @@ describe('sidebar badge', () => {
                 document.dispatchEvent(new Event('visibilitychange'));
             };
             show('visible');
-            expect(asks()).toBe(1); // within 10 s of the first ask
-            jest.setSystemTime(Date.UTC(2026, 9, 19, 7, 0, 11));
+            expect(asks()).toBe(1); // within a minute of the first ask
+            jest.setSystemTime(Date.UTC(2026, 9, 19, 7, 0, 59));
+            show('visible');
+            expect(asks()).toBe(1); // 59 s: still within the minute
+            jest.setSystemTime(Date.UTC(2026, 9, 19, 7, 1, 1));
             show('hidden');
             expect(asks()).toBe(1);
             show('visible');

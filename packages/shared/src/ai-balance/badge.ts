@@ -18,7 +18,7 @@ const ON = 'vtt-ai-on';
 const SVG = 'http://www.w3.org/2000/svg';
 const R = 7;
 const C = 2 * Math.PI * R;
-const REASK_MS = 10_000;
+const REASK_MS = 60_000;
 
 /** The 18px ring: a track and an arc drawn clockwise from 12 o'clock. */
 function ring(doc: Document): { svg: SVGSVGElement; arc: SVGCircleElement } {
@@ -154,7 +154,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
 
     void loadBalance().then(show);
     requestRefresh();
-    // Back on the tab (an admin may have switched AI meanwhile): ask again, at most every 10 s.
+    // Back on the tab (an admin may have switched AI meanwhile): ask again, at most once a minute.
     let askedAt = Date.now();
     const visible = () => {
         if (doc.visibilityState !== 'visible' || Date.now() - askedAt < REASK_MS) return;
