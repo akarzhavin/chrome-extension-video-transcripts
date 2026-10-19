@@ -17,7 +17,7 @@ import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from './lan
 import { loadPrefs, savePrefs, type Prefs, type VideoSite } from './prefs';
 import { loadHighlightPrefs, saveHighlightPrefs, type HighlightChange } from './highlight-prefs';
 import { isTrustedSiteSender } from './site-sender';
-import { readInstallationId } from './installation/id';
+import { readInstallationId } from './installation';
 import { SITE_NAMES, ownSites } from './welcome/welcome';
 import { offered, type BridgeOptions } from './welcome/bridge';
 

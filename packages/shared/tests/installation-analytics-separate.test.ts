@@ -71,6 +71,24 @@ describe('imports', () => {
     test.each(installationFiles.map((f) => [f.slice(SRC.length + 1), f]))('%s never reaches analytics', (_name, file) => {
         expect(rel(reach(file)).filter((f) => f.startsWith('analytics'))).toEqual([]);
     });
+
+    test('code outside installation/ enters it only through its index', () => {
+        const outside: string[] = [];
+        const walk = (dir: string) => {
+            for (const e of readdirSync(dir, { withFileTypes: true })) {
+                const p = join(dir, e.name);
+                if (e.isDirectory()) {
+                    if (p !== join(SRC, 'installation')) walk(p);
+                } else if (p.endsWith('.ts')) {
+                    for (const [, spec] of readFileSync(p, 'utf8').matchAll(/from\s+['"](\.[^'"]*installation[^'"]*)['"]/g)) {
+                        if (resolve(dirname(p), spec) !== join(SRC, 'installation')) outside.push(`${p.slice(SRC.length + 1)} -> ${spec}`);
+                    }
+                }
+            }
+        };
+        walk(SRC);
+        expect(outside).toEqual([]);
+    });
 });
 
 describe('payloads', () => {

@@ -1,8 +1,10 @@
 // The installation (english repo spec 034-guest-ai-rollout): its ID, its record on the server,
-// the guest check and the link at sign-in. Worker-only; not on the package barrel.
+// the guest check and the link at sign-in. Worker-only; not on the package barrel, and the only entry.
 
 import { config } from '../auth/config';
+import { refreshGuestFeatures } from './guest';
 import { mintInstallationId, readInstallationId } from './id';
+import { linkInstallation, type LinkDeps } from './link';
 import { recordInstallation } from './record';
 
 export type Edition = 'youtube' | 'rezka';
@@ -34,4 +36,18 @@ export function installInstallation(ed: Edition): void {
     void readInstallationId().then((id) => {
         if (id) void recordInstallation(config.apiBaseUrl, ed, plainFetch);
     });
+}
+
+/** Signed out: which features the server shows this installation, kept as a guest answer; null without an edition, ID or answer. */
+export function guestCheck(): Promise<Record<string, boolean> | null> {
+    const ed = edition;
+    if (!ed) return Promise.resolve(null);
+    return refreshGuestFeatures(config.apiBaseUrl, { ...plainFetch, id: () => ensureInstallation({ edition: ed, fresh: false }) });
+}
+
+/** At a sign-in hand-off only: links this installation to the account; false without an edition or on failure. Never throws. */
+export function linkAtSignIn(signedIn: Omit<LinkDeps, 'id'>): Promise<boolean> {
+    const ed = edition;
+    if (!ed) return Promise.resolve(false);
+    return linkInstallation(config.apiBaseUrl, ed, { ...signedIn, id: () => ensureInstallation({ edition: ed, fresh: false }) });
 }
