@@ -126,6 +126,15 @@ export const ANALYTICS_KEYS = {
     d14Sent: 'analytics.d14Sent',
 } as const;
 
+// The installation (english repo spec 034), read/written only by ../installation/.
+// Its own random UUID, never stored or sent with the analytics keys above; it survives sign-out.
+export const INSTALLATION_KEYS = {
+    id: 'installation.id',
+    // Install (true) or update (false) as known at mint; dropped once the server recorded it.
+    fresh: 'installation.fresh',
+    recorded: 'installation.recorded',
+} as const;
+
 // chrome.storage.session (cleared on browser restart — exactly GA4's session
 // semantics; survives MV3 service-worker recycling, unlike module scope).
 export const ANALYTICS_SESSION_KEYS = {
