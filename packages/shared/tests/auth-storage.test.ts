@@ -77,7 +77,7 @@ describe('signing out', () => {
         await clearAuthState();
         
         expect(removed.flat().sort()).toEqual(
-            ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'features', 'words.v1'],
+            ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'features', 'featuresTried', 'words.v1'],
         );
     });
 

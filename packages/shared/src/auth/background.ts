@@ -552,7 +552,8 @@ export function devEnvReady(): Promise<void> {
 }
 
 // The account's gated features: asked on every view opening, so an admin's switch shows at the
-// next open; before a translation request only once the last answer is ten minutes old.
+// next open; before a translation request only once the last answer is ten minutes old
+// (a minute after a failed read).
 async function askFeatures(): Promise<void> {
     await refreshFeatures(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i), token: (r) => freshIdToken(config, r) });
 }

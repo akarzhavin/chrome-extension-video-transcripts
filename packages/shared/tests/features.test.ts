@@ -17,6 +17,7 @@ import {
     watchFeature,
     FEATURE_AI,
 } from '../src/features';
+import { browserAiDeps } from '../src/subtitle-ai/browser';
 
 const store: Record<string, unknown> = {};
 let listeners: unknown[] = [];
@@ -118,5 +119,40 @@ describe('the AI feature', () => {
         for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
         await flush();
         expect(seen).toEqual([true, false, true]);
+    });
+});
+
+describe('a failed read', () => {
+    test('waits a minute before a translation part asks again', async () => {
+        const failing = {
+            fetch: async () => reply(503, {}),
+            token: async () => ({ idToken: 't' }),
+            now: () => NOW,
+        };
+        expect(await refreshFeatures('https://api.test', failing)).toBeNull();
+        expect(await staleFeatures(NOW + 1_000)).toBe(false);
+        expect(await staleFeatures(NOW + 61_000)).toBe(true);
+    });
+});
+
+describe('AI subtitle translation', () => {
+    const flush = () => new Promise((r) => setTimeout(r, 0));
+    const tell = () => {
+        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
+    };
+    test('stops when its own switch goes off, not only the AI one', async () => {
+        const seen: boolean[] = [];
+        browserAiDeps().onAIChange?.((on) => seen.push(on));
+        await flush();
+        store.features = { features: { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: false }, at: NOW };
+        tell();
+        await flush();
+        store.features = { features: { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: true }, at: NOW };
+        tell();
+        await flush();
+        store.features = { features: { [FEATURE_AI]: false, [FEATURE_SUBTITLES]: true }, at: NOW };
+        tell();
+        await flush();
+        expect(seen).toEqual([true, false, true, false]);
     });
 });

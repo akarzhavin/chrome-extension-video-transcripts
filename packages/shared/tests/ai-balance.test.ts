@@ -261,8 +261,7 @@ describe('sidebar badge', () => {
             show('visible');
             expect(asks()).toBe(2);
             await local.set({ features: { features: { ai: false }, at: Date.now() } });
-            await Promise.resolve();
-            await Promise.resolve();
+            await jest.advanceTimersByTimeAsync(0); // the storage reads settle; no timer is due
             expect(top.querySelector<HTMLElement>('#vtt-ai-badge')!.style.display).toBe('none');
         } finally {
             jest.useRealTimers();
