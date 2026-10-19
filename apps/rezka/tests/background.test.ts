@@ -112,13 +112,13 @@ describe('fetch failure classification', () => {
         expect(classifyStatus(status as number | undefined)).toBe(expected);
     });
 });
+import { getAuthState } from '@video-transcripts/shared';
 import {
     AUTH_ACTIONS,
     buildAllowedExternalOrigins,
-    getAuthState,
     handleAuthMessage,
     isAuthAction,
-} from '@video-transcripts/shared';
+} from '../../../packages/shared/src/auth/background';
 
 describe('message action registry', () => {
     // isAuthAction() filters on AUTH_ACTIONS before the handler ever runs, so

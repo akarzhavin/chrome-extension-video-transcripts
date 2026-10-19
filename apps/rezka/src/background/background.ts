@@ -1,4 +1,4 @@
-import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+import { installOnboarding } from '@video-transcripts/shared';
 // Relative paths, not the barrel: analytics-bg carries the GA4 api_secret and
 // must stay out of anything a content script can pull in.
 import {
@@ -13,8 +13,8 @@ import { installSettingsBridge } from '../../../../packages/shared/src/settings-
 import { SUBTITLE_LANGUAGES } from '../config';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
-import { devEnvReady } from '../../../../packages/shared/src/auth/background';
-// Relative: the installation module is worker-only, not on the barrel.
+// Relative: auth/background and the installation module are worker-only, not on the barrel.
+import { devEnvReady, installAuthBackground } from '../../../../packages/shared/src/auth/background';
 import { installInstallation } from '../../../../packages/shared/src/installation';
 
 // Tags every event with the backend it came from — a dev build can be switched

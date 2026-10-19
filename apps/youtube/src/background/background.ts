@@ -1,4 +1,4 @@
-import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+import { installOnboarding } from '@video-transcripts/shared';
 // Relative paths, not the barrel, for both of these. analytics-bg carries the
 // GA4 api_secret; devEnvSwitch carries the environment table that prod builds
 // drop. Neither belongs in anything a content script can pull in.
@@ -13,8 +13,8 @@ import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/br
 import { installSettingsBridge } from '../../../../packages/shared/src/settings-bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
-import { devEnvReady } from '../../../../packages/shared/src/auth/background';
-// Relative: the installation module is worker-only, not on the barrel.
+// Relative: auth/background and the installation module are worker-only, not on the barrel.
+import { devEnvReady, installAuthBackground } from '../../../../packages/shared/src/auth/background';
 import { installInstallation } from '../../../../packages/shared/src/installation';
 
 chrome.runtime.onInstalled.addListener(() => {

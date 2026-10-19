@@ -65,7 +65,7 @@ export function featureClient(): FeatureClient {
     return { refreshFeatures, refreshGuestFeatures, ensureFresh };
 }
 
-// Made on first use: a top-level call would keep this module in every bundle reaching the shared barrel.
+// Made on first use, so importing this module starts nothing.
 let worker: FeatureClient | undefined;
 const client = () => (worker ??= featureClient());
 export const refreshFeatures: FeatureClient['refreshFeatures'] = (baseUrl, deps) => client().refreshFeatures(baseUrl, deps);
