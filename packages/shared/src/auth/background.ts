@@ -551,10 +551,14 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
-// The account's gated features, asked again once the last answer is ten minutes old.
-async function askFeaturesIfStale(): Promise<void> {
-    if (!(await staleFeatures())) return;
+// The account's gated features: asked on every view opening, so an admin's switch shows at the
+// next open; before a translation request only once the last answer is ten minutes old.
+async function askFeatures(): Promise<void> {
     await refreshFeatures(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i), token: (r) => freshIdToken(config, r) });
+}
+
+async function askFeaturesIfStale(): Promise<void> {
+    if (await staleFeatures()) await askFeatures();
 }
 
 // Server-side subtitle translation. Authed, so it runs here
@@ -894,7 +898,7 @@ export async function handleAuthMessage(
                 fetch: (u, i) => fetch(u, i),
                 token: (r) => freshIdToken(config, r),
             });
-            void askFeaturesIfStale(); // a view opening is when features may have changed
+            void askFeatures(); // a view opening is when features may have changed
             return balance ? { ok: true, balance } : { ok: false };
         }
         case 'LOOKUP_WORD': {

@@ -138,8 +138,18 @@ describe('AI_BALANCE_REFRESH', () => {
         await signIn();
         fetchMock().mockResolvedValueOnce(json({}, 401)).mockResolvedValueOnce(json(wallet(7)));
         await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
-        expect(freshIdToken).toHaveBeenLastCalledWith(expect.anything(), true);
+        expect(freshIdToken).toHaveBeenNthCalledWith(2, expect.anything(), true);
         expect(headersOf(1).Authorization).toBe('Bearer fresh');
+    });
+
+    test('every view opening asks the features again, however fresh the last answer (spec 032)', async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        fetchMock().mockResolvedValueOnce(json(wallet(1))).mockResolvedValueOnce(json({ features: { ai: false } }));
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetchMock().mock.calls.map((c) => c[0])).toContain('https://api.test/dictionary/features');
+        expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
     });
 });
 
