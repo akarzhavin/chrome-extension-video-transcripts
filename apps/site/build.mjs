@@ -1018,6 +1018,10 @@ const privacyBody = (name) => fs.readFileSync(path.join(PRIVACY_DIR, `${name}.md
 const PRIVACY_EDITIONS = [
   { slug: 'youtube', label: 'Lingogram for YouTube and Netflix' },
   { slug: 'rezka', label: 'Lingogram for HDrezka' },
+  {
+    slug: 'chatgpt', label: 'Lingogram in ChatGPT',
+    description: 'What the Lingogram plugin for ChatGPT exchanges with ChatGPT, and what that means for your data.',
+  },
 ];
 
 // /privacy/ is a chooser, not a policy. It stays because the footer, /welcome/,
@@ -1033,14 +1037,16 @@ const privacyPage = () => {
     pathName: '/privacy/',
     body: `${header(t, '')}<main><article class="doc">
       <h1>Privacy policy</h1>
-      <p>Each Lingogram extension has its own privacy policy. Open the one for the
-      extension you installed:</p>
+      <p>Each Lingogram extension, and the Lingogram plugin for ChatGPT, has its own
+      privacy policy. Open the one for what you use:</p>
       <ul>
 ${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e.label)}</a></li>`).join('\n')}
       </ul>
-      <p>The two documents describe the same optional account, the same cloud storage
-      and the same anonymous usage analytics; they differ in how each extension
-      obtains the subtitles it displays.</p>
+      <p>The two extension documents describe the same optional account, the same cloud
+      storage and the same anonymous usage analytics; they differ in how each extension
+      obtains the subtitles it displays. The ChatGPT document covers what the plugin
+      exchanges with ChatGPT.</p>
+      <p>See also the <a href="/terms/">terms of service</a>.</p>
 ${GA4 ? `      <p>Looking for this <b>website</b> rather than an extension?
       <a href="/privacy/site/">Website privacy and cookies</a> covers the pages you are
       reading now — what the site itself measures, and the choice in the cookie
@@ -1120,13 +1126,54 @@ const privacyEditionPage = (slug) => {
   // record is named "Lingogram for YouTube" because Netflix has its own landing
   // card, but ONE policy covers both — a tab titled "for YouTube" would read as
   // the wrong document to someone who installed it for Netflix.
-  const { label } = PRIVACY_EDITIONS.find((e) => e.slug === slug);
+  const { label, description } = PRIVACY_EDITIONS.find((e) => e.slug === slug);
   return layout({
     lang: 'en', htmlLang: 'en',
     title: `Privacy policy — ${label}`,
-    description: `How ${label} obtains subtitles, and what that means for your data.`,
+    description: description ?? `How ${label} obtains subtitles, and what that means for your data.`,
     pathName: `/privacy/${slug}/`,
     body: `${header(t, '')}<main><article class="doc">${md(privacyBody(slug))}</article></main>${footer(t, '')}`,
+  });
+};
+
+// /terms/ and /support/ are English-only like the policies, and are what the
+// ChatGPT plugin listing links to (spec 033).
+const termsPage = () => {
+  const t = makeT(EN_STRINGS);
+  return layout({
+    lang: 'en', htmlLang: 'en',
+    title: 'Terms of Service — Lingogram',
+    description: 'The terms for using the Lingogram extensions, website, dictionary and ChatGPT plugin.',
+    pathName: '/terms/',
+    body: `${header(t, '')}<main><article class="doc">${md(fs.readFileSync(path.join(SRC, 'data', 'terms.md'), 'utf8'))}</article></main>${footer(t, '')}`,
+  });
+};
+
+const supportPage = () => {
+  const t = makeT(EN_STRINGS);
+  return layout({
+    lang: 'en', htmlLang: 'en',
+    title: 'Support — Lingogram',
+    description: 'How to reach Lingogram for help with the extensions, your dictionary or the ChatGPT plugin.',
+    pathName: '/support/',
+    body: `${header(t, '')}<main><article class="doc">
+      <h1>Support</h1>
+      <p>Questions, problems or ideas about the Lingogram extensions, your dictionary or
+      the Lingogram plugin for ChatGPT: email
+      <a href="mailto:${SITE.supportEmail}">${esc(SITE.supportEmail)}</a>.</p>
+      <p>It helps to say which Lingogram you use (the extension for YouTube and Netflix,
+      for HDrezka, or the ChatGPT plugin), what you did and what happened. Please do not
+      send passwords.</p>
+      <h2>Your account and data</h2>
+      <p>To delete your account and data, write from the email address your account
+      uses, so we can confirm it is yours. To stop the ChatGPT plugin, disconnect it in
+      ChatGPT's settings.</p>
+      <h2>Policies</h2>
+      <ul>
+        <li><a href="/privacy/">Privacy policies</a></li>
+        <li><a href="/terms/">Terms of service</a></li>
+      </ul>
+    </article></main>${footer(t, '')}`,
   });
 };
 
@@ -1845,6 +1892,8 @@ ${Object.entries(alternates).map(([tag, href]) =>
     // Privacy pages are English-only, so they carry no alternates either.
     urlEntry('/privacy/', {}),
     ...PRIVACY_EDITIONS.map(({ slug }) => urlEntry(`/privacy/${slug}/`, {})),
+    urlEntry('/terms/', {}),
+    urlEntry('/support/', {}),
     // Only exists when a tag is configured — see privacySitePage.
     ...(GA4 ? [urlEntry('/privacy/site/', {})] : []),
   ];
@@ -1885,6 +1934,8 @@ Sitemap: ${SITE.domain}/sitemap.xml
   write(path.join('privacy', 'index.html'), privacyPage());
   if (GA4) write(path.join('privacy', 'site', 'index.html'), privacySitePage());
   for (const { slug } of PRIVACY_EDITIONS) write(path.join('privacy', slug, 'index.html'), privacyEditionPage(slug));
+  write(path.join('terms', 'index.html'), termsPage());
+  write(path.join('support', 'index.html'), supportPage());
 
   fs.copyFileSync(path.join(SRC, 'styles', 'site.css'), path.join(OUT, 'site.css'));
   fs.copyFileSync(path.join(SRC, 'js', 'main.js'), path.join(OUT, 'main.js'));
