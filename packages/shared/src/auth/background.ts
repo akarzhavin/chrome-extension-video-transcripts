@@ -1102,9 +1102,9 @@ export function installExternalAuthHandoff(): void {
                 // page woke the worker. Then move the words kept in the browser
                 // into the account. Neither rejects, so no catch.
                 void syncWords({ force: true }).then(() => uploadLocalWords());
-                void refreshFeatures(config.apiBaseUrl, signedIn()); // the new account's, not the defaults
-                // Here, not in setAuthState: token refreshes go through that too, and only a sign-in links (spec 034).
-                void linkAtSignIn(signedIn());
+                // Link here, not in setAuthState (token refreshes go through it too); the account's features
+                // after the link settles, so a join from guests is in them (spec 034); never the defaults.
+                void linkAtSignIn(signedIn()).finally(() => refreshFeatures(config.apiBaseUrl, signedIn()));
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }

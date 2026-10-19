@@ -521,6 +521,35 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
             expect(links()).toHaveLength(0);
         });
 
+        const featureAsks = () =>
+            ((global as any).fetch as jest.Mock).mock.calls.filter(([url]) => url === 'https://api.test/dictionary/features');
+
+        test("the account's features are asked only once the link settled, so a join from guests is in the answer", async () => {
+            let settleLink: (r: unknown) => void = () => undefined;
+            linkReply = () => new Promise((r) => (settleLink = r));
+            expect(await handoff()).toEqual({ ok: true });
+            await settle();
+            expect(links()).toHaveLength(1);
+            expect(featureAsks()).toHaveLength(0);
+            settleLink({ ok: true, status: 200, json: async () => ({ joined: true }) });
+            await settle();
+            expect(featureAsks()).toHaveLength(1);
+        });
+
+        test('a failed link still asks the features', async () => {
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+            try {
+                linkReply = async () => {
+                    throw new Error('offline');
+                };
+                expect(await handoff()).toEqual({ ok: true });
+                await settle();
+                expect(featureAsks()).toHaveLength(1);
+            } finally {
+                warn.mockRestore();
+            }
+        });
+
         test('a failed link does not fail the sign-in, and is not retried', async () => {
             const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
             try {
