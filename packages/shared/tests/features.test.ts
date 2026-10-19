@@ -11,9 +11,9 @@ import {
     forgetFeatures,
     hasFeature,
     featureRefused,
-    parseFeatures,
+    ensureFresh,
+    followFeatures,
     refreshFeatures,
-    staleFeatures,
     watchGate,
     gateOpen,
     FEATURE_AI,
@@ -45,19 +45,35 @@ function reply(status: number, body: unknown): Response {
 
 const NOW = Date.UTC(2026, 9, 18, 12, 0, 0);
 
-/** The server answers features: kept as a refresh would keep it. */
-const answer = (features: Record<string, boolean>) =>
+/** The server answers body: kept as a refresh would keep it. */
+const answerBody = (body: unknown) =>
     refreshFeatures('https://api.test', {
-        fetch: async () => reply(200, { features }),
+        fetch: async () => reply(200, body),
         token: async () => ({ idToken: 't' }),
         now: () => NOW,
     });
+const answer = (features: Record<string, boolean>) => answerBody({ features });
+
+/** Whether a translation part at t asks the server first; the ask itself fails (503). */
+const partAsks = async (t: number) => {
+    let asked = false;
+    await ensureFresh('https://api.test', {
+        fetch: async () => {
+            asked = true;
+            return reply(503, {});
+        },
+        token: async () => ({ idToken: 't' }),
+        now: () => t,
+    });
+    return asked;
+};
 
 describe('features', () => {
-    test('parses only booleans by key', () => {
-        expect(parseFeatures({ features: { a: true, b: false, c: 'yes' } })).toEqual({ a: true, b: false });
-        expect(parseFeatures({ nope: 1 })).toBeNull();
-        expect(parseFeatures(null)).toBeNull();
+    test('keeps only booleans by key, and nothing from a malformed answer', async () => {
+        expect(await answerBody({ features: { a: true, b: false, c: 'yes' } })).toEqual({ a: true, b: false });
+        expect(await answerBody({ nope: 1 })).toBeNull();
+        expect(await answerBody(null)).toBeNull();
+        expect((store.features as { features: unknown }).features).toEqual({ a: true, b: false });
     });
 
     test('before any answer: subtitles on, everything else off', async () => {
@@ -79,8 +95,8 @@ describe('features', () => {
         expect(got).toEqual({ [FEATURE_SECOND_TRACK]: true, [FEATURE_AI_TRANSLATE]: false });
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(true);
         expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(false);
-        expect(await staleFeatures(NOW + 60_000)).toBe(false);
-        expect(await staleFeatures(NOW + 11 * 60_000)).toBe(true);
+        expect(await partAsks(NOW + 60_000)).toBe(false);
+        expect(await partAsks(NOW + 11 * 60_000)).toBe(true);
     });
 
     test('an unreachable server keeps what was known', async () => {
@@ -110,7 +126,7 @@ describe('features', () => {
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
         await forgetFeatures();
         expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
-        expect(await staleFeatures(NOW)).toBe(true);
+        expect(await partAsks(NOW)).toBe(true);
     });
 });
 
@@ -173,8 +189,67 @@ describe('a failed read', () => {
             now: () => NOW,
         };
         expect(await refreshFeatures('https://api.test', failing)).toBeNull();
-        expect(await staleFeatures(NOW + 1_000)).toBe(false);
-        expect(await staleFeatures(NOW + 61_000)).toBe(true);
+        expect(await partAsks(NOW + 1_000)).toBe(false);
+        expect(await partAsks(NOW + 61_000)).toBe(true);
+    });
+});
+
+describe('asking', () => {
+    test('asks made while one is in flight share it; the next one asks anew', async () => {
+        let release: (r: Response) => void = () => undefined;
+        let fetches = 0;
+        const deps = {
+            fetch: () => {
+                fetches++;
+                return new Promise<Response>((r) => (release = r));
+            },
+            token: async () => ({ idToken: 't' }),
+            now: () => NOW,
+        };
+        const a = refreshFeatures('https://api.test', deps);
+        const b = refreshFeatures('https://api.test', deps);
+        const c = ensureFresh('https://api.test', deps);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetches).toBe(1);
+        release(reply(200, { features: { [FEATURE_SECOND_TRACK]: true } }));
+        expect(await a).toEqual({ [FEATURE_SECOND_TRACK]: true });
+        expect(await b).toEqual({ [FEATURE_SECOND_TRACK]: true });
+        await c;
+        const d = refreshFeatures('https://api.test', deps);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetches).toBe(2);
+        release(reply(200, { features: {} }));
+        await d;
+    });
+
+    test('a view asks the worker as it opens, and on a return to its tab at most once a minute', async () => {
+        jest.useFakeTimers({ now: NOW });
+        const sent: unknown[] = [];
+        (chrome as unknown as { runtime: unknown }).runtime = { sendMessage: (m: unknown) => sent.push(m), lastError: undefined };
+        const show = (state: 'visible' | 'hidden') => {
+            Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+            document.dispatchEvent(new Event('visibilitychange'));
+        };
+        try {
+            const stop = followFeatures(document);
+            expect(sent).toEqual([{ action: 'FEATURES_REFRESH' }]);
+            jest.setSystemTime(NOW + 59_000);
+            show('visible');
+            expect(sent).toHaveLength(1);
+            jest.setSystemTime(NOW + 61_000);
+            show('hidden');
+            expect(sent).toHaveLength(1);
+            show('visible');
+            expect(sent).toHaveLength(2);
+            show('visible');
+            expect(sent).toHaveLength(2); // the minute counts from the last ask
+            stop();
+            jest.setSystemTime(NOW + 10 * 60_000);
+            show('visible');
+            expect(sent).toHaveLength(2);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 });
 

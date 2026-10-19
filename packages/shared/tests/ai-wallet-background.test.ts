@@ -142,13 +142,38 @@ describe('AI_BALANCE_REFRESH', () => {
         expect(headersOf(1).Authorization).toBe('Bearer fresh');
     });
 
-    test('every view opening asks the features again, however fresh the last answer (spec 032)', async () => {
+    test('asks the balance only: the features have their own message (spec 032)', async () => {
         await signIn();
-        store.features = { features: { ai: true }, at: Date.now() };
-        fetchMock().mockResolvedValueOnce(json(wallet(1))).mockResolvedValueOnce(json({ features: { ai: false } }));
+        fetchMock().mockResolvedValue(json(wallet(1)));
         await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
         await new Promise((r) => setTimeout(r, 0));
-        expect(fetchMock().mock.calls.map((c) => c[0])).toContain('https://api.test/dictionary/features');
+        expect(fetchMock().mock.calls.map((c) => c[0])).toEqual(['https://api.test/dictionary/ai/balance']);
+    });
+});
+
+describe('FEATURES_REFRESH (spec 032)', () => {
+    test('a view opening asks the features again, however fresh the last answer', async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: false } }));
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+        const [url, init] = fetchMock().mock.calls[0];
+        expect(url).toBe('https://api.test/dictionary/features');
+        expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer tok' } });
+        expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
+    });
+
+    test('signed out: nothing is asked and nothing kept', async () => {
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
+        expect(fetchMock()).not.toHaveBeenCalled();
+        expect(store.featuresTried).toBeUndefined();
+    });
+
+    test('a failed read: ok:false, the last answer stands', async () => {
+        await signIn();
+        store.features = { features: { ai: false }, at: 1 };
+        fetchMock().mockResolvedValueOnce(json({}, 503));
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
         expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
     });
 });
@@ -220,6 +245,19 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         const reply = await part();
         expect(reply).toMatchObject({ ok: false, code: 'quota', resetsAt: 123 });
         expect(storedUsed()).toBe(10_000_000);
+    });
+
+    test('a part asks the features first only when the answer is ten minutes old (spec 032)', async () => {
+        await signIn();
+        const urls = () => fetchMock().mock.calls.map((c) => String(c[0]).replace('https://api.test', ''));
+        store.features = { features: { ai: true }, at: Date.now() - 9 * 60_000 };
+        fetchMock().mockResolvedValueOnce(json({ from: 0, to: 1, lines: ['x'] }));
+        await part();
+        expect(urls()).toEqual([`/dictionary/subtitles/${FP}/part`]);
+        store.features = { features: { ai: true }, at: Date.now() - 11 * 60_000 };
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: true } })).mockResolvedValueOnce(json({ from: 0, to: 1, lines: ['x'] }));
+        await part();
+        expect(urls().slice(1)).toEqual(['/dictionary/features', `/dictionary/subtitles/${FP}/part`]);
     });
 
     test('a part without a wallet stores nothing', async () => {

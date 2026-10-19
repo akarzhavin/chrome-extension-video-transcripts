@@ -106,3 +106,25 @@ test('a refused sign-in does not ask the server for anything', async () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(listInboxWords).not.toHaveBeenCalled();
 });
+
+test("a successful sign-in asks the new account's features (spec 032)", async () => {
+    listInboxWords.mockResolvedValue([]);
+    const fetchMock = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ features: { 'subtitles.second_track': true } }) }));
+    (global as any).fetch = fetchMock;
+    try {
+        installExternalAuthHandoff();
+        await setPendingAuthNonce('n1');
+        await new Promise((resolve) =>
+            externalListener!(
+                { type: 'lingogram-extension-auth', payload: { customToken: 't', uid: 'u1', email: 'a@b.c', nonce: 'n1' } },
+                { origin: 'http://localhost:5173' },
+                resolve,
+            ),
+        );
+        await until(async () => 'features' in local);
+        expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/dictionary\/features$/), expect.objectContaining({ method: 'GET' }));
+        expect((local.features as { features: unknown }).features).toEqual({ 'subtitles.second_track': true });
+    } finally {
+        delete (global as any).fetch;
+    }
+});

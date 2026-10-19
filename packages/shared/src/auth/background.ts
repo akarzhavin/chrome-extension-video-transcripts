@@ -48,7 +48,7 @@ import {
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
-import { refreshFeatures, staleFeatures } from '../features';
+import { ensureFresh, refreshFeatures, type FeatureDeps } from '../features';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -87,6 +87,7 @@ export type AuthAction =
     | 'DISMISS_NOTIFICATION'
     | 'LOOKUP_WORD'
     | 'AI_BALANCE_REFRESH'
+    | 'FEATURES_REFRESH'
     | 'LIMIT_REFUSED'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
@@ -120,6 +121,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
     'AI_BALANCE_REFRESH',
+    'FEATURES_REFRESH',
     'LIMIT_REFUSED',
 ]);
 
@@ -551,16 +553,7 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
-// The account's gated features: asked on every view opening, so an admin's switch shows at the
-// next open; before a translation request only once the last answer is ten minutes old
-// (a minute after a failed read).
-async function askFeatures(): Promise<void> {
-    await refreshFeatures(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i), token: (r) => freshIdToken(config, r) });
-}
-
-async function askFeaturesIfStale(): Promise<void> {
-    if (await staleFeatures()) await askFeatures();
-}
+const featureDeps = (): FeatureDeps => ({ fetch: (u, i) => fetch(u, i), token: (r) => freshIdToken(config, r) });
 
 // Server-side subtitle translation. Authed, so it runs here
 // where the token lives; outcomes are values, never throws.
@@ -573,7 +566,7 @@ function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
         refused: reportRefusal,
     };
     if (request.action === 'SUBTITLE_AI_PART') {
-        return askFeaturesIfStale().then(() => requestPart(config, request.part as PartRequest, deps)).then(async (reply) => {
+        return ensureFresh(config.apiBaseUrl, featureDeps()).then(() => requestPart(config, request.part as PartRequest, deps)).then(async (reply) => {
             if (reply.wallet) await keepBalance(reply.wallet);
             return reply;
         });
@@ -898,8 +891,12 @@ export async function handleAuthMessage(
                 fetch: (u, i) => fetch(u, i),
                 token: (r) => freshIdToken(config, r),
             });
-            void askFeatures(); // a view opening is when features may have changed
             return balance ? { ok: true, balance } : { ok: false };
+        }
+        case 'FEATURES_REFRESH': {
+            // Signed out there is no account to ask for; the defaults stand.
+            if (!(await getAuthState())) return { ok: false };
+            return { ok: (await refreshFeatures(config.apiBaseUrl, featureDeps())) !== null };
         }
         case 'LOOKUP_WORD': {
             // Word lookup for the hover strip and the sidebar's word screen.
@@ -1106,6 +1103,7 @@ export function installExternalAuthHandoff(): void {
                 // page woke the worker. Then move the words kept in the browser
                 // into the account. Neither rejects, so no catch.
                 void syncWords({ force: true }).then(() => uploadLocalWords());
+                void refreshFeatures(config.apiBaseUrl, featureDeps()); // the new account's, not the defaults
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }

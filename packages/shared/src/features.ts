@@ -3,6 +3,8 @@
 // chrome.storage.local; the server still refuses a feature the account lacks
 // (404 feature_off), so this cache only saves wasted requests.
 
+import { onTabReturn } from './tab-return';
+
 export const FEATURE_AI = 'ai';
 export const FEATURE_AI_TRANSLATE = 'subtitles.ai_translate';
 export const FEATURE_SECOND_TRACK = 'subtitles.second_track';
@@ -30,13 +32,18 @@ export function gateNeeds(gate: Gate, key: string): boolean {
 
 const isKey = (k: string): k is FeatureKey => k === FEATURE_AI || k === FEATURE_AI_TRANSLATE || k === FEATURE_SECOND_TRACK;
 
+/** The worker message a view sends to have the features asked. */
+export const FEATURES_REFRESH = 'FEATURES_REFRESH';
+
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
 const TRIED_KEY = 'featuresTried';
-/** How long an answer stands before the worker asks again. */
+/** How long an answer stands before a translation part asks again. */
 const MAX_AGE_MS = 10 * 60 * 1000;
 /** After a failed read, how long a translation part waits before asking again. */
 const RETRY_MS = 60 * 1000;
+/** A view asks again on a return to its tab at most this often. */
+const REASK_MS = 60 * 1000;
 
 // On for everyone on the server; a failed read must not switch it off.
 const DEFAULTS: Partial<Record<FeatureKey, boolean>> = { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true };
@@ -47,7 +54,7 @@ interface Kept {
 }
 
 /** The server's map of feature key to on/off; null when malformed. */
-export function parseFeatures(raw: unknown): Record<string, boolean> | null {
+function parseFeatures(raw: unknown): Record<string, boolean> | null {
     const f = (raw as { features?: unknown } | null)?.features;
     if (!f || typeof f !== 'object') return null;
     const out: Record<string, boolean> = {};
@@ -71,8 +78,37 @@ export async function hasFeature(key: FeatureKey): Promise<boolean> {
     return on(await load(), key);
 }
 
+/** Whether the account may use gate now, by the last answer. */
+export async function gateOpen(gate: Gate): Promise<boolean> {
+    const kept = await load();
+    return keysOf(gate).every((k) => on(kept, k));
+}
+
+/** Calls cb with whether gate is open now and on every change of the answer; returns the stop. */
+export function watchGate(gate: Gate, cb: (open: boolean) => void): () => void {
+    let last: boolean | undefined;
+    const check = () =>
+        void gateOpen(gate).then((open) => {
+            if (open === last) return;
+            last = open;
+            cb(open);
+        });
+    check();
+    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+        if (area === 'local' && KEY in changes) check();
+    };
+    try {
+        chrome.storage.onChanged.addListener(listener);
+    } catch {
+        return () => undefined;
+    }
+    return () => chrome.storage.onChanged.removeListener(listener);
+}
+
+// --- The worker's side: asking the server, and its refusals.
+
 /** True when there is no answer or it is older than MAX_AGE_MS, unless a read failed under RETRY_MS ago. */
-export async function staleFeatures(now: number = Date.now()): Promise<boolean> {
+async function stale(now: number): Promise<boolean> {
     const kept = await load();
     if (kept && now - kept.at < MAX_AGE_MS && now >= kept.at) return false;
     let tried: unknown;
@@ -117,18 +153,37 @@ export interface FeatureDeps {
     now?: () => number;
 }
 
+type Answer = Record<string, boolean> | null;
+
+// Views opening together, and parts asked meanwhile, share the one request in flight.
+let inFlight: Promise<Answer> | null = null;
+
 /** Asks the server and keeps the answer; null when signed out, unreachable or malformed. */
-export async function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promise<Record<string, boolean> | null> {
-    if (!baseUrl) return null;
+export function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promise<Answer> {
+    if (!baseUrl) return Promise.resolve(null);
+    if (inFlight) return inFlight;
+    const asking = ask(baseUrl, deps).finally(() => {
+        if (inFlight === asking) inFlight = null;
+    });
+    inFlight = asking;
+    return asking;
+}
+
+/** Before a translation part: asks only when the answer is stale (see MAX_AGE_MS, RETRY_MS). */
+export async function ensureFresh(baseUrl: string, deps: FeatureDeps): Promise<void> {
+    if (await stale((deps.now ?? Date.now)())) await refreshFeatures(baseUrl, deps);
+}
+
+async function ask(baseUrl: string, deps: FeatureDeps): Promise<Answer> {
     const url = `${baseUrl.replace(/\/+$/, '')}/dictionary/features`;
-    const ask = async (refresh: boolean) => {
+    const get = async (refresh: boolean) => {
         const { idToken } = await deps.token(refresh);
         return deps.fetch(url, { method: 'GET', headers: { Authorization: `Bearer ${idToken}` } });
     };
     const now = deps.now ?? Date.now;
     try {
-        let res = await ask(false);
-        if (res.status === 401) res = await ask(true);
+        let res = await get(false);
+        if (res.status === 401) res = await get(true);
         const features = res.ok ? parseFeatures(await res.json()) : null;
         if (features) await chrome.storage.local.set({ [KEY]: { features, at: now() } });
         else await chrome.storage.local.set({ [TRIED_KEY]: now() });
@@ -143,29 +198,18 @@ export async function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promi
     }
 }
 
-/** Whether the account may use gate now, by the last answer. */
-export async function gateOpen(gate: Gate): Promise<boolean> {
-    const kept = await load();
-    return keysOf(gate).every((k) => on(kept, k));
+// --- A view's side: when to have the worker ask.
+
+function askWorker(): void {
+    try {
+        chrome.runtime.sendMessage({ action: FEATURES_REFRESH }, () => void chrome.runtime.lastError);
+    } catch {
+        // Orphaned context: the gates keep the last answer.
+    }
 }
 
-/** Calls cb with whether gate is open now and on every change of the answer; returns the stop. */
-export function watchGate(gate: Gate, cb: (open: boolean) => void): () => void {
-    let last: boolean | undefined;
-    const check = () =>
-        void gateOpen(gate).then((open) => {
-            if (open === last) return;
-            last = open;
-            cb(open);
-        });
-    check();
-    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-        if (area === 'local' && KEY in changes) check();
-    };
-    try {
-        chrome.storage.onChanged.addListener(listener);
-    } catch {
-        return () => undefined;
-    }
-    return () => chrome.storage.onChanged.removeListener(listener);
+/** A view opening asks at once, and again on each return to its tab, at most once a minute; returns the stop. */
+export function followFeatures(doc: Document): () => void {
+    askWorker();
+    return onTabReturn(doc, REASK_MS, askWorker);
 }

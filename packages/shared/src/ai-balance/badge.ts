@@ -4,8 +4,9 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
-import { gateOpen, watchGate } from '../features';
+import { followFeatures, gateOpen, watchGate } from '../features';
 import { msg } from '../i18n';
+import { onTabReturn } from '../tab-return';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
 import { offMode } from './signed-out';
@@ -18,6 +19,7 @@ const ON = 'vtt-ai-on';
 const SVG = 'http://www.w3.org/2000/svg';
 const R = 7;
 const C = 2 * Math.PI * R;
+// A return to the tab asks for the balance again at most this often.
 const REASK_MS = 60_000;
 
 /** The 18px ring: a track and an arc drawn clockwise from 12 o'clock. */
@@ -157,20 +159,15 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
 
     void loadBalance().then(show);
     requestRefresh();
-    // Back on the tab (an admin may have switched AI meanwhile): ask again, at most once a minute.
-    let askedAt = Date.now();
-    const visible = () => {
-        if (doc.visibilityState !== 'visible' || Date.now() - askedAt < REASK_MS) return;
-        askedAt = Date.now();
-        requestRefresh();
-    };
-    doc.addEventListener('visibilitychange', visible);
+    const stopBalanceReask = onTabReturn(doc, REASK_MS, requestRefresh);
+    const stopFeatures = followFeatures(doc);
     const unsubscribe = onBalance(show);
     return () => {
         disposed = true;
         unsubscribe();
         unwatchAI();
-        doc.removeEventListener('visibilitychange', visible);
+        stopBalanceReask();
+        stopFeatures();
         off.dispose();
         cancelWarning();
         doc.removeEventListener('click', outside, true);

@@ -245,7 +245,9 @@ describe('sidebar badge', () => {
             const top = header();
             mountAIBadge(top);
             const asks = () => sendMessage.mock.calls.filter((c) => c[0]?.action === 'AI_BALANCE_REFRESH').length;
+            const featureAsks = () => sendMessage.mock.calls.filter((c) => c[0]?.action === 'FEATURES_REFRESH').length;
             expect(asks()).toBe(1);
+            expect(featureAsks()).toBe(1); // every view opening asks the features
             const show = (state: 'visible' | 'hidden') => {
                 Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
                 document.dispatchEvent(new Event('visibilitychange'));
@@ -258,8 +260,10 @@ describe('sidebar badge', () => {
             jest.setSystemTime(Date.UTC(2026, 9, 19, 7, 1, 1));
             show('hidden');
             expect(asks()).toBe(1);
+            expect(featureAsks()).toBe(1);
             show('visible');
             expect(asks()).toBe(2);
+            expect(featureAsks()).toBe(2);
             await local.set({ features: { features: { ai: false }, at: Date.now() } });
             await jest.advanceTimersByTimeAsync(0); // the storage reads settle; no timer is due
             expect(top.querySelector<HTMLElement>('#vtt-ai-badge')!.style.display).toBe('none');
