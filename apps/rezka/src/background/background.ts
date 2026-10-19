@@ -14,6 +14,8 @@ import { SUBTITLE_LANGUAGES } from '../config';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 import { devEnvReady } from '../../../../packages/shared/src/auth/background';
+// Relative: the installation module is worker-only, not on the barrel.
+import { installInstallation } from '../../../../packages/shared/src/installation';
 
 // Tags every event with the backend it came from — a dev build can be switched
 // between its targets at runtime, and they must stay distinguishable.
@@ -71,6 +73,8 @@ installContextMenuSave();
 // Relative: runner.ts imports analytics-bg (the GA4 secret), which stays out
 // of the package barrel that content scripts pull in.
 installGtImport();
+// Its own listener, apart from the analytics hooks below: minted and recorded whatever the analytics switch says.
+installInstallation('rezka');
 installOnboarding('rezka', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can

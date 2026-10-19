@@ -14,6 +14,8 @@ import { installSettingsBridge } from '../../../../packages/shared/src/settings-
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 import { devEnvReady } from '../../../../packages/shared/src/auth/background';
+// Relative: the installation module is worker-only, not on the barrel.
+import { installInstallation } from '../../../../packages/shared/src/installation';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
@@ -37,6 +39,8 @@ installContextMenuSave();
 // Relative: runner.ts imports analytics-bg (the GA4 secret), which stays out
 // of the package barrel that content scripts pull in.
 installGtImport();
+// Its own listener, apart from the analytics hooks below: minted and recorded whatever the analytics switch says.
+installInstallation('youtube');
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can
