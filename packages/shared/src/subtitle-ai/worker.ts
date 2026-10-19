@@ -6,7 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
-import { FEATURE_SECOND_TRACK, featureRefused, gateNeeds, type FeatureKey } from '../features';
+import { featureRefused, gateNeeds } from '../features';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -26,8 +26,6 @@ export interface WorkerDeps {
     now: () => number;
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
-    /** The account's gated features (spec 032-feature-rollout-admin); none: all asked for. */
-    features?: { has: (key: FeatureKey) => Promise<boolean> };
 }
 
 export interface PartRequest {
@@ -77,7 +75,6 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
-    if (req.second && deps.features && !(await deps.features.has(FEATURE_SECOND_TRACK))) req = { ...req, second: undefined };
     let reply = await askPart(cfg, req, deps);
     // A refused hint is dropped and the part asked again; any other refusal ends the part.
     const hintOnly = (f: string) => gateNeeds('hint', f) && !gateNeeds('translation', f);

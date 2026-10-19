@@ -198,4 +198,13 @@ describe('AI subtitle translation', () => {
         await flush();
         expect(seen).toEqual([true, false, true, false]);
     });
+
+    test('the gender hint is allowed only while the hint gate is open', async () => {
+        const deps = browserAiDeps();
+        expect(await deps.hintAllowed?.()).toBe(false);
+        await answer({ [FEATURE_SECOND_TRACK]: true });
+        expect(await deps.hintAllowed?.()).toBe(true);
+        await answer({ [FEATURE_SECOND_TRACK]: true, [FEATURE_AI_TRANSLATE]: false });
+        expect(await deps.hintAllowed?.()).toBe(false);
+    });
 });

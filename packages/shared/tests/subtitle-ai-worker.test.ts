@@ -145,13 +145,6 @@ describe('requestPart', () => {
         const kept = (features: Record<string, boolean>) => {
             store.features = { features, at: Date.now() };
         };
-        const features = { has: hasFeature };
-
-        test('the second track is not offered while the account lacks it', async () => {
-            const d = { ...deps([reply(200, { from: 0, to: 1, lines: ['x'] })]), features };
-            await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
-            expect(JSON.parse(d.calls[0].init.body as string).second).toBeUndefined();
-        });
 
         test('a refused second track is dropped and the part asked again without it', async () => {
             kept({ 'subtitles.second_track': true });
@@ -160,7 +153,6 @@ describe('requestPart', () => {
                     reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
                     reply(200, { from: 0, to: 1, lines: ['x'] }),
                 ]),
-                features,
             };
             const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(r.ok).toBe(true);
@@ -177,7 +169,6 @@ describe('requestPart', () => {
                     reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
                     reply(404, { code: 'feature_off', feature: 'ai' }),
                 ]),
-                features,
             };
             const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(r).toEqual({ ok: false, code: 'feature_off' });
@@ -186,14 +177,14 @@ describe('requestPart', () => {
         });
 
         test('refused translation is feature_off, which stops, and is remembered', async () => {
-            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features };
+            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]) };
             expect(await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d)).toEqual({ ok: false, code: 'feature_off' });
             expect(await hasFeature('subtitles.ai_translate')).toBe(false);
         });
 
         test('refused translation is not asked again even when the request named a hint', async () => {
             kept({ 'subtitles.second_track': true });
-            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features };
+            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]) };
             const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(r).toEqual({ ok: false, code: 'feature_off' });
             expect(d.calls).toHaveLength(1);
