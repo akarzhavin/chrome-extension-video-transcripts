@@ -79,10 +79,11 @@ export async function keepTried(at: number, since: number): Promise<void> {
     if (since === account) await chrome.storage.local.set({ [TRIED_KEY]: at });
 }
 
-/** The server refused key: off until the next answer; keys the extension does not read are ignored. */
-export async function markOff(key: string): Promise<void> {
-    if (!isFeatureKey(key)) return;
+/** The server refused key: off until the next answer, unless a sign-out came since; unread keys are ignored. */
+export async function markOff(key: string, since: number): Promise<void> {
+    if (!isFeatureKey(key) || since !== account) return;
     const kept = (await loadFeatures()) ?? { features: {}, at: 0 };
+    if (since !== account) return;
     await chrome.storage.local.set({ [KEY]: { ...kept, features: { ...kept.features, [key]: false } } });
 }
 

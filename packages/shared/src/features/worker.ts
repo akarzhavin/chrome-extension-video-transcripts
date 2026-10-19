@@ -71,11 +71,13 @@ async function ask(baseUrl: string, deps: FeatureDeps, asker: number): Promise<A
     }
 }
 
-/** For one request: keeps a feature the server refused, off until the next answer; never throws. */
+/** For one request, made as it begins: keeps a feature the server refused, off until the next answer; never throws. */
 export function refusalKeeper(): (key: string) => Promise<void> {
+    // A refusal for a request begun before a sign-out was the old account's.
+    const since = accountGeneration();
     return async (key) => {
         try {
-            await markOff(key);
+            await markOff(key, since);
         } catch {
             // Storage gone: the server refuses again next time.
         }

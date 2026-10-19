@@ -37,7 +37,7 @@ jest.mock('../src/analytics-bg', () => ({
 }));
 
 import { handleAuthMessage } from '../src/auth/background';
-import { setAuthState } from '../src/auth/storage';
+import { clearAuthState, setAuthState } from '../src/auth/storage';
 
 import { clearLookupCache } from '../src/lookup';
 
@@ -62,6 +62,11 @@ const fetchMock = () => (global as any).fetch as jest.Mock;
 const headersOf = (call: number) => (fetchMock().mock.calls[call][1] as RequestInit).headers as Record<string, string>;
 const BALANCE_KEY = 'ai.balance';
 const storedUsed = () => (store[BALANCE_KEY] as { day: { used: number } } | undefined)?.day.used;
+
+async function until(ok: () => boolean): Promise<void> {
+    for (let i = 0; i < 50 && !ok(); i++) await new Promise((r) => setTimeout(r, 0));
+    expect(ok()).toBe(true);
+}
 
 const signIn = () =>
     setAuthState({ idToken: 'id', refreshToken: 'r', expiresAt: Date.now() + 3_600_000, email: 'a@b.c', uid: 'u1' });
@@ -266,6 +271,22 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         fetchMock().mockResolvedValueOnce(json({ code: 'feature_off', feature: 'subtitles.ai_translate' }, 404));
         expect(await part()).toEqual({ ok: false, code: 'feature_off' });
         expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true, 'subtitles.ai_translate': false });
+    });
+
+    test("a refusal for a part in flight at sign-out does not land on the next account's answer (spec 032)", async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        let release: (r: Response) => void = () => undefined;
+        fetchMock().mockReturnValueOnce(new Promise<Response>((r) => (release = r)));
+        const reply = part();
+        await until(() => fetchMock().mock.calls.length === 1);
+        await clearAuthState();
+        await signIn();
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: true } }));
+        await handleAuthMessage({ action: 'FEATURES_REFRESH' });
+        release(json({ code: 'feature_off', feature: 'ai' }, 404));
+        expect(await reply).toEqual({ ok: false, code: 'feature_off' });
+        expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true });
     });
 
     test('a part without a wallet stores nothing', async () => {

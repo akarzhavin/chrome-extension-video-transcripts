@@ -143,6 +143,16 @@ describe('a kept refusal', () => {
         expect(await has(FEATURE_AI)).toBe(true);
     });
 
+    test("a refusal for a request begun before a sign-out is not kept for the next account", async () => {
+        const keep = refusalKeeper();
+        await forgetFeatures();
+        await answer({ [FEATURE_AI]: true });
+        await keep(FEATURE_AI);
+        expect(await has(FEATURE_AI)).toBe(true);
+        await refusalKeeper()(FEATURE_AI); // one begun after it is
+        expect(await has(FEATURE_AI)).toBe(false);
+    });
+
     test('with storage gone it throws nothing', async () => {
         (globalThis as unknown as { chrome: unknown }).chrome = {};
         await expect(refusalKeeper()(FEATURE_AI)).resolves.toBeUndefined();
