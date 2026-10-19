@@ -3,6 +3,7 @@
 // chrome.storage.local; the server still refuses a feature the account lacks
 // (404 feature_off), so this cache only saves wasted requests.
 
+export const FEATURE_AI = 'ai';
 export const FEATURE_SUBTITLES = 'subtitles.ai_translate';
 export const FEATURE_SECOND_TRACK = 'subtitles.second_track';
 
@@ -11,7 +12,7 @@ const KEY = 'features';
 const MAX_AGE_MS = 10 * 60 * 1000;
 
 // On for everyone on the server; a failed read must not switch it off.
-const DEFAULTS: Record<string, boolean> = { [FEATURE_SUBTITLES]: true };
+const DEFAULTS: Record<string, boolean> = { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: true };
 
 interface Kept {
     features: Record<string, boolean>;
@@ -84,4 +85,24 @@ export async function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promi
     } catch {
         return null;
     }
+}
+
+/** Calls cb with whether the account has key now and on every change of the answer. */
+export function watchFeature(key: string, cb: (on: boolean) => void): () => void {
+    let last: boolean | undefined;
+    const tell = (on: boolean) => {
+        if (on === last) return;
+        last = on;
+        cb(on);
+    };
+    void hasFeature(key).then(tell);
+    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+        if (area === 'local' && KEY in changes) void hasFeature(key).then(tell);
+    };
+    try {
+        chrome.storage.onChanged.addListener(listener);
+    } catch {
+        return () => undefined;
+    }
+    return () => chrome.storage.onChanged.removeListener(listener);
 }

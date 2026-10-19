@@ -4,6 +4,7 @@ import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
+import { FEATURE_AI, watchFeature } from '../features';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
@@ -52,6 +53,9 @@ export function browserAiDeps(): AttachDeps {
             document.addEventListener('seeked', (e) => {
                 if (e.target instanceof HTMLVideoElement) cb();
             }, true);
+        },
+        onAIChange: (cb) => {
+            watchFeature(FEATURE_AI, cb);
         },
         later: (fn, ms) => {
             setTimeout(fn, ms);

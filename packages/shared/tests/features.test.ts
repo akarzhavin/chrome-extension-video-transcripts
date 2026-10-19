@@ -14,10 +14,14 @@ import {
     parseFeatures,
     refreshFeatures,
     staleFeatures,
+    watchFeature,
+    FEATURE_AI,
 } from '../src/features';
 
 const store: Record<string, unknown> = {};
+let listeners: unknown[] = [];
 beforeEach(() => {
+    listeners = [];
     for (const k of Object.keys(store)) delete store[k];
     (globalThis as unknown as { chrome: unknown }).chrome = {
         storage: {
@@ -28,6 +32,7 @@ beforeEach(() => {
                     delete store[k];
                 },
             },
+            onChanged: { addListener: (l: unknown) => listeners.push(l), removeListener: () => undefined },
         },
     };
 });
@@ -96,5 +101,22 @@ describe('features', () => {
         await forgetFeatures();
         expect(await hasFeature(FEATURE_SUBTITLES)).toBe(true);
         expect(await staleFeatures(NOW)).toBe(true);
+    });
+});
+
+describe('the AI feature', () => {
+    const flush = () => new Promise((r) => setTimeout(r, 0));
+    test('counts as on without an answer, and a watcher hears it go off and on', async () => {
+        expect(await hasFeature(FEATURE_AI)).toBe(true);
+        const seen: boolean[] = [];
+        watchFeature(FEATURE_AI, (on) => seen.push(on));
+        await flush();
+        store.features = { features: { [FEATURE_AI]: false }, at: NOW };
+        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
+        await flush();
+        store.features = { features: { [FEATURE_AI]: true }, at: NOW };
+        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
+        await flush();
+        expect(seen).toEqual([true, false, true]);
     });
 });

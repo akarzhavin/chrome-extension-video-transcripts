@@ -4,6 +4,7 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
+import { FEATURE_AI, watchFeature } from '../features';
 import { msg } from '../i18n';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
@@ -113,6 +114,11 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
+    // Without the AI feature (spec 032) the badge and its bars are gone.
+    const unwatchAI = watchFeature(FEATURE_AI, (on) => {
+        badge.style.display = on ? '' : 'none';
+        if (!on) close();
+    });
 
     const show = (b: AIBalance | null) => {
         balance = b;
@@ -151,6 +157,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     return () => {
         disposed = true;
         unsubscribe();
+        unwatchAI();
         off.dispose();
         cancelWarning();
         doc.removeEventListener('click', outside, true);

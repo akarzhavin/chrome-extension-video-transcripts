@@ -27,6 +27,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
     let forcedListener: (on: boolean) => void = () => {};
     let pairListener: () => void = () => {};
     let seekListener: () => void = () => {};
+    let aiListener: (on: boolean) => void = () => {};
     const timers: (() => void)[] = [];
     const sent: Sent[] = [];
     let time = 0;
@@ -41,6 +42,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         onForcedChange: (cb) => { forcedListener = cb; },
         onPairChange: (cb) => { pairListener = cb; },
         onSeek: (cb) => { seekListener = cb; },
+        onAIChange: (cb) => { aiListener = cb; },
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
     };
@@ -56,6 +58,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
             await settle();
         },
         setForced: (on: boolean) => forcedListener(on),
+        setAI: (on: boolean) => aiListener(on),
         setPair: (p: LanguagePrefs | null) => { prefs = p; pairListener(); },
         aiNames: () => state.tracks.map((t) => t.name),
     };
@@ -227,5 +230,24 @@ describe('attachAiTranslation asks again on a seek', () => {
         s.seeked();
         await settle();
         expect(s.sent).toHaveLength(2);
+    });
+});
+
+describe('attachAiTranslation follows the AI feature (spec 032)', () => {
+    test('AI switched off removes the AI track and asks nothing; on again, it translates', async () => {
+        const s = setup();
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.aiNames()).toEqual(['English', 'Russian · AI']);
+        s.setAI(false);
+        await settle();
+        expect(s.aiNames()).toEqual(['English']);
+        const asked = s.sent.length;
+        s.state.addTrack('English', cues(12));
+        await settle();
+        expect(s.sent).toHaveLength(asked);
+        s.setAI(true);
+        await settle();
+        expect(s.aiNames()).toContain('Russian · AI');
     });
 });
