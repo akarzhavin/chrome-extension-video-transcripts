@@ -457,9 +457,7 @@ describe('sidebar badge', () => {
             const top = header();
             const unmount = mountAIBadge(top);
             await saveBalance(balance(450_000));
-            await Promise.resolve();
-            await Promise.resolve();
-            await Promise.resolve();
+            await jest.advanceTimersByTimeAsync(0); // the storage reads settle; the note's timer is not due
             expect(document.getElementById('vtt-ai-warn')).not.toBeNull();
             unmount();
             expect(jest.getTimerCount()).toBe(0);
@@ -481,6 +479,24 @@ describe('sidebar badge', () => {
         expect(panel.textContent).not.toMatch(/Swap|Shift\+S/);
         document.body.click();
         expect(top.querySelector('#vtt-ai-panel')).toBeNull();
+    });
+
+    test('with AI off for the account the "almost used up" note stays away, and AI going off takes it down (spec 032)', async () => {
+        const aiIs = (on: boolean) => local.set({ features: { features: { ai: on }, at: Date.now() } });
+        await aiIs(false);
+        mountAIBadge(header());
+        await flush();
+        await saveBalance(balance(420_000));
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')).toBeNull();
+        // Not spent while hidden: back on, the next balance still warns.
+        await aiIs(true);
+        await saveBalance(balance(430_000));
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')).not.toBeNull();
+        await aiIs(false);
+        await flush();
+        expect(document.getElementById('vtt-ai-warn')).toBeNull();
     });
 
     test('crossing the warn ratio says so once', async () => {

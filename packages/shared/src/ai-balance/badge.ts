@@ -4,7 +4,7 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
-import { watchGate } from '../features';
+import { gateOpen, watchGate } from '../features';
 import { msg } from '../i18n';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
@@ -118,7 +118,9 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     // Closed (spec 032), the badge and its bars are gone.
     const unwatchAI = watchGate('badge', (on) => {
         badge.style.display = on ? '' : 'none';
-        if (!on) close();
+        if (on) return;
+        close();
+        cancelWarning();
     });
 
     const show = (b: AIBalance | null) => {
@@ -145,7 +147,8 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
             close();
             open();
         }
-        void takeWarning(b).then((w) => {
+        // Asked only while the badge shows, so a hidden badge does not spend the once-per-window note.
+        void gateOpen('badge').then((on) => (on && !disposed ? takeWarning(b) : null)).then((w) => {
             if (!w || disposed) return;
             cancelWarning();
             cancelWarning = showWarningNote(headerTop, w);
