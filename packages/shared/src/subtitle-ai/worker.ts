@@ -6,7 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
-import { FEATURE_SECOND_TRACK, type FeatureKey } from '../features';
+import { FEATURE_SECOND_TRACK, featureRefused, gateNeeds, type FeatureKey } from '../features';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -27,7 +27,7 @@ export interface WorkerDeps {
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
     /** The account's gated features (spec 032-feature-rollout-admin); none: all asked for. */
-    features?: { has: (key: FeatureKey) => Promise<boolean>; off: (key: string) => Promise<void> };
+    features?: { has: (key: FeatureKey) => Promise<boolean> };
 }
 
 export interface PartRequest {
@@ -78,13 +78,13 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
     if (req.second && deps.features && !(await deps.features.has(FEATURE_SECOND_TRACK))) req = { ...req, second: undefined };
-    const reply = await askPart(cfg, req, deps);
-    if (reply.ok || reply.code !== 'feature_off') return reply;
-    // A 404 feature_off names the feature: a refused hint is dropped and the part asked again.
-    const feature = reply.feature ?? '';
-    if (feature) await deps.features?.off(feature);
-    if (feature === FEATURE_SECOND_TRACK && req.second) return askPart(cfg, { ...req, second: undefined }, deps);
-    return { ok: false, code: 'feature_off' };
+    let reply = await askPart(cfg, req, deps);
+    // A refused hint is dropped and the part asked again; any other refusal ends the part.
+    const hintOnly = (f: string) => gateNeeds('hint', f) && !gateNeeds('translation', f);
+    if (!reply.ok && reply.code === 'feature_off' && req.second && hintOnly(reply.feature ?? '')) {
+        reply = await askPart(cfg, { ...req, second: undefined }, deps);
+    }
+    return reply.ok || reply.code !== 'feature_off' ? reply : { ok: false, code: 'feature_off' };
 }
 
 async function askPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
@@ -130,9 +130,11 @@ async function askPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Pro
         case 401:
         case 403:
             return { ok: false, code: 'auth' };
-        case 404:
-            if (b.code === 'feature_off') return { ok: false, code: 'feature_off', feature: String(b.feature ?? '') };
+        case 404: {
+            const feature = await featureRefused(res.status, b);
+            if (feature !== null) return { ok: false, code: 'feature_off', feature };
             return { ok: false, code: b.code === 'track_unknown' ? 'track_unknown' : 'unavailable' };
+        }
         case 422:
             return { ok: false, code: 'invalid' };
         case 429:

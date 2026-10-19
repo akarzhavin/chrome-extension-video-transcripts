@@ -48,7 +48,7 @@ import {
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
-import { hasFeature, markFeatureOff, refreshFeatures, staleFeatures } from '../features';
+import { hasFeature, refreshFeatures, staleFeatures } from '../features';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -571,7 +571,7 @@ function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
         token: (r: boolean) => freshIdToken(config, r),
         now: Date.now,
         refused: reportRefusal,
-        features: { has: hasFeature, off: markFeatureOff },
+        features: { has: hasFeature },
     };
     if (request.action === 'SUBTITLE_AI_PART') {
         return askFeaturesIfStale().then(() => requestPart(config, request.part as PartRequest, deps)).then(async (reply) => {

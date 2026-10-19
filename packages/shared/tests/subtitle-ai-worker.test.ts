@@ -5,6 +5,7 @@
  * would match background.ts' isAuthFailure and sign the learner out.
  */
 
+import { hasFeature } from '../src/features';
 import { requestPart, storeTrack, type WorkerDeps } from '../src/subtitle-ai/worker';
 import type { AuthConfig } from '../src/auth/config';
 
@@ -125,45 +126,77 @@ describe('requestPart', () => {
     // Spec 032-feature-rollout-admin: the account may not have a gated feature.
     describe('gated features', () => {
         const SECOND = 'b'.repeat(64);
-        function gate(on: Record<string, boolean>) {
-            const off: string[] = [];
-            return {
-                off,
-                features: {
-                    has: async (k: string) => on[k] ?? false,
-                    off: async (k: string) => { off.push(k); },
+        const store: Record<string, unknown> = {};
+        beforeEach(() => {
+            for (const k of Object.keys(store)) delete store[k];
+            (globalThis as unknown as { chrome: unknown }).chrome = {
+                storage: {
+                    local: {
+                        get: async (k: string) => (k in store ? { [k]: store[k] } : {}),
+                        set: async (o: Record<string, unknown>) => Object.assign(store, o),
+                    },
                 },
             };
-        }
+        });
+        afterEach(() => {
+            delete (globalThis as { chrome?: unknown }).chrome;
+        });
+        // The account's answer, as the worker keeps it; the module's API reads it back.
+        const kept = (features: Record<string, boolean>) => {
+            store.features = { features, at: Date.now() };
+        };
+        const features = { has: hasFeature };
 
         test('the second track is not offered while the account lacks it', async () => {
-            const g = gate({});
-            const d = { ...deps([reply(200, { from: 0, to: 1, lines: ['x'] })]), features: g.features };
+            const d = { ...deps([reply(200, { from: 0, to: 1, lines: ['x'] })]), features };
             await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(JSON.parse(d.calls[0].init.body as string).second).toBeUndefined();
         });
 
         test('a refused second track is dropped and the part asked again without it', async () => {
-            const g = gate({ 'subtitles.second_track': true });
+            kept({ 'subtitles.second_track': true });
             const d = {
                 ...deps([
                     reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
                     reply(200, { from: 0, to: 1, lines: ['x'] }),
                 ]),
-                features: g.features,
+                features,
             };
             const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(r.ok).toBe(true);
             expect(JSON.parse(d.calls[0].init.body as string).second).toBe(SECOND);
             expect(JSON.parse(d.calls[1].init.body as string).second).toBeUndefined();
-            expect(g.off).toEqual(['subtitles.second_track']);
+            expect(await hasFeature('subtitles.second_track')).toBe(false);
+            expect(await hasFeature('ai')).toBe(true);
+        });
+
+        test('the retry without the hint refused too: that refusal is remembered as well', async () => {
+            kept({ 'subtitles.second_track': true });
+            const d = {
+                ...deps([
+                    reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
+                    reply(404, { code: 'feature_off', feature: 'ai' }),
+                ]),
+                features,
+            };
+            const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
+            expect(r).toEqual({ ok: false, code: 'feature_off' });
+            expect(await hasFeature('subtitles.second_track')).toBe(false);
+            expect(await hasFeature('ai')).toBe(false);
         });
 
         test('refused translation is feature_off, which stops, and is remembered', async () => {
-            const g = gate({});
-            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features: g.features };
+            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features };
             expect(await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1 }, d)).toEqual({ ok: false, code: 'feature_off' });
-            expect(g.off).toEqual(['subtitles.ai_translate']);
+            expect(await hasFeature('subtitles.ai_translate')).toBe(false);
+        });
+
+        test('refused translation is not asked again even when the request named a hint', async () => {
+            kept({ 'subtitles.second_track': true });
+            const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]), features };
+            const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
+            expect(r).toEqual({ ok: false, code: 'feature_off' });
+            expect(d.calls).toHaveLength(1);
         });
     });
 });

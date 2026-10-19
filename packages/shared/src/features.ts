@@ -23,6 +23,13 @@ export type Gate = keyof typeof NEEDS;
 // AI is the master switch: off, every AI capability is closed.
 const keysOf = (gate: Gate): FeatureKey[] => [FEATURE_AI, ...NEEDS[gate]];
 
+/** Whether gate needs key, e.g. to tell a refused hint from refused translation. */
+export function gateNeeds(gate: Gate, key: string): boolean {
+    return (keysOf(gate) as string[]).includes(key);
+}
+
+const isKey = (k: string): k is FeatureKey => k === FEATURE_AI || k === FEATURE_AI_TRANSLATE || k === FEATURE_SECOND_TRACK;
+
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
 const TRIED_KEY = 'featuresTried';
@@ -78,9 +85,24 @@ export async function staleFeatures(now: number = Date.now()): Promise<boolean> 
 }
 
 /** The server refused key: off until the next answer. */
-export async function markFeatureOff(key: string): Promise<void> {
+async function markFeatureOff(key: FeatureKey): Promise<void> {
     const kept = (await load()) ?? { features: {}, at: 0 };
     await chrome.storage.local.set({ [KEY]: { ...kept, features: { ...kept.features, [key]: false } } });
+}
+
+/**
+ * A 404 {code: 'feature_off', feature} names the feature the account lacks: it is off until the
+ * next answer. Returns the named key ('' when unnamed), or null for any other reply; never throws.
+ */
+export async function featureRefused(status: number, body: Record<string, unknown>): Promise<string | null> {
+    if (status !== 404 || body.code !== 'feature_off') return null;
+    const key = typeof body.feature === 'string' ? body.feature : '';
+    try {
+        if (isKey(key)) await markFeatureOff(key);
+    } catch {
+        // Storage gone: the server refuses again next time.
+    }
+    return key;
 }
 
 /** Dropped with the credentials: the answer is this account's. */

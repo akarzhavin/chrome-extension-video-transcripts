@@ -10,7 +10,7 @@ import {
     FEATURE_AI_TRANSLATE,
     forgetFeatures,
     hasFeature,
-    markFeatureOff,
+    featureRefused,
     parseFeatures,
     refreshFeatures,
     staleFeatures,
@@ -106,11 +106,27 @@ describe('features', () => {
             token: async () => ({ idToken: 't' }),
             now: () => NOW,
         });
-        await markFeatureOff(FEATURE_SECOND_TRACK);
+        expect(await featureRefused(404, { code: 'feature_off', feature: FEATURE_SECOND_TRACK })).toBe(FEATURE_SECOND_TRACK);
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
         await forgetFeatures();
         expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
         expect(await staleFeatures(NOW)).toBe(true);
+    });
+});
+
+describe('featureRefused', () => {
+    test('only a 404 feature_off is a refusal; its key comes back, "" when unnamed', async () => {
+        expect(await featureRefused(404, { code: 'track_unknown' })).toBeNull();
+        expect(await featureRefused(403, { code: 'feature_off', feature: FEATURE_AI })).toBeNull();
+        expect(await featureRefused(404, { code: 'feature_off' })).toBe('');
+        expect(await featureRefused(404, { code: 'feature_off', feature: 'lookup.phrase_cloud' })).toBe('lookup.phrase_cloud');
+        expect(store.features).toBeUndefined(); // nothing the extension reads was refused
+        expect(await hasFeature(FEATURE_AI)).toBe(true);
+    });
+
+    test('a refusal with storage gone still answers, and throws nothing', async () => {
+        (globalThis as unknown as { chrome: unknown }).chrome = {};
+        expect(await featureRefused(404, { code: 'feature_off', feature: FEATURE_AI })).toBe(FEATURE_AI);
     });
 });
 
