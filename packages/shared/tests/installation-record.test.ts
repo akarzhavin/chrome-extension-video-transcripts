@@ -4,7 +4,12 @@
  */
 
 const store: Record<string, unknown> = {};
+let installed: ((d: { reason: string }) => void)[] = [];
 (global as any).chrome = {
+    runtime: {
+        onInstalled: { addListener: (fn: (d: { reason: string }) => void) => installed.push(fn) },
+        OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
+    },
     storage: {
         local: {
             get: jest.fn(async (k: string | string[]) => {
@@ -23,11 +28,22 @@ const store: Record<string, unknown> = {};
 };
 
 import { config } from '../src/auth/config';
-import { ensureInstallation } from '../src/installation';
+import { installInstallation, readInstallationId } from '../src/installation';
 
+const RECORD = 'https://api.test/dictionary/installations';
 const reply = (status: number) => ({ ok: status >= 200 && status < 300, status, json: async () => ({}) }) as unknown as Response;
 let fetchMock: jest.Mock;
 const sent = () => fetchMock.mock.calls.map(([url, init]) => ({ url, init, body: JSON.parse((init as RequestInit).body as string) }));
+const fired = (reason: 'install' | 'update') => installed.forEach((fn) => fn({ reason }));
+async function settle(): Promise<void> {
+    for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 0));
+}
+/** A worker (re)start of the given edition. */
+async function start(edition: 'youtube' | 'rezka'): Promise<void> {
+    installed = [];
+    installInstallation(edition);
+    await settle();
+}
 
 beforeEach(() => {
     for (const k of Object.keys(store)) delete store[k];
@@ -37,34 +53,35 @@ beforeEach(() => {
 });
 
 test('records once, with the ID, the edition and fresh, and no token', async () => {
-    const id = await ensureInstallation({ edition: 'rezka', fresh: true });
-    expect(sent()).toEqual([
-        {
-            url: 'https://api.test/dictionary/installations',
-            init: expect.objectContaining({ method: 'POST' }),
-            body: { id, edition: 'rezka', fresh: true },
-        },
-    ]);
+    await start('rezka');
+    fired('install');
+    await settle();
+    const id = await readInstallationId();
+    expect(sent()).toEqual([{ url: RECORD, init: expect.objectContaining({ method: 'POST' }), body: { id, edition: 'rezka', fresh: true } }]);
     const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Record<string, string>;
     expect(headers).not.toHaveProperty('Authorization');
     expect(headers['Content-Type']).toBe('application/json');
     expect(store['installation.recorded']).toBe(true);
     expect(store).not.toHaveProperty('installation.fresh');
-    await ensureInstallation({ edition: 'rezka', fresh: false });
+    fired('update');
+    await start('rezka');
     expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
-test('a failed record is retried on the next call, still as the fresh install it was', async () => {
+test('a failed record is retried at the next worker start, still as the fresh install it was', async () => {
     fetchMock.mockImplementationOnce(async () => {
         throw new Error('offline');
     });
     fetchMock.mockImplementationOnce(async () => reply(429));
-    const id = await ensureInstallation({ edition: 'youtube', fresh: true });
+    await start('youtube');
+    fired('install');
+    await settle();
+    const id = await readInstallationId();
     expect(store['installation.recorded']).toBeUndefined();
     expect(store['installation.fresh']).toBe(true);
-    await ensureInstallation({ edition: 'youtube', fresh: false });
+    await start('youtube');
     expect(store['installation.recorded']).toBeUndefined();
-    await ensureInstallation({ edition: 'youtube', fresh: false });
+    await start('youtube');
     expect(sent().map((s) => s.body)).toEqual([
         { id, edition: 'youtube', fresh: true },
         { id, edition: 'youtube', fresh: true },
@@ -74,25 +91,26 @@ test('a failed record is retried on the next call, still as the fresh install it
 });
 
 test('an update is recorded as not fresh', async () => {
-    await ensureInstallation({ edition: 'youtube', fresh: false });
+    await start('youtube');
+    fired('update');
+    await settle();
     expect(sent()[0].body.fresh).toBe(false);
 });
 
-test('calls at the same moment send one record', async () => {
-    await Promise.all([
-        ensureInstallation({ edition: 'youtube', fresh: true }),
-        ensureInstallation({ edition: 'youtube', fresh: false }),
-    ]);
+test('mints at the same moment send one record', async () => {
+    await start('youtube');
+    fired('install');
+    fired('update');
+    await settle();
     expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
 test('without an API base URL nothing is sent, and the ID is still kept', async () => {
     config.apiBaseUrl = '';
-    try {
-        expect(await ensureInstallation({ edition: 'youtube', fresh: true })).toEqual(expect.any(String));
-        expect(fetchMock).not.toHaveBeenCalled();
-        expect(store['installation.fresh']).toBe(true);
-    } finally {
-        config.apiBaseUrl = 'https://api.test';
-    }
+    await start('youtube');
+    fired('install');
+    await settle();
+    expect(await readInstallationId()).toEqual(expect.any(String));
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(store['installation.fresh']).toBe(true);
 });

@@ -31,7 +31,7 @@ let installed: ((d: { reason: string; previousVersion?: string }) => void)[] = [
     },
 };
 
-import { installationEdition, installInstallation } from '../src/installation';
+import { installInstallation } from '../src/installation';
 
 const reply = (status: number) => ({ ok: status >= 200 && status < 300, status }) as unknown as Response;
 let fetchMock: jest.Mock;
@@ -56,7 +56,6 @@ test('an install mints a fresh installation and records it, with analytics switc
     expect(id).toEqual(expect.any(String));
     expect(bodies()).toEqual([{ id, edition: 'youtube', fresh: true }]);
     expect(store['installation.recorded']).toBe(true);
-    expect(installationEdition()).toBe('youtube');
 });
 
 test('an update mints a not-fresh installation, and keeps one it already has', async () => {

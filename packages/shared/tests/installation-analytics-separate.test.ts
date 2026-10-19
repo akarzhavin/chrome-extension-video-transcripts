@@ -8,6 +8,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 
 const SRC = join(__dirname, '../src');
+const ROOT = resolve(__dirname, '../../..');
 const INSTALLATION_ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
 const CLIENT_ID = '5d0c8a3e-77aa-4f1e-9b0c-2e4d6f8a1b3c';
 
@@ -72,24 +73,39 @@ describe('imports', () => {
         expect(rel(reach(file)).filter((f) => f.startsWith('analytics'))).toEqual([]);
     });
 
-    test('code outside installation/ enters it only through its index', () => {
+    test('code and tests outside installation/ enter it only through its index', () => {
         const outside: string[] = [];
-        const walk = (dir: string) => {
-            for (const e of readdirSync(dir, { withFileTypes: true })) {
-                const p = join(dir, e.name);
-                if (e.isDirectory()) {
-                    if (p !== join(SRC, 'installation')) walk(p);
-                } else if (p.endsWith('.ts')) {
-                    for (const [, spec] of readFileSync(p, 'utf8').matchAll(/from\s+['"](\.[^'"]*installation[^'"]*)['"]/g)) {
-                        if (resolve(dirname(p), spec) !== join(SRC, 'installation')) outside.push(`${p.slice(SRC.length + 1)} -> ${spec}`);
-                    }
-                }
+        for (const p of filesOutsideInstallation()) {
+            for (const [, spec] of readFileSync(p, 'utf8').matchAll(/from\s+['"](\.[^'"]*installation[^'"]*)['"]/g)) {
+                if (resolve(dirname(p), spec) !== join(SRC, 'installation')) outside.push(`${p.slice(ROOT.length + 1)} -> ${spec}`);
             }
-        };
-        walk(SRC);
+        }
         expect(outside).toEqual([]);
     });
+
+    test('only installation/ touches its storage keys; auth/storage.ts lists them', () => {
+        const touching = filesOutsideInstallation()
+            .filter((p) => p.startsWith(SRC) && p !== join(SRC, 'auth/storage.ts'))
+            .filter((p) => /INSTALLATION_KEYS|['"]installation\.(id|fresh|recorded)['"]/.test(readFileSync(p, 'utf8')));
+        expect(touching.map((p) => p.slice(ROOT.length + 1))).toEqual([]);
+    });
 });
+
+/** Every .ts under the shared package and both apps, src and tests, but installation/ itself. */
+function filesOutsideInstallation(): string[] {
+    const out: string[] = [];
+    const walk = (dir: string) => {
+        if (!existsSync(dir)) return;
+        for (const e of readdirSync(dir, { withFileTypes: true })) {
+            const p = join(dir, e.name);
+            if (e.isDirectory()) {
+                if (p !== join(SRC, 'installation')) walk(p);
+            } else if (p.endsWith('.ts')) out.push(p);
+        }
+    };
+    for (const dir of [SRC, __dirname, ...['youtube', 'rezka'].flatMap((a) => ['src', 'tests'].map((d) => join(ROOT, 'apps', a, d)))]) walk(dir);
+    return out;
+}
 
 describe('payloads', () => {
     let fetchMock: jest.Mock;
