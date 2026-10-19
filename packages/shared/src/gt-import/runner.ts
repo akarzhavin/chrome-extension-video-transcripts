@@ -14,6 +14,7 @@ import { track } from '../analytics-bg';
 import { config } from '../auth/config';
 import { devEnvReady, stampLocalWrite } from '../auth/background';
 import { addInboxWord, listInboxWords } from '../auth/firestoreRest';
+import { reportRefusal } from '../limit-reports';
 import { getAuthState, GT_IMPORT_KEYS } from '../auth/storage';
 import { loadLanguagePrefs } from '../languages';
 import { normalizeTerm } from '../word-key';
@@ -232,6 +233,9 @@ async function write(start: ImportState): Promise<ImportState> {
             await sleep(gap);
             outcome = await writeOne(term);
         }
+        // Reported after the retry: the first refusal is the import's own pace.
+        if (outcome === 'refused') reportRefusal('rules:words', term);
+        if (outcome === 'daily_limit') reportRefusal('MAX_WORDS_PER_DAY', term);
         if (outcome === 'daily_limit' || outcome === 'failed') {
             s.phase = 'error';
             s.error = outcome === 'daily_limit' ? 'daily_limit' : 'write_failed';

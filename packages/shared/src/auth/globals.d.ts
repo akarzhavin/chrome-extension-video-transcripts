@@ -44,6 +44,9 @@ interface SubtitleLimits {
     SUBTITLE_RETRY_AFTER_CAP_S: number;
     SUBTITLE_MAX_RETRIES: number;
     SUBTITLE_READ_AHEAD: number;
+    SUBTITLE_SECOND_COVERAGE: number;
+    SUBTITLE_SECOND_TRIES: number;
+    SUBTITLE_MINI_READS: string[];
 }
 interface DiagLimits {
     MAX_DIAG_SITE_BYTES: number;

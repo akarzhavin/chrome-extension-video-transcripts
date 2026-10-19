@@ -7,12 +7,15 @@ import { sendMessageGuarded } from '../messaging';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
+import type { SecondCandidate } from './second';
 
 /** What both apps have: their state, their sidebar and the language pair, read when needed. */
 export interface AiTranslatedApp {
     state: AppState;
     ui: Pick<SidebarUI, 'refresh' | 'updateSecondaryLines' | 'setAiStatus'>;
     langPrefs: LanguagePrefs | null;
+    /** The site's other subtitle tracks, for the gender of "I" and "you"; absent on sites not wired. */
+    secondTracks?(): SecondCandidate[];
 }
 
 export function attachAiTranslationTo(app: AiTranslatedApp): void {
@@ -23,6 +26,7 @@ export function attachAiTranslationTo(app: AiTranslatedApp): void {
         refreshLines: () => app.ui.updateSecondaryLines(),
         langPrefs: () => app.langPrefs,
         setStatus: (s) => app.ui.setAiStatus(s),
+        ...(app.secondTracks ? { secondTracks: () => app.secondTracks!() } : {}),
     }, browserAiDeps());
 }
 

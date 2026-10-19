@@ -1,0 +1,23 @@
+mini: ru es
+ar: ar ru es he pl uk hi cs sr hr sk sl pt fr it ro el bg lt lv vi th
+bg: bg ru es pl uk cs sr hr sk sl hi he lt lv pt fr it ro el ar vi th
+cs: cs ru es pl uk sr hr sk sl hi he bg lt lv pt fr it ro el ar vi th
+el: el es ru pl uk hi he cs sr hr sk sl pt fr it ro bg lt lv ar vi th
+es: es ru pl uk hi he cs sr hr sk sl pt fr it ro el bg lt lv ar vi th
+fr: fr es ru pl uk hi he cs sr hr sk sl pt it ro el bg lt lv ar vi th
+he: he ru es pl uk hi cs sr hr sk sl pt fr it ro el bg lt lv ar vi th
+hi: hi ru es pl uk he cs sr hr sk sl pt fr it ro el bg lt lv ar vi th
+hr: hr ru es pl uk cs sr sk sl hi he bg lt lv pt fr it ro el ar vi th
+it: it es ru pl uk hi he cs sr hr sk sl pt fr ro el bg lt lv ar vi th
+lt: lt ru es pl uk cs sr hr sk sl hi he bg lv pt fr it ro el ar vi th
+lv: lv ru es pl uk cs sr hr sk sl hi he bg lt pt fr it ro el ar vi th
+pl: pl ru es uk cs sr hr sk sl hi he bg lt lv pt fr it ro el ar vi th
+pt: pt es ru pl uk hi he cs sr hr sk sl fr it ro el bg lt lv ar vi th
+ro: ro es ru pl uk hi he cs sr hr sk sl pt fr it el bg lt lv ar vi th
+ru: ru es pl uk cs sr hr sk sl hi he bg lt lv pt fr it ro el ar vi th
+sk: sk ru es pl uk cs sr hr sl hi he bg lt lv pt fr it ro el ar vi th
+sl: sl ru es pl uk cs sr hr sk hi he bg lt lv pt fr it ro el ar vi th
+sr: sr ru es pl uk cs hr sk sl hi he bg lt lv pt fr it ro el ar vi th
+th: th ru es pl uk hi he cs sr hr sk sl pt fr it ro el bg lt lv ar vi
+uk: uk ru es pl cs sr hr sk sl hi he bg lt lv pt fr it ro el ar vi th
+vi: vi ru es pl uk hi he cs sr hr sk sl pt fr it ro el bg lt lv ar th

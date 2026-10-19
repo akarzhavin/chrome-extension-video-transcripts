@@ -5,6 +5,7 @@
 // matches background.ts' isAuthFailure and would sign the learner out.
 
 import type { AuthConfig } from '../auth/config';
+import type { RefusalName } from '../limit-reports';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -22,6 +23,8 @@ export interface WorkerDeps {
     /** refresh=true forces a new ID token (after a 401). Throws when not signed in. */
     token: (refresh: boolean) => Promise<{ idToken: string; uid: string }>;
     now: () => number;
+    /** Hears a built-in limit refusing the track (spec 032); optional. */
+    refused?: (name: RefusalName, subject?: string) => void;
 }
 
 export interface PartRequest {
@@ -31,13 +34,15 @@ export interface PartRequest {
     to: number;
     /** Cells one model call may cover; the server clamps it to 1, 2 or 5. */
     window?: number;
+    /** Fingerprint of a second track in a gendered language, the server's gender hint. */
+    second?: string;
 }
 
 export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
 
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
-    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; wallet?: unknown }
+    | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; secondUnknown?: true; wallet?: unknown }
     | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
 
 export interface StoredTrack {
@@ -75,7 +80,10 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         return deps.fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({ lang: req.lang, from: req.from, to: req.to, window: req.window }),
+            body: JSON.stringify({
+                lang: req.lang, from: req.from, to: req.to, window: req.window,
+                ...(req.second && FINGERPRINT.test(req.second) ? { second: req.second } : {}),
+            }),
         });
     };
     let res: Response;
@@ -96,7 +104,12 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         const skipped = inRange(b.skipped);
         // Cues whose part was not ready; they stay on their way.
         const pending = inRange(b.pending);
-        return { ok: true, from, to, lines, skipped, pending, ...(b.wallet ? { wallet: b.wallet } : {}) };
+        // The named second track is not on the server yet: the caller stores it.
+        return {
+            ok: true, from, to, lines, skipped, pending,
+            ...(b.second_unknown === true ? { secondUnknown: true as const } : {}),
+            ...(b.wallet ? { wallet: b.wallet } : {}),
+        };
     }
     switch (res.status) {
         case 401:
@@ -185,7 +198,10 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
         } else if (cur.status !== 404) {
             return { ok: false, reason: 'refused' };
         }
-        if (count > WRITES_PER_DAY) return { ok: false, reason: 'refused' };
+        if (count > WRITES_PER_DAY) {
+            deps.refused?.('SUBTITLE_WRITES_PER_DAY', track.fingerprint);
+            return { ok: false, reason: 'refused' };
+        }
 
         const writes = [
             {
@@ -203,6 +219,8 @@ export async function storeTrack(cfg: AuthConfig, track: StoredTrack, deps: Work
             headers,
             body: JSON.stringify({ writes }),
         });
+        // 409 is a track someone stored first; a 403 is the rules, cause unsaid.
+        if (res.status === 403) deps.refused?.('rules:tracks', track.fingerprint);
         return res.ok ? { ok: true } : { ok: false, reason: 'refused' };
     } catch {
         return { ok: false, reason: 'network' };

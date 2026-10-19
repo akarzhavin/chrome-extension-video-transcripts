@@ -34,6 +34,7 @@ test('the build injects every subtitle key from lingogram-limits.json', () => {
         SUBTITLE_WINDOW_MID: 25, SUBTITLE_WINDOW_MAX: 26, SUBTITLE_WINDOW_MID_AFTER_S: 27,
         SUBTITLE_WINDOW_MAX_AFTER_S: 28, SUBTITLE_IDLE_MS: 29, SUBTITLE_RETRY_AFTER_CAP_S: 30,
         SUBTITLE_MAX_RETRIES: 31, SUBTITLE_READ_AHEAD: 32,
+        SUBTITLE_SECOND_COVERAGE: 33, SUBTITLE_SECOND_TRIES: 34, SUBTITLE_MINI_READS: ['he'],
     };
     // A subprocess: the module is ESM and jest runs these as CJS.
     const out = execFileSync(process.execPath, [
@@ -43,6 +44,18 @@ test('the build injects every subtitle key from lingogram-limits.json', () => {
             `console.log(limitDefines(${JSON.stringify(limits)}).__LIMIT_SUBTITLE__);`,
     ], { encoding: 'utf8' });
     expect(JSON.parse(out)).toEqual(limits);
+});
+
+test('the gender hint takes its coverage, tries and cheap-model languages from the injected limits', () => {
+    const second = withLimits(
+        { SUBTITLE_SECOND_COVERAGE: 60, SUBTITLE_SECOND_TRIES: 5 },
+        () => require('../src/subtitle-ai/second') as typeof import('../src/subtitle-ai/second'),
+    );
+    expect(second.SECOND_COVERAGE).toBe(0.6);
+    expect(second.SECOND_TRIES).toBe(5);
+    const langs = withLimits({ SUBTITLE_MINI_READS: ['ru', 'es', 'he'] }, () => require('../src/languages') as typeof import('../src/languages'));
+    expect(langs.needsHintModel('ru', 'he')).toBe(false);
+    expect(langs.secondRank('ru', 'he')).toBeLessThan(langs.secondRank('ru', 'uk'));
 });
 
 test('track.ts takes its cue rules and lists from the injected limits', () => {

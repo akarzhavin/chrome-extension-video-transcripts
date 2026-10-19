@@ -38,7 +38,7 @@ const SUBTITLE_DEFAULTS = {
     SUBTITLE_WRITES_PER_DAY: 30,
     SUBTITLE_MIN_INTERVAL_S: 20,
     // The backend's grid and windows, plus the controller's timings (spec 028):
-    // admin-edited, shipped with the release together with the server.
+    // set in code (english repo spec 032), the server holds the same values.
     SUBTITLE_PART_SIZE: 20,
     SUBTITLE_FIRST_PART: 20,
     SUBTITLE_SHORT_TRACK: 20,
@@ -51,6 +51,10 @@ const SUBTITLE_DEFAULTS = {
     SUBTITLE_RETRY_AFTER_CAP_S: 60,
     SUBTITLE_MAX_RETRIES: 3,
     SUBTITLE_READ_AHEAD: 2,
+    // The gender hint (english repo spec 025): the server holds the same values.
+    SUBTITLE_SECOND_COVERAGE: 80,
+    SUBTITLE_SECOND_TRIES: 3,
+    SUBTITLE_MINI_READS: ['ru', 'es'],
 };
 
 // Caps of a "no subtitles" diagnostics report; the Firestore rules enforce them.

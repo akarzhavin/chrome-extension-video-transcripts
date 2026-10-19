@@ -261,11 +261,19 @@ describe('AiTranslator', () => {
         expect(h.state.preferredSecondaryName).toBeUndefined();
     });
 
+    // Spec 032: the refusal goes to the worker's reports; no translation is asked for.
     test('a language the backend does not take is reported, with no request', () => {
-        const h = host([]);
+        const h = host([() => ({ ok: true })]);
         h.state.addTrack('English', cues(10));
         new AiTranslator(h, 'xx', 'ru').start(h.state.tracks[0]);
         expect(h.statuses).toEqual(['unsupported']);
+        expect(h.sent).toEqual([{ action: 'LIMIT_REFUSED', limit: 'SUBTITLE_LANGS', subject: 'xx' }]);
+    });
+
+    test('learning and native the same is no refusal', () => {
+        const h = host([]);
+        h.state.addTrack('English', cues(10));
+        new AiTranslator(h, 'en', 'en').start(h.state.tracks[0]);
         expect(h.sent).toHaveLength(0);
     });
     // Retry only what passes by itself; otherwise wait for the viewer.
