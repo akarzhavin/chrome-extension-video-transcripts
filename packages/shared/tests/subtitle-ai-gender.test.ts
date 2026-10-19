@@ -131,6 +131,55 @@ describe('the second track', () => {
     });
 });
 
+describe('the hint gate (spec 032)', () => {
+    test('not allowed: no second track is looked for, and no part names one', async () => {
+        const h = host([lines, lines], [spanish]);
+        h.hintAllowed = async () => false;
+        h.state.addTrack('English', cues(120));
+        new AiTranslator(h, 'en', 'ru').start(h.state.tracks[0]);
+        await settle();
+        expect(h.listed()).toBe(0);
+        expect(actions(h)).toEqual(['part:-', 'part:-']);
+    });
+
+    test('allowed only later: looked for then, and named from the next part', async () => {
+        let allowed = false;
+        let at = 0;
+        const h = host([lines, lines, lines, lines], [spanish]);
+        h.hintAllowed = async () => allowed;
+        h.currentTime = () => at;
+        h.state.addTrack('English', cues(120));
+        const t = new AiTranslator(h, 'en', 'ru');
+        t.start(h.state.tracks[0]);
+        await settle();
+        expect(h.listed()).toBe(0);
+        allowed = true;
+        at = 120; // a seek further on: new parts to ask for
+        t.viewerEvent();
+        await settle();
+        expect(h.listed()).toBe(1);
+        expect(actions(h)).toEqual(['part:-', 'part:-', 'part:-', 'part:second']);
+    });
+
+    test('closed mid-video: the picked track is no longer named', async () => {
+        let allowed = true;
+        let at = 0;
+        const h = host([lines, lines, lines, lines], [spanish]);
+        h.hintAllowed = async () => allowed;
+        h.currentTime = () => at;
+        h.state.addTrack('English', cues(120));
+        const t = new AiTranslator(h, 'en', 'ru');
+        t.start(h.state.tracks[0]);
+        await settle();
+        expect(actions(h)).toEqual(['part:-', 'part:second']);
+        allowed = false;
+        at = 120;
+        t.viewerEvent();
+        await settle();
+        expect(actions(h).slice(2)).toEqual(['part:-', 'part:-']);
+    });
+});
+
 describe('requestPart', () => {
     const cfg = { apiBaseUrl: 'https://api.test' } as AuthConfig;
     const deps = (body: unknown): WorkerDeps & { bodies: unknown[] } => {

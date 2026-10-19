@@ -53,6 +53,8 @@ export interface AiHost {
     later(fn: () => void, ms: number): void;
     /** The site's other subtitle tracks, the gender hint's candidates; absent: none. */
     secondTracks?(): SecondCandidate[];
+    /** Whether the account may send the gender hint (spec 032), asked before each part; absent: yes. */
+    hintAllowed?(): Promise<boolean>;
     /** Wall clock, ms; Date.now when absent. */
     now?(): number;
 }
@@ -106,6 +108,8 @@ const REFUSALS: Record<Refusal, { status: AiStatus; then: 'stop' | 'wait' | 'ret
     invalid: { status: 'unavailable', then: 'stop' },
     quarantined: { status: 'unavailable', then: 'stop' },
     unavailable: { status: 'unavailable', then: 'retry' },
+    // The account does not have AI translation (spec 032-feature-rollout-admin).
+    feature_off: { status: 'unavailable', then: 'stop' },
     // Still unknown after storing: the store refused it (a write limit).
     store_refused: { status: 'limit', then: 'stop' },
     store_too_long: { status: 'too_long', then: 'stop' },
@@ -135,6 +139,7 @@ export class AiTranslator {
     private asking: [number, number] = [0, 0];
     // The gender hint (T113): named in every part request once picked.
     private second: PreparedTrack | null = null;
+    private secondSought = false;
     private secondStore: 'no' | 'storing' | 'tried' = 'no';
     private lastStoreAt: number | null = null;
 
@@ -162,7 +167,6 @@ export class AiTranslator {
         }
         this.track = prepared;
         this.parts = splitParts(prepared.cues.length);
-        if (genderMarked(this.native) && this.host.secondTracks) void this.findSecond(prepared);
         this.watchedFrom = this.host.currentTime();
         const state = this.host.state;
         state.preferredSecondaryName = this.aiName;
@@ -208,6 +212,16 @@ export class AiTranslator {
         if (state.preferredSecondaryName === this.aiName) state.preferredSecondaryName = undefined;
         state.removeTrack(this.aiName);
         this.host.refresh();
+    }
+
+    // Looked for and named only while the hint is allowed, so a closed gate costs no pick or align.
+    private async hintNow(): Promise<boolean> {
+        if (!genderMarked(this.native) || !this.host.secondTracks) return false;
+        try {
+            return this.host.hintAllowed ? await this.host.hintAllowed() : true;
+        } catch {
+            return false;
+        }
     }
 
     // Picked while the first parts are asked; they go without it.
@@ -303,11 +317,21 @@ export class AiTranslator {
         const [from, to] = this.cellRange(this.asking);
         this.busy = true;
         this.mark(from, to, true);
+        const track = this.track;
+        const hint = await this.hintNow();
+        if (this.track !== track) {
+            this.busy = false;
+            return;
+        }
+        if (hint && !this.secondSought) {
+            this.secondSought = true;
+            void this.findSecond(track);
+        }
         let reply: PartReply;
         try {
             reply = (await this.host.send({
                 action: 'SUBTITLE_AI_PART',
-                part: { fingerprint: this.track.fingerprint, lang: this.native, from, to, window, ...(this.second ? { second: this.second.fingerprint } : {}) },
+                part: { fingerprint: track.fingerprint, lang: this.native, from, to, window, ...(hint && this.second ? { second: this.second.fingerprint } : {}) },
             })) as PartReply;
         } catch {
             reply = { ok: false, code: 'unavailable' };

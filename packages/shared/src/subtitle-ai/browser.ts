@@ -4,6 +4,7 @@ import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
+import { gateOpen, watchGate } from '../features/store';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
@@ -53,6 +54,11 @@ export function browserAiDeps(): AttachDeps {
                 if (e.target instanceof HTMLVideoElement) cb();
             }, true);
         },
+        // Never stopped: attachAiTranslation lives as long as the page.
+        onTranslationAllowed: (cb) => {
+            watchGate('translation', cb);
+        },
+        hintAllowed: () => gateOpen('hint'),
         later: (fn, ms) => {
             setTimeout(fn, ms);
         },

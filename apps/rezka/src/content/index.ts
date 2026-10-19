@@ -31,6 +31,7 @@ import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
 // the English default when a key is missing (or outside an extension context).
@@ -132,6 +133,8 @@ export class VttApp implements AppInterface {
         // own request for a banner nobody can see.
         if (this.isTopWindow && this.uiOwned) {
             void fetchAndRenderNotification(platformOf(location.hostname));
+            // Once per page: the AI badge and the translation gate both read the answer.
+            followFeatures(document);
         }
         // The timeupdate handler catches the reload while a video plays, but a
         // paused tab fires no timeupdate at all — and a paused tab is exactly

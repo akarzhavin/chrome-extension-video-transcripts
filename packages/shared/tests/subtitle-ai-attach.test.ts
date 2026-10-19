@@ -20,13 +20,14 @@ const PAIR: LanguagePrefs = { learning: 'en', native: 'ru' } as LanguagePrefs;
 
 type Sent = { part: { fingerprint: string; from: number; to: number } };
 
-function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown } = {}) {
+function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown; hint?: boolean } = {}) {
     const state = new AppState();
     state.setLanguagePreferences('English', 'Russian');
     let prefs = opts.prefs === undefined ? PAIR : opts.prefs;
     let forcedListener: (on: boolean) => void = () => {};
     let pairListener: () => void = () => {};
     let seekListener: () => void = () => {};
+    let allowedListener: (on: boolean) => void = () => {};
     const timers: (() => void)[] = [];
     const sent: Sent[] = [];
     let time = 0;
@@ -41,13 +42,21 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         onForcedChange: (cb) => { forcedListener = cb; },
         onPairChange: (cb) => { pairListener = cb; },
         onSeek: (cb) => { seekListener = cb; },
+        onTranslationAllowed: (cb) => { allowedListener = cb; },
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
+        ...(opts.hint === undefined ? {} : { hintAllowed: async () => opts.hint! }),
     };
     const statuses: (string | null)[] = [];
-    attachAiTranslation({ state, site: 'rezka', refresh: () => {}, langPrefs: () => prefs, setStatus: (s) => statuses.push(s) }, deps);
+    let listed = 0;
+    const secondTracks = () => {
+        listed++;
+        return [];
+    };
+    attachAiTranslation({ state, site: 'rezka', refresh: () => {}, langPrefs: () => prefs, setStatus: (s) => statuses.push(s), ...(opts.hint === undefined ? {} : { secondTracks }) }, deps);
     return {
         state, sent, statuses,
+        listed: () => listed,
         seek: (t: number) => { time = t; },
         seeked: () => seekListener(),
         // Fire every pending timer once, as the browser would over time.
@@ -56,6 +65,7 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
             await settle();
         },
         setForced: (on: boolean) => forcedListener(on),
+        setAllowed: (on: boolean) => allowedListener(on),
         setPair: (p: LanguagePrefs | null) => { prefs = p; pairListener(); },
         aiNames: () => state.tracks.map((t) => t.name),
     };
@@ -227,5 +237,34 @@ describe('attachAiTranslation asks again on a seek', () => {
         s.seeked();
         await settle();
         expect(s.sent).toHaveLength(2);
+    });
+});
+
+describe('attachAiTranslation follows whether translation is allowed (spec 032)', () => {
+    test('disallowed, it removes the AI track and asks nothing; allowed again, it translates', async () => {
+        const s = setup();
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.aiNames()).toEqual(['English', 'Russian · AI']);
+        s.setAllowed(false);
+        await settle();
+        expect(s.aiNames()).toEqual(['English']);
+        const asked = s.sent.length;
+        s.state.addTrack('English', cues(12));
+        await settle();
+        expect(s.sent).toHaveLength(asked);
+        s.setAllowed(true);
+        await settle();
+        expect(s.aiNames()).toContain('Russian · AI');
+    });
+});
+
+describe('attachAiTranslation hands the hint gate to the translator (spec 032)', () => {
+    test.each([[false, 0], [true, 1]])('hint allowed %s: the second track is looked for %i time(s)', async (hint, times) => {
+        const s = setup({ hint });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.sent).toHaveLength(1);
+        expect(s.listed()).toBe(times);
     });
 });

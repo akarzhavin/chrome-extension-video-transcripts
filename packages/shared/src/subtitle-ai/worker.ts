@@ -6,6 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
+import { gateNeeds, parseRefusal } from '../features/rules';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -25,6 +26,8 @@ export interface WorkerDeps {
     now: () => number;
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
+    /** Keeps a feature the server refused ('' when unnamed), off until the next answer; never throws. */
+    featureOff?: (key: string) => Promise<void>;
 }
 
 export interface PartRequest {
@@ -38,12 +41,13 @@ export interface PartRequest {
     second?: string;
 }
 
-export type PartCode = 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable';
+export type PartCode =
+    | 'track_unknown' | 'auth' | 'quota' | 'rate_limited' | 'invalid' | 'quarantined' | 'unavailable' | 'feature_off';
 
 // `wallet` is the raw AI balance, kept by the worker for every view (spec 024).
 export type PartReply =
     | { ok: true; from: number; to: number; lines: string[]; skipped: number[]; pending: number[]; secondUnknown?: true; wallet?: unknown }
-    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown };
+    | { ok: false; code: PartCode; retryAfterMs?: number; resetsAt?: number; wallet?: unknown; feature?: string };
 
 export interface StoredTrack {
     fingerprint: string;
@@ -73,6 +77,21 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
+    const ask = async (r: PartRequest) => {
+        const reply = await askPart(cfg, r, deps);
+        if (!reply.ok && reply.code === 'feature_off') await deps.featureOff?.(reply.feature ?? '');
+        return reply;
+    };
+    let reply = await ask(req);
+    // A refused hint is dropped and the part asked again; any other refusal ends the part.
+    const hintOnly = (f: string) => gateNeeds('hint', f) && !gateNeeds('translation', f);
+    if (!reply.ok && reply.code === 'feature_off' && req.second && hintOnly(reply.feature ?? '')) {
+        reply = await ask({ ...req, second: undefined });
+    }
+    return reply.ok || reply.code !== 'feature_off' ? reply : { ok: false, code: 'feature_off' };
+}
+
+async function askPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
     if (!FINGERPRINT.test(req.fingerprint)) return { ok: false, code: 'invalid' };
     const url = `${cfg.apiBaseUrl}/dictionary/subtitles/${req.fingerprint}/part`;
     const ask = async (refresh: boolean) => {
@@ -115,8 +134,11 @@ export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: Worke
         case 401:
         case 403:
             return { ok: false, code: 'auth' };
-        case 404:
+        case 404: {
+            const feature = parseRefusal(res.status, b);
+            if (feature !== null) return { ok: false, code: 'feature_off', feature };
             return { ok: false, code: b.code === 'track_unknown' ? 'track_unknown' : 'unavailable' };
+        }
         case 422:
             return { ok: false, code: 'invalid' };
         case 429:

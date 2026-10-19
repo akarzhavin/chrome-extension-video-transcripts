@@ -10,6 +10,8 @@
 // packages/embed (the marketing site), and widening it is how a feature leaked
 // into the landing-page bundle once already.
 
+import type { AuthAction } from './auth/background';
+
 /**
  * Promisified `chrome.runtime.sendMessage`.
  *
@@ -61,4 +63,13 @@ export function sendMessageGuarded<T>(message: object): Promise<T> {
             reject(err);
         }
     });
+}
+
+/** Fire-and-forget: the worker answers by a storage write the views watch; never throws. */
+export function notifyWorker(action: AuthAction): void {
+    try {
+        chrome.runtime.sendMessage({ action }, () => void chrome.runtime.lastError);
+    } catch {
+        // Orphaned context: the views keep what they last read.
+    }
 }

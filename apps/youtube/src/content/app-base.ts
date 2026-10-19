@@ -99,6 +99,7 @@ import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 export const STALLED_REQUEST_MS = 12_000;
 
@@ -431,6 +432,8 @@ export abstract class BaseVttApp implements AppInterface {
         // unawaited: the banner appears when it appears, and a failed lookup
         // shows nothing.
         void fetchAndRenderNotification(platformOf(location.hostname));
+        // Once per page: the AI badge and the translation gate both read the answer.
+        followFeatures(document);
         // An extension reload (a store auto-update mid-video, or a rebuild in
         // development) orphans this content script: the sidebar and its parsed
         // tracks stay on screen, but nothing can reach the worker any more, so

@@ -1,4 +1,5 @@
 import { clearAccountAI } from '../ai-balance/store';
+import { forgetFeatures } from '../features/store';
 
 export interface AuthState {
     idToken: string;
@@ -158,6 +159,13 @@ export async function getAuthState(): Promise<AuthState | null> {
 }
 
 export async function setAuthState(s: AuthState): Promise<void> {
+    // A sign-in over another account skips clearAuthState: drop its features and balance
+    // here, or an ask begun under the old account is kept as the new one's.
+    const was = (await chrome.storage.local.get(KEYS.uid))[KEYS.uid];
+    if (was && was !== s.uid) {
+        await clearAccountAI();
+        await forgetFeatures();
+    }
     await chrome.storage.local.set({
         [KEYS.idToken]: s.idToken,
         [KEYS.refreshToken]: s.refreshToken,
@@ -320,6 +328,7 @@ export async function clearAuthState(): Promise<void> {
         ]);
     } finally {
         await clearAccountAI();
+        await forgetFeatures();
     }
 }
 

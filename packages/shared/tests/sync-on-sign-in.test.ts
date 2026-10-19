@@ -53,6 +53,8 @@ jest.mock('../src/analytics-bg', () => ({ track: jest.fn(async () => {}), handle
 
 import { __resetSyncStateForTests, installExternalAuthHandoff } from '../src/auth/background';
 import { setPendingAuthNonce } from '../src/auth/storage';
+import { config } from '../src/auth/config';
+import { refreshFeatures } from '../src/features/worker';
 import { loadMirror } from '../src/word-mirror';
 
 const until = async (cond: () => Promise<boolean>) => {
@@ -105,4 +107,69 @@ test('a refused sign-in does not ask the server for anything', async () => {
     expect(reply).toMatchObject({ ok: false });
     await new Promise((r) => setTimeout(r, 50));
     expect(listInboxWords).not.toHaveBeenCalled();
+});
+
+test("a successful sign-in asks the new account's features (spec 032)", async () => {
+    listInboxWords.mockResolvedValue([]);
+    const fetchMock = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ features: { 'subtitles.second_track': true } }) }));
+    (global as any).fetch = fetchMock;
+    try {
+        installExternalAuthHandoff();
+        await setPendingAuthNonce('n1');
+        await new Promise((resolve) =>
+            externalListener!(
+                { type: 'lingogram-extension-auth', payload: { customToken: 't', uid: 'u1', email: 'a@b.c', nonce: 'n1' } },
+                { origin: 'http://localhost:5173' },
+                resolve,
+            ),
+        );
+        await until(async () => 'features' in local);
+        expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/dictionary\/features$/), expect.objectContaining({ method: 'GET' }));
+        expect((local.features as { features: unknown }).features).toEqual({ 'subtitles.second_track': true });
+    } finally {
+        delete (global as any).fetch;
+    }
+});
+
+test("signing in as another account keeps nothing of the previous one's features or AI balance", async () => {
+    listInboxWords.mockResolvedValue([]);
+    // A is signed in, with a balance kept and a features ask still in flight.
+    Object.assign(local, {
+        'auth.idToken': 'idA',
+        'auth.refreshToken': 'refreshA',
+        'auth.expiresAt': Date.now() + 3_600_000,
+        'auth.email': 'a@a.a',
+        'auth.uid': 'uA',
+        'ai.balance': { day: { used: 1, limit: 2, resetsAt: 3 }, month: { used: 1, limit: 2, resetsAt: 3 } },
+    });
+    let answerA!: (r: unknown) => void;
+    const forA = new Promise((r) => (answerA = r));
+    const fetchMock = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ features: { 'subtitles.second_track': false } }) }));
+    (global as any).fetch = fetchMock;
+    try {
+        const askedForA = refreshFeatures(config.apiBaseUrl, {
+            fetch: () => forA as Promise<Response>,
+            token: async () => ({ idToken: 'idA' }),
+        });
+
+        installExternalAuthHandoff();
+        await setPendingAuthNonce('n1');
+        const reply = await new Promise((resolve) =>
+            externalListener!(
+                { type: 'lingogram-extension-auth', payload: { customToken: 't', uid: 'u1', email: 'b@b.b', nonce: 'n1' } },
+                { origin: 'http://localhost:5173' },
+                resolve,
+            ),
+        );
+        expect(reply).toEqual({ ok: true });
+        answerA({ ok: true, status: 200, json: async () => ({ features: { 'subtitles.second_track': true } }) });
+        await askedForA;
+
+        await until(async () => fetchMock.mock.calls.length > 0 && 'features' in local);
+        expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/dictionary\/features$/), expect.anything());
+        expect((local.features as { features: unknown }).features).toEqual({ 'subtitles.second_track': false });
+        expect(local['ai.balance']).toBeUndefined();
+    } finally {
+        delete (global as any).fetch;
+    }
 });

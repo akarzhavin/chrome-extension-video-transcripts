@@ -12,7 +12,7 @@ import { AI_SUFFIX, AiTranslator, type AiHost } from './controller';
 /** The page's side of the host; the browser's side comes with AttachDeps. */
 export type AiApp = Omit<AiHost, keyof BrowserSide> & { langPrefs(): LanguagePrefs | null };
 
-type BrowserSide = Pick<AiHost, 'send' | 'currentTime' | 'later'>;
+type BrowserSide = Pick<AiHost, 'send' | 'currentTime' | 'later' | 'hintAllowed'>;
 
 export interface AttachDeps extends BrowserSide {
     /** The dev-only switch: translate even over a native track. */
@@ -22,10 +22,13 @@ export interface AttachDeps extends BrowserSide {
     onPairChange(cb: () => void): void;
     /** The viewer seeked: a part the server could not translate is asked again. */
     onSeek(cb: () => void): void;
+    /** Whether the account may use AI translation (spec 032), now and on every change; absent, always. */
+    onTranslationAllowed?(cb: (allowed: boolean) => void): void;
 }
 
 export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     let forced = false;
+    let allowed = true;
     let t: AiTranslator | null = null;
     const { state } = app;
 
@@ -44,14 +47,14 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             : undefined;
         const native = !!prefs && state.tracks.some((tr) => own(tr.name) && tr.name.includes(labelForLanguage(prefs.native)));
         // The site's own track always wins, unless the dev switch forces it.
-        const wanted = !!prefs && !!source && (forced || !native);
+        const wanted = allowed && !!prefs && !!source && (forced || !native);
         state.secondLineOnDemand = wanted;
         if (!wanted) return stop();
         if (t && (t.source !== source || t.learning !== prefs!.learning || t.native !== prefs!.native)) stop();
         if (!t) {
             if (state.displayMode !== 'dual') return;
-            const { send, currentTime, later } = deps;
-            t = new AiTranslator({ ...app, send, currentTime, later }, prefs!.learning, prefs!.native);
+            const { send, currentTime, later, hintAllowed } = deps;
+            t = new AiTranslator({ ...app, send, currentTime, later, hintAllowed }, prefs!.learning, prefs!.native);
             t.start(source!);
             return;
         }
@@ -65,6 +68,10 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     });
     deps.onPairChange(sync);
     deps.onSeek(() => t?.viewerEvent());
+    deps.onTranslationAllowed?.((on) => {
+        allowed = on;
+        sync();
+    });
     deps.onForcedChange((on) => {
         forced = on;
         sync();

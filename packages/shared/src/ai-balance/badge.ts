@@ -4,7 +4,10 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
+import { gateOpen, watchGate } from '../features/store';
 import { msg } from '../i18n';
+import { notifyWorker } from '../messaging';
+import { onTabReturn, REASK_MS } from '../tab-return';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
 import { offMode } from './signed-out';
@@ -35,14 +38,8 @@ function ring(doc: Document): { svg: SVGSVGElement; arc: SVGCircleElement } {
     return { svg, arc: circle('vtt-ai-arc') };
 }
 
-/** Asks the worker for the balance once, as the sidebar opens; answered by a storage write. */
-function requestRefresh(): void {
-    try {
-        chrome.runtime.sendMessage({ action: 'AI_BALANCE_REFRESH' }, () => void chrome.runtime.lastError);
-    } catch {
-        /* orphaned context: the badge stays as it is */
-    }
-}
+/** Asks the worker for the balance; answered by a storage write. */
+const requestRefresh = () => notifyWorker('AI_BALANCE_REFRESH');
 
 /** Mounts the badge into the sidebar header; returns the unmount. */
 export function mountAIBadge(headerTop: HTMLElement): () => void {
@@ -113,6 +110,15 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
+    // Closed (spec 032), the badge and its bars are gone; undefined until the watcher's first answer.
+    let aiOn: boolean | undefined;
+    const unwatchAI = watchGate('badge', (on) => {
+        aiOn = on;
+        badge.style.display = on ? '' : 'none';
+        if (on) return;
+        close();
+        cancelWarning();
+    });
 
     const show = (b: AIBalance | null) => {
         balance = b;
@@ -138,7 +144,8 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
             close();
             open();
         }
-        void takeWarning(b).then((w) => {
+        // Asked only while the badge shows, so a hidden badge does not spend the once-per-window note.
+        void Promise.resolve(aiOn ?? gateOpen('badge')).then((on) => (on && !disposed ? takeWarning(b) : null)).then((w) => {
             if (!w || disposed) return;
             cancelWarning();
             cancelWarning = showWarningNote(headerTop, w);
@@ -147,10 +154,13 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
 
     void loadBalance().then(show);
     requestRefresh();
+    const stopBalanceReask = onTabReturn(doc, REASK_MS, requestRefresh);
     const unsubscribe = onBalance(show);
     return () => {
         disposed = true;
         unsubscribe();
+        unwatchAI();
+        stopBalanceReask();
         off.dispose();
         cancelWarning();
         doc.removeEventListener('click', outside, true);

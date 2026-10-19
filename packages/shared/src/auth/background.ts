@@ -48,6 +48,7 @@ import {
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
+import { ensureFresh, refreshFeatures, refusalKeeper } from '../features/worker';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -86,6 +87,7 @@ export type AuthAction =
     | 'DISMISS_NOTIFICATION'
     | 'LOOKUP_WORD'
     | 'AI_BALANCE_REFRESH'
+    | 'FEATURES_REFRESH'
     | 'LIMIT_REFUSED'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
@@ -119,6 +121,7 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'DISMISS_NOTIFICATION',
     'LOOKUP_WORD',
     'AI_BALANCE_REFRESH',
+    'FEATURES_REFRESH',
     'LIMIT_REFUSED',
 ]);
 
@@ -550,21 +553,24 @@ export function devEnvReady(): Promise<void> {
     return envRestored;
 }
 
+/** The signed-in caller's fetch and token, read through `config` at call time (the dev switch moves it). */
+const signedIn = () => ({
+    fetch: (u: string, i: RequestInit) => fetch(u, i),
+    token: (r: boolean) => freshIdToken(config, r),
+});
+
 // Server-side subtitle translation. Authed, so it runs here
 // where the token lives; outcomes are values, never throws.
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
     if (!config.apiBaseUrl) return Promise.resolve({ ok: false, code: 'unavailable' });
-    const deps = {
-        fetch: (u: string, i: RequestInit) => fetch(u, i),
-        token: (r: boolean) => freshIdToken(config, r),
-        now: Date.now,
-        refused: reportRefusal,
-    };
+    const deps = { ...signedIn(), now: Date.now, refused: reportRefusal, featureOff: refusalKeeper() };
     if (request.action === 'SUBTITLE_AI_PART') {
-        return requestPart(config, request.part as PartRequest, deps).then(async (reply) => {
+        return (async () => {
+            await ensureFresh(config.apiBaseUrl, deps);
+            const reply = await requestPart(config, request.part as PartRequest, deps);
             if (reply.wallet) await keepBalance(reply.wallet);
             return reply;
-        });
+        })();
     }
     if (request.action === 'SUBTITLE_AI_STORE') return storeTrack(config, request.track as StoredTrack, deps);
     return Promise.resolve({ ok: false, code: 'invalid' });
@@ -882,11 +888,13 @@ export async function handleAuthMessage(
                 const defaultAILimits = await refreshDefaultAILimits(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i) });
                 return defaultAILimits ? { ok: true, defaultAILimits } : { ok: false };
             }
-            const balance = await refreshBalance(config.apiBaseUrl, {
-                fetch: (u, i) => fetch(u, i),
-                token: (r) => freshIdToken(config, r),
-            });
+            const balance = await refreshBalance(config.apiBaseUrl, signedIn());
             return balance ? { ok: true, balance } : { ok: false };
+        }
+        case 'FEATURES_REFRESH': {
+            // Signed out there is no account to ask for; the defaults stand.
+            if (!(await getAuthState())) return { ok: false };
+            return { ok: (await refreshFeatures(config.apiBaseUrl, signedIn())) !== null };
         }
         case 'LOOKUP_WORD': {
             // Word lookup for the hover strip and the sidebar's word screen.
@@ -1093,6 +1101,7 @@ export function installExternalAuthHandoff(): void {
                 // page woke the worker. Then move the words kept in the browser
                 // into the account. Neither rejects, so no catch.
                 void syncWords({ force: true }).then(() => uploadLocalWords());
+                void refreshFeatures(config.apiBaseUrl, signedIn()); // the new account's, not the defaults
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }
@@ -1142,8 +1151,7 @@ export function installRefusalReports(): void {
             return config.apiBaseUrl;
         },
         version: chrome.runtime.getManifest?.().version ?? '',
-        fetch: (u, i) => fetch(u, i),
-        token: (r) => freshIdToken(config, r),
+        ...signedIn(),
         now: Date.now,
         store: {
             load: async () => (await chrome.storage.session.get(REFUSALS_KEY))[REFUSALS_KEY] as RefusalQueue | undefined,

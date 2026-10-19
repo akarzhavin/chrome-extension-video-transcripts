@@ -37,7 +37,7 @@ jest.mock('../src/analytics-bg', () => ({
 }));
 
 import { handleAuthMessage } from '../src/auth/background';
-import { setAuthState } from '../src/auth/storage';
+import { clearAuthState, setAuthState } from '../src/auth/storage';
 
 import { clearLookupCache } from '../src/lookup';
 
@@ -62,6 +62,11 @@ const fetchMock = () => (global as any).fetch as jest.Mock;
 const headersOf = (call: number) => (fetchMock().mock.calls[call][1] as RequestInit).headers as Record<string, string>;
 const BALANCE_KEY = 'ai.balance';
 const storedUsed = () => (store[BALANCE_KEY] as { day: { used: number } } | undefined)?.day.used;
+
+async function until(ok: () => boolean): Promise<void> {
+    for (let i = 0; i < 50 && !ok(); i++) await new Promise((r) => setTimeout(r, 0));
+    expect(ok()).toBe(true);
+}
 
 const signIn = () =>
     setAuthState({ idToken: 'id', refreshToken: 'r', expiresAt: Date.now() + 3_600_000, email: 'a@b.c', uid: 'u1' });
@@ -138,8 +143,43 @@ describe('AI_BALANCE_REFRESH', () => {
         await signIn();
         fetchMock().mockResolvedValueOnce(json({}, 401)).mockResolvedValueOnce(json(wallet(7)));
         await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
-        expect(freshIdToken).toHaveBeenLastCalledWith(expect.anything(), true);
+        expect(freshIdToken).toHaveBeenNthCalledWith(2, expect.anything(), true);
         expect(headersOf(1).Authorization).toBe('Bearer fresh');
+    });
+
+    test('asks the balance only: the features have their own message (spec 032)', async () => {
+        await signIn();
+        fetchMock().mockResolvedValue(json(wallet(1)));
+        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetchMock().mock.calls.map((c) => c[0])).toEqual(['https://api.test/dictionary/ai/balance']);
+    });
+});
+
+describe('FEATURES_REFRESH (spec 032)', () => {
+    test('a view opening asks the features again, however fresh the last answer', async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: false } }));
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+        const [url, init] = fetchMock().mock.calls[0];
+        expect(url).toBe('https://api.test/dictionary/features');
+        expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer tok' } });
+        expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
+    });
+
+    test('signed out: nothing is asked and nothing kept', async () => {
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
+        expect(fetchMock()).not.toHaveBeenCalled();
+        expect(store.featuresTried).toBeUndefined();
+    });
+
+    test('a failed read: ok:false, the last answer stands', async () => {
+        await signIn();
+        store.features = { features: { ai: false }, at: 1 };
+        fetchMock().mockResolvedValueOnce(json({}, 503));
+        expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
+        expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
     });
 });
 
@@ -210,6 +250,78 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         const reply = await part();
         expect(reply).toMatchObject({ ok: false, code: 'quota', resetsAt: 123 });
         expect(storedUsed()).toBe(10_000_000);
+    });
+
+    test('a part asks the features first only when the answer is ten minutes old (spec 032)', async () => {
+        await signIn();
+        const urls = () => fetchMock().mock.calls.map((c) => String(c[0]).replace('https://api.test', ''));
+        store.features = { features: { ai: true }, at: Date.now() - 9 * 60_000 };
+        fetchMock().mockResolvedValueOnce(json({ from: 0, to: 1, lines: ['x'] }));
+        await part();
+        expect(urls()).toEqual([`/dictionary/subtitles/${FP}/part`]);
+        store.features = { features: { ai: true }, at: Date.now() - 11 * 60_000 };
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: true } })).mockResolvedValueOnce(json({ from: 0, to: 1, lines: ['x'] }));
+        await part();
+        expect(urls().slice(1)).toEqual(['/dictionary/features', `/dictionary/subtitles/${FP}/part`]);
+    });
+
+    test('a refused part keeps the feature off (spec 032)', async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        fetchMock().mockResolvedValueOnce(json({ code: 'feature_off', feature: 'subtitles.ai_translate' }, 404));
+        expect(await part()).toEqual({ ok: false, code: 'feature_off' });
+        expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true, 'subtitles.ai_translate': false });
+    });
+
+    test("a refusal for a part in flight at sign-out does not land on the next account's answer (spec 032)", async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        let release: (r: Response) => void = () => undefined;
+        fetchMock().mockReturnValueOnce(new Promise<Response>((r) => (release = r)));
+        const reply = part();
+        await until(() => fetchMock().mock.calls.length === 1);
+        await clearAuthState();
+        await signIn();
+        fetchMock().mockResolvedValueOnce(json({ features: { ai: true } }));
+        await handleAuthMessage({ action: 'FEATURES_REFRESH' });
+        release(json({ code: 'feature_off', feature: 'ai' }, 404));
+        expect(await reply).toEqual({ ok: false, code: 'feature_off' });
+        expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true });
+    });
+
+    test('a refusal recorded while a newer answer lands does not write the older one back (spec 032)', async () => {
+        await signIn();
+        const older = Date.now() - 60_000;
+        store.features = { features: { ai: true, 'subtitles.second_track': true }, at: older };
+        // The refusal's read of the answer is held, as a slow storage read would be.
+        let hold = false;
+        let releaseRead = () => undefined as void;
+        const local = (global as any).chrome.storage.local;
+        const get = local.get.getMockImplementation();
+        local.get.mockImplementation(async (keys: string | string[]) => {
+            const seen = await get(keys);
+            if (!hold || !(Array.isArray(keys) ? keys : [keys]).includes('features')) return seen;
+            hold = false;
+            return new Promise((r) => (releaseRead = () => r(seen)));
+        });
+        try {
+            fetchMock().mockImplementationOnce(async () => {
+                hold = true;
+                return json({ code: 'feature_off', feature: 'subtitles.ai_translate' }, 404);
+            });
+            const reply = part();
+            await until(() => !hold && fetchMock().mock.calls.length === 1);
+            fetchMock().mockResolvedValueOnce(json({ features: { ai: false } }));
+            const refresh = handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+            releaseRead();
+            await Promise.all([reply, refresh]);
+            const kept = store.features as { features: Record<string, boolean>; at: number };
+            expect(kept.features.ai).toBe(false); // the newer answer stands
+            expect(kept.at).toBeGreaterThan(older);
+        } finally {
+            local.get.mockImplementation(get);
+        }
     });
 
     test('a part without a wallet stores nothing', async () => {
