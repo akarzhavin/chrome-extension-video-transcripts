@@ -1,6 +1,6 @@
 {
   "name": "@video-transcripts/rezka",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "private": true,
   "scripts": {
     "build": "../../scripts/build-with-analytics.sh prod rezka",
