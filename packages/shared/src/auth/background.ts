@@ -48,7 +48,7 @@ import {
 } from '../limit-reports';
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
-import { ensureFresh, refreshFeatures, type FeatureDeps } from '../features';
+import { ensureFresh, refreshFeatures, type FeatureDeps } from '../features/worker';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.

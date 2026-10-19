@@ -4,7 +4,8 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
-import { followFeatures, gateOpen, watchGate } from '../features';
+import { followFeatures } from '../features/follow';
+import { gateOpen, watchGate } from '../features/store';
 import { msg } from '../i18n';
 import { notifyWorker } from '../messaging';
 import { onTabReturn, REASK_MS } from '../tab-return';

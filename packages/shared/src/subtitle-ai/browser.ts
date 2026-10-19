@@ -4,7 +4,7 @@ import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
-import { gateOpen, watchGate } from '../features';
+import { gateOpen, watchGate } from '../features/store';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';

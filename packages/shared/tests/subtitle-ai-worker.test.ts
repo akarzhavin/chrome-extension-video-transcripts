@@ -5,7 +5,9 @@
  * would match background.ts' isAuthFailure and sign the learner out.
  */
 
-import { hasFeature, refreshFeatures } from '../src/features';
+import { isOn, type FeatureKey } from '../src/features/rules';
+import { loadFeatures } from '../src/features/store';
+import { refreshFeatures } from '../src/features/worker';
 import { requestPart, storeTrack, type WorkerDeps } from '../src/subtitle-ai/worker';
 import type { AuthConfig } from '../src/auth/config';
 
@@ -141,6 +143,7 @@ describe('requestPart', () => {
         afterEach(() => {
             delete (globalThis as { chrome?: unknown }).chrome;
         });
+        const hasFeature = async (key: FeatureKey) => isOn(await loadFeatures(), key);
         // The account's answer, kept as the worker keeps it.
         const kept = (features: Record<string, boolean>) =>
             refreshFeatures('https://api.test', { fetch: async () => reply(200, { features }), token: async () => ({ idToken: 't' }) });

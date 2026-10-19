@@ -6,7 +6,8 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
-import { featureRefused, gateNeeds } from '../features';
+import { gateNeeds } from '../features/rules';
+import { featureRefused } from '../features/worker';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.

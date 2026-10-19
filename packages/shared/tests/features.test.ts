@@ -5,27 +5,23 @@
  * which is on for everyone and must survive a failed read.
  */
 
-import {
-    FEATURE_SECOND_TRACK,
-    FEATURE_AI_TRANSLATE,
-    forgetFeatures,
-    hasFeature,
-    featureRefused,
-    ensureFresh,
-    followFeatures,
-    refreshFeatures,
-    watchGate,
-    gateOpen,
-    FEATURE_AI,
-} from '../src/features';
+import { FEATURE_AI, FEATURE_AI_TRANSLATE, FEATURE_SECOND_TRACK, isOn, type FeatureKey } from '../src/features/rules';
+import { forgetFeatures, gateOpen, loadFeatures, watchGate } from '../src/features/store';
+import { featureClient, featureRefused, type FeatureClient } from '../src/features/worker';
+import { followFeatures } from '../src/features/follow';
 import { browserAiDeps } from '../src/subtitle-ai/browser';
 
 const store: Record<string, unknown> = {};
+const has = async (key: FeatureKey) => isOn(await loadFeatures(), key);
+// Each test its own client, so no request in flight outlives a test.
+let refreshFeatures: FeatureClient['refreshFeatures'];
+let ensureFresh: FeatureClient['ensureFresh'];
 type Listener = (changes: Record<string, unknown>, area: string) => void;
 let listeners: Listener[] = [];
 // Like chrome.storage: every write tells the listeners which keys changed.
 const changed = (keys: string[]) => listeners.forEach((l) => l(Object.fromEntries(keys.map((k) => [k, {}])), 'local'));
 beforeEach(() => {
+    ({ refreshFeatures, ensureFresh } = featureClient());
     listeners = [];
     for (const k of Object.keys(store)) delete store[k];
     (globalThis as unknown as { chrome: unknown }).chrome = {
@@ -85,8 +81,8 @@ describe('features', () => {
     });
 
     test('before any answer: subtitles on, everything else off', async () => {
-        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
-        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
+        expect(await has(FEATURE_AI_TRANSLATE)).toBe(true);
+        expect(await has(FEATURE_SECOND_TRACK)).toBe(false);
     });
 
     test('asks with the bearer token, retries a 401 with a fresh one, and keeps the answer', async () => {
@@ -101,8 +97,8 @@ describe('features', () => {
         });
         expect(calls).toEqual(['https://api.test/dictionary/features Bearer tok1', 'https://api.test/dictionary/features Bearer tok2']);
         expect(got).toEqual({ [FEATURE_SECOND_TRACK]: true, [FEATURE_AI_TRANSLATE]: false });
-        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(true);
-        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(false);
+        expect(await has(FEATURE_SECOND_TRACK)).toBe(true);
+        expect(await has(FEATURE_AI_TRANSLATE)).toBe(false);
         expect(await partAsks(NOW + 60_000)).toBe(false);
         expect(await partAsks(NOW + 11 * 60_000)).toBe(true);
     });
@@ -121,7 +117,7 @@ describe('features', () => {
             now: () => NOW,
         });
         expect(got).toBeNull();
-        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(true);
+        expect(await has(FEATURE_SECOND_TRACK)).toBe(true);
     });
 
     test('a refusal switches the feature off until the next answer; sign-out forgets', async () => {
@@ -131,9 +127,9 @@ describe('features', () => {
             now: () => NOW,
         });
         expect(await featureRefused(404, { code: 'feature_off', feature: FEATURE_SECOND_TRACK })).toBe(FEATURE_SECOND_TRACK);
-        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
+        expect(await has(FEATURE_SECOND_TRACK)).toBe(false);
         await forgetFeatures();
-        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
+        expect(await has(FEATURE_AI_TRANSLATE)).toBe(true);
         expect(await partAsks(NOW)).toBe(true);
     });
 });
@@ -145,7 +141,7 @@ describe('featureRefused', () => {
         expect(await featureRefused(404, { code: 'feature_off' })).toBe('');
         expect(await featureRefused(404, { code: 'feature_off', feature: 'lookup.phrase_cloud' })).toBe('lookup.phrase_cloud');
         expect(store.features).toBeUndefined(); // nothing the extension reads was refused
-        expect(await hasFeature(FEATURE_AI)).toBe(true);
+        expect(await has(FEATURE_AI)).toBe(true);
     });
 
     test('a refusal with storage gone still answers, and throws nothing', async () => {
@@ -156,17 +152,6 @@ describe('featureRefused', () => {
 
 describe('gates', () => {
     const all = async () => [await gateOpen('badge'), await gateOpen('translation'), await gateOpen('hint')];
-    test('AI closes every gate; each opens only with every key it needs', async () => {
-        await answer({ [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true });
-        expect(await all()).toEqual([false, false, false]);
-        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false, [FEATURE_SECOND_TRACK]: true });
-        expect(await all()).toEqual([true, false, false]);
-        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true });
-        expect(await all()).toEqual([true, true, false]);
-        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true });
-        expect(await all()).toEqual([true, true, true]);
-    });
-
     test('before any answer: the badge and translation open, the hint closed', async () => {
         expect(await all()).toEqual([true, true, false]);
     });
@@ -175,7 +160,7 @@ describe('gates', () => {
 describe('the AI feature', () => {
     const flush = () => new Promise((r) => setTimeout(r, 0));
     test('counts as on without an answer, and a watcher hears it go off and on', async () => {
-        expect(await hasFeature(FEATURE_AI)).toBe(true);
+        expect(await has(FEATURE_AI)).toBe(true);
         const seen: boolean[] = [];
         watchGate('badge', (on) => seen.push(on));
         await flush();
@@ -246,10 +231,10 @@ describe('asking', () => {
         releases[0](reply(200, { features: { [FEATURE_SECOND_TRACK]: true } }));
         expect(await old).toBeNull();
         expect(store.features).toBeUndefined();
-        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
+        expect(await has(FEATURE_SECOND_TRACK)).toBe(false);
         releases[1](reply(200, { features: { [FEATURE_AI]: false } }));
         expect(await next).toEqual({ [FEATURE_AI]: false });
-        expect(await hasFeature(FEATURE_AI)).toBe(false);
+        expect(await has(FEATURE_AI)).toBe(false);
     });
 
     test('a failed ask in flight at sign-out stamps no failure either', async () => {

@@ -1,5 +1,5 @@
 import { clearAccountAI } from '../ai-balance/store';
-import { forgetFeatures } from '../features';
+import { forgetFeatures } from '../features/store';
 
 export interface AuthState {
     idToken: string;
