@@ -49,7 +49,7 @@ export interface Kept {
 export const isOn = (kept: Kept | null, key: FeatureKey): boolean => kept?.features[key] ?? DEFAULTS[key] ?? false;
 
 /** Whether gate is open, by kept: signed in, the account's answer or the defaults; signed out, a guest answer true for every key, no defaults (spec 034). */
-export function isGateOpen(kept: Kept | null, gate: Gate, signedIn = true): boolean {
+export function isGateOpen(kept: Kept | null, gate: Gate, signedIn: boolean): boolean {
     if (!signedIn) return kept?.as === 'guest' && keysOf(gate).every((k) => kept.features[k] === true);
     const own = kept?.as === 'guest' ? null : kept;
     return keysOf(gate).every((k) => isOn(own, k));

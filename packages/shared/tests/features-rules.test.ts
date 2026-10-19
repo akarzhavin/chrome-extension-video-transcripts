@@ -46,7 +46,7 @@ describe('isOn', () => {
 });
 
 describe('gates', () => {
-    const all = (k: Kept | null) => (['badge', 'translation', 'hint'] as Gate[]).map((g) => isGateOpen(k, g));
+    const all = (k: Kept | null) => (['badge', 'translation', 'hint'] as Gate[]).map((g) => isGateOpen(k, g, true));
     test('AI closes every gate; each opens only with every key it needs', () => {
         expect(all(kept({ [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true }))).toEqual([false, false, false]);
         expect(all(kept({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false, [FEATURE_SECOND_TRACK]: true }))).toEqual([true, false, false]);
