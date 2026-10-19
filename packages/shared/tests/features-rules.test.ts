@@ -72,6 +72,11 @@ describe('gates', () => {
             expect(isGateOpen(guest({ [FEATURE_AI]: false }), 'badge', false)).toBe(false);
             expect(isGateOpen(guest({}), 'badge', false)).toBe(false);
         });
+        test('a guest gate needs the answer to say true for every key it needs, with no default standing in', () => {
+            expect(out(guest({ [FEATURE_AI]: true }))).toEqual([true, false, false]);
+            expect(out(guest({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true }))).toEqual([true, true, false]);
+            expect(out(guest({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true }))).toEqual([true, true, true]);
+        });
         test("signed in, a guest's answer is no answer: the 032 defaults stand", () => {
             expect(all(guest({ [FEATURE_AI]: false }))).toEqual([true, true, false]);
             expect((['badge', 'translation', 'hint'] as Gate[]).map((g) => isGateOpen(null, g, true))).toEqual([true, true, false]);
