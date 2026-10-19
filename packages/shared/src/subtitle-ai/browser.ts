@@ -4,7 +4,7 @@ import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
-import { FEATURE_AI, FEATURE_AI_TRANSLATE, watchFeatures } from '../features';
+import { watchGate } from '../features';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
@@ -54,9 +54,9 @@ export function browserAiDeps(): AttachDeps {
                 if (e.target instanceof HTMLVideoElement) cb();
             }, true);
         },
-        // Translation needs the AI switch and its own; the server refuses it without either.
+        // Never stopped: attachAiTranslation lives as long as the page.
         onTranslationAllowed: (cb) => {
-            watchFeatures([FEATURE_AI, FEATURE_AI_TRANSLATE], cb);
+            watchGate('translation', cb);
         },
         later: (fn, ms) => {
             setTimeout(fn, ms);

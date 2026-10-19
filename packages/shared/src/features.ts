@@ -10,6 +10,19 @@ export const FEATURE_SECOND_TRACK = 'subtitles.second_track';
 /** The keys the extension reads; the server's map may carry others. */
 export type FeatureKey = typeof FEATURE_AI | typeof FEATURE_AI_TRANSLATE | typeof FEATURE_SECOND_TRACK;
 
+/** Which keys each capability needs; callers name the capability, never the keys. */
+const NEEDS = {
+    /** The AI credits badge, its panel and its warning note. */
+    badge: [],
+    translation: [FEATURE_AI_TRANSLATE],
+    /** The second track named in a part request, the gender hint. */
+    hint: [FEATURE_AI_TRANSLATE, FEATURE_SECOND_TRACK],
+} satisfies Record<string, FeatureKey[]>;
+export type Gate = keyof typeof NEEDS;
+
+// AI is the master switch: off, every AI capability is closed.
+const keysOf = (gate: Gate): FeatureKey[] => [FEATURE_AI, ...NEEDS[gate]];
+
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
 const TRIED_KEY = 'featuresTried';
@@ -108,20 +121,20 @@ export async function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promi
     }
 }
 
-/** Calls cb with whether the account has key now and on every change of the answer. */
-export function watchFeature(key: FeatureKey, cb: (on: boolean) => void): () => void {
-    return watchFeatures([key], cb);
+/** Whether the account may use gate now, by the last answer. */
+export async function gateOpen(gate: Gate): Promise<boolean> {
+    const kept = await load();
+    return keysOf(gate).every((k) => on(kept, k));
 }
 
-/** Like watchFeature, on only while the account has every one of keys. */
-export function watchFeatures(keys: FeatureKey[], cb: (on: boolean) => void): () => void {
+/** Calls cb with whether gate is open now and on every change of the answer; returns the stop. */
+export function watchGate(gate: Gate, cb: (open: boolean) => void): () => void {
     let last: boolean | undefined;
     const check = () =>
-        void load().then((kept) => {
-            const now = keys.every((k) => on(kept, k));
-            if (now === last) return;
-            last = now;
-            cb(now);
+        void gateOpen(gate).then((open) => {
+            if (open === last) return;
+            last = open;
+            cb(open);
         });
     check();
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {

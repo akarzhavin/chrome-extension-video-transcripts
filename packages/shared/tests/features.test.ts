@@ -14,7 +14,8 @@ import {
     parseFeatures,
     refreshFeatures,
     staleFeatures,
-    watchFeature,
+    watchGate,
+    gateOpen,
     FEATURE_AI,
 } from '../src/features';
 import { browserAiDeps } from '../src/subtitle-ai/browser';
@@ -43,6 +44,14 @@ function reply(status: number, body: unknown): Response {
 }
 
 const NOW = Date.UTC(2026, 9, 18, 12, 0, 0);
+
+/** The server answers features: kept as a refresh would keep it. */
+const answer = (features: Record<string, boolean>) =>
+    refreshFeatures('https://api.test', {
+        fetch: async () => reply(200, { features }),
+        token: async () => ({ idToken: 't' }),
+        now: () => NOW,
+    });
 
 describe('features', () => {
     test('parses only booleans by key', () => {
@@ -105,12 +114,30 @@ describe('features', () => {
     });
 });
 
+describe('gates', () => {
+    const all = async () => [await gateOpen('badge'), await gateOpen('translation'), await gateOpen('hint')];
+    test('AI closes every gate; each opens only with every key it needs', async () => {
+        await answer({ [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true });
+        expect(await all()).toEqual([false, false, false]);
+        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false, [FEATURE_SECOND_TRACK]: true });
+        expect(await all()).toEqual([true, false, false]);
+        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true });
+        expect(await all()).toEqual([true, true, false]);
+        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true });
+        expect(await all()).toEqual([true, true, true]);
+    });
+
+    test('before any answer: the badge and translation open, the hint closed', async () => {
+        expect(await all()).toEqual([true, true, false]);
+    });
+});
+
 describe('the AI feature', () => {
     const flush = () => new Promise((r) => setTimeout(r, 0));
     test('counts as on without an answer, and a watcher hears it go off and on', async () => {
         expect(await hasFeature(FEATURE_AI)).toBe(true);
         const seen: boolean[] = [];
-        watchFeature(FEATURE_AI, (on) => seen.push(on));
+        watchGate('badge', (on) => seen.push(on));
         await flush();
         store.features = { features: { [FEATURE_AI]: false }, at: NOW };
         for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
