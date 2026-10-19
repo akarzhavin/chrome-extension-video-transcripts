@@ -7,10 +7,14 @@ const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
 const TRIED_KEY = 'featuresTried';
 
+const asKept = (raw: unknown): Kept | null => {
+    const got = raw as Kept | undefined;
+    return got && typeof got.at === 'number' && got.features ? got : null;
+};
+
 export async function loadFeatures(): Promise<Kept | null> {
     try {
-        const got = (await chrome.storage.local.get(KEY))[KEY] as Kept | undefined;
-        return got && typeof got.at === 'number' && got.features ? got : null;
+        return asKept((await chrome.storage.local.get(KEY))[KEY]);
     } catch {
         return null;
     }
@@ -34,15 +38,18 @@ export async function gateOpen(gate: Gate): Promise<boolean> {
 /** Calls cb with whether gate is open now and on every change of the answer; returns the stop. */
 export function watchGate(gate: Gate, cb: (open: boolean) => void): () => void {
     let last: boolean | undefined;
-    const check = () =>
-        void gateOpen(gate).then((open) => {
-            if (open === last) return;
-            last = open;
-            cb(open);
-        });
-    check();
+    let changed = false;
+    const report = (open: boolean) => {
+        if (open === last) return;
+        last = open;
+        cb(open);
+    };
+    // A change seen first is newer than the first read; the change carries the answer, so no read.
+    void gateOpen(gate).then((open) => changed || report(open));
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-        if (area === 'local' && KEY in changes) check();
+        if (area !== 'local' || !(KEY in changes)) return;
+        changed = true;
+        report(isGateOpen(asKept(changes[KEY].newValue), gate));
     };
     try {
         chrome.storage.onChanged.addListener(listener);

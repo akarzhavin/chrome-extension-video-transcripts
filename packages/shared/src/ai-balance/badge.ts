@@ -110,8 +110,10 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
-    // Closed (spec 032), the badge and its bars are gone.
+    // Closed (spec 032), the badge and its bars are gone; undefined until the watcher's first answer.
+    let aiOn: boolean | undefined;
     const unwatchAI = watchGate('badge', (on) => {
+        aiOn = on;
         badge.style.display = on ? '' : 'none';
         if (on) return;
         close();
@@ -143,7 +145,7 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
             open();
         }
         // Asked only while the badge shows, so a hidden badge does not spend the once-per-window note.
-        void gateOpen('badge').then((on) => (on && !disposed ? takeWarning(b) : null)).then((w) => {
+        void Promise.resolve(aiOn ?? gateOpen('badge')).then((on) => (on && !disposed ? takeWarning(b) : null)).then((w) => {
             if (!w || disposed) return;
             cancelWarning();
             cancelWarning = showWarningNote(headerTop, w);

@@ -16,10 +16,11 @@ const has = async (key: FeatureKey) => isOn(await loadFeatures(), key);
 // Each test its own client, so no request in flight outlives a test.
 let refreshFeatures: FeatureClient['refreshFeatures'];
 let ensureFresh: FeatureClient['ensureFresh'];
-type Listener = (changes: Record<string, unknown>, area: string) => void;
+type Listener = (changes: Record<string, { newValue?: unknown }>, area: string) => void;
 let listeners: Listener[] = [];
-// Like chrome.storage: every write tells the listeners which keys changed.
-const changed = (keys: string[]) => listeners.forEach((l) => l(Object.fromEntries(keys.map((k) => [k, {}])), 'local'));
+// Like chrome.storage: every write tells the listeners which keys changed, and to what.
+const changed = (keys: string[]) =>
+    listeners.forEach((l) => l(Object.fromEntries(keys.map((k) => [k, { newValue: store[k] }])), 'local'));
 beforeEach(() => {
     ({ refreshFeatures, ensureFresh } = featureClient());
     listeners = [];
