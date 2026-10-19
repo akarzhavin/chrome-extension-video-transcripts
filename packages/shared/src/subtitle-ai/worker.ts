@@ -6,8 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
-import { gateNeeds } from '../features/rules';
-import { featureRefused } from '../features/worker';
+import { gateNeeds, parseRefusal } from '../features/rules';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -27,6 +26,8 @@ export interface WorkerDeps {
     now: () => number;
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
+    /** Keeps a feature the server refused ('' when unnamed), off until the next answer; never throws. */
+    featureOff?: (key: string) => Promise<void>;
 }
 
 export interface PartRequest {
@@ -76,11 +77,16 @@ async function body(res: Response): Promise<Record<string, unknown>> {
 }
 
 export async function requestPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Promise<PartReply> {
-    let reply = await askPart(cfg, req, deps);
+    const ask = async (r: PartRequest) => {
+        const reply = await askPart(cfg, r, deps);
+        if (!reply.ok && reply.code === 'feature_off') await deps.featureOff?.(reply.feature ?? '');
+        return reply;
+    };
+    let reply = await ask(req);
     // A refused hint is dropped and the part asked again; any other refusal ends the part.
     const hintOnly = (f: string) => gateNeeds('hint', f) && !gateNeeds('translation', f);
     if (!reply.ok && reply.code === 'feature_off' && req.second && hintOnly(reply.feature ?? '')) {
-        reply = await askPart(cfg, { ...req, second: undefined }, deps);
+        reply = await ask({ ...req, second: undefined });
     }
     return reply.ok || reply.code !== 'feature_off' ? reply : { ok: false, code: 'feature_off' };
 }
@@ -129,7 +135,7 @@ async function askPart(cfg: AuthConfig, req: PartRequest, deps: WorkerDeps): Pro
         case 403:
             return { ok: false, code: 'auth' };
         case 404: {
-            const feature = await featureRefused(res.status, b);
+            const feature = parseRefusal(res.status, b);
             if (feature !== null) return { ok: false, code: 'feature_off', feature };
             return { ok: false, code: b.code === 'track_unknown' ? 'track_unknown' : 'unavailable' };
         }

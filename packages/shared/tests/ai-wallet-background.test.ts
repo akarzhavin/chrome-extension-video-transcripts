@@ -260,6 +260,14 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         expect(urls().slice(1)).toEqual(['/dictionary/features', `/dictionary/subtitles/${FP}/part`]);
     });
 
+    test('a refused part keeps the feature off (spec 032)', async () => {
+        await signIn();
+        store.features = { features: { ai: true }, at: Date.now() };
+        fetchMock().mockResolvedValueOnce(json({ code: 'feature_off', feature: 'subtitles.ai_translate' }, 404));
+        expect(await part()).toEqual({ ok: false, code: 'feature_off' });
+        expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true, 'subtitles.ai_translate': false });
+    });
+
     test('a part without a wallet stores nothing', async () => {
         fetchMock().mockResolvedValue(json({ from: 0, to: 1, lines: ['x'] }));
         expect((await part()).ok).toBe(true);

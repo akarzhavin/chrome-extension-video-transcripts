@@ -1,7 +1,7 @@
 // Worker-only: GET /dictionary/features, asked when a view opens, at sign-in, and before a part
 // when the answer is stale. Never imported by a content script (it holds the token and the fetch).
 
-import { isStale, parseFeatures, parseRefusal } from './rules';
+import { isStale, parseFeatures } from './rules';
 import { accountGeneration, keepAnswer, keepTried, loadFeatures, loadTried, markOff } from './store';
 
 export interface FeatureDeps {
@@ -71,13 +71,13 @@ async function ask(baseUrl: string, deps: FeatureDeps, asker: number): Promise<A
     }
 }
 
-/** Parses a refusal and keeps it (off until the next answer); never throws. */
-export async function featureRefused(status: number, body: Record<string, unknown>): Promise<string | null> {
-    const key = parseRefusal(status, body);
-    try {
-        if (key) await markOff(key);
-    } catch {
-        // Storage gone: the server refuses again next time.
-    }
-    return key;
+/** For one request: keeps a feature the server refused, off until the next answer; never throws. */
+export function refusalKeeper(): (key: string) => Promise<void> {
+    return async (key) => {
+        try {
+            await markOff(key);
+        } catch {
+            // Storage gone: the server refuses again next time.
+        }
+    };
 }
