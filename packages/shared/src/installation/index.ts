@@ -31,5 +31,7 @@ export function installInstallation(ed: Edition): void {
         else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) void ensureInstallation({ edition: ed, fresh: false });
     });
     // No mint here: on a fresh install it would beat the INSTALL event and record the install as an update.
-    void readInstallationId().then((id) => id && recordInstallation(config.apiBaseUrl, ed, plainFetch));
+    void readInstallationId().then((id) => {
+        if (id) void recordInstallation(config.apiBaseUrl, ed, plainFetch);
+    });
 }

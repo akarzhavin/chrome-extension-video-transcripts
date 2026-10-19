@@ -58,6 +58,26 @@ describe('gates', () => {
         expect(all(null)).toEqual([true, true, false]);
     });
 
+    describe('signed out (spec 034)', () => {
+        const out = (k: Kept | null) => (['badge', 'translation', 'hint'] as Gate[]).map((g) => isGateOpen(k, g, false));
+        const guest = (features: Record<string, boolean>): Kept => ({ features, at: NOW, as: 'guest' });
+        test('with no answer every gate is closed: no badge before the guest check answers', () => {
+            expect(out(null)).toEqual([false, false, false]);
+        });
+        test("an account's answer left over is no guest answer", () => {
+            expect(out(kept({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true }))).toEqual([false, false, false]);
+        });
+        test('a guest answer opens the badge only when it says AI', () => {
+            expect(isGateOpen(guest({ [FEATURE_AI]: true }), 'badge', false)).toBe(true);
+            expect(isGateOpen(guest({ [FEATURE_AI]: false }), 'badge', false)).toBe(false);
+            expect(isGateOpen(guest({}), 'badge', false)).toBe(false);
+        });
+        test("signed in, a guest's answer is no answer: the 032 defaults stand", () => {
+            expect(all(guest({ [FEATURE_AI]: false }))).toEqual([true, true, false]);
+            expect((['badge', 'translation', 'hint'] as Gate[]).map((g) => isGateOpen(null, g, true))).toEqual([true, true, false]);
+        });
+    });
+
     test('a refused key tells a refused hint from refused translation', () => {
         expect(gateNeeds('hint', FEATURE_SECOND_TRACK)).toBe(true);
         expect(gateNeeds('translation', FEATURE_SECOND_TRACK)).toBe(false);

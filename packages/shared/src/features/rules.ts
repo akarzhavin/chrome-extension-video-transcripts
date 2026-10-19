@@ -48,9 +48,11 @@ export interface Kept {
 /** Whether key is on by kept; a key it lacks, or no answer at all, takes the default. */
 export const isOn = (kept: Kept | null, key: FeatureKey): boolean => kept?.features[key] ?? DEFAULTS[key] ?? false;
 
-/** Whether the account may use gate, by kept. */
-export function isGateOpen(kept: Kept | null, gate: Gate): boolean {
-    return keysOf(gate).every((k) => isOn(kept, k));
+/** Whether gate is open, by kept: signed in, the account's answer or the defaults; signed out, only a guest answer with AI (spec 034). */
+export function isGateOpen(kept: Kept | null, gate: Gate, signedIn = true): boolean {
+    if (!signedIn) return kept?.as === 'guest' && kept.features[FEATURE_AI] === true && keysOf(gate).every((k) => isOn(kept, k));
+    const own = kept?.as === 'guest' ? null : kept;
+    return keysOf(gate).every((k) => isOn(own, k));
 }
 
 /** True when there is no answer or it is older than MAX_AGE_MS, unless a read failed under RETRY_MS ago. */
