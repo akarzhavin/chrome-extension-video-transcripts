@@ -1,5 +1,8 @@
 // A view's "the person is back on this tab", for asking the worker again.
 
+/** A view asks the worker again on a return to its tab at most this often. */
+export const REASK_MS = 60_000;
+
 /** Calls cb when doc is shown again, at most once per everyMs counted from now; returns the stop. */
 export function onTabReturn(doc: Document, everyMs: number, cb: () => void): () => void {
     let at = Date.now();

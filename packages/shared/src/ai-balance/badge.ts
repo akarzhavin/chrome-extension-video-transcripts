@@ -6,7 +6,8 @@
 
 import { followFeatures, gateOpen, watchGate } from '../features';
 import { msg } from '../i18n';
-import { onTabReturn } from '../tab-return';
+import { notifyWorker } from '../messaging';
+import { onTabReturn, REASK_MS } from '../tab-return';
 import { renderBars } from './bars';
 import { formatTokens, isHigh, limitText, resetShort, tokensLeft } from './format';
 import { offMode } from './signed-out';
@@ -19,8 +20,6 @@ const ON = 'vtt-ai-on';
 const SVG = 'http://www.w3.org/2000/svg';
 const R = 7;
 const C = 2 * Math.PI * R;
-// A return to the tab asks for the balance again at most this often.
-const REASK_MS = 60_000;
 
 /** The 18px ring: a track and an arc drawn clockwise from 12 o'clock. */
 function ring(doc: Document): { svg: SVGSVGElement; arc: SVGCircleElement } {
@@ -39,14 +38,8 @@ function ring(doc: Document): { svg: SVGSVGElement; arc: SVGCircleElement } {
     return { svg, arc: circle('vtt-ai-arc') };
 }
 
-/** Asks the worker for the balance once, as the sidebar opens; answered by a storage write. */
-function requestRefresh(): void {
-    try {
-        chrome.runtime.sendMessage({ action: 'AI_BALANCE_REFRESH' }, () => void chrome.runtime.lastError);
-    } catch {
-        /* orphaned context: the badge stays as it is */
-    }
-}
+/** Asks the worker for the balance; answered by a storage write. */
+const requestRefresh = () => notifyWorker('AI_BALANCE_REFRESH');
 
 /** Mounts the badge into the sidebar header; returns the unmount. */
 export function mountAIBadge(headerTop: HTMLElement): () => void {

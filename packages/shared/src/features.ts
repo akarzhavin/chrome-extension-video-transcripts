@@ -3,7 +3,8 @@
 // chrome.storage.local; the server still refuses a feature the account lacks
 // (404 feature_off), so this cache only saves wasted requests.
 
-import { onTabReturn } from './tab-return';
+import { notifyWorker } from './messaging';
+import { onTabReturn, REASK_MS } from './tab-return';
 
 export const FEATURE_AI = 'ai';
 export const FEATURE_AI_TRANSLATE = 'subtitles.ai_translate';
@@ -32,9 +33,6 @@ export function gateNeeds(gate: Gate, key: string): boolean {
 
 const isKey = (k: string): k is FeatureKey => k === FEATURE_AI || k === FEATURE_AI_TRANSLATE || k === FEATURE_SECOND_TRACK;
 
-/** The worker message a view sends to have the features asked (auth/background.ts). */
-const FEATURES_REFRESH = 'FEATURES_REFRESH';
-
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
 const TRIED_KEY = 'featuresTried';
@@ -42,8 +40,6 @@ const TRIED_KEY = 'featuresTried';
 const MAX_AGE_MS = 10 * 60 * 1000;
 /** After a failed read, how long a translation part waits before asking again. */
 const RETRY_MS = 60 * 1000;
-/** A view asks again on a return to its tab at most this often. */
-const REASK_MS = 60 * 1000;
 
 // On for everyone on the server; a failed read must not switch it off.
 const DEFAULTS: Partial<Record<FeatureKey, boolean>> = { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true };
@@ -208,13 +204,7 @@ async function ask(baseUrl: string, deps: FeatureDeps, asker: number): Promise<A
 
 // --- A view's side: when to have the worker ask.
 
-function askWorker(): void {
-    try {
-        chrome.runtime.sendMessage({ action: FEATURES_REFRESH }, () => void chrome.runtime.lastError);
-    } catch {
-        // Orphaned context: the gates keep the last answer.
-    }
-}
+const askWorker = () => notifyWorker('FEATURES_REFRESH');
 
 /** A view opening asks at once, and again on each return to its tab, at most once a minute; returns the stop. */
 export function followFeatures(doc: Document): () => void {
