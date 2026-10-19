@@ -171,6 +171,24 @@ describe('the AI feature', () => {
         await flush();
         expect(seen).toEqual([true, false, true]);
     });
+
+    test("a change heard before the watcher's first read settles is not undone by that read", async () => {
+        const local = (chrome as unknown as { storage: { local: { get: (k: string) => Promise<unknown> } } }).storage.local;
+        const get = local.get;
+        let release = () => undefined as void;
+        // The first read sees the store as it was, and answers late.
+        local.get = (k) => {
+            const was = get(k);
+            return new Promise((r) => (release = () => r(was)));
+        };
+        const seen: boolean[] = [];
+        watchGate('badge', (on) => seen.push(on));
+        local.get = get;
+        await answer({ [FEATURE_AI]: false });
+        release();
+        await flush();
+        expect(seen).toEqual([false]);
+    });
 });
 
 describe('a failed read', () => {
