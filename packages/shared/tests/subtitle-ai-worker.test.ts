@@ -5,7 +5,7 @@
  * would match background.ts' isAuthFailure and sign the learner out.
  */
 
-import { hasFeature } from '../src/features';
+import { hasFeature, refreshFeatures } from '../src/features';
 import { requestPart, storeTrack, type WorkerDeps } from '../src/subtitle-ai/worker';
 import type { AuthConfig } from '../src/auth/config';
 
@@ -141,13 +141,12 @@ describe('requestPart', () => {
         afterEach(() => {
             delete (globalThis as { chrome?: unknown }).chrome;
         });
-        // The account's answer, as the worker keeps it; the module's API reads it back.
-        const kept = (features: Record<string, boolean>) => {
-            store.features = { features, at: Date.now() };
-        };
+        // The account's answer, kept as the worker keeps it.
+        const kept = (features: Record<string, boolean>) =>
+            refreshFeatures('https://api.test', { fetch: async () => reply(200, { features }), token: async () => ({ idToken: 't' }) });
 
         test('a refused second track is dropped and the part asked again without it', async () => {
-            kept({ 'subtitles.second_track': true });
+            await kept({ 'subtitles.second_track': true });
             const d = {
                 ...deps([
                     reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
@@ -163,7 +162,7 @@ describe('requestPart', () => {
         });
 
         test('the retry without the hint refused too: that refusal is remembered as well', async () => {
-            kept({ 'subtitles.second_track': true });
+            await kept({ 'subtitles.second_track': true });
             const d = {
                 ...deps([
                     reply(404, { code: 'feature_off', feature: 'subtitles.second_track' }),
@@ -183,7 +182,7 @@ describe('requestPart', () => {
         });
 
         test('refused translation is not asked again even when the request named a hint', async () => {
-            kept({ 'subtitles.second_track': true });
+            await kept({ 'subtitles.second_track': true });
             const d = { ...deps([reply(404, { code: 'feature_off', feature: 'subtitles.ai_translate' })]) };
             const r = await requestPart(cfg, { fingerprint: FP, lang: 'ru', from: 0, to: 1, second: SECOND }, d);
             expect(r).toEqual({ ok: false, code: 'feature_off' });

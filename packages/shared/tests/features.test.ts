@@ -21,7 +21,10 @@ import {
 import { browserAiDeps } from '../src/subtitle-ai/browser';
 
 const store: Record<string, unknown> = {};
-let listeners: unknown[] = [];
+type Listener = (changes: Record<string, unknown>, area: string) => void;
+let listeners: Listener[] = [];
+// Like chrome.storage: every write tells the listeners which keys changed.
+const changed = (keys: string[]) => listeners.forEach((l) => l(Object.fromEntries(keys.map((k) => [k, {}])), 'local'));
 beforeEach(() => {
     listeners = [];
     for (const k of Object.keys(store)) delete store[k];
@@ -29,12 +32,17 @@ beforeEach(() => {
         storage: {
             local: {
                 get: async (k: string) => (k in store ? { [k]: store[k] } : {}),
-                set: async (o: Record<string, unknown>) => Object.assign(store, o),
+                set: async (o: Record<string, unknown>) => {
+                    Object.assign(store, o);
+                    changed(Object.keys(o));
+                },
                 remove: async (k: string | string[]) => {
-                    for (const key of Array.isArray(k) ? k : [k]) delete store[key];
+                    const keys = Array.isArray(k) ? k : [k];
+                    for (const key of keys) delete store[key];
+                    changed(keys);
                 },
             },
-            onChanged: { addListener: (l: unknown) => listeners.push(l), removeListener: () => undefined },
+            onChanged: { addListener: (l: Listener) => listeners.push(l), removeListener: () => undefined },
         },
     };
 });
@@ -171,11 +179,11 @@ describe('the AI feature', () => {
         const seen: boolean[] = [];
         watchGate('badge', (on) => seen.push(on));
         await flush();
-        store.features = { features: { [FEATURE_AI]: false }, at: NOW };
-        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
+        await answer({ [FEATURE_AI]: false });
         await flush();
-        store.features = { features: { [FEATURE_AI]: true }, at: NOW };
-        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
+        await answerBody(null); // a failed read: the last answer stands
+        await flush();
+        await answer({ [FEATURE_AI]: true });
         await flush();
         expect(seen).toEqual([true, false, true]);
     });
@@ -291,21 +299,15 @@ describe('asking', () => {
 
 describe('AI subtitle translation', () => {
     const flush = () => new Promise((r) => setTimeout(r, 0));
-    const tell = () => {
-        for (const l of listeners) (l as (c: unknown, a: string) => void)({ features: {} }, 'local');
-    };
     test('stops when its own switch goes off, not only the AI one', async () => {
         const seen: boolean[] = [];
         browserAiDeps().onTranslationAllowed?.((on) => seen.push(on));
         await flush();
-        store.features = { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false }, at: NOW };
-        tell();
+        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false });
         await flush();
-        store.features = { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true }, at: NOW };
-        tell();
+        await answer({ [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true });
         await flush();
-        store.features = { features: { [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true }, at: NOW };
-        tell();
+        await answer({ [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true });
         await flush();
         expect(seen).toEqual([true, false, true, false]);
     });
