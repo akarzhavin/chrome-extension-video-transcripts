@@ -75,11 +75,11 @@ function serial<T>(write: () => Promise<T>): Promise<T> {
     return run;
 }
 
-/** Keeps a server answer, unless a sign-out came since; returns whether it was kept. */
-export function keepAnswer(features: Record<string, boolean>, at: number, since: number): Promise<boolean> {
+/** Keeps a server answer, unless a sign-out or sign-in came since; returns whether it was kept. */
+export function keepAnswer(features: Record<string, boolean>, at: number, since: number, as?: 'guest'): Promise<boolean> {
     return serial(async () => {
         if (since !== account) return false;
-        await chrome.storage.local.set({ [KEY]: { features, at } satisfies Kept });
+        await chrome.storage.local.set({ [KEY]: { features, at, ...(as ? { as } : {}) } satisfies Kept });
         return true;
     });
 }
@@ -100,7 +100,7 @@ export function markOff(key: string, since: number): Promise<void> {
     });
 }
 
-/** Dropped with the credentials: the answer is this account's. Queued, so writes begun before it land first. */
+/** Dropped with the credentials, and at sign-in (a guest's answer is not the account's). Queued, so writes begun before it land first. */
 export function forgetFeatures(): Promise<void> {
     account++;
     return serial(() => chrome.storage.local.remove([KEY, TRIED_KEY]));

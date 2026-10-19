@@ -49,6 +49,8 @@ import {
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
 import { ensureFresh, refreshFeatures, refusalKeeper } from '../features/worker';
+import { ensureInstallation, installationEdition } from '../installation';
+import { refreshGuestFeatures } from '../installation/guest';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -892,8 +894,13 @@ export async function handleAuthMessage(
             return balance ? { ok: true, balance } : { ok: false };
         }
         case 'FEATURES_REFRESH': {
-            // Signed out there is no account to ask for; the defaults stand.
-            if (!(await getAuthState())) return { ok: false };
+            if (!(await getAuthState())) {
+                // Signed out, the installation is asked as a guest (spec 034); no edition: a build without one.
+                const edition = installationEdition();
+                if (!edition) return { ok: false };
+                const id = () => ensureInstallation({ edition, fresh: false });
+                return { ok: (await refreshGuestFeatures(config.apiBaseUrl, { fetch: (u, i) => fetch(u, i), id })) !== null };
+            }
             return { ok: (await refreshFeatures(config.apiBaseUrl, signedIn())) !== null };
         }
         case 'LOOKUP_WORD': {

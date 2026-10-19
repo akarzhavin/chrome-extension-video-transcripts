@@ -41,6 +41,8 @@ export const DEFAULTS: Readonly<Partial<Record<FeatureKey, boolean>>> = { [FEATU
 export interface Kept {
     features: Record<string, boolean>;
     at: number;
+    /** 'guest': the signed-out answer for this installation (spec 034); absent: the account's. */
+    as?: 'guest';
 }
 
 /** Whether key is on by kept; a key it lacks, or no answer at all, takes the default. */

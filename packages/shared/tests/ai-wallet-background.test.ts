@@ -19,7 +19,13 @@ const area = () => ({
 });
 
 (global as any).chrome = {
-    runtime: { id: 'test-extension-id', lastError: undefined, getManifest: () => ({ version: '1.0.0' }) },
+    runtime: {
+        id: 'test-extension-id',
+        lastError: undefined,
+        getManifest: () => ({ version: '1.0.0' }),
+        onInstalled: { addListener: jest.fn() },
+        OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
+    },
     storage: { local: area(), session: area() },
     action: { setBadgeText: jest.fn(), setBadgeBackgroundColor: jest.fn() },
     i18n: { getMessage: () => '' },
@@ -38,6 +44,7 @@ jest.mock('../src/analytics-bg', () => ({
 
 import { handleAuthMessage } from '../src/auth/background';
 import { clearAuthState, setAuthState } from '../src/auth/storage';
+import { installInstallation } from '../src/installation';
 
 import { clearLookupCache } from '../src/lookup';
 
@@ -168,10 +175,64 @@ describe('FEATURES_REFRESH (spec 032)', () => {
         expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
     });
 
-    test('signed out: nothing is asked and nothing kept', async () => {
+    test('signed out in a build that named no edition: nothing is asked and nothing kept', async () => {
         expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
         expect(fetchMock()).not.toHaveBeenCalled();
         expect(store.featuresTried).toBeUndefined();
+    });
+
+    describe('signed out (spec 034)', () => {
+        const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        // The worker named its edition at start; the record and the guest check answer by URL.
+        beforeEach(() => {
+            installInstallation('youtube');
+            fetchMock().mockImplementation(async (url: string) =>
+                url.includes('/guest/features') ? json({ features: { ai: true } }) : json(null, 204),
+            );
+        });
+
+        test('asks the guest route for this installation, without a token, and keeps the answer as a guest one', async () => {
+            store['installation.id'] = ID;
+            store['installation.recorded'] = true;
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([`https://api.test/dictionary/guest/features?installation=${ID}`]);
+            expect(headersOf(0) ?? {}).not.toHaveProperty('Authorization');
+            expect(freshIdToken).not.toHaveBeenCalled();
+            expect(store.features).toMatchObject({ features: { ai: true }, as: 'guest' });
+        });
+
+        test('an installation not yet minted or recorded is, first', async () => {
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            const id = store['installation.id'];
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([
+                'https://api.test/dictionary/installations',
+                `https://api.test/dictionary/guest/features?installation=${id}`,
+            ]);
+            expect(store['installation.recorded']).toBe(true);
+        });
+
+        test('signed in it still asks /dictionary/features, and a guest answer is dropped at sign-in', async () => {
+            store.features = { features: { ai: false }, at: Date.now(), as: 'guest' };
+            await signIn();
+            expect(store.features).toBeUndefined();
+            fetchMock().mockImplementation(async () => json({ features: { ai: true } }));
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual(['https://api.test/dictionary/features']);
+            expect(store.features).not.toHaveProperty('as');
+        });
+
+        test('a guest check in flight at sign-in keeps nothing for the account', async () => {
+            store['installation.id'] = ID;
+            store['installation.recorded'] = true;
+            let release: (r: Response) => void = () => undefined;
+            fetchMock().mockImplementation(() => new Promise<Response>((r) => (release = r)));
+            const ask = handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            await until(() => fetchMock().mock.calls.length === 1);
+            await signIn();
+            release(json({ features: { ai: true } }));
+            expect(await ask).toEqual({ ok: false });
+            expect(store.features).toBeUndefined();
+        });
     });
 
     test('a failed read: ok:false, the last answer stands', async () => {

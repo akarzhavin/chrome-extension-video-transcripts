@@ -169,10 +169,10 @@ export async function getAuthState(): Promise<AuthState | null> {
 
 export async function setAuthState(s: AuthState): Promise<void> {
     // A sign-in over another account skips clearAuthState: drop its features and balance
-    // here, or an ask begun under the old account is kept as the new one's.
+    // here, or an ask begun under the old account is kept as the new one's; from signed out, the guest's answer.
     const was = (await chrome.storage.local.get(KEYS.uid))[KEYS.uid];
-    if (was && was !== s.uid) {
-        await clearAccountAI();
+    if (was !== s.uid) {
+        if (was) await clearAccountAI();
         await forgetFeatures();
     }
     await chrome.storage.local.set({
