@@ -17,6 +17,7 @@ import { SUPPORTED_LANGUAGES, loadLanguagePrefs, saveLanguagePrefs } from './lan
 import { loadPrefs, savePrefs, type Prefs, type VideoSite } from './prefs';
 import { loadHighlightPrefs, saveHighlightPrefs, type HighlightChange } from './highlight-prefs';
 import { isTrustedSiteSender } from './site-sender';
+import { readInstallationId } from './installation/id';
 import { SITE_NAMES, ownSites } from './welcome/welcome';
 import { offered, type BridgeOptions } from './welcome/bridge';
 
@@ -54,15 +55,18 @@ export interface SettingsSnapshot {
     highlightOffHosts: string[];
     /** Force AI translation of the second line over a native track; dev builds only, so the page shows it only when present. */
     aiTranslateForce?: boolean;
+    /** The installation ID (spec 034), shown with a copy action; absent until minted. */
+    installationId?: string;
 }
 
 async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
-    const [auth, langs, prefs, highlight] = await Promise.all([
+    const [auth, langs, prefs, highlight, installationId] = await Promise.all([
         handleAuthMessage({ action: 'AUTH_STATUS' }) as Promise<{ signedIn: boolean }>,
         loadLanguagePrefs(),
         loadPrefs(),
         // From the edition that paints, which may be the other one.
         loadHighlightPrefs(),
+        readInstallationId(),
     ]);
     return {
         ok: true,
@@ -78,6 +82,7 @@ async function snapshot(opts: BridgeOptions): Promise<SettingsSnapshot> {
         analyticsEnabled: prefs.analyticsEnabled,
         highlightOffHosts: highlight.highlightOffHosts,
         ...(__EXT_ENV__ === 'dev' ? { aiTranslateForce: prefs.aiTranslateForce } : {}),
+        ...(installationId ? { installationId } : {}),
     };
 }
 

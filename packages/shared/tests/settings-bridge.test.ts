@@ -66,6 +66,12 @@ beforeEach(() => {
 });
 
 describe('state', () => {
+    test('carries the installation ID once it is minted, and none before (spec 034)', async () => {
+        expect(await handleSettingsMessage(msg('state'), yt)).not.toHaveProperty('installationId');
+        store['installation.id'] = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        expect(await handleSettingsMessage(msg('state'), yt)).toMatchObject({ installationId: '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69' });
+    });
+
     test('the YouTube edition: its two sites, version, languages, and the switches', async () => {
         store['lang.v1'] = { learning: 'en', native: 'ru' };
         // A site switched off by an older version: the state no longer reports it.
