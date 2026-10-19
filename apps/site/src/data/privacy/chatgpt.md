@@ -1,7 +1,9 @@
 # Privacy Policy — Lingogram in ChatGPT
 
 Covers the **Lingogram** plugin for ChatGPT, which connects ChatGPT to your Lingogram
-dictionary.
+dictionary. Lingogram and the plugin are developed and operated by **Aliaksandr
+Karzhavin**, an individual developer ("we", "us"), who is responsible for the data
+described here. Contact: **support@lingogram.ai**.
 
 **Effective date:** October 19, 2026
 **Last updated:** October 19, 2026
@@ -24,8 +26,10 @@ described in the extension policies, linked from the [privacy page](/privacy/).
 * **ChatGPT receives your saved words** when you ask for them: each word, its
   definition, the sentence it came from, the title and link of the video, and when
   it is next due for review.
-* The plugin server stores nothing itself. Words you save from ChatGPT join your
-  Lingogram dictionary and are kept until you delete them or your account.
+* Words you save from ChatGPT join your Lingogram dictionary and are kept until you
+  delete them or your account. Besides the connection record, Lingogram keeps only two
+  small records for the plugin: your last ChatGPT grade for each word (so a grade can
+  be corrected) and a daily count of words saved from ChatGPT (for the daily limit).
 * Disconnect the plugin in ChatGPT at any time. Write to **support@lingogram.ai** to
   delete your account and data.
 
@@ -60,7 +64,18 @@ the sentence you saved it with, the title and link of the video it came from whe
 known, and the date it is next due for review; after a grade, the word's new review
 interval. ChatGPT shows these to you and uses them in the conversation.
 
-### d. Operational records
+### d. Records kept for the plugin
+
+* **Grade corrections.** For each word you grade from ChatGPT, Lingogram keeps the
+  word's review schedule (interval, ease, repetitions, last grade and next review date)
+  from just before and just after your last ChatGPT grade, and when it was given. A
+  corrected grade sent within 6 hours then replaces the earlier one instead of adding
+  to it. The record holds only these numbers and dates, never conversation text.
+* **Daily save count.** For each day, the number of words you saved from ChatGPT, used
+  to apply the plugin's daily limit. It holds your Lingogram user ID, the date and the
+  number, nothing about which words.
+
+### e. Operational records
 
 The plugin server logs one line per request with the method, the path, the response
 status and the duration. It logs no conversation text, no words, no tokens and no
@@ -74,6 +89,13 @@ size and time limits, without their content.
 We use the information above only to provide the plugin: to show you your words in
 ChatGPT, to schedule your reviews, and to save the words you ask to save. We do not
 use it for advertising, and we do not sell it.
+
+**Who receives it.** Besides you and ChatGPT (see section 3), your data is handled only
+by the infrastructure providers that host Lingogram on our behalf: Google Cloud
+(database and Firebase Authentication for sign-in) and OVHcloud (the server that runs
+the plugin, in Poland).
+They process it only to run the service. We do not share it with anyone else unless
+the law requires it.
 
 ---
 
@@ -91,6 +113,10 @@ not control how OpenAI processes conversations.
 * **Words and review history** saved or graded from ChatGPT are part of your Lingogram
   dictionary and are kept until you delete them or your account, as described in the
   extension policies.
+* **The grade-correction record** for a word is replaced by your next ChatGPT grade
+  of that word and deleted together with the word or your account.
+* **The daily save count** is kept with your account; when you ask us to delete your
+  account, we delete it too.
 * **The connection record** is kept while the connection is in use. A connection that
   is not used for 90 days stops working and is deleted. A connection that is revoked is
   deleted after 7 days. Single-use sign-in codes and replaced access keys are kept for
