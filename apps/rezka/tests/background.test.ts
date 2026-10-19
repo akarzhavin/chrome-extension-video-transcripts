@@ -475,6 +475,65 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         // Now (post-success) the nonce is finally cleared.
         expect((global as any).chrome.storage.session._store['auth.pendingNonce']).toBeUndefined();
     });
+
+    describe('the installation link (spec 034)', () => {
+        const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        const LINK = 'https://api.test/dictionary/installations/link';
+        const links = () => ((global as any).fetch as jest.Mock).mock.calls.filter(([url]) => url === LINK);
+        const settle = async () => {
+            for (let i = 0; i < 20; i++) await new Promise((r) => setTimeout(r, 0));
+        };
+        const handoff = () =>
+            invokeExternal(
+                {
+                    type: 'lingogram-extension-auth',
+                    payload: { customToken: 'ct-1', email: 'a@b.com', uid: 'uid-1', nonce: PENDING_NONCE },
+                },
+                { origin: 'http://localhost:5173' },
+            );
+        let linkReply: () => Promise<unknown>;
+
+        beforeEach(async () => {
+            await (global as any).chrome.storage.local.set({ 'installation.id': ID, 'installation.recorded': true });
+            linkReply = async () => ({ ok: true, status: 200, json: async () => ({ joined: false }) });
+            // Every call after the exchange: the link answers, the rest fail quietly.
+            ((global as any).fetch as jest.Mock).mockImplementation((url: string) =>
+                url === LINK ? linkReply() : Promise.reject(new Error('not in this test')),
+            );
+            mockSignInWithCustomToken({ idToken: 'fresh-id-token', refreshToken: 'r', expiresIn: '3600', localId: 'uid-1' });
+        });
+
+        test('a sign-in links this installation to the account once, with the bearer token', async () => {
+            expect(await handoff()).toEqual({ ok: true });
+            await settle();
+            expect(links()).toHaveLength(1);
+            const [, init] = links()[0];
+            expect(init.method).toBe('POST');
+            expect(init.headers.Authorization).toBe('Bearer fresh-id-token');
+            expect(JSON.parse(init.body)).toEqual({ id: ID, edition: 'rezka' });
+        });
+
+        test('a token refresh is no sign-in: nothing is linked', async () => {
+            const { setAuthState } = await import('../../../packages/shared/src/auth/storage');
+            await setAuthState({ idToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 3_600_000, email: 'a@b.com', uid: 'uid-1' });
+            await setAuthState({ idToken: 'b', refreshToken: 'r', expiresAt: Date.now() + 3_600_000, email: 'a@b.com', uid: 'uid-1' });
+            await settle();
+            expect(links()).toHaveLength(0);
+        });
+
+        test('a failed link does not fail the sign-in, and is not retried', async () => {
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+            try {
+                linkReply = async () => ({ ok: false, status: 503, json: async () => ({}) });
+                expect(await handoff()).toEqual({ ok: true });
+                await settle();
+                expect((await getAuthState())?.uid).toBe('uid-1');
+                expect(links()).toHaveLength(1);
+            } finally {
+                warn.mockRestore();
+            }
+        });
+    });
 });
 
 // ---------------------------------------------------------------------------

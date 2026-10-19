@@ -51,6 +51,7 @@ import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balan
 import { ensureFresh, refreshFeatures, refusalKeeper } from '../features/worker';
 import { ensureInstallation, installationEdition } from '../installation';
 import { refreshGuestFeatures } from '../installation/guest';
+import { linkInstallation } from '../installation/link';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -1109,6 +1110,12 @@ export function installExternalAuthHandoff(): void {
                 // into the account. Neither rejects, so no catch.
                 void syncWords({ force: true }).then(() => uploadLocalWords());
                 void refreshFeatures(config.apiBaseUrl, signedIn()); // the new account's, not the defaults
+                // Here, not in setAuthState: token refreshes go through that too, and only a sign-in links (spec 034).
+                const edition = installationEdition();
+                if (edition) {
+                    const id = () => ensureInstallation({ edition, fresh: false });
+                    void linkInstallation(config.apiBaseUrl, edition, { ...signedIn(), id });
+                }
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }
