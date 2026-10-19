@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 10, 2026
+**Last updated:** October 19, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
@@ -84,7 +84,7 @@ or email is sent to us unless you sign in. A saved word does leave your browser
 when it is looked up — on the My words page, or when you rest the pointer on it on
 a web page — as described in Section 1e: the word alone, without its context.
 
-Four things are sent even without an account, none of them tied to your identity
+Five things are sent even without an account, none of them tied to your identity
 unless you choose to add it:
 
 * the **anonymous usage analytics** of Section 1c, which you can turn off in one
@@ -97,7 +97,14 @@ unless you choose to add it:
 * the **welcome and farewell pages** of Section 1f, which are ordinary visits to
   our website;
 * a **feedback message**, only if you write one and press Send — Section 1g. It
-  carries what you typed, and a reply address only if you typed one.
+  carries what you typed, and a reply address only if you typed one;
+* an **installation identifier**: a random ID created when the Extension is
+  installed or updated, separate from the analytics identifier of Section 1c and
+  never sent with it. It is sent to our server with the edition and whether this
+  was a new install or an update, and again when the Extension asks which features
+  to show you without an account (for example, whether to offer AI). When you sign
+  in, it is sent once with your account, so we know which of your browsers you use
+  the Extension in. It is shown on the Extension's settings page.
 
 ### b. If you choose to sign in (optional account)
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
@@ -612,6 +619,9 @@ your device only:
 * your **analytics on/off setting**, the **random analytics identifier** described
   in Section 1c, and the **date you installed** the Extension, plus an analytics
   **session ID** in session storage;
+* the **installation identifier** of Section 1a, whether it was created at an
+  install or an update (until our server has recorded it), and whether it has been
+  recorded. Signing out does not remove it; removing the Extension does;
 * a cached copy of the **service-status messages** described in Section 1d, when it
   was downloaded, and the identifiers of any messages you dismissed, so a message
   you closed does not come back;
@@ -644,9 +654,9 @@ This local data never leaves your browser except where Section 4 describes (save
 words synced to the cloud, and kept words uploaded when you sign in). Signing out
 removes the authentication tokens, email, user ID, and the local list of words
 synced from your account from your device; the words kept in your browser stay.
-What the Extension sends while you use it is listed in Sections 1c, 1e, 1f, 1g, 1h
+What the Extension sends while you use it is listed in Sections 1a, 1c, 1e, 1f, 1g, 1h
 and 1i; none of it is read from the storage described here, apart from the analytics
-identifier those sections name, for feedback sent while signed in, your user ID,
+identifier those sections name, the installation identifier of Section 1a, for feedback sent while signed in, your user ID,
 and the word the My words page looks up, which comes from the kept words.
 
 ## 4. Cloud Storage and Third-Party Services
