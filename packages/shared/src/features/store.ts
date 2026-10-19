@@ -67,28 +67,41 @@ let account = 0;
 /** The sign-out count; a write passes the value read when its request began. */
 export const accountGeneration = (): number => account;
 
+// One write at a time, so markOff's read and write never straddle a newer answer's write.
+let writes: Promise<unknown> = Promise.resolve();
+function serial<T>(write: () => Promise<T>): Promise<T> {
+    const run = writes.then(write);
+    writes = run.catch(() => undefined);
+    return run;
+}
+
 /** Keeps a server answer, unless a sign-out came since; returns whether it was kept. */
-export async function keepAnswer(features: Record<string, boolean>, at: number, since: number): Promise<boolean> {
-    if (since !== account) return false;
-    await chrome.storage.local.set({ [KEY]: { features, at } satisfies Kept });
-    return true;
+export function keepAnswer(features: Record<string, boolean>, at: number, since: number): Promise<boolean> {
+    return serial(async () => {
+        if (since !== account) return false;
+        await chrome.storage.local.set({ [KEY]: { features, at } satisfies Kept });
+        return true;
+    });
 }
 
 /** Stamps a failed read, unless a sign-out came since. */
-export async function keepTried(at: number, since: number): Promise<void> {
-    if (since === account) await chrome.storage.local.set({ [TRIED_KEY]: at });
+export function keepTried(at: number, since: number): Promise<void> {
+    return serial(async () => {
+        if (since === account) await chrome.storage.local.set({ [TRIED_KEY]: at });
+    });
 }
 
 /** The server refused key: off until the next answer, unless a sign-out came since; unread keys are ignored. */
-export async function markOff(key: string, since: number): Promise<void> {
-    if (!isFeatureKey(key) || since !== account) return;
-    const kept = (await loadFeatures()) ?? { features: {}, at: 0 };
-    if (since !== account) return;
-    await chrome.storage.local.set({ [KEY]: { ...kept, features: { ...kept.features, [key]: false } } });
+export function markOff(key: string, since: number): Promise<void> {
+    return serial(async () => {
+        if (!isFeatureKey(key) || since !== account) return;
+        const kept = (await loadFeatures()) ?? { features: {}, at: 0 };
+        await chrome.storage.local.set({ [KEY]: { ...kept, features: { ...kept.features, [key]: false } } });
+    });
 }
 
-/** Dropped with the credentials: the answer is this account's. */
-export async function forgetFeatures(): Promise<void> {
+/** Dropped with the credentials: the answer is this account's. Queued, so writes begun before it land first. */
+export function forgetFeatures(): Promise<void> {
     account++;
-    await chrome.storage.local.remove([KEY, TRIED_KEY]);
+    return serial(() => chrome.storage.local.remove([KEY, TRIED_KEY]));
 }

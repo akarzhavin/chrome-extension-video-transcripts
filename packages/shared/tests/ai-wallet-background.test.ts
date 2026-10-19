@@ -289,6 +289,41 @@ describe('SUBTITLE_AI_PART keeps the wallet (dev build)', () => {
         expect((store.features as { features: Record<string, boolean> }).features).toEqual({ ai: true });
     });
 
+    test('a refusal recorded while a newer answer lands does not write the older one back (spec 032)', async () => {
+        await signIn();
+        const older = Date.now() - 60_000;
+        store.features = { features: { ai: true, 'subtitles.second_track': true }, at: older };
+        // The refusal's read of the answer is held, as a slow storage read would be.
+        let hold = false;
+        let releaseRead = () => undefined as void;
+        const local = (global as any).chrome.storage.local;
+        const get = local.get.getMockImplementation();
+        local.get.mockImplementation(async (keys: string | string[]) => {
+            const seen = await get(keys);
+            if (!hold || !(Array.isArray(keys) ? keys : [keys]).includes('features')) return seen;
+            hold = false;
+            return new Promise((r) => (releaseRead = () => r(seen)));
+        });
+        try {
+            fetchMock().mockImplementationOnce(async () => {
+                hold = true;
+                return json({ code: 'feature_off', feature: 'subtitles.ai_translate' }, 404);
+            });
+            const reply = part();
+            await until(() => !hold && fetchMock().mock.calls.length === 1);
+            fetchMock().mockResolvedValueOnce(json({ features: { ai: false } }));
+            const refresh = handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+            releaseRead();
+            await Promise.all([reply, refresh]);
+            const kept = store.features as { features: Record<string, boolean>; at: number };
+            expect(kept.features.ai).toBe(false); // the newer answer stands
+            expect(kept.at).toBeGreaterThan(older);
+        } finally {
+            local.get.mockImplementation(get);
+        }
+    });
+
     test('a part without a wallet stores nothing', async () => {
         fetchMock().mockResolvedValue(json({ from: 0, to: 1, lines: ['x'] }));
         expect((await part()).ok).toBe(true);

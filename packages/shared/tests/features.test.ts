@@ -153,6 +153,28 @@ describe('a kept refusal', () => {
         expect(await has(FEATURE_AI)).toBe(false);
     });
 
+    test('a refusal whose read is slow does not write the older answer over a newer one', async () => {
+        await answer({ [FEATURE_AI]: true, [FEATURE_SECOND_TRACK]: true });
+        const local = (chrome as unknown as { storage: { local: { get: (k: string) => Promise<unknown> } } }).storage.local;
+        const get = local.get;
+        let release = () => undefined as void;
+        local.get = (k) => {
+            const was = get(k);
+            local.get = get;
+            return new Promise((r) => (release = () => r(was)));
+        };
+        const off = refusalKeeper()(FEATURE_SECOND_TRACK);
+        const newer = refreshFeatures('https://api.test', {
+            fetch: async () => reply(200, { features: { [FEATURE_AI]: false } }),
+            token: async () => ({ idToken: 't' }),
+            now: () => NOW + 1_000,
+        });
+        await new Promise((r) => setTimeout(r, 0));
+        release();
+        await Promise.all([off, newer]);
+        expect(store.features).toEqual({ features: { [FEATURE_AI]: false }, at: NOW + 1_000 });
+    });
+
     test('with storage gone it throws nothing', async () => {
         (globalThis as unknown as { chrome: unknown }).chrome = {};
         await expect(refusalKeeper()(FEATURE_AI)).resolves.toBeUndefined();
