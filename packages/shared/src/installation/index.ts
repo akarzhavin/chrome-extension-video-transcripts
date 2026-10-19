@@ -2,7 +2,7 @@
 // the guest check and the link at sign-in. Worker-only; not on the package barrel, and the only entry.
 
 import { config } from '../auth/config';
-import { refreshGuestFeatures } from './guest';
+import { refreshGuestFeatures } from '../features/worker';
 import { mintInstallationId, readInstallationId } from './id';
 import { linkInstallation, type LinkDeps } from './link';
 import { recordInstallation } from './record';

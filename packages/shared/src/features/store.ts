@@ -1,4 +1,4 @@
-// The account's feature answer in chrome.storage.local: every view reads it, the worker writes it.
+// The feature answer in chrome.storage.local, the account's or signed out the guest's: every view reads it, the worker writes it.
 // The server still refuses a feature the account lacks, so this cache only saves wasted requests.
 
 import { AUTH_STATE_KEYS, getAuthState } from '../auth/state';

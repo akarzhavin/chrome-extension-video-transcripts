@@ -24,15 +24,17 @@ const store: Record<string, unknown> = {};
 };
 
 import { forgetFeatures } from '../src/features/store';
-import { refreshGuestFeatures } from '../src/installation/guest';
+import { featureClient, type FeatureClient } from '../src/features/worker';
 
 const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
 const NOW = Date.UTC(2026, 9, 19, 12, 0, 0);
 const reply = (status: number, body: unknown) =>
     ({ ok: status >= 200 && status < 300, status, json: async () => body }) as unknown as Response;
+let refreshGuestFeatures: FeatureClient['refreshGuestFeatures'];
 
 beforeEach(() => {
     for (const k of Object.keys(store)) delete store[k];
+    ({ refreshGuestFeatures } = featureClient());
 });
 
 test('asks the guest route for this installation, without a token, and keeps the answer as a guest one', async () => {
@@ -76,4 +78,15 @@ test('an answer that lands after a sign-in is not kept', async () => {
     release(reply(200, { features: { ai: true } }));
     expect(await ask).toBeNull();
     expect(store.features).toBeUndefined();
+});
+
+test('checks at the same moment share one request', async () => {
+    const releases: ((r: Response) => void)[] = [];
+    const fetch = jest.fn(() => new Promise<Response>((r) => releases.push(r)));
+    const deps = { fetch, id: async () => ID, now: () => NOW };
+    const both = Promise.all([refreshGuestFeatures('https://api.test', deps), refreshGuestFeatures('https://api.test', deps)]);
+    await new Promise((r) => setTimeout(r, 0));
+    releases.forEach((r) => r(reply(200, { features: { ai: true } })));
+    expect(await both).toEqual([{ ai: true }, { ai: true }]);
+    expect(fetch).toHaveBeenCalledTimes(1);
 });
