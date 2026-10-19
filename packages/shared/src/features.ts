@@ -32,8 +32,8 @@ export function gateNeeds(gate: Gate, key: string): boolean {
 
 const isKey = (k: string): k is FeatureKey => k === FEATURE_AI || k === FEATURE_AI_TRANSLATE || k === FEATURE_SECOND_TRACK;
 
-/** The worker message a view sends to have the features asked. */
-export const FEATURES_REFRESH = 'FEATURES_REFRESH';
+/** The worker message a view sends to have the features asked (auth/background.ts). */
+const FEATURES_REFRESH = 'FEATURES_REFRESH';
 
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
