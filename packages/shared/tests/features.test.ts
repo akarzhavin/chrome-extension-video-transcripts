@@ -7,7 +7,7 @@
 
 import {
     FEATURE_SECOND_TRACK,
-    FEATURE_SUBTITLES,
+    FEATURE_AI_TRANSLATE,
     forgetFeatures,
     hasFeature,
     markFeatureOff,
@@ -29,8 +29,8 @@ beforeEach(() => {
             local: {
                 get: async (k: string) => (k in store ? { [k]: store[k] } : {}),
                 set: async (o: Record<string, unknown>) => Object.assign(store, o),
-                remove: async (k: string) => {
-                    delete store[k];
+                remove: async (k: string | string[]) => {
+                    for (const key of Array.isArray(k) ? k : [k]) delete store[key];
                 },
             },
             onChanged: { addListener: (l: unknown) => listeners.push(l), removeListener: () => undefined },
@@ -52,7 +52,7 @@ describe('features', () => {
     });
 
     test('before any answer: subtitles on, everything else off', async () => {
-        expect(await hasFeature(FEATURE_SUBTITLES)).toBe(true);
+        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
     });
 
@@ -61,15 +61,15 @@ describe('features', () => {
         const got = await refreshFeatures('https://api.test/', {
             fetch: async (url, init) => {
                 calls.push(`${url} ${(init.headers as Record<string, string>).Authorization}`);
-                return calls.length === 1 ? reply(401, {}) : reply(200, { features: { [FEATURE_SECOND_TRACK]: true, [FEATURE_SUBTITLES]: false } });
+                return calls.length === 1 ? reply(401, {}) : reply(200, { features: { [FEATURE_SECOND_TRACK]: true, [FEATURE_AI_TRANSLATE]: false } });
             },
             token: async (refresh) => ({ idToken: refresh ? 'tok2' : 'tok1' }),
             now: () => NOW,
         });
         expect(calls).toEqual(['https://api.test/dictionary/features Bearer tok1', 'https://api.test/dictionary/features Bearer tok2']);
-        expect(got).toEqual({ [FEATURE_SECOND_TRACK]: true, [FEATURE_SUBTITLES]: false });
+        expect(got).toEqual({ [FEATURE_SECOND_TRACK]: true, [FEATURE_AI_TRANSLATE]: false });
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(true);
-        expect(await hasFeature(FEATURE_SUBTITLES)).toBe(false);
+        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(false);
         expect(await staleFeatures(NOW + 60_000)).toBe(false);
         expect(await staleFeatures(NOW + 11 * 60_000)).toBe(true);
     });
@@ -100,7 +100,7 @@ describe('features', () => {
         await markFeatureOff(FEATURE_SECOND_TRACK);
         expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
         await forgetFeatures();
-        expect(await hasFeature(FEATURE_SUBTITLES)).toBe(true);
+        expect(await hasFeature(FEATURE_AI_TRANSLATE)).toBe(true);
         expect(await staleFeatures(NOW)).toBe(true);
     });
 });
@@ -142,15 +142,15 @@ describe('AI subtitle translation', () => {
     };
     test('stops when its own switch goes off, not only the AI one', async () => {
         const seen: boolean[] = [];
-        browserAiDeps().onAIChange?.((on) => seen.push(on));
+        browserAiDeps().onTranslationAllowed?.((on) => seen.push(on));
         await flush();
-        store.features = { features: { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: false }, at: NOW };
+        store.features = { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: false }, at: NOW };
         tell();
         await flush();
-        store.features = { features: { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: true }, at: NOW };
+        store.features = { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true }, at: NOW };
         tell();
         await flush();
-        store.features = { features: { [FEATURE_AI]: false, [FEATURE_SUBTITLES]: true }, at: NOW };
+        store.features = { features: { [FEATURE_AI]: false, [FEATURE_AI_TRANSLATE]: true }, at: NOW };
         tell();
         await flush();
         expect(seen).toEqual([true, false, true, false]);

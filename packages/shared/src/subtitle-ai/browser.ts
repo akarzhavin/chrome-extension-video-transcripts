@@ -4,7 +4,7 @@ import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
 import { sendMessageGuarded } from '../messaging';
-import { FEATURE_AI, FEATURE_SUBTITLES, watchFeatures } from '../features';
+import { FEATURE_AI, FEATURE_AI_TRANSLATE, watchFeatures } from '../features';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
@@ -55,8 +55,8 @@ export function browserAiDeps(): AttachDeps {
             }, true);
         },
         // Translation needs the AI switch and its own; the server refuses it without either.
-        onAIChange: (cb) => {
-            watchFeatures([FEATURE_AI, FEATURE_SUBTITLES], cb);
+        onTranslationAllowed: (cb) => {
+            watchFeatures([FEATURE_AI, FEATURE_AI_TRANSLATE], cb);
         },
         later: (fn, ms) => {
             setTimeout(fn, ms);

@@ -4,8 +4,11 @@
 // (404 feature_off), so this cache only saves wasted requests.
 
 export const FEATURE_AI = 'ai';
-export const FEATURE_SUBTITLES = 'subtitles.ai_translate';
+export const FEATURE_AI_TRANSLATE = 'subtitles.ai_translate';
 export const FEATURE_SECOND_TRACK = 'subtitles.second_track';
+
+/** The keys the extension reads; the server's map may carry others. */
+export type FeatureKey = typeof FEATURE_AI | typeof FEATURE_AI_TRANSLATE | typeof FEATURE_SECOND_TRACK;
 
 const KEY = 'features';
 /** When the last read failed; a separate key, so watchers do not wake on it. */
@@ -16,7 +19,7 @@ const MAX_AGE_MS = 10 * 60 * 1000;
 const RETRY_MS = 60 * 1000;
 
 // On for everyone on the server; a failed read must not switch it off.
-const DEFAULTS: Record<string, boolean> = { [FEATURE_AI]: true, [FEATURE_SUBTITLES]: true };
+const DEFAULTS: Partial<Record<FeatureKey, boolean>> = { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true };
 
 interface Kept {
     features: Record<string, boolean>;
@@ -41,10 +44,11 @@ async function load(): Promise<Kept | null> {
     }
 }
 
+const on = (kept: Kept | null, key: FeatureKey): boolean => kept?.features[key] ?? DEFAULTS[key] ?? false;
+
 /** Whether the account has key, by the last answer; unknown keys use the defaults. */
-export async function hasFeature(key: string): Promise<boolean> {
-    const kept = await load();
-    return kept?.features[key] ?? DEFAULTS[key] ?? false;
+export async function hasFeature(key: FeatureKey): Promise<boolean> {
+    return on(await load(), key);
 }
 
 /** True when there is no answer or it is older than MAX_AGE_MS, unless a read failed under RETRY_MS ago. */
@@ -68,8 +72,7 @@ export async function markFeatureOff(key: string): Promise<void> {
 
 /** Dropped with the credentials: the answer is this account's. */
 export async function forgetFeatures(): Promise<void> {
-    await chrome.storage.local.remove(KEY);
-    await chrome.storage.local.remove(TRIED_KEY);
+    await chrome.storage.local.remove([KEY, TRIED_KEY]);
 }
 
 export interface FeatureDeps {
@@ -106,19 +109,19 @@ export async function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promi
 }
 
 /** Calls cb with whether the account has key now and on every change of the answer. */
-export function watchFeature(key: string, cb: (on: boolean) => void): () => void {
+export function watchFeature(key: FeatureKey, cb: (on: boolean) => void): () => void {
     return watchFeatures([key], cb);
 }
 
 /** Like watchFeature, on only while the account has every one of keys. */
-export function watchFeatures(keys: string[], cb: (on: boolean) => void): () => void {
+export function watchFeatures(keys: FeatureKey[], cb: (on: boolean) => void): () => void {
     let last: boolean | undefined;
     const check = () =>
-        void Promise.all(keys.map(hasFeature)).then((all) => {
-            const on = all.every(Boolean);
-            if (on === last) return;
-            last = on;
-            cb(on);
+        void load().then((kept) => {
+            const now = keys.every((k) => on(kept, k));
+            if (now === last) return;
+            last = now;
+            cb(now);
         });
     check();
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {

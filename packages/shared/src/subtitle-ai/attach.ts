@@ -22,13 +22,13 @@ export interface AttachDeps extends BrowserSide {
     onPairChange(cb: () => void): void;
     /** The viewer seeked: a part the server could not translate is asked again. */
     onSeek(cb: () => void): void;
-    /** Whether the account has AI (spec 032), now and on every change; absent, always. */
-    onAIChange?(cb: (on: boolean) => void): void;
+    /** Whether the account may use AI translation (spec 032), now and on every change; absent, always. */
+    onTranslationAllowed?(cb: (allowed: boolean) => void): void;
 }
 
 export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     let forced = false;
-    let ai = true;
+    let allowed = true;
     let t: AiTranslator | null = null;
     const { state } = app;
 
@@ -47,7 +47,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             : undefined;
         const native = !!prefs && state.tracks.some((tr) => own(tr.name) && tr.name.includes(labelForLanguage(prefs.native)));
         // The site's own track always wins, unless the dev switch forces it.
-        const wanted = ai && !!prefs && !!source && (forced || !native);
+        const wanted = allowed && !!prefs && !!source && (forced || !native);
         state.secondLineOnDemand = wanted;
         if (!wanted) return stop();
         if (t && (t.source !== source || t.learning !== prefs!.learning || t.native !== prefs!.native)) stop();
@@ -68,8 +68,8 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     });
     deps.onPairChange(sync);
     deps.onSeek(() => t?.viewerEvent());
-    deps.onAIChange?.((on) => {
-        ai = on;
+    deps.onTranslationAllowed?.((on) => {
+        allowed = on;
         sync();
     });
     deps.onForcedChange((on) => {

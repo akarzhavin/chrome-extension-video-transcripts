@@ -6,7 +6,7 @@
 
 import type { AuthConfig } from '../auth/config';
 import type { RefusalName } from '../limit-reports';
-import { FEATURE_SECOND_TRACK } from '../features';
+import { FEATURE_SECOND_TRACK, type FeatureKey } from '../features';
 import { SUBTITLE_TTL_DAYS, type WireCue } from './track';
 
 // From english/infrastructure/lingogram-limits.json, injected at build time.
@@ -27,7 +27,7 @@ export interface WorkerDeps {
     /** Hears a built-in limit refusing the track (spec 032); optional. */
     refused?: (name: RefusalName, subject?: string) => void;
     /** The account's gated features (spec 032-feature-rollout-admin); none: all asked for. */
-    features?: { has: (key: string) => Promise<boolean>; off: (key: string) => Promise<void> };
+    features?: { has: (key: FeatureKey) => Promise<boolean>; off: (key: string) => Promise<void> };
 }
 
 export interface PartRequest {
