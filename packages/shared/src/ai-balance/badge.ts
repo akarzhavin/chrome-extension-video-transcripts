@@ -4,7 +4,6 @@
 // switched off, see ./signed-out.ts. Signed in without a balance yet (the
 // first read in flight, or refused) it is hidden.
 
-import { followFeatures } from '../features/follow';
 import { gateOpen, watchGate } from '../features/store';
 import { msg } from '../i18n';
 import { notifyWorker } from '../messaging';
@@ -154,14 +153,12 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     void loadBalance().then(show);
     requestRefresh();
     const stopBalanceReask = onTabReturn(doc, REASK_MS, requestRefresh);
-    const stopFeatures = followFeatures(doc);
     const unsubscribe = onBalance(show);
     return () => {
         disposed = true;
         unsubscribe();
         unwatchAI();
         stopBalanceReask();
-        stopFeatures();
         off.dispose();
         cancelWarning();
         doc.removeEventListener('click', outside, true);
