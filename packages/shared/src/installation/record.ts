@@ -1,4 +1,4 @@
-// POST /dictionary/installations: no token, once; a failure is retried by the next ensureInstallation.
+// POST /dictionary/installations: no token, once; a failure is retried at the next worker start, guest check or sign-in.
 
 import { INSTALLATION_KEYS } from '../auth/storage';
 
