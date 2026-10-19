@@ -1,7 +1,7 @@
-// The installation ID (english repo spec 034): minted once, kept across updates and sign-outs.
-// Never imports analytics, and analytics never imports this: the two IDs must not meet.
+// The installation in chrome.storage.local (english repo spec 034): its ID, minted once and kept across
+// updates and sign-outs, and whether the server recorded it. Never imports analytics: the two IDs must not meet.
 
-import { INSTALLATION_KEYS } from '../auth/storage';
+import { INSTALLATION_KEYS } from '../auth/keys';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -35,4 +35,18 @@ async function mintOrRead(fresh: boolean): Promise<string | null> {
         // Fails closed: an ID minted on an unreadable store would be a new install every wake.
         return null;
     }
+}
+
+/** What the server has yet to record: 'recorded', the ID with its fresh flag, or null without an ID. Throws when storage does. */
+export async function pendingRecord(): Promise<'recorded' | { id: string; fresh: boolean } | null> {
+    const got = await chrome.storage.local.get([INSTALLATION_KEYS.id, INSTALLATION_KEYS.fresh, INSTALLATION_KEYS.recorded]);
+    if (got[INSTALLATION_KEYS.recorded] === true) return 'recorded';
+    const id = got[INSTALLATION_KEYS.id];
+    return typeof id === 'string' && id ? { id, fresh: got[INSTALLATION_KEYS.fresh] === true } : null;
+}
+
+/** The server recorded it: the fresh flag has done its job. Throws when storage does. */
+export async function markRecorded(): Promise<void> {
+    await chrome.storage.local.set({ [INSTALLATION_KEYS.recorded]: true });
+    await chrome.storage.local.remove(INSTALLATION_KEYS.fresh);
 }

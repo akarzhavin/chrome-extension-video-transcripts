@@ -40,10 +40,62 @@ function reach(file: string, seen = new Set<string>()): Set<string> {
 describe('rules', () => {
     test('features/rules.ts imports nothing and touches no chrome.*, fetch or DOM', () => {
         const src = read('features/rules.ts');
-        expect(valueImports(src)).toEqual([]);
+        expect([...src.matchAll(IMPORT)].map((m) => m[2] ?? m[3])).toEqual([]);
         expect(src).not.toMatch(ANY_CHROME);
         expect(src).not.toMatch(GLOBAL_FETCH);
         expect(src).not.toMatch(/\b(document|window)\./);
+    });
+});
+
+describe('installation/: every file is one layer', () => {
+    const LAYER: Record<string, 'storage' | 'network' | 'worker'> = {
+        'store.ts': 'storage',
+        'record.ts': 'network',
+        'link.ts': 'network',
+        'index.ts': 'worker',
+    };
+
+    test('no file is left unassigned', () => {
+        expect(readdirSync(join(SRC, 'installation')).sort()).toEqual(Object.keys(LAYER).sort());
+    });
+
+    test.each(Object.entries(LAYER))('%s is %s', (file, layer) => {
+        const src = read(`installation/${file}`);
+        if (layer === 'storage') {
+            expect(src).not.toMatch(GLOBAL_FETCH);
+            expect(src).not.toMatch(/\bfetch\b/);
+            expect(src).not.toMatch(CHROME_NOT_STORAGE);
+        }
+        if (layer === 'network') {
+            expect(src).not.toMatch(ANY_CHROME);
+            expect(src).not.toMatch(GLOBAL_FETCH);
+            expect(valueImports(src)).toEqual([]);
+        }
+    });
+
+    test.each(Object.entries(LAYER).filter(([, l]) => l !== 'worker'))('%s reaches nothing outside installation/ but the key leaf', (file) => {
+        const outside = [...reach(join(SRC, 'installation', file))]
+            .map((f) => f.slice(SRC.length + 1))
+            .filter((f) => !f.startsWith('installation/') && f !== 'auth/keys.ts');
+        expect(outside).toEqual([]);
+    });
+
+    test('only the workers import installation/; features/ never reaches it', () => {
+        const importers = walk(SRC)
+            .concat(['youtube', 'rezka'].flatMap((a) => walk(join(ROOT, 'apps', a, 'src'))))
+            .filter((p) => !p.startsWith(join(SRC, 'installation')))
+            .filter((p) => valueImports(readFileSync(p, 'utf8')).some((s) => /(^|\/)installation(\/|$)/.test(s)))
+            .map((p) => p.slice(ROOT.length + 1))
+            .sort();
+        expect(importers).toEqual([
+            'apps/rezka/src/background/background.ts',
+            'apps/youtube/src/background/background.ts',
+            'packages/shared/src/auth/background.ts',
+            'packages/shared/src/settings-bridge.ts',
+        ]);
+        for (const f of walk(join(SRC, 'features'))) {
+            expect([...reach(f)].filter((r) => r.startsWith(join(SRC, 'installation')))).toEqual([]);
+        }
     });
 });
 

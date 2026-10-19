@@ -83,9 +83,9 @@ describe('imports', () => {
         expect(outside).toEqual([]);
     });
 
-    test('only installation/ touches its storage keys; auth/storage.ts lists them', () => {
+    test('only installation/ touches its storage keys; auth/keys.ts defines them, auth/storage.ts lists them', () => {
         const touching = filesOutsideInstallation()
-            .filter((p) => p.startsWith(SRC) && p !== join(SRC, 'auth/storage.ts'))
+            .filter((p) => p.startsWith(SRC) && p !== join(SRC, 'auth/storage.ts') && p !== join(SRC, 'auth/keys.ts'))
             .filter((p) => /INSTALLATION_KEYS|['"]installation\.(id|fresh|recorded)['"]/.test(readFileSync(p, 'utf8')));
         expect(touching.map((p) => p.slice(ROOT.length + 1))).toEqual([]);
     });

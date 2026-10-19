@@ -4,21 +4,45 @@
 import { config } from '../auth/config';
 import { refreshGuestFeatures, type FeatureDeps } from '../features/worker';
 import type { Edition } from '../sibling';
-import { mintInstallationId, readInstallationId } from './id';
 import { linkInstallation } from './link';
-import { recordInstallation } from './record';
+import { postInstallation } from './record';
+import { markRecorded, mintInstallationId, pendingRecord, readInstallationId } from './store';
 
-export { readInstallationId } from './id';
+export { readInstallationId } from './store';
 
 const plainFetch = { fetch: (u: string, i: RequestInit) => fetch(u, i) };
 
 // Named by installInstallation; null in a build that never did, which then asks and links nothing.
 let edition: Edition | null = null;
 
+// A worker start and an install event may both find the ID unrecorded; one request serves both.
+let recording: Promise<boolean> | null = null;
+
+/** Records the stored ID unless it already is; true once recorded. A failure is retried at the next worker start, guest check or sign-in. Never throws. */
+function recordInstallation(ed: Edition): Promise<boolean> {
+    const baseUrl = config.apiBaseUrl;
+    if (!baseUrl) return Promise.resolve(false);
+    recording ??= (async () => {
+        try {
+            const pending = await pendingRecord();
+            if (pending === 'recorded') return true;
+            if (!pending) return false;
+            if (!(await postInstallation(baseUrl, { id: pending.id, edition: ed, fresh: pending.fresh }, plainFetch))) return false;
+            await markRecorded();
+            return true;
+        } catch {
+            return false;
+        }
+    })().finally(() => {
+        recording = null;
+    });
+    return recording;
+}
+
 /** Mints the ID if missing (fresh decides its flag only then) and records it unless recorded; null when storage fails. */
 async function ensureInstallation(ed: Edition, fresh: boolean): Promise<string | null> {
     const id = await mintInstallationId(fresh);
-    if (id) await recordInstallation(config.apiBaseUrl, ed, plainFetch);
+    if (id) await recordInstallation(ed);
     return id;
 }
 
@@ -32,7 +56,7 @@ export function installInstallation(ed: Edition): void {
     // No mint here: on a fresh install it would beat the INSTALL event and record the install as an update.
     // No record without an ID either: the INSTALL event's record would share one that found none.
     void readInstallationId().then((id) => {
-        if (id) void recordInstallation(config.apiBaseUrl, ed, plainFetch);
+        if (id) void recordInstallation(ed);
     });
 }
 
