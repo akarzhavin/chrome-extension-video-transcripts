@@ -5,7 +5,7 @@
 
 import { parseBalance, parseDefaultAILimits, type AIBalance, type DefaultAILimits } from './types';
 import { loadDefaultAILimits, saveBalance, saveDefaultAILimits } from './store';
-import { getAuthState } from '../auth/storage';
+import { getAuthState } from '../auth/state';
 
 // A sign-out during the call already cleared the balance; it must not come back.
 async function saveIfSignedIn(b: AIBalance): Promise<void> {

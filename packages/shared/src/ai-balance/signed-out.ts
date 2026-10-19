@@ -4,7 +4,7 @@
 // the tokens are free every day, with a quiet "Sign in" link. Everything about
 // that state lives here; badge.ts only asks isOff(), paint(), panel(), click().
 
-import { AUTH_STATE_KEYS, getAuthState } from '../auth/storage';
+import { AUTH_STATE_KEYS, getAuthState } from '../auth/state';
 import { msg } from '../i18n';
 import { formatTokens } from './format';
 import { loadDefaultAILimits, onDefaultAILimits } from './store';
