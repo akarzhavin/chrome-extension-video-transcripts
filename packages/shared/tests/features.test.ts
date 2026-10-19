@@ -222,6 +222,42 @@ describe('asking', () => {
         await d;
     });
 
+    test("an ask that was in flight at sign-out keeps nothing, and the next account's ask does not wait on it", async () => {
+        const releases: ((r: Response) => void)[] = [];
+        const deps = {
+            fetch: () => new Promise<Response>((r) => releases.push(r)),
+            token: async () => ({ idToken: 't' }),
+            now: () => NOW,
+        };
+        const old = refreshFeatures('https://api.test', deps);
+        await new Promise((r) => setTimeout(r, 0));
+        await forgetFeatures();
+        const next = refreshFeatures('https://api.test', deps);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(releases).toHaveLength(2);
+        releases[0](reply(200, { features: { [FEATURE_SECOND_TRACK]: true } }));
+        expect(await old).toBeNull();
+        expect(store.features).toBeUndefined();
+        expect(await hasFeature(FEATURE_SECOND_TRACK)).toBe(false);
+        releases[1](reply(200, { features: { [FEATURE_AI]: false } }));
+        expect(await next).toEqual({ [FEATURE_AI]: false });
+        expect(await hasFeature(FEATURE_AI)).toBe(false);
+    });
+
+    test('a failed ask in flight at sign-out stamps no failure either', async () => {
+        let release: (r: Response) => void = () => undefined;
+        const ask = refreshFeatures('https://api.test', {
+            fetch: () => new Promise<Response>((r) => (release = r)),
+            token: async () => ({ idToken: 't' }),
+            now: () => NOW,
+        });
+        await new Promise((r) => setTimeout(r, 0));
+        await forgetFeatures();
+        release(reply(503, {}));
+        await ask;
+        expect(store.featuresTried).toBeUndefined();
+    });
+
     test('a view asks the worker as it opens, and on a return to its tab at most once a minute', async () => {
         jest.useFakeTimers({ now: NOW });
         const sent: unknown[] = [];

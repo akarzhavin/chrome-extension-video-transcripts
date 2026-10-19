@@ -141,8 +141,12 @@ export async function featureRefused(status: number, body: Record<string, unknow
     return key;
 }
 
+// Bumped at sign-out: an ask begun before it writes nothing, its answer was the old account's.
+let account = 0;
+
 /** Dropped with the credentials: the answer is this account's. */
 export async function forgetFeatures(): Promise<void> {
+    account++;
     await chrome.storage.local.remove([KEY, TRIED_KEY]);
 }
 
@@ -156,17 +160,18 @@ export interface FeatureDeps {
 type Answer = Record<string, boolean> | null;
 
 // Views opening together, and parts asked meanwhile, share the one request in flight.
-let inFlight: Promise<Answer> | null = null;
+let inFlight: { account: number; answer: Promise<Answer> } | null = null;
 
 /** Asks the server and keeps the answer; null when signed out, unreachable or malformed. */
 export function refreshFeatures(baseUrl: string, deps: FeatureDeps): Promise<Answer> {
     if (!baseUrl) return Promise.resolve(null);
-    if (inFlight) return inFlight;
-    const asking = ask(baseUrl, deps).finally(() => {
-        if (inFlight === asking) inFlight = null;
+    if (inFlight?.account === account) return inFlight.answer;
+    const mine = { account, answer: ask(baseUrl, deps, account) };
+    inFlight = mine;
+    void mine.answer.finally(() => {
+        if (inFlight === mine) inFlight = null;
     });
-    inFlight = asking;
-    return asking;
+    return mine.answer;
 }
 
 /** Before a translation part: asks only when the answer is stale (see MAX_AGE_MS, RETRY_MS). */
@@ -174,23 +179,26 @@ export async function ensureFresh(baseUrl: string, deps: FeatureDeps): Promise<v
     if (await stale((deps.now ?? Date.now)())) await refreshFeatures(baseUrl, deps);
 }
 
-async function ask(baseUrl: string, deps: FeatureDeps): Promise<Answer> {
+async function ask(baseUrl: string, deps: FeatureDeps, asker: number): Promise<Answer> {
     const url = `${baseUrl.replace(/\/+$/, '')}/dictionary/features`;
     const get = async (refresh: boolean) => {
         const { idToken } = await deps.token(refresh);
         return deps.fetch(url, { method: 'GET', headers: { Authorization: `Bearer ${idToken}` } });
     };
     const now = deps.now ?? Date.now;
+    const keep = async (o: Record<string, unknown>) => {
+        if (asker === account) await chrome.storage.local.set(o);
+    };
     try {
         let res = await get(false);
         if (res.status === 401) res = await get(true);
         const features = res.ok ? parseFeatures(await res.json()) : null;
-        if (features) await chrome.storage.local.set({ [KEY]: { features, at: now() } });
-        else await chrome.storage.local.set({ [TRIED_KEY]: now() });
-        return features;
+        if (features) await keep({ [KEY]: { features, at: now() } });
+        else await keep({ [TRIED_KEY]: now() });
+        return asker === account ? features : null;
     } catch {
         try {
-            await chrome.storage.local.set({ [TRIED_KEY]: now() });
+            await keep({ [TRIED_KEY]: now() });
         } catch {
             // Storage gone: the next part simply asks again.
         }
