@@ -45,7 +45,11 @@ export function featureClient(): FeatureClient {
     return { refreshFeatures, ensureFresh };
 }
 
-export const { refreshFeatures, ensureFresh } = featureClient();
+// Made on first use: a top-level call would keep this module in every bundle reaching the shared barrel.
+let worker: FeatureClient | undefined;
+const client = () => (worker ??= featureClient());
+export const refreshFeatures: FeatureClient['refreshFeatures'] = (baseUrl, deps) => client().refreshFeatures(baseUrl, deps);
+export const ensureFresh: FeatureClient['ensureFresh'] = (baseUrl, deps) => client().ensureFresh(baseUrl, deps);
 
 async function ask(baseUrl: string, deps: FeatureDeps, asker: number): Promise<Answer> {
     const url = `${baseUrl.replace(/\/+$/, '')}/dictionary/features`;
