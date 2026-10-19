@@ -8,15 +8,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // Concurrent callers share one mint, or two would both see no ID and the second write would win.
 let minting: Promise<string | null> | null = null;
 
-/** The stored ID; null when there is none or storage cannot be read. Mints nothing. */
-export async function readInstallationId(): Promise<string | null> {
-    try {
-        const id: unknown = (await chrome.storage.local.get(INSTALLATION_KEYS.id))[INSTALLATION_KEYS.id];
-        return typeof id === 'string' && UUID.test(id) ? id : null;
-    } catch {
-        return null;
-    }
+async function stored(): Promise<string | null> {
+    const id: unknown = (await chrome.storage.local.get(INSTALLATION_KEYS.id))[INSTALLATION_KEYS.id];
+    return typeof id === 'string' && UUID.test(id) ? id : null;
 }
+
+/** The stored ID; null when there is none or storage cannot be read. Mints nothing. */
+export const readInstallationId = (): Promise<string | null> => stored().catch(() => null);
 
 /** The ID, minted with fresh when there is none; null when storage fails. */
 export function mintInstallationId(fresh: boolean): Promise<string | null> {
@@ -28,8 +26,8 @@ export function mintInstallationId(fresh: boolean): Promise<string | null> {
 
 async function mintOrRead(fresh: boolean): Promise<string | null> {
     try {
-        const got: unknown = (await chrome.storage.local.get(INSTALLATION_KEYS.id))[INSTALLATION_KEYS.id];
-        if (typeof got === 'string' && UUID.test(got)) return got;
+        const got = await stored();
+        if (got) return got;
         const id = crypto.randomUUID().toLowerCase();
         await chrome.storage.local.set({ [INSTALLATION_KEYS.id]: id, [INSTALLATION_KEYS.fresh]: fresh });
         return id;
