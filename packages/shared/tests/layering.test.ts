@@ -91,7 +91,6 @@ describe('installation/: every file is one layer', () => {
             'apps/rezka/src/background/background.ts',
             'apps/youtube/src/background/background.ts',
             'packages/shared/src/auth/background.ts',
-            'packages/shared/src/settings-bridge.ts',
         ]);
         for (const f of walk(join(SRC, 'features'))) {
             expect([...reach(f)].filter((r) => r.startsWith(join(SRC, 'installation')))).toEqual([]);
