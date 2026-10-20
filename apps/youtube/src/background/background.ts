@@ -14,7 +14,7 @@ import { installSettingsBridge } from '../../../../packages/shared/src/settings-
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 // Relative: auth/background and the installation module are worker-only, not on the barrel.
-import { devEnvReady, installAuthBackground } from '../../../../packages/shared/src/auth/background';
+import { devEnvReady, installAuthBackground, signedInCaller } from '../../../../packages/shared/src/auth/background';
 import { installInstallation } from '../../../../packages/shared/src/installation';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -40,7 +40,8 @@ installContextMenuSave();
 // of the package barrel that content scripts pull in.
 installGtImport();
 // Its own listener, apart from the analytics hooks below: minted and recorded whatever the analytics switch says.
-installInstallation('youtube');
+// Recorded on the backend a dev build switched to, so it waits for the switch like installOnboarding.
+installInstallation('youtube', { ready: devEnvReady, signedIn: signedInCaller });
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can

@@ -185,7 +185,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
         const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
         // The worker named its edition at start; the record and the guest check answer by URL.
         beforeEach(() => {
-            installInstallation('youtube');
+            installInstallation('youtube', { ready: async () => undefined, signedIn: async () => null });
             fetchMock().mockImplementation(async (url: string) =>
                 url.includes('/guest/features') ? json({ features: { ai: true } }) : json(null, 204),
             );
@@ -193,7 +193,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
 
         test('asks the guest route for this installation, without a token, and keeps the answer as a guest one', async () => {
             store['installation.id'] = ID;
-            store['installation.recorded'] = true;
+            store['installation.recorded'] = 'https://api.test';
             expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
             expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([`https://api.test/dictionary/guest/features?installation=${ID}`]);
             expect(headersOf(0) ?? {}).not.toHaveProperty('Authorization');
@@ -208,7 +208,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
                 'https://api.test/dictionary/installations',
                 `https://api.test/dictionary/guest/features?installation=${id}`,
             ]);
-            expect(store['installation.recorded']).toBe(true);
+            expect(store['installation.recorded']).toBe('https://api.test');
         });
 
         test('signed in it still asks /dictionary/features, and a guest answer is dropped at sign-in', async () => {
@@ -221,9 +221,26 @@ describe('FEATURES_REFRESH (spec 032)', () => {
             expect(store.features).not.toHaveProperty('as');
         });
 
+        test('signed in, a link that failed at sign-in is retried first, so a join from guests is in the answer', async () => {
+            Object.assign(store, { 'installation.id': ID, 'installation.recorded': 'https://api.test', 'installation.linkPending': 'https://api.test' });
+            await signIn();
+            fetchMock().mockImplementation(async (url: string) =>
+                url.endsWith('/installations/link') ? json({ joined: true }) : json({ features: { ai: true } }),
+            );
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([
+                'https://api.test/dictionary/installations/link',
+                'https://api.test/dictionary/features',
+            ]);
+            expect(headersOf(0).Authorization).toBe('Bearer tok');
+            expect(store).not.toHaveProperty(['installation.linkPending']);
+            await handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toHaveLength(3); // linked: only the features again
+        });
+
         test('a guest check in flight at sign-in keeps nothing for the account', async () => {
             store['installation.id'] = ID;
-            store['installation.recorded'] = true;
+            store['installation.recorded'] = 'https://api.test';
             let release: (r: Response) => void = () => undefined;
             fetchMock().mockImplementation(() => new Promise<Response>((r) => (release = r)));
             const ask = handleAuthMessage({ action: 'FEATURES_REFRESH' });

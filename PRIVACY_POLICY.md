@@ -1,7 +1,7 @@
 # Privacy Policy — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 19, 2026
+**Last updated:** October 20, 2026
 
 This Privacy Policy explains what information the **Lingogram** browser extensions
 collect, how it is used, where it is stored, and the choices you have. It applies to
@@ -102,9 +102,11 @@ unless you choose to add it:
   installed or updated, separate from the analytics identifier of Section 1c and
   never sent with it. It is sent to our server with the edition and whether this
   was a new install or an update, and again when the Extension asks which features
-  to show you without an account (for example, whether to offer AI). When you sign
-  in, it is sent once with your account, so we know which of your browsers you use
-  the Extension in.
+  to show you without an account (for example, whether to offer AI). Each time you
+  sign in, it is sent with your account, so we know which of your browsers you use
+  the Extension in; if that request fails, it is sent again later while you are
+  signed in. Features this browser had before you signed in (for example, AI) then
+  move to your account.
 
 ### b. If you choose to sign in (optional account)
 Signing in enables cross-device sync of your saved vocabulary. When you sign in, we
@@ -620,8 +622,10 @@ your device only:
   in Section 1c, and the **date you installed** the Extension, plus an analytics
   **session ID** in session storage;
 * the **installation identifier** of Section 1a, whether it was created at an
-  install or an update (until our server has recorded it), and whether it has been
-  recorded. Signing out does not remove it; removing the Extension does;
+  install or an update (until our server has recorded it), which server address
+  recorded it, and, when sending it with your account at sign-in failed, the server
+  address to send it to again. Signing out does not remove them; removing the
+  Extension does;
 * a cached copy of the **service-status messages** described in Section 1d, when it
   was downloaded, and the identifiers of any messages you dismissed, so a message
   you closed does not come back;

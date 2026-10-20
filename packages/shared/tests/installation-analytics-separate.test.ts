@@ -86,7 +86,7 @@ describe('imports', () => {
     test('only installation/ touches its storage keys; auth/keys.ts defines them, auth/storage.ts lists them', () => {
         const touching = filesOutsideInstallation()
             .filter((p) => p.startsWith(SRC) && p !== join(SRC, 'auth/storage.ts') && p !== join(SRC, 'auth/keys.ts'))
-            .filter((p) => /INSTALLATION_KEYS|['"]installation\.(id|fresh|recorded)['"]/.test(readFileSync(p, 'utf8')));
+            .filter((p) => /INSTALLATION_KEYS|['"]installation\.(id|fresh|recorded|linkPending)['"]/.test(readFileSync(p, 'utf8')));
         expect(touching.map((p) => p.slice(ROOT.length + 1))).toEqual([]);
     });
 });
@@ -123,7 +123,7 @@ describe('payloads', () => {
     });
 
     test('an install with both modules sends neither ID where the other goes', async () => {
-        installInstallation('youtube');
+        installInstallation('youtube', { ready: async () => undefined, signedIn: async () => null });
         installOnboarding('youtube', {
             clientId: onboardingClientId,
             onInstall: () => {

@@ -91,11 +91,12 @@ describe('signing out', () => {
     });
 
     test('keeps the installation: it belongs to the browser, not the account (spec 034)', async () => {
-        Object.assign(store, { 'installation.id': 'i', 'installation.recorded': true });
+        Object.assign(store, { 'installation.id': 'i', 'installation.recorded': 'https://api.test', 'installation.linkPending': 'https://api.test' });
         await signedIn();
         await clearAuthState();
         expect(store['installation.id']).toBe('i');
-        expect(store['installation.recorded']).toBe(true);
+        expect(store['installation.recorded']).toBe('https://api.test');
+        expect(store['installation.linkPending']).toBe('https://api.test');
     });
 
     test('leaves no session behind', async () => {

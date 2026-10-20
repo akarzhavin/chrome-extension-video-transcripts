@@ -7,5 +7,8 @@ export const INSTALLATION_KEYS = {
     id: 'installation.id',
     // Install (true) or update (false) as known at mint; dropped once the server recorded it.
     fresh: 'installation.fresh',
+    // The API base URL the record landed on, so a dev build switched to another backend records there too.
     recorded: 'installation.recorded',
+    // The API base URL a sign-in link failed on; retried while signed in there, dropped once one lands.
+    linkPending: 'installation.linkPending',
 } as const;

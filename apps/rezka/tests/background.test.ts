@@ -494,7 +494,7 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
         let linkReply: () => Promise<unknown>;
 
         beforeEach(async () => {
-            await (global as any).chrome.storage.local.set({ 'installation.id': ID, 'installation.recorded': true });
+            await (global as any).chrome.storage.local.set({ 'installation.id': ID, 'installation.recorded': 'https://api.test' });
             linkReply = async () => ({ ok: true, status: 200, json: async () => ({ joined: false }) });
             // Every call after the exchange: the link answers, the rest fail quietly.
             ((global as any).fetch as jest.Mock).mockImplementation((url: string) =>
@@ -550,7 +550,7 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
             }
         });
 
-        test('a failed link does not fail the sign-in, and is not retried', async () => {
+        test('a failed link does not fail the sign-in, is not retried on the spot, and is kept for a retry', async () => {
             const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
             try {
                 linkReply = async () => ({ ok: false, status: 503, json: async () => ({}) });
@@ -558,6 +558,8 @@ describe('onMessageExternal handoff (custom-token exchange)', () => {
                 await settle();
                 expect((await getAuthState())?.uid).toBe('uid-1');
                 expect(links()).toHaveLength(1);
+                const kept = await (global as any).chrome.storage.local.get('installation.linkPending');
+                expect(kept['installation.linkPending']).toBe('https://api.test');
             } finally {
                 warn.mockRestore();
             }

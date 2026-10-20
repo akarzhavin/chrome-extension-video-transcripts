@@ -80,6 +80,12 @@ describe('installation/: every file is one layer', () => {
         expect(outside).toEqual([]);
     });
 
+    test('installation/ never reaches auth/background: that imports it, and the workers inject what it needs', () => {
+        for (const f of readdirSync(join(SRC, 'installation'))) {
+            expect([...reach(join(SRC, 'installation', f))].filter((r) => r === join(SRC, 'auth/background.ts'))).toEqual([]);
+        }
+    });
+
     test('only the workers import installation/; features/ never reaches it', () => {
         const importers = walk(SRC)
             .concat(['youtube', 'rezka'].flatMap((a) => walk(join(ROOT, 'apps', a, 'src'))))

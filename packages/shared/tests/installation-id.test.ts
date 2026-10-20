@@ -29,7 +29,7 @@ let installed: ((d: { reason: string }) => void)[] = [];
 };
 
 import { INSTALLATION_KEYS } from '../src/auth/storage';
-import { guestCheck, installInstallation, readInstallationId } from '../src/installation';
+import { guestCheck, installInstallation } from '../src/installation';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const local = (global as any).chrome.storage.local;
@@ -45,22 +45,25 @@ beforeEach(async () => {
     (global as any).fetch = jest.fn(async () => {
         throw new Error('offline');
     });
-    installInstallation('youtube');
+    installInstallation('youtube', { ready: async () => undefined, signedIn: async () => null });
     await settle();
     local.set.mockClear();
 });
 
 test('the keys are the documented ones', () => {
-    expect(INSTALLATION_KEYS).toEqual({ id: 'installation.id', fresh: 'installation.fresh', recorded: 'installation.recorded' });
+    expect(INSTALLATION_KEYS).toEqual({
+        id: 'installation.id',
+        fresh: 'installation.fresh',
+        recorded: 'installation.recorded',
+        linkPending: 'installation.linkPending',
+    });
 });
 
 test('a fresh install mints a lowercase UUID and remembers it was fresh, without touching the analytics id', async () => {
     store['analytics.clientId'] = 'analytics-id';
     fired('install');
     await settle();
-    const id = await readInstallationId();
-    expect(id).toMatch(UUID);
-    expect(store['installation.id']).toBe(id);
+    expect(store['installation.id']).toMatch(UUID);
     expect(store['installation.fresh']).toBe(true);
     expect(store['analytics.clientId']).toBe('analytics-id');
 });
@@ -68,10 +71,10 @@ test('a fresh install mints a lowercase UUID and remembers it was fresh, without
 test('a later update keeps the ID and the fresh flag it was minted with', async () => {
     fired('install');
     await settle();
-    const first = await readInstallationId();
+    const first = store['installation.id'];
     fired('update');
     await settle();
-    expect(await readInstallationId()).toBe(first);
+    expect(store['installation.id']).toBe(first);
     expect(store['installation.fresh']).toBe(true);
 });
 
@@ -79,7 +82,7 @@ test('an update keeps an existing ID; one without an ID mints it as not fresh', 
     store['installation.id'] = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
     fired('update');
     await settle();
-    expect(await readInstallationId()).toBe('0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69');
+    expect(store['installation.id']).toBe('0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69');
     delete store['installation.id'];
     fired('update');
     await settle();
@@ -108,5 +111,4 @@ test('unreadable storage mints nothing: an ID it cannot keep would be a new inst
     fired('install');
     await settle();
     expect(store['installation.id']).toBeUndefined();
-    expect(await readInstallationId()).toBeNull();
 });
