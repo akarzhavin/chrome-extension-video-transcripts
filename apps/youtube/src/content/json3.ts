@@ -38,12 +38,25 @@ export function parseJson3(jsonText: string): Subtitle[] {
         subs.push({ startTime, endTime, text });
     }
 
+    // Some tracks send every event twice and no field tells the copies apart: drop an exact
+    // repeat of the last kept cue (so longer runs collapse too).
+    const deduped: Subtitle[] = [];
+    for (const sub of subs) {
+        const prev = deduped[deduped.length - 1];
+        const isRepeat = prev
+            && prev.startTime === sub.startTime
+            && prev.endTime === sub.endTime
+            && prev.text === sub.text;
+        if (!isRepeat) deduped.push(sub);
+    }
+
     // YouTube ASR events often overlap (event N's endTime extends past event N+1's startTime).
     // Cap each endTime to the next event's startTime so highlight lookup picks the right one.
-    for (let i = 0; i < subs.length - 1; i++) {
-        if (subs[i].endTime > subs[i + 1].startTime) {
-            subs[i].endTime = Math.max(subs[i].startTime, subs[i + 1].startTime - 0.001);
+    // After dedup: capping first would end a duplicate where its twin starts, so they'd differ.
+    for (let i = 0; i < deduped.length - 1; i++) {
+        if (deduped[i].endTime > deduped[i + 1].startTime) {
+            deduped[i].endTime = Math.max(deduped[i].startTime, deduped[i + 1].startTime - 0.001);
         }
     }
-    return subs;
+    return deduped;
 }
