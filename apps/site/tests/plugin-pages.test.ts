@@ -1,6 +1,6 @@
 /**
- * The pages the ChatGPT plugin listing links to: terms, support and the
- * ChatGPT privacy policy, all English-only like the other policies.
+ * The pages the ChatGPT and Claude plugin listings link to: terms, support and
+ * each plugin's privacy policy, all English-only like the other policies.
  *
  * Builds into its own temporary directory, like welcome-page.test.ts.
  */
@@ -25,6 +25,7 @@ test.each([
   ['terms/index.html', 'Terms of Service'],
   ['support/index.html', 'Support'],
   ['privacy/chatgpt/index.html', 'Privacy Policy — Lingogram in ChatGPT'],
+  ['privacy/claude/index.html', 'Privacy Policy — Lingogram in Claude'],
 ])('%s is written, with its heading', (rel, heading) => {
   const html = page(rel);
   expect(html).toContain(`<h1>${heading}</h1>`);
@@ -32,20 +33,21 @@ test.each([
 });
 
 test('the pages are English-only', () => {
-  for (const rel of ['ru/terms/index.html', 'ru/support/index.html', 'ru/privacy/chatgpt/index.html']) {
+  for (const rel of ['ru/terms/index.html', 'ru/support/index.html', 'ru/privacy/chatgpt/index.html', 'ru/privacy/claude/index.html']) {
     expect(existsSync(resolve(OUT, rel))).toBe(false);
   }
 });
 
 test('the sitemap lists each page once', () => {
   const sitemap = page('sitemap.xml');
-  for (const p of ['/terms/', '/support/', '/privacy/chatgpt/']) {
+  for (const p of ['/terms/', '/support/', '/privacy/chatgpt/', '/privacy/claude/']) {
     expect(sitemap.split(`<loc>https://lingogram.ai${p}</loc>`).length - 1).toBe(1);
   }
 });
 
-test('the privacy chooser links the ChatGPT policy', () => {
+test('the privacy chooser links the ChatGPT and Claude policies', () => {
   expect(page('privacy/index.html')).toContain('href="/privacy/chatgpt/"');
+  expect(page('privacy/index.html')).toContain('href="/privacy/claude/"');
 });
 
 test('support names the support mailbox and links the policies and terms', () => {

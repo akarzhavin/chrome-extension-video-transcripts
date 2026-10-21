@@ -1022,6 +1022,10 @@ const PRIVACY_EDITIONS = [
     slug: 'chatgpt', label: 'Lingogram in ChatGPT',
     description: 'What the Lingogram plugin for ChatGPT exchanges with ChatGPT, and what that means for your data.',
   },
+  {
+    slug: 'claude', label: 'Lingogram in Claude',
+    description: 'What the Lingogram plugin for Claude exchanges with Claude, what it keeps on your computer, and what that means for your data.',
+  },
 ];
 
 // /privacy/ is a chooser, not a policy. It stays because the footer, /welcome/,
@@ -1037,15 +1041,15 @@ const privacyPage = () => {
     pathName: '/privacy/',
     body: `${header(t, '')}<main><article class="doc">
       <h1>Privacy policy</h1>
-      <p>Each Lingogram extension, and the Lingogram plugin for ChatGPT, has its own
-      privacy policy. Open the one for what you use:</p>
+      <p>Each Lingogram extension, and each Lingogram plugin for ChatGPT and Claude, has
+      its own privacy policy. Open the one for what you use:</p>
       <ul>
 ${PRIVACY_EDITIONS.map((e) => `        <li><a href="/privacy/${e.slug}/">${esc(e.label)}</a></li>`).join('\n')}
       </ul>
       <p>The two extension documents describe the same optional account, the same cloud
       storage and the same anonymous usage analytics; they differ in how each extension
-      obtains the subtitles it displays. The ChatGPT document covers what the plugin
-      exchanges with ChatGPT.</p>
+      obtains the subtitles it displays. The ChatGPT and Claude documents cover what each
+      plugin exchanges with its AI app.</p>
       <p>See also the <a href="/terms/">terms of service</a>.</p>
 ${GA4 ? `      <p>Looking for this <b>website</b> rather than an extension?
       <a href="/privacy/site/">Website privacy and cookies</a> covers the pages you are
