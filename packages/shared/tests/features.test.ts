@@ -203,6 +203,21 @@ describe('gates', () => {
         expect(await gateOpen('badge')).toBe(true);
         expect(seen).toEqual([true, false, true]);
     });
+
+    test('a running translation hears the sign-out and stays off, even when a guest answer says every key', async () => {
+        const flush = () => new Promise((r) => setTimeout(r, 0));
+        const seen: boolean[] = [];
+        watchGate('translation', (on) => seen.push(on));
+        await flush();
+        await chrome.storage.local.remove(['auth.idToken', 'auth.uid']);
+        await flush();
+        await chrome.storage.local.set({
+            features: { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true }, at: NOW, as: 'guest' },
+        });
+        await flush();
+        expect(seen).toEqual([true, false]);
+        expect([await gateOpen('translation'), await gateOpen('hint')]).toEqual([false, false]);
+    });
 });
 
 describe('the AI feature', () => {
