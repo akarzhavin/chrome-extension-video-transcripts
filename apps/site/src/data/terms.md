@@ -1,10 +1,11 @@
 # Terms of Service
 
 **Effective date:** October 19, 2026
+**Last updated:** October 21, 2026
 
 These Terms of Service govern your use of Lingogram: the browser extensions, the
-website at lingogram.ai, your dictionary at lingogram.ai/app, and the Lingogram plugin
-for ChatGPT (together, "the Service"). By using the Service you agree to these Terms.
+website at lingogram.ai, your dictionary at lingogram.ai/app, and the Lingogram plugins
+for ChatGPT and Claude (together, "the Service"). By using the Service you agree to these Terms.
 If you do not agree, do not use the Service.
 
 ---
@@ -13,7 +14,9 @@ If you do not agree, do not use the Service.
 
 Lingogram helps you learn languages: it shows dual subtitles on supported video sites,
 lets you save words to a personal dictionary, and schedules them for review. The
-ChatGPT plugin lets you review and save those words in ChatGPT. Some features need a
+ChatGPT plugin lets you review and save those words in ChatGPT. The Claude plugin uses
+the words you are learning in Claude's replies while you work, and lets you review and
+save them on request. Some features need a
 Lingogram account, and some have usage limits.
 
 ## 2. Your Account
@@ -42,7 +45,7 @@ store and process them only as needed to provide the Service to you, as describe
 ## 5. Third-Party Services
 
 The Service works with services we do not control, such as YouTube, Netflix, HDrezka,
-Google and ChatGPT. Your use of them is governed by their own terms. Lingogram is not
+Google, ChatGPT and Claude. Your use of them is governed by their own terms. Lingogram is not
 affiliated with, authorized, or endorsed by any of them.
 
 ## 6. Translations and AI Output

@@ -21,6 +21,8 @@ from the [privacy page](/privacy/).
 
 ## TL;DR
 
+* **What it does:** Claude uses the words you are learning in its replies while you work,
+  so you meet them in real context. Quizzes and saving words happen when you ask.
 * The plugin works only after you sign in to Lingogram from Claude and allow it.
 * **Lingogram never receives your Claude conversation, your code or your files.** It
   receives only what a tool call carries: a word to save and the sentence it appeared
@@ -70,11 +72,8 @@ replies.
 
 ### d. Records kept for the plugin
 
-* **Grade corrections.** For each word you grade from an AI app, Lingogram keeps the
-  word's review schedule (interval, ease, repetitions, last grade and next review date)
-  from just before and just after your last grade, and when it was given. A corrected
-  grade sent within 6 hours then replaces the earlier one instead of adding to it. The
-  record holds only these numbers and dates, never conversation text.
+* **Grades.** A grade you give in Claude updates the word's review schedule like a
+  review in the Lingogram app. No separate record is kept for it.
 * **Daily save count.** For each day, the number of words you saved from AI apps
   (Claude and ChatGPT together), used to apply the daily limit. It holds your Lingogram
   user ID, the date and the number, nothing about which words.
@@ -86,8 +85,8 @@ on your computer (or `~/.claude/lingogram/`). It records which of your words wer
 offered in a session and which Claude used, so that a word that never fits your work
 stops being offered. To count them, the hooks read the session transcript that Claude
 Code stores on your computer. This file and the transcript are never sent to Lingogram
-or anywhere else. Delete the file at any time; turn work mode off with
-`LINGOGRAM_WORK_VOCAB=off`.
+or anywhere else. Delete the file at any time. With `LINGOGRAM_WORK_VOCAB=off` work mode
+is off: Claude fetches no words for your replies and the hooks record nothing.
 
 ### f. Operational records
 
@@ -126,18 +125,16 @@ not control how Anthropic processes conversations.
 * **Words and review history** saved or graded from Claude are part of your Lingogram
   dictionary and are kept until you delete them or your account, as described in the
   extension policies.
-* **The grade-correction record** for a word is replaced by your next grade of that
-  word from an AI app and deleted together with the word or your account.
 * **The daily save count** is kept with your account; when you ask us to delete your
   account, we delete it too.
 * **The connection record** is kept while the connection is in use. A connection that
   is not used for 90 days stops working and is deleted. A connection that is revoked is
   deleted after 7 days. Single-use sign-in codes and replaced access keys are kept for
   90 days so that a stolen copy can be detected, then deleted.
-* **Local statistics** stay on your computer until you delete the file or uninstall
-  the plugin.
-* **Disconnect** Lingogram in Claude's settings at any time; Claude then stops calling
-  Lingogram.
+* **Local statistics** stay on your computer until you delete the file. Uninstalling
+  the plugin may leave it in `~/.claude/lingogram/`; delete that folder to remove it.
+* **Disconnect** Lingogram under Connectors in Claude's settings at any time; in Claude
+  Code, uninstall the plugin with `/plugin`. Claude then stops calling Lingogram.
 * **To delete your account and data**, email **support@lingogram.ai** from the address
   your account uses. We confirm deletion within 30 days.
 

@@ -1141,13 +1141,13 @@ const privacyEditionPage = (slug) => {
 };
 
 // /terms/ and /support/ are English-only like the policies, and are what the
-// ChatGPT plugin listing links to (spec 033).
+// ChatGPT and Claude plugin listings link to (spec 033; Claude spec 002).
 const termsPage = () => {
   const t = makeT(EN_STRINGS);
   return layout({
     lang: 'en', htmlLang: 'en',
     title: 'Terms of Service — Lingogram',
-    description: 'The terms for using the Lingogram extensions, website, dictionary and ChatGPT plugin.',
+    description: 'The terms for using the Lingogram extensions, website, dictionary and the ChatGPT and Claude plugins.',
     pathName: '/terms/',
     body: `${header(t, '')}<main><article class="doc">${md(fs.readFileSync(path.join(SRC, 'data', 'terms.md'), 'utf8'))}</article></main>${footer(t, '')}`,
   });
@@ -1158,20 +1158,21 @@ const supportPage = () => {
   return layout({
     lang: 'en', htmlLang: 'en',
     title: 'Support — Lingogram',
-    description: 'How to reach Lingogram for help with the extensions, your dictionary or the ChatGPT plugin.',
+    description: 'How to reach Lingogram for help with the extensions, your dictionary or the ChatGPT and Claude plugins.',
     pathName: '/support/',
     body: `${header(t, '')}<main><article class="doc">
       <h1>Support</h1>
       <p>Questions, problems or ideas about the Lingogram extensions, your dictionary or
-      the Lingogram plugin for ChatGPT: email
+      the Lingogram plugins for ChatGPT and Claude: email
       <a href="mailto:${SITE.supportEmail}">${esc(SITE.supportEmail)}</a>.</p>
       <p>It helps to say which Lingogram you use (the extension for YouTube and Netflix,
-      for HDrezka, or the ChatGPT plugin), what you did and what happened. Please do not
+      for HDrezka, or the ChatGPT or Claude plugin), what you did and what happened. Please do not
       send passwords.</p>
       <h2>Your account and data</h2>
       <p>To delete your account and data, write from the email address your account
       uses, so we can confirm it is yours. To stop the ChatGPT plugin, disconnect it in
-      ChatGPT's settings.</p>
+      ChatGPT's settings. To stop the Claude plugin, disconnect Lingogram under Connectors in
+      Claude's settings; in Claude Code, uninstall the plugin with <code>/plugin</code>.</p>
       <h2>Policies</h2>
       <ul>
         <li><a href="/privacy/">Privacy policies</a></li>
