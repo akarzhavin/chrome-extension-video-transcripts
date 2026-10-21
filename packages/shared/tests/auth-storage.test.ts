@@ -74,8 +74,9 @@ describe('signing out', () => {
         // exhaustively, because "and nothing else" is the half that matters —
         // see the file header for the two keys that must never appear here.
         await signedIn();
+        removed.length = 0; // the sign-in drops a guest's feature answer; only the sign-out is pinned here
         await clearAuthState();
-        
+
         expect(removed.flat().sort()).toEqual(
             ['ai.balance', 'ai.warned.day', 'ai.warned.month', 'auth.email', 'auth.expiresAt', 'auth.idToken', 'auth.refreshToken', 'auth.uid', 'features', 'featuresTried', 'words.v1'],
         );
@@ -87,6 +88,15 @@ describe('signing out', () => {
         remove.mockImplementationOnce(() => Promise.reject(new Error('boom')));
         await expect(clearAuthState()).rejects.toThrow('boom');
         expect(Object.keys(store).filter((k) => k.startsWith('ai.'))).toEqual([]);
+    });
+
+    test('keeps the installation: it belongs to the browser, not the account (spec 034)', async () => {
+        Object.assign(store, { 'installation.id': 'i', 'installation.recorded': 'https://api.test', 'installation.linkPending': 'https://api.test' });
+        await signedIn();
+        await clearAuthState();
+        expect(store['installation.id']).toBe('i');
+        expect(store['installation.recorded']).toBe('https://api.test');
+        expect(store['installation.linkPending']).toBe('https://api.test');
     });
 
     test('leaves no session behind', async () => {

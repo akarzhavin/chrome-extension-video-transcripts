@@ -1,6 +1,7 @@
-// The account's feature answer in chrome.storage.local: every view reads it, the worker writes it.
+// The feature answer in chrome.storage.local, the account's or signed out the guest's: every view reads it, the worker writes it.
 // The server still refuses a feature the account lacks, so this cache only saves wasted requests.
 
+import { AUTH_STATE_KEYS, getAuthState } from '../auth/state';
 import { isFeatureKey, isGateOpen, type Gate, type Kept } from './rules';
 
 const KEY = 'features';
@@ -30,26 +31,57 @@ export async function loadTried(): Promise<number | null> {
     }
 }
 
-/** Whether the account may use gate now, by the last answer. */
-export async function gateOpen(gate: Gate): Promise<boolean> {
-    return isGateOpen(await loadFeatures(), gate);
+/** Signed in by the worker's own rule (getAuthState), so a view and the worker never disagree. */
+async function readSignedIn(): Promise<boolean> {
+    try {
+        return (await getAuthState()) !== null;
+    } catch {
+        return false;
+    }
 }
 
-/** Calls cb with whether gate is open now and on every change of the answer; returns the stop. */
+/** Whether gate is open now, by the last answer and who is signed in. */
+export async function gateOpen(gate: Gate): Promise<boolean> {
+    const [kept, signedIn] = await Promise.all([loadFeatures(), readSignedIn()]);
+    return isGateOpen(kept, gate, signedIn);
+}
+
+/** Calls cb with whether gate is open, once both the answer and the sign-in are known, and on every change; returns the stop. */
 export function watchGate(gate: Gate, cb: (open: boolean) => void): () => void {
     let last: boolean | undefined;
-    let changed = false;
-    const report = (open: boolean) => {
+    let kept: Kept | null | undefined;
+    let signedIn: boolean | undefined;
+    const report = () => {
+        if (kept === undefined || signedIn === undefined) return;
+        const open = isGateOpen(kept, gate, signedIn);
         if (open === last) return;
         last = open;
         cb(open);
     };
     // A change seen first is newer than the first read; the change carries the answer, so no read.
-    void gateOpen(gate).then((open) => changed || report(open));
+    void loadFeatures().then((k) => {
+        if (kept !== undefined) return;
+        kept = k;
+        report();
+    });
+    // Only the latest auth read lands, so a slow first one cannot undo a sign-in seen since.
+    let check = 0;
+    const checkSignedIn = () => {
+        const mine = ++check;
+        void readSignedIn().then((s) => {
+            if (mine !== check) return;
+            signedIn = s;
+            report();
+        });
+    };
+    checkSignedIn();
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-        if (area !== 'local' || !(KEY in changes)) return;
-        changed = true;
-        report(isGateOpen(asKept(changes[KEY].newValue), gate));
+        if (area !== 'local') return;
+        if (KEY in changes) {
+            kept = asKept(changes[KEY].newValue);
+            report();
+        }
+        if (AUTH_STATE_KEYS.some((k) => k in changes)) checkSignedIn();
     };
     try {
         chrome.storage.onChanged.addListener(listener);
@@ -75,11 +107,11 @@ function serial<T>(write: () => Promise<T>): Promise<T> {
     return run;
 }
 
-/** Keeps a server answer, unless a sign-out came since; returns whether it was kept. */
-export function keepAnswer(features: Record<string, boolean>, at: number, since: number): Promise<boolean> {
+/** Keeps a server answer, unless a sign-out or sign-in came since; returns whether it was kept. */
+export function keepAnswer(features: Record<string, boolean>, at: number, since: number, as?: 'guest'): Promise<boolean> {
     return serial(async () => {
         if (since !== account) return false;
-        await chrome.storage.local.set({ [KEY]: { features, at } satisfies Kept });
+        await chrome.storage.local.set({ [KEY]: { features, at, ...(as ? { as } : {}) } satisfies Kept });
         return true;
     });
 }
@@ -100,7 +132,7 @@ export function markOff(key: string, since: number): Promise<void> {
     });
 }
 
-/** Dropped with the credentials: the answer is this account's. Queued, so writes begun before it land first. */
+/** Dropped with the credentials, and at sign-in (a guest's answer is not the account's). Queued, so writes begun before it land first. */
 export function forgetFeatures(): Promise<void> {
     account++;
     return serial(() => chrome.storage.local.remove([KEY, TRIED_KEY]));

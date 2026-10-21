@@ -66,6 +66,13 @@ beforeEach(() => {
 });
 
 describe('state', () => {
+    test('never carries the installation ID: it is technical, the site does not show it (spec 034 FR-005)', async () => {
+        store['installation.id'] = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        const s = await handleSettingsMessage(msg('state'), yt);
+        expect(s).not.toHaveProperty('installationId');
+        expect(JSON.stringify(s)).not.toContain('0b7c2f7e');
+    });
+
     test('the YouTube edition: its two sites, version, languages, and the switches', async () => {
         store['lang.v1'] = { learning: 'en', native: 'ru' };
         // A site switched off by an older version: the state no longer reports it.

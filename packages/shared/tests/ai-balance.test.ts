@@ -271,6 +271,66 @@ describe('sidebar badge', () => {
         }
     });
 
+    describe('signed out, shown only to a guest the server shows AI (spec 034)', () => {
+        const shown = (top: HTMLElement) => top.querySelector<HTMLElement>('#vtt-ai-badge')!.style.display !== 'none';
+        const guest = (ai: boolean) => ({ features: { ai }, at: Date.now(), as: 'guest' });
+
+        test('with no answer yet it never shows, not even for a moment', async () => {
+            const top = header();
+            mountAIBadge(top);
+            expect(shown(top)).toBe(false);
+            await flush();
+            expect(shown(top)).toBe(false);
+        });
+
+        test("an account's answer left over keeps it hidden", async () => {
+            store.features = { features: { ai: true }, at: Date.now() };
+            const top = header();
+            mountAIBadge(top);
+            await flush();
+            expect(shown(top)).toBe(false);
+        });
+
+        test('a guest answer with AI shows the badge switched off; one without AI hides it again', async () => {
+            store.features = guest(true);
+            const top = header();
+            mountAIBadge(top);
+            await flush();
+            expect(shown(top)).toBe(true);
+            expect(top.classList.contains('vtt-ai-off')).toBe(true);
+            await local.set({ features: guest(false) });
+            await flush();
+            expect(shown(top)).toBe(false);
+        });
+
+        test('the guest answer arriving after the mount shows it', async () => {
+            const top = header();
+            mountAIBadge(top);
+            await flush();
+            await local.set({ features: guest(true) });
+            await flush();
+            expect(shown(top)).toBe(true);
+        });
+
+        test('signed in with no answer the 032 default shows it', async () => {
+            signIn();
+            const top = header();
+            mountAIBadge(top);
+            await flush();
+            expect(shown(top)).toBe(true);
+        });
+
+        test('signing out hides it until a guest answer says otherwise', async () => {
+            signIn();
+            const top = header();
+            mountAIBadge(top);
+            await flush();
+            await local.remove(['auth.uid', 'auth.idToken']);
+            await flush();
+            expect(shown(top)).toBe(false);
+        });
+    });
+
     test('signed out it is the badge switched off: the server default allowance, and a panel with a quiet sign-in link', async () => {
         await saveDefaultAILimits({ day: 300_000, month: 6_000_000, at: 1 });
         const top = header();
@@ -457,6 +517,7 @@ describe('sidebar badge', () => {
     test('unmounting cancels the pending warning timer', async () => {
         jest.useFakeTimers();
         try {
+            signIn(); // a balance is an account's: signed out the badge gate is closed (spec 034)
             const top = header();
             const unmount = mountAIBadge(top);
             await saveBalance(balance(450_000));
@@ -486,6 +547,7 @@ describe('sidebar badge', () => {
 
     test('with AI off for the account the "almost used up" note stays away, and AI going off takes it down (spec 032)', async () => {
         const aiIs = (on: boolean) => local.set({ features: { features: { ai: on }, at: Date.now() } });
+        signIn();
         await aiIs(false);
         mountAIBadge(header());
         await flush();
@@ -503,6 +565,7 @@ describe('sidebar badge', () => {
     });
 
     test('crossing the warn ratio says so once', async () => {
+        signIn();
         const top = header();
         mountAIBadge(top);
         await flush();
@@ -669,6 +732,7 @@ describe('badge edges', () => {
     test('the warning note goes away by itself', async () => {
         jest.useFakeTimers();
         try {
+            signIn();
             const top = header();
             mountAIBadge(top);
             await saveBalance(balance(420_000));

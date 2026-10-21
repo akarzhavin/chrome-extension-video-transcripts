@@ -19,7 +19,13 @@ const area = () => ({
 });
 
 (global as any).chrome = {
-    runtime: { id: 'test-extension-id', lastError: undefined, getManifest: () => ({ version: '1.0.0' }) },
+    runtime: {
+        id: 'test-extension-id',
+        lastError: undefined,
+        getManifest: () => ({ version: '1.0.0' }),
+        onInstalled: { addListener: jest.fn() },
+        OnInstalledReason: { INSTALL: 'install', UPDATE: 'update' },
+    },
     storage: { local: area(), session: area() },
     action: { setBadgeText: jest.fn(), setBadgeBackgroundColor: jest.fn() },
     i18n: { getMessage: () => '' },
@@ -38,6 +44,7 @@ jest.mock('../src/analytics-bg', () => ({
 
 import { handleAuthMessage } from '../src/auth/background';
 import { clearAuthState, setAuthState } from '../src/auth/storage';
+import { installInstallation } from '../src/installation';
 
 import { clearLookupCache } from '../src/lookup';
 
@@ -93,21 +100,20 @@ describe('AI_BALANCE_REFRESH', () => {
         expect(store[BALANCE_KEY]).toBeUndefined();
     });
 
-    test('signed out with default limits read under 6 hours ago: no request, the stored ones answer', async () => {
-        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 5 * 3_600_000 };
+    test('signed out, every view open reads the default limits again: an admin change shows at once, not hours later', async () => {
+        fetchMock().mockResolvedValue(json({ day: { limit: 300_000 }, month: { limit: 2_100_000 } }));
+        store['ai.defaultLimits'] = { day: 500_000, month: 10_000_000, at: Date.now() - 60_000 };
         const res = (await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })) as { ok: boolean; defaultAILimits: any };
-        expect(res).toMatchObject({ ok: true, defaultAILimits: { day: 123_000 } });
-        expect(fetchMock()).not.toHaveBeenCalled();
+        expect(res).toMatchObject({ ok: true, defaultAILimits: { day: 300_000, month: 2_100_000 } });
+        expect(fetchMock()).toHaveBeenCalledTimes(1);
+        expect(store['ai.defaultLimits']).toMatchObject({ day: 300_000, month: 2_100_000 });
     });
 
-    test('signed out with default limits older than 6 hours (or from the future): read again', async () => {
-        fetchMock().mockResolvedValue(json({ day: { limit: 200_000 }, month: { limit: 4_000_000 } }));
-        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 7 * 3_600_000 };
-        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
-        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() + 3_600_000 };
-        await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' });
-        expect(fetchMock()).toHaveBeenCalledTimes(2);
-        expect(store['ai.defaultLimits']).toMatchObject({ day: 200_000 });
+    test('signed out and the limits are unreachable: the stored ones stay for the badge', async () => {
+        store['ai.defaultLimits'] = { day: 123_000, month: 4_000_000, at: Date.now() - 60_000 };
+        fetchMock().mockRejectedValueOnce(new Error('offline'));
+        expect(await handleAuthMessage({ action: 'AI_BALANCE_REFRESH' })).toEqual({ ok: false });
+        expect(store['ai.defaultLimits']).toMatchObject({ day: 123_000 });
     });
 
     test('signed out and the limits are unreachable or malformed: ok:false, nothing stored', async () => {
@@ -168,10 +174,81 @@ describe('FEATURES_REFRESH (spec 032)', () => {
         expect((store.features as { features: Record<string, boolean> }).features.ai).toBe(false);
     });
 
-    test('signed out: nothing is asked and nothing kept', async () => {
+    test('signed out in a build that named no edition: nothing is asked and nothing kept', async () => {
         expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: false });
         expect(fetchMock()).not.toHaveBeenCalled();
         expect(store.featuresTried).toBeUndefined();
+    });
+
+    describe('signed out (spec 034)', () => {
+        const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        // The worker named its edition at start; the record and the guest check answer by URL.
+        beforeEach(() => {
+            installInstallation('youtube', { ready: async () => undefined, signedIn: async () => null });
+            fetchMock().mockImplementation(async (url: string) =>
+                url.includes('/guest/features') ? json({ features: { ai: true } }) : json(null, 204),
+            );
+        });
+
+        test('asks the guest route for this installation, without a token, and keeps the answer as a guest one', async () => {
+            store['installation.id'] = ID;
+            store['installation.recorded'] = 'https://api.test';
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([`https://api.test/dictionary/guest/features?installation=${ID}`]);
+            expect(headersOf(0) ?? {}).not.toHaveProperty('Authorization');
+            expect(freshIdToken).not.toHaveBeenCalled();
+            expect(store.features).toMatchObject({ features: { ai: true }, as: 'guest' });
+        });
+
+        test('an installation not yet minted or recorded is, first', async () => {
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            const id = store['installation.id'];
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([
+                'https://api.test/dictionary/installations',
+                `https://api.test/dictionary/guest/features?installation=${id}`,
+            ]);
+            expect(store['installation.recorded']).toBe('https://api.test');
+        });
+
+        test('signed in it still asks /dictionary/features, and a guest answer is dropped at sign-in', async () => {
+            store.features = { features: { ai: false }, at: Date.now(), as: 'guest' };
+            await signIn();
+            expect(store.features).toBeUndefined();
+            fetchMock().mockImplementation(async () => json({ features: { ai: true } }));
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual(['https://api.test/dictionary/features']);
+            expect(store.features).not.toHaveProperty('as');
+        });
+
+        test('signed in, a link that failed at sign-in is retried first, so a join from guests is in the answer', async () => {
+            Object.assign(store, { 'installation.id': ID, 'installation.recorded': 'https://api.test', 'installation.linkPending': 'https://api.test' });
+            await signIn();
+            fetchMock().mockImplementation(async (url: string) =>
+                url.endsWith('/installations/link') ? json({ joined: true }) : json({ features: { ai: true } }),
+            );
+            expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([
+                'https://api.test/dictionary/installations/link',
+                'https://api.test/dictionary/features',
+            ]);
+            expect(headersOf(0).Authorization).toBe('Bearer tok');
+            expect(store).not.toHaveProperty(['installation.linkPending']);
+            await handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            expect(fetchMock().mock.calls.map(([url]) => url)).toHaveLength(3); // linked: only the features again
+        });
+
+        test('a guest check in flight at sign-in keeps nothing for the account', async () => {
+            store['installation.id'] = ID;
+            store['installation.recorded'] = 'https://api.test';
+            let release: (r: Response) => void = () => undefined;
+            fetchMock().mockImplementation(() => new Promise<Response>((r) => (release = r)));
+            const ask = handleAuthMessage({ action: 'FEATURES_REFRESH' });
+            await until(() => fetchMock().mock.calls.length === 1);
+            await signIn();
+            release(json({ features: { ai: true } }));
+            expect(await ask).toEqual({ ok: false });
+            expect(store.features).toBeUndefined();
+        });
     });
 
     test('a failed read: ok:false, the last answer stands', async () => {

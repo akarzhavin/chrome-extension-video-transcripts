@@ -110,8 +110,10 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     };
     doc.addEventListener('click', outside, true);
     doc.addEventListener('keydown', escape);
-    // Closed (spec 032), the badge and its bars are gone; undefined until the watcher's first answer.
+    // Closed (spec 032), the badge and its bars are gone; undefined until the watcher's first answer,
+    // and hidden till then: signed out, no answer means no badge (spec 034), so none may flash.
     let aiOn: boolean | undefined;
+    badge.style.display = 'none';
     const unwatchAI = watchGate('badge', (on) => {
         aiOn = on;
         badge.style.display = on ? '' : 'none';

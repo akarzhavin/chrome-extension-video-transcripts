@@ -49,6 +49,7 @@ import {
 import { loadLanguagePrefs } from '../languages';
 import { keepBalance, refreshBalance, refreshDefaultAILimits } from '../ai-balance/fetch';
 import { ensureFresh, refreshFeatures, refusalKeeper } from '../features/worker';
+import { guestCheck, linkAtSignIn, retryLink } from '../installation';
 // Relative, like analytics-bg above and for the same reason: notifications.ts
 // imports analytics-bg to report fetch failures, so it carries the api_secret
 // transitively and must stay out of anything a content script can pull in.
@@ -559,6 +560,11 @@ const signedIn = () => ({
     token: (r: boolean) => freshIdToken(config, r),
 });
 
+/** signedIn() while signed in, else null: the workers hand it to installation/, which cannot import this module. */
+export async function signedInCaller(): Promise<ReturnType<typeof signedIn> | null> {
+    return (await getAuthState()) ? signedIn() : null;
+}
+
 // Server-side subtitle translation. Authed, so it runs here
 // where the token lives; outcomes are values, never throws.
 function handleSubtitleAi(request: AuthMessage): Promise<unknown> {
@@ -892,8 +898,10 @@ export async function handleAuthMessage(
             return balance ? { ok: true, balance } : { ok: false };
         }
         case 'FEATURES_REFRESH': {
-            // Signed out there is no account to ask for; the defaults stand.
-            if (!(await getAuthState())) return { ok: false };
+            // Signed out, the installation is asked as a guest (spec 034).
+            if (!(await getAuthState())) return { ok: (await guestCheck()) !== null };
+            // A link that failed at sign-in first, so what this installation had as a guest is in the answer.
+            await retryLink(signedIn());
             return { ok: (await refreshFeatures(config.apiBaseUrl, signedIn())) !== null };
         }
         case 'LOOKUP_WORD': {
@@ -1101,7 +1109,9 @@ export function installExternalAuthHandoff(): void {
                 // page woke the worker. Then move the words kept in the browser
                 // into the account. Neither rejects, so no catch.
                 void syncWords({ force: true }).then(() => uploadLocalWords());
-                void refreshFeatures(config.apiBaseUrl, signedIn()); // the new account's, not the defaults
+                // Link here, not in setAuthState (token refreshes go through it too); the account's features
+                // after the link settles, so the place passed from this installation is in them (spec 034); never the defaults.
+                void linkAtSignIn(signedIn()).finally(() => refreshFeatures(config.apiBaseUrl, signedIn()));
             } catch (err) {
                 sendResponse({ ok: false, error: String(err instanceof Error ? err.message : err) });
             }

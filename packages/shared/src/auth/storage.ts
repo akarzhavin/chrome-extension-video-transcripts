@@ -1,13 +1,9 @@
 import { clearAccountAI } from '../ai-balance/store';
 import { forgetFeatures } from '../features/store';
+import { AUTH_KEYS, getAuthState, type AuthState } from './state';
 
-export interface AuthState {
-    idToken: string;
-    refreshToken: string;
-    expiresAt: number; // unix ms
-    email: string;
-    uid: string;
-}
+// The sign-in reads live in the leaf ./state; re-exported so this stays the one inventory.
+export { AUTH_STATE_KEYS, AUTH_UID_KEY, getAuthState, type AuthState } from './state';
 
 // Value-moment threshold for the store-rating prompt (P1.8): a user who has
 // saved this many words has clearly gotten value, and asking then — rather
@@ -16,11 +12,7 @@ export interface AuthState {
 export const RATE_PROMPT_WORD_THRESHOLD = 5;
 
 const KEYS = {
-    idToken: 'auth.idToken',
-    refreshToken: 'auth.refreshToken',
-    expiresAt: 'auth.expiresAt',
-    email: 'auth.email',
-    uid: 'auth.uid',
+    ...AUTH_KEYS,
     // Lifetime count of words saved on this install, and a one-shot flag set
     // once we've asked for a store rating. Both survive sign-out (the user is
     // the same person) and drive the value-moment rating prompt — see
@@ -126,6 +118,9 @@ export const ANALYTICS_KEYS = {
     d14Sent: 'analytics.d14Sent',
 } as const;
 
+// The installation's keys (spec 034), in the leaf ./keys so installation/ loads no store; never sent with the analytics keys above.
+export { INSTALLATION_KEYS } from './keys';
+
 // chrome.storage.session (cleared on browser restart — exactly GA4's session
 // semantics; survives MV3 service-worker recycling, unlike module scope).
 export const ANALYTICS_SESSION_KEYS = {
@@ -133,37 +128,12 @@ export const ANALYTICS_SESSION_KEYS = {
     sessionAt: 'analytics.sessionAt',
 } as const;
 
-/** Written on sign-in and removed on sign-out: a change to it is a change of who is signed in. */
-export const AUTH_UID_KEY = KEYS.uid;
-/** Both keys getAuthState() needs; a change to either can flip it. */
-export const AUTH_STATE_KEYS: readonly string[] = [KEYS.idToken, KEYS.uid];
-
-export async function getAuthState(): Promise<AuthState | null> {
-    const v = (await chrome.storage.local.get([
-        KEYS.idToken,
-        KEYS.refreshToken,
-        KEYS.expiresAt,
-        KEYS.email,
-        KEYS.uid,
-    ])) as Partial<Record<string, string | number>>;
-    const idToken = v[KEYS.idToken];
-    const uid = v[KEYS.uid];
-    if (!idToken || !uid) return null;
-    return {
-        idToken: String(idToken),
-        refreshToken: String(v[KEYS.refreshToken] ?? ''),
-        expiresAt: Number(v[KEYS.expiresAt] ?? 0),
-        email: String(v[KEYS.email] ?? ''),
-        uid: String(uid),
-    };
-}
-
 export async function setAuthState(s: AuthState): Promise<void> {
     // A sign-in over another account skips clearAuthState: drop its features and balance
-    // here, or an ask begun under the old account is kept as the new one's.
+    // here, or an ask begun under the old account is kept as the new one's; from signed out, the guest's answer.
     const was = (await chrome.storage.local.get(KEYS.uid))[KEYS.uid];
-    if (was && was !== s.uid) {
-        await clearAccountAI();
+    if (was !== s.uid) {
+        if (was) await clearAccountAI();
         await forgetFeatures();
     }
     await chrome.storage.local.set({

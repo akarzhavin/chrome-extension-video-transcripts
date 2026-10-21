@@ -25,10 +25,13 @@ beforeEach(() => {
     ({ refreshFeatures, ensureFresh } = featureClient());
     listeners = [];
     for (const k of Object.keys(store)) delete store[k];
+    // The 032 cases are an account's; signed out only a guest answer opens a gate (spec 034).
+    Object.assign(store, { 'auth.idToken': 'tok', 'auth.uid': 'u1' });
     (globalThis as unknown as { chrome: unknown }).chrome = {
         storage: {
             local: {
-                get: async (k: string) => (k in store ? { [k]: store[k] } : {}),
+                get: async (k: string | string[]) =>
+                    Object.fromEntries((Array.isArray(k) ? k : [k]).filter((key) => key in store).map((key) => [key, store[key]])),
                 set: async (o: Record<string, unknown>) => {
                     Object.assign(store, o);
                     changed(Object.keys(o));
@@ -185,6 +188,35 @@ describe('gates', () => {
     const all = async () => [await gateOpen('badge'), await gateOpen('translation'), await gateOpen('hint')];
     test('before any answer: the badge and translation open, the hint closed', async () => {
         expect(await all()).toEqual([true, true, false]);
+    });
+
+    test('signed out every gate is closed until a guest answer opens it, and a watcher hears the sign-out (spec 034)', async () => {
+        const flush = () => new Promise((r) => setTimeout(r, 0));
+        const seen: boolean[] = [];
+        watchGate('badge', (on) => seen.push(on));
+        await flush();
+        await chrome.storage.local.remove(['auth.idToken', 'auth.uid']);
+        await flush();
+        expect(await all()).toEqual([false, false, false]);
+        await chrome.storage.local.set({ features: { features: { [FEATURE_AI]: true }, at: NOW, as: 'guest' } });
+        await flush();
+        expect(await gateOpen('badge')).toBe(true);
+        expect(seen).toEqual([true, false, true]);
+    });
+
+    test('a running translation hears the sign-out and stays off, even when a guest answer says every key', async () => {
+        const flush = () => new Promise((r) => setTimeout(r, 0));
+        const seen: boolean[] = [];
+        watchGate('translation', (on) => seen.push(on));
+        await flush();
+        await chrome.storage.local.remove(['auth.idToken', 'auth.uid']);
+        await flush();
+        await chrome.storage.local.set({
+            features: { features: { [FEATURE_AI]: true, [FEATURE_AI_TRANSLATE]: true, [FEATURE_SECOND_TRACK]: true }, at: NOW, as: 'guest' },
+        });
+        await flush();
+        expect(seen).toEqual([true, false]);
+        expect([await gateOpen('translation'), await gateOpen('hint')]).toEqual([false, false]);
     });
 });
 

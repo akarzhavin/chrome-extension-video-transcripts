@@ -41,14 +41,19 @@ export const DEFAULTS: Readonly<Partial<Record<FeatureKey, boolean>>> = { [FEATU
 export interface Kept {
     features: Record<string, boolean>;
     at: number;
+    /** 'guest': the signed-out answer for this installation (spec 034); absent: the account's. */
+    as?: 'guest';
 }
 
 /** Whether key is on by kept; a key it lacks, or no answer at all, takes the default. */
 export const isOn = (kept: Kept | null, key: FeatureKey): boolean => kept?.features[key] ?? DEFAULTS[key] ?? false;
 
-/** Whether the account may use gate, by kept. */
-export function isGateOpen(kept: Kept | null, gate: Gate): boolean {
-    return keysOf(gate).every((k) => isOn(kept, k));
+/** Whether gate is open, by kept: signed in, the account's answer or the defaults; signed out, only the badge (the invitation), by a guest answer saying AI, no defaults (spec 034). */
+export function isGateOpen(kept: Kept | null, gate: Gate, signedIn: boolean): boolean {
+    // Signed out nothing may spend tokens, whatever a guest answer says.
+    if (!signedIn) return gate === 'badge' && kept?.as === 'guest' && keysOf(gate).every((k) => kept.features[k] === true);
+    const own = kept?.as === 'guest' ? null : kept;
+    return keysOf(gate).every((k) => isOn(own, k));
 }
 
 /** True when there is no answer or it is older than MAX_AGE_MS, unless a read failed under RETRY_MS ago. */

@@ -1,4 +1,4 @@
-import { installAuthBackground, installOnboarding } from '@video-transcripts/shared';
+import { installOnboarding } from '@video-transcripts/shared';
 // Relative paths, not the barrel, for both of these. analytics-bg carries the
 // GA4 api_secret; devEnvSwitch carries the environment table that prod builds
 // drop. Neither belongs in anything a content script can pull in.
@@ -13,7 +13,9 @@ import { installWelcomeBridge } from '../../../../packages/shared/src/welcome/br
 import { installSettingsBridge } from '../../../../packages/shared/src/settings-bridge';
 import { installContextMenuSave } from '../../../../packages/shared/src/context-menu-save';
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
-import { devEnvReady } from '../../../../packages/shared/src/auth/background';
+// Relative: auth/background and the installation module are worker-only, not on the barrel.
+import { devEnvReady, installAuthBackground, signedInCaller } from '../../../../packages/shared/src/auth/background';
+import { installInstallation } from '../../../../packages/shared/src/installation';
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[YT-VTT bg] installed');
@@ -37,6 +39,9 @@ installContextMenuSave();
 // Relative: runner.ts imports analytics-bg (the GA4 secret), which stays out
 // of the package barrel that content scripts pull in.
 installGtImport();
+// Its own listener, apart from the analytics hooks below: minted and recorded whatever the analytics switch says.
+// Recorded on the backend a dev build switched to, so it waits for the switch like installOnboarding.
+installInstallation('youtube', { ready: devEnvReady, signedIn: signedInCaller });
 installOnboarding('youtube', {
     // Shared, not spelled out here: the opted-out placeholder rule is the same
     // for every edition, and a copy per background script is a copy that can
