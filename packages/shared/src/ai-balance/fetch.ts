@@ -4,7 +4,7 @@
 // chrome-extension:// origin; the worker sends none).
 
 import { parseBalance, parseDefaultAILimits, type AIBalance, type DefaultAILimits } from './types';
-import { loadDefaultAILimits, saveBalance, saveDefaultAILimits } from './store';
+import { saveBalance, saveDefaultAILimits } from './store';
 import { getAuthState } from '../auth/state';
 
 // A sign-out during the call already cleared the balance; it must not come back.
@@ -44,14 +44,12 @@ export async function keepBalance(raw: unknown): Promise<void> {
     if (b) await saveIfSignedIn(b);
 }
 
-/** How long stored default limits stand in for a read: an operator setting, it rarely moves. */
-const DEFAULT_LIMITS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
-
 /**
  * The server's default limits, GET /dictionary/ai/limits: public, no token.
  * Read for a signed-out view, which shows what signing in unlocks; stored for
- * every view. Stored ones younger than DEFAULT_LIMITS_MAX_AGE_MS are reused without
- * a request. Null when unreachable or malformed, and nothing is stored.
+ * every view. Read at every view open, like the balance: an admin edits them in
+ * AI limits and the badge must follow. Null when unreachable or malformed, and
+ * nothing is stored (the stored ones stay).
  */
 export async function refreshDefaultAILimits(
     baseUrl: string,
@@ -59,8 +57,6 @@ export async function refreshDefaultAILimits(
     now: number = Date.now(),
 ): Promise<DefaultAILimits | null> {
     if (!baseUrl) return null;
-    const kept = await loadDefaultAILimits();
-    if (kept && now - kept.at >= 0 && now - kept.at < DEFAULT_LIMITS_MAX_AGE_MS) return kept;
     try {
         const res = await deps.fetch(`${baseUrl.replace(/\/+$/, '')}/dictionary/ai/limits`, { method: 'GET' });
         if (!res.ok) return null;
