@@ -40,7 +40,10 @@ export interface AttachDeps extends BrowserSide {
 
 export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     let forced = false;
-    let allowed = true;
+    // Closed until the account's feature answer is read: before that, a
+    // remembered video would start, and a fresh one be offered, for an
+    // account the server then refuses.
+    let allowed = !deps.onTranslationAllowed;
     let t: AiTranslator | null = null;
     const { state } = app;
     // AI translation spends the viewer's AI credits, so it starts only on a

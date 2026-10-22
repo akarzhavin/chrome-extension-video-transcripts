@@ -22,7 +22,7 @@ type Sent = { part: { fingerprint: string; from: number; to: number } };
 
 // accept: the viewer takes every offer at once (default), which is what the
 // tests before "it waits to be asked" describe; false leaves offers standing.
-function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown; hint?: boolean; accept?: boolean; chosen?: string[] } = {}) {
+function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown; hint?: boolean; accept?: boolean; chosen?: string[]; gate?: 'open' | 'unread' } = {}) {
     const state = new AppState();
     state.setLanguagePreferences('English', 'Russian');
     let prefs = opts.prefs === undefined ? PAIR : opts.prefs;
@@ -44,7 +44,11 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         onForcedChange: (cb) => { forcedListener = cb; },
         onPairChange: (cb) => { pairListener = cb; },
         onSeek: (cb) => { seekListener = cb; },
-        onTranslationAllowed: (cb) => { allowedListener = cb; },
+        onTranslationAllowed: (cb) => {
+            allowedListener = cb;
+            // The gate's first answer, as watchGate gives it once storage is read.
+            if (opts.gate !== 'unread') queueMicrotask(() => cb(true));
+        },
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
         ...(opts.hint === undefined ? {} : { hintAllowed: async () => opts.hint! }),
@@ -343,6 +347,33 @@ describe('attachAiTranslation waits to be asked', () => {
         await settle();
         expect(s.offered()).toBe(false);
         expect(s.sent).toHaveLength(0);
+    });
+
+    test('nothing is offered or started before the feature answer is read', async () => {
+        const s = setup({ gate: 'unread', accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.offered()).toBe(false);
+        expect(s.state.secondLineOnDemand).toBe(false);
+        s.setAllowed(true);
+        await settle();
+        expect(s.offered()).toBe(true);
+    });
+
+    test('a remembered video waits for the feature answer too, and a closed gate keeps it stopped', async () => {
+        const first = setup({ accept: false });
+        first.state.addTrack('English', cues(10));
+        await settle();
+        first.accept();
+        await settle();
+        const s = setup({ gate: 'unread', chosen: first.chosen });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.sent).toHaveLength(0);
+        s.setAllowed(false);
+        await settle();
+        expect(s.sent).toHaveLength(0);
+        expect(s.offered()).toBe(false);
     });
 
     test('a running translation can be turned off: it stops, forgets the choice and offers again', async () => {
