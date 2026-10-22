@@ -296,8 +296,8 @@
     "description": "Button that restores the default overlay appearance."
   },
   "ytSettingsTitle": {
-    "message": "Cài đặt",
-    "description": "Sidebar header title while the settings panel is open."
+    "message": "Tùy chọn",
+    "description": "Sidebar: the name of its own screen of options (lines of this video, text, background) \u2014 its header title, the gear's name, the way back to it. Not the extension's settings page on the site. One word, as the 'Options' button in Netflix's panel."
   },
   "ytMenuLabel": {
     "message": "Menu Lingogram",
@@ -332,8 +332,8 @@
     "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
   },
   "ytMenuSettings": {
-    "message": "Cài đặt",
-    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+    "message": "Tùy chọn",
+    "description": "YouTube player menu: the row that opens the sidebar's Options screen. One word, the same as ytSettingsTitle."
   },
   "ytMenuOverlay": {
     "message": "Phụ đề trên video",

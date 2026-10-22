@@ -516,7 +516,7 @@ export class SidebarUI {
         feedbackBackBtn.id = 'vtt-feedback-back-btn';
         feedbackBackBtn.className = 'vtt-back-chip';
         feedbackBackBtn.type = 'button';
-        feedbackBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSettingsTitle', 'Settings')}</span>`;
+        feedbackBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSettingsTitle', 'Options')}</span>`;
         feedbackBackBtn.addEventListener('click', () => this.closeFeedbackScreen());
         headerTop.appendChild(feedbackBackBtn);
         this.elements = { ...this.elements, feedbackBackBtn };
@@ -553,7 +553,7 @@ export class SidebarUI {
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'vtt-settings-btn';
         settingsBtn.type = 'button';
-        settingsBtn.setAttribute('aria-label', msg('ytSettingsTitle', 'Settings'));
+        settingsBtn.setAttribute('aria-label', msg('ytSettingsTitle', 'Options'));
         settingsBtn.setAttribute('aria-expanded', 'false');
         settingsBtn.setAttribute('aria-controls', 'vtt-settings-panel');
         settingsBtn.style.display = 'flex'; // Always visible now
@@ -2215,7 +2215,7 @@ export class SidebarUI {
         }
         if (titleEl) {
             titleEl.textContent = open
-                ? msg('ytSettingsTitle', 'Settings')
+                ? msg('ytSettingsTitle', 'Options')
                 : msg('ytSidebarTitle', 'Subtitles');
         }
         if (!open) {
@@ -2256,7 +2256,7 @@ export class SidebarUI {
         // open — and so the auth state is re-read rather than remembered.
         feedbackPanel.replaceChildren();
         this.elements = { ...this.elements, feedbackTextarea: undefined };
-        if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Settings');
+        if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Options');
         if (restoreFocus) this.elements.feedbackLink?.focus();
     }
 

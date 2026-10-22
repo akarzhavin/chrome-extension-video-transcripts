@@ -833,6 +833,14 @@
     display: none;
 }
 
+/* The AI row speaks to the subtitles on screen: not on the Options screen
+   and the other takeovers, where the lines it is about are out of sight. */
+#vtt-sidebar.vtt-settings-open #vtt-ai-banner,
+#vtt-sidebar.vtt-feedback-open #vtt-ai-banner,
+#vtt-sidebar.vtt-lookup-open #vtt-ai-banner {
+    display: none;
+}
+
 /* The way out of a stopped AI translation shown alone: the lightest frame,
    edge to edge with the mode bar above, and a × to hide it. */
 .vtt-ai-banner.vtt-ai-banner-out {

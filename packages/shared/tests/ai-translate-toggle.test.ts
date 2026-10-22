@@ -583,3 +583,8 @@ describe('the line pickers', () => {
         expect(state.displayMode).toBe('single');
     });
 });
+
+test('the AI row speaks to the lines on screen: hidden on the Options screen by the stylesheet', () => {
+    const css = require('fs').readFileSync(require('path').join(__dirname, '../../../apps/rezka/src/assets/styles.css'), 'utf8');
+    expect(css).toMatch(/#vtt-sidebar\.vtt-settings-open #vtt-ai-banner/);
+});

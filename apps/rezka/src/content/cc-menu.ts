@@ -196,7 +196,7 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         const settings = doc.createElement('button');
         settings.type = 'button';
         settings.className = 'vtt-cc-settings';
-        settings.textContent = `${msg('ytSettingsTitle', 'Settings')} ›`;
+        settings.textContent = `${msg('ytSettingsTitle', 'Options')} ›`;
         settings.addEventListener('click', () => {
             close();
             ui.openSettings();

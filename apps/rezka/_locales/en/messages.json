@@ -292,8 +292,8 @@
     "description": "Button that restores the default overlay appearance."
   },
   "ytSettingsTitle": {
-    "message": "Settings",
-    "description": "Sidebar header title while the settings panel is open."
+    "message": "Options",
+    "description": "Sidebar: the name of its own screen of options (lines of this video, text, background) \u2014 its header title, the gear's name, the way back to it. Not the extension's settings page on the site. One word, as the 'Options' button in Netflix's panel."
   },
   "ytFeedbackLink": {
     "message": "Report a problem",

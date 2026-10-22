@@ -280,7 +280,7 @@ describe('SidebarUI', () => {
         ui.toggleSettingsPanel();
         expect(panel.classList.contains('open')).toBe(true);
         expect(ui.elements.sidebar?.classList.contains('vtt-settings-open')).toBe(true);
-        expect(title.textContent).toBe('Settings');
+        expect(title.textContent).toBe('Options');
 
         ui.toggleSettingsPanel();
         expect(panel.classList.contains('open')).toBe(false);
@@ -2889,7 +2889,7 @@ describe('SidebarUI', () => {
             ui.toggleSettingsPanel();
             expect(ui.elements.sidebar!.classList.contains('vtt-settings-open')).toBe(true);
             expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
-            expect(ui.elements.titleEl!.textContent).toBe('Settings');
+            expect(ui.elements.titleEl!.textContent).toBe('Options');
         });
     });
 
