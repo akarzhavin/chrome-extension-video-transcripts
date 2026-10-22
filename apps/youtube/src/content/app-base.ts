@@ -98,7 +98,7 @@ export interface ReprocessOptions {
 import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
-import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 export const STALLED_REQUEST_MS = 12_000;
@@ -414,6 +414,8 @@ export abstract class BaseVttApp implements AppInterface {
     // didn't build (observed as a franken-UI of old panel + new chip).
     // Public so the bootstrap can also gate page-level installers (auth badge).
     uiOwned = true;
+    /** A second place that offers and stops the AI translation (Netflix's subtitle menu). */
+    aiControls?: AiControls;
 
     // Common bootstrap: build the sidebar, set visibility, wire shortcuts.
     // Subclasses call this from their constructor AFTER their own fields exist.

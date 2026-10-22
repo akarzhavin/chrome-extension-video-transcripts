@@ -1018,5 +1018,9 @@
   "ytAiTurnOn": {
     "message": "Attiva",
     "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
+  },
+  "ytNfChoosePair": {
+    "message": "Scegli un'altra coppia",
+    "description": "Netflix's audio & subtitles panel, our block: a quiet link that opens the sidebar's language settings to pick any other two tracks. Short."
   }
 }

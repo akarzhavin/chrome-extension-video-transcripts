@@ -566,7 +566,11 @@ While the page stays open the line reads **"AI translation · off"**, and pressi
 "off" turns it back on. Choosing another
 mode pauses it (lines already translated stay) and choosing "Dual" again
 resumes it. If the site's own subtitles in your language appear, they are shown
-instead and nothing more is sent for that video.
+instead and nothing more is sent for that video. On Netflix, the player's **audio &
+subtitles** panel gets a short block of the Extension's own on top of its
+Subtitles list: your two languages as a pair or, when Netflix has none in your
+language, that language alone and the pair by AI, which work as described here,
+the question included. It adds nothing to what is sent.
 
 **What is sent.** For the video you are watching, the Extension takes the subtitle
 track in the language you are learning: the text of each line and its start and

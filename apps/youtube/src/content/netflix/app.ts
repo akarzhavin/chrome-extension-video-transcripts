@@ -13,6 +13,7 @@ import {
     baseLang,
     isManifestForCurrentTitle,
 } from './subtitles';
+import { installNetflixMenu } from './subtitle-menu';
 
 /**
  * Netflix adapter. Subtitles are discovered from the playback manifest captured
@@ -33,6 +34,20 @@ class NetflixVttApp extends BaseVttApp {
         super();
         console.log('[NFLX-VTT] content script running');
         this.init();
+        // Our options on top of Netflix's own Subtitles column.
+        if (this.uiOwned) {
+            this.aiControls = installNetflixMenu({
+                state: this.state,
+                ui: this.ui,
+                langPrefs: () => this.langPrefs,
+                titleLanguages: () => this.currentTracks.map((t) => t.base),
+                showPair: () => {
+                    if (!this.langPrefs) return;
+                    this.requestLanguageTrack('learning', baseLang(this.langPrefs.learning));
+                    this.requestLanguageTrack('native', baseLang(this.langPrefs.native));
+                },
+            });
+        }
         this.startVideoPolling();
         this.startSite();
         void this.initLanguagePrefs();

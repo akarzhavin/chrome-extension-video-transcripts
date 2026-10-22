@@ -37,8 +37,20 @@ export class AppState {
     set displayMode(mode: DisplayMode) {
         if (mode === this.mode) return;
         this.mode = mode;
+        // The AI translation alone is a kind of Single; any other mode puts
+        // the learning track back on the first line.
+        if (mode !== 'single' && this.aiAlone) {
+            this.aiAlone = false;
+            this.applyPreferences();
+        }
         this.emit({ type: 'mode', mode });
     }
+
+    /**
+     * Single shows the AI translation instead of the learning track (Netflix's
+     * subtitle menu offers the viewer's language alone). Only in Single.
+     */
+    aiAlone = false;
 
     /** Calls fn on reset, on every track added and on a display-mode change; returns the unsubscribe. */
     subscribe(fn: (e: StateEvent) => void): () => void {
@@ -145,6 +157,7 @@ export class AppState {
         // it. The user's selected learning/native codes persist (they're the
         // language pair, not video state) so the picker keeps its selection.
         this.languageCatalog = undefined;
+        this.aiAlone = false;
         this.emit({ type: 'reset' });
     }
 
@@ -154,6 +167,7 @@ export class AppState {
             ? this.tracks.findIndex((t) => t.name === this.preferredSecondaryName)
             : -1;
         if (ai !== -1 && ai !== this.activeTrackIndex) this.secondaryTrackIndex = ai;
+        if (ai !== -1 && this.aiAlone && this.mode === 'single') this.activeTrackIndex = ai;
     }
 
     private applyLanguagePreferences(): void {

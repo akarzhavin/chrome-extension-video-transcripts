@@ -4504,3 +4504,136 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     color: #04131c;
     font-weight: 700;
 }
+
+/* Netflix's audio & subtitles panel, our block on top of its Subtitles column
+   (netflix/subtitle-menu.ts). Items take Netflix's own <li> classes, so these
+   rules only add what ours carry beyond them; sizes are in em so they scale
+   with the panel, which Netflix sizes by the viewport. */
+.vtt-nf-block {
+    margin: 0 0 0.4em;
+    padding: 0 0 0.4em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.vtt-nf-head {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+    padding: 0 0 0.2em 2.2em;
+    font-size: 0.62em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #777;
+}
+
+.vtt-nf-head .vtt-nf-choose {
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 1.05em;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #a3a3a3;
+    text-decoration: underline;
+    text-decoration-color: #555;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.vtt-nf-head .vtt-nf-choose:hover,
+.vtt-nf-head .vtt-nf-choose:focus-visible {
+    color: #fff;
+}
+
+.vtt-nf-block .vtt-nf-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.vtt-nf-block .vtt-nf-item[aria-checked='true'] {
+    color: #fff;
+}
+
+.vtt-nf-mark {
+    display: inline-flex;
+    justify-content: center;
+    width: 2.2em;
+    flex: none;
+}
+
+.vtt-nf-mark svg {
+    width: 1em;
+    height: 1em;
+}
+
+.vtt-nf-ai {
+    margin-left: 0.5em;
+    padding: 0 0.3em;
+    border: 1.5px solid currentColor;
+    border-radius: 0.2em;
+    font-size: 0.62em;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+}
+
+.vtt-nf-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin: 0.3em 0 0.2em 2.2em;
+    padding: 0.7em 0.8em;
+    border-radius: 4px;
+    background: #333;
+    font-size: 0.8em;
+    color: #e5e5e5;
+}
+
+.vtt-nf-confirm p {
+    margin: 0;
+    line-height: 1.35;
+}
+
+.vtt-nf-confirm p + p {
+    color: #a3a3a3;
+}
+
+.vtt-nf-confirm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+}
+
+.vtt-nf-confirm label {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    color: #a3a3a3;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vtt-nf-confirm input {
+    margin: 0;
+    accent-color: #e50914;
+}
+
+.vtt-nf-confirm button {
+    padding: 0.35em 0.7em;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+}
+
+.vtt-nf-confirm .vtt-nf-yes {
+    background: #fff;
+    color: #000;
+}

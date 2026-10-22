@@ -76,6 +76,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         t.stop();
         t = null;
         yielded = false;
+        state.aiAlone = false;
         deps.oneTab?.release();
         app.offerStop?.(null);
         app.setStatus?.(null);
@@ -132,7 +133,8 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             running.start(source!);
             return;
         }
-        t.setPaused(state.displayMode !== 'dual' || yielded);
+        // Paused outside Dual, unless it is the one line shown (aiAlone).
+        t.setPaused((state.displayMode !== 'dual' && !(state.aiAlone && state.displayMode === 'single')) || yielded);
     };
 
     state.subscribe((e: StateEvent) => {

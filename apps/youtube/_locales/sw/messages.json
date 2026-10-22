@@ -1018,5 +1018,9 @@
   "ytAiTurnOn": {
     "message": "Washa",
     "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
+  },
+  "ytNfChoosePair": {
+    "message": "Chagua jozi nyingine",
+    "description": "Netflix's audio & subtitles panel, our block: a quiet link that opens the sidebar's language settings to pick any other two tracks. Short."
   }
 }
