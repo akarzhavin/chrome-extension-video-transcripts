@@ -404,14 +404,42 @@ describe('the AI translation alone on the line, stopped', () => {
         expect(banner.hidden).toBe(false);
     });
 
-    test('still translating, or the translation on the second line: no way-out line', () => {
-        const { ui, state, banner } = alone();
+    test('still translating: no way-out line', () => {
+        const { ui, banner } = alone();
         ui.setAiStatus('working');
         expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+    });
+
+    test('on Dual, stopped: the way out is for the second line, no «Show English»', () => {
+        const { ui, state, banner, button } = alone();
         ui.setAiStatus('quota');
         state.setDisplayMode('dual');
         ui.refresh();
-        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian · AI');
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden && c.tagName !== 'UL').map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached · Other track ▾');
+    });
+
+    test('on Dual, a pick takes the second line: the AI translation is turned off, the first line\'s language left out', () => {
+        const { ui, state, banner, button } = alone();
+        const stop = jest.fn();
+        const load = jest.fn();
+        ui.setAiStop(stop);
+        ui.app.requestLanguageTrack = load;
+        state.languageCatalog = [
+            { code: 'en', label: 'English', available: true },
+            { code: 'pl', label: 'Polish', available: true },
+        ];
+        ui.setAiStatus('quota');
+        state.setDisplayMode('dual');
+        ui.refresh();
+        button(/Other track/).click();
+        const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'Polish']);
+        items[1].click();
+        expect(stop).toHaveBeenCalled();
+        expect(load).toHaveBeenCalledWith('native', 'pl');
+        expect(state.displayMode).toBe('dual');
     });
 
     test('a line it has not translated shows the original, muted', () => {

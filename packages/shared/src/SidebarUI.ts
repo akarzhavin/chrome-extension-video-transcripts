@@ -598,10 +598,11 @@ export class SidebarUI {
                 ? wayOutClosed
                 : !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
         };
-        // The AI translation alone on the line (Single, from Netflix's menu)
-        // and stopped for good, its limit spent or the like: the line says so
-        // and offers the way out, the learning track or any other. × hides it
-        // until the status changes (a new title clears the status).
+        // The AI translation on screen (alone on Single, from Netflix's menu,
+        // or second on Dual) and stopped for good, its limit spent or the
+        // like: the line says so and offers the way out for its line, another
+        // track (on Single the learning one first). × hides it until the
+        // status changes (a new title clears the status).
         const STOPPED: AiStatus[] = ['auth', 'quota', 'limit', 'too_long', 'unavailable', 'unsupported'];
         const link = (text: string, act: () => void): HTMLButtonElement => {
             const button = document.createElement('button');
@@ -616,10 +617,12 @@ export class SidebarUI {
             this.syncAiWayOut();
         });
         // «Other track ▾»: the title's subtitle tracks, under the line, in
-        // its frame. A pick shows that track alone on Single; the AI one,
-        // shown now, is first and checked. On a site that names the title's
-        // languages (Netflix) a language not loaded yet is fetched; elsewhere
-        // the tracks loaded are the list.
+        // its frame, for the line the AI translation had: on Single a pick
+        // shows that track alone; on Dual it takes the second line (the AI
+        // translation turned off, as its "on" does), the first line's own
+        // language left out. The AI one, shown now, is first and checked. On
+        // a site that names the title's languages (Netflix) a language not
+        // loaded yet is fetched; elsewhere the tracks loaded are the list.
         let tracksList: HTMLUListElement | null = null;
         let tracksOpener: HTMLElement | null = null;
         const closeTracks = () => {
@@ -628,8 +631,11 @@ export class SidebarUI {
             tracksOpener?.setAttribute('aria-expanded', 'false');
             tracksOpener = null;
         };
+        const isAi = (t?: Track) => !!t?.name.endsWith(AI_SUFFIX);
         const openTracks = (opener: HTMLElement) => {
+            const dual = this.state.displayMode === 'dual';
             const main = this.state.tracks[this.state.activeTrackIndex];
+            const ai = dual ? this.state.tracks[this.state.secondaryTrackIndex] : main;
             const list = document.createElement('ul');
             list.className = 'vtt-ai-tracks';
             list.setAttribute('role', 'menu');
@@ -667,21 +673,30 @@ export class SidebarUI {
                 });
                 return li;
             };
-            if (main?.name.endsWith(AI_SUFFIX)) list.append(item(trackLabel(main.name), true, () => {}, true));
-            const catalog = this.state.languageCatalog?.filter((c) => c.available);
+            if (ai && isAi(ai)) list.append(item(trackLabel(ai.name), true, () => {}, true));
+            const first = dual && main ? main.name : null;
+            const firstCode = first ? trackLanguageCode(first) : null;
+            const catalog = this.state.languageCatalog?.filter((c) => c.available && c.code !== firstCode);
             const load = this.app.requestLanguageTrack;
             if (catalog && load) {
                 for (const c of catalog) {
                     list.append(item(c.label, false, () => {
-                        this.state.setSingleTrack(undefined);
-                        load.call(this.app, 'learning', c.code);
+                        if (dual) {
+                            this.aiStopFn?.();
+                            this.state.selectedNativeCode = c.code;
+                            load.call(this.app, 'native', c.code);
+                        } else {
+                            this.state.setSingleTrack(undefined);
+                            load.call(this.app, 'learning', c.code);
+                        }
                         this.refresh();
                     }));
                 }
             } else {
                 for (const t of this.state.tracks) {
-                    if (t.name.endsWith(AI_SUFFIX)) continue;
+                    if (isAi(t) || t.name === first) continue;
                     list.append(item(trackLabel(t.name), false, () => {
+                        if (dual) return this.onTrackSelectChange('native', String(this.state.tracks.indexOf(t)));
                         this.state.setSingleTrack(t.name);
                         this.refresh();
                     }));
@@ -692,29 +707,40 @@ export class SidebarUI {
             tracksOpener = opener;
             opener.setAttribute('aria-expanded', 'true');
         };
+        // Which line the way out is for: '' none, 'single' or 'dual'.
+        let wayOutFor = '';
         this.syncAiWayOut = () => {
             const main = this.state.tracks[this.state.activeTrackIndex];
             const stopped = !!aiNow && STOPPED.includes(aiNow);
             // "on" turns a running translation off; a stopped one has
             // nothing to turn off, and "on" beside its limit misleads.
             aiBannerStop.hidden = stopped;
-            const out = stopped && this.state.displayMode === 'single' && !!main?.name.endsWith(AI_SUFFIX);
-            if (aiBanner.classList.contains('vtt-ai-banner-out') !== out) {
+            // Its line, on screen: alone on Single, or second on Dual.
+            const mode = this.state.displayMode;
+            const shown = (mode === 'single' && isAi(main))
+                || (mode === 'dual' && isAi(this.state.tracks[this.state.secondaryTrackIndex]));
+            const out = stopped && shown;
+            const kind = out ? mode : '';
+            if (wayOutFor !== kind) {
+                wayOutFor = kind;
                 aiBanner.classList.toggle('vtt-ai-banner-out', out);
                 if (out) aiBanner.append(aiBannerClose);
                 else aiBannerClose.remove();
                 aiBannerOut.replaceChildren();
                 closeTracks();
-                if (out) {
+                // On Dual the learning track is the first line already.
+                if (out && mode === 'single') {
                     const label = this.state.primaryLangLabel;
-                    const learning = this.state.tracks.find((t) => !t.name.endsWith(AI_SUFFIX) && !!label && t.name.includes(label))
-                        ?? this.state.tracks.find((t) => !t.name.endsWith(AI_SUFFIX));
+                    const learning = this.state.tracks.find((t) => !isAi(t) && !!label && t.name.includes(label))
+                        ?? this.state.tracks.find((t) => !isAi(t));
                     if (learning) {
                         aiBannerOut.append(' · ', link(msg('ytAiShowTrack', 'Show $1', [trackLabel(learning.name)]), () => {
                             this.state.setSingleTrack(undefined);
                             this.refresh();
                         }));
                     }
+                }
+                if (out) {
                     const other = link(`${msg('ytAiOtherTrack', 'Other track')} ▾`, () => {
                         if (tracksList) closeTracks();
                         else openTracks(other);
