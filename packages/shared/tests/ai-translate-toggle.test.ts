@@ -65,21 +65,224 @@ test('the status line says what the translation is doing, and nothing when it is
     expect(status()).toBe('');
 });
 
+// The Languages group is in Settings, out of sight while subtitles play; a
+// stopped translation must say so where the empty lines are.
+test('the subtitles view shows the status too, and hides the line when there is none', () => {
+    const ui = build();
+    const banner = () => document.getElementById('vtt-ai-banner')!;
+    expect(document.getElementById('vtt-subheader')!.contains(banner())).toBe(true);
+    expect(banner().hidden).toBe(true);
+    ui.setAiStatus('unavailable');
+    expect(banner().hidden).toBe(false);
+    expect(banner().textContent).toMatch(/unavailable/i);
+    ui.setAiStatus(null);
+    expect(banner().hidden).toBe(true);
+    expect(banner().textContent).toBe('');
+});
+
+// AI translation spends credits, so it is offered, in the same quiet row, and
+// runs only when the offer is taken.
+// The cost is the button's tooltip, kept out of the line (the owner's call:
+// the line stays short); the button still names it to hover and screen readers.
+test('the offer sits in the status row and names the cost on hover', () => {
+    const ui = build();
+    const banner = () => document.getElementById('vtt-ai-banner')!;
+    ui.setAiOffer(jest.fn());
+    expect(banner().hidden).toBe(false);
+    expect(banner().textContent).toBe('No subtitles in your language · Translate with AI');
+    const button = banner().querySelector('button')!;
+    expect(button.title).toBe('Uses AI credits');
+    expect(button.getAttribute('aria-description')).toBe('Uses AI credits');
+
+    ui.setAiOffer(null);
+    expect(banner().hidden).toBe(true);
+    expect(banner().querySelector('button')).toBeNull();
+});
+
+describe('the first turn-on asks once', () => {
+    const bubble = () => document.querySelector<HTMLElement>('.vtt-ai-confirm');
+    const offerButton = () => document.querySelector<HTMLButtonElement>('.vtt-ai-offer')!;
+    const buttonNamed = (name: string) =>
+        [...bubble()!.querySelectorAll('button')].find((b) => b.textContent === name)!;
+
+    test('taking the offer opens the question, and Translate starts it', async () => {
+        const ui = build();
+        const start = jest.fn();
+        ui.setAiOffer(start);
+        offerButton().click();
+        await flush();
+        expect(start).not.toHaveBeenCalled();
+        expect(bubble()!.getAttribute('role')).toBe('dialog');
+        expect(bubble()!.textContent).toMatch(/uses credits/);
+        expect(offerButton().getAttribute('aria-expanded')).toBe('true');
+        buttonNamed('Translate').click();
+        expect(start).toHaveBeenCalledTimes(1);
+        expect(bubble()).toBeNull();
+    });
+
+    test('Not now closes it without translating', async () => {
+        const ui = build();
+        const start = jest.fn();
+        ui.setAiOffer(start);
+        offerButton().click();
+        await flush();
+        buttonNamed('Not now').click();
+        expect(start).not.toHaveBeenCalled();
+        expect(bubble()).toBeNull();
+    });
+
+    test('ticked, it is not asked again', async () => {
+        const ui = build();
+        const start = jest.fn();
+        ui.setAiOffer(start);
+        offerButton().click();
+        await flush();
+        bubble()!.querySelector<HTMLInputElement>('input[type=checkbox]')!.checked = true;
+        buttonNamed('Translate').click();
+        expect(prefsStore.aiConfirmSkip).toBe(true);
+
+        ui.setAiOffer(start);
+        offerButton().click();
+        await flush();
+        expect(bubble()).toBeNull();
+        expect(start).toHaveBeenCalledTimes(2);
+    });
+
+    test('a withdrawn offer takes its question with it', async () => {
+        const ui = build();
+        ui.setAiOffer(jest.fn());
+        offerButton().click();
+        await flush();
+        ui.setAiOffer(null);
+        expect(bubble()).toBeNull();
+    });
+});
+
+// The row ends in the state's own word, in the link colour: clicking "on"
+// turns it off, clicking "off" turns it back on.
+test('a running translation ends its row in "on", which turns it off', () => {
+    const ui = build();
+    const banner = () => document.getElementById('vtt-ai-banner')!;
+    const stop = jest.fn();
+    ui.setAiStatus('working');
+    ui.setAiStop(stop);
+    expect(banner().textContent).toBe('Translating… · on');
+    ui.setAiStatus('ready');
+    expect(banner().textContent).toBe('AI translation · on');
+    const word = banner().querySelector('button')!;
+    expect(word.getAttribute('aria-label')).toBe('AI translation is on. Turn off');
+    word.click();
+    expect(stop).toHaveBeenCalledTimes(1);
+
+    ui.setAiStop(null);
+    expect(banner().querySelector('button')).toBeNull();
+});
+
+test('turned off on this video, the row reads "off", which turns it on without asking', async () => {
+    const ui = build();
+    const banner = () => document.getElementById('vtt-ai-banner')!;
+    const start = jest.fn();
+    ui.setAiOffer(start, true);
+    expect(banner().textContent).toBe('AI translation · off');
+    const word = banner().querySelector('button')!;
+    expect(word.getAttribute('aria-label')).toBe('AI translation is off. Turn on');
+    expect(word.title).toBe('Turn on · uses AI credits');
+    word.click();
+    await flush();
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('.vtt-ai-confirm')).toBeNull();
+});
+
+describe('the native-language picker', () => {
+    const sub = () => document.getElementById('vtt-sub-select') as HTMLSelectElement;
+    const pick = (value: string) => {
+        sub().value = value;
+        sub().dispatchEvent(new Event('change'));
+    };
+
+    function withTracks() {
+        const ui = build();
+        const state = (ui as any).state as AppState;
+        state.addTrack('English — English', [{ startTime: 0, endTime: 1, text: 'a' } as any]);
+        state.addTrack('Russian — Русский', [{ startTime: 0, endTime: 1, text: 'б' } as any]);
+        // What attachAiTranslation sets while the site has no Ukrainian.
+        state.secondLineOnDemand = true;
+        state.secondLineLanguage = 'uk';
+        ui.refresh();
+        return { ui, state };
+    }
+
+    test('names tracks as the site does, and offers the AI translation as one more item, in any mode', () => {
+        const { ui, state } = withTracks();
+        state.displayMode = 'single';
+        ui.refresh();
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська']);
+        state.secondLineOnDemand = false;
+        ui.refresh();
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский']);
+    });
+
+    test('picked in Single, it turns Dual on and takes the offer that makes', async () => {
+        const { ui, state } = withTracks();
+        state.displayMode = 'single';
+        const start = jest.fn();
+        // attachAiTranslation offers only in Dual.
+        state.subscribe((e) => {
+            if (e.type === 'mode' && e.mode === 'dual') ui.setAiOffer(start, true);
+        });
+        pick('ai');
+        await flush();
+        expect(state.displayMode).toBe('dual');
+        expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('picking it asks once, then starts', async () => {
+        const { ui } = withTracks();
+        const start = jest.fn();
+        ui.setAiOffer(start, false);
+        pick('ai');
+        await flush();
+        expect(start).not.toHaveBeenCalled();
+        const bubble = document.querySelector('.vtt-ai-confirm')!;
+        expect(bubble.parentElement!.id).toBe('vtt-settings-panel');
+        [...bubble.querySelectorAll('button')].find((b) => b.textContent === 'Translate')!.click();
+        expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('turned off on this video, picking it starts at once', async () => {
+        const { ui } = withTracks();
+        const start = jest.fn();
+        ui.setAiOffer(start, true);
+        pick('ai');
+        await flush();
+        expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('a site track in its place turns a running translation off', () => {
+        const { ui, state } = withTracks();
+        const stop = jest.fn();
+        ui.setAiStop(stop);
+        pick('1');
+        expect(stop).toHaveBeenCalledTimes(1);
+        expect(state.secondaryTrackIndex).toBe(1);
+    });
+});
+
 describe('in a production build', () => {
-    // Dev-only until it ships: absent, not hidden.
     afterEach(() => {
         (global as any).__EXT_ENV__ = 'dev';
     });
 
-    test('the status line is never built', async () => {
+    test('the status line is built and says what the translation is doing', async () => {
         (global as any).__EXT_ENV__ = 'prod';
         const ui = build();
         await flush();
-        expect(document.getElementById('vtt-ai-status')).toBeNull();
-        expect(() => ui.setAiStatus('ready')).not.toThrow();
+        ui.setAiStatus('quota');
+        expect(document.getElementById('vtt-ai-status')!.textContent).toMatch(/limit/i);
     });
 
-    test('a stored choice reads as off', async () => {
+    // The switch forcing AI over a native track stays dev-only.
+    test('a stored force choice reads as off', async () => {
         await savePrefs({ aiTranslateForce: true });
         (global as any).__EXT_ENV__ = 'prod';
         expect((await loadPrefs()).aiTranslateForce).toBe(false);

@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: YouTube & Netflix로 언어 학습",
+    "message": "Lingogram Reactor: Dual subs AI 번역 지원 [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "YouTube·Netflix 이중자막을 동시에. 늘 보던 영상으로 영어공부하고, 모르는 단어는 원탭으로 저장하세요. 무료.",
+    "message": "좋아하는 영상으로 영어나 원하는 언어를 배워 보세요. AI가 모든 단어를 설명해 줍니다. 저장한 단어는 어느 사이트에서든 하이라이트해 드려요.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "내 언어 자막이 없습니다",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "AI로 번역",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "AI 크레딧이 사용됩니다",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "끄기",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "오늘 남은 AI 토큰",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google이 응답하지 않았습니다, 다시 시도하세요",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "AI 번역은 크레딧을 사용합니다.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "오늘 남은 크레딧 $1",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "다시 묻지 않기",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "나중에",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "번역",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "AI 번역",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "켜짐",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "꺼짐",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "AI 번역이 켜져 있습니다. 끄기",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "AI 번역이 꺼져 있습니다. 켜기",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "켜기",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }

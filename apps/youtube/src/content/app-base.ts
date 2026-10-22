@@ -461,9 +461,8 @@ export abstract class BaseVttApp implements AppInterface {
         });
 
         // Server-side AI translation of the second line, in Dual when the site
-        // gives no native track.
-        // Dev-only until it ships.
-        if (__EXT_ENV__ === 'dev') attachAiTranslationTo(this);
+        // gives no native track. The account's feature gate decides whether it runs.
+        attachAiTranslationTo(this);
     }
 
     applyLangPrefsToState(): void {

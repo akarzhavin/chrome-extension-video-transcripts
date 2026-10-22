@@ -95,19 +95,13 @@ export const DEBUG_TRACE_MARKERS = [
 ];
 
 /**
- * Strings only the AI translation of the second line puts in
- * a bundle. Dev-only until it ships; assert-foldable.mjs checks each still
- * occurs in the source, so a rename cannot turn this rule into a no-op.
- * (Not `aiTranslateForce`: the prefs key ships, forced off. Not the ytAi* message
- * names: _locales/ is copied verbatim.)
+ * Strings only the switch forcing AI translation over a site's native track
+ * (subtitle-ai/ai-switch.ts) puts in a bundle. The translation itself ships;
+ * the switch is dev-only. assert-foldable.mjs checks each still occurs in the
+ * source, so a rename cannot turn this rule into a no-op.
+ * (Not `aiTranslateForce`: the prefs key ships, forced off.)
  */
-export const AI_TRANSLATE_MARKERS = [
-    'SUBTITLE_AI_',
-    'vtt-ai-',
-    '/dictionary/subtitles/',
-    'subtitle_tracks',
-    'subtitle_write_limits',
-    // The force switch kept in step between the editions (subtitle-ai/ai-switch.ts).
+export const AI_FORCE_MARKERS = [
     'aiTranslateForceGet',
     'aiTranslateForceSet',
 ];
@@ -193,9 +187,9 @@ const RULES = [
         why: 'the subtitle diagnostics recorder is compiled in (built with EXT_ENV=dev) — it captures signed caption URLs and posts them to the page',
     },
     {
-        id: 'ai-translate',
-        test: (s) => AI_TRANSLATE_MARKERS.some((marker) => s.includes(marker)),
-        why: 'the AI translation of the second line is compiled in (built with EXT_ENV=dev) — it is not released yet',
+        id: 'ai-translate-force',
+        test: (s) => AI_FORCE_MARKERS.some((marker) => s.includes(marker)),
+        why: 'the switch forcing AI translation over native tracks is compiled in (built with EXT_ENV=dev) — it is dev-only',
     },
     {
         id: 'localhost-origin',

@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: Sprachen lernen auf YouTube & Netflix",
+    "message": "Lingogram Reactor: Dual subs mit KI-Übersetzung [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Doppelte Untertitel in zwei Sprachen auf YouTube & Netflix. Englisch lernen beim Schauen, Wörter mit einem Tipp speichern. Gratis.",
+    "message": "Lerne Englisch oder jede Sprache mit Lieblingsvideos. KI erklärt jedes Wort. Gespeicherte Wörter markieren wir auf jeder Seite.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "Keine Untertitel in deiner Sprache",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "Mit KI übersetzen",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "verbraucht KI-Guthaben",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "Ausschalten",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "Heute verbleibende AI-Tokens",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google hat nicht geantwortet, versuche es erneut",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "Übersetzen mit KI verbraucht Guthaben.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "Heute noch $1 Guthaben",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "Nicht mehr fragen",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "Nicht jetzt",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "Übersetzen",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "KI-Übersetzung",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "an",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "aus",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "KI-Übersetzung ist an. Ausschalten",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "KI-Übersetzung ist aus. Einschalten",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "Einschalten",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }

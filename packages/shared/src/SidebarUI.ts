@@ -58,6 +58,9 @@ import {
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
+import { buildConfirm, confirmSkipped } from './subtitle-ai/confirm';
+import { AI_SUFFIX } from './subtitle-ai/controller';
+import { aiTrackLabel, trackLabel } from './track-label';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 import { mountAIBadge } from './ai-balance/badge';
 
@@ -552,6 +555,138 @@ export class SidebarUI {
         const subheader = document.createElement('div');
         subheader.id = 'vtt-subheader';
         subheader.appendChild(this.buildQuickModes());
+        // What AI translation is doing, in sight of the lines it fills; the
+        // Languages group in Settings carries the same text.
+        const aiBanner = document.createElement('div');
+        aiBanner.id = 'vtt-ai-banner';
+        aiBanner.className = 'vtt-ai-banner';
+        aiBanner.setAttribute('role', 'status');
+        aiBanner.hidden = true;
+        const aiBannerStatus = document.createElement('span');
+        const aiBannerStop = document.createElement('span');
+        const aiBannerOffer = document.createElement('span');
+        aiBanner.append(aiBannerStatus, aiBannerStop, aiBannerOffer);
+        const showBanner = () => {
+            aiBanner.hidden = !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
+        };
+        const cost = msg('ytAiOfferCost', 'uses AI credits');
+        const costSentence = cost.charAt(0).toLocaleUpperCase() + cost.slice(1);
+        // The row ends in the state's own word, "on" or "off", in the link
+        // colour: clicking the word flips it. No switch, no extra words.
+        const stateWord = (on: boolean, act: () => void): HTMLButtonElement => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'vtt-ai-toggle';
+            button.textContent = on ? msg('ytAiOn', 'on') : msg('ytAiOff', 'off');
+            button.setAttribute('aria-label', on
+                ? msg('ytAiOnLabel', 'AI translation is on. Turn off')
+                : msg('ytAiOffLabel', 'AI translation is off. Turn on'));
+            button.title = on ? msg('ytAiOfferStop', 'Turn off') : `${msg('ytAiTurnOn', 'Turn on')} · ${cost}`;
+            button.addEventListener('click', () => act());
+            return button;
+        };
+
+        // The first turn-on asks once, in a small bubble under the row, until
+        // "Don't ask again" is ticked; each turn-on spends AI credits.
+        let confirmBox: HTMLElement | null = null;
+        let confirmAnchor: HTMLElement | null = null;
+        const onOutside = (e: Event) => {
+            const t = e.target as Node | null;
+            if (t && (confirmBox?.contains(t) || confirmAnchor?.contains(t))) return;
+            closeConfirm(false);
+        };
+        const closeConfirm = (focusBack: boolean) => {
+            if (!confirmBox) return;
+            confirmBox.remove();
+            confirmBox = null;
+            document.removeEventListener('pointerdown', onOutside, true);
+            const anchor = confirmAnchor;
+            confirmAnchor = null;
+            anchor?.setAttribute('aria-expanded', 'false');
+            if (focusBack && anchor?.isConnected) anchor.focus();
+        };
+        const openConfirm = (anchor: HTMLElement, start: () => void, host: HTMLElement) => {
+            closeConfirm(false);
+            const box = document.createElement('div');
+            box.className = 'vtt-ai-confirm';
+            box.setAttribute('role', 'dialog');
+            const parts = buildConfirm(document, 'vtt-ai-confirm', (yes) => {
+                closeConfirm(!yes);
+                if (yes) start();
+            });
+            box.setAttribute('aria-labelledby', parts.title.id);
+            const text = document.createElement('div');
+            text.className = 'vtt-ai-confirm-text';
+            text.append(parts.title, parts.left);
+            const actions = document.createElement('div');
+            actions.className = 'vtt-ai-confirm-actions';
+            parts.yes.className = 'vtt-ai-confirm-yes';
+            actions.append(parts.notNow, parts.yes);
+            const row = document.createElement('div');
+            row.className = 'vtt-ai-confirm-row';
+            row.append(parts.dontAsk, actions);
+            box.append(text, row);
+            box.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                e.stopPropagation();
+                closeConfirm(true);
+            });
+            // Under what opened it, its tip pointing there.
+            const a = anchor.getBoundingClientRect();
+            const h = host.getBoundingClientRect();
+            box.style.top = `${a.bottom - h.top + host.scrollTop + 6}px`;
+            box.style.setProperty('--vtt-caret-x', `${Math.max(12, a.left + a.width / 2 - h.left - 21)}px`);
+            host.appendChild(box);
+            confirmBox = box;
+            confirmAnchor = anchor;
+            anchor.setAttribute('aria-expanded', 'true');
+            document.addEventListener('pointerdown', onOutside, true);
+            parts.yes.focus();
+        };
+
+        // Taking the offer, from the row or the native-language picker: off
+        // on this video it starts at once, else after the one question.
+        this.takeAiOffer = (anchor, host) => {
+            const offer = this.aiOffer;
+            if (!offer) return;
+            if (offer.off) return offer.start();
+            void confirmSkipped().then((skip) => {
+                if (this.aiOffer !== offer) return;
+                if (skip) offer.start();
+                else if (anchor.isConnected) openConfirm(anchor, offer.start, host);
+            });
+        };
+
+        this.setAiStop = (stop) => {
+            this.aiStopFn = stop;
+            aiBannerStop.replaceChildren();
+            if (stop) aiBannerStop.append(' · ', stateWord(true, stop));
+            showBanner();
+        };
+        // The offer to translate this video: one quiet line, never a popup of
+        // its own. Turned off on this video, the same row reads "off".
+        this.setAiOffer = (start, off = false) => {
+            closeConfirm(false);
+            this.aiOffer = start ? { start, off } : null;
+            aiBannerOffer.replaceChildren();
+            if (start && off) {
+                aiBannerOffer.append(`${msg('ytAiStateLabel', 'AI translation')} · `, stateWord(false, start));
+            } else if (start) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'vtt-ai-offer';
+                button.textContent = msg('ytAiOfferButton', 'Translate with AI');
+                button.title = costSentence;
+                button.setAttribute('aria-description', costSentence);
+                button.setAttribute('aria-haspopup', 'dialog');
+                button.setAttribute('aria-expanded', 'false');
+                button.addEventListener('click', () => this.takeAiOffer(button, subheader));
+                aiBannerOffer.append(`${msg('ytAiOfferText', 'No subtitles in your language')} · `, button);
+            }
+            showBanner();
+            this.updateControls();
+        };
+        subheader.appendChild(aiBanner);
         header.appendChild(subheader);
 
         // Settings Panel — three labeled groups: Languages, Reading mode,
@@ -638,18 +773,18 @@ export class SidebarUI {
         fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
         fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
         langGroup.appendChild(fields);
-        // AI translation is dev-only until it ships; the release gate checks it.
-        // Its switch is on the site's settings page; here only what it is doing.
-        if (__EXT_ENV__ === 'dev') {
-            const status = document.createElement('div');
-            status.id = 'vtt-ai-status';
-            status.className = 'vtt-ai-status';
-            status.setAttribute('aria-live', 'polite');
-            langGroup.appendChild(status);
-            this.setAiStatus = (s) => {
-                status.textContent = s ? aiStatusText(s) : '';
-            };
-        }
+        // What AI translation of the second line is doing, if anything.
+        const aiStatus = document.createElement('div');
+        aiStatus.id = 'vtt-ai-status';
+        aiStatus.className = 'vtt-ai-status';
+        aiStatus.setAttribute('aria-live', 'polite');
+        langGroup.appendChild(aiStatus);
+        this.setAiStatus = (s) => {
+            aiStatus.textContent = s ? aiStatusText(s) : '';
+            // The row's "on" says the rest of "AI translation is on".
+            aiBannerStatus.textContent = s === 'ready' ? msg('ytAiStateLabel', 'AI translation') : aiStatus.textContent;
+            showBanner();
+        };
         settingsPanel.appendChild(langGroup);
 
         // The reading-mode chips used to sit here as their own group. They were
@@ -2249,6 +2384,10 @@ export class SidebarUI {
             // Left out on purpose (it broke a backend rule), not a failure.
             div.classList.add('vtt-skipped');
             div.textContent = '—';
+        } else if (!div.textContent.trim()) {
+            // Nothing to show: no divider either, or a stopped AI translation
+            // reads as one still on its way.
+            return null;
         }
         return div;
     }
@@ -2269,6 +2408,20 @@ export class SidebarUI {
 
     /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
     setAiStatus: (s: AiStatus | null) => void = () => {};
+
+    /**
+     * Offer to translate this video with AI, start being what the button does;
+     * null withdraws it. `off`: turned off on this video, shown as "off".
+     */
+    setAiOffer: (start: (() => void) | null, off?: boolean) => void = () => {};
+
+    /** The standing offer, for the native-language picker's AI item; null when none. */
+    private aiOffer: { start: () => void; off: boolean } | null = null;
+    private aiStopFn: (() => void) | null = null;
+    private takeAiOffer: (anchor: HTMLElement, host: HTMLElement) => void = () => {};
+
+    /** The "on" beside a running translation's status, which turns it off; null removes it. */
+    setAiStop: (stop: (() => void) | null) => void = () => {};
 
     refresh(): void {
         this.updateControls();
@@ -2329,8 +2482,24 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
-        if (role === 'learning') this.state.activeTrackIndex = parseInt(value);
-        else this.state.secondaryTrackIndex = parseInt(value);
+        if (role === 'native' && value === 'ai') {
+            const select = this.elements.subSelect!;
+            // The offer stands only in Dual; turning Dual on makes it.
+            this.setMode('dual');
+            this.takeAiOffer(select, select.closest<HTMLElement>('#vtt-settings-panel') ?? select.parentElement!);
+            // Until it starts, the picker shows what is on screen.
+            this.updateControls();
+            return;
+        }
+        const picked = this.state.tracks[parseInt(value)];
+        if (!picked) return;
+        // Another track in the AI translation's place turns it off, as its
+        // "on" does; the track is found again by name, as stopping drops one.
+        if (role === 'native' && this.aiStopFn && !picked.name.endsWith(AI_SUFFIX)) this.aiStopFn();
+        const at = this.state.tracks.indexOf(picked);
+        if (at === -1) return;
+        if (role === 'learning') this.state.activeTrackIndex = at;
+        else this.state.secondaryTrackIndex = at;
         this.refresh();
     }
 
@@ -2406,10 +2575,20 @@ export class SidebarUI {
             // Track-picker mode (YouTube/Rezka): list the already-loaded tracks.
             // Labeled field rows (Learning/Native) make the old 'Main:'/'Sub:'
             // option prefixes redundant noise.
+            // Each track by the site's own label; the AI translation, while
+            // offered, as one more native-language item.
             this.state.tracks.forEach((track, i) => {
-                this.elements.mainSelect?.appendChild(new Option(track.name, i.toString(), false, i === this.state.activeTrackIndex));
-                this.elements.subSelect?.appendChild(new Option(track.name, i.toString(), false, i === this.state.secondaryTrackIndex));
+                const label = trackLabel(track.name);
+                if (!track.name.endsWith(AI_SUFFIX)) {
+                    this.elements.mainSelect?.appendChild(new Option(label, i.toString(), false, i === this.state.activeTrackIndex));
+                }
+                this.elements.subSelect?.appendChild(new Option(label, i.toString(), false, i === this.state.secondaryTrackIndex));
             });
+            // In any mode: picking it in Single turns Dual on first.
+            const aiLanguage = this.state.secondLineLanguage;
+            if (this.state.secondLineOnDemand && aiLanguage && !this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX))) {
+                this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
+            }
         }
 
         if (activeId) {

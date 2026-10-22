@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: učite se jezikov na YouTubu in Netflixu",
+    "message": "Lingogram Reactor: Dual subs z AI prevodom [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Dvojni podnapisi v dveh jezikih hkrati na YouTubu in Netflixu. Uči se angleščino ob tem, kar gledaš. Besede shraniš z enim dotikom.",
+    "message": "Uči se angleščine ali drugega jezika z ljubimi videi. AI razloži vsako besedo. Shranimo besede in jih označimo na vsaki strani.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "Podnapisov v tvojem jeziku ni",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "Prevedi z AI",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "porabi kredite AI",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "Izklopi",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "Današnji preostali žetoni AI",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google ni odgovoril, poskusite znova",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "Prevajanje z AI porabi kredite.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "Danes ostaja $1 kreditov",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "Ne vprašaj več",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "Ne zdaj",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "Prevedi",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "Prevod AI",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "vklopljeno",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "izklopljeno",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "Prevod AI je vklopljen. Izklopi",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "Prevod AI je izklopljen. Vklopi",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "Vklopi",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }

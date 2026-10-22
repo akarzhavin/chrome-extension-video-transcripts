@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: nyelvtanulás a YouTube-on és Netflixen",
+    "message": "Lingogram Reactor: Dual subs MI-fordítással [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "Dupla felirat két nyelven egyszerre a YouTube-on és a Netflixen. Tanulj angolul abból, amit nézel. Szavak mentése egy koppintással.",
+    "message": "Tanulj angolul vagy más nyelven kedvenc videóiddal. Az MI minden szót elmagyaráz. Elmentjük a szavaid, és mindenhol kiemeljük.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "Nincs felirat a nyelvedén",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "Fordítás MI-vel",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "MI-krediteket használ",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "Kikapcsolás",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "Mai megmaradt AI tokenek",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "A Google nem válaszolt, próbáld újra",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "Az MI-fordítás krediteket használ.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "Ma még $1 kredit maradt",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "Ne kérdezd újra",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "Most nem",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "Fordítás",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "MI-fordítás",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "be",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "ki",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "Az MI-fordítás be van kapcsolva. Kikapcsolás",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "Az MI-fordítás ki van kapcsolva. Bekapcsolás",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "Bekapcsolás",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }

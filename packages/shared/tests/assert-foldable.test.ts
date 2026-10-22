@@ -220,17 +220,17 @@ describe('drift between the source and the release gate', () => {
     });
 });
 
-describe('the AI translation markers', () => {
+describe('the AI force-switch markers', () => {
     // The release gate refuses a bundle carrying them; renamed in the source,
-    // they would match nothing and pass a build that ships the feature.
+    // they would match nothing and pass a build that ships the switch.
     it('refuses a marker the source no longer uses', () => {
         const dir = makeTree();
-        edit(dir, 'packages/shared/src/subtitle-ai/worker.ts', (s) => s.replace(/write_limits/g, 'write_quota'));
+        edit(dir, 'packages/shared/src/subtitle-ai/ai-switch.ts', (s) => s.replace(/aiTranslateForceGet/g, 'aiForceGet'));
 
         const { code, output } = runGate(dir);
 
         expect(code).toBe(1);
-        expect(output).toMatch(/AI_TRANSLATE_MARKERS lists names the source no longer uses: subtitle_write_limits/);
+        expect(output).toMatch(/AI_FORCE_MARKERS lists names the source no longer uses: aiTranslateForceGet/);
     });
 });
 

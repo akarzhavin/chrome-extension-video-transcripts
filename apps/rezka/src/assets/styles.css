@@ -284,6 +284,8 @@
 #vtt-settings-panel {
     display: none;
     flex-direction: column;
+    /* The AI question opens under the native-language picker (.vtt-ai-confirm). */
+    position: relative;
 }
 
 #vtt-settings-panel.open {
@@ -482,8 +484,9 @@
    id: the settings screen and the feedback screen each have one, and they are
    the same control pointing at different places. The ids drive visibility only. */
 .vtt-back-chip {
-    position: absolute;
-    left: 12px;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
     display: none;
     align-items: center;
     gap: 3px;
@@ -503,15 +506,29 @@
     background: var(--vtt-accent-quiet);
 }
 
-/* The chip is absolutely positioned over a centered title, so nothing stops the
-   two from colliding once either string grows — "Обратная связь" next to
-   "Настройки" already leaves about a pixel in English and less in Russian.
-   Reserving a gutter on the title keeps the centering while letting the longer
-   label wrap or ellipsize instead of running under the chip. */
-#vtt-sidebar.vtt-settings-open #vtt-header-top h2,
-#vtt-sidebar.vtt-feedback-open #vtt-header-top h2 {
-    padding-left: 92px;
+/* On the settings, feedback and word screens the header is a three-column grid:
+   back chip | title | empty, with the two outer columns equal. The title then
+   sits on the same centre as "Subtitles" on the main screen, so switching
+   screens no longer makes it jump (an asymmetric gutter used to push it about
+   40px right). Only when a long translation would run into the chip does the
+   chip's column grow and the title move right — by exactly as much as needed —
+   and past that it ellipsizes. Padding stays symmetric for the same reason. */
+#vtt-sidebar.vtt-settings-open #vtt-header-top,
+#vtt-sidebar.vtt-feedback-open #vtt-header-top,
+#vtt-sidebar.vtt-lookup-open #vtt-header-top {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, max-content) 1fr;
+    align-items: center;
+    column-gap: 8px;
+    padding-left: 12px;
     padding-right: 12px;
+}
+#vtt-sidebar.vtt-settings-open #vtt-header-top h2,
+#vtt-sidebar.vtt-feedback-open #vtt-header-top h2,
+#vtt-sidebar.vtt-lookup-open #vtt-header-top h2 {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -524,8 +541,8 @@
 
 /* :not(.vtt-feedback-open) because the feedback screen sits on top of the
    settings takeover and keeps .vtt-settings-open underneath it. Without the
-   guard this rule wins on source order and paints "‹ Subtitles" over the
-   feedback screen's own "‹ Settings" chip — both are absolute at left:12px. */
+   guard this rule wins on source order and shows "‹ Subtitles" beside the
+   feedback screen's own "‹ Settings" chip — both live in the same grid cell. */
 #vtt-sidebar.vtt-settings-open:not(.vtt-feedback-open) #vtt-back-btn {
     display: flex;
 }
@@ -776,10 +793,207 @@
    their own vertical margins so the row collapses when the bar is absent. -- */
 #vtt-subheader {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     padding: 0 16px;
+}
+
+/* AI translation's status under the mode bar, on its own row: the empty lines
+   it would fill are right below, so a stopped translation explains itself. */
+.vtt-ai-banner {
+    flex: 1 0 100%;
+    margin: -4px 0 10px;
+    padding: 0 4px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--vtt-text-soft);
+}
+
+.vtt-ai-banner[hidden] {
+    display: none;
+}
+
+/* The state's word at the end of the row: "on" turns it off, "off" on. */
+.vtt-ai-toggle {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--vtt-accent);
+    cursor: pointer;
+}
+
+.vtt-ai-toggle:hover {
+    text-decoration: underline;
+}
+
+.vtt-ai-toggle:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, var(--vtt-accent));
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+.vtt-light .vtt-ai-toggle {
+    color: var(--vtt-accent-text);
+}
+
+/* Never broken in two: the bubble under the row points at it whole. */
+.vtt-ai-offer {
+    white-space: nowrap;
+}
+
+/* The first turn-on's question: a small bubble over the transcript, under the
+   row, with its tip at the link that opened it. */
+#vtt-subheader {
+    position: relative;
+}
+
+.vtt-ai-confirm {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--vtt-hairline-strong);
+    background: #2a2b33;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.vtt-light .vtt-ai-confirm {
+    background: var(--vtt-panel-solid);
+    box-shadow: 0 12px 32px rgba(17, 17, 17, 0.18);
+}
+
+.vtt-ai-confirm::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: var(--vtt-caret-x, 24px);
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-left: inherit;
+    border-top: inherit;
+    transform: rotate(45deg);
+}
+
+.vtt-ai-confirm-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vtt-ai-confirm-text p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--vtt-text-soft);
+}
+
+.vtt-ai-confirm-text p:first-child {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vtt-text);
+}
+
+.vtt-ai-confirm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.vtt-ai-confirm-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vtt-text-soft);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vtt-ai-confirm-row input {
+    margin: 0;
+    width: 14px;
+    height: 14px;
+    accent-color: var(--vtt-accent);
+}
+
+.vtt-ai-confirm-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.vtt-ai-confirm-actions button {
+    height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--vtt-text-soft);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vtt-ai-confirm-actions .vtt-ai-confirm-yes {
+    padding: 0 12px;
+    background: var(--vtt-accent);
+    color: var(--vtt-on-accent);
+    font-weight: 700;
+}
+
+.vtt-ai-confirm-actions button:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, var(--vtt-accent));
+    outline-offset: 2px;
+}
+
+/* The offer reads as a link in the sentence, not a call-to-action button: it
+   is there when wanted and easy to pass over. */
+.vtt-ai-offer {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--vtt-accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.15s ease;
+}
+
+.vtt-ai-offer:hover,
+.vtt-ai-offer:focus-visible {
+    text-decoration-color: currentColor;
+}
+
+.vtt-ai-offer:focus-visible {
+    outline: 2px solid var(--vtt-accent-ring, var(--vtt-accent));
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* Lime is a fill, never text (see .vtt-light): dark text, a lime underline. */
+.vtt-light .vtt-ai-offer {
+    color: var(--vtt-accent-text);
+    text-decoration-color: var(--vtt-accent-border-strong);
+}
+
+.vtt-light .vtt-ai-offer:hover,
+.vtt-light .vtt-ai-offer:focus-visible {
+    text-decoration-color: var(--vtt-accent-text);
 }
 
 /* Mode bar (Single · Dual · Guess | On-screen) in a pill container so it
@@ -3171,11 +3385,11 @@ span.vtt-saved-run.vtt-saved-run-end::after {
    overlay's on/off now shows on the CC button beside it, so camouflaging the
    mascot too would read as "the extension is off" — it never is. */
 .vtt-ytp-overlay-btn {
-    /* Mirrors .vtt-ytp-cc-btn: 40px wide (two of us share the space one native
-       48px control would take), full row height so both sit on YouTube's own
-       optical centre line. position for the ::after hover backdrop. */
+    /* Mirrors .vtt-ytp-cc-btn: 42px wide, a little under YouTube's 48px so the
+       pair sits closer together than its neighbours do; full row height so both
+       sit on the row's optical centre line. position for the ::after backdrop. */
     position: relative;
-    width: 40px;
+    width: 42px;
     height: 100%;
     padding: 0;
     border: none;
@@ -3209,73 +3423,61 @@ span.vtt-saved-run.vtt-saved-run-end::after {
    button's wrapper survives fullscreen with no re-parenting. Everything here is
    scoped to .vtt-ytp-* / #vtt-ytp-menu, which never exist on Rezka or Netflix —
    this stylesheet ships to both. */
-/* Mascot + CC as ONE unit, not two neighbours: a subtle pill behind the pair
-   binds them, so it reads as "this extension: open it / turn it on" rather than
-   two unrelated glyphs that happen to sit together in YouTube's row. */
+/* Mascot + CC as ONE unit, drawn in YouTube's own language. Without a group
+   our CC reads as a second copy of YouTube's CC beside it; with a bordered pill
+   of our own (as before) it read as a foreign badge inside the modern player's
+   frosted pill (.ytp-right-controls). So the pair shares one capsule shaped
+   exactly like YouTube's hover backdrop, a quiet chip, and sits a little apart
+   from its neighbours. */
 .vtt-ytp-anchor {
     position: relative;
     display: inline-flex;
     align-items: center;
     flex: none;
+    margin: 0 4px;
     /* height:100% + align-items:center on each button is how YouTube's own
        controls sit on the row's optical line; anything shorter rides high. */
     height: 100%;
 }
-/* The pill is a backdrop, not a box: drawn behind the pair with ::before so it
-   binds them visually without shrinking either button below YouTube's 48px
-   click target or pushing them off the row's centre line.
-
-   Dark fill + a light hairline, not the translucent white the rest of the bar
-   uses: the control bar is see-through, and white-on-white vanishes completely
-   over a bright frame no matter how far the alpha is pushed. Dark-plus-rim
-   holds on light, dark and busy footage alike. */
 .vtt-ytp-anchor::before {
     content: '';
     position: absolute;
-    inset: 5px 2px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.38);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    height: calc(var(--yt-delhi-pill-height, 48px) - 8px);
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.1);
     pointer-events: none;
-    transition: background-color 0.12s ease;
 }
-/* The pill itself doesn't react to hover — each half lights its own backdrop
-   (see .vtt-ytp-overlay-btn::after / .vtt-ytp-cc-btn::after). Lighting the
-   whole pill would suggest one control, and they do different things. */
-
-/* Hover/active backdrop, the same idiom YouTube uses on its own controls
-   (.ytp-delhi-modern … .ytp-button:hover::before → rgba(255,255,255,.1)).
+/* Hover/active backdrop, shaped like YouTube's own controls
+   (.ytp-delhi-modern … .ytp-right-controls .ytp-button::before): a capsule as
+   wide as the button and 8px shorter than the pill. It lies on top of the
+   pair's chip, so it is a step brighter than YouTube's bare 0.1 / 0.2.
    It highlights the AREA, never the glyph: brightening an already-white
    inverted CC just turns it into a solid white block. */
 .vtt-ytp-overlay-btn::after,
 .vtt-ytp-cc-btn::after {
     content: '';
     position: absolute;
-    /* Sits inside the pill (which is inset 6px 2px) so the highlight never
-       spills past its edge. */
-    inset: 7px 3px;
-    border-radius: 8px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: calc(var(--yt-delhi-pill-height, 48px) - 8px);
+    border-radius: 40px;
     background: transparent;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.2s cubic-bezier(0.05, 0, 0, 1);
     pointer-events: none;
 }
-/* Round the outer ends to follow the pill; the inner ends stay square so the
-   two halves meet flush at the hairline. */
-.vtt-ytp-overlay-btn::after {
-    border-radius: 999px 4px 4px 999px;
-}
-.vtt-ytp-cc-btn::after {
-    border-radius: 4px 999px 999px 4px;
-}
-/* Nudged above YouTube's own 0.1/0.2: theirs sit on the bare bar, ours on the
-   pill's dark fill, which swallows a tenth of white. */
 .vtt-ytp-overlay-btn:hover::after,
 .vtt-ytp-cc-btn:hover:not(:disabled)::after {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.12);
 }
 .vtt-ytp-overlay-btn:active::after,
 .vtt-ytp-cc-btn:active:not(:disabled)::after {
-    background: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.22);
 }
 /* Keyboard focus gets the same affordance as hover. */
 .vtt-ytp-overlay-btn:focus-visible::after,
@@ -3286,24 +3488,11 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 .vtt-ytp-cc-btn:focus-visible {
     outline: none;
 }
-/* Hairline between the two halves: same unit, two distinct actions. */
-.vtt-ytp-cc-btn::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 18px;
-    width: 1px;
-    background: rgba(255, 255, 255, 0.18);
-    z-index: 1; /* above the hover backdrop */
-}
-
 .vtt-ytp-cc-btn {
     position: relative;
-    /* 40px rather than YouTube's 48px because there are two of us in the row's
-       space; height:100% + centring matches their vertical rhythm exactly. */
-    width: 40px;
+    /* 42px, a little under YouTube's 48px so the pair reads as one; height:100%
+       + centring matches their vertical rhythm exactly. */
+    width: 42px;
     height: 100%;
     padding: 0;
     border: none;
@@ -4161,4 +4350,157 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.35),
         0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* HDrezka's CC menu, ours (content/cc-menu.ts): drawn in the player's own
+   look — Arial, its dark glass, its blue for the chosen line — so it reads as
+   part of the player rather than of the sidebar. Lives inside the player box,
+   which is why every rule is scoped and sizes are fixed. */
+.vtt-cc-menu {
+    position: absolute;
+    z-index: 2147483000;
+    min-width: 210px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 70px);
+    overflow-y: auto;
+    padding: 0 0 5px;
+    border-radius: 4px;
+    background: rgba(28, 30, 34, 0.94);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    color: #fff;
+    font: 13px/1.3 Arial, Helvetica, sans-serif;
+    text-align: left;
+}
+
+.vtt-cc-menu button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.vtt-cc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px 0 14px;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.vtt-cc-menu .vtt-cc-settings {
+    padding: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.vtt-cc-menu .vtt-cc-back {
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.vtt-cc-menu .vtt-cc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 30px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.vtt-cc-menu .vtt-cc-item:hover,
+.vtt-cc-menu button:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.vtt-cc-menu .vtt-cc-item[aria-checked='true'] {
+    color: #00adef;
+}
+
+.vtt-cc-menu .vtt-cc-item[aria-checked='true']::after {
+    content: '';
+    margin-left: auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.vtt-cc-ai {
+    padding: 0 4px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 14px;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+}
+
+.vtt-cc-sep {
+    margin: 4px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.vtt-cc-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 240px;
+    padding: 8px 14px 6px;
+    box-sizing: border-box;
+}
+
+.vtt-cc-confirm p {
+    margin: 0;
+    line-height: 1.35;
+}
+
+.vtt-cc-confirm p + p {
+    margin-top: -6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.vtt-cc-confirm label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+.vtt-cc-confirm input {
+    margin: 0;
+    accent-color: #00adef;
+}
+
+.vtt-cc-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.vtt-cc-menu .vtt-cc-actions button {
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 4px;
+}
+
+.vtt-cc-menu .vtt-cc-actions .vtt-cc-yes {
+    background: #00adef;
+    color: #04131c;
+    font-weight: 700;
 }

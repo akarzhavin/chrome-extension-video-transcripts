@@ -30,7 +30,8 @@ import {
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
-import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { installCcMenu } from './cc-menu';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
@@ -85,6 +86,8 @@ export class VttApp implements AppInterface {
     isTopWindow: boolean;
     detector: VttDetector;
     langPrefs: LanguagePrefs | null = null;
+    /** The player's CC button opens our menu, which offers the AI translation too. */
+    aiControls?: AiControls;
     noSubsTimer: number | null = null;
     // The grace window has already run to its end and put a verdict on screen.
     // Tracked apart from noSubsTimer, which returns to null the instant the
@@ -424,10 +427,17 @@ export class VttApp implements AppInterface {
             this.ui.refresh();
         });
 
+        if (this.uiOwned) {
+            this.aiControls = installCcMenu({
+                state: this.state,
+                ui: this.ui,
+                langPrefs: () => this.langPrefs,
+            });
+        }
+
         // Server-side AI translation of the second line, in Dual when the site
-        // gives no native track.
-        // Dev-only until it ships.
-        if (__EXT_ENV__ === 'dev') attachAiTranslationTo(this);
+        // gives no native track. The account's feature gate decides whether it runs.
+        attachAiTranslationTo(this);
     }
 
     // DEV-ONLY i18n override. chrome.i18n follows the browser UI locale, which
@@ -1034,6 +1044,13 @@ class VttDetector {
     // the version the user just left would otherwise repopulate the panel it
     // was cleared from.
     trackSetId: number = 0;
+    // The page's inline player config lists the subtitles of the version the
+    // page was served with. Once the player has sent a listing of its own (it
+    // switches to the viewer's remembered translator over AJAX), that config
+    // describes another version: a later scan of it added that version's
+    // Russian beside the right one as "Russian 2", with timing from the other
+    // cut. Measured on 89377-kvantovoe-prevoshodstvo, Дубляж → Оригинал.
+    inlineStale = false;
 
     constructor(app: VttApp) {
         this.app = app;
@@ -1058,7 +1075,9 @@ class VttDetector {
     // switches arrive via AJAX and are caught by the network interceptor. Re-scan
     // a few times because the player config can run slightly after document_idle.
     scanInlineSubtitles(): void {
-        const scan = () => this.scanText(document.documentElement.outerHTML);
+        const scan = () => {
+            if (!this.inlineStale) this.scanText(document.documentElement.outerHTML);
+        };
         // The same list NO_SUBS_GRACE_MS is derived from, so the "no subtitles"
         // verdict cannot be reached before the last scan has had its chance.
         for (const delay of INLINE_SCAN_DELAYS_MS) {
@@ -1110,7 +1129,7 @@ class VttDetector {
     rescan(): void {
         this.processedUrls.clear();
         document.querySelectorAll('track').forEach(track => this.handleTrackElement(track as HTMLTrackElement));
-        if (FEATURES.autoSubtitleSearch) this.scanText(document.documentElement.outerHTML);
+        if (FEATURES.autoSubtitleSearch && !this.inlineStale) this.scanText(document.documentElement.outerHTML);
     }
 
     handleTrackElement(track: HTMLTrackElement): void {
@@ -1135,6 +1154,7 @@ class VttDetector {
      * would be dropped as duplicates, leaving the panel empty.
      */
     onNewTrackSet(): void {
+        this.inlineStale = true;
         // The first listing of the page fires this as well, with nothing loaded
         // yet — a reset there is just a no-op, so no need to special-case it.
         if (this.app.state.tracks.length === 0 && this.processedUrls.size === 0) return;

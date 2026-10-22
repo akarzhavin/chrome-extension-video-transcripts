@@ -305,9 +305,9 @@ describe('Netflix support and what the documents say about it', () => {
         );
         const policy = readFileSync(join(__dirname, '..', '..', '..', 'PRIVACY_POLICY.md'), 'utf8');
 
-        // The storefront is explicit.
+        // The storefront is explicit: the name promises Netflix (the short
+        // description leaves the platforms to the name it sits under).
         expect(listing.appName.message).toMatch(/Netflix/);
-        expect(listing.appDesc.message).toMatch(/Netflix/);
 
         // So the policy must be too, where it introduces what it covers — not
         // only as one value in a list of platform labels.

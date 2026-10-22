@@ -53,6 +53,8 @@ export class AppState {
     // The AI translation can supply the second line:
     // Dual stays selectable with one track, and picking it starts the translation.
     secondLineOnDemand = false;
+    /** The language that translation would be in, while secondLineOnDemand. */
+    secondLineLanguage?: string;
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;

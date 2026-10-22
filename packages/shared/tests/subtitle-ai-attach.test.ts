@@ -20,7 +20,9 @@ const PAIR: LanguagePrefs = { learning: 'en', native: 'ru' } as LanguagePrefs;
 
 type Sent = { part: { fingerprint: string; from: number; to: number } };
 
-function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown; hint?: boolean } = {}) {
+// accept: the viewer takes every offer at once (default), which is what the
+// tests before "it waits to be asked" describe; false leaves offers standing.
+function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (p: Sent['part']) => unknown; hint?: boolean; accept?: boolean; chosen?: string[] } = {}) {
     const state = new AppState();
     state.setLanguagePreferences('English', 'Russian');
     let prefs = opts.prefs === undefined ? PAIR : opts.prefs;
@@ -46,16 +48,46 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
         ...(opts.hint === undefined ? {} : { hintAllowed: async () => opts.hint! }),
+        chosen: {
+            load: async () => [...chosen],
+            add: (key) => { chosen.push(key); },
+            remove: (key) => { chosen.splice(0, chosen.length, ...chosen.filter((k) => k !== key)); },
+        },
     };
+    const chosen: string[] = [...(opts.chosen ?? [])];
     const statuses: (string | null)[] = [];
+    // The offer on screen: its start, or null when none is shown.
+    let offer: (() => void) | null = null;
+    let offerOff = false;
+    let offers = 0;
+    // The way to turn a running translation off, or null when none runs.
+    let stopper: (() => void) | null = null;
     let listed = 0;
     const secondTracks = () => {
         listed++;
         return [];
     };
-    attachAiTranslation({ state, site: 'rezka', refresh: () => {}, langPrefs: () => prefs, setStatus: (s) => statuses.push(s), ...(opts.hint === undefined ? {} : { secondTracks }) }, deps);
+    attachAiTranslation({
+        state, site: 'rezka', refresh: () => {}, langPrefs: () => prefs, setStatus: (s) => statuses.push(s),
+        offer: (start, off) => {
+            offer = start;
+            offerOff = !!off;
+            if (!start) return;
+            offers++;
+            if (opts.accept !== false) start();
+        },
+        offerStop: (stop) => { stopper = stop; },
+        ...(opts.hint === undefined ? {} : { secondTracks }),
+    }, deps);
     return {
-        state, sent, statuses,
+        state, sent, statuses, chosen,
+        offered: () => offer !== null,
+        /** The standing offer reads "off": turned off on this video, on this page. */
+        offeredOff: () => offer !== null && offerOff,
+        offers: () => offers,
+        accept: () => offer?.(),
+        canStop: () => stopper !== null,
+        turnOff: () => stopper?.(),
         listed: () => listed,
         seek: (t: number) => { time = t; },
         seeked: () => seekListener(),
@@ -256,6 +288,136 @@ describe('attachAiTranslation follows whether translation is allowed (spec 032)'
         s.setAllowed(true);
         await settle();
         expect(s.aiNames()).toContain('Russian · AI');
+    });
+});
+
+// AI translation spends the viewer's AI credits, so it runs only on videos the
+// viewer asks for: it offers, and starts when the offer is taken.
+describe('attachAiTranslation waits to be asked', () => {
+    test('it offers instead of starting, and asks the server nothing until the offer is taken', async () => {
+        const s = setup({ accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.offered()).toBe(true);
+        expect(s.sent).toHaveLength(0);
+        expect(s.aiNames()).toEqual(['English']);
+        s.accept();
+        await settle();
+        expect(s.offered()).toBe(false);
+        expect(s.sent).toHaveLength(1);
+        expect(s.aiNames()).toContain('Russian · AI');
+    });
+
+    test('a track the viewer chose before starts by itself, and a taken offer is remembered', async () => {
+        const first = setup({ accept: false });
+        first.state.addTrack('English', cues(10));
+        await settle();
+        first.accept();
+        await settle();
+        expect(first.chosen).toHaveLength(1);
+
+        const again = setup({ accept: false, chosen: first.chosen });
+        again.state.addTrack('English', cues(10));
+        await settle();
+        expect(again.offered()).toBe(false);
+        expect(again.sent).toHaveLength(1);
+
+        // Another track is a new choice.
+        const other = setup({ accept: false, chosen: first.chosen });
+        other.state.addTrack('English', cues(12));
+        await settle();
+        expect(other.offered()).toBe(true);
+        expect(other.sent).toHaveLength(0);
+    });
+
+    test('it offers only in Dual, and takes the offer back when a native track arrives', async () => {
+        const s = setup({ accept: false });
+        s.state.displayMode = 'single';
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.offered()).toBe(false);
+        s.state.displayMode = 'dual';
+        await settle();
+        expect(s.offered()).toBe(true);
+        s.state.addTrack('Russian', cues(10, 'Строка'));
+        await settle();
+        expect(s.offered()).toBe(false);
+        expect(s.sent).toHaveLength(0);
+    });
+
+    test('a running translation can be turned off: it stops, forgets the choice and offers again', async () => {
+        const s = setup({ accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.canStop()).toBe(false);
+        s.accept();
+        await settle();
+        expect(s.canStop()).toBe(true);
+        const asked = s.sent.length;
+
+        s.turnOff();
+        await settle();
+        expect(s.canStop()).toBe(false);
+        expect(s.aiNames()).toEqual(['English']);
+        expect(s.chosen).toHaveLength(0);
+        expect(s.offered()).toBe(true);
+        expect(s.offeredOff()).toBe(true);
+        // Nothing more is asked once it is off, a seek included.
+        s.seeked();
+        await s.runTimers();
+        expect(s.sent).toHaveLength(asked);
+
+        // Opened again, the video waits to be asked.
+        const again = setup({ accept: false, chosen: s.chosen });
+        again.state.addTrack('English', cues(10));
+        await settle();
+        expect(again.offered()).toBe(true);
+        expect(again.offeredOff()).toBe(false);
+        expect(again.sent).toHaveLength(0);
+    });
+
+    test('turned off, "off" turns it back on, and a fresh offer is not "off"', async () => {
+        const s = setup({ accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.offeredOff()).toBe(false);
+        s.accept();
+        await settle();
+        s.turnOff();
+        await settle();
+        expect(s.offeredOff()).toBe(true);
+        s.accept();
+        await settle();
+        expect(s.canStop()).toBe(true);
+        expect(s.chosen).toHaveLength(1);
+        s.turnOff();
+        await settle();
+        // Another video on the same page starts from a plain offer.
+        s.state.reset();
+        s.state.addTrack('English', cues(12));
+        await settle();
+        expect(s.offered()).toBe(true);
+        expect(s.offeredOff()).toBe(false);
+    });
+
+    test('the way to turn it off goes with the translation: a native track or a new video takes it away', async () => {
+        const s = setup();
+        s.state.addTrack('English', cues(10));
+        await settle();
+        expect(s.canStop()).toBe(true);
+        s.state.addTrack('Russian', cues(10, 'Строка'));
+        await settle();
+        expect(s.canStop()).toBe(false);
+    });
+
+    test('a standing offer is shown once, not again on every event', async () => {
+        const s = setup({ accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        s.seeked();
+        s.setPair(PAIR);
+        await settle();
+        expect(s.offers()).toBe(1);
     });
 });
 

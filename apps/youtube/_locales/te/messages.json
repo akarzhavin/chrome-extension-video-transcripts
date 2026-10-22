@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: YouTube, Netflix లో భాషలు నేర్చుకోండి",
+    "message": "Lingogram Reactor: Dual subs AI అనువాదంతో [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "YouTube, Netflix లో డ్యూయల్ సబ్టైటిల్స్ — రెండు భాషలు ఒకేసారి. చూసేదాని నుంచే ఇంగ్లీష్ నేర్చుకోండి, ఒక్క ట్యాప్‌తో పదాలు సేవ్.",
+    "message": "ఇష్టమైన వీడియోలతో ఇంగ్లీష్ లేదా వేరే భాష నేర్చుకోండి. AI ప్రతి పదం వివరిస్తుంది. పదాలను సేవ్ చేసి ప్రతి సైట్‌లో హైలైట్ చేస్తాం.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "మీ భాషలో సబ్‌టైటిల్స్ లేవు",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "AIతో అనువదించండి",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "AI క్రెడిట్‌లను వినియోగిస్తుంది",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "ఆపివేయండి",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "ఈ రోజు మిగిలిన AI టోకెన్లు",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google సమాధానం ఇవ్వలేదు, మళ్లీ ప్రయత్నించండి",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "AIతో అనువాదానికి క్రెడిట్‌లు ఖర్చవుతాయి.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "ఈ రోజు $1 క్రెడిట్‌లు మిగిలాయి",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "మళ్లీ అడగవద్దు",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "ఇప్పుడు కాదు",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "అనువదించు",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "AI అనువాదం",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "ఆన్",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "ఆఫ్",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "AI అనువాదం ఆన్‌లో ఉంది. ఆఫ్ చేయండి",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "AI అనువాదం ఆఫ్‌లో ఉంది. ఆన్ చేయండి",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "ఆన్ చేయండి",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }
