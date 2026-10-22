@@ -339,12 +339,16 @@ describe('the AI translation alone on the line, stopped', () => {
 
     test('Show English puts the learning track on the line; the row goes back to its usual self', () => {
         const { ui, state, banner, button } = alone();
+        ui.setAiStop(() => {});
         ui.setAiStatus('quota');
         button(/Show English/).click();
         expect(state.singleTrackName).toBeUndefined();
         expect(state.tracks[state.activeTrackIndex].name).toBe('English');
         expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
         expect(banner.querySelector('.vtt-ai-banner-close')).toBeNull();
+        // Its limit still spent: the row says so, with no "on" to turn off.
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached');
     });
 
     test('Other track opens Languages, lit', () => {
@@ -382,4 +386,17 @@ describe('the AI translation alone on the line, stopped', () => {
         expect(main.textContent).toBe('It is not safe.');
         expect(main.classList.contains('vtt-untranslated')).toBe(true);
     });
+});
+
+test('a running translation keeps its "on"; a stopped one (its limit spent) has none', () => {
+    const ui = build();
+    const banner = document.getElementById('vtt-ai-banner')!;
+    const seen = () => [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+    ui.setAiStop(() => {});
+    ui.setAiStatus('ready');
+    expect(seen()).toBe('AI translation · on');
+    ui.setAiStatus('quota');
+    expect(seen()).toBe('The AI limit is reached');
+    ui.setAiStatus('rate');
+    expect(seen()).toMatch(/· on$/);
 });

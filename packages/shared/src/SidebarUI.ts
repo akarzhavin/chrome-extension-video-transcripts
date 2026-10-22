@@ -617,10 +617,13 @@ export class SidebarUI {
         });
         this.syncAiWayOut = () => {
             const main = this.state.tracks[this.state.activeTrackIndex];
-            const out = !!aiNow && STOPPED.includes(aiNow) && this.state.displayMode === 'single' && !!main?.name.endsWith(AI_SUFFIX);
+            const stopped = !!aiNow && STOPPED.includes(aiNow);
+            // "on" turns a running translation off; a stopped one has
+            // nothing to turn off, and "on" beside its limit misleads.
+            aiBannerStop.hidden = stopped;
+            const out = stopped && this.state.displayMode === 'single' && !!main?.name.endsWith(AI_SUFFIX);
             if (aiBanner.classList.contains('vtt-ai-banner-out') !== out) {
                 aiBanner.classList.toggle('vtt-ai-banner-out', out);
-                aiBannerStop.hidden = out;
                 if (out) aiBanner.append(aiBannerClose);
                 else aiBannerClose.remove();
                 aiBannerOut.replaceChildren();
