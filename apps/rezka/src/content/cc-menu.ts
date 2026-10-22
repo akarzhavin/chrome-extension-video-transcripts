@@ -10,10 +10,11 @@
 
 import type { AppState } from '../../../../packages/shared/src/AppState';
 import type { SidebarUI } from '../../../../packages/shared/src/SidebarUI';
+import { isContextOrphaned } from '../../../../packages/shared/src/content/orphan-notice';
 import { msg } from '../../../../packages/shared/src/i18n';
 import { labelForLanguage, nativeForLanguage, type LanguagePrefs } from '../../../../packages/shared/src/languages';
 import type { AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
-import { buildConfirm, confirmSkipped } from '../../../../packages/shared/src/subtitle-ai/confirm';
+import { buildConfirm, confirmSkipped, costTitle, dismissOn } from '../../../../packages/shared/src/subtitle-ai/confirm';
 import { AI_SUFFIX } from '../../../../packages/shared/src/subtitle-ai/controller';
 import { trackLabel } from '../../../../packages/shared/src/track-label';
 
@@ -25,8 +26,19 @@ export interface CcMenuHost {
     langPrefs(): LanguagePrefs | null;
 }
 
-const CC_BG = '[id$="_control_cc_bg"]';
 const SWALLOWED = ['pointerdown', 'mousedown', 'touchstart', 'pointerup', 'mouseup', 'click'] as const;
+// Inside our menu nothing reaches the player around it: a click or a space
+// there would pause the video or hide its controls.
+const KEPT_IN_MENU = [...SWALLOWED, 'dblclick', 'keydown', 'keyup', 'wheel'] as const;
+
+/** The CC button an event landed on: the box holding `<player>_control_cc_bg` two levels down. */
+function ccButtonOf(target: EventTarget | null): HTMLElement | null {
+    let el = target instanceof Element ? target : null;
+    for (let depth = 0; el && depth < 4; depth++, el = el.parentElement) {
+        if (el.querySelector(':scope > * > [id$="_control_cc_bg"]')) return el as HTMLElement;
+    }
+    return null;
+}
 
 /** The language word every track name starts with ("English — …", "Russian 2"). */
 function languageOf(name: string): string {
@@ -50,99 +62,110 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
     let menu: HTMLElement | null = null;
     let page: 'list' | 'confirm' = 'list';
     let button: HTMLElement | null = null;
-    const bound = new WeakSet<Element>();
+    let undismiss = () => {};
 
     const ownTracks = () =>
         state.tracks.map((t, i) => ({ t, i })).filter(({ t }) => !t.name.endsWith(AI_SUFFIX));
+    /** Where a track is now: stopping the AI translation drops its track and shifts the rest. */
+    const indexOf = (name: string) => state.tracks.findIndex((t) => t.name === name);
+
+    /** The track of the language being learned, which the AI translation translates. */
+    const learningIndex = (): number => {
+        const learning = host.langPrefs()?.learning;
+        const word = learning ? labelForLanguage(learning) : '';
+        return ownTracks().find(({ t }) => word && languageOf(t.name) === word)?.i ?? -1;
+    };
 
     /** The first line: the one showing, else the language being learned, else the first. */
     const mainIndex = (): number => {
         const own = ownTracks();
         if (own.some(({ i }) => i === state.activeTrackIndex)) return state.activeTrackIndex;
-        const learning = host.langPrefs()?.learning;
-        const word = learning ? labelForLanguage(learning) : '';
-        return own.find(({ t }) => word && languageOf(t.name) === word)?.i ?? own[0]?.i ?? -1;
+        const learning = learningIndex();
+        return learning !== -1 ? learning : own[0]?.i ?? -1;
     };
 
     const ensureOverlay = () => {
         if (!state.overlayEnabled) ui.toggleOverlay();
     };
-    // Any other choice ends a running translation, as the sidebar's "on" does.
-    const stopAi = () => aiStop?.();
 
     const items = (): Item[][] => {
         const own = ownTracks();
         const main = mainIndex();
         const shown = state.overlayEnabled;
         const dual = state.displayMode === 'dual';
+        // One line, or none: a running translation only pauses (Single pauses
+        // it), so coming back to two lines carries on without asking again.
         const singles: Item[] = own.map(({ t, i }) => ({
             label: trackLabel(t.name),
             checked: shown && !dual && state.activeTrackIndex === i,
             pick: () => {
-                stopAi();
                 state.activeTrackIndex = i;
                 ui.setMode('single');
                 ensureOverlay();
                 ui.refresh();
             },
         }));
-        const mainTrack = state.tracks[main];
         const pairs: Item[] = [];
+        const mainTrack = state.tracks[main];
         if (mainTrack) {
-            const head = trackLabel(mainTrack.name);
+            const first = mainTrack.name;
             for (const { t, i } of own) {
-                if (i === main || languageOf(t.name) === languageOf(mainTrack.name)) continue;
+                if (i === main || languageOf(t.name) === languageOf(first)) continue;
+                const second = t.name;
                 pairs.push({
-                    label: `${head} + ${trackLabel(t.name)}`,
+                    label: `${trackLabel(first)} + ${trackLabel(second)}`,
                     checked: shown && dual && !aiStop && state.secondaryTrackIndex === i,
+                    // The site's own second line takes the AI translation's place,
+                    // as its "on" does: the translation stops.
                     pick: () => {
-                        stopAi();
-                        state.activeTrackIndex = main;
-                        state.secondaryTrackIndex = i;
+                        aiStop?.();
+                        state.activeTrackIndex = indexOf(first);
+                        state.secondaryTrackIndex = indexOf(second);
                         ui.setMode('dual');
                         ensureOverlay();
                         ui.refresh();
                     },
                 });
             }
-            const native = host.langPrefs()?.native;
-            if (native && state.secondLineOnDemand) {
-                pairs.push({
-                    label: `${head} + ${nativeForLanguage(native)}`,
-                    ai: true,
-                    checked: shown && dual && !!aiStop,
-                    title: capitalize(msg('ytAiOfferCost', 'uses AI credits')),
-                    pick: () => pickAi(main),
-                });
-            }
         }
+        // The AI pair always starts from the language being learned: that is
+        // the track the translation is made from.
+        const native = host.langPrefs()?.native;
+        const source = state.tracks[learningIndex()];
+        if (native && source && state.secondLineOnDemand) {
+            pairs.push({
+                label: `${trackLabel(source.name)} + ${nativeForLanguage(native)}`,
+                ai: true,
+                checked: shown && dual && !!aiStop,
+                title: costTitle(),
+                pick: () => pickAi(source.name),
+            });
+        }
+        const at = own.findIndex(({ i }) => i === state.activeTrackIndex);
         // Dual with nothing to put second shows one line: that line is the
         // checked one, not nothing.
-        const at = own.findIndex(({ i }) => i === state.activeTrackIndex);
         if (shown && dual && at !== -1 && !pairs.some((p) => p.checked)) singles[at].checked = true;
         const off: Item = {
             label: msg('rzCcOff', 'Off'),
             checked: !shown,
+            // Only the on-screen lines go; the sidebar, and a running
+            // translation, stay.
             pick: () => {
-                stopAi();
                 if (state.overlayEnabled) ui.toggleOverlay();
             },
         };
         return [singles, pairs, [off]].filter((g) => g.length);
     };
 
-    // The AI pair: Dual on the first line makes the offer, then the offer is
-    // taken, after the one question unless the viewer said not to ask.
-    const pickAi = (main: number): void | 'stay' => {
-        if (aiStop) {
-            ui.setMode('dual');
-            ensureOverlay();
-            return;
-        }
-        state.activeTrackIndex = main;
+    // The AI pair: Dual on the language being learned makes the offer, then
+    // the offer is taken, after the one question unless the viewer said not to
+    // ask.
+    const pickAi = (sourceName: string): void | 'stay' => {
+        state.activeTrackIndex = indexOf(sourceName);
         ui.setMode('dual');
         ensureOverlay();
         ui.refresh();
+        if (aiStop) return;
         const start = aiStart;
         if (!start) return;
         if (aiOff) return start();
@@ -215,10 +238,10 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         const back = doc.createElement('button');
         back.type = 'button';
         back.className = 'vtt-cc-head vtt-cc-back';
-        const main = state.tracks[mainIndex()];
+        const source = state.tracks[learningIndex()];
         const native = host.langPrefs()?.native ?? '';
         const label = doc.createElement('span');
-        label.textContent = `‹ ${main ? trackLabel(main.name) : ''} + ${nativeForLanguage(native)}`;
+        label.textContent = `‹ ${source ? trackLabel(source.name) : ''} + ${nativeForLanguage(native)}`;
         back.append(label, aiChip());
         back.addEventListener('click', () => {
             page = 'list';
@@ -246,25 +269,18 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         parts.yes.focus();
     };
 
-    const onOutside = (e: Event) => {
-        const t = e.target as Node | null;
-        if (t && (menu?.contains(t) || button?.contains(t))) return;
-        close();
-    };
-    const onKey = (e: KeyboardEvent) => {
-        if (!menu) return;
-        if (e.key === 'Escape') {
-            e.stopPropagation();
-            close();
-            return;
-        }
-        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    // Arrow keys walk the menu's buttons, wrapping at both ends.
+    const onArrow = (e: KeyboardEvent) => {
+        if (!menu || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
         const all = [...menu.querySelectorAll<HTMLElement>('button')];
+        if (!all.length) return;
+        const down = e.key === 'ArrowDown';
         const at = all.indexOf(doc.activeElement as HTMLElement);
-        const next = all[(at + (e.key === 'ArrowDown' ? 1 : all.length - 1)) % all.length];
-        next?.focus();
+        const next = at === -1 ? (down ? 0 : all.length - 1) : (at + (down ? 1 : all.length - 1)) % all.length;
+        all[next].focus();
         e.preventDefault();
     };
+    const keepInMenu = (e: Event) => e.stopPropagation();
 
     const open = () => {
         if (!button) return;
@@ -273,6 +289,8 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         menu.className = 'vtt-cc-menu';
         menu.setAttribute('role', 'menu');
         menu.setAttribute('aria-label', msg('ytSidebarTitle', 'Subtitles'));
+        menu.addEventListener('keydown', onArrow);
+        for (const type of KEPT_IN_MENU) menu.addEventListener(type, keepInMenu);
         page = 'list';
         // Above the CC button, its right edge under the button's.
         const r = root.getBoundingClientRect();
@@ -281,8 +299,7 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         menu.style.bottom = `${Math.max(8, Math.round(r.bottom - b.top + 8))}px`;
         root.appendChild(menu);
         render();
-        doc.addEventListener('pointerdown', onOutside, true);
-        doc.addEventListener('keydown', onKey, true);
+        undismiss = dismissOn(doc, () => [menu, button], () => close());
         (menu.querySelector<HTMLElement>('[aria-checked="true"]') ?? menu.querySelector<HTMLElement>('.vtt-cc-item'))?.focus();
     };
 
@@ -291,46 +308,37 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         menu.remove();
         menu = null;
         page = 'list';
-        doc.removeEventListener('pointerdown', onOutside, true);
-        doc.removeEventListener('keydown', onKey, true);
+        undismiss();
     }
 
-    // Until a track loads there is nothing of ours to pick: the player's menu
-    // opens as before.
+    // One listener for the whole page, ahead of the player's own: a press on
+    // the CC button opens ours. Until a track loads there is nothing of ours
+    // to pick, and the player's menu opens as before.
     const swallow = (e: Event) => {
-        if (!ownTracks().length) return;
+        // Left behind by an extension reload: let go, so the fresh copy (or
+        // the player) gets the button.
+        if (isContextOrphaned()) return destroy();
+        const cc = ccButtonOf(e.target);
+        if (!cc || !ownTracks().length) return;
         e.stopImmediatePropagation();
         e.preventDefault();
         if (e.type !== 'click') return;
-        if (menu) close();
-        else open();
+        if (menu && button === cc) return close();
+        close();
+        button = cc;
+        open();
     };
-
-    const bind = () => {
-        const bg = doc.querySelector(CC_BG);
-        const holder = bg?.parentElement?.parentElement;
-        if (!holder || bound.has(holder)) return;
-        if (button && button !== holder) close();
-        bound.add(holder);
-        button = holder;
-        for (const type of SWALLOWED) holder.addEventListener(type, swallow, true);
-    };
-    // The player rebuilds its controls on a new translator or episode.
-    let queued = false;
-    const observer = new MutationObserver(() => {
-        if (queued) return;
-        queued = true;
-        requestAnimationFrame(() => {
-            queued = false;
-            bind();
-        });
-    });
-    observer.observe(doc.documentElement, { childList: true, subtree: true });
-    bind();
+    for (const type of SWALLOWED) doc.addEventListener(type, swallow, true);
 
     const unsubscribe = state.subscribe(() => {
         if (menu && page === 'list') render();
     });
+
+    function destroy(): void {
+        close();
+        for (const type of SWALLOWED) doc.removeEventListener(type, swallow, true);
+        unsubscribe();
+    }
 
     return {
         offer(start, off) {
@@ -344,11 +352,7 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
             aiStop = stop;
             if (menu && page === 'list') render();
         },
-        destroy() {
-            close();
-            observer.disconnect();
-            unsubscribe();
-        },
+        destroy,
     };
 }
 
@@ -362,8 +366,4 @@ function playerRoot(button: HTMLElement): HTMLElement {
         el = el.parentElement;
     }
     return best;
-}
-
-function capitalize(s: string): string {
-    return s.charAt(0).toLocaleUpperCase() + s.slice(1);
 }

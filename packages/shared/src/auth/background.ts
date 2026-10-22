@@ -2,6 +2,7 @@
 // GA4 api_secret and must never be pulled into a content-script bundle.
 import { handleTrackMessage, track } from '../analytics-bg';
 import { config } from './config';
+import { CLAIM, RELEASE, claim as claimAiTab, release as releaseAiTab } from '../subtitle-ai/one-tab';
 // Static, not dynamic: a dynamic import() makes Vite emit sibling .mjs chunks
 // that an MV3 service worker cannot load. Static keeps one file, and the
 // __EXT_ENV__ literal guards below still drop this module from prod bundles.
@@ -92,6 +93,8 @@ export type AuthAction =
     | 'LIMIT_REFUSED'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
+    | 'SUBTITLE_AI_CLAIM'
+    | 'SUBTITLE_AI_RELEASE'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
@@ -126,6 +129,8 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'LIMIT_REFUSED',
     'SUBTITLE_AI_PART',
     'SUBTITLE_AI_STORE',
+    'SUBTITLE_AI_CLAIM',
+    'SUBTITLE_AI_RELEASE',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -591,6 +596,9 @@ export async function handleAuthMessage(
     if (request.action === 'SUBTITLE_AI_PART' || request.action === 'SUBTITLE_AI_STORE') {
         return handleSubtitleAi(request);
     }
+    // One tab translates at a time (subtitle-ai/one-tab.ts).
+    if (request.action === CLAIM) return claimAiTab(sender?.tab?.id);
+    if (request.action === RELEASE) return releaseAiTab(sender?.tab?.id);
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();

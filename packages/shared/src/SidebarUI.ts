@@ -58,7 +58,7 @@ import {
 import { downloadTrack, isDownloadable } from './subtitle-download';
 import { msg } from './i18n';
 import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
-import { buildConfirm, confirmSkipped } from './subtitle-ai/confirm';
+import { buildConfirm, confirmSkipped, costTitle, dismissOn } from './subtitle-ai/confirm';
 import { AI_SUFFIX } from './subtitle-ai/controller';
 import { aiTrackLabel, trackLabel } from './track-label';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
@@ -570,7 +570,7 @@ export class SidebarUI {
             aiBanner.hidden = !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
         };
         const cost = msg('ytAiOfferCost', 'uses AI credits');
-        const costSentence = cost.charAt(0).toLocaleUpperCase() + cost.slice(1);
+        const costSentence = costTitle();
         // The row ends in the state's own word, "on" or "off", in the link
         // colour: clicking the word flips it. No switch, no extra words.
         const stateWord = (on: boolean, act: () => void): HTMLButtonElement => {
@@ -590,16 +590,12 @@ export class SidebarUI {
         // "Don't ask again" is ticked; each turn-on spends AI credits.
         let confirmBox: HTMLElement | null = null;
         let confirmAnchor: HTMLElement | null = null;
-        const onOutside = (e: Event) => {
-            const t = e.target as Node | null;
-            if (t && (confirmBox?.contains(t) || confirmAnchor?.contains(t))) return;
-            closeConfirm(false);
-        };
+        let undismiss = () => {};
         const closeConfirm = (focusBack: boolean) => {
             if (!confirmBox) return;
             confirmBox.remove();
             confirmBox = null;
-            document.removeEventListener('pointerdown', onOutside, true);
+            undismiss();
             const anchor = confirmAnchor;
             confirmAnchor = null;
             anchor?.setAttribute('aria-expanded', 'false');
@@ -626,11 +622,6 @@ export class SidebarUI {
             row.className = 'vtt-ai-confirm-row';
             row.append(parts.dontAsk, actions);
             box.append(text, row);
-            box.addEventListener('keydown', (e) => {
-                if (e.key !== 'Escape') return;
-                e.stopPropagation();
-                closeConfirm(true);
-            });
             // Under what opened it, its tip pointing there.
             const a = anchor.getBoundingClientRect();
             const h = host.getBoundingClientRect();
@@ -640,7 +631,7 @@ export class SidebarUI {
             confirmBox = box;
             confirmAnchor = anchor;
             anchor.setAttribute('aria-expanded', 'true');
-            document.addEventListener('pointerdown', onOutside, true);
+            undismiss = dismissOn(document, () => [confirmBox, confirmAnchor], closeConfirm);
             parts.yes.focus();
         };
 

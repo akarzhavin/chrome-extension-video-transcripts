@@ -40,6 +40,12 @@ function player(): { root: HTMLElement; cc: HTMLElement } {
     return { root: document.getElementById('oframecdnplayer')!, cc: document.getElementById('hit')! };
 }
 
+// Each menu listens on the document: one per test, taken down after it.
+const installed: { destroy(): void }[] = [];
+afterEach(() => {
+    for (const c of installed.splice(0)) c.destroy();
+});
+
 function setup(opts: { native?: string } = {}) {
     const { root, cc } = player();
     const state = new AppState();
@@ -59,6 +65,7 @@ function setup(opts: { native?: string } = {}) {
         ui,
         langPrefs: () => ({ learning: 'en', native: opts.native ?? 'uk' }),
     });
+    installed.push(controls);
     const menu = () => root.querySelector<HTMLElement>('.vtt-cc-menu');
     const items = () => [...(menu()?.querySelectorAll<HTMLButtonElement>('.vtt-cc-item') ?? [])];
     const labels = () => items().map((b) => b.textContent);
@@ -232,14 +239,95 @@ describe('the AI pair', () => {
         expect(s.menu()).toBeNull();
     });
 
-    test('while it runs it is the checked pair, and any other choice turns it off', () => {
-        const s = withAi();
-        const stop = jest.fn();
+    // A running translation's track sits between the site's: English 0,
+    // Ukrainian · AI 1, Russian 2. Stopping it drops the AI track.
+    function running() {
+        const s = setup();
+        s.state.addTrack('English — English', cues(5));
+        s.state.addTrack('Ukrainian · AI', cues(5));
+        s.state.addTrack('Russian — Русский', cues(5));
+        s.state.secondLineOnDemand = true;
         s.state.setDisplayMode('dual');
+        s.state.activeTrackIndex = 0;
+        s.state.secondaryTrackIndex = 1;
+        const stop = jest.fn(() => s.state.removeTrack('Ukrainian · AI'));
         s.controls.stop(stop);
+        return { ...s, stop };
+    }
+
+    test('while it runs it is the checked pair; a site pair turns it off and shows that pair', () => {
+        const s = running();
         s.click();
         expect(s.checked()).toEqual(['English + УкраїнськаAI']);
         s.item('English + Русский').click();
-        expect(stop).toHaveBeenCalledTimes(1);
+        expect(s.stop).toHaveBeenCalledTimes(1);
+        // Found again by name: Russian moved from 2 to 1 when the AI track went.
+        expect(s.state.tracks[s.state.secondaryTrackIndex].name).toBe('Russian — Русский');
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English — English');
     });
+
+    test('one line or Off only pauses it: the choice is kept', () => {
+        const s = running();
+        s.click();
+        s.item('Русский').click();
+        expect(s.stop).not.toHaveBeenCalled();
+        expect(s.state.displayMode).toBe('single');
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('Russian — Русский');
+        s.click();
+        s.item('Off').click();
+        expect(s.stop).not.toHaveBeenCalled();
+        expect(s.state.overlayEnabled).toBe(false);
+    });
+
+    test('the AI pair is named, and starts, from the language being learned, whatever shows', async () => {
+        const s = withAi();
+        s.state.activeTrackIndex = 1;
+        s.state.setDisplayMode('single');
+        s.click();
+        expect(s.labels()).toContain('English + УкраїнськаAI');
+        expect(s.labels()).not.toContain('Русский + УкраїнськаAI');
+        s.controls.offer(jest.fn(), true);
+        s.item('English + УкраїнськаAI').click();
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English — English');
+    });
+});
+
+test('presses and keys inside the menu do not reach the player', () => {
+    const s = setup();
+    s.state.addTrack('English — English', cues(5));
+    const player = jest.fn();
+    for (const type of ['click', 'pointerdown', 'keydown']) s.root.addEventListener(type, player);
+    s.click();
+    player.mockClear();
+    const item = s.item('Off');
+    item.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    item.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    expect(player).not.toHaveBeenCalled();
+});
+
+test('the arrow keys wrap, from no focused button too', () => {
+    const s = setup();
+    s.state.addTrack('English — English', cues(5));
+    s.click();
+    const buttons = [...s.menu()!.querySelectorAll('button')];
+    (document.activeElement as HTMLElement | null)?.blur();
+    s.menu()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    expect(document.activeElement).toBe(buttons[buttons.length - 1]);
+    s.menu()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(buttons[0]);
+});
+
+test('left behind by an extension reload, it lets go of the CC button', () => {
+    const s = setup();
+    s.state.addTrack('English — English', cues(5));
+    const id = (global as any).chrome.runtime.id;
+    (global as any).chrome.runtime.id = undefined;
+    try {
+        expect(s.click().defaultPrevented).toBe(false);
+        (global as any).chrome.runtime.id = id;
+        expect(s.click().defaultPrevented).toBe(false);
+        expect(s.menu()).toBeNull();
+    } finally {
+        (global as any).chrome.runtime.id = id;
+    }
 });

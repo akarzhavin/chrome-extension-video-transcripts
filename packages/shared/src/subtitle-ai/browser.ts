@@ -3,11 +3,12 @@
 import type { AppState } from '../AppState';
 import { platformOf } from '../analytics';
 import { onLanguagePrefsChanged, type LanguagePrefs } from '../languages';
-import { sendMessageGuarded } from '../messaging';
+import { notifyWorker, sendMessageGuarded } from '../messaging';
 import { gateOpen, watchGate } from '../features/store';
 import { loadPrefs, onPrefsChanged } from '../prefs';
 import type { SidebarUI } from '../SidebarUI';
 import { attachAiTranslation, type AttachDeps } from './attach';
+import { CLAIM, RELEASE, YIELD } from './one-tab';
 import type { SecondCandidate } from './second';
 
 /** What both apps have: their state, their sidebar and the language pair, read when needed. */
@@ -98,6 +99,27 @@ export function browserAiDeps(): AttachDeps {
         },
         hintAllowed: () => gateOpen('hint'),
         chosen: chosenTracks,
+        oneTab: {
+            claim: () => notifyWorker(CLAIM),
+            release: () => notifyWorker(RELEASE),
+            onYield: (cb) => {
+                try {
+                    chrome.runtime.onMessage.addListener((m: { action?: string } | undefined) => {
+                        if (m?.action === YIELD) cb();
+                        return false;
+                    });
+                } catch {
+                    /* orphaned context: nothing runs here to pause */
+                }
+            },
+            // Back to this tab: in view again, or its window focused.
+            onReturn: (cb) => {
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') cb();
+                });
+                window.addEventListener('focus', () => cb());
+            },
+        },
         later: (fn, ms) => {
             setTimeout(fn, ms);
         },

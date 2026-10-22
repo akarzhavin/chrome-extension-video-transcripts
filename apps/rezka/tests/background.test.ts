@@ -137,14 +137,14 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('DISMISS_NOTIFICATION')).toBe(true);
     });
 
-    test('the registry holds exactly the twenty-one non-dev actions', () => {
+    test('the registry holds exactly the twenty-three non-dev actions', () => {
         // Fails loudly when an action is added to the union but not the Set —
         // which it did twice during this feature, for REMOVE_WORD and then for
         // SYNC_WORDS, exactly as intended. A name present in only one of the
         // two type-checks cleanly and is then dropped by isAuthAction with no
         // error at all: the message is never handled and the caller's promise
         // never settles.
-        expect(AUTH_ACTIONS.size).toBe(21);
+        expect(AUTH_ACTIONS.size).toBe(23);
         // Named as well as counted: a count alone stays green if one action is
         // added while another is dropped in the same edit.
         expect(AUTH_ACTIONS.has('ADD_WORD')).toBe(true);
@@ -158,6 +158,8 @@ describe('message action registry', () => {
         expect(AUTH_ACTIONS.has('LIMIT_REFUSED')).toBe(true);
         expect(AUTH_ACTIONS.has('SUBTITLE_AI_PART')).toBe(true);
         expect(AUTH_ACTIONS.has('SUBTITLE_AI_STORE')).toBe(true);
+        expect(AUTH_ACTIONS.has('SUBTITLE_AI_CLAIM')).toBe(true);
+        expect(AUTH_ACTIONS.has('SUBTITLE_AI_RELEASE')).toBe(true);
     });
 
     test('the AI translation actions pass in a production build too', () => {

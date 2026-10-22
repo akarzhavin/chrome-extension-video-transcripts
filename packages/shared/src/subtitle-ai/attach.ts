@@ -36,6 +36,11 @@ export interface AttachDeps extends BrowserSide {
     onTranslationAllowed?(cb: (allowed: boolean) => void): void;
     /** The tracks the viewer chose to translate, kept on the device; absent, none are remembered. */
     chosen?: { load(): Promise<string[]>; add(key: string): void; remove(key: string): void };
+    /**
+     * One tab translates at a time (one-tab.ts): claimed on start and on the
+     * viewer's return to the tab, released on stop; onYield, another tab took it.
+     */
+    oneTab?: { claim(): void; release(): void; onYield(cb: () => void): void; onReturn(cb: () => void): void };
 }
 
 export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
@@ -45,6 +50,8 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     // account the server then refuses.
     let allowed = !deps.onTranslationAllowed;
     let t: AiTranslator | null = null;
+    // Another tab took the translation: paused here until the viewer is back.
+    let yielded = false;
     const { state } = app;
     // AI translation spends the viewer's AI credits, so it starts only on a
     // track the viewer asked for: by taking the offer, now or on an earlier
@@ -68,6 +75,8 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         if (!t) return;
         t.stop();
         t = null;
+        yielded = false;
+        deps.oneTab?.release();
         app.offerStop?.(null);
         app.setStatus?.(null);
     };
@@ -118,10 +127,12 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             app.offerStop?.(() => {
                 if (t === running) turnOff(key);
             });
+            yielded = false;
+            deps.oneTab?.claim();
             running.start(source!);
             return;
         }
-        t.setPaused(state.displayMode !== 'dual');
+        t.setPaused(state.displayMode !== 'dual' || yielded);
     };
 
     state.subscribe((e: StateEvent) => {
@@ -136,6 +147,17 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         sync();
     });
     deps.onPairChange(sync);
+    deps.oneTab?.onYield(() => {
+        if (!t) return;
+        yielded = true;
+        sync();
+    });
+    deps.oneTab?.onReturn(() => {
+        if (!t || !yielded) return;
+        yielded = false;
+        deps.oneTab?.claim();
+        sync();
+    });
     deps.onSeek(() => t?.viewerEvent());
     deps.onTranslationAllowed?.((on) => {
         allowed = on;

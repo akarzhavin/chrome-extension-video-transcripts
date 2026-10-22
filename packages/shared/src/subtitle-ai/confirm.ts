@@ -32,6 +32,35 @@ export async function creditsLeftText(): Promise<string | null> {
     return msg('ytAiConfirmLeft', '$1 credits left today', [formatTokens(tokensLeft(b.day))]);
 }
 
+/** "Uses AI credits", as a sentence: the tooltip and description of every way to turn it on. */
+export function costTitle(): string {
+    const cost = msg('ytAiOfferCost', 'uses AI credits');
+    return cost.charAt(0).toLocaleUpperCase() + cost.slice(1);
+}
+
+/**
+ * Closes a popup on a press outside it (and outside what opened it) or on
+ * Escape, which also says so (`byKey`) so focus can go back. Returns the remover.
+ */
+export function dismissOn(doc: Document, inside: () => (Node | null)[], close: (byKey: boolean) => void): () => void {
+    const outside = (e: Event) => {
+        const t = e.target as Node | null;
+        if (t && inside().some((n) => n?.contains(t))) return;
+        close(false);
+    };
+    const key = (e: KeyboardEvent) => {
+        if (e.key !== 'Escape') return;
+        e.stopPropagation();
+        close(true);
+    };
+    doc.addEventListener('pointerdown', outside, true);
+    doc.addEventListener('keydown', key, true);
+    return () => {
+        doc.removeEventListener('pointerdown', outside, true);
+        doc.removeEventListener('keydown', key, true);
+    };
+}
+
 /** The question's controls, built for whichever surface shows them. */
 export interface ConfirmParts {
     title: HTMLElement;
@@ -56,7 +85,7 @@ export function buildConfirm(doc: Document, idPrefix: string, done: (yes: boolea
         if (!text) return;
         left.textContent = text;
         left.hidden = false;
-    });
+    }, () => undefined);
 
     const dontAsk = doc.createElement('label');
     const box = doc.createElement('input');

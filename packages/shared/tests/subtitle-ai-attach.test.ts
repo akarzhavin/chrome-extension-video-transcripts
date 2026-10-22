@@ -30,6 +30,9 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
     let pairListener: () => void = () => {};
     let seekListener: () => void = () => {};
     let allowedListener: (on: boolean) => void = () => {};
+    let yieldListener: () => void = () => {};
+    let returnListener: () => void = () => {};
+    const tabLog: string[] = [];
     const timers: (() => void)[] = [];
     const sent: Sent[] = [];
     let time = 0;
@@ -52,6 +55,12 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         later: (fn) => { timers.push(fn); },
         currentTime: () => time,
         ...(opts.hint === undefined ? {} : { hintAllowed: async () => opts.hint! }),
+        oneTab: {
+            claim: () => { tabLog.push('claim'); },
+            release: () => { tabLog.push('release'); },
+            onYield: (cb) => { yieldListener = cb; },
+            onReturn: (cb) => { returnListener = cb; },
+        },
         chosen: {
             load: async () => [...chosen],
             add: (key) => { chosen.push(key); },
@@ -102,6 +111,11 @@ function setup(opts: { forced?: boolean; prefs?: LanguagePrefs | null; reply?: (
         },
         setForced: (on: boolean) => forcedListener(on),
         setAllowed: (on: boolean) => allowedListener(on),
+        tabLog,
+        /** Another tab claimed the translation. */
+        yieldTab: () => yieldListener(),
+        /** The viewer came back to this tab. */
+        returnTab: () => returnListener(),
         setPair: (p: LanguagePrefs | null) => { prefs = p; pairListener(); },
         aiNames: () => state.tracks.map((t) => t.name),
     };
@@ -374,6 +388,42 @@ describe('attachAiTranslation waits to be asked', () => {
         await settle();
         expect(s.sent).toHaveLength(0);
         expect(s.offered()).toBe(false);
+    });
+
+    test('one tab at a time: it claims on start, pauses when another tab takes it, claims back on return', async () => {
+        const s = setup();
+        s.state.addTrack('English', cues(200));
+        await settle();
+        expect(s.tabLog).toEqual(['claim']);
+        await s.runTimers();
+        const asked = s.sent.length;
+        expect(asked).toBeGreaterThan(0);
+
+        s.yieldTab();
+        s.seeked();
+        await s.runTimers();
+        expect(s.sent).toHaveLength(asked);
+
+        s.returnTab();
+        await settle();
+        expect(s.tabLog).toEqual(['claim', 'claim']);
+        s.seek(150);
+        s.seeked();
+        await s.runTimers();
+        expect(s.sent.length).toBeGreaterThan(asked);
+    });
+
+    test('a return without a running translation claims nothing; stopping releases', async () => {
+        const s = setup({ accept: false });
+        s.state.addTrack('English', cues(10));
+        await settle();
+        s.returnTab();
+        expect(s.tabLog).toEqual([]);
+        s.accept();
+        await settle();
+        s.turnOff();
+        await settle();
+        expect(s.tabLog).toEqual(['claim', 'release']);
     });
 
     test('a running translation can be turned off: it stops, forgets the choice and offers again', async () => {
