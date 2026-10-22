@@ -466,6 +466,8 @@ export abstract class BaseVttApp implements AppInterface {
     }
 
     applyLangPrefsToState(): void {
+        this.state.languagePair = this.langPrefs ?? undefined;
+        this.state.pickerLanguages = SUPPORTED_LANGUAGES.map((l) => l.code);
         if (!this.langPrefs) return;
         this.state.setLanguagePreferences(
             labelForLanguage(this.langPrefs.learning),

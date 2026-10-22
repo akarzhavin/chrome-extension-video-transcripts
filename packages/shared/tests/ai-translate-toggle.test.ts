@@ -236,6 +236,25 @@ describe('the native-language picker', () => {
         expect(start).toHaveBeenCalledTimes(1);
     });
 
+    test('lists the other languages of the edition, and picking one makes it the native language', async () => {
+        const { ui, state } = withTracks();
+        state.languagePair = { learning: 'en', native: 'uk' };
+        state.pickerLanguages = ['en', 'ru', 'uk', 'de'];
+        ui.refresh();
+        const group = sub().querySelector('optgroup')!;
+        expect(group.label).toBe('Other languages');
+        // English and Russian load as tracks, Ukrainian is the AI item: only German is left.
+        expect([...group.querySelectorAll('option')].map((o) => o.text)).toEqual(['Deutsch']);
+        pick('lang:de');
+        await flush();
+        expect(prefsStore['lang.v1']).toEqual({ learning: 'en', native: 'de' });
+    });
+
+    test('without a pair or a language list it lists the tracks alone', () => {
+        withTracks();
+        expect(sub().querySelector('optgroup')).toBeNull();
+    });
+
     test('picking it asks once, then starts', async () => {
         const { ui } = withTracks();
         const start = jest.fn();

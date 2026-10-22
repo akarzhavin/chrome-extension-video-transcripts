@@ -55,6 +55,13 @@ export class AppState {
     secondLineOnDemand = false;
     /** The language that translation would be in, while secondLineOnDemand. */
     secondLineLanguage?: string;
+    /** The viewer's language pair (codes), as the app last read it. */
+    languagePair?: { learning: string; native: string };
+    /**
+     * Languages the native picker offers beyond the loaded tracks; picking one
+     * changes the pair. Unset: the picker lists the tracks alone.
+     */
+    pickerLanguages?: string[];
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;

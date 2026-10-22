@@ -473,6 +473,8 @@ export class VttApp implements AppInterface {
     // heuristic. Track names from generateTrackName ("English"/"Russian"/…)
     // match the English labels here, so the ordering actually takes effect.
     applyLangPrefsToState(): void {
+        this.state.languagePair = this.langPrefs ?? undefined;
+        this.state.pickerLanguages = SUBTITLE_LANGUAGES;
         if (!this.langPrefs) {
             this.state.setLanguagePreferences(undefined, undefined);
             return;

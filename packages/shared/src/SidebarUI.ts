@@ -60,7 +60,8 @@ import { msg } from './i18n';
 import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { buildConfirm, confirmSkipped, costTitle, dismissOn } from './subtitle-ai/confirm';
 import { AI_SUFFIX } from './subtitle-ai/controller';
-import { aiTrackLabel, trackLabel } from './track-label';
+import { aiTrackLabel, trackLabel, trackLanguageCode } from './track-label';
+import { nativeForLanguage, saveLanguagePrefs } from './languages';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 import { mountAIBadge } from './ai-balance/badge';
 
@@ -2473,6 +2474,14 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
+        if (role === 'native' && value.startsWith('lang:')) {
+            const pair = this.state.languagePair;
+            if (pair) void saveLanguagePrefs({ learning: pair.learning, native: value.slice(5) }, 'sidebar');
+            // The tracks of the new pair arrive with the change; until then
+            // the picker shows what is on screen.
+            this.updateControls();
+            return;
+        }
         if (role === 'native' && value === 'ai') {
             const select = this.elements.subSelect!;
             // The offer stands only in Dual; turning Dual on makes it.
@@ -2577,8 +2586,25 @@ export class SidebarUI {
             });
             // In any mode: picking it in Single turns Dual on first.
             const aiLanguage = this.state.secondLineLanguage;
-            if (this.state.secondLineOnDemand && aiLanguage && !this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX))) {
-                this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
+            const aiOffered = this.state.secondLineOnDemand && !!aiLanguage && !this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX));
+            if (aiOffered) this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage!), 'ai'));
+            // Every other language the edition offers: picking one makes it
+            // the native language, as the popup does.
+            const pair = this.state.languagePair;
+            if (pair && this.state.pickerLanguages?.length) {
+                const listed = new Set<string>([pair.learning]);
+                for (const t of this.state.tracks) {
+                    const code = trackLanguageCode(t.name);
+                    if (code) listed.add(code);
+                }
+                if (aiOffered) listed.add(aiLanguage!);
+                const others = this.state.pickerLanguages.filter((code) => !listed.has(code));
+                if (others.length) {
+                    const group = document.createElement('optgroup');
+                    group.label = msg('ytLangGroupOther', 'Other languages');
+                    for (const code of others) group.appendChild(new Option(nativeForLanguage(code), `lang:${code}`));
+                    this.elements.subSelect.appendChild(group);
+                }
             }
         }
 
