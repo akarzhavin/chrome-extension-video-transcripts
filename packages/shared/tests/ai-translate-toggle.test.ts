@@ -333,7 +333,7 @@ describe('the AI translation alone on the line, stopped', () => {
         expect(banner.classList.contains('vtt-ai-banner-out')).toBe(true);
         // The "on" word is not shown beside a stopped translation.
         const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
-        expect(seen).toBe('The AI limit is reached · Show English · Other track ›');
+        expect(seen).toBe('The AI limit is reached · Show English · Other track ▾');
         expect(button(/^Hide$/)).toBeDefined();
     });
 
@@ -351,12 +351,46 @@ describe('the AI translation alone on the line, stopped', () => {
         expect(seen).toBe('The AI limit is reached');
     });
 
-    test('Other track opens Languages, lit', () => {
-        const { ui, button } = alone();
-        const open = jest.spyOn(ui, 'openSettings');
+    test('Other track opens the subtitle tracks under the line, the AI one first and checked', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStatus('quota');
+        const other = button(/Other track/);
+        expect(other.getAttribute('aria-expanded')).toBe('false');
+        other.click();
+        expect(other.getAttribute('aria-expanded')).toBe('true');
+        const items = [...banner.querySelectorAll('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'English']);
+        expect(items[0].getAttribute('aria-checked')).toBe('true');
+        other.click();
+        expect(banner.querySelector('.vtt-ai-tracks')).toBeNull();
+    });
+
+    test('a loaded track picked there is shown alone on Single; the list closes', () => {
+        const { ui, state, banner, button } = alone();
         ui.setAiStatus('quota');
         button(/Other track/).click();
-        expect(open).toHaveBeenCalledWith('languages');
+        ([...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')].find((li) => li.textContent === 'English')!).click();
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English');
+        expect(state.displayMode).toBe('single');
+        expect(banner.querySelector('.vtt-ai-tracks')).toBeNull();
+    });
+
+    test('on a site that names the title\'s languages (Netflix), the list is those, and a pick loads it', () => {
+        const { ui, state, banner, button } = alone();
+        const load = jest.fn();
+        ui.app.requestLanguageTrack = load;
+        state.languageCatalog = [
+            { code: 'en', label: 'English', available: true },
+            { code: 'pl', label: 'Polish', available: true },
+            { code: 'de', label: 'German', available: false },
+        ];
+        ui.setAiStatus('quota');
+        button(/Other track/).click();
+        const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'English', 'Polish']);
+        items[2].click();
+        expect(load).toHaveBeenCalledWith('learning', 'pl');
+        expect(state.singleTrackName).toBeUndefined();
     });
 
     test('× hides the line until the status changes', () => {

@@ -1033,10 +1033,14 @@
   },
   "ytAiOtherTrack": {
     "message": "其他字幕軌",
-    "description": "The AI translation shown alone stopped: a link that opens the language settings to pick any other subtitle track. Short."
+    "description": "The AI translation shown alone stopped: a link that opens, right under it, the title's subtitle tracks to show another one. Short."
   },
   "ytAiHideLine": {
     "message": "隱藏",
     "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
+  },
+  "ytAiLimitShort": {
+    "message": "已達上限",
+    "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
   }
 }

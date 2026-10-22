@@ -1033,10 +1033,14 @@
   },
   "ytAiOtherTrack": {
     "message": "दुसरा ट्रॅक",
-    "description": "The AI translation shown alone stopped: a link that opens the language settings to pick any other subtitle track. Short."
+    "description": "The AI translation shown alone stopped: a link that opens, right under it, the title's subtitle tracks to show another one. Short."
   },
   "ytAiHideLine": {
     "message": "लपवा",
     "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
+  },
+  "ytAiLimitShort": {
+    "message": "मर्यादा संपली",
+    "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
   }
 }

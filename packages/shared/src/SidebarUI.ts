@@ -615,6 +615,83 @@ export class SidebarUI {
             wayOutClosed = true;
             this.syncAiWayOut();
         });
+        // «Other track ▾»: the title's subtitle tracks, under the line, in
+        // its frame. A pick shows that track alone on Single; the AI one,
+        // shown now, is first and checked. On a site that names the title's
+        // languages (Netflix) a language not loaded yet is fetched; elsewhere
+        // the tracks loaded are the list.
+        let tracksList: HTMLUListElement | null = null;
+        let tracksOpener: HTMLElement | null = null;
+        const closeTracks = () => {
+            tracksList?.remove();
+            tracksList = null;
+            tracksOpener?.setAttribute('aria-expanded', 'false');
+            tracksOpener = null;
+        };
+        const openTracks = (opener: HTMLElement) => {
+            const main = this.state.tracks[this.state.activeTrackIndex];
+            const list = document.createElement('ul');
+            list.className = 'vtt-ai-tracks';
+            list.setAttribute('role', 'menu');
+            list.setAttribute('aria-label', msg('ytSidebarTitle', 'Subtitles'));
+            const item = (label: string, checked: boolean, pick: () => void, ai = false) => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'menuitemradio');
+                li.setAttribute('aria-checked', String(checked));
+                li.tabIndex = 0;
+                const words = document.createElement('span');
+                words.className = 'vtt-ai-track-name';
+                words.textContent = label;
+                if (ai) {
+                    const chip = document.createElement('span');
+                    chip.className = 'vtt-ai-track-chip';
+                    chip.textContent = 'AI';
+                    words.append(chip);
+                }
+                li.append(words);
+                if (ai && aiNow === 'quota') {
+                    const note = document.createElement('span');
+                    note.className = 'vtt-ai-track-note';
+                    note.textContent = msg('ytAiLimitShort', 'limit reached');
+                    li.append(note);
+                }
+                const act = () => {
+                    closeTracks();
+                    pick();
+                };
+                li.addEventListener('click', act);
+                li.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    act();
+                });
+                return li;
+            };
+            if (main?.name.endsWith(AI_SUFFIX)) list.append(item(trackLabel(main.name), true, () => {}, true));
+            const catalog = this.state.languageCatalog?.filter((c) => c.available);
+            const load = this.app.requestLanguageTrack;
+            if (catalog && load) {
+                for (const c of catalog) {
+                    list.append(item(c.label, false, () => {
+                        this.state.setSingleTrack(undefined);
+                        load.call(this.app, 'learning', c.code);
+                        this.refresh();
+                    }));
+                }
+            } else {
+                for (const t of this.state.tracks) {
+                    if (t.name.endsWith(AI_SUFFIX)) continue;
+                    list.append(item(trackLabel(t.name), false, () => {
+                        this.state.setSingleTrack(t.name);
+                        this.refresh();
+                    }));
+                }
+            }
+            aiBanner.append(list);
+            tracksList = list;
+            tracksOpener = opener;
+            opener.setAttribute('aria-expanded', 'true');
+        };
         this.syncAiWayOut = () => {
             const main = this.state.tracks[this.state.activeTrackIndex];
             const stopped = !!aiNow && STOPPED.includes(aiNow);
@@ -627,6 +704,7 @@ export class SidebarUI {
                 if (out) aiBanner.append(aiBannerClose);
                 else aiBannerClose.remove();
                 aiBannerOut.replaceChildren();
+                closeTracks();
                 if (out) {
                     const label = this.state.primaryLangLabel;
                     const learning = this.state.tracks.find((t) => !t.name.endsWith(AI_SUFFIX) && !!label && t.name.includes(label))
@@ -637,11 +715,18 @@ export class SidebarUI {
                             this.refresh();
                         }));
                     }
-                    aiBannerOut.append(' · ', link(`${msg('ytAiOtherTrack', 'Other track')} ›`, () => this.openSettings('languages')));
+                    const other = link(`${msg('ytAiOtherTrack', 'Other track')} ▾`, () => {
+                        if (tracksList) closeTracks();
+                        else openTracks(other);
+                    });
+                    other.setAttribute('aria-expanded', 'false');
+                    other.setAttribute('aria-haspopup', 'menu');
+                    aiBannerOut.append(' · ', other);
                 }
             }
             showBanner();
         };
+
         const cost = msg('ytAiOfferCost', 'uses AI credits');
         const costSentence = costTitle();
         // The row ends in the state's own word, "on" or "off", in the link
