@@ -187,18 +187,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         block.setAttribute('aria-label', 'Lingogram');
         for (const type of KEPT_IN_BLOCK) block.addEventListener(type, (e) => e.stopPropagation());
 
-        // Under our items, before the line: who these are from, and the way
-        // to any other pair.
+        // Under our items, before the line: the way to any other pair.
         const head = doc.createElement('div');
         head.className = 'vtt-nf-head';
-        const name = doc.createElement('span');
-        name.textContent = 'Lingogram ·';
         const choose = doc.createElement('button');
         choose.type = 'button';
         choose.className = 'vtt-nf-choose';
         choose.textContent = `${msg('ytNfChoosePair', 'Choose another pair')} ›`;
         onPress(choose, 'choose', () => ui.openSettings());
-        head.append(name, choose);
+        head.append(choose);
 
         const question = (go: () => void): HTMLElement => {
             const parts = buildConfirm(doc, 'vtt-nf-confirm', (yes) => {

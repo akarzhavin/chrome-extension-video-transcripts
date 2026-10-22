@@ -98,9 +98,9 @@ test('the site has the viewer\'s language: one pair, no AI, on top of the Subtit
     s.state.setDisplayMode('dual');
     await s.open();
     expect(s.labels()).toEqual(['English + Polish']);
-    // Our items first, right under Subtitles; the Lingogram line under them.
+    // Our items first, right under Subtitles; the link to other pairs under them.
     expect(s.block()!.firstElementChild!.classList.contains('vtt-nf-list')).toBe(true);
-    expect(s.block()!.lastElementChild!.textContent).toBe('Lingogram ·Choose another pair ›');
+    expect(s.block()!.lastElementChild!.textContent).toBe('Choose another pair ›');
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
     expect(s.block()!.nextElementSibling).toBe(list);
     expect(s.block()!.querySelector('.vtt-nf-item')!.className).toContain('nf-item');

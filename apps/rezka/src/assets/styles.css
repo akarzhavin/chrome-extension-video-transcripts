@@ -4524,25 +4524,15 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 }
 
 .vtt-nf-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5em;
     padding: 0.1em 0 0.3em var(--vtt-nf-indent, 0px);
-    font-size: calc(var(--vtt-nf-size, 20px) * 0.65);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #777;
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
 }
 
 .vtt-nf-head .vtt-nf-choose {
-    margin-left: 0;
     padding: 0;
     border: 0;
     background: none;
     font: inherit;
-    font-size: 1.08em;
-    letter-spacing: 0;
-    text-transform: none;
     color: #a3a3a3;
     text-decoration: underline;
     text-decoration-color: #555;
