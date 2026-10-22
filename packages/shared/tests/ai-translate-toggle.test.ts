@@ -503,14 +503,32 @@ describe('the credits spent for now', () => {
         expect(seen()).toBe('No subtitles in your language · Translate with AI');
     });
 
-    test('a second line of the site\'s own: no row', async () => {
+    test('another track on the second line: still the one spent row, not «off» or «Translate with AI»', async () => {
         spend();
         const ui = build();
-        ui.state.setLanguagePreferences('English', 'Polish');
+        ui.state.setLanguagePreferences('English', 'Russian');
         ui.state.addTrack('English', [cue('Hi.')]);
         ui.state.addTrack('Polish', [cue('Cześć.')]);
+        ui.state.setDisplayMode('dual');
         ui.setAiOffer(() => {}, true);
         await flush();
-        expect(seen()).toBe('AI translation · off');
+        expect(seen()).toMatch(/^AI limit for today reached, resets at .+ · Other track ▾$/);
+        ui.setAiOffer(() => {});
+        expect(seen()).toMatch(/^AI limit for today reached/);
+        // The list marks what is on the second line now.
+        [...document.querySelectorAll<HTMLElement>('#vtt-ai-banner button')].find((b) => /Other track/.test(b.textContent!))!.click();
+        const items = [...document.querySelectorAll('.vtt-ai-tracks li')];
+        expect(items.map((li) => (li.getAttribute('aria-checked') === 'true' ? '✓' : '') + li.textContent)).toEqual(['✓Polish']);
+        // Nothing asks about credits left: the offer cannot be taken.
+        ui.takeAiOffer(document.getElementById('vtt-ai-banner')!, document.getElementById('vtt-subheader')!);
+        await flush();
+        expect(document.querySelector('.vtt-ai-confirm')).toBeNull();
+    });
+
+    test('nothing about AI on this video (the site has the viewer\'s language): no row', async () => {
+        spend();
+        build();
+        await flush();
+        expect(seen()).toBe('');
     });
 });

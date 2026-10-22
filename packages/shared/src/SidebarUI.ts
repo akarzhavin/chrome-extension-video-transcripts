@@ -678,13 +678,16 @@ export class SidebarUI {
                 return li;
             };
             if (ai && isAi(ai)) list.append(item(trackLabel(ai.name), true, () => {}, true));
+            // The track on that line now, when it is the site's own: checked.
+            const onLine = ai && !isAi(ai) && !(dual && this.state.secondaryTrackIndex === this.state.activeTrackIndex) ? ai : null;
+            const onLineCode = onLine ? trackLanguageCode(onLine.name) : null;
             const first = dual && main ? main.name : null;
             const firstCode = first ? trackLanguageCode(first) : null;
             const catalog = this.state.languageCatalog?.filter((c) => c.available && c.code !== firstCode);
             const load = this.app.requestLanguageTrack;
             if (catalog && load) {
                 for (const c of catalog) {
-                    list.append(item(c.label, false, () => {
+                    list.append(item(c.label, c.code === onLineCode, () => {
                         if (dual) {
                             this.aiStopFn?.();
                             this.state.selectedNativeCode = c.code;
@@ -699,7 +702,7 @@ export class SidebarUI {
             } else {
                 for (const t of this.state.tracks) {
                     if (isAi(t) || t.name === first) continue;
-                    list.append(item(trackLabel(t.name), false, () => {
+                    list.append(item(trackLabel(t.name), t === onLine, () => {
                         if (dual) return this.onTrackSelectChange('native', String(this.state.tracks.indexOf(t)));
                         this.state.setSingleTrack(t.name);
                         this.refresh();
@@ -720,13 +723,12 @@ export class SidebarUI {
             const mode = this.state.displayMode;
             const second = this.state.tracks[this.state.secondaryTrackIndex];
             const shown = (mode === 'single' && isAi(main)) || (mode === 'dual' && isAi(second));
-            // Dual with nothing on the second line (the offer's case).
-            const secondEmpty = mode === 'dual' && (!second || this.state.secondaryTrackIndex === this.state.activeTrackIndex);
-            // Stopped on screen; or the credits spent, with the translation on
-            // screen or offered for an empty second line: the offer ("Translate
-            // with AI", "off") could start nothing, so the row says when it
-            // comes back instead, with the way out.
-            const out = (stopped && shown) || (!!aiSpent && (shown || (!!this.aiOffer && secondEmpty)));
+            // Stopped on screen; or the credits spent while the translation is
+            // anything here (offered, "off", running, stopped): one state, the
+            // limit and when it comes back, with the way out. Nothing offered
+            // then can start, so nothing reads as if it could.
+            const here = !!this.aiOffer || !!this.aiStopFn || !!aiNow || shown;
+            const out = (stopped && shown) || (!!aiSpent && here);
             // "on" turns a running translation off; a stopped one has
             // nothing to turn off, and "on" beside its limit misleads.
             aiBannerStop.hidden = stopped || out;
@@ -842,7 +844,8 @@ export class SidebarUI {
         // on this video it starts at once, else after the one question.
         this.takeAiOffer = (anchor, host) => {
             const offer = this.aiOffer;
-            if (!offer) return;
+            // Spent for now: the row says so; no question about credits left.
+            if (!offer || aiSpent) return;
             if (offer.off) return offer.start();
             void confirmSkipped().then((skip) => {
                 if (this.aiOffer !== offer) return;
