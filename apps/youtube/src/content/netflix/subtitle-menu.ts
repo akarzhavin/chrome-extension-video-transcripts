@@ -158,6 +158,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     const pickAi = (alone: boolean, label: string): void | 'stay' => {
         if (aiStop) return showAi(alone);
         ui.setMode('dual');
+        // A video translated before starts again on Dual, without an offer.
+        if (aiStop) return showAi(alone);
         const start = aiStart;
         if (!start) return;
         const go = () => {
@@ -320,6 +322,19 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (block) list.parentElement.insertBefore(block, list);
         check ??= list.querySelector('svg:not(.vtt-nf-check)');
         markNetflix(panel, list);
+        clearOfSidebar(panel as HTMLElement);
+    }
+
+    // The panel reaches past the video's column, and an open sidebar covered
+    // its right part (our link with it). It lives inside the player's layer,
+    // so it cannot be lifted over the sidebar: it is moved left instead, by
+    // the overlap, for as long as it is open.
+    function clearOfSidebar(panel: HTMLElement): void {
+        panel.style.translate = '';
+        const side = doc.getElementById('vtt-sidebar');
+        if (!side || side.classList.contains('collapsed')) return;
+        const over = panel.getBoundingClientRect().right - side.getBoundingClientRect().left + 8;
+        if (over > 0) panel.style.translate = `${-Math.round(over)}px 0`;
     }
 
     // Netflix re-renders the panel on a pick, and may drop what it did not

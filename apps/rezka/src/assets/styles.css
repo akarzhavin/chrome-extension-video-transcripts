@@ -4630,20 +4630,11 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     color: #000;
 }
 
-/* While Netflix's audio & subtitles panel is open it sits over the sidebar:
-   the panel reaches past the video's column, under the open sidebar, which
-   covered its right part (our link with it). The collapse tab steps aside
-   too. Only for as long as the panel is open. */
+/* While Netflix's audio & subtitles panel is open the sidebar's collapse tab
+   steps aside: it sits over the panel's right edge. (The panel itself is
+   moved clear of an open sidebar in netflix/subtitle-menu.ts.) */
 html.vtt-nf-panel-open #vtt-toggle-btn {
     visibility: hidden;
-}
-
-html.vtt-nf-panel-open [data-uia="selector-audio-subtitle"] {
-    z-index: 2147483647;
-}
-
-html.vtt-nf-panel-open #vtt-sidebar {
-    z-index: 2147483646;
 }
 
 /* Netflix's subtitle list, its picks taken over (netflix/subtitle-menu.ts):

@@ -332,3 +332,23 @@ test('Single picked elsewhere marks Netflix\'s item of the language shown', asyn
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
     expect([...list.querySelectorAll('.vtt-nf-shown')].map((li) => li.textContent)).toEqual(['English (CC)']);
 });
+
+test('a video translated before: Dual starts it again, and the pick still shows it', async () => {
+    const s = (() => {
+        netflix(['English (CC)', 'Polish']);
+        return setup({ native: 'uk', shipped: ['en', 'pl'] });
+    })();
+    s.state.addTrack('English', cues(5));
+    s.state.secondLineOnDemand = true;
+    s.state.secondLineLanguage = 'uk';
+    s.state.setDisplayMode('single');
+    s.state.overlayEnabled = false;
+    // As attachAiTranslation does for a remembered video: Dual starts it, no offer.
+    s.state.subscribe((e) => {
+        if (e.type === 'mode' && e.mode === 'dual') s.controls.stop(jest.fn());
+    });
+    await s.open();
+    s.item('English + УкраїнськаAI').click();
+    expect(s.state.displayMode).toBe('dual');
+    expect(s.state.overlayEnabled).toBe(true);
+});
