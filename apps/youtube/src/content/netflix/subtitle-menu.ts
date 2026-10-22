@@ -322,19 +322,31 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (block) list.parentElement.insertBefore(block, list);
         check ??= list.querySelector('svg:not(.vtt-nf-check)');
         markNetflix(panel, list);
-        clearOfSidebar(panel as HTMLElement);
     }
 
-    // The panel reaches past the video's column, and an open sidebar covered
-    // its right part (our link with it). It lives inside the player's layer,
-    // so it cannot be lifted over the sidebar: it is moved left instead, by
-    // the overlap, for as long as it is open.
+    // With the sidebar open the player is narrower, but Netflix places the
+    // panel as if it were not: the panel's right part (our link with it) was
+    // cut off at the player's edge. The box around the panel is moved left by
+    // the overlap, for as long as it is open. Not the panel itself: that box
+    // clips it, and the panel's left part was cut off instead. Netflix places
+    // the panel again once our block widens it, so this runs every frame the
+    // panel is open, from where Netflix put it.
     function clearOfSidebar(panel: HTMLElement): void {
-        panel.style.translate = '';
-        const side = doc.getElementById('vtt-sidebar');
-        if (!side || side.classList.contains('collapsed')) return;
-        const over = panel.getBoundingClientRect().right - side.getBoundingClientRect().left + 8;
-        if (over > 0) panel.style.translate = `${-Math.round(over)}px 0`;
+        const box = panel.parentElement;
+        const player = panel.closest('[data-uia="watch-video"]');
+        if (!box || !player) return;
+        const shift = parseFloat(box.style.translate) || 0;
+        const edge = player.getBoundingClientRect();
+        const r = box.getBoundingClientRect();
+        const right = r.right - shift;
+        const want = right <= edge.right ? 0 : -Math.round(Math.max(0, Math.min(right - edge.right + 8, r.left - shift - edge.left)));
+        if (want !== shift) box.style.translate = want ? `${want}px 0` : '';
+    }
+
+    function followPanel(panel: HTMLElement): void {
+        if (dead || watched !== panel || !panel.isConnected) return;
+        clearOfSidebar(panel);
+        requestAnimationFrame(() => followPanel(panel));
     }
 
     // Netflix re-renders the panel on a pick, and may drop what it did not
@@ -346,6 +358,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         // A question left up in a panel that closed does not carry over.
         confirming = false;
         doc.documentElement.classList.add(OPEN_CLASS);
+        followPanel(panel as HTMLElement);
         panelObserver = new MutationObserver((records) => {
             if (!panel.isConnected) {
                 panelObserver?.disconnect();
@@ -441,7 +454,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     }
 
     // The panel opens from its button: look for it for a few frames after a
-    // press or a hover there, instead of watching the whole page.
+    // press or a hover there, instead of watching the whole page. Netflix
+    // waits a moment on a hover before it opens the panel.
     let frames = 0;
     const poll = () => {
         if (doc.querySelector(PANEL)) {
@@ -454,7 +468,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (isContextOrphaned()) return destroy();
         if (!(e.target as Element | null)?.closest?.(OPENERS)) return;
         const idle = frames <= 0;
-        frames = 30;
+        frames = 90;
         if (idle) requestAnimationFrame(poll);
     };
     const OPEN_EVENTS = ['pointerover', 'click', 'focusin', 'keydown'] as const;

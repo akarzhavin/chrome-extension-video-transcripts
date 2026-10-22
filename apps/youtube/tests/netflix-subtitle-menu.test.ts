@@ -271,6 +271,37 @@ test('the sidebar tab steps aside while the panel is open', async () => {
     expect(document.documentElement.classList.contains('vtt-nf-panel-open')).toBe(false);
 });
 
+test('a panel reaching past the narrowed player: the box around it moves left, not the panel it clips', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const panel = document.querySelector<HTMLElement>('[data-uia="selector-audio-subtitle"]')!;
+    const player = document.createElement('div');
+    player.setAttribute('data-uia', 'watch-video');
+    const box = document.createElement('div');
+    panel.replaceWith(player);
+    player.append(box);
+    box.append(panel);
+    // As measured live: the player 0–1408 beside the sidebar; Netflix first
+    // puts the box at 931, then, once our block widened it, at 885–1503.
+    let at = 931;
+    jest.spyOn(player, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 1408 } as DOMRect);
+    jest.spyOn(box, 'getBoundingClientRect').mockImplementation(() => {
+        const shift = parseFloat(box.style.translate) || 0;
+        return { left: at + shift, right: at + 618 + shift } as DOMRect;
+    });
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    expect(box.style.translate).toBe('-149px 0');
+    at = 885;
+    await frames();
+    expect(box.style.translate).toBe('-103px 0');
+    expect(panel.style.translate).toBe('');
+    // The sidebar closed: the player is wide again, the box goes back.
+    jest.spyOn(player, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 1728 } as DOMRect);
+    await frames();
+    expect(box.style.translate).toBe('');
+});
+
 test('a press survives Netflix re-rendering the item between pointerdown and pointerup', async () => {
     netflix(['English (CC)', 'Polish']);
     const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
