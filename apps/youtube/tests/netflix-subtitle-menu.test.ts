@@ -138,7 +138,9 @@ describe('the site lacks the viewer\'s language', () => {
         const s = ukrainian();
         s.state.secondLineOnDemand = false;
         await s.open();
-        expect(s.block()?.querySelectorAll('.vtt-nf-item').length ?? 0).toBe(0);
+        expect(s.block()!.querySelectorAll('.vtt-nf-item')).toHaveLength(0);
+        // The way to any other pair stays.
+        expect(s.block()!.querySelector('.vtt-nf-choose')).not.toBeNull();
     });
 
     test('the first pick asks in the column, Translate starts it', async () => {
@@ -152,6 +154,9 @@ describe('the site lacks the viewer\'s language', () => {
         await flush();
         const box = s.block()!.querySelector('.vtt-nf-confirm')!;
         expect(box.textContent).toMatch(/uses credits/);
+        // Under the item that asked, the items still in view.
+        expect(s.labels()).toEqual(['УкраїнськаAI', 'English + УкраїнськаAI']);
+        expect(box.closest('li')!.previousElementSibling!.textContent).toBe('English + УкраїнськаAI');
         [...box.querySelectorAll('button')].find((b) => b.textContent === 'Translate')!.click();
         expect(start).toHaveBeenCalledTimes(1);
         expect(s.state.displayMode).toBe('dual');
@@ -210,5 +215,17 @@ test('a panel Netflix re-renders gets the block back', async () => {
     await s.open();
     s.block()!.remove();
     await frames();
+    expect(s.block()).not.toBeNull();
+});
+
+test('every opening of the panel gets the block, not only the first', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    expect(s.block()).not.toBeNull();
+    // Netflix closes the panel and builds a new one on the next hover.
+    netflix(['English (CC)', 'Polish']);
+    await s.open();
     expect(s.block()).not.toBeNull();
 });

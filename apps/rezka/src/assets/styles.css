@@ -4534,8 +4534,10 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     color: #777;
 }
 
+/* Next to the heading, not at the column's right edge: the sidebar's tab
+   sits over that edge and took the click. */
 .vtt-nf-head .vtt-nf-choose {
-    margin-left: auto;
+    margin-left: 0;
     padding: 0;
     border: 0;
     background: none;

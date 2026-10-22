@@ -54,6 +54,12 @@ export function subtitleList(panel: Element): HTMLUListElement | null {
     return lists.find((ul) => ul.querySelector('[data-uia*="subtitle"]')) ?? lists[lists.length - 1] ?? null;
 }
 
+/** The question about credits, and the item it was asked for. */
+interface Ask {
+    go: () => void;
+    under: string;
+}
+
 interface Item {
     label: string;
     ai: boolean;
@@ -106,13 +112,13 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 label: native,
                 ai: true,
                 checked: shown && !!aiStop && state.aiAlone && state.displayMode === 'single',
-                pick: () => pickAi(true),
+                pick: () => pickAi(true, native),
             },
             {
                 label: `${learning} + ${native}`,
                 ai: true,
                 checked: shown && !!aiStop && dual,
-                pick: () => pickAi(false),
+                pick: () => pickAi(false, `${learning} + ${native}`),
             },
         ];
     };
@@ -128,7 +134,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
 
     // The offer stands only in Dual: Dual makes it, then it is taken, after
     // the one question unless the viewer said not to ask.
-    const pickAi = (alone: boolean): void | 'stay' => {
+    const pickAi = (alone: boolean, label: string): void | 'stay' => {
         if (aiStop) return showAi(alone);
         ui.setMode('dual');
         const start = aiStart;
@@ -141,15 +147,17 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         void confirmSkipped().then((skip) => {
             if (skip) return go();
             confirming = true;
-            render(go);
+            render({ go, under: label });
         });
         return 'stay';
     };
 
-    /** The block, built fresh; `go` set, the question in place of the items. */
-    function build(list: HTMLUListElement, go?: () => void): HTMLElement | null {
+    /** The block, built fresh; `ask` set, the question under the item that asked it. */
+    function build(list: HTMLUListElement, ask?: Ask): HTMLElement | null {
+        // Without items (AI closed, its limit spent) the heading stays: the
+        // link to any other pair is what is left to offer.
+        if (!host.langPrefs()) return null;
         const all = items();
-        if (!all.length && !go) return null;
         const block = doc.createElement('div');
         block.className = BLOCK;
         block.setAttribute('role', 'group');
@@ -168,7 +176,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         head.append(name, choose);
         block.append(head);
 
-        if (go) {
+        const question = (go: () => void): HTMLElement => {
             const parts = buildConfirm(doc, 'vtt-nf-confirm', (yes) => {
                 confirming = false;
                 if (yes) go();
@@ -185,9 +193,9 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             actions.append(parts.notNow, parts.yes);
             row.append(parts.dontAsk, actions);
             box.append(parts.title, parts.left, row);
-            block.append(box);
-            return block;
-        }
+            queueMicrotask(() => parts.yes.focus());
+            return box;
+        };
 
         const ours = doc.createElement('ul');
         ours.className = 'vtt-nf-list';
@@ -196,7 +204,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         // its size, indent and check mark, whatever classes carry them.
         const plain = list.querySelector('li:not([data-uia*="selected"])') ?? list.querySelector('li');
         const selected = list.querySelector('li[data-uia*="selected"]') ?? plain;
-        for (const item of all) ours.append(itemEl(item, item.checked ? selected : plain));
+        for (const item of all) {
+            ours.append(itemEl(item, item.checked ? selected : plain));
+            if (ask && item.label === ask.under) {
+                const holder = doc.createElement('li');
+                holder.setAttribute('role', 'none');
+                holder.append(question(ask.go));
+                ours.append(holder);
+            }
+        }
         block.append(ours);
         // The heading and the question scale with Netflix's item text and
         // start where its words start.
@@ -242,15 +258,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     }
 
     /** Puts the block (back) on top of the Subtitles column of the open panel. */
-    function render(go?: () => void): void {
+    function render(ask?: Ask): void {
         const panel = doc.querySelector(PANEL);
         if (!panel) return;
         watch(panel);
         const list = subtitleList(panel);
         if (!list?.parentElement) return;
-        if (confirming && !go) return;
+        if (confirming && !ask && panel.querySelector(`.${BLOCK}`)) return;
         panel.querySelector(`.${BLOCK}`)?.remove();
-        const block = build(list, go);
+        const block = build(list, ask);
         if (block) list.parentElement.insertBefore(block, list);
     }
 
@@ -260,6 +276,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (watched === panel) return;
         panelObserver?.disconnect();
         watched = panel;
+        // A question left up in a panel that closed does not carry over.
+        confirming = false;
         panelObserver = new MutationObserver(() => {
             if (!panel.isConnected) {
                 panelObserver?.disconnect();
@@ -286,7 +304,10 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     // press or a hover there, instead of watching the whole page.
     let frames = 0;
     const poll = () => {
-        if (doc.querySelector(PANEL)) return render();
+        if (doc.querySelector(PANEL)) {
+            frames = 0;
+            return render();
+        }
         if (--frames > 0) requestAnimationFrame(poll);
     };
     const onOpener = (e: Event) => {
