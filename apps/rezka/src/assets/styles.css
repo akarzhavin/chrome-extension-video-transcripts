@@ -833,6 +833,47 @@
     display: none;
 }
 
+/* The way out of a stopped AI translation shown alone: the lightest frame,
+   edge to edge with the mode bar above, and a × to hide it. */
+.vtt-ai-banner.vtt-ai-banner-out {
+    position: relative;
+    margin: -2px 0 10px;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid var(--vtt-hairline, rgba(255, 255, 255, 0.07));
+    border-radius: 8px;
+}
+
+.vtt-ai-banner-out .vtt-ai-toggle {
+    white-space: nowrap;
+}
+
+.vtt-ai-banner-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--vtt-text-dim);
+    cursor: pointer;
+}
+
+.vtt-ai-banner-close:hover {
+    color: var(--vtt-text);
+}
+
+/* A line the AI translation shown alone has not translated: the original,
+   muted (see fillMainLine). */
+.vtt-untranslated > span {
+    opacity: 0.55;
+}
+
 /* The state's word at the end of the row: "on" turns it off, "off" on. */
 .vtt-ai-toggle {
     padding: 0;

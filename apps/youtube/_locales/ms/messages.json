@@ -1026,5 +1026,17 @@
   "ytNfOptions": {
     "message": "Pilihan",
     "description": "Netflix's audio & subtitles panel: a small button on the Subtitles heading line that opens the extension's sidebar settings. One word."
+  },
+  "ytAiShowTrack": {
+    "message": "Tunjukkan $1",
+    "description": "The AI translation shown alone stopped (its limit spent): a link that shows the subtitle track named by $1 instead, e.g. 'Show English'."
+  },
+  "ytAiOtherTrack": {
+    "message": "Trek lain",
+    "description": "The AI translation shown alone stopped: a link that opens the language settings to pick any other subtitle track. Short."
+  },
+  "ytAiHideLine": {
+    "message": "Sembunyikan",
+    "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
   }
 }

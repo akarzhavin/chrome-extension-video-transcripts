@@ -307,3 +307,79 @@ describe('in a production build', () => {
         expect((await loadPrefs()).aiTranslateForce).toBe(false);
     });
 });
+
+describe('the AI translation alone on the line, stopped', () => {
+    const cue = (text: string, original?: string) => ({ startTime: 0, endTime: 1, text, ...(original ? { original } : {}) });
+    function alone() {
+        const ui = build();
+        const state = ui.state;
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', [cue('It is not safe.')]);
+        state.preferredSecondaryName = 'Russian · AI';
+        state.addTrack('Russian · AI', [cue('', 'It is not safe.')]);
+        state.setDisplayMode('single');
+        state.setSingleTrack('Russian · AI');
+        ui.refresh();
+        const banner = document.getElementById('vtt-ai-banner')!;
+        const button = (text: RegExp) => [...banner.querySelectorAll('button')].find((b) => text.test(b.textContent ?? '') || text.test(b.getAttribute('aria-label') ?? ''))!;
+        return { ui, state, banner, button };
+    }
+
+    test('its limit spent: the line offers the learning track and any other, framed, with a ×', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStop(() => {});
+        ui.setAiStatus('quota');
+        expect(banner.hidden).toBe(false);
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(true);
+        // The "on" word is not shown beside a stopped translation.
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached · Show English · Other track ›');
+        expect(button(/^Hide$/)).toBeDefined();
+    });
+
+    test('Show English puts the learning track on the line; the row goes back to its usual self', () => {
+        const { ui, state, banner, button } = alone();
+        ui.setAiStatus('quota');
+        button(/Show English/).click();
+        expect(state.singleTrackName).toBeUndefined();
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English');
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+        expect(banner.querySelector('.vtt-ai-banner-close')).toBeNull();
+    });
+
+    test('Other track opens Languages, lit', () => {
+        const { ui, button } = alone();
+        const open = jest.spyOn(ui, 'openSettings');
+        ui.setAiStatus('quota');
+        button(/Other track/).click();
+        expect(open).toHaveBeenCalledWith('languages');
+    });
+
+    test('× hides the line until the status changes', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStatus('quota');
+        button(/^Hide$/).click();
+        expect(banner.hidden).toBe(true);
+        ui.refresh();
+        expect(banner.hidden).toBe(true);
+        ui.setAiStatus('unavailable');
+        expect(banner.hidden).toBe(false);
+    });
+
+    test('still translating, or the translation on the second line: no way-out line', () => {
+        const { ui, state, banner } = alone();
+        ui.setAiStatus('working');
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+        ui.setAiStatus('quota');
+        state.setDisplayMode('dual');
+        ui.refresh();
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+    });
+
+    test('a line it has not translated shows the original, muted', () => {
+        alone();
+        const main = document.querySelector('.vtt-main-text')!;
+        expect(main.textContent).toBe('It is not safe.');
+        expect(main.classList.contains('vtt-untranslated')).toBe(true);
+    });
+});

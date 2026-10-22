@@ -927,6 +927,18 @@
     "message": "Turn on",
     "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   },
+  "ytAiShowTrack": {
+    "message": "Show $1",
+    "description": "The AI translation shown alone stopped (its limit spent): a link that shows the subtitle track named by $1 instead, e.g. 'Show English'."
+  },
+  "ytAiOtherTrack": {
+    "message": "Other track",
+    "description": "The AI translation shown alone stopped: a link that opens the language settings to pick any other subtitle track. Short."
+  },
+  "ytAiHideLine": {
+    "message": "Hide",
+    "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
+  },
   "rzCcOff": {
     "message": "Off",
     "description": "HDrezka player CC menu: the item that hides the on-screen subtitles."

@@ -217,6 +217,20 @@ function centreDelta(list: HTMLElement, item: HTMLElement): number {
     return itemBox.top - listBox.top - (listBox.height - itemBox.height) / 2;
 }
 
+/**
+ * A line's words, on the first line. The AI translation alone on the line
+ * (Single) has lines it has not translated, its limit spent or its turn not
+ * come: those show the original, muted, so no line is left blank.
+ */
+function fillMainLine(div: HTMLElement, sub: Subtitle): void {
+    if (!sub.text.trim() && sub.original?.trim()) {
+        div.classList.add('vtt-untranslated');
+        fillPlainWordsInto(div, sub.original, isSaved);
+        return;
+    }
+    fillPlainWordsInto(div, sub.text, isSaved);
+}
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
@@ -568,9 +582,62 @@ export class SidebarUI {
         const aiBannerStatus = document.createElement('span');
         const aiBannerStop = document.createElement('span');
         const aiBannerOffer = document.createElement('span');
-        aiBanner.append(aiBannerStatus, aiBannerStop, aiBannerOffer);
+        const aiBannerOut = document.createElement('span');
+        const aiBannerClose = document.createElement('button');
+        aiBannerClose.type = 'button';
+        aiBannerClose.className = 'vtt-ai-banner-close';
+        aiBannerClose.setAttribute('aria-label', msg('ytAiHideLine', 'Hide'));
+        aiBannerClose.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+        aiBanner.append(aiBannerStatus, aiBannerStop, aiBannerOffer, aiBannerOut);
+        // Set by setAiStatus: what the translation is doing, and whether the
+        // way-out line was closed for that status.
+        let aiNow: AiStatus | null = null;
+        let wayOutClosed = false;
         const showBanner = () => {
-            aiBanner.hidden = !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
+            aiBanner.hidden = aiBanner.classList.contains('vtt-ai-banner-out')
+                ? wayOutClosed
+                : !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
+        };
+        // The AI translation alone on the line (Single, from Netflix's menu)
+        // and stopped for good, its limit spent or the like: the line says so
+        // and offers the way out, the learning track or any other. × hides it
+        // until the status changes (a new title clears the status).
+        const STOPPED: AiStatus[] = ['auth', 'quota', 'limit', 'too_long', 'unavailable', 'unsupported'];
+        const link = (text: string, act: () => void): HTMLButtonElement => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'vtt-ai-toggle';
+            button.textContent = text;
+            button.addEventListener('click', act);
+            return button;
+        };
+        aiBannerClose.addEventListener('click', () => {
+            wayOutClosed = true;
+            this.syncAiWayOut();
+        });
+        this.syncAiWayOut = () => {
+            const main = this.state.tracks[this.state.activeTrackIndex];
+            const out = !!aiNow && STOPPED.includes(aiNow) && this.state.displayMode === 'single' && !!main?.name.endsWith(AI_SUFFIX);
+            if (aiBanner.classList.contains('vtt-ai-banner-out') !== out) {
+                aiBanner.classList.toggle('vtt-ai-banner-out', out);
+                aiBannerStop.hidden = out;
+                if (out) aiBanner.append(aiBannerClose);
+                else aiBannerClose.remove();
+                aiBannerOut.replaceChildren();
+                if (out) {
+                    const label = this.state.primaryLangLabel;
+                    const learning = this.state.tracks.find((t) => !t.name.endsWith(AI_SUFFIX) && !!label && t.name.includes(label))
+                        ?? this.state.tracks.find((t) => !t.name.endsWith(AI_SUFFIX));
+                    if (learning) {
+                        aiBannerOut.append(' · ', link(msg('ytAiShowTrack', 'Show $1', [trackLabel(learning.name)]), () => {
+                            this.state.setSingleTrack(undefined);
+                            this.refresh();
+                        }));
+                    }
+                    aiBannerOut.append(' · ', link(`${msg('ytAiOtherTrack', 'Other track')} ›`, () => this.openSettings('languages')));
+                }
+            }
+            showBanner();
         };
         const cost = msg('ytAiOfferCost', 'uses AI credits');
         const costSentence = costTitle();
@@ -775,10 +842,12 @@ export class SidebarUI {
         aiStatus.setAttribute('aria-live', 'polite');
         langGroup.appendChild(aiStatus);
         this.setAiStatus = (s) => {
+            if (s !== aiNow) wayOutClosed = false;
+            aiNow = s;
             aiStatus.textContent = s ? aiStatusText(s) : '';
             // The row's "on" says the rest of "AI translation is on".
             aiBannerStatus.textContent = s === 'ready' ? msg('ytAiStateLabel', 'AI translation') : aiStatus.textContent;
-            showBanner();
+            this.syncAiWayOut();
         };
         settingsPanel.appendChild(langGroup);
 
@@ -2414,6 +2483,8 @@ export class SidebarUI {
 
     /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
     setAiStatus: (s: AiStatus | null) => void = () => {};
+    /** Shows or hides the AI row's way out to another track (built with the row). */
+    private syncAiWayOut: () => void = () => {};
 
     /**
      * Offer to translate this video with AI, start being what the button does;
@@ -2519,6 +2590,7 @@ export class SidebarUI {
 
     updateControls(): void {
         if (!this.elements.settingsBtn || !this.elements.mainSelect || !this.elements.subSelect) return;
+        this.syncAiWayOut();
 
         this.elements.settingsBtn.style.display = 'flex';
 
@@ -2989,7 +3061,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        fillPlainWordsInto(mainText, sub.text, isSaved);
+        fillMainLine(mainText, sub);
         item.appendChild(mainText);
 
         if (this.showsSecondary(index)) {
@@ -3849,7 +3921,7 @@ export class SidebarUI {
             fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index),
                 (ti) => this.state.isWordRevealed(index, ti), isSaved);
         } else {
-            fillPlainWordsInto(mainDiv, sub.text, isSaved);
+            fillMainLine(mainDiv, sub);
         }
         return mainDiv;
     }

@@ -175,6 +175,7 @@ export class AiTranslator {
             startTime: s.startTime,
             endTime: s.endTime,
             text: '',
+            original: s.text,
             ...(!sent.has(i) && s.text.trim() ? { skipped: true } : {}),
         })));
         this.ai = state.tracks.find((t) => t.name === this.aiName) ?? null;

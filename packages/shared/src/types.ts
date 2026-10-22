@@ -19,6 +19,11 @@ export interface Subtitle {
   pending?: boolean;
   /** AI track only: the cue broke a backend rule and was never sent (shown as a dash). */
   skipped?: boolean;
+  /**
+   * AI track only: the line it translates. Where the translation is missing
+   * and the AI track is the one line shown, this is shown instead, muted.
+   */
+  original?: string;
 }
 
 export interface Track {
