@@ -26,12 +26,15 @@ import {
     isContextOrphaned,
     showOrphanNotice,
     type Subtitle,
+    type TrackRole,
 } from '@video-transcripts/shared';
 import { installLookupStrip, WordScreen } from '@video-transcripts/shared';
 import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
 import { installCcMenu } from './cc-menu';
+import { chooseLineFor, lineChoiceFor, loadLineChoices, pairFor } from '../../../../packages/shared/src/line-choice';
+import { siteSettingsUrl } from '../../../../packages/shared/src/popup/shared';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
@@ -85,7 +88,18 @@ export class VttApp implements AppInterface {
     uiOwned = true;
     isTopWindow: boolean;
     detector: VttDetector;
-    langPrefs: LanguagePrefs | null = null;
+    /** The viewer's own languages, as saved (the site's extension page). */
+    savedPrefs: LanguagePrefs | null = null;
+    /**
+     * The pair this film shows: the viewer's languages with its line picks
+     * over them (line-choice.ts); assigning it sets the viewer's own.
+     */
+    get langPrefs(): LanguagePrefs | null {
+        return pairFor(this.savedPrefs, lineChoiceFor(this.lineKey()));
+    }
+    set langPrefs(prefs: LanguagePrefs | null) {
+        this.savedPrefs = prefs;
+    }
     /** The player's CC button opens our menu, which offers the AI translation too. */
     aiControls?: AiControls;
     noSubsTimer: number | null = null;
@@ -415,6 +429,7 @@ export class VttApp implements AppInterface {
         // localized renders.
         await this.applyDevLocaleOverride();
 
+        await loadLineChoices();
         this.langPrefs = await loadLanguagePrefs();
         this.applyLangPrefsToState();
         this.updateOnboardingState();
@@ -472,8 +487,29 @@ export class VttApp implements AppInterface {
     // secondary. Clearing prefs falls back to the legacy English/Russian
     // heuristic. Track names from generateTrackName ("English"/"Russian"/…)
     // match the English labels here, so the ordering actually takes effect.
+    /** A film's line picks are kept under its page: every episode and voice of it. */
+    lineKey(): string | null {
+        return this.isWatchPage() ? `rezka:${location.pathname}` : null;
+    }
+
+    /** A pick for one line of this film: kept for it, and the loaded tracks routed to it. */
+    chooseLine(role: TrackRole, code: string | null): void {
+        const key = this.lineKey();
+        if (!key || !this.savedPrefs) return;
+        const own = role === 'learning' ? this.savedPrefs.learning : this.savedPrefs.native;
+        chooseLineFor(key, role === 'learning' ? 'first' : 'second', code && code !== own ? code : null);
+        this.applyLangPrefsToState();
+        this.ui.refresh();
+    }
+
+    openSiteSettings(): void {
+        window.open(siteSettingsUrl('rezka'), '_blank', 'noopener');
+    }
+
     applyLangPrefsToState(): void {
-        this.state.languagePair = this.langPrefs ?? undefined;
+        // The viewer's own languages, for the sidebar to name; this film's
+        // pair (with its picks) routes the tracks below.
+        this.state.languagePair = this.savedPrefs ?? undefined;
         this.state.pickerLanguages = SUBTITLE_LANGUAGES;
         if (!this.langPrefs) {
             this.state.setLanguagePreferences(undefined, undefined);

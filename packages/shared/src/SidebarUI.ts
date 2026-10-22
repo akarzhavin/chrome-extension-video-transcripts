@@ -61,7 +61,7 @@ import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { buildConfirm, confirmSkipped, costTitle, dismissOn } from './subtitle-ai/confirm';
 import { AI_SUFFIX } from './subtitle-ai/controller';
 import { aiTrackLabel, trackLabel, trackLanguageCode } from './track-label';
-import { nativeForLanguage, saveLanguagePrefs } from './languages';
+import { nativeForLanguage } from './languages';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 import { mountAIBadge } from './ai-balance/badge';
 import { watchSpent, type AISpent } from './ai-balance/spent';
@@ -690,13 +690,12 @@ export class SidebarUI {
                     list.append(item(c.label, c.code === onLineCode, () => {
                         // The track on the line changes, not the viewer's
                         // language: the pickers keep showing theirs.
-                        if (dual) {
-                            this.aiStopFn?.();
-                            load.call(this.app, 'native', c.code);
-                        } else {
-                            this.state.setSingleTrack(undefined);
-                            load.call(this.app, 'learning', c.code);
-                        }
+                        const role: TrackRole = dual ? 'native' : 'learning';
+                        if (dual) this.aiStopFn?.();
+                        else this.state.setSingleTrack(undefined);
+                        // Kept for this video where the site keeps picks.
+                        if (this.app.chooseLine) this.app.chooseLine(role, c.code);
+                        else load.call(this.app, role, c.code);
                         this.refresh();
                     }));
                 }
@@ -705,6 +704,12 @@ export class SidebarUI {
                     if (isAi(t) || t.name === first) continue;
                     list.append(item(trackLabel(t.name), t === onLine, () => {
                         if (dual) return this.onTrackSelectChange('native', String(this.state.tracks.indexOf(t)));
+                        const code = trackLanguageCode(t.name);
+                        if (code && this.app.chooseLine) {
+                            this.state.setSingleTrack(undefined);
+                            this.onTrackSelectChange('learning', String(this.state.tracks.indexOf(t)));
+                            return;
+                        }
                         this.state.setSingleTrack(t.name);
                         this.refresh();
                     }));
@@ -949,8 +954,11 @@ export class SidebarUI {
             settingsPanel.appendChild(themeStrip);
         }
 
-        // -- Group 1: Languages ------------------------------------------------
-        const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLanguages', 'Languages'));
+        // -- Group 1: the subtitles on this video -----------------------------
+        // What each line shows on this video, kept for it. The viewer's
+        // languages, which every video starts from, are set on the site's
+        // extension page; the note under the pickers names them.
+        const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLinesThisVideo', 'Subtitles on this video'));
         this.langGroup = langGroup;
 
         const mainSelect = document.createElement('select');
@@ -969,9 +977,14 @@ export class SidebarUI {
 
         const fields = document.createElement('div');
         fields.id = 'vtt-track-selectors';
-        fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
-        fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
+        fields.appendChild(this.buildFieldRow(msg('ytFirstLine', 'First line'), mainSelect));
+        fields.appendChild(this.buildFieldRow(msg('ytSecondLine', 'Second line'), subSelect));
         langGroup.appendChild(fields);
+        const linesNote = document.createElement('div');
+        linesNote.id = 'vtt-lines-note';
+        linesNote.className = 'vtt-lines-note';
+        langGroup.appendChild(linesNote);
+        this.linesNote = linesNote;
         // What AI translation of the second line is doing, if anything.
         const aiStatus = document.createElement('div');
         aiStatus.id = 'vtt-ai-status';
@@ -2686,26 +2699,18 @@ export class SidebarUI {
 
     // A dropdown changed. In track-picker mode the value is a track index; in
     // language-picker mode it's a language code the site loads on demand.
+    // A pick in a line's picker: that line of this video, kept for it
+    // (app.chooseLine); the viewer's languages stay as they are. "none" is
+    // one line (Single); "ai" the translation into the viewer's language.
     private onTrackSelectChange(role: TrackRole, value: string): void {
-        if (this.isLanguagePickerMode()) {
-            if (role === 'learning') this.state.selectedLearningCode = value;
-            else this.state.selectedNativeCode = value;
-            this.app.requestLanguageTrack?.(role, value);
-            // The track arrives asynchronously; reflect the new selection now so
-            // the dropdown doesn't snap back to the old value before it loads.
-            this.updateControls();
-            return;
-        }
-        if (role === 'native' && value.startsWith('lang:')) {
-            const pair = this.state.languagePair;
-            if (pair) void saveLanguagePrefs({ learning: pair.learning, native: value.slice(5) }, 'sidebar');
-            // The tracks of the new pair arrive with the change; until then
-            // the picker shows what is on screen.
-            this.updateControls();
+        if (role === 'native' && value === 'none') {
+            this.setMode('single');
             return;
         }
         if (role === 'native' && value === 'ai') {
             const select = this.elements.subSelect!;
+            // The viewer's own language back on the second line, by AI.
+            this.app.chooseLine?.('native', null);
             // The offer stands only in Dual; turning Dual on makes it.
             this.setMode('dual');
             this.takeAiOffer(select, select.closest<HTMLElement>('#vtt-settings-panel') ?? select.parentElement!);
@@ -2713,11 +2718,35 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
+        // A second line of the site's own: in Dual, in the AI translation's
+        // place, which goes as its "on" turns it off.
+        if (role === 'native') {
+            this.aiStopFn?.();
+            if (this.state.displayMode === 'single') this.setMode('dual');
+        }
+        if (this.isLanguagePickerMode()) {
+            if (role === 'learning') this.state.selectedLearningCode = value;
+            else this.state.selectedNativeCode = value;
+            if (this.app.chooseLine) this.app.chooseLine(role, value);
+            else this.app.requestLanguageTrack?.(role, value);
+            // The track arrives asynchronously; reflect the new selection now so
+            // the dropdown doesn't snap back to the old value before it loads.
+            this.updateControls();
+            return;
+        }
+        if (role === 'native' && value.startsWith('lang:')) {
+            // A language this video has no track in: the site loads it (or
+            // the AI translation offers it) for this video.
+            this.app.chooseLine?.('native', value.slice(5));
+            this.updateControls();
+            return;
+        }
         const picked = this.state.tracks[parseInt(value)];
         if (!picked) return;
-        // Another track in the AI translation's place turns it off, as its
-        // "on" does; the track is found again by name, as stopping drops one.
-        if (role === 'native' && this.aiStopFn && !picked.name.endsWith(AI_SUFFIX)) this.aiStopFn();
+        const code = trackLanguageCode(picked.name);
+        if (code) this.app.chooseLine?.(role, code);
+        // The track itself, by name: the pick may be one of two of a language,
+        // and the pair just re-routed the indexes.
         const at = this.state.tracks.indexOf(picked);
         if (at === -1) return;
         if (role === 'learning') this.state.activeTrackIndex = at;
@@ -2788,12 +2817,22 @@ export class SidebarUI {
         this.elements.mainSelect.innerHTML = '';
         this.elements.subSelect.innerHTML = '';
 
+        const second = this.state.tracks[this.state.secondaryTrackIndex];
+        const aiSecond = this.state.displayMode !== 'single' && !!second?.name.endsWith(AI_SUFFIX);
         if (this.isLanguagePickerMode()) {
             // Language-picker mode (Netflix): full catalog split into "this
             // title offers" (selectable) and the rest of the supported catalog
             // (disabled), so the dropdown mirrors the site's own subtitle menu.
             this.populateLanguagePicker(this.elements.mainSelect, this.state.selectedLearningCode);
-            this.populateLanguagePicker(this.elements.subSelect, this.state.selectedNativeCode);
+            this.populateLanguagePicker(this.elements.subSelect, aiSecond ? undefined : this.state.selectedNativeCode);
+            // The viewer's language by AI, offered or running.
+            const aiLanguage = this.state.secondLineLanguage;
+            if (this.state.secondLineOnDemand && aiLanguage) {
+                const group = document.createElement('optgroup');
+                group.label = msg('ytLangGroupTranslated', 'Translated');
+                group.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai', false, aiSecond));
+                this.elements.subSelect.appendChild(group);
+            }
         } else {
             // Track-picker mode (YouTube/Rezka): list the already-loaded tracks.
             // Labeled field rows (Learning/Native) make the old 'Main:'/'Sub:'
@@ -2814,7 +2853,7 @@ export class SidebarUI {
             // Every other language the edition offers: picking one makes it
             // the native language, as the popup does.
             const pair = this.state.languagePair;
-            if (pair && this.state.pickerLanguages?.length) {
+            if (pair && this.state.pickerLanguages?.length && this.state.tracks.length) {
                 const listed = new Set<string>([pair.learning]);
                 for (const t of this.state.tracks) {
                     const code = trackLanguageCode(t.name);
@@ -2830,6 +2869,14 @@ export class SidebarUI {
                 }
             }
         }
+        // One line: Single, the second line's "none".
+        // With no tracks there is nothing to show on either line.
+        const single = this.state.displayMode === 'single';
+        if (this.state.tracks.length) {
+            this.elements.subSelect.appendChild(new Option(msg('ytLineNone', 'None (one line)'), 'none', false, single));
+            if (single) this.elements.subSelect.value = 'none';
+        }
+        this.updateLinesNote();
 
         if (activeId) {
             const activeEl = document.getElementById(activeId);
@@ -2839,6 +2886,25 @@ export class SidebarUI {
         // After the dropdowns: the button's tooltip names the track the
         // indexes above were just re-read for.
         this.updateDownloadButton();
+    }
+
+    /** "Kept for this video. Every video starts from your languages, English → Русский · Change ›" */
+    private linesNote: HTMLElement | null = null;
+    private updateLinesNote(): void {
+        const note = this.linesNote;
+        const pair = this.state.languagePair;
+        if (!note) return;
+        note.replaceChildren();
+        if (!pair) return;
+        note.append(msg('ytLinesNote', 'Kept for this video. Every video starts from your languages, $1 → $2',
+            [nativeForLanguage(pair.learning), nativeForLanguage(pair.native)]));
+        if (!this.app.openSiteSettings) return;
+        const change = document.createElement('button');
+        change.type = 'button';
+        change.className = 'vtt-ai-toggle';
+        change.textContent = `${msg('ytLinesChange', 'Change')} ›`;
+        change.addEventListener('click', () => this.app.openSiteSettings?.());
+        note.append(' · ', change);
     }
 
     // Fill one dropdown from AppState.languageCatalog: an "available in this

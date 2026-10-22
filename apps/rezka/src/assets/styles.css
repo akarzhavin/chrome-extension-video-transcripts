@@ -869,6 +869,19 @@
     color: var(--vtt-text);
 }
 
+/* Under the line pickers: the pick is this video's; the viewer's languages,
+   which every video starts from, and the way to the site to change them. */
+.vtt-lines-note {
+    margin: 10px 2px 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-lines-note:empty {
+    display: none;
+}
+
 /* «Other track ▾»: the title's subtitle tracks, under the line, in its
    frame, edge to edge (over the room the × keeps on the right). */
 .vtt-ai-tracks {

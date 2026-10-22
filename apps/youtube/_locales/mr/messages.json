@@ -1046,5 +1046,33 @@
   "ytAiAfter": {
     "message": "$1 नंतर",
     "description": "Beside an AI translation item while the AI credits are spent: when it can be used again. $1 is a time like 02:00, or a date for the month. Very short."
+  },
+  "ytGroupLinesThisVideo": {
+    "message": "या व्हिडिओतील उपशीर्षके",
+    "description": "Sidebar settings: heading of the group that picks what each subtitle line shows on the video playing now."
+  },
+  "ytFirstLine": {
+    "message": "पहिली ओळ",
+    "description": "Sidebar settings: label of the picker for the first (upper) subtitle line on this video."
+  },
+  "ytSecondLine": {
+    "message": "दुसरी ओळ",
+    "description": "Sidebar settings: label of the picker for the second subtitle line on this video."
+  },
+  "ytLinesNote": {
+    "message": "या व्हिडिओसाठी ठेवले. प्रत्येक व्हिडिओ तुमच्या भाषांपासून सुरू होतो: $1 → $2",
+    "description": "Sidebar settings, under the line pickers: the pick holds for this video; $1 \u2192 $2 are the viewer's learning and native languages, which every video starts from."
+  },
+  "ytLinesChange": {
+    "message": "बदला",
+    "description": "Sidebar settings: link after the note above; opens the site's extension settings where the languages are set. One word."
+  },
+  "ytLineNone": {
+    "message": "काहीही नाही (एक ओळ)",
+    "description": "Sidebar settings, second-line picker: no second line, one line shown. Short."
+  },
+  "ytLangGroupTranslated": {
+    "message": "अनुवादित",
+    "description": "Sidebar settings, second-line picker: group heading over the AI translation into the viewer's language. One word."
   }
 }

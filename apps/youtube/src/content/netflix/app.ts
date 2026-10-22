@@ -43,11 +43,12 @@ class NetflixVttApp extends BaseVttApp {
                 // Forced-narrative tracks name themselves "Off" (they play
                 // under Netflix's Off); they are not a language to pair.
                 titleTracks: () => this.currentTracks.filter((t) => !t.isForced),
-                showTrack: (code) => this.requestLanguageTrack('learning', code),
+                // A pick in Netflix's list is the first line of this title,
+                // kept for it; the viewer's pair puts their languages back.
+                showTrack: (code) => this.chooseLine('learning', code),
                 showPair: () => {
-                    if (!this.langPrefs) return;
-                    this.requestLanguageTrack('learning', baseLang(this.langPrefs.learning));
-                    this.requestLanguageTrack('native', baseLang(this.langPrefs.native));
+                    this.chooseLine('learning', null);
+                    this.chooseLine('native', null);
                 },
             });
         }
@@ -255,6 +256,20 @@ class NetflixVttApp extends BaseVttApp {
     // loaded — the picker already disables the rest. Fetch the chosen language's
     // WebVTT (if not already loaded) and point that slot's label preference at
     // it so AppState routes it to the right dropdown.
+    /** Netflix loads the picked language's track for this title (the pickers name the lines). */
+    showLineChoice(role: TrackRole): void {
+        const pair = this.langPrefs;
+        if (!pair) return;
+        const code = baseLang(role === 'learning' ? pair.learning : pair.native);
+        if (role === 'learning') this.state.selectedLearningCode = code;
+        else this.state.selectedNativeCode = code;
+        // The lines follow the pair even for a language the title lacks (the
+        // viewer's own, by AI); a track it has is fetched.
+        this.applyLangPrefsToState();
+        if (trackForBaseCode(this.currentTracks, code)) this.requestLanguageTrack(role, code);
+        else this.ui.refresh();
+    }
+
     requestLanguageTrack(role: TrackRole, code: string): void {
         const track = trackForBaseCode(this.currentTracks, code);
         if (!track) {

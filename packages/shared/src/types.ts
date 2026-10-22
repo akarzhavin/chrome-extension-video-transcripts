@@ -149,6 +149,14 @@ export interface AppInterface {
    */
   requestLanguageTrack?(role: TrackRole, code: string): void;
   /**
+   * A pick for one line of this video (line-choice.ts): that language there,
+   * for this video only; null puts the viewer's own language back. The site
+   * loads and shows it; the viewer's languages stay as they are.
+   */
+  chooseLine?(role: TrackRole, code: string | null): void;
+  /** Opens the site's page of this extension's settings, where the viewer's languages are set. */
+  openSiteSettings?(): void;
+  /**
    * Why a requested subtitle track is missing (rate-limited, no translation
    * offered, expired link…), or null when nothing failed. The sidebar uses it
    * to explain the disabled Dual chip; the same string backs the tooltip on

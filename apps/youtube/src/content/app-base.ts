@@ -17,6 +17,7 @@ import {
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     Subtitle,
+    TrackRole,
 } from '@video-transcripts/shared';
 import type { VttFailure } from './timedtext-fetch';
 
@@ -99,6 +100,8 @@ import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { chooseLineFor, lineChoiceFor, loadLineChoices, pairFor } from '../../../../packages/shared/src/line-choice';
+import { siteSettingsUrl } from '../../../../packages/shared/src/popup/shared';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 export const STALLED_REQUEST_MS = 12_000;
@@ -332,7 +335,19 @@ export abstract class BaseVttApp implements AppInterface {
      * a body that had arrived intact.
      */
     requestNames: Map<string, string> = new Map();
-    langPrefs: LanguagePrefs | null = null;
+    /** The viewer's own languages, as saved (the site's extension page). */
+    savedPrefs: LanguagePrefs | null = null;
+    /**
+     * The pair this video shows: the viewer's languages with this video's
+     * line picks over them (line-choice.ts). Everything that plans or names
+     * tracks reads this; assigning it sets the viewer's own languages.
+     */
+    get langPrefs(): LanguagePrefs | null {
+        return pairFor(this.savedPrefs, lineChoiceFor(this.lineKey()));
+    }
+    set langPrefs(prefs: LanguagePrefs | null) {
+        this.savedPrefs = prefs;
+    }
     noSubsTimer: number | null = null;
     // Separate from noSubsTimer: that one only guards the all-empty case.
     pendingTrackTimer: number | null = null;
@@ -450,6 +465,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     // ── language prefs ──────────────────────────────────────────────────────
     async initLanguagePrefs(): Promise<void> {
+        await loadLineChoices();
         this.langPrefs = await loadLanguagePrefs();
         this.applyLangPrefsToState();
         this.updateOnboardingState();
@@ -467,8 +483,35 @@ export abstract class BaseVttApp implements AppInterface {
         attachAiTranslationTo(this);
     }
 
+    /** The key this video's line picks are kept under; null off a video. */
+    lineKey(): string | null {
+        const id = this.getVideoId();
+        return id ? `${platformOf(location.hostname)}:${id}` : null;
+    }
+
+    /** A pick for one line of this video: kept for it, then shown (see showLineChoice). */
+    chooseLine(role: TrackRole, code: string | null): void {
+        const key = this.lineKey();
+        if (!key || !this.savedPrefs) return;
+        const own = role === 'learning' ? this.savedPrefs.learning : this.savedPrefs.native;
+        chooseLineFor(key, role === 'learning' ? 'first' : 'second', code && code !== own ? code : null);
+        this.showLineChoice(role);
+    }
+
+    /** YouTube plans this video's tracks again for the new pair, keeping what plays meanwhile. */
+    showLineChoice(_role: TrackRole): void {
+        this.applyLangPrefsToState();
+        this.reprocessCurrentVideo({ preserveTracks: true });
+    }
+
+    openSiteSettings(): void {
+        window.open(siteSettingsUrl('youtube'), '_blank', 'noopener');
+    }
+
     applyLangPrefsToState(): void {
-        this.state.languagePair = this.langPrefs ?? undefined;
+        // The viewer's own languages, for the sidebar to name; the pair of
+        // this video (with its picks) routes the tracks below.
+        this.state.languagePair = this.savedPrefs ?? undefined;
         this.state.pickerLanguages = SUPPORTED_LANGUAGES.map((l) => l.code);
         if (!this.langPrefs) return;
         this.state.setLanguagePreferences(
@@ -1626,6 +1669,8 @@ export abstract class BaseVttApp implements AppInterface {
     // is cleared on a real video change (resetNoSubsRetries) and when a track
     // finally loads (addParsedTrack).
     resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
+        // Another video, another pair: its own line picks, or the viewer's.
+        this.applyLangPrefsToState();
         this.pendingRequests.clear();
         // The name table belongs to the video, not the page: without this a new
         // video would answer nameForRequest() with the previous one's tracks.

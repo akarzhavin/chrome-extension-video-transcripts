@@ -216,10 +216,12 @@ describe('the native-language picker', () => {
         const { ui, state } = withTracks();
         state.displayMode = 'single';
         ui.refresh();
-        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська']);
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська', 'None (one line)']);
+        // Single: the second line is none.
+        expect(sub().value).toBe('none');
         state.secondLineOnDemand = false;
         ui.refresh();
-        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский']);
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'None (one line)']);
     });
 
     test('picked in Single, it turns Dual on and takes the offer that makes', async () => {
@@ -236,8 +238,10 @@ describe('the native-language picker', () => {
         expect(start).toHaveBeenCalledTimes(1);
     });
 
-    test('lists the other languages of the edition, and picking one makes it the native language', async () => {
+    test('lists the other languages of the edition; picking one is this video\'s second line, the native language stays', async () => {
         const { ui, state } = withTracks();
+        const chooseLine = jest.fn();
+        ui.app.chooseLine = chooseLine;
         state.languagePair = { learning: 'en', native: 'uk' };
         state.pickerLanguages = ['en', 'ru', 'uk', 'de'];
         ui.refresh();
@@ -247,7 +251,8 @@ describe('the native-language picker', () => {
         expect([...group.querySelectorAll('option')].map((o) => o.text)).toEqual(['Deutsch']);
         pick('lang:de');
         await flush();
-        expect(prefsStore['lang.v1']).toEqual({ learning: 'en', native: 'de' });
+        expect(chooseLine).toHaveBeenCalledWith('native', 'de');
+        expect(prefsStore['lang.v1']).toBeUndefined();
     });
 
     test('without a pair or a language list it lists the tracks alone', () => {
@@ -537,5 +542,50 @@ describe('the credits spent for now', () => {
         build();
         await flush();
         expect(seen()).toBe('');
+    });
+});
+
+describe('the line pickers', () => {
+    const select = (id: string) => document.getElementById(id) as HTMLSelectElement;
+    const pick = (id: string, value: string) => {
+        select(id).value = value;
+        select(id).dispatchEvent(new Event('change'));
+    };
+    function lines() {
+        const ui = build();
+        const state = ui.state;
+        state.languagePair = { learning: 'en', native: 'ru' };
+        state.addTrack('English — English', [{ startTime: 0, endTime: 1, text: 'a' } as any]);
+        state.addTrack('Polish — Polski', [{ startTime: 0, endTime: 1, text: 'b' } as any]);
+        state.setDisplayMode('dual');
+        const chooseLine = jest.fn();
+        const openSiteSettings = jest.fn();
+        ui.app.chooseLine = chooseLine;
+        ui.app.openSiteSettings = openSiteSettings;
+        ui.refresh();
+        return { ui, state, chooseLine, openSiteSettings };
+    }
+
+    test('named for the lines of this video, the viewer\'s languages under them with the way to change them', () => {
+        const { openSiteSettings } = lines();
+        expect(document.getElementById('vtt-track-selectors')!.textContent).toMatch(/First line.*Second line/);
+        const note = document.getElementById('vtt-lines-note')!;
+        expect(note.textContent).toBe('Kept for this video. Every video starts from your languages, English → Русский · Change ›');
+        note.querySelector('button')!.click();
+        expect(openSiteSettings).toHaveBeenCalled();
+    });
+
+    test('a pick is this video\'s line, by its language; the viewer\'s languages stay', () => {
+        const { state, chooseLine } = lines();
+        pick('vtt-sub-select', '1');
+        expect(chooseLine).toHaveBeenCalledWith('native', 'pl');
+        expect(state.secondaryTrackIndex).toBe(1);
+        expect(state.languagePair).toEqual({ learning: 'en', native: 'ru' });
+    });
+
+    test('«None» is one line', () => {
+        const { state } = lines();
+        pick('vtt-sub-select', 'none');
+        expect(state.displayMode).toBe('single');
     });
 });
