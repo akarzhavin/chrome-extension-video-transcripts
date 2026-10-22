@@ -943,6 +943,10 @@
     "message": "ліміт вичерпано",
     "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
   },
+  "ytAiAfter": {
+    "message": "після $1",
+    "description": "Beside an AI translation item while the AI credits are spent: when it can be used again. $1 is a time like 02:00, or a date for the month. Very short."
+  },
   "rzCcOff": {
     "message": "Вимкнено",
     "description": "HDrezka player CC menu: the item that hides the on-screen subtitles."

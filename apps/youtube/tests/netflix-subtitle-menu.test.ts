@@ -134,6 +134,29 @@ describe('the site lacks the viewer\'s language', () => {
         return s;
     }
 
+    test('the credits spent for now: both greyed, «after 02:00», a press does nothing', async () => {
+        const hour = 3600_000;
+        store['ai.balance'] = {
+            day: { used: 100, limit: 100, resetsAt: Date.now() + hour },
+            month: { used: 100, limit: 1000, resetsAt: Date.now() + 30 * 24 * hour },
+            exhausted: 'day',
+        };
+        const s = ukrainian();
+        const start = jest.fn();
+        s.controls.offer(start, true);
+        await flush();
+        await s.open();
+        const items = [...s.block()!.querySelectorAll<HTMLElement>('.vtt-nf-item')];
+        expect(items.map((li) => li.getAttribute('aria-disabled'))).toEqual(['true', 'true']);
+        expect(items[0].textContent).toMatch(/^УкраїнськаAIafter \d{1,2}:\d{2}/);
+        expect(items[1].title).toMatch(/AI limit for today reached/);
+        items[1].dispatchEvent(new Event('pointerdown', { bubbles: true }));
+        items[1].dispatchEvent(new Event('pointerup', { bubbles: true }));
+        items[1].click();
+        expect(start).not.toHaveBeenCalled();
+        expect(s.ui.setMode).not.toHaveBeenCalled();
+    });
+
     test('the language alone and the pair, both by AI', async () => {
         const s = ukrainian();
         await s.open();

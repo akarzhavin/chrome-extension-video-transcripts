@@ -13,6 +13,7 @@
 // React handlers, and our clicks stop at the block.
 
 import type { AppState } from '../../../../../packages/shared/src/AppState';
+import { watchSpent, type AISpent } from '../../../../../packages/shared/src/ai-balance/spent';
 import type { SidebarUI } from '../../../../../packages/shared/src/SidebarUI';
 import { isContextOrphaned } from '../../../../../packages/shared/src/content/orphan-notice';
 import { msg } from '../../../../../packages/shared/src/i18n';
@@ -81,6 +82,8 @@ interface Item {
     ai: boolean;
     checked: boolean;
     pick(): void | 'stay';
+    /** Not pressable now, and why: the AI credits spent until a reset. */
+    spent?: AISpent | null;
 }
 
 export function installNetflixMenu(host: NetflixMenuHost, doc: Document = document): AiControls & { destroy(): void } {
@@ -102,6 +105,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
      */
     let netflixPick: string | null = null;
     let dead = false;
+    /** The AI credits run out for now: the AI items say until when, and do nothing. */
+    let spent: AISpent | null = null;
     /** Netflix's own check mark, copied onto the item we show. */
     let check: Element | null = null;
 
@@ -143,12 +148,14 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 ai: true,
                 checked: shown && !!aiStop && state.displayMode === 'single' && state.singleTrackName === aiName(prefs),
                 pick: () => pickAi(true, native),
+                spent,
             },
             {
                 label: `${learning} + ${native}`,
                 ai: true,
                 checked: shown && !!aiStop && dual,
                 pick: () => pickAi(false, `${learning} + ${native}`),
+                spent,
             },
         ];
     };
@@ -325,6 +332,17 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             const mark = check.cloneNode(true) as Element;
             mark.removeAttribute('data-uia');
             (li.firstElementChild ?? li).prepend(mark);
+        }
+        if (item.spent) {
+            // Greyed, "after 02:00", the reason on hover; a press does nothing.
+            const note = doc.createElement('span');
+            note.className = 'vtt-nf-after';
+            note.textContent = msg('ytAiAfter', 'after $1', [item.spent.until]);
+            label.append(note);
+            li.classList.add('vtt-nf-spent');
+            li.setAttribute('aria-disabled', 'true');
+            li.title = item.spent.text;
+            return li;
         }
         const pick = () => {
             if (item.pick() !== 'stay') render();
@@ -574,6 +592,10 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     const OPEN_EVENTS = ['pointerover', 'click', 'focusin', 'keydown'] as const;
     for (const type of OPEN_EVENTS) doc.addEventListener(type, onOpener, true);
 
+    const unspent = watchSpent((now) => {
+        spent = now;
+        if (watched?.isConnected) render(false);
+    });
     const unsubscribe = state.subscribe((e) => {
         if (e.type === 'reset') netflixPick = null;
         if (watched?.isConnected) render(false);
@@ -587,6 +609,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         unwatch = null;
         doc.documentElement.classList.remove(OPEN_CLASS);
         unsubscribe();
+        unspent();
         doc.querySelector(`.${BLOCK}`)?.remove();
     }
 

@@ -462,3 +462,55 @@ test('a running translation keeps its "on"; a stopped one (its limit spent) has 
     ui.setAiStatus('rate');
     expect(seen()).toMatch(/· on$/);
 });
+
+describe('the credits spent for now', () => {
+    const cue = (text: string) => ({ startTime: 0, endTime: 1, text });
+    const spend = () => {
+        const hour = 3600_000;
+        prefsStore['ai.balance'] = {
+            day: { used: 100, limit: 100, resetsAt: Date.now() + hour },
+            month: { used: 100, limit: 1000, resetsAt: Date.now() + 30 * 24 * hour },
+            exhausted: 'day',
+            warnRatio: 0.8,
+            at: Date.now(),
+        };
+    };
+    const seen = () => {
+        const banner = document.getElementById('vtt-ai-banner')!;
+        return banner.hidden ? '' : [...banner.children].filter((c) => !(c as HTMLElement).hidden && c.tagName !== 'UL').map((c) => c.textContent).join('');
+    };
+
+    test('the offer for an empty second line says when AI comes back, and offers another track instead', async () => {
+        spend();
+        const ui = build();
+        ui.state.setLanguagePreferences('English', 'Russian');
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.state.secondLineOnDemand = true;
+        ui.setAiOffer(() => {});
+        await flush();
+        expect(seen()).toMatch(/^AI limit for today reached, resets at .+ · Other track ▾$/);
+        expect(document.querySelector('.vtt-ai-offer')!.closest('[hidden]')).not.toBeNull();
+        // "off" (turned off on this video) reads the same: it could start nothing.
+        ui.setAiOffer(() => {}, true);
+        expect(seen()).toMatch(/^AI limit for today reached/);
+    });
+
+    test('with credits left the offer stands as before', async () => {
+        const ui = build();
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.setAiOffer(() => {});
+        await flush();
+        expect(seen()).toBe('No subtitles in your language · Translate with AI');
+    });
+
+    test('a second line of the site\'s own: no row', async () => {
+        spend();
+        const ui = build();
+        ui.state.setLanguagePreferences('English', 'Polish');
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.state.addTrack('Polish', [cue('Cześć.')]);
+        ui.setAiOffer(() => {}, true);
+        await flush();
+        expect(seen()).toBe('AI translation · off');
+    });
+});

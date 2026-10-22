@@ -64,6 +64,7 @@ import { aiTrackLabel, trackLabel, trackLanguageCode } from './track-label';
 import { nativeForLanguage, saveLanguagePrefs } from './languages';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 import { mountAIBadge } from './ai-balance/badge';
+import { watchSpent, type AISpent } from './ai-balance/spent';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -593,6 +594,9 @@ export class SidebarUI {
         // way-out line was closed for that status.
         let aiNow: AiStatus | null = null;
         let wayOutClosed = false;
+        // The credits run out for now (any site, any video): nothing offered
+        // can start, so nothing is offered as if it could.
+        let aiSpent: AISpent | null = null;
         const showBanner = () => {
             aiBanner.hidden = aiBanner.classList.contains('vtt-ai-banner-out')
                 ? wayOutClosed
@@ -655,7 +659,7 @@ export class SidebarUI {
                     words.append(chip);
                 }
                 li.append(words);
-                if (ai && aiNow === 'quota') {
+                if (ai && (aiNow === 'quota' || aiSpent)) {
                     const note = document.createElement('span');
                     note.className = 'vtt-ai-track-note';
                     note.textContent = msg('ytAiLimitShort', 'limit reached');
@@ -712,15 +716,24 @@ export class SidebarUI {
         this.syncAiWayOut = () => {
             const main = this.state.tracks[this.state.activeTrackIndex];
             const stopped = !!aiNow && STOPPED.includes(aiNow);
-            // "on" turns a running translation off; a stopped one has
-            // nothing to turn off, and "on" beside its limit misleads.
-            aiBannerStop.hidden = stopped;
             // Its line, on screen: alone on Single, or second on Dual.
             const mode = this.state.displayMode;
-            const shown = (mode === 'single' && isAi(main))
-                || (mode === 'dual' && isAi(this.state.tracks[this.state.secondaryTrackIndex]));
-            const out = stopped && shown;
-            const kind = out ? mode : '';
+            const second = this.state.tracks[this.state.secondaryTrackIndex];
+            const shown = (mode === 'single' && isAi(main)) || (mode === 'dual' && isAi(second));
+            // Dual with nothing on the second line (the offer's case).
+            const secondEmpty = mode === 'dual' && (!second || this.state.secondaryTrackIndex === this.state.activeTrackIndex);
+            // Stopped on screen; or the credits spent, with the translation on
+            // screen or offered for an empty second line: the offer ("Translate
+            // with AI", "off") could start nothing, so the row says when it
+            // comes back instead, with the way out.
+            const out = (stopped && shown) || (!!aiSpent && (shown || (!!this.aiOffer && secondEmpty)));
+            // "on" turns a running translation off; a stopped one has
+            // nothing to turn off, and "on" beside its limit misleads.
+            aiBannerStop.hidden = stopped || out;
+            aiBannerStatus.hidden = out;
+            aiBannerOffer.hidden = out;
+            const text = aiSpent?.text ?? (aiNow ? aiStatusText(aiNow) : '');
+            const kind = out ? `${mode}:${text}` : '';
             if (wayOutFor !== kind) {
                 wayOutFor = kind;
                 aiBanner.classList.toggle('vtt-ai-banner-out', out);
@@ -728,6 +741,7 @@ export class SidebarUI {
                 else aiBannerClose.remove();
                 aiBannerOut.replaceChildren();
                 closeTracks();
+                if (out) aiBannerOut.append(text);
                 // On Dual the learning track is the first line already.
                 if (out && mode === 'single') {
                     const label = this.state.primaryLangLabel;
@@ -752,6 +766,11 @@ export class SidebarUI {
             }
             showBanner();
         };
+        this.teardown.push(watchSpent((spent) => {
+            if (spent?.text !== aiSpent?.text) wayOutClosed = false;
+            aiSpent = spent;
+            this.syncAiWayOut();
+        }));
 
         const cost = msg('ytAiOfferCost', 'uses AI credits');
         const costSentence = costTitle();

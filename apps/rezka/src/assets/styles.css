@@ -4576,6 +4576,18 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     background: currentColor;
 }
 
+/* The AI pair while the credits are spent: greyed, "після 02:00", inert. */
+.vtt-cc-menu .vtt-cc-item[aria-disabled='true'] {
+    color: rgba(255, 255, 255, 0.38);
+    cursor: default;
+}
+
+.vtt-cc-after {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
 .vtt-cc-ai {
     padding: 0 4px;
     border: 1px solid currentColor;
@@ -4717,6 +4729,19 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 .vtt-nf-options:hover span,
 .vtt-nf-options:focus-visible span {
     color: #fff;
+}
+
+/* An AI item while the credits are spent: greyed, "after 02:00", inert. */
+.vtt-nf-block .vtt-nf-item.vtt-nf-spent,
+.vtt-nf-block .vtt-nf-item.vtt-nf-spent div {
+    color: #6b6b6b;
+    cursor: default;
+}
+
+.vtt-nf-after {
+    margin-left: 0.6em;
+    font-size: 0.75em;
+    color: #808080;
 }
 
 .vtt-nf-block .vtt-nf-item {

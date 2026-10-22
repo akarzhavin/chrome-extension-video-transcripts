@@ -196,6 +196,29 @@ describe('the AI pair', () => {
         expect(s.item('English + УкраїнськаAI').querySelector('.vtt-cc-ai')).not.toBeNull();
     });
 
+    test('the credits spent for now: greyed, «after 02:00», a press does nothing', async () => {
+        const hour = 3600_000;
+        store['ai.balance'] = {
+            day: { used: 100, limit: 100, resetsAt: Date.now() + hour },
+            month: { used: 100, limit: 1000, resetsAt: Date.now() + 30 * 24 * hour },
+            exhausted: 'day',
+        };
+        const s = withAi();
+        const start = jest.fn();
+        s.controls.offer(start, true);
+        await flush();
+        s.click();
+        const ai = [...s.menu()!.querySelectorAll<HTMLElement>('.vtt-cc-item')].find((b) => b.textContent!.startsWith('English + Українська'))!;
+        expect(ai.getAttribute('aria-disabled')).toBe('true');
+        expect(ai.textContent).toMatch(/after \d{1,2}:\d{2}/);
+        expect(ai.title).toMatch(/AI limit for today reached, resets at/);
+        ai.click();
+        expect(start).not.toHaveBeenCalled();
+        expect(s.menu()).not.toBeNull();
+        // The site's own pair still works.
+        expect(s.item('English + Русский').getAttribute('aria-disabled')).toBeNull();
+    });
+
     test('asks once inside the menu, then Translate starts it', async () => {
         const s = withAi();
         const start = jest.fn();

@@ -1042,5 +1042,9 @@
   "ytAiLimitShort": {
     "message": "had dicapai",
     "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
+  },
+  "ytAiAfter": {
+    "message": "selepas $1",
+    "description": "Beside an AI translation item while the AI credits are spent: when it can be used again. $1 is a time like 02:00, or a date for the month. Very short."
   }
 }
