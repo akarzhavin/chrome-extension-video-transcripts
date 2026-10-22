@@ -198,9 +198,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         const selected = list.querySelector('li[data-uia*="selected"]') ?? plain;
         for (const item of all) ours.append(itemEl(item, item.checked ? selected : plain));
         block.append(ours);
-        // The heading and the question scale with Netflix's item text.
-        const size = labelOf(plain)?.ownerDocument.defaultView?.getComputedStyle(labelOf(plain)!).fontSize;
-        if (size && parseFloat(size) > 0) block.style.setProperty('--vtt-nf-size', size);
+        // The heading and the question scale with Netflix's item text and
+        // start where its words start.
+        const words = labelOf(plain);
+        const size = words ? getComputedStyle(words).fontSize : '';
+        if (parseFloat(size) > 0) block.style.setProperty('--vtt-nf-size', size);
+        if (words && plain) {
+            const indent = words.getBoundingClientRect().left - plain.getBoundingClientRect().left;
+            if (indent > 0) block.style.setProperty('--vtt-nf-indent', `${Math.round(indent)}px`);
+        }
         return block;
     }
 

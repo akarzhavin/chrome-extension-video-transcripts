@@ -40,7 +40,9 @@ class NetflixVttApp extends BaseVttApp {
                 state: this.state,
                 ui: this.ui,
                 langPrefs: () => this.langPrefs,
-                titleTracks: () => this.currentTracks,
+                // Forced-narrative tracks name themselves "Off" (they play
+                // under Netflix's Off); they are not a language to pair.
+                titleTracks: () => this.currentTracks.filter((t) => !t.isForced),
                 showPair: () => {
                     if (!this.langPrefs) return;
                     this.requestLanguageTrack('learning', baseLang(this.langPrefs.learning));

@@ -4527,7 +4527,7 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     display: flex;
     align-items: baseline;
     gap: 1em;
-    padding: 0.4em 0 0.1em;
+    padding: 0.4em 0 0.1em var(--vtt-nf-indent, 0px);
     font-size: calc(var(--vtt-nf-size, 20px) * 0.42);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -4576,7 +4576,7 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     display: flex;
     flex-direction: column;
     gap: 0.5em;
-    margin: 0.3em 0 0.2em;
+    margin: 0.3em 0 0.2em var(--vtt-nf-indent, 0px);
     padding: 0.7em 0.8em;
     border-radius: 4px;
     background: #333;
