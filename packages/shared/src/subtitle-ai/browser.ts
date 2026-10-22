@@ -14,7 +14,7 @@ import type { SecondCandidate } from './second';
 /** What both apps have: their state, their sidebar and the language pair, read when needed. */
 export interface AiTranslatedApp {
     state: AppState;
-    ui: Pick<SidebarUI, 'refresh' | 'updateSecondaryLines' | 'setAiStatus' | 'setAiOffer' | 'setAiStop'>;
+    ui: Pick<SidebarUI, 'refresh' | 'updateSecondaryLines' | 'setAiStatus' | 'setAiOffer' | 'setAiStop' | 'setAiAllowed'>;
     langPrefs: LanguagePrefs | null;
     /** The site's other subtitle tracks, for the gender of "I" and "you"; absent on sites not wired. */
     secondTracks?(): SecondCandidate[];
@@ -26,6 +26,8 @@ export interface AiTranslatedApp {
 export interface AiControls {
     offer(start: (() => void) | null, off: boolean): void;
     stop(stop: (() => void) | null): void;
+    /** Whether the translation may be had here at all (see AiApp.allowed). */
+    allowed?(on: boolean): void;
 }
 
 export function attachAiTranslationTo(app: AiTranslatedApp): void {
@@ -39,6 +41,10 @@ export function attachAiTranslationTo(app: AiTranslatedApp): void {
         offer: (start, off = false) => {
             app.ui.setAiOffer(start, off);
             app.aiControls?.offer(start, off);
+        },
+        allowed: (on) => {
+            app.ui.setAiAllowed(on);
+            app.aiControls?.allowed?.(on);
         },
         offerStop: (stop) => {
             app.ui.setAiStop(stop);

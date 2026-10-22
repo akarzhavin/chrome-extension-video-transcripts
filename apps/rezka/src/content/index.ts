@@ -33,8 +33,8 @@ import { FEATURES, SUBTITLE_LANGUAGES } from '../config';
 import { saveLogActions, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
 import { installCcMenu } from './cc-menu';
-import { chooseLineFor, lineChoiceFor, loadLineChoices, pairFor } from '../../../../packages/shared/src/line-choice';
-import { siteSettingsUrl } from '../../../../packages/shared/src/popup/shared';
+import { LinePicks, loadLineChoices } from '../../../../packages/shared/src/line-choice';
+import { openSiteSettings } from '../../../../packages/shared/src/popup/shared';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 // Localized content-UI string from _locales/<lang>/messages.json. Falls back to
@@ -88,17 +88,14 @@ export class VttApp implements AppInterface {
     uiOwned = true;
     isTopWindow: boolean;
     detector: VttDetector;
-    /** The viewer's own languages, as saved (the site's extension page). */
-    savedPrefs: LanguagePrefs | null = null;
-    /**
-     * The pair this film shows: the viewer's languages with its line picks
-     * over them (line-choice.ts); assigning it sets the viewer's own.
-     */
+    /** The viewer's languages and this film's line picks over them (line-choice.ts). */
+    readonly lines = new LinePicks(() => this.lineKey());
+    /** The pair this film shows; assigning it sets the viewer's own languages. */
     get langPrefs(): LanguagePrefs | null {
-        return pairFor(this.savedPrefs, lineChoiceFor(this.lineKey()));
+        return this.lines.pair();
     }
     set langPrefs(prefs: LanguagePrefs | null) {
-        this.savedPrefs = prefs;
+        this.lines.saved = prefs;
     }
     /** The player's CC button opens our menu, which offers the AI translation too. */
     aiControls?: AiControls;
@@ -494,23 +491,21 @@ export class VttApp implements AppInterface {
 
     /** A pick for one line of this film: kept for it, and the loaded tracks routed to it. */
     chooseLine(role: TrackRole, code: string | null): void {
-        const key = this.lineKey();
-        if (!key || !this.savedPrefs) return;
-        const own = role === 'learning' ? this.savedPrefs.learning : this.savedPrefs.native;
-        chooseLineFor(key, role === 'learning' ? 'first' : 'second', code && code !== own ? code : null);
+        if (!this.lines.choose(role, code)) return;
         this.applyLangPrefsToState();
         this.ui.refresh();
     }
 
     openSiteSettings(): void {
-        window.open(siteSettingsUrl('rezka'), '_blank', 'noopener');
+        openSiteSettings('rezka');
+    }
+
+    ownLanguages(): LanguagePrefs | null {
+        return this.lines.saved;
     }
 
     applyLangPrefsToState(): void {
-        // The viewer's own languages, for the sidebar to name; this film's
-        // pair (with its picks) routes the tracks below.
-        this.state.languagePair = this.savedPrefs ?? undefined;
-        this.state.pickerLanguages = SUBTITLE_LANGUAGES;
+        // This film's pair (the viewer's languages with its picks) routes the tracks.
         if (!this.langPrefs) {
             this.state.setLanguagePreferences(undefined, undefined);
             return;

@@ -100,8 +100,8 @@ import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
 import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
-import { chooseLineFor, lineChoiceFor, loadLineChoices, pairFor } from '../../../../packages/shared/src/line-choice';
-import { siteSettingsUrl } from '../../../../packages/shared/src/popup/shared';
+import { LinePicks, loadLineChoices } from '../../../../packages/shared/src/line-choice';
+import { openSiteSettings } from '../../../../packages/shared/src/popup/shared';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 export const STALLED_REQUEST_MS = 12_000;
@@ -335,18 +335,17 @@ export abstract class BaseVttApp implements AppInterface {
      * a body that had arrived intact.
      */
     requestNames: Map<string, string> = new Map();
-    /** The viewer's own languages, as saved (the site's extension page). */
-    savedPrefs: LanguagePrefs | null = null;
+    /** The viewer's languages and this video's line picks over them (line-choice.ts). */
+    readonly lines = new LinePicks(() => this.lineKey());
     /**
-     * The pair this video shows: the viewer's languages with this video's
-     * line picks over them (line-choice.ts). Everything that plans or names
-     * tracks reads this; assigning it sets the viewer's own languages.
+     * The pair this video shows. Everything that plans or names tracks reads
+     * this; assigning it sets the viewer's own languages.
      */
     get langPrefs(): LanguagePrefs | null {
-        return pairFor(this.savedPrefs, lineChoiceFor(this.lineKey()));
+        return this.lines.pair();
     }
     set langPrefs(prefs: LanguagePrefs | null) {
-        this.savedPrefs = prefs;
+        this.lines.saved = prefs;
     }
     noSubsTimer: number | null = null;
     // Separate from noSubsTimer: that one only guards the all-empty case.
@@ -489,30 +488,31 @@ export abstract class BaseVttApp implements AppInterface {
         return id ? `${platformOf(location.hostname)}:${id}` : null;
     }
 
-    /** A pick for one line of this video: kept for it, then shown (see showLineChoice). */
+    /** A pick for one line of this video: kept for it, and shown when the pair changed. */
     chooseLine(role: TrackRole, code: string | null): void {
-        const key = this.lineKey();
-        if (!key || !this.savedPrefs) return;
-        const own = role === 'learning' ? this.savedPrefs.learning : this.savedPrefs.native;
-        chooseLineFor(key, role === 'learning' ? 'first' : 'second', code && code !== own ? code : null);
-        this.showLineChoice(role);
+        if (this.lines.choose(role, code)) this.showLineChoice(role);
     }
 
-    /** YouTube plans this video's tracks again for the new pair, keeping what plays meanwhile. */
+    /**
+     * YouTube re-routes the loaded tracks to the new pair, and plans the
+     * video again (keeping what plays) only for a language it has not loaded.
+     */
     showLineChoice(_role: TrackRole): void {
         this.applyLangPrefsToState();
-        this.reprocessCurrentVideo({ preserveTracks: true });
+        if (this.lines.lacks(this.state.tracks.map((t) => t.name))) this.reprocessCurrentVideo({ preserveTracks: true });
+        else this.ui.refresh();
     }
 
     openSiteSettings(): void {
-        window.open(siteSettingsUrl('youtube'), '_blank', 'noopener');
+        openSiteSettings('youtube');
+    }
+
+    ownLanguages(): LanguagePrefs | null {
+        return this.lines.saved;
     }
 
     applyLangPrefsToState(): void {
-        // The viewer's own languages, for the sidebar to name; the pair of
-        // this video (with its picks) routes the tracks below.
-        this.state.languagePair = this.savedPrefs ?? undefined;
-        this.state.pickerLanguages = SUPPORTED_LANGUAGES.map((l) => l.code);
+        // This video's pair (the viewer's languages with its picks) routes the tracks.
         if (!this.langPrefs) return;
         this.state.setLanguagePreferences(
             labelForLanguage(this.langPrefs.learning),

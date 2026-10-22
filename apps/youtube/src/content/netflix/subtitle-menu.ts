@@ -22,11 +22,16 @@ import type { AiControls } from '../../../../../packages/shared/src/subtitle-ai/
 import { buildConfirm, confirmSkipped, costTitle } from '../../../../../packages/shared/src/subtitle-ai/confirm';
 import { AI_SUFFIX } from '../../../../../packages/shared/src/subtitle-ai/controller';
 import { trackLanguageCode } from '../../../../../packages/shared/src/track-label';
+import { baseLang as base } from './subtitles';
 
 export interface NetflixMenuHost {
     state: AppState;
     ui: Pick<SidebarUI, 'setMode' | 'toggleOverlay' | 'openSettings' | 'refresh'>;
+    /** The viewer's own languages: what the block offers, whatever shows now. */
     langPrefs(): LanguagePrefs | null;
+    /** This title's pair: the viewer's languages with its line picks over them. */
+    pair(): LanguagePrefs | null;
+
     /** The subtitle tracks this title ships: base code and Netflix's own name for it. */
     titleTracks(): { base: string; label: string }[];
     /** Put the viewer's own pair back on the two lines (the sidebar picker may have changed them). */
@@ -46,7 +51,6 @@ const OPEN_CLASS = 'vtt-nf-panel-open';
 const PRESSES = ['click', 'pointerdown', 'mousedown', 'pointerup', 'mouseup'] as const;
 const PICK_KEYS = ['Enter', ' '];
 
-const base = (code: string) => code.split(/[-_]/)[0].toLowerCase();
 
 /** A node this file wrote: the block or a copied check mark (or inside one). */
 function ours(node: Node): boolean {
@@ -91,6 +95,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     let aiStart: (() => void) | null = null;
     let aiOff = false;
     let aiStop: (() => void) | null = null;
+    /** The translation may be had here (AiControls.allowed). */
+    let aiAllowed = false;
     /** The credits question while it is up: put back with the block if Netflix drops it. */
     let asking: Ask | null = null;
     let watched: Element | null = null;
@@ -114,9 +120,14 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (!state.overlayEnabled) ui.toggleOverlay();
     };
 
+    // The viewer's own pair, labelled and acted on as theirs: a pick of
+    // another language for this title (its line picks) is not offered here,
+    // and an item is checked only while the lines are theirs again.
     const items = (): Item[] => {
         const prefs = host.langPrefs();
         if (!prefs) return [];
+        const now = host.pair() ?? prefs;
+        const theirs = base(now.learning) === base(prefs.learning) && base(now.native) === base(prefs.native);
         const shipped = host.titleTracks();
         // Named as Netflix names them beside ours; the viewer's language, when
         // Netflix lacks it, in its own name.
@@ -130,7 +141,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             return [{
                 label: `${learning} + ${native}`,
                 ai: false,
-                checked: shown && dual && !aiStop,
+                checked: theirs && shown && dual && !aiStop,
                 pick: () => {
                     netflixPick = null;
                     aiStop?.();
@@ -141,19 +152,21 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 },
             }];
         }
-        if (!state.secondLineOnDemand || !state.secondLineLanguage) return [];
+        // The viewer's language by AI: offered now, or one pick away while
+        // another language is this title's second line.
+        if (!(state.secondLineOnDemand || aiAllowed)) return [];
         return [
             {
                 label: native,
                 ai: true,
-                checked: shown && !!aiStop && state.displayMode === 'single' && state.singleTrackName === aiName(prefs),
+                checked: theirs && shown && !!aiStop && state.displayMode === 'single' && state.singleTrackName === aiName(prefs),
                 pick: () => pickAi(true, native),
                 spent,
             },
             {
                 label: `${learning} + ${native}`,
                 ai: true,
-                checked: shown && !!aiStop && dual,
+                checked: theirs && shown && !!aiStop && dual,
                 pick: () => pickAi(false, `${learning} + ${native}`),
                 spent,
             },
@@ -163,14 +176,14 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     /** The AI translation's track, as the translator names it. */
     const aiName = (prefs: LanguagePrefs) => labelForLanguage(prefs.native) + AI_SUFFIX;
 
-    // Shown as asked: alone, the translation is Single on it; paired, Dual,
-    // with the learning track back on the first line (a pick in Netflix's list
-    // may have put another there).
+    // Shown as asked: alone, the translation is Single on it; paired, Dual.
+    // The viewer's own pair first (a pick in Netflix's list, or another
+    // second line, may stand for this title): the translation is into theirs.
     const showAi = (alone: boolean) => {
         const prefs = host.langPrefs();
         if (!prefs) return;
         netflixPick = null;
-        host.showTrack(base(prefs.learning));
+        host.showPair();
         state.setSingleTrack(alone ? aiName(prefs) : undefined);
         ui.setMode(alone ? 'single' : 'dual');
         ensureOverlay();
@@ -181,6 +194,10 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     // the one question unless the viewer said not to ask.
     const pickAi = (alone: boolean, label: string): void | 'stay' => {
         if (aiStop) return showAi(alone);
+        // The viewer's own pair back, so the translation is wanted, then
+        // Dual, which makes the offer.
+        netflixPick = null;
+        host.showPair();
         ui.setMode('dual');
         // A video translated before starts again on Dual, without an offer.
         if (aiStop) return showAi(alone);
@@ -576,15 +593,22 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     // waits a moment on a hover before it opens the panel.
     let frames = 0;
     const poll = () => {
-        if (doc.querySelector(PANEL)) {
+        const panel = doc.querySelector(PANEL);
+        if (panel) {
             frames = 0;
+            // Already there (the button hovered again): the block stands,
+            // and a question up in it stays up.
+            if (panel.querySelector(`.${BLOCK}`)) return;
             return render();
         }
         if (--frames > 0) requestAnimationFrame(poll);
     };
     const onOpener = (e: Event) => {
         if (isContextOrphaned()) return destroy();
-        if (!(e.target as Element | null)?.closest?.(OPENERS)) return;
+        const target = e.target as Element | null;
+        // The panel matches the openers' selector too ("selector-audio-subtitle"):
+        // what happens inside it is watch()'s, not an opening.
+        if (!target?.closest?.(OPENERS) || target.closest(PANEL)) return;
         const idle = frames <= 0;
         frames = 90;
         if (idle) requestAnimationFrame(poll);
@@ -623,6 +647,10 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         },
         stop(stop) {
             aiStop = stop;
+            if (watched?.isConnected) render(false);
+        },
+        allowed(on) {
+            aiAllowed = on;
             if (watched?.isConnected) render(false);
         },
         destroy,

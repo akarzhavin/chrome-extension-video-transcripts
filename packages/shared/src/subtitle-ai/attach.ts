@@ -20,6 +20,12 @@ export type AiApp = Omit<AiHost, keyof BrowserSide> & {
     offer?(start: (() => void) | null, off?: boolean): void;
     /** Show the way to turn a running translation off; null takes it away. */
     offerStop?(stop: (() => void) | null): void;
+    /**
+     * Whether the translation may be had here at all (the account's gate and a
+     * language pair), on every change: a pick can bring it back even while it
+     * is not offered (another track second on this video).
+     */
+    allowed?(on: boolean): void;
 };
 
 type BrowserSide = Pick<AiHost, 'send' | 'currentTime' | 'later' | 'hintAllowed'>;
@@ -62,6 +68,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     const turnedOff = new Set<string>();
     let chosenRead = !deps.chosen;
     let offered: string | null = null;
+    let saidAllowed: boolean | null = null;
     const keyOf = (source: { subtitles: { endTime: number }[] }, prefs: LanguagePrefs) =>
         `${app.site}:${prefs.learning}>${prefs.native}:${source.subtitles.length}:${source.subtitles[source.subtitles.length - 1]?.endTime ?? 0}`;
     const withdraw = () => {
@@ -73,8 +80,11 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
     const stop = () => {
         withdraw();
         if (!t) return;
-        t.stop();
+        // Let go first: stopping drops its track, and that change comes back
+        // here (sync) while it stops.
+        const old = t;
         t = null;
+        old.stop();
         yielded = false;
         deps.oneTab?.release();
         app.offerStop?.(null);
@@ -98,7 +108,11 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             : undefined;
         const native = !!prefs && state.tracks.some((tr) => own(tr.name) && tr.name.includes(labelForLanguage(prefs.native)));
         // The site's own track always wins, unless the dev switch forces it.
-        state.aiAllowed = allowed && !!prefs;
+        const may = allowed && !!prefs;
+        if (may !== saidAllowed) {
+            saidAllowed = may;
+            app.allowed?.(may);
+        }
         const wanted = allowed && !!prefs && !!source && (forced || !native);
         state.secondLineOnDemand = wanted;
         state.secondLineLanguage = wanted ? prefs!.native : undefined;

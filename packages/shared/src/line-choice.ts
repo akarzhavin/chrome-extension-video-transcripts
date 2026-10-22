@@ -6,7 +6,8 @@
 // Kept in chrome.storage.local and mirrored in memory, so the pair for a
 // video is known at once, before its tracks are planned.
 
-import type { LanguagePrefs } from './languages';
+import { labelForLanguage, type LanguagePrefs } from './languages';
+import type { TrackRole } from './types';
 
 const KEY = 'lineChoice.v1';
 /** The videos remembered, the oldest picks dropped first. */
@@ -75,7 +76,13 @@ export function chooseLineFor(video: string, line: 'first' | 'second', code: str
     else delete next[video];
     const kept = Object.entries(next).sort((a, b) => b[1].at - a[1].at).slice(0, KEEP);
     cache = Object.fromEntries(kept);
-    void chrome.storage.local.set({ [KEY]: cache }).catch(() => undefined);
+    // After an extension reload the page's script is orphaned and this throws
+    // at once: the pick still shows, from memory, for this page.
+    try {
+        void chrome.storage.local.set({ [KEY]: cache }).catch(() => undefined);
+    } catch {
+        /* orphaned context */
+    }
 }
 
 /** The pair a video shows: the viewer's languages, with that video's picks over them. */
@@ -92,6 +99,44 @@ export function pairFor(prefs: LanguagePrefs | null, choice: LineChoice | null):
         else native = other(learning);
     }
     return { learning, native };
+}
+
+/**
+ * One site app's picks: the viewer's own languages (as saved) and the pair of
+ * the video playing now, keyed by the app (a video id, a film's page). The
+ * apps hold one and show a pick their own way.
+ */
+export class LinePicks {
+    /** The viewer's own languages, as saved (the site's extension page). */
+    saved: LanguagePrefs | null = null;
+
+    constructor(private readonly videoKey: () => string | null) {}
+
+    /** The pair this video shows: the viewer's languages with its picks over them. */
+    pair(): LanguagePrefs | null {
+        return pairFor(this.saved, lineChoiceFor(this.videoKey()));
+    }
+
+    /**
+     * A pick for one line of this video (null: the viewer's own language
+     * back); its own language is no pick. True when the pair changed.
+     */
+    choose(role: TrackRole, code: string | null): boolean {
+        const key = this.videoKey();
+        if (!key || !this.saved) return false;
+        const before = this.pair();
+        const own = role === 'learning' ? this.saved.learning : this.saved.native;
+        chooseLineFor(key, role === 'learning' ? 'first' : 'second', code && code !== own ? code : null);
+        const after = this.pair();
+        return before?.learning !== after?.learning || before?.native !== after?.native;
+    }
+
+    /** A language of the pair with no loaded track of it (by the label tracks are named with). */
+    lacks(trackNames: string[]): boolean {
+        const pair = this.pair();
+        if (!pair) return false;
+        return [pair.learning, pair.native].some((code) => !trackNames.some((n) => n.includes(labelForLanguage(code))));
+    }
 }
 
 /** For tests: forget what is in memory. */

@@ -4159,15 +4159,15 @@ describe('the language picker on a site that loads languages on demand', () => {
 
     it('the second line adds the viewer\'s own language by AI when the title lacks it, and «None»', () => {
         const { ui } = pickerPanel();
-        ui.state.languagePair = { learning: 'en', native: 'uk' };
-        ui.state.aiAllowed = true;
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'uk' });
+        ui.setAiAllowed(true);
         ui.updateControls();
         const sub = document.getElementById('vtt-sub-select') as HTMLSelectElement;
         const values = [...sub.querySelectorAll('option')].map((o) => o.value);
         expect(values).toEqual(['en', 'ru', 'ai', 'none']);
         expect(sub.querySelector('option[value="ai"]')!.textContent).toBe('Українська');
         // Not allowed for the account: no AI item.
-        ui.state.aiAllowed = false;
+        ui.setAiAllowed(false);
         ui.updateControls();
         expect([...sub.querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru', 'none']);
     });

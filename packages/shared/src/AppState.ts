@@ -78,17 +78,8 @@ export class AppState {
     // The AI translation can supply the second line:
     // Dual stays selectable with one track, and picking it starts the translation.
     secondLineOnDemand = false;
-    /** The account may use the AI translation here (its feature gate, a language pair). */
-    aiAllowed = false;
     /** The language that translation would be in, while secondLineOnDemand. */
     secondLineLanguage?: string;
-    /** The viewer's language pair (codes), as the app last read it. */
-    languagePair?: { learning: string; native: string };
-    /**
-     * Languages the native picker offers beyond the loaded tracks; picking one
-     * changes the pair. Unset: the picker lists the tracks alone.
-     */
-    pickerLanguages?: string[];
     overlayEnabled: boolean = true;
     currentIndex: number = -1;
     isHovering: boolean = false;
@@ -162,7 +153,9 @@ export class AppState {
         const before = this.tracks.length;
         this.tracks = this.tracks.filter((t) => t.name !== name);
         if (this.singleName === name) this.singleName = undefined;
-        if (this.tracks.length !== before) this.applyPreferences();
+        if (this.tracks.length === before) return;
+        this.applyPreferences();
+        this.emit({ type: 'lines' });
     }
 
     reset(): void {

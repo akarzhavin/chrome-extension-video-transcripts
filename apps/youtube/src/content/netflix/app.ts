@@ -41,7 +41,8 @@ class NetflixVttApp extends BaseVttApp {
             this.aiControls = installNetflixMenu({
                 state: this.state,
                 ui: this.ui,
-                langPrefs: () => this.langPrefs,
+                langPrefs: () => this.lines.saved,
+                pair: () => this.langPrefs,
                 // Forced-narrative tracks name themselves "Off" (they play
                 // under Netflix's Off); they are not a language to pair.
                 titleTracks: () => this.currentTracks.filter((t) => !t.isForced),
@@ -258,25 +259,43 @@ class NetflixVttApp extends BaseVttApp {
     // loaded — the picker already disables the rest. Fetch the chosen language's
     // WebVTT (if not already loaded) and point that slot's label preference at
     // it so AppState routes it to the right dropdown.
-    /** Netflix loads the picked language's track for this title (the pickers name the lines). */
-    showLineChoice(role: TrackRole): void {
+    /**
+     * Netflix shows a pick by loading what the title's pair now needs. Both
+     * pickers name that pair (a pick may have swapped the other line), and a
+     * track it lacks is fetched; the viewer's own language with no track of it
+     * stays empty, for the AI translation.
+     */
+    showLineChoice(_role: TrackRole): void {
         const pair = this.langPrefs;
         if (!pair) return;
-        const code = baseLang(role === 'learning' ? pair.learning : pair.native);
-        if (role === 'learning') this.state.selectedLearningCode = code;
-        else this.state.selectedNativeCode = code;
-        // The lines follow the pair even for a language the title lacks (the
-        // viewer's own, by AI): a track of a language now on neither line
-        // goes, or it would stand in for the missing one. A track it has is
-        // fetched.
-        const keep = new Set([baseLang(pair.learning), baseLang(pair.native)]);
+        const learning = baseLang(pair.learning);
+        const native = baseLang(pair.native);
+        this.state.selectedLearningCode = learning;
+        this.state.selectedNativeCode = native;
+        this.keepPairTracks(learning, native);
+        this.applyLangPrefsToState();
+        let asked = false;
+        for (const [role, code] of [['learning', learning], ['native', native]] as const) {
+            if (this.state.tracks.some((t) => t.name === labelForLanguage(code))) continue;
+            if (!trackForBaseCode(this.currentTracks, code)) continue;
+            this.requestLanguageTrack(role, code);
+            asked = true;
+        }
+        if (!asked) this.ui.refresh();
+    }
+
+    /**
+     * Netflix loads the pair's two tracks and no others (planNetflixTracks),
+     * and keeps to that after a pick: a track of a language now on neither
+     * line goes. AppState fills a line it has no track for with another loaded
+     * one (HDrezka's pairs rely on it), so a stale pick would stand in for the
+     * viewer's own language there.
+     */
+    private keepPairTracks(learning: string, native: string): void {
         for (const t of [...this.state.tracks]) {
             const lang = trackLanguageCode(t.name);
-            if (!t.name.endsWith(AI_SUFFIX) && lang && !keep.has(lang)) this.state.removeTrack(t.name);
+            if (!t.name.endsWith(AI_SUFFIX) && lang && lang !== learning && lang !== native) this.state.removeTrack(t.name);
         }
-        this.applyLangPrefsToState();
-        if (trackForBaseCode(this.currentTracks, code)) this.requestLanguageTrack(role, code);
-        else this.ui.refresh();
     }
 
     requestLanguageTrack(role: TrackRole, code: string): void {

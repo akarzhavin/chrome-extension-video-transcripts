@@ -2633,6 +2633,14 @@ export class SidebarUI {
 
     /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
     setAiStatus: (s: AiStatus | null) => void = () => {};
+    /** The translation may be had here (its gate, a pair): the pickers offer it by name. */
+    private aiAllowed = false;
+    setAiAllowed(on: boolean): void {
+        if (on === this.aiAllowed) return;
+        this.aiAllowed = on;
+        this.updateControls();
+    }
+
     /** Shows or hides the AI row's way out to another track (built with the row). */
     private syncAiWayOut: () => void = () => {};
 
@@ -2718,13 +2726,13 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
-        // A second line of the site's own: in Dual, in the AI translation's
-        // place, which goes as its "on" turns it off.
-        if (role === 'native') {
-            this.aiStopFn?.();
-            if (this.state.displayMode === 'single') this.setMode('dual');
-        }
         if (this.isLanguagePickerMode()) {
+            // A language of the title's own on the second line: in Dual, in
+            // the AI translation's place, which goes as its "on" turns it off.
+            if (role === 'native') {
+                this.aiStopFn?.();
+                if (this.state.displayMode === 'single') this.setMode('dual');
+            }
             if (role === 'learning') this.state.selectedLearningCode = value;
             else this.state.selectedNativeCode = value;
             if (this.app.chooseLine) this.app.chooseLine(role, value);
@@ -2734,9 +2742,18 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
+        // Read before anything changes: stopping the translation drops its
+        // track, and the indexes after it move.
         const picked = this.state.tracks[parseInt(value)];
         if (!picked) return;
-        const code = trackLanguageCode(picked.name);
+        const isAi = picked.name.endsWith(AI_SUFFIX);
+        if (role === 'native') {
+            // A site track in the AI translation's place turns it off, as its
+            // "on" does; the AI track itself picked keeps it.
+            if (!isAi) this.aiStopFn?.();
+            if (this.state.displayMode === 'single') this.setMode('dual');
+        }
+        const code = isAi ? null : trackLanguageCode(picked.name);
         if (code) this.app.chooseLine?.(role, code);
         // The track itself, by name: the pick may be one of two of a language,
         // and the pair just re-routed the indexes.
@@ -2820,10 +2837,10 @@ export class SidebarUI {
             this.populateLanguagePicker(this.elements.subSelect, aiSecond ? undefined : this.state.selectedNativeCode);
             // The viewer's own language by AI, when the title has none in it:
             // offered, running, or one pick away (another track second now).
-            const own = this.state.languagePair?.native;
+            const own = this.app.ownLanguages?.()?.native;
             const shipped = new Set((this.state.languageCatalog ?? []).filter((l) => l.available).map((l) => l.code));
             const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
-                || (this.state.aiAllowed && own && !shipped.has(own) ? own : undefined);
+                || (this.aiAllowed && own && !shipped.has(own) ? own : undefined);
             if (aiLanguage) {
                 const group = document.createElement('optgroup');
                 group.label = msg('ytLangGroupTranslated', 'Translated');
@@ -2850,10 +2867,10 @@ export class SidebarUI {
             // and the translation is not running: offered, or one pick away.
             // In any mode: picking it in Single turns Dual on first.
             const aiRunning = this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX));
-            const own = this.state.languagePair?.native;
+            const own = this.app.ownLanguages?.()?.native;
             const loaded = new Set(this.state.tracks.map((t) => trackLanguageCode(t.name)));
             const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
-                || (this.state.aiAllowed && own && !loaded.has(own) ? own : undefined);
+                || (this.aiAllowed && own && !loaded.has(own) ? own : undefined);
             if (aiLanguage && !aiRunning) this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
         }
         // With no tracks there is nothing to show on either line.
@@ -2878,7 +2895,7 @@ export class SidebarUI {
     private linesNote: HTMLElement | null = null;
     private updateLinesNote(): void {
         const note = this.linesNote;
-        const pair = this.state.languagePair;
+        const pair = this.app.ownLanguages?.() ?? null;
         if (!note) return;
         note.replaceChildren();
         if (!pair) return;

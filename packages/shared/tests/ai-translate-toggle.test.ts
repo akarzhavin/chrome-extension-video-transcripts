@@ -242,8 +242,8 @@ describe('the native-language picker', () => {
         const { ui, state } = withTracks();
         // Another language second on this video: the translation is not wanted now.
         state.secondLineOnDemand = false;
-        state.languagePair = { learning: 'en', native: 'uk' };
-        state.aiAllowed = true;
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'uk' });
+        ui.setAiAllowed(true);
         ui.refresh();
         expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська', 'None (one line)']);
         expect(sub().querySelector('optgroup')).toBeNull();
@@ -274,6 +274,23 @@ describe('the native-language picker', () => {
         pick('ai');
         await flush();
         expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('the AI track itself picked for the second line keeps it; a track after it is still the one picked', () => {
+        const { ui, state } = withTracks();
+        const stop = jest.fn();
+        ui.setAiStop(stop);
+        state.addTrack('Ukrainian · AI', [{ startTime: 0, endTime: 1, text: 'в' } as any]);
+        state.addTrack('German — Deutsch', [{ startTime: 0, endTime: 1, text: 'g' } as any]);
+        state.displayMode = 'single';
+        ui.refresh();
+        pick('2');
+        expect(stop).not.toHaveBeenCalled();
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Ukrainian · AI');
+        // Stopping drops the AI track and moves the indexes after it: the pick stands.
+        ui.setAiStop(() => state.removeTrack('Ukrainian · AI'));
+        pick('3');
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('German — Deutsch');
     });
 
     test('a site track in its place turns a running translation off', () => {
@@ -548,7 +565,7 @@ describe('the line pickers', () => {
     function lines() {
         const ui = build();
         const state = ui.state;
-        state.languagePair = { learning: 'en', native: 'ru' };
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'ru' });
         state.addTrack('English — English', [{ startTime: 0, endTime: 1, text: 'a' } as any]);
         state.addTrack('Polish — Polski', [{ startTime: 0, endTime: 1, text: 'b' } as any]);
         state.setDisplayMode('dual');
@@ -570,11 +587,11 @@ describe('the line pickers', () => {
     });
 
     test('a pick is this video\'s line, by its language; the viewer\'s languages stay', () => {
-        const { state, chooseLine } = lines();
+        const { ui, state, chooseLine } = lines();
         pick('vtt-sub-select', '1');
         expect(chooseLine).toHaveBeenCalledWith('native', 'pl');
         expect(state.secondaryTrackIndex).toBe(1);
-        expect(state.languagePair).toEqual({ learning: 'en', native: 'ru' });
+        expect(ui.app.ownLanguages!()).toEqual({ learning: 'en', native: 'ru' });
     });
 
     test('«None» is one line', () => {

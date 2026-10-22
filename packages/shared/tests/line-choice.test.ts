@@ -17,7 +17,7 @@ const store: Record<string, unknown> = {};
     },
 };
 
-import { chooseLineFor, lineChoiceFor, loadLineChoices, pairFor, resetLineChoices } from '../src/line-choice';
+import { chooseLineFor, LinePicks, lineChoiceFor, loadLineChoices, pairFor, resetLineChoices } from '../src/line-choice';
 
 const mine = { learning: 'en', native: 'ru' };
 
@@ -50,4 +50,48 @@ test('null puts the viewer\'s language back; a video with no picks left is dropp
 test('one language on both lines is no pair: the other line takes the viewer\'s other language', () => {
     expect(pairFor(mine, { first: 'ru' })).toEqual({ learning: 'ru', native: 'en' });
     expect(pairFor(mine, { second: 'en' })).toEqual({ learning: 'ru', native: 'en' });
+});
+
+test('an orphaned page (extension reloaded) still shows the pick, from memory', () => {
+    const set = (global as any).chrome.storage.local.set;
+    (global as any).chrome.storage.local.set = () => {
+        throw new Error('Extension context invalidated.');
+    };
+    try {
+        expect(() => chooseLineFor('netflix:9', 'second', 'pl')).not.toThrow();
+        expect(lineChoiceFor('netflix:9')).toEqual({ first: undefined, second: 'pl' });
+    } finally {
+        (global as any).chrome.storage.local.set = set;
+    }
+});
+
+describe('LinePicks: one app\'s picks', () => {
+    test('the pair of the video playing; a pick says whether the pair changed', () => {
+        let video: string | null = 'youtube:a';
+        const lines = new LinePicks(() => video);
+        expect(lines.choose('native', 'pl')).toBe(false); // no languages yet
+        lines.saved = mine;
+        expect(lines.pair()).toEqual(mine);
+        expect(lines.choose('native', 'pl')).toBe(true);
+        expect(lines.pair()).toEqual({ learning: 'en', native: 'pl' });
+        expect(lines.choose('native', 'pl')).toBe(false);
+        // Its own language is no pick: the viewer's pair back.
+        expect(lines.choose('native', 'ru')).toBe(true);
+        expect(lineChoiceFor('youtube:a')).toBeNull();
+        // Another video: its own pair.
+        lines.choose('native', 'de');
+        video = 'youtube:b';
+        expect(lines.pair()).toEqual(mine);
+        video = null;
+        expect(lines.choose('native', 'de')).toBe(false);
+    });
+
+    test('lacks: a language of the pair with no loaded track', () => {
+        const lines = new LinePicks(() => 'youtube:c');
+        lines.saved = mine;
+        expect(lines.lacks(['English', 'Russian'])).toBe(false);
+        lines.choose('native', 'pl');
+        expect(lines.lacks(['English', 'Russian'])).toBe(true);
+        expect(lines.lacks(['English', 'Polish'])).toBe(false);
+    });
 });

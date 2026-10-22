@@ -26,7 +26,7 @@ import { AppState } from '../../../packages/shared/src/AppState';
 import type { DisplayMode, Subtitle } from '../../../packages/shared/src/types';
 import { installNetflixMenu, subtitleList } from '../src/content/netflix/subtitle-menu';
 
-const NAMES: Record<string, string> = { en: 'English', pl: 'Polish', ar: 'Arabic', es: 'Spanish' };
+const NAMES: Record<string, string> = { en: 'English', pl: 'Polish', ar: 'Arabic', es: 'Spanish', uk: 'Ukrainian' };
 const flush = () => new Promise((r) => setTimeout(r, 0));
 const frames = () => new Promise((r) => setTimeout(r, 50));
 const cues = (n: number): Subtitle[] =>
@@ -63,13 +63,24 @@ function setup(opts: { native: string; shipped: string[] }) {
         openSettings: jest.fn(),
         refresh: jest.fn(),
     };
-    const showPair = jest.fn();
-    // As the Netflix app does: the learning slot points at that language.
-    const showTrack = jest.fn((b: string) => state.setLanguagePreferences(NAMES[b] ?? b, state.secondaryLangLabel));
+    const own = { learning: 'en', native: opts.native };
+    const nativeLabel = opts.native === 'pl' ? 'Polish' : 'Ukrainian';
+    // As the Netflix app does: a pick in Netflix's list is this title's first
+    // line (its learning slot points there); the pair puts the viewer's back.
+    let first: string | null = null;
+    const showPair = jest.fn(() => {
+        first = null;
+        state.setLanguagePreferences('English', nativeLabel);
+    });
+    const showTrack = jest.fn((b: string) => {
+        first = b === own.learning ? null : b;
+        state.setLanguagePreferences(NAMES[b] ?? b, state.secondaryLangLabel);
+    });
     const controls = installNetflixMenu({
         state,
         ui,
-        langPrefs: () => ({ learning: 'en', native: opts.native }),
+        langPrefs: () => own,
+        pair: () => ({ learning: first ?? own.learning, native: own.native }),
         titleTracks: () => opts.shipped.map((b) => ({ base: b, label: NAMES[b] ?? b })),
         showPair,
         showTrack,
@@ -201,7 +212,7 @@ describe('the site lacks the viewer\'s language', () => {
         (list.querySelectorAll('li')[2] as HTMLElement).click();
         expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('Polish');
         s.item('English + УкраїнськаAI').click();
-        expect(s.showTrack).toHaveBeenLastCalledWith('en');
+        expect(s.showPair).toHaveBeenCalled();
         expect(s.state.displayMode).toBe('dual');
         expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English');
     });
@@ -540,4 +551,59 @@ test('a video translated before: Dual starts it again, and the pick still shows 
     s.item('English + УкраїнськаAI').click();
     expect(s.state.displayMode).toBe('dual');
     expect(s.state.overlayEnabled).toBe(true);
+});
+
+test('the question stays up: focus and hovers inside the open panel do not rebuild the block', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'uk', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.secondLineOnDemand = true;
+    s.state.secondLineLanguage = 'uk';
+    s.controls.offer(jest.fn(), false);
+    await s.open();
+    s.item('English + УкраїнськаAI').click();
+    await flush();
+    const box = s.block()!.querySelector('.vtt-nf-confirm')!;
+    const dontAsk = box.querySelector<HTMLInputElement>('input')!;
+    dontAsk.checked = true;
+    box.dispatchEvent(new Event('focusin', { bubbles: true }));
+    s.item('English + УкраїнськаAI').dispatchEvent(new Event('pointerover', { bubbles: true }));
+    document.querySelector('[data-uia="control-audio-subtitle"]')!.dispatchEvent(new Event('pointerover', { bubbles: true }));
+    await frames();
+    expect(s.block()!.querySelector('.vtt-nf-confirm')).toBe(box);
+    expect(dontAsk.checked).toBe(true);
+});
+
+test('a pick in Netflix\'s list stands for this title: the block still offers the viewer\'s own pair, unchecked until it shows again', async () => {
+    netflix(['English (CC)', 'Polish', 'Ukrainian']);
+    const s = setup({ native: 'uk', shipped: ['en', 'pl', 'uk'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    s.state.addTrack('Ukrainian', cues(5));
+    s.state.setDisplayMode('dual');
+    await s.open();
+    expect(s.labels()).toEqual(['English + Ukrainian']);
+    expect(s.item('English + Ukrainian').getAttribute('aria-checked')).toBe('true');
+    const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
+    (list.querySelectorAll('li')[2] as HTMLElement).click();
+    // Polish is this title's first line now; the item is the viewer's pair, as it says.
+    expect(s.labels()).toEqual(['English + Ukrainian']);
+    expect(s.item('English + Ukrainian').getAttribute('aria-checked')).toBe('false');
+    s.item('English + Ukrainian').click();
+    expect(s.showPair).toHaveBeenCalled();
+    expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English');
+});
+
+test('the AI items stay while another track is this title\'s second line, when AI may be had', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'uk', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    // Not offered now (another track second), but allowed for the account.
+    s.state.secondLineOnDemand = false;
+    s.controls.allowed?.(true);
+    await s.open();
+    expect(s.labels()).toEqual(['УкраїнськаAI', 'English + УкраїнськаAI']);
+    s.controls.allowed?.(false);
+    await frames();
+    expect(s.labels()).toEqual([]);
 });

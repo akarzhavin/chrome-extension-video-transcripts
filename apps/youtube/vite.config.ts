@@ -318,6 +318,13 @@ export default defineConfig(({ command, mode }) => {
               rename: { stripBase: true },
             },
             {
+              // Netflix's panel block, this edition's own; loaded on
+              // netflix.com after styles.css (see the manifest).
+              src: 'src/assets/netflix.css',
+              dest: 'src/assets',
+              rename: { stripBase: true },
+            },
+            {
               // Loaded after styles.css (see the manifest) — it consumes that
               // file's tokens and defines none of its own.
               src: '../rezka/src/assets/lookup.css',
