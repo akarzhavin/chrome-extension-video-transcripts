@@ -100,7 +100,7 @@ test('the site has the viewer\'s language: one pair, no AI, on top of the Subtit
     expect(s.labels()).toEqual(['English + Polish']);
     // Our items first, right under Subtitles; the link to other pairs under them.
     expect(s.block()!.firstElementChild!.classList.contains('vtt-nf-list')).toBe(true);
-    expect(s.block()!.lastElementChild!.textContent).toBe('Choose another pair ›');
+    expect(s.block()!.querySelector('.vtt-nf-list + .vtt-nf-head')!.textContent).toBe('Choose another pair ›');
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
     expect(s.block()!.nextElementSibling).toBe(list);
     expect(s.block()!.querySelector('.vtt-nf-item')!.className).toContain('nf-item');
@@ -235,6 +235,20 @@ test('Choose another pair opens the sidebar settings, and clicks in the block st
     s.block()!.querySelector<HTMLButtonElement>('.vtt-nf-choose')!.click();
     expect(s.ui.openSettings).toHaveBeenCalledWith('languages');
     expect(netflixHandler).not.toHaveBeenCalled();
+});
+
+test('Options on the Subtitles heading line opens the settings as they are, Netflix\'s heading untouched', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    const heading = s.block()!.previousElementSibling!;
+    expect(heading.textContent).toBe('Subtitles');
+    const options = s.block()!.querySelector<HTMLButtonElement>('.vtt-nf-options')!;
+    expect(options.textContent).toBe('Options');
+    options.click();
+    expect(s.ui.openSettings).toHaveBeenCalledTimes(1);
+    expect(s.ui.openSettings).toHaveBeenCalledWith();
 });
 
 test('a panel Netflix re-renders gets the block back', async () => {

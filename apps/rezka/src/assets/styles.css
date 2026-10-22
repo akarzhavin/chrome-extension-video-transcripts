@@ -4530,6 +4530,7 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
    (Netflix sizes it by the viewport), so the heading and the question scale
    with it. */
 .vtt-nf-block {
+    position: relative;
     margin: 0 0 0.4em;
     padding: 0 0 0.4em;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
@@ -4561,6 +4562,28 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 .vtt-nf-head .vtt-nf-choose:hover,
 .vtt-nf-head .vtt-nf-choose:focus-visible {
     color: #fff;
+}
+
+.vtt-nf-options {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(-50%);
+    padding: 0.3em 0.75em;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
+    line-height: 1.2;
+    color: #a3a3a3;
+    cursor: pointer;
+}
+
+.vtt-nf-options:hover,
+.vtt-nf-options:focus-visible {
+    color: #fff;
+    border-color: #a3a3a3;
 }
 
 .vtt-nf-block .vtt-nf-item {

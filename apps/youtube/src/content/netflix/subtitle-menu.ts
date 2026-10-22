@@ -235,7 +235,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 ours.append(holder);
             }
         }
-        block.append(ours, head);
+        // On the Subtitles heading's line, at its right: the sidebar's
+        // settings, as they are. Kept in the block, placed on that line once
+        // the block is in (see placeOptions): Netflix's heading is left alone.
+        const options = doc.createElement('button');
+        options.type = 'button';
+        options.className = 'vtt-nf-options';
+        options.textContent = msg('ytNfOptions', 'Options');
+        onPress(options, 'options', () => ui.openSettings());
+        block.append(ours, head, options);
         // The heading and the question scale with Netflix's item text and
         // start where its words start.
         const words = labelOf(plain);
@@ -316,9 +324,21 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (confirming && !ask && panel.querySelector(`.${BLOCK}`)) return;
         panel.querySelector(`.${BLOCK}`)?.remove();
         const block = build(list, ask);
-        if (block) list.parentElement.insertBefore(block, list);
+        if (block) {
+            list.parentElement.insertBefore(block, list);
+            placeOptions(block);
+        }
         check ??= list.querySelector('svg:not(.vtt-nf-check)');
         markNetflix(panel, list);
+    }
+
+    /** Options, centred on the heading's line above the block. */
+    function placeOptions(block: HTMLElement): void {
+        const title = block.previousElementSibling;
+        const options = block.querySelector<HTMLElement>('.vtt-nf-options');
+        if (!title || !options) return;
+        const t = title.getBoundingClientRect();
+        options.style.top = `${Math.round(t.top + t.height / 2 - block.getBoundingClientRect().top)}px`;
     }
 
     // With the sidebar open the player is narrower, but Netflix places the
