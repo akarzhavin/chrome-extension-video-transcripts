@@ -2974,6 +2974,19 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 /* ── The AI badge (spec 024) ─────────────────────────────────────────────── */
 /* Header-left slot, the mirror of the settings gear on the right. */
 #vtt-ai-badge { position: absolute; left: 16px; display: none; -webkit-user-select: none; user-select: none; }
+/* With the badge in, the title is centred in the room between it and the two
+   buttons on the right, 12px clear of each, not over the whole header: a
+   countdown widens the badge and it ran up against "Subtitles". The badge
+   (left 16px) ends var(--vtt-ai-badge-w) - 4px into the 20px padding; the
+   buttons (right 16px, 68px) start 64px into it. Width set by badge.ts. */
+#vtt-sidebar:not(.vtt-settings-open):not(.vtt-feedback-open):not(.vtt-lookup-open) #vtt-header-top:is(.vtt-ai-on, .vtt-ai-off) h2 {
+    flex: 1;
+    min-width: 0;
+    padding: 0 76px 0 calc(var(--vtt-ai-badge-w, 96px) + 8px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 #vtt-header-top.vtt-ai-on #vtt-ai-badge { display: flex; }
 /* Signed out: the same badge switched off. Grey where the accent would be, a
    full grey ring for the default allowance; hover lights it up a little, since
