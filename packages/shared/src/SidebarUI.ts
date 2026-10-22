@@ -688,9 +688,10 @@ export class SidebarUI {
             if (catalog && load) {
                 for (const c of catalog) {
                     list.append(item(c.label, c.code === onLineCode, () => {
+                        // The track on the line changes, not the viewer's
+                        // language: the pickers keep showing theirs.
                         if (dual) {
                             this.aiStopFn?.();
-                            this.state.selectedNativeCode = c.code;
                             load.call(this.app, 'native', c.code);
                         } else {
                             this.state.setSingleTrack(undefined);

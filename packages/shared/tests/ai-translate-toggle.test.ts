@@ -388,8 +388,10 @@ describe('the AI translation alone on the line, stopped', () => {
         button(/Other track/).click();
         const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
         expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'English', 'Polish']);
+        state.selectedLearningCode = 'en';
         items[2].click();
         expect(load).toHaveBeenCalledWith('learning', 'pl');
+        expect(state.selectedLearningCode).toBe('en');
         expect(state.singleTrackName).toBeUndefined();
     });
 
@@ -436,10 +438,15 @@ describe('the AI translation alone on the line, stopped', () => {
         button(/Other track/).click();
         const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
         expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'Polish']);
+        state.selectedNativeCode = 'ru';
+        state.selectedLearningCode = 'en';
         items[1].click();
         expect(stop).toHaveBeenCalled();
         expect(load).toHaveBeenCalledWith('native', 'pl');
         expect(state.displayMode).toBe('dual');
+        // A track for the line, not a new native language.
+        expect(state.selectedNativeCode).toBe('ru');
+        expect(state.selectedLearningCode).toBe('en');
     });
 
     test('a line it has not translated shows the original, muted', () => {
