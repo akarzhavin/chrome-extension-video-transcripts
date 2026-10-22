@@ -98,6 +98,9 @@ test('the site has the viewer\'s language: one pair, no AI, on top of the Subtit
     s.state.setDisplayMode('dual');
     await s.open();
     expect(s.labels()).toEqual(['English + Polish']);
+    // Our items first, right under Subtitles; the Lingogram line under them.
+    expect(s.block()!.firstElementChild!.classList.contains('vtt-nf-list')).toBe(true);
+    expect(s.block()!.lastElementChild!.textContent).toBe('Lingogram ·Choose another pair ›');
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
     expect(s.block()!.nextElementSibling).toBe(list);
     expect(s.block()!.querySelector('.vtt-nf-item')!.className).toContain('nf-item');
@@ -317,4 +320,15 @@ test('Choose another pair works with a real press across a Netflix re-render', a
     expect(again).not.toBe(first);
     again.dispatchEvent(new Event('pointerup', { bubbles: true }));
     expect(s.ui.openSettings).toHaveBeenCalledTimes(1);
+});
+
+test('Single picked elsewhere marks Netflix\'s item of the language shown', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    s.state.setDisplayMode('single');
+    await s.open();
+    const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
+    expect([...list.querySelectorAll('.vtt-nf-shown')].map((li) => li.textContent)).toEqual(['English (CC)']);
 });

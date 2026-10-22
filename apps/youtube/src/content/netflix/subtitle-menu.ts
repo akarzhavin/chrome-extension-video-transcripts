@@ -19,6 +19,7 @@ import { msg } from '../../../../../packages/shared/src/i18n';
 import { nativeForLanguage, type LanguagePrefs } from '../../../../../packages/shared/src/languages';
 import type { AiControls } from '../../../../../packages/shared/src/subtitle-ai/browser';
 import { buildConfirm, confirmSkipped, costTitle } from '../../../../../packages/shared/src/subtitle-ai/confirm';
+import { trackLanguageCode } from '../../../../../packages/shared/src/track-label';
 
 export interface NetflixMenuHost {
     state: AppState;
@@ -184,17 +185,18 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         block.setAttribute('aria-label', 'Lingogram');
         for (const type of KEPT_IN_BLOCK) block.addEventListener(type, (e) => e.stopPropagation());
 
+        // Under our items, before the line: who these are from, and the way
+        // to any other pair.
         const head = doc.createElement('div');
         head.className = 'vtt-nf-head';
         const name = doc.createElement('span');
-        name.textContent = 'Lingogram';
+        name.textContent = 'Lingogram ·';
         const choose = doc.createElement('button');
         choose.type = 'button';
         choose.className = 'vtt-nf-choose';
         choose.textContent = `${msg('ytNfChoosePair', 'Choose another pair')} ›`;
         onPress(choose, 'choose', () => ui.openSettings());
         head.append(name, choose);
-        block.append(head);
 
         const question = (go: () => void): HTMLElement => {
             const parts = buildConfirm(doc, 'vtt-nf-confirm', (yes) => {
@@ -234,7 +236,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 ours.append(holder);
             }
         }
-        block.append(ours);
+        block.append(ours, head);
         // The heading and the question scale with Netflix's item text and
         // start where its words start.
         const words = labelOf(plain);
@@ -398,11 +400,18 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     function markNetflix(panel: Element, list: HTMLUListElement): void {
         list.classList.add('vtt-nf-sublist');
         const items = [...list.querySelectorAll(':scope > li')];
+        const words = (li: Element) => li.textContent?.trim() ?? '';
+        // One line of a site track: the item picked, else the first of that
+        // track's language (Single picked in the sidebar, or left from before).
+        const alone = () => {
+            if (netflixPick) return items.find((li) => words(li) === netflixPick);
+            const main = state.tracks[state.activeTrackIndex];
+            const code = main ? trackLanguageCode(main.name) : null;
+            return code ? items.slice(1).find((li) => trackFor(words(li))?.base === code) : undefined;
+        };
         const shown = !state.overlayEnabled
             ? items[0]
-            : netflixPick && state.displayMode === 'single' && !state.aiAlone
-              ? items.find((li) => li.textContent?.trim() === netflixPick)
-              : undefined;
+            : state.displayMode === 'single' && !state.aiAlone ? alone() : undefined;
         for (const li of items) {
             const on = li === shown;
             if (li.classList.contains('vtt-nf-shown') !== on) li.classList.toggle('vtt-nf-shown', on);
