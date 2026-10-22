@@ -64,7 +64,8 @@ function setup(opts: { native: string; shipped: string[] }) {
         refresh: jest.fn(),
     };
     const showPair = jest.fn();
-    const showTrack = jest.fn();
+    // As the Netflix app does: the learning slot points at that language.
+    const showTrack = jest.fn((b: string) => state.setLanguagePreferences(NAMES[b] ?? b, state.secondaryLangLabel));
     const controls = installNetflixMenu({
         state,
         ui,
@@ -167,10 +168,27 @@ describe('the site lacks the viewer\'s language', () => {
         expect(s.state.displayMode).toBe('dual');
     });
 
+    test('after a Netflix pick, the AI pair puts the learning track back on the first line', async () => {
+        const s = ukrainian();
+        s.state.addTrack('Polish', cues(5));
+        s.controls.stop(() => {});
+        await s.open();
+        s.state.addTrack('Ukrainian · AI', cues(5));
+        const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
+        (list.querySelectorAll('li')[2] as HTMLElement).click();
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('Polish');
+        s.item('English + УкраїнськаAI').click();
+        expect(s.showTrack).toHaveBeenLastCalledWith('en');
+        expect(s.state.displayMode).toBe('dual');
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English');
+    });
+
     test('the language alone shows the translation as the one line', async () => {
         const s = ukrainian();
-        // As AiTranslator.start does: its track, preferred for the second line.
+        // As attach and AiTranslator.start do: the translator offered for
+        // stopping, its track preferred for the second line.
         const start = jest.fn(() => {
+            s.controls.stop(() => {});
             s.state.preferredSecondaryName = 'Ukrainian · AI';
             s.state.addTrack('Ukrainian · AI', cues(5));
         });
@@ -179,12 +197,36 @@ describe('the site lacks the viewer\'s language', () => {
         s.item('УкраїнськаAI').click();
         expect(start).toHaveBeenCalledTimes(1);
         expect(s.state.displayMode).toBe('single');
-        expect(s.state.aiAlone).toBe(true);
+        expect(s.state.singleTrackName).toBe('Ukrainian · AI');
         expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('Ukrainian · AI');
         // Dual from the sidebar puts English back on the first line.
         s.state.displayMode = 'dual';
-        expect(s.state.aiAlone).toBe(false);
         expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('English');
+    });
+
+    test('the offer gone while the question was up: Yes starts nothing and shows nothing as started', async () => {
+        const s = ukrainian();
+        const start = jest.fn();
+        s.controls.offer(start, false);
+        await s.open();
+        s.item('УкраїнськаAI').click();
+        await flush();
+        [...s.block()!.querySelectorAll('button')].find((b) => b.textContent === 'Translate')!.click();
+        expect(start).toHaveBeenCalledTimes(1);
+        expect(s.state.singleTrackName).toBeUndefined();
+        expect(s.block()!.querySelector('.vtt-nf-confirm')).toBeNull();
+    });
+
+    test('a question up when Netflix drops the block comes back with it', async () => {
+        const s = ukrainian();
+        s.controls.offer(jest.fn(), false);
+        await s.open();
+        s.item('English + УкраїнськаAI').click();
+        await flush();
+        expect(s.block()!.querySelector('.vtt-nf-confirm')).not.toBeNull();
+        s.block()!.remove();
+        await frames();
+        expect(s.block()!.querySelector('.vtt-nf-confirm')).not.toBeNull();
     });
 });
 
@@ -211,6 +253,71 @@ test('a pick in Netflix\'s own list is shown by us, one line; Netflix itself doe
     expect(list.querySelectorAll('li')[2].classList.contains('vtt-nf-shown')).toBe(true);
     expect(list.querySelectorAll('li')[2].querySelector('.vtt-nf-check')).not.toBeNull();
     expect(list.querySelectorAll('li')[0].classList.contains('vtt-nf-shown')).toBe(false);
+});
+
+test('a Netflix item we cannot show stays Netflix\'s: its press goes through', async () => {
+    netflix(['English (CC)', 'Polish', 'Japanese']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    const panel = document.querySelector('[data-uia="selector-audio-subtitle"]')!;
+    const netflixSaw = jest.fn();
+    panel.parentElement!.addEventListener('click', netflixSaw);
+    const japanese = subtitleList(panel)!.querySelectorAll('li')[3] as HTMLElement;
+    japanese.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+    expect(netflixSaw).toHaveBeenCalled();
+    expect(s.showTrack).not.toHaveBeenCalled();
+});
+
+test('keys in Netflix\'s list: Enter picks by us, Tab and Escape go on to Netflix', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    await s.open();
+    const panel = document.querySelector('[data-uia="selector-audio-subtitle"]')!;
+    const netflixKeys: string[] = [];
+    panel.parentElement!.addEventListener('keydown', (e) => netflixKeys.push(e.key));
+    const polish = subtitleList(panel)!.querySelectorAll('li')[2] as HTMLElement;
+    for (const key of ['Tab', 'Escape']) {
+        const e = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+        polish.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(false);
+    }
+    expect(netflixKeys).toEqual(['Tab', 'Escape']);
+    polish.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(netflixKeys).toEqual(['Tab', 'Escape']);
+    expect(s.showTrack).toHaveBeenCalledWith('pl');
+});
+
+test('destroyed, Netflix\'s items are its own again', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    s.controls.destroy();
+    const panel = document.querySelector('[data-uia="selector-audio-subtitle"]')!;
+    const netflixSaw = jest.fn();
+    panel.parentElement!.addEventListener('click', netflixSaw);
+    (subtitleList(panel)!.querySelectorAll('li')[2] as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+    expect(netflixSaw).toHaveBeenCalled();
+    expect(s.showTrack).not.toHaveBeenCalled();
+});
+
+test('a Netflix pick left behind by a sidebar change is not marked', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    await s.open();
+    const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
+    (list.querySelectorAll('li')[2] as HTMLElement).click();
+    expect([...list.querySelectorAll('.vtt-nf-shown')].map((li) => li.textContent)).toEqual(['Polish']);
+    // The sidebar puts English on the line, still in Single.
+    s.state.setLanguagePreferences('English', 'Polish');
+    s.ui.refresh();
+    s.state.addTrack('English 2', cues(1));
+    expect([...list.querySelectorAll('.vtt-nf-shown')].map((li) => li.textContent)).toEqual(['English (CC)']);
 });
 
 test('Netflix\'s Off turns our lines off and carries the mark', async () => {
@@ -302,18 +409,32 @@ test('a panel reaching past the narrowed player: the box around it moves left, n
         const shift = parseFloat(box.style.translate) || 0;
         return { left: at + shift, right: at + 618 + shift } as DOMRect;
     });
-    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
-    s.state.addTrack('English', cues(5));
-    await s.open();
-    expect(box.style.translate).toBe('-149px 0');
-    at = 885;
-    await frames();
-    expect(box.style.translate).toBe('-103px 0');
-    expect(panel.style.translate).toBe('');
-    // The sidebar closed: the player is wide again, the box goes back.
-    jest.spyOn(player, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 1728 } as DOMRect);
-    await frames();
-    expect(box.style.translate).toBe('');
+    const resized: (() => void)[] = [];
+    (global as any).ResizeObserver = class {
+        constructor(fn: () => void) {
+            resized.push(fn);
+        }
+        observe() {}
+        disconnect() {}
+    };
+    try {
+        const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+        s.state.addTrack('English', cues(5));
+        await s.open();
+        expect(box.style.translate).toBe('-149px 0');
+        // Netflix places it again, by a style on the box around ours.
+        at = 885;
+        player.setAttribute('style', 'left: 885px');
+        await flush();
+        expect(box.style.translate).toBe('-103px 0');
+        expect(panel.style.translate).toBe('');
+        // The sidebar closed: the player is wide again, the box goes back.
+        jest.spyOn(player, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 1728 } as DOMRect);
+        for (const fn of resized) fn();
+        expect(box.style.translate).toBe('');
+    } finally {
+        delete (global as any).ResizeObserver;
+    }
 });
 
 test('a press survives Netflix re-rendering the item between pointerdown and pointerup', async () => {

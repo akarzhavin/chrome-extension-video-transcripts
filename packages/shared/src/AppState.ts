@@ -6,7 +6,9 @@ import { pairSecondaryToMain } from './track-pairing';
 export type StateEvent =
     | { type: 'reset' }
     | { type: 'track'; name: string }
-    | { type: 'mode'; mode: DisplayMode };
+    | { type: 'mode'; mode: DisplayMode }
+    /** Which loaded track a line shows changed, the mode as it was. */
+    | { type: 'lines' };
 
 export class AppState {
     tracks: Track[] = [];
@@ -37,20 +39,31 @@ export class AppState {
     set displayMode(mode: DisplayMode) {
         if (mode === this.mode) return;
         this.mode = mode;
-        // The AI translation alone is a kind of Single; any other mode puts
-        // the learning track back on the first line.
-        if (mode !== 'single' && this.aiAlone) {
-            this.aiAlone = false;
-            this.applyPreferences();
-        }
+        // Single may show another track than the learning one (see
+        // setSingleTrack); the first line follows the mode.
+        if (this.singleName) this.applyPreferences();
         this.emit({ type: 'mode', mode });
     }
 
+    private singleName?: string;
+
+    /** The track Single shows on its one line, by name; undefined: the learning track. */
+    get singleTrackName(): string | undefined {
+        return this.singleName;
+    }
+
     /**
-     * Single shows the AI translation instead of the learning track (Netflix's
-     * subtitle menu offers the viewer's language alone). Only in Single.
+     * Single shows this track instead of the learning one (Netflix's menu
+     * offers the AI translation alone); other modes keep the learning track
+     * first. The choice holds across mode changes, ends with its track or the
+     * title, and may name a track still to come.
      */
-    aiAlone = false;
+    setSingleTrack(name?: string): void {
+        if (name === this.singleName) return;
+        this.singleName = name;
+        this.applyPreferences();
+        this.emit({ type: 'lines' });
+    }
 
     /** Calls fn on reset, on every track added and on a display-mode change; returns the unsubscribe. */
     subscribe(fn: (e: StateEvent) => void): () => void {
@@ -142,6 +155,7 @@ export class AppState {
     removeTrack(name: string): void {
         const before = this.tracks.length;
         this.tracks = this.tracks.filter((t) => t.name !== name);
+        if (this.singleName === name) this.singleName = undefined;
         if (this.tracks.length !== before) this.applyPreferences();
     }
 
@@ -157,7 +171,7 @@ export class AppState {
         // it. The user's selected learning/native codes persist (they're the
         // language pair, not video state) so the picker keeps its selection.
         this.languageCatalog = undefined;
-        this.aiAlone = false;
+        this.singleName = undefined;
         this.emit({ type: 'reset' });
     }
 
@@ -167,7 +181,10 @@ export class AppState {
             ? this.tracks.findIndex((t) => t.name === this.preferredSecondaryName)
             : -1;
         if (ai !== -1 && ai !== this.activeTrackIndex) this.secondaryTrackIndex = ai;
-        if (ai !== -1 && this.aiAlone && this.mode === 'single') this.activeTrackIndex = ai;
+        const single = this.singleName && this.mode === 'single'
+            ? this.tracks.findIndex((t) => t.name === this.singleName)
+            : -1;
+        if (single !== -1) this.activeTrackIndex = single;
     }
 
     private applyLanguagePreferences(): void {

@@ -16,9 +16,10 @@ import type { AppState } from '../../../../../packages/shared/src/AppState';
 import type { SidebarUI } from '../../../../../packages/shared/src/SidebarUI';
 import { isContextOrphaned } from '../../../../../packages/shared/src/content/orphan-notice';
 import { msg } from '../../../../../packages/shared/src/i18n';
-import { nativeForLanguage, type LanguagePrefs } from '../../../../../packages/shared/src/languages';
+import { labelForLanguage, nativeForLanguage, type LanguagePrefs } from '../../../../../packages/shared/src/languages';
 import type { AiControls } from '../../../../../packages/shared/src/subtitle-ai/browser';
 import { buildConfirm, confirmSkipped, costTitle } from '../../../../../packages/shared/src/subtitle-ai/confirm';
+import { AI_SUFFIX } from '../../../../../packages/shared/src/subtitle-ai/controller';
 import { trackLanguageCode } from '../../../../../packages/shared/src/track-label';
 
 export interface NetflixMenuHost {
@@ -39,7 +40,10 @@ const BLOCK = 'vtt-nf-block';
 /** On <html> while the panel is open: the sidebar's tab steps aside (styles.css). */
 const OPEN_CLASS = 'vtt-nf-panel-open';
 // Presses that reach the panel around the block: Netflix would act on them.
-const KEPT_IN_BLOCK = ['click', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'keydown'] as const;
+// Keys are not among them: only the ones that pick (PICK_KEYS) are kept, so
+// Tab and Escape still move focus and close the panel.
+const PRESSES = ['click', 'pointerdown', 'mousedown', 'pointerup', 'mouseup'] as const;
+const PICK_KEYS = ['Enter', ' '];
 
 const base = (code: string) => code.split(/[-_]/)[0].toLowerCase();
 
@@ -84,12 +88,18 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     let aiStart: (() => void) | null = null;
     let aiOff = false;
     let aiStop: (() => void) | null = null;
-    let confirming: boolean = false;
+    /** The credits question while it is up: put back with the block if Netflix drops it. */
+    let asking: Ask | null = null;
     let watched: Element | null = null;
     let panelObserver: MutationObserver | null = null;
+    /** Undoes what watch() set up on the open panel: its listeners and observers. */
+    let unwatch: (() => void) | null = null;
     /** The item a pointer went down on, by name: it may be re-rendered before the pointer comes up. */
     let pressed: string | null = null;
-    /** The words of the Netflix item whose track we show alone; null when ours show something else. */
+    /**
+     * The words of the Netflix item last picked: of two items in the language
+     * shown ("English", "English (CC)"), the one marked.
+     */
     let netflixPick: string | null = null;
     let dead = false;
     /** Netflix's own check mark, copied onto the item we show. */
@@ -131,7 +141,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             {
                 label: native,
                 ai: true,
-                checked: shown && !!aiStop && state.aiAlone && state.displayMode === 'single',
+                checked: shown && !!aiStop && state.displayMode === 'single' && state.singleTrackName === aiName(prefs),
                 pick: () => pickAi(true, native),
             },
             {
@@ -143,12 +153,19 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         ];
     };
 
-    // Shown as asked: alone, the translation is Single on it; paired, Dual.
+    /** The AI translation's track, as the translator names it. */
+    const aiName = (prefs: LanguagePrefs) => labelForLanguage(prefs.native) + AI_SUFFIX;
+
+    // Shown as asked: alone, the translation is Single on it; paired, Dual,
+    // with the learning track back on the first line (a pick in Netflix's list
+    // may have put another there).
     const showAi = (alone: boolean) => {
+        const prefs = host.langPrefs();
+        if (!prefs) return;
         netflixPick = null;
-        state.aiAlone = alone;
+        host.showTrack(base(prefs.learning));
+        state.setSingleTrack(alone ? aiName(prefs) : undefined);
         ui.setMode(alone ? 'single' : 'dual');
-        state.applyPreferences();
         ensureOverlay();
         ui.refresh();
     };
@@ -162,21 +179,24 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (aiStop) return showAi(alone);
         const start = aiStart;
         if (!start) return;
+        // The offer may have been withdrawn or replaced while the question
+        // was up: then nothing started, and nothing is shown as if it had.
         const go = () => {
             start();
-            showAi(alone);
+            if (aiStop) showAi(alone);
+            else render();
         };
         if (aiOff) return go();
         void confirmSkipped().then((skip) => {
             if (skip) return go();
-            confirming = true;
-            render({ go, under: label });
+            asking = { go, under: label };
+            render();
         });
         return 'stay';
     };
 
     /** The block, built fresh; `ask` set, the question under the item that asked it. */
-    function build(list: HTMLUListElement, ask?: Ask): HTMLElement | null {
+    function build(list: HTMLUListElement, ask: Ask | null): HTMLElement | null {
         // Without items (AI closed, its limit spent) the heading stays: the
         // link to any other pair is what is left to offer.
         if (!host.langPrefs()) return null;
@@ -185,7 +205,10 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         block.className = BLOCK;
         block.setAttribute('role', 'group');
         block.setAttribute('aria-label', 'Lingogram');
-        for (const type of KEPT_IN_BLOCK) block.addEventListener(type, (e) => e.stopPropagation());
+        for (const type of PRESSES) block.addEventListener(type, (e) => e.stopPropagation());
+        block.addEventListener('keydown', (e) => {
+            if (PICK_KEYS.includes(e.key)) e.stopPropagation();
+        });
 
         // Under our items, before the line: the way to any other pair.
         const head = doc.createElement('div');
@@ -199,7 +222,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
 
         const question = (go: () => void): HTMLElement => {
             const parts = buildConfirm(doc, 'vtt-nf-confirm', (yes) => {
-                confirming = false;
+                asking = null;
                 if (yes) go();
                 else render();
             });
@@ -315,23 +338,29 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         return li;
     }
 
-    /** Puts the block (back) on top of the Subtitles column of the open panel. */
-    function render(ask?: Ask): void {
+    /**
+     * Puts the block (back) on top of the Subtitles column of the open panel,
+     * with the question if one is up. `whileAsking`: also rebuilt then (the
+     * question is rebuilt with it and takes the focus again).
+     */
+    function render(whileAsking = true): void {
         if (dead) return;
-        const panel = doc.querySelector(PANEL);
+        const panel = doc.querySelector<HTMLElement>(PANEL);
         if (!panel) return;
         watch(panel);
         const list = subtitleList(panel);
         if (!list?.parentElement) return;
-        if (confirming && !ask && panel.querySelector(`.${BLOCK}`)) return;
-        panel.querySelector(`.${BLOCK}`)?.remove();
-        const block = build(list, ask);
+        const old = panel.querySelector(`.${BLOCK}`);
+        if (asking && !whileAsking && old) return;
+        old?.remove();
+        const block = build(list, asking);
         if (block) {
             list.parentElement.insertBefore(block, list);
             fitToNetflix(block, list);
         }
         check ??= list.querySelector('svg:not(.vtt-nf-check)');
         markNetflix(panel, list);
+        clearOfSidebar(panel);
     }
 
     // Taken from Netflix's own column, as it is drawn at this size:
@@ -362,8 +391,8 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     // cut off at the player's edge. The box around the panel is moved left by
     // the overlap, for as long as it is open. Not the panel itself: that box
     // clips it, and the panel's left part was cut off instead. Netflix places
-    // the panel again once our block widens it, so this runs every frame the
-    // panel is open, from where Netflix put it.
+    // the panel again once our block widens it, and the sidebar may open or
+    // close: this runs again on each (see watch), from where Netflix put it.
     function clearOfSidebar(panel: HTMLElement): void {
         const box = panel.parentElement;
         const player = panel.closest('[data-uia="watch-video"]');
@@ -376,30 +405,25 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         if (want !== shift) box.style.translate = want ? `${want}px 0` : '';
     }
 
-    function followPanel(panel: HTMLElement): void {
-        if (dead || watched !== panel || !panel.isConnected) return;
-        clearOfSidebar(panel);
-        requestAnimationFrame(() => followPanel(panel));
-    }
-
     // Netflix re-renders the panel on a pick, and may drop what it did not
     // render; put the block back when it goes, and note when the panel goes.
-    function watch(panel: Element): void {
+    function watch(panel: HTMLElement): void {
         if (watched === panel) return;
-        panelObserver?.disconnect();
+        unwatch?.();
         watched = panel;
         // A question left up in a panel that closed does not carry over.
-        confirming = false;
+        asking = null;
         doc.documentElement.classList.add(OPEN_CLASS);
-        followPanel(panel as HTMLElement);
+        const player = panel.closest('[data-uia="watch-video"]');
+        const closed = () => {
+            unwatch?.();
+            unwatch = null;
+            watched = null;
+            asking = null;
+            doc.documentElement.classList.remove(OPEN_CLASS);
+        };
         panelObserver = new MutationObserver((records) => {
-            if (!panel.isConnected) {
-                panelObserver?.disconnect();
-                watched = null;
-                confirming = false;
-                doc.documentElement.classList.remove(OPEN_CLASS);
-                return;
-            }
+            if (!panel.isConnected) return closed();
             if (!panel.querySelector(`.${BLOCK}`)) return render();
             // Our own writes (the block, the copied check marks) are not news.
             if (records.every((r) => [...r.addedNodes, ...r.removedNodes].every(ours))) return;
@@ -407,28 +431,69 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             const list = subtitleList(panel);
             if (list) markNetflix(panel, list);
         });
-        // Watched from the player, not the panel: the panel's own mutations
-        // stop when Netflix removes it, and its leaving is what clears the
-        // class above.
-        panelObserver.observe(panel.closest('[data-uia="watch-video"]') ?? doc.body, { childList: true, subtree: true });
-        // Netflix's own items, taken over: the press never reaches Netflix,
-        // and is counted on pointerup by the item's words, as ours are
-        // (Netflix re-renders the list on mousedown).
+        // The panel's own subtree, for Netflix's re-renders; each box around
+        // it up to the player, for its leaving (the box that goes may be any
+        // of them). Not the player's whole subtree: every caption on screen
+        // changes it.
+        panelObserver.observe(panel, { childList: true, subtree: true });
+        for (let up = panel.parentElement; up; up = up.parentElement) {
+            panelObserver.observe(up, { childList: true });
+            if (up === player || up === doc.body) break;
+        }
+        // Netflix places the panel by a style on the box around ours, again
+        // once our block widens it; the player narrows and widens with the
+        // sidebar.
+        const place = () => clearOfSidebar(panel);
+        const placed = new MutationObserver(place);
+        const holder = panel.parentElement?.parentElement;
+        if (holder) placed.observe(holder, { attributes: true, attributeFilter: ['style'] });
+        const sized = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
+        sized?.observe(panel);
+        if (player) sized?.observe(player);
+
+        // Netflix's own items, taken over when we can show their language (or
+        // they are its Off): the press never reaches Netflix, and is counted
+        // on pointerup by the item's words, as ours are (Netflix re-renders
+        // the list on mousedown). Others stay Netflix's.
         let down: string | null = null;
-        const take = (e: Event) => {
+        const takenItem = (e: Event): { li: Element; off: boolean; words: string } | null => {
+            if (!host.langPrefs()) return null;
             const li = (e.target as Element | null)?.closest('li');
             const list = subtitleList(panel);
-            if (!li || !list || li.parentElement !== list) return;
+            if (!li || !list || li.parentElement !== list) return null;
+            const off = li === list.querySelector(':scope > li');
+            const words = li.textContent?.trim() ?? '';
+            return off || trackFor(words) ? { li, off, words } : null;
+        };
+        const take = (e: Event) => {
+            const item = takenItem(e);
+            if (!item) return;
             e.stopPropagation();
             e.preventDefault();
-            const words = li.textContent?.trim() ?? '';
-            if (e.type === 'pointerdown') down = words;
-            const press = (e.type === 'pointerup' && down === words) || (e.type === 'click' && (e as MouseEvent).detail === 0);
+            if (e.type === 'pointerdown') down = item.words;
+            const press = (e.type === 'pointerup' && down === item.words) || (e.type === 'click' && (e as MouseEvent).detail === 0);
             if (!press) return;
             down = null;
-            pickNetflix(li === list.querySelector('li') ? null : words);
+            pickNetflix(item.off ? null : item.words);
         };
-        for (const type of KEPT_IN_BLOCK) panel.addEventListener(type, take, true);
+        const key = (e: Event) => {
+            if (!PICK_KEYS.includes((e as KeyboardEvent).key)) return;
+            const item = takenItem(e);
+            if (!item) return;
+            e.stopPropagation();
+            e.preventDefault();
+            pickNetflix(item.off ? null : item.words);
+        };
+        for (const type of PRESSES) panel.addEventListener(type, take, true);
+        panel.addEventListener('keydown', key, true);
+        unwatch = () => {
+            panelObserver?.disconnect();
+            panelObserver = null;
+            placed.disconnect();
+            sized?.disconnect();
+            for (const type of PRESSES) panel.removeEventListener(type, take, true);
+            panel.removeEventListener('keydown', key, true);
+        };
     }
 
     /** A Netflix item: its language alone, by us; null is its Off, our lines off. */
@@ -441,7 +506,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         const track = trackFor(words);
         if (!track) return;
         netflixPick = words;
-        state.aiAlone = false;
+        state.setSingleTrack(undefined);
         host.showTrack(track.base);
         ui.setMode('single');
         ensureOverlay();
@@ -462,17 +527,19 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         list.classList.add('vtt-nf-sublist');
         const items = [...list.querySelectorAll(':scope > li')];
         const words = (li: Element) => li.textContent?.trim() ?? '';
-        // One line of a site track: the item picked, else the first of that
-        // track's language (Single picked in the sidebar, or left from before).
+        // One line of a site track (not the AI translation): the item of its
+        // language, the one picked last if it is of that language (a pick
+        // since made in the sidebar, or a new title, leaves it behind).
         const alone = () => {
-            if (netflixPick) return items.find((li) => words(li) === netflixPick);
             const main = state.tracks[state.activeTrackIndex];
-            const code = main ? trackLanguageCode(main.name) : null;
-            return code ? items.slice(1).find((li) => trackFor(words(li))?.base === code) : undefined;
+            const code = main && !main.name.endsWith(AI_SUFFIX) ? trackLanguageCode(main.name) : null;
+            if (!code) return undefined;
+            const of = items.slice(1).filter((li) => trackFor(words(li))?.base === code);
+            return of.find((li) => words(li) === netflixPick) ?? of[0];
         };
         const shown = !state.overlayEnabled
             ? items[0]
-            : state.displayMode === 'single' && !state.aiAlone ? alone() : undefined;
+            : state.displayMode === 'single' ? alone() : undefined;
         for (const li of items) {
             const on = li === shown;
             if (li.classList.contains('vtt-nf-shown') !== on) li.classList.toggle('vtt-nf-shown', on);
@@ -507,15 +574,17 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     const OPEN_EVENTS = ['pointerover', 'click', 'focusin', 'keydown'] as const;
     for (const type of OPEN_EVENTS) doc.addEventListener(type, onOpener, true);
 
-    const unsubscribe = state.subscribe(() => {
-        if (watched?.isConnected && !confirming) render();
+    const unsubscribe = state.subscribe((e) => {
+        if (e.type === 'reset') netflixPick = null;
+        if (watched?.isConnected) render(false);
     });
 
     function destroy(): void {
         // A poll already queued must not build the block again.
         dead = true;
         for (const type of OPEN_EVENTS) doc.removeEventListener(type, onOpener, true);
-        panelObserver?.disconnect();
+        unwatch?.();
+        unwatch = null;
         doc.documentElement.classList.remove(OPEN_CLASS);
         unsubscribe();
         doc.querySelector(`.${BLOCK}`)?.remove();
@@ -525,12 +594,13 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         offer(start, off) {
             aiStart = start;
             aiOff = off;
-            if (!start) confirming = false;
-            if (watched?.isConnected && !confirming) render();
+            // The offer withdrawn: the question asked for it goes too.
+            if (!start) asking = null;
+            if (watched?.isConnected) render(false);
         },
         stop(stop) {
             aiStop = stop;
-            if (watched?.isConnected && !confirming) render();
+            if (watched?.isConnected) render(false);
         },
         destroy,
     };

@@ -76,7 +76,6 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
         t.stop();
         t = null;
         yielded = false;
-        state.aiAlone = false;
         deps.oneTab?.release();
         app.offerStop?.(null);
         app.setStatus?.(null);
@@ -133,8 +132,9 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             running.start(source!);
             return;
         }
-        // Paused outside Dual, unless it is the one line shown (aiAlone).
-        t.setPaused((state.displayMode !== 'dual' && !(state.aiAlone && state.displayMode === 'single')) || yielded);
+        // Paused while not on screen: outside Dual, unless Single shows it.
+        const alone = state.displayMode === 'single' && !!state.tracks[state.activeTrackIndex]?.name.endsWith(AI_SUFFIX);
+        t.setPaused((state.displayMode !== 'dual' && !alone) || yielded);
     };
 
     state.subscribe((e: StateEvent) => {
