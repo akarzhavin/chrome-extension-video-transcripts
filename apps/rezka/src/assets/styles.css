@@ -4531,9 +4531,15 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
    with it. */
 .vtt-nf-block {
     position: relative;
-    margin: 0 0 0.4em;
-    padding: 0 0 0.4em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 0 0 var(--vtt-nf-rule-y, 1vh);
+}
+
+/* Netflix's own line before its other languages, repeated under ours. */
+.vtt-nf-block::after {
+    content: '';
+    display: block;
+    margin: var(--vtt-nf-rule-y, 1vh) var(--vtt-nf-rule-x, 3vh) 0;
+    border-top: 1px solid var(--vtt-nf-rule-color, rgba(255, 255, 255, 0.2));
 }
 
 .vtt-nf-list {
@@ -4564,26 +4570,31 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     color: #fff;
 }
 
+/* A box as tall as the Subtitles heading's line, so the small words inside
+   sit on its baseline; right edge where Netflix's line ends. */
 .vtt-nf-options {
     position: absolute;
-    top: 0;
-    right: 0;
-    transform: translateY(-50%);
-    padding: 0;
+    top: var(--vtt-nf-title-top, 0px);
+    right: var(--vtt-nf-rule-x, 3vh);
+    padding: var(--vtt-nf-title-pad, 0px) 0 0;
     border: 0;
     background: none;
-    font: inherit;
+    font-family: inherit;
+    font-size: var(--vtt-nf-title-size, 1em);
+    line-height: var(--vtt-nf-title-line, normal);
+    cursor: pointer;
+}
+
+.vtt-nf-options span {
     font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
-    line-height: 1.2;
     color: #a3a3a3;
     text-decoration: underline;
     text-decoration-color: #555;
     text-underline-offset: 3px;
-    cursor: pointer;
 }
 
-.vtt-nf-options:hover,
-.vtt-nf-options:focus-visible {
+.vtt-nf-options:hover span,
+.vtt-nf-options:focus-visible span {
     color: #fff;
 }
 

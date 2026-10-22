@@ -237,11 +237,13 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         }
         // On the Subtitles heading's line, at its right: the sidebar's
         // settings, as they are. Kept in the block, placed on that line once
-        // the block is in (see placeOptions): Netflix's heading is left alone.
+        // the block is in (see fitToNetflix): Netflix's heading is left alone.
         const options = doc.createElement('button');
         options.type = 'button';
         options.className = 'vtt-nf-options';
-        options.textContent = msg('ytNfOptions', 'Options');
+        const optionsText = doc.createElement('span');
+        optionsText.textContent = msg('ytNfOptions', 'Options');
+        options.append(optionsText);
         onPress(options, 'options', () => ui.openSettings());
         block.append(ours, head, options);
         // The heading and the question scale with Netflix's item text and
@@ -326,19 +328,33 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         const block = build(list, ask);
         if (block) {
             list.parentElement.insertBefore(block, list);
-            placeOptions(block);
+            fitToNetflix(block, list);
         }
         check ??= list.querySelector('svg:not(.vtt-nf-check)');
         markNetflix(panel, list);
     }
 
-    /** Options, centred on the heading's line above the block. */
-    function placeOptions(block: HTMLElement): void {
+    // Taken from Netflix's own column, as it is drawn at this size:
+    // - our line under the block is Netflix's line before its other
+    //   languages (its inset, its colour), when the list has one;
+    // - Options sits on the Subtitles heading's baseline, its right edge
+    //   where that line ends: its box gets the heading's font size, line
+    //   height and top padding, so its small words land on the same line.
+    function fitToNetflix(block: HTMLElement, list: Element): void {
+        const rule = [...list.children].find((c) => c.tagName !== 'LI' && parseFloat(getComputedStyle(c).borderTopWidth) > 0);
+        if (rule) {
+            const cs = getComputedStyle(rule);
+            block.style.setProperty('--vtt-nf-rule-x', cs.marginLeft);
+            block.style.setProperty('--vtt-nf-rule-y', cs.marginTop);
+            block.style.setProperty('--vtt-nf-rule-color', cs.borderTopColor);
+        }
         const title = block.previousElementSibling;
-        const options = block.querySelector<HTMLElement>('.vtt-nf-options');
-        if (!title || !options) return;
-        const t = title.getBoundingClientRect();
-        options.style.top = `${Math.round(t.top + t.height / 2 - block.getBoundingClientRect().top)}px`;
+        if (!title) return;
+        const cs = getComputedStyle(title);
+        block.style.setProperty('--vtt-nf-title-top', `${title.getBoundingClientRect().top - block.getBoundingClientRect().top}px`);
+        block.style.setProperty('--vtt-nf-title-size', cs.fontSize);
+        block.style.setProperty('--vtt-nf-title-line', cs.lineHeight);
+        block.style.setProperty('--vtt-nf-title-pad', cs.paddingTop);
     }
 
     // With the sidebar open the player is narrower, but Netflix places the
