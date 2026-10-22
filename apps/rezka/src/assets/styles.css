@@ -837,6 +837,7 @@
    edge to edge with the mode bar above, and a × to hide it. */
 .vtt-ai-banner.vtt-ai-banner-out {
     position: relative;
+    box-sizing: border-box;
     margin: -2px 0 10px;
     padding: 8px 30px 8px 10px;
     border: 1px solid var(--vtt-hairline, rgba(255, 255, 255, 0.07));
