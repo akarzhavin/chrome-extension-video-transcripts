@@ -14,6 +14,8 @@ import {
     isManifestForCurrentTitle,
 } from './subtitles';
 import { installNetflixMenu } from './subtitle-menu';
+import { AI_SUFFIX } from '../../../../../packages/shared/src/subtitle-ai/controller';
+import { trackLanguageCode } from '../../../../../packages/shared/src/track-label';
 
 /**
  * Netflix adapter. Subtitles are discovered from the playback manifest captured
@@ -264,7 +266,14 @@ class NetflixVttApp extends BaseVttApp {
         if (role === 'learning') this.state.selectedLearningCode = code;
         else this.state.selectedNativeCode = code;
         // The lines follow the pair even for a language the title lacks (the
-        // viewer's own, by AI); a track it has is fetched.
+        // viewer's own, by AI): a track of a language now on neither line
+        // goes, or it would stand in for the missing one. A track it has is
+        // fetched.
+        const keep = new Set([baseLang(pair.learning), baseLang(pair.native)]);
+        for (const t of [...this.state.tracks]) {
+            const lang = trackLanguageCode(t.name);
+            if (!t.name.endsWith(AI_SUFFIX) && lang && !keep.has(lang)) this.state.removeTrack(t.name);
+        }
         this.applyLangPrefsToState();
         if (trackForBaseCode(this.currentTracks, code)) this.requestLanguageTrack(role, code);
         else this.ui.refresh();

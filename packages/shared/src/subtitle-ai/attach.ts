@@ -98,6 +98,7 @@ export function attachAiTranslation(app: AiApp, deps: AttachDeps): void {
             : undefined;
         const native = !!prefs && state.tracks.some((tr) => own(tr.name) && tr.name.includes(labelForLanguage(prefs.native)));
         // The site's own track always wins, unless the dev switch forces it.
+        state.aiAllowed = allowed && !!prefs;
         const wanted = allowed && !!prefs && !!source && (forced || !native);
         state.secondLineOnDemand = wanted;
         state.secondLineLanguage = wanted ? prefs!.native : undefined;

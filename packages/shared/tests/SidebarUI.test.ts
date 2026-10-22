@@ -4146,33 +4146,30 @@ describe('the language picker on a site that loads languages on demand', () => {
         return { ui, select: document.getElementById('vtt-main-select') as HTMLSelectElement };
     }
 
-    it('separates what this title offers from what it does not', () => {
+    // Only what the title has: a language it lacks could not be shown on a
+    // line, so it is not listed at all (the viewer's own one comes back by AI
+    // in the second line's list).
+    it('lists only the languages this title has', () => {
         const { select } = pickerPanel();
         const groups = [...select.querySelectorAll('optgroup')];
-
-        expect(groups.map((g) => g.label)).toEqual([
-            'Available in this video',
-            'Other languages',
-        ]);
-        expect([...groups[0].querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
-        expect([...groups[1].querySelectorAll('option')].map((o) => o.value)).toEqual(['de', 'ja']);
+        expect(groups.map((g) => g.label)).toEqual(['Available in this video']);
+        expect([...select.querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
+        expect([...select.querySelectorAll('option')].every((o) => !o.disabled)).toBe(true);
     });
 
-    /**
-     * The claim that matters to a person using it: an unavailable language must
-     * be visible AND unpickable. Listing it selectable would offer a subtitle
-     * track the title does not have.
-     */
-    it('offers the ones it has, and greys out the ones it does not', () => {
-        const { select } = pickerPanel();
-        const state = (code: string) =>
-            ([...select.querySelectorAll('option')].find((o) => o.value === code) as HTMLOptionElement)
-                .disabled;
-
-        expect(state('en')).toBe(false);
-        expect(state('ru')).toBe(false);
-        expect(state('de')).toBe(true);
-        expect(state('ja')).toBe(true);
+    it('the second line adds the viewer\'s own language by AI when the title lacks it, and «None»', () => {
+        const { ui } = pickerPanel();
+        ui.state.languagePair = { learning: 'en', native: 'uk' };
+        ui.state.aiAllowed = true;
+        ui.updateControls();
+        const sub = document.getElementById('vtt-sub-select') as HTMLSelectElement;
+        const values = [...sub.querySelectorAll('option')].map((o) => o.value);
+        expect(values).toEqual(['en', 'ru', 'ai', 'none']);
+        expect(sub.querySelector('option[value="ai"]')!.textContent).toBe('Українська');
+        // Not allowed for the account: no AI item.
+        ui.state.aiAllowed = false;
+        ui.updateControls();
+        expect([...sub.querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru', 'none']);
     });
 
     /**

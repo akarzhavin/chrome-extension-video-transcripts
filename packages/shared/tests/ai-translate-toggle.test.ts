@@ -238,21 +238,15 @@ describe('the native-language picker', () => {
         expect(start).toHaveBeenCalledTimes(1);
     });
 
-    test('lists the other languages of the edition; picking one is this video\'s second line, the native language stays', async () => {
+    test('the viewer\'s own language by AI stays one pick away while another track is second', () => {
         const { ui, state } = withTracks();
-        const chooseLine = jest.fn();
-        ui.app.chooseLine = chooseLine;
+        // Another language second on this video: the translation is not wanted now.
+        state.secondLineOnDemand = false;
         state.languagePair = { learning: 'en', native: 'uk' };
-        state.pickerLanguages = ['en', 'ru', 'uk', 'de'];
+        state.aiAllowed = true;
         ui.refresh();
-        const group = sub().querySelector('optgroup')!;
-        expect(group.label).toBe('Other languages');
-        // English and Russian load as tracks, Ukrainian is the AI item: only German is left.
-        expect([...group.querySelectorAll('option')].map((o) => o.text)).toEqual(['Deutsch']);
-        pick('lang:de');
-        await flush();
-        expect(chooseLine).toHaveBeenCalledWith('native', 'de');
-        expect(prefsStore['lang.v1']).toBeUndefined();
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська', 'None (one line)']);
+        expect(sub().querySelector('optgroup')).toBeNull();
     });
 
     test('without a pair or a language list it lists the tracks alone', () => {

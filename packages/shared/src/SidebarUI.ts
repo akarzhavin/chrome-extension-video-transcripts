@@ -2734,13 +2734,6 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
-        if (role === 'native' && value.startsWith('lang:')) {
-            // A language this video has no track in: the site loads it (or
-            // the AI translation offers it) for this video.
-            this.app.chooseLine?.('native', value.slice(5));
-            this.updateControls();
-            return;
-        }
         const picked = this.state.tracks[parseInt(value)];
         if (!picked) return;
         const code = trackLanguageCode(picked.name);
@@ -2825,12 +2818,19 @@ export class SidebarUI {
             // (disabled), so the dropdown mirrors the site's own subtitle menu.
             this.populateLanguagePicker(this.elements.mainSelect, this.state.selectedLearningCode);
             this.populateLanguagePicker(this.elements.subSelect, aiSecond ? undefined : this.state.selectedNativeCode);
-            // The viewer's language by AI, offered or running.
-            const aiLanguage = this.state.secondLineLanguage;
-            if (this.state.secondLineOnDemand && aiLanguage) {
+            // The viewer's own language by AI, when the title has none in it:
+            // offered, running, or one pick away (another track second now).
+            const own = this.state.languagePair?.native;
+            const shipped = new Set((this.state.languageCatalog ?? []).filter((l) => l.available).map((l) => l.code));
+            const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
+                || (this.state.aiAllowed && own && !shipped.has(own) ? own : undefined);
+            if (aiLanguage) {
                 const group = document.createElement('optgroup');
                 group.label = msg('ytLangGroupTranslated', 'Translated');
-                group.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai', false, aiSecond));
+                // Checked while it is the second line: running, or the line's
+                // language with no track of it (its offer, or its limit).
+                const onLine = aiSecond || (this.state.selectedNativeCode === aiLanguage && !shipped.has(aiLanguage));
+                group.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai', false, onLine));
                 this.elements.subSelect.appendChild(group);
             }
         } else {
@@ -2846,30 +2846,16 @@ export class SidebarUI {
                 }
                 this.elements.subSelect?.appendChild(new Option(label, i.toString(), false, i === this.state.secondaryTrackIndex));
             });
+            // The viewer's own language by AI, when no track of it is loaded
+            // and the translation is not running: offered, or one pick away.
             // In any mode: picking it in Single turns Dual on first.
-            const aiLanguage = this.state.secondLineLanguage;
-            const aiOffered = this.state.secondLineOnDemand && !!aiLanguage && !this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX));
-            if (aiOffered) this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage!), 'ai'));
-            // Every other language the edition offers: picking one makes it
-            // the native language, as the popup does.
-            const pair = this.state.languagePair;
-            if (pair && this.state.pickerLanguages?.length && this.state.tracks.length) {
-                const listed = new Set<string>([pair.learning]);
-                for (const t of this.state.tracks) {
-                    const code = trackLanguageCode(t.name);
-                    if (code) listed.add(code);
-                }
-                if (aiOffered) listed.add(aiLanguage!);
-                const others = this.state.pickerLanguages.filter((code) => !listed.has(code));
-                if (others.length) {
-                    const group = document.createElement('optgroup');
-                    group.label = msg('ytLangGroupOther', 'Other languages');
-                    for (const code of others) group.appendChild(new Option(nativeForLanguage(code), `lang:${code}`));
-                    this.elements.subSelect.appendChild(group);
-                }
-            }
+            const aiRunning = this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX));
+            const own = this.state.languagePair?.native;
+            const loaded = new Set(this.state.tracks.map((t) => trackLanguageCode(t.name)));
+            const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
+                || (this.state.aiAllowed && own && !loaded.has(own) ? own : undefined);
+            if (aiLanguage && !aiRunning) this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
         }
-        // One line: Single, the second line's "none".
         // With no tracks there is nothing to show on either line.
         const single = this.state.displayMode === 'single';
         if (this.state.tracks.length) {
@@ -2913,7 +2899,6 @@ export class SidebarUI {
     private populateLanguagePicker(select: HTMLSelectElement, selectedCode?: string): void {
         const catalog = this.state.languageCatalog ?? [];
         const available = catalog.filter((l) => l.available);
-        const others = catalog.filter((l) => !l.available);
 
         const addGroup = (labelText: string, items: typeof catalog, disabled: boolean): void => {
             if (items.length === 0) return;
@@ -2927,8 +2912,8 @@ export class SidebarUI {
             select.appendChild(group);
         };
 
+        // Only what this title has: the rest could not be shown on a line.
         addGroup(msg('ytLangGroupAvailable', 'Available in this video'), available, false);
-        addGroup(msg('ytLangGroupOther', 'Other languages'), others, true);
     }
 
     buildMaskedContent(text: string, revealedCount: number, index?: number): HTMLElement {

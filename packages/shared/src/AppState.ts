@@ -78,6 +78,8 @@ export class AppState {
     // The AI translation can supply the second line:
     // Dual stays selectable with one track, and picking it starts the translation.
     secondLineOnDemand = false;
+    /** The account may use the AI translation here (its feature gate, a language pair). */
+    aiAllowed = false;
     /** The language that translation would be in, while secondLineOnDemand. */
     secondLineLanguage?: string;
     /** The viewer's language pair (codes), as the app last read it. */
@@ -113,9 +115,13 @@ export class AppState {
     secondaryLangLabel?: string;
 
     setLanguagePreferences(primary?: string, secondary?: string): void {
+        const changed = primary !== this.primaryLangLabel || secondary !== this.secondaryLangLabel;
         this.primaryLangLabel = primary;
         this.secondaryLangLabel = secondary;
         this.applyPreferences();
+        // Another pair for the lines: what follows it (the AI translation's
+        // offer, the site menus) looks again.
+        if (changed) this.emit({ type: 'lines' });
     }
 
     /**
