@@ -280,7 +280,7 @@ describe('SidebarUI', () => {
         ui.toggleSettingsPanel();
         expect(panel.classList.contains('open')).toBe(true);
         expect(ui.elements.sidebar?.classList.contains('vtt-settings-open')).toBe(true);
-        expect(title.textContent).toBe('Settings');
+        expect(title.textContent).toBe('Options');
 
         ui.toggleSettingsPanel();
         expect(panel.classList.contains('open')).toBe(false);
@@ -1951,6 +1951,19 @@ describe('SidebarUI', () => {
             expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
         });
 
+        test('sent to pick a pair: the Languages group is lit for a moment, focus stays put', () => {
+            ui.toggleCollapsed();
+            const group = document.getElementById('vtt-track-selectors')!.closest('.vtt-group')!;
+            ui.openSettings();
+            expect(group.classList.contains('vtt-group-lit')).toBe(false);
+            ui.openSettings('languages');
+            expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
+            expect(group.classList.contains('vtt-group-lit')).toBe(true);
+            expect(group.contains(document.activeElement)).toBe(false);
+            group.dispatchEvent(new Event('animationend'));
+            expect(group.classList.contains('vtt-group-lit')).toBe(false);
+        });
+
         test('the collapse tab is keyboard-operable and announces its state', () => {
             const tab = document.getElementById('vtt-toggle-btn')!;
             expect(tab.getAttribute('role')).toBe('button');
@@ -2876,7 +2889,7 @@ describe('SidebarUI', () => {
             ui.toggleSettingsPanel();
             expect(ui.elements.sidebar!.classList.contains('vtt-settings-open')).toBe(true);
             expect(ui.elements.sidebar!.classList.contains('vtt-lookup-open')).toBe(false);
-            expect(ui.elements.titleEl!.textContent).toBe('Settings');
+            expect(ui.elements.titleEl!.textContent).toBe('Options');
         });
     });
 
@@ -4133,33 +4146,30 @@ describe('the language picker on a site that loads languages on demand', () => {
         return { ui, select: document.getElementById('vtt-main-select') as HTMLSelectElement };
     }
 
-    it('separates what this title offers from what it does not', () => {
+    // Only what the title has: a language it lacks could not be shown on a
+    // line, so it is not listed at all (the viewer's own one comes back by AI
+    // in the second line's list).
+    it('lists only the languages this title has', () => {
         const { select } = pickerPanel();
         const groups = [...select.querySelectorAll('optgroup')];
-
-        expect(groups.map((g) => g.label)).toEqual([
-            'Available in this video',
-            'Other languages',
-        ]);
-        expect([...groups[0].querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
-        expect([...groups[1].querySelectorAll('option')].map((o) => o.value)).toEqual(['de', 'ja']);
+        expect(groups.map((g) => g.label)).toEqual(['Available in this video']);
+        expect([...select.querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru']);
+        expect([...select.querySelectorAll('option')].every((o) => !o.disabled)).toBe(true);
     });
 
-    /**
-     * The claim that matters to a person using it: an unavailable language must
-     * be visible AND unpickable. Listing it selectable would offer a subtitle
-     * track the title does not have.
-     */
-    it('offers the ones it has, and greys out the ones it does not', () => {
-        const { select } = pickerPanel();
-        const state = (code: string) =>
-            ([...select.querySelectorAll('option')].find((o) => o.value === code) as HTMLOptionElement)
-                .disabled;
-
-        expect(state('en')).toBe(false);
-        expect(state('ru')).toBe(false);
-        expect(state('de')).toBe(true);
-        expect(state('ja')).toBe(true);
+    it('the second line adds the viewer\'s own language by AI when the title lacks it, and «None»', () => {
+        const { ui } = pickerPanel();
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'uk' });
+        ui.setAiAllowed(true);
+        ui.updateControls();
+        const sub = document.getElementById('vtt-sub-select') as HTMLSelectElement;
+        const values = [...sub.querySelectorAll('option')].map((o) => o.value);
+        expect(values).toEqual(['en', 'ru', 'ai', 'none']);
+        expect(sub.querySelector('option[value="ai"]')!.textContent).toBe('Українська');
+        // Not allowed for the account: no AI item.
+        ui.setAiAllowed(false);
+        ui.updateControls();
+        expect([...sub.querySelectorAll('option')].map((o) => o.value)).toEqual(['en', 'ru', 'none']);
     });
 
     /**

@@ -12,6 +12,12 @@ export function trackLabel(name: string): string {
     return i === -1 ? name : name.slice(i + 3);
 }
 
+/** The language code a track is in, by the language word its name starts with; null when unknown. */
+export function trackLanguageCode(name: string): string | null {
+    const word = name.split(' — ')[0].replace(/ \d+$/, '').replace(AI_SUFFIX, '');
+    return SUPPORTED_LANGUAGES.find((l) => l.label === word)?.code ?? null;
+}
+
 /** The AI translation into a language, by its English label or its code: "Українська", nothing added (the owner's call). */
 export function aiTrackLabel(language: string): string {
     const lang = SUPPORTED_LANGUAGES.find((l) => l.label === language || l.code === language);

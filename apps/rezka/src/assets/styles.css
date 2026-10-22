@@ -632,6 +632,24 @@
     flex: 1;
 }
 
+/* Lit for a moment when the viewer is sent here to pick a pair. */
+.vtt-group.vtt-group-lit {
+    animation: vtt-group-lit 2.2s ease-out;
+}
+
+@keyframes vtt-group-lit {
+    0%,
+    100% {
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px transparent;
+    }
+    12%,
+    55% {
+        background-color: var(--vtt-accent-quiet);
+        box-shadow: inset 0 0 0 1px var(--vtt-accent-border);
+    }
+}
+
 .vtt-reset {
     background: none;
     border: none;
@@ -813,6 +831,135 @@
 
 .vtt-ai-banner[hidden] {
     display: none;
+}
+
+/* The AI row speaks to the subtitles on screen: not on the Options screen
+   and the other takeovers, where the lines it is about are out of sight. */
+#vtt-sidebar.vtt-settings-open #vtt-ai-banner,
+#vtt-sidebar.vtt-feedback-open #vtt-ai-banner,
+#vtt-sidebar.vtt-lookup-open #vtt-ai-banner {
+    display: none;
+}
+
+/* The way out of a stopped AI translation shown alone: the lightest frame,
+   edge to edge with the mode bar above, and a × to hide it. */
+.vtt-ai-banner.vtt-ai-banner-out {
+    position: relative;
+    box-sizing: border-box;
+    margin: -2px 0 10px;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid var(--vtt-hairline, rgba(255, 255, 255, 0.07));
+    border-radius: 8px;
+}
+
+.vtt-ai-banner-out .vtt-ai-toggle {
+    white-space: nowrap;
+}
+
+.vtt-ai-banner-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--vtt-text-dim);
+    cursor: pointer;
+}
+
+.vtt-ai-banner-close:hover {
+    color: var(--vtt-text);
+}
+
+/* Under the line pickers: the pick is this video's; the viewer's languages,
+   which every video starts from, and the way to the site to change them. */
+.vtt-lines-note {
+    margin: 10px 2px 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--vtt-text-dim);
+}
+
+.vtt-lines-note:empty {
+    display: none;
+}
+
+/* «Other track ▾»: the title's subtitle tracks, under the line, in its
+   frame, edge to edge (over the room the × keeps on the right). */
+.vtt-ai-tracks {
+    max-height: 196px;
+    margin: 8px -24px 0 -4px;
+    padding: 6px 0 0;
+    overflow-y: auto;
+    list-style: none;
+    border-top: 1px solid var(--vtt-hairline);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.vtt-ai-tracks li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 30px;
+    border-radius: 6px;
+    color: var(--vtt-text-soft);
+    cursor: pointer;
+}
+
+.vtt-ai-tracks li:hover,
+.vtt-ai-tracks li:focus-visible {
+    background: var(--vtt-wash-faint);
+    color: var(--vtt-text);
+    outline: none;
+}
+
+.vtt-ai-tracks li[aria-checked='true'] {
+    position: relative;
+    background: var(--vtt-accent-quiet);
+    color: var(--vtt-text);
+}
+
+.vtt-ai-tracks li[aria-checked='true']::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    width: 8px;
+    height: 4px;
+    border-left: 2px solid var(--vtt-accent);
+    border-bottom: 2px solid var(--vtt-accent);
+    transform: translateY(-70%) rotate(-45deg);
+}
+
+.vtt-ai-track-chip {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 4px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 13px;
+    opacity: 0.8;
+}
+
+.vtt-ai-track-note {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: var(--vtt-text-dim);
+}
+
+/* A line the AI translation shown alone has not translated: the original,
+   muted (see fillMainLine). */
+.vtt-untranslated > span {
+    opacity: 0.55;
 }
 
 /* The state's word at the end of the row: "on" turns it off, "off" on. */
@@ -2848,6 +2995,19 @@ span.vtt-saved-run.vtt-saved-run-end::after {
 /* ── The AI badge (spec 024) ─────────────────────────────────────────────── */
 /* Header-left slot, the mirror of the settings gear on the right. */
 #vtt-ai-badge { position: absolute; left: 16px; display: none; -webkit-user-select: none; user-select: none; }
+/* With the badge in, the title is centred in the room between it and the two
+   buttons on the right, 12px clear of each, not over the whole header: a
+   countdown widens the badge and it ran up against "Subtitles". The badge
+   (left 16px) ends var(--vtt-ai-badge-w) - 4px into the 20px padding; the
+   buttons (right 16px, 68px) start 64px into it. Width set by badge.ts. */
+#vtt-sidebar:not(.vtt-settings-open):not(.vtt-feedback-open):not(.vtt-lookup-open) #vtt-header-top:is(.vtt-ai-on, .vtt-ai-off) h2 {
+    flex: 1;
+    min-width: 0;
+    padding: 0 76px 0 calc(var(--vtt-ai-badge-w, 96px) + 8px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 #vtt-header-top.vtt-ai-on #vtt-ai-badge { display: flex; }
 /* Signed out: the same badge switched off. Grey where the accent would be, a
    full grey ring for the default allowance; hover lights it up a little, since
@@ -4435,6 +4595,18 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     height: 6px;
     border-radius: 50%;
     background: currentColor;
+}
+
+/* The AI pair while the credits are spent: greyed, "після 02:00", inert. */
+.vtt-cc-menu .vtt-cc-item[aria-disabled='true'] {
+    color: rgba(255, 255, 255, 0.38);
+    cursor: default;
+}
+
+.vtt-cc-after {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .vtt-cc-ai {

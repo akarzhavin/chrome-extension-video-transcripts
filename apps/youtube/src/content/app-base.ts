@@ -17,6 +17,7 @@ import {
     SUPPORTED_LANGUAGES,
     LanguagePrefs,
     Subtitle,
+    TrackRole,
 } from '@video-transcripts/shared';
 import type { VttFailure } from './timedtext-fetch';
 
@@ -98,7 +99,9 @@ export interface ReprocessOptions {
 import { traceRecorder } from './debug-mode';
 import { downloadTrace, traceReportText } from './debug-ui';
 import { clearSaveLog, saveLogCount } from '../../../../packages/shared/src/debug/save-log';
-import { attachAiTranslationTo } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { attachAiTranslationTo, type AiControls } from '../../../../packages/shared/src/subtitle-ai/browser';
+import { LinePicks, loadLineChoices } from '../../../../packages/shared/src/line-choice';
+import { openSiteSettings } from '../../../../packages/shared/src/popup/shared';
 import { followFeatures } from '../../../../packages/shared/src/features/follow';
 
 export const STALLED_REQUEST_MS = 12_000;
@@ -332,7 +335,18 @@ export abstract class BaseVttApp implements AppInterface {
      * a body that had arrived intact.
      */
     requestNames: Map<string, string> = new Map();
-    langPrefs: LanguagePrefs | null = null;
+    /** The viewer's languages and this video's line picks over them (line-choice.ts). */
+    readonly lines = new LinePicks(() => this.lineKey());
+    /**
+     * The pair this video shows. Everything that plans or names tracks reads
+     * this; assigning it sets the viewer's own languages.
+     */
+    get langPrefs(): LanguagePrefs | null {
+        return this.lines.pair();
+    }
+    set langPrefs(prefs: LanguagePrefs | null) {
+        this.lines.saved = prefs;
+    }
     noSubsTimer: number | null = null;
     // Separate from noSubsTimer: that one only guards the all-empty case.
     pendingTrackTimer: number | null = null;
@@ -414,6 +428,8 @@ export abstract class BaseVttApp implements AppInterface {
     // didn't build (observed as a franken-UI of old panel + new chip).
     // Public so the bootstrap can also gate page-level installers (auth badge).
     uiOwned = true;
+    /** A second place that offers and stops the AI translation (Netflix's subtitle menu). */
+    aiControls?: AiControls;
 
     // Common bootstrap: build the sidebar, set visibility, wire shortcuts.
     // Subclasses call this from their constructor AFTER their own fields exist.
@@ -448,6 +464,7 @@ export abstract class BaseVttApp implements AppInterface {
 
     // ── language prefs ──────────────────────────────────────────────────────
     async initLanguagePrefs(): Promise<void> {
+        await loadLineChoices();
         this.langPrefs = await loadLanguagePrefs();
         this.applyLangPrefsToState();
         this.updateOnboardingState();
@@ -465,7 +482,37 @@ export abstract class BaseVttApp implements AppInterface {
         attachAiTranslationTo(this);
     }
 
+    /** The key this video's line picks are kept under; null off a video. */
+    lineKey(): string | null {
+        const id = this.getVideoId();
+        return id ? `${platformOf(location.hostname)}:${id}` : null;
+    }
+
+    /** A pick for one line of this video: kept for it, and shown when the pair changed. */
+    chooseLine(role: TrackRole, code: string | null): void {
+        if (this.lines.choose(role, code)) this.showLineChoice(role);
+    }
+
+    /**
+     * YouTube re-routes the loaded tracks to the new pair, and plans the
+     * video again (keeping what plays) only for a language it has not loaded.
+     */
+    showLineChoice(_role: TrackRole): void {
+        this.applyLangPrefsToState();
+        if (this.lines.lacks(this.state.tracks.map((t) => t.name))) this.reprocessCurrentVideo({ preserveTracks: true });
+        else this.ui.refresh();
+    }
+
+    openSiteSettings(): void {
+        openSiteSettings('youtube');
+    }
+
+    ownLanguages(): LanguagePrefs | null {
+        return this.lines.saved;
+    }
+
     applyLangPrefsToState(): void {
+        // This video's pair (the viewer's languages with its picks) routes the tracks.
         if (!this.langPrefs) return;
         this.state.setLanguagePreferences(
             labelForLanguage(this.langPrefs.learning),
@@ -1622,6 +1669,8 @@ export abstract class BaseVttApp implements AppInterface {
     // is cleared on a real video change (resetNoSubsRetries) and when a track
     // finally loads (addParsedTrack).
     resetForNewVideo(opts: { preserveTracks?: boolean } = {}): void {
+        // Another video, another pair: its own line picks, or the viewer's.
+        this.applyLangPrefsToState();
         this.pendingRequests.clear();
         // The name table belongs to the video, not the page: without this a new
         // video would answer nameForRequest() with the previous one's tracks.

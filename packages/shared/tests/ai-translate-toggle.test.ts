@@ -216,10 +216,12 @@ describe('the native-language picker', () => {
         const { ui, state } = withTracks();
         state.displayMode = 'single';
         ui.refresh();
-        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська']);
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська', 'None (one line)']);
+        // Single: the second line is none.
+        expect(sub().value).toBe('none');
         state.secondLineOnDemand = false;
         ui.refresh();
-        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский']);
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'None (one line)']);
     });
 
     test('picked in Single, it turns Dual on and takes the offer that makes', async () => {
@@ -234,6 +236,22 @@ describe('the native-language picker', () => {
         await flush();
         expect(state.displayMode).toBe('dual');
         expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('the viewer\'s own language by AI stays one pick away while another track is second', () => {
+        const { ui, state } = withTracks();
+        // Another language second on this video: the translation is not wanted now.
+        state.secondLineOnDemand = false;
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'uk' });
+        ui.setAiAllowed(true);
+        ui.refresh();
+        expect([...sub().options].map((o) => o.text)).toEqual(['English', 'Русский', 'Українська', 'None (one line)']);
+        expect(sub().querySelector('optgroup')).toBeNull();
+    });
+
+    test('without a pair or a language list it lists the tracks alone', () => {
+        withTracks();
+        expect(sub().querySelector('optgroup')).toBeNull();
     });
 
     test('picking it asks once, then starts', async () => {
@@ -256,6 +274,23 @@ describe('the native-language picker', () => {
         pick('ai');
         await flush();
         expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    test('the AI track itself picked for the second line keeps it; a track after it is still the one picked', () => {
+        const { ui, state } = withTracks();
+        const stop = jest.fn();
+        ui.setAiStop(stop);
+        state.addTrack('Ukrainian · AI', [{ startTime: 0, endTime: 1, text: 'в' } as any]);
+        state.addTrack('German — Deutsch', [{ startTime: 0, endTime: 1, text: 'g' } as any]);
+        state.displayMode = 'single';
+        ui.refresh();
+        pick('2');
+        expect(stop).not.toHaveBeenCalled();
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Ukrainian · AI');
+        // Stopping drops the AI track and moves the indexes after it: the pick stands.
+        ui.setAiStop(() => state.removeTrack('Ukrainian · AI'));
+        pick('3');
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('German — Deutsch');
     });
 
     test('a site track in its place turns a running translation off', () => {
@@ -287,4 +322,286 @@ describe('in a production build', () => {
         (global as any).__EXT_ENV__ = 'prod';
         expect((await loadPrefs()).aiTranslateForce).toBe(false);
     });
+});
+
+describe('the AI translation alone on the line, stopped', () => {
+    const cue = (text: string, original?: string) => ({ startTime: 0, endTime: 1, text, ...(original ? { original } : {}) });
+    function alone() {
+        const ui = build();
+        const state = ui.state;
+        state.setLanguagePreferences('English', 'Russian');
+        state.addTrack('English', [cue('It is not safe.')]);
+        state.preferredSecondaryName = 'Russian · AI';
+        state.addTrack('Russian · AI', [cue('', 'It is not safe.')]);
+        state.setDisplayMode('single');
+        state.setSingleTrack('Russian · AI');
+        ui.refresh();
+        const banner = document.getElementById('vtt-ai-banner')!;
+        const button = (text: RegExp) => [...banner.querySelectorAll('button')].find((b) => text.test(b.textContent ?? '') || text.test(b.getAttribute('aria-label') ?? ''))!;
+        return { ui, state, banner, button };
+    }
+
+    test('its limit spent: the line offers the learning track and any other, framed, with a ×', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStop(() => {});
+        ui.setAiStatus('quota');
+        expect(banner.hidden).toBe(false);
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(true);
+        // The "on" word is not shown beside a stopped translation.
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached · Show English · Other track ▾');
+        expect(button(/^Hide$/)).toBeDefined();
+    });
+
+    test('Show English puts the learning track on the line; the row goes back to its usual self', () => {
+        const { ui, state, banner, button } = alone();
+        ui.setAiStop(() => {});
+        ui.setAiStatus('quota');
+        button(/Show English/).click();
+        expect(state.singleTrackName).toBeUndefined();
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English');
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+        expect(banner.querySelector('.vtt-ai-banner-close')).toBeNull();
+        // Its limit still spent: the row says so, with no "on" to turn off.
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached');
+    });
+
+    test('Other track opens the subtitle tracks under the line, the AI one first and checked', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStatus('quota');
+        const other = button(/Other track/);
+        expect(other.getAttribute('aria-expanded')).toBe('false');
+        other.click();
+        expect(other.getAttribute('aria-expanded')).toBe('true');
+        const items = [...banner.querySelectorAll('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'English']);
+        expect(items[0].getAttribute('aria-checked')).toBe('true');
+        other.click();
+        expect(banner.querySelector('.vtt-ai-tracks')).toBeNull();
+    });
+
+    test('a loaded track picked there is shown alone on Single; the list closes', () => {
+        const { ui, state, banner, button } = alone();
+        ui.setAiStatus('quota');
+        button(/Other track/).click();
+        ([...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')].find((li) => li.textContent === 'English')!).click();
+        expect(state.tracks[state.activeTrackIndex].name).toBe('English');
+        expect(state.displayMode).toBe('single');
+        expect(banner.querySelector('.vtt-ai-tracks')).toBeNull();
+    });
+
+    test('on a site that names the title\'s languages (Netflix), the list is those, and a pick loads it', () => {
+        const { ui, state, banner, button } = alone();
+        const load = jest.fn();
+        ui.app.requestLanguageTrack = load;
+        state.languageCatalog = [
+            { code: 'en', label: 'English', available: true },
+            { code: 'pl', label: 'Polish', available: true },
+            { code: 'de', label: 'German', available: false },
+        ];
+        ui.setAiStatus('quota');
+        button(/Other track/).click();
+        const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'English', 'Polish']);
+        state.selectedLearningCode = 'en';
+        items[2].click();
+        expect(load).toHaveBeenCalledWith('learning', 'pl');
+        expect(state.selectedLearningCode).toBe('en');
+        expect(state.singleTrackName).toBeUndefined();
+    });
+
+    test('× hides the line until the status changes', () => {
+        const { ui, banner, button } = alone();
+        ui.setAiStatus('quota');
+        button(/^Hide$/).click();
+        expect(banner.hidden).toBe(true);
+        ui.refresh();
+        expect(banner.hidden).toBe(true);
+        ui.setAiStatus('unavailable');
+        expect(banner.hidden).toBe(false);
+    });
+
+    test('still translating: no way-out line', () => {
+        const { ui, banner } = alone();
+        ui.setAiStatus('working');
+        expect(banner.classList.contains('vtt-ai-banner-out')).toBe(false);
+    });
+
+    test('on Dual, stopped: the way out is for the second line, no «Show English»', () => {
+        const { ui, state, banner, button } = alone();
+        ui.setAiStatus('quota');
+        state.setDisplayMode('dual');
+        ui.refresh();
+        expect(state.tracks[state.secondaryTrackIndex].name).toBe('Russian · AI');
+        const seen = [...banner.children].filter((c) => !(c as HTMLElement).hidden && c.tagName !== 'UL').map((c) => c.textContent).join('');
+        expect(seen).toBe('The AI limit is reached · Other track ▾');
+    });
+
+    test('on Dual, a pick takes the second line: the AI translation is turned off, the first line\'s language left out', () => {
+        const { ui, state, banner, button } = alone();
+        const stop = jest.fn();
+        const load = jest.fn();
+        ui.setAiStop(stop);
+        ui.app.requestLanguageTrack = load;
+        state.languageCatalog = [
+            { code: 'en', label: 'English', available: true },
+            { code: 'pl', label: 'Polish', available: true },
+        ];
+        ui.setAiStatus('quota');
+        state.setDisplayMode('dual');
+        ui.refresh();
+        button(/Other track/).click();
+        const items = [...banner.querySelectorAll<HTMLElement>('.vtt-ai-tracks li')];
+        expect(items.map((li) => li.textContent)).toEqual(['РусскийAIlimit reached', 'Polish']);
+        state.selectedNativeCode = 'ru';
+        state.selectedLearningCode = 'en';
+        items[1].click();
+        expect(stop).toHaveBeenCalled();
+        expect(load).toHaveBeenCalledWith('native', 'pl');
+        expect(state.displayMode).toBe('dual');
+        // A track for the line, not a new native language.
+        expect(state.selectedNativeCode).toBe('ru');
+        expect(state.selectedLearningCode).toBe('en');
+    });
+
+    test('a line it has not translated shows the original, muted', () => {
+        alone();
+        const main = document.querySelector('.vtt-main-text')!;
+        expect(main.textContent).toBe('It is not safe.');
+        expect(main.classList.contains('vtt-untranslated')).toBe(true);
+    });
+});
+
+test('a running translation keeps its "on"; a stopped one (its limit spent) has none', () => {
+    const ui = build();
+    const banner = document.getElementById('vtt-ai-banner')!;
+    const seen = () => [...banner.children].filter((c) => !(c as HTMLElement).hidden).map((c) => c.textContent).join('');
+    ui.setAiStop(() => {});
+    ui.setAiStatus('ready');
+    expect(seen()).toBe('AI translation · on');
+    ui.setAiStatus('quota');
+    expect(seen()).toBe('The AI limit is reached');
+    ui.setAiStatus('rate');
+    expect(seen()).toMatch(/· on$/);
+});
+
+describe('the credits spent for now', () => {
+    const cue = (text: string) => ({ startTime: 0, endTime: 1, text });
+    const spend = () => {
+        const hour = 3600_000;
+        prefsStore['ai.balance'] = {
+            day: { used: 100, limit: 100, resetsAt: Date.now() + hour },
+            month: { used: 100, limit: 1000, resetsAt: Date.now() + 30 * 24 * hour },
+            exhausted: 'day',
+            warnRatio: 0.8,
+            at: Date.now(),
+        };
+    };
+    const seen = () => {
+        const banner = document.getElementById('vtt-ai-banner')!;
+        return banner.hidden ? '' : [...banner.children].filter((c) => !(c as HTMLElement).hidden && c.tagName !== 'UL').map((c) => c.textContent).join('');
+    };
+
+    test('the offer for an empty second line says when AI comes back, and offers another track instead', async () => {
+        spend();
+        const ui = build();
+        ui.state.setLanguagePreferences('English', 'Russian');
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.state.secondLineOnDemand = true;
+        ui.setAiOffer(() => {});
+        await flush();
+        expect(seen()).toMatch(/^AI limit for today reached, resets at .+ · Other track ▾$/);
+        expect(document.querySelector('.vtt-ai-offer')!.closest('[hidden]')).not.toBeNull();
+        // "off" (turned off on this video) reads the same: it could start nothing.
+        ui.setAiOffer(() => {}, true);
+        expect(seen()).toMatch(/^AI limit for today reached/);
+    });
+
+    test('with credits left the offer stands as before', async () => {
+        const ui = build();
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.setAiOffer(() => {});
+        await flush();
+        expect(seen()).toBe('No subtitles in your language · Translate with AI');
+    });
+
+    test('another track on the second line: still the one spent row, not «off» or «Translate with AI»', async () => {
+        spend();
+        const ui = build();
+        ui.state.setLanguagePreferences('English', 'Russian');
+        ui.state.addTrack('English', [cue('Hi.')]);
+        ui.state.addTrack('Polish', [cue('Cześć.')]);
+        ui.state.setDisplayMode('dual');
+        ui.setAiOffer(() => {}, true);
+        await flush();
+        expect(seen()).toMatch(/^AI limit for today reached, resets at .+ · Other track ▾$/);
+        ui.setAiOffer(() => {});
+        expect(seen()).toMatch(/^AI limit for today reached/);
+        // The list marks what is on the second line now.
+        [...document.querySelectorAll<HTMLElement>('#vtt-ai-banner button')].find((b) => /Other track/.test(b.textContent!))!.click();
+        const items = [...document.querySelectorAll('.vtt-ai-tracks li')];
+        expect(items.map((li) => (li.getAttribute('aria-checked') === 'true' ? '✓' : '') + li.textContent)).toEqual(['✓Polish']);
+        // Nothing asks about credits left: the offer cannot be taken.
+        ui.takeAiOffer(document.getElementById('vtt-ai-banner')!, document.getElementById('vtt-subheader')!);
+        await flush();
+        expect(document.querySelector('.vtt-ai-confirm')).toBeNull();
+    });
+
+    test('nothing about AI on this video (the site has the viewer\'s language): no row', async () => {
+        spend();
+        build();
+        await flush();
+        expect(seen()).toBe('');
+    });
+});
+
+describe('the line pickers', () => {
+    const select = (id: string) => document.getElementById(id) as HTMLSelectElement;
+    const pick = (id: string, value: string) => {
+        select(id).value = value;
+        select(id).dispatchEvent(new Event('change'));
+    };
+    function lines() {
+        const ui = build();
+        const state = ui.state;
+        ui.app.ownLanguages = () => ({ learning: 'en', native: 'ru' });
+        state.addTrack('English — English', [{ startTime: 0, endTime: 1, text: 'a' } as any]);
+        state.addTrack('Polish — Polski', [{ startTime: 0, endTime: 1, text: 'b' } as any]);
+        state.setDisplayMode('dual');
+        const chooseLine = jest.fn();
+        const openSiteSettings = jest.fn();
+        ui.app.chooseLine = chooseLine;
+        ui.app.openSiteSettings = openSiteSettings;
+        ui.refresh();
+        return { ui, state, chooseLine, openSiteSettings };
+    }
+
+    test('named for the lines of this video, the viewer\'s languages under them with the way to change them', () => {
+        const { openSiteSettings } = lines();
+        expect(document.getElementById('vtt-track-selectors')!.textContent).toMatch(/First line.*Second line/);
+        const note = document.getElementById('vtt-lines-note')!;
+        expect(note.textContent).toBe('Kept for this video. Every video starts from your languages, English → Русский · Change ›');
+        note.querySelector('button')!.click();
+        expect(openSiteSettings).toHaveBeenCalled();
+    });
+
+    test('a pick is this video\'s line, by its language; the viewer\'s languages stay', () => {
+        const { ui, state, chooseLine } = lines();
+        pick('vtt-sub-select', '1');
+        expect(chooseLine).toHaveBeenCalledWith('native', 'pl');
+        expect(state.secondaryTrackIndex).toBe(1);
+        expect(ui.app.ownLanguages!()).toEqual({ learning: 'en', native: 'ru' });
+    });
+
+    test('«None» is one line', () => {
+        const { state } = lines();
+        pick('vtt-sub-select', 'none');
+        expect(state.displayMode).toBe('single');
+    });
+});
+
+test('the AI row speaks to the lines on screen: hidden on the Options screen by the stylesheet', () => {
+    const css = require('fs').readFileSync(require('path').join(__dirname, '../../../apps/rezka/src/assets/styles.css'), 'utf8');
+    expect(css).toMatch(/#vtt-sidebar\.vtt-settings-open #vtt-ai-banner/);
 });

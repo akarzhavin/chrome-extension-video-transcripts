@@ -55,6 +55,13 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     button.append(svg, label);
     badge.appendChild(button);
     headerTop.prepend(badge);
+    // The title is centred in the room between the badge and the buttons on
+    // the right (styles.css): its width, which grows with a countdown, is
+    // kept on the header.
+    const sized = typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => headerTop.style.setProperty('--vtt-ai-badge-w', `${button.offsetWidth}px`));
+    sized?.observe(button);
 
     let balance: AIBalance | null = null;
     let panel: HTMLElement | null = null;
@@ -160,6 +167,8 @@ export function mountAIBadge(headerTop: HTMLElement): () => void {
     const unsubscribe = onBalance(show);
     return () => {
         disposed = true;
+        sized?.disconnect();
+        headerTop.style.removeProperty('--vtt-ai-badge-w');
         unsubscribe();
         unwatchAI();
         stopBalanceReask();

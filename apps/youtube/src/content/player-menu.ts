@@ -353,7 +353,7 @@ class PlayerMenu {
         this.settingsRow.insertAdjacentHTML('afterbegin', SETTINGS_ICON);
         const settingsLabel = document.createElement('span');
         settingsLabel.className = 'vtt-ytp-row-label';
-        settingsLabel.textContent = t('ytMenuSettings', 'Settings');
+        settingsLabel.textContent = t('ytMenuSettings', 'Options');
         this.settingsRow.appendChild(settingsLabel);
         this.settingsRow.addEventListener('click', () => {
             this.app.ui.openSettings();

@@ -60,9 +60,11 @@ import { msg } from './i18n';
 import { aiStatusText, type AiStatus } from './subtitle-ai/controller';
 import { buildConfirm, confirmSkipped, costTitle, dismissOn } from './subtitle-ai/confirm';
 import { AI_SUFFIX } from './subtitle-ai/controller';
-import { aiTrackLabel, trackLabel } from './track-label';
+import { aiTrackLabel, trackLabel, trackLanguageCode } from './track-label';
+import { nativeForLanguage } from './languages';
 import { WordScreen, WordScreenHost } from './lookup/word-screen';
 import { mountAIBadge } from './ai-balance/badge';
+import { watchSpent, type AISpent } from './ai-balance/spent';
 
 // Smooth-scroll budget. Jumps within this many subtitle indices animate;
 // bigger jumps snap instantly so the user doesn't watch a full-list scroll.
@@ -216,6 +218,20 @@ function centreDelta(list: HTMLElement, item: HTMLElement): number {
     return itemBox.top - listBox.top - (listBox.height - itemBox.height) / 2;
 }
 
+/**
+ * A line's words, on the first line. The AI translation alone on the line
+ * (Single) has lines it has not translated, its limit spent or its turn not
+ * come: those show the original, muted, so no line is left blank.
+ */
+function fillMainLine(div: HTMLElement, sub: Subtitle): void {
+    if (!sub.text.trim() && sub.original?.trim()) {
+        div.classList.add('vtt-untranslated');
+        fillPlainWordsInto(div, sub.original, isSaved);
+        return;
+    }
+    fillPlainWordsInto(div, sub.text, isSaved);
+}
+
 export class SidebarUI {
     state: AppState;
     app: AppInterface;
@@ -243,6 +259,8 @@ export class SidebarUI {
     // Where the sidebar lives outside fullscreen; captured on the way in so it
     // can be put back exactly there (see setupFullscreenHandling).
     private homeParent: HTMLElement | null = null;
+    // The Languages group, lit up when the viewer is sent there to pick a pair.
+    private langGroup: HTMLElement | null = null;
     // Teardown for everything bound outside the sidebar's own subtree —
     // document/chrome.storage listeners that removing the DOM would not undo.
     // The extensions live for the page's lifetime and never call destroy(), but
@@ -498,7 +516,7 @@ export class SidebarUI {
         feedbackBackBtn.id = 'vtt-feedback-back-btn';
         feedbackBackBtn.className = 'vtt-back-chip';
         feedbackBackBtn.type = 'button';
-        feedbackBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSettingsTitle', 'Settings')}</span>`;
+        feedbackBackBtn.innerHTML = `${ICONS.back}<span>${msg('ytSettingsTitle', 'Options')}</span>`;
         feedbackBackBtn.addEventListener('click', () => this.closeFeedbackScreen());
         headerTop.appendChild(feedbackBackBtn);
         this.elements = { ...this.elements, feedbackBackBtn };
@@ -535,7 +553,7 @@ export class SidebarUI {
         const settingsBtn = document.createElement('button');
         settingsBtn.id = 'vtt-settings-btn';
         settingsBtn.type = 'button';
-        settingsBtn.setAttribute('aria-label', msg('ytSettingsTitle', 'Settings'));
+        settingsBtn.setAttribute('aria-label', msg('ytSettingsTitle', 'Options'));
         settingsBtn.setAttribute('aria-expanded', 'false');
         settingsBtn.setAttribute('aria-controls', 'vtt-settings-panel');
         settingsBtn.style.display = 'flex'; // Always visible now
@@ -565,10 +583,203 @@ export class SidebarUI {
         const aiBannerStatus = document.createElement('span');
         const aiBannerStop = document.createElement('span');
         const aiBannerOffer = document.createElement('span');
-        aiBanner.append(aiBannerStatus, aiBannerStop, aiBannerOffer);
+        const aiBannerOut = document.createElement('span');
+        const aiBannerClose = document.createElement('button');
+        aiBannerClose.type = 'button';
+        aiBannerClose.className = 'vtt-ai-banner-close';
+        aiBannerClose.setAttribute('aria-label', msg('ytAiHideLine', 'Hide'));
+        aiBannerClose.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+        aiBanner.append(aiBannerStatus, aiBannerStop, aiBannerOffer, aiBannerOut);
+        // Set by setAiStatus: what the translation is doing, and whether the
+        // way-out line was closed for that status.
+        let aiNow: AiStatus | null = null;
+        let wayOutClosed = false;
+        // The credits run out for now (any site, any video): nothing offered
+        // can start, so nothing is offered as if it could.
+        let aiSpent: AISpent | null = null;
         const showBanner = () => {
-            aiBanner.hidden = !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
+            aiBanner.hidden = aiBanner.classList.contains('vtt-ai-banner-out')
+                ? wayOutClosed
+                : !aiBannerStatus.textContent && !aiBannerOffer.childNodes.length && !aiBannerStop.childNodes.length;
         };
+        // The AI translation on screen (alone on Single, from Netflix's menu,
+        // or second on Dual) and stopped for good, its limit spent or the
+        // like: the line says so and offers the way out for its line, another
+        // track (on Single the learning one first). × hides it until the
+        // status changes (a new title clears the status).
+        const STOPPED: AiStatus[] = ['auth', 'quota', 'limit', 'too_long', 'unavailable', 'unsupported'];
+        const link = (text: string, act: () => void): HTMLButtonElement => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'vtt-ai-toggle';
+            button.textContent = text;
+            button.addEventListener('click', act);
+            return button;
+        };
+        aiBannerClose.addEventListener('click', () => {
+            wayOutClosed = true;
+            this.syncAiWayOut();
+        });
+        // «Other track ▾»: the title's subtitle tracks, under the line, in
+        // its frame, for the line the AI translation had: on Single a pick
+        // shows that track alone; on Dual it takes the second line (the AI
+        // translation turned off, as its "on" does), the first line's own
+        // language left out. The AI one, shown now, is first and checked. On
+        // a site that names the title's languages (Netflix) a language not
+        // loaded yet is fetched; elsewhere the tracks loaded are the list.
+        let tracksList: HTMLUListElement | null = null;
+        let tracksOpener: HTMLElement | null = null;
+        const closeTracks = () => {
+            tracksList?.remove();
+            tracksList = null;
+            tracksOpener?.setAttribute('aria-expanded', 'false');
+            tracksOpener = null;
+        };
+        const isAi = (t?: Track) => !!t?.name.endsWith(AI_SUFFIX);
+        const openTracks = (opener: HTMLElement) => {
+            const dual = this.state.displayMode === 'dual';
+            const main = this.state.tracks[this.state.activeTrackIndex];
+            const ai = dual ? this.state.tracks[this.state.secondaryTrackIndex] : main;
+            const list = document.createElement('ul');
+            list.className = 'vtt-ai-tracks';
+            list.setAttribute('role', 'menu');
+            list.setAttribute('aria-label', msg('ytSidebarTitle', 'Subtitles'));
+            const item = (label: string, checked: boolean, pick: () => void, ai = false) => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'menuitemradio');
+                li.setAttribute('aria-checked', String(checked));
+                li.tabIndex = 0;
+                const words = document.createElement('span');
+                words.className = 'vtt-ai-track-name';
+                words.textContent = label;
+                if (ai) {
+                    const chip = document.createElement('span');
+                    chip.className = 'vtt-ai-track-chip';
+                    chip.textContent = 'AI';
+                    words.append(chip);
+                }
+                li.append(words);
+                if (ai && (aiNow === 'quota' || aiSpent)) {
+                    const note = document.createElement('span');
+                    note.className = 'vtt-ai-track-note';
+                    note.textContent = msg('ytAiLimitShort', 'limit reached');
+                    li.append(note);
+                }
+                const act = () => {
+                    closeTracks();
+                    pick();
+                };
+                li.addEventListener('click', act);
+                li.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    act();
+                });
+                return li;
+            };
+            if (ai && isAi(ai)) list.append(item(trackLabel(ai.name), true, () => {}, true));
+            // The track on that line now, when it is the site's own: checked.
+            const onLine = ai && !isAi(ai) && !(dual && this.state.secondaryTrackIndex === this.state.activeTrackIndex) ? ai : null;
+            const onLineCode = onLine ? trackLanguageCode(onLine.name) : null;
+            const first = dual && main ? main.name : null;
+            const firstCode = first ? trackLanguageCode(first) : null;
+            const catalog = this.state.languageCatalog?.filter((c) => c.available && c.code !== firstCode);
+            const load = this.app.requestLanguageTrack;
+            if (catalog && load) {
+                for (const c of catalog) {
+                    list.append(item(c.label, c.code === onLineCode, () => {
+                        // The track on the line changes, not the viewer's
+                        // language: the pickers keep showing theirs.
+                        const role: TrackRole = dual ? 'native' : 'learning';
+                        if (dual) this.aiStopFn?.();
+                        else this.state.setSingleTrack(undefined);
+                        // Kept for this video where the site keeps picks.
+                        if (this.app.chooseLine) this.app.chooseLine(role, c.code);
+                        else load.call(this.app, role, c.code);
+                        this.refresh();
+                    }));
+                }
+            } else {
+                for (const t of this.state.tracks) {
+                    if (isAi(t) || t.name === first) continue;
+                    list.append(item(trackLabel(t.name), t === onLine, () => {
+                        if (dual) return this.onTrackSelectChange('native', String(this.state.tracks.indexOf(t)));
+                        const code = trackLanguageCode(t.name);
+                        if (code && this.app.chooseLine) {
+                            this.state.setSingleTrack(undefined);
+                            this.onTrackSelectChange('learning', String(this.state.tracks.indexOf(t)));
+                            return;
+                        }
+                        this.state.setSingleTrack(t.name);
+                        this.refresh();
+                    }));
+                }
+            }
+            aiBanner.append(list);
+            tracksList = list;
+            tracksOpener = opener;
+            opener.setAttribute('aria-expanded', 'true');
+        };
+        // Which line the way out is for: '' none, 'single' or 'dual'.
+        let wayOutFor = '';
+        this.syncAiWayOut = () => {
+            const main = this.state.tracks[this.state.activeTrackIndex];
+            const stopped = !!aiNow && STOPPED.includes(aiNow);
+            // Its line, on screen: alone on Single, or second on Dual.
+            const mode = this.state.displayMode;
+            const second = this.state.tracks[this.state.secondaryTrackIndex];
+            const shown = (mode === 'single' && isAi(main)) || (mode === 'dual' && isAi(second));
+            // Stopped on screen; or the credits spent while the translation is
+            // anything here (offered, "off", running, stopped): one state, the
+            // limit and when it comes back, with the way out. Nothing offered
+            // then can start, so nothing reads as if it could.
+            const here = !!this.aiOffer || !!this.aiStopFn || !!aiNow || shown;
+            const out = (stopped && shown) || (!!aiSpent && here);
+            // "on" turns a running translation off; a stopped one has
+            // nothing to turn off, and "on" beside its limit misleads.
+            aiBannerStop.hidden = stopped || out;
+            aiBannerStatus.hidden = out;
+            aiBannerOffer.hidden = out;
+            const text = aiSpent?.text ?? (aiNow ? aiStatusText(aiNow) : '');
+            const kind = out ? `${mode}:${text}` : '';
+            if (wayOutFor !== kind) {
+                wayOutFor = kind;
+                aiBanner.classList.toggle('vtt-ai-banner-out', out);
+                if (out) aiBanner.append(aiBannerClose);
+                else aiBannerClose.remove();
+                aiBannerOut.replaceChildren();
+                closeTracks();
+                if (out) aiBannerOut.append(text);
+                // On Dual the learning track is the first line already.
+                if (out && mode === 'single') {
+                    const label = this.state.primaryLangLabel;
+                    const learning = this.state.tracks.find((t) => !isAi(t) && !!label && t.name.includes(label))
+                        ?? this.state.tracks.find((t) => !isAi(t));
+                    if (learning) {
+                        aiBannerOut.append(' · ', link(msg('ytAiShowTrack', 'Show $1', [trackLabel(learning.name)]), () => {
+                            this.state.setSingleTrack(undefined);
+                            this.refresh();
+                        }));
+                    }
+                }
+                if (out) {
+                    const other = link(`${msg('ytAiOtherTrack', 'Other track')} ▾`, () => {
+                        if (tracksList) closeTracks();
+                        else openTracks(other);
+                    });
+                    other.setAttribute('aria-expanded', 'false');
+                    other.setAttribute('aria-haspopup', 'menu');
+                    aiBannerOut.append(' · ', other);
+                }
+            }
+            showBanner();
+        };
+        this.teardown.push(watchSpent((spent) => {
+            if (spent?.text !== aiSpent?.text) wayOutClosed = false;
+            aiSpent = spent;
+            this.syncAiWayOut();
+        }));
+
         const cost = msg('ytAiOfferCost', 'uses AI credits');
         const costSentence = costTitle();
         // The row ends in the state's own word, "on" or "off", in the link
@@ -639,7 +850,8 @@ export class SidebarUI {
         // on this video it starts at once, else after the one question.
         this.takeAiOffer = (anchor, host) => {
             const offer = this.aiOffer;
-            if (!offer) return;
+            // Spent for now: the row says so; no question about credits left.
+            if (!offer || aiSpent) return;
             if (offer.off) return offer.start();
             void confirmSkipped().then((skip) => {
                 if (this.aiOffer !== offer) return;
@@ -742,8 +954,12 @@ export class SidebarUI {
             settingsPanel.appendChild(themeStrip);
         }
 
-        // -- Group 1: Languages ------------------------------------------------
-        const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLanguages', 'Languages'));
+        // -- Group 1: the subtitles on this video -----------------------------
+        // What each line shows on this video, kept for it. The viewer's
+        // languages, which every video starts from, are set on the site's
+        // extension page; the note under the pickers names them.
+        const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLinesThisVideo', 'Subtitles on this video'));
+        this.langGroup = langGroup;
 
         const mainSelect = document.createElement('select');
         mainSelect.id = 'vtt-main-select';
@@ -761,9 +977,14 @@ export class SidebarUI {
 
         const fields = document.createElement('div');
         fields.id = 'vtt-track-selectors';
-        fields.appendChild(this.buildFieldRow(msg('ytLearningLabel', 'Learning'), mainSelect));
-        fields.appendChild(this.buildFieldRow(msg('ytNativeLabel', 'Native'), subSelect));
+        fields.appendChild(this.buildFieldRow(msg('ytFirstLine', 'First line'), mainSelect));
+        fields.appendChild(this.buildFieldRow(msg('ytSecondLine', 'Second line'), subSelect));
         langGroup.appendChild(fields);
+        const linesNote = document.createElement('div');
+        linesNote.id = 'vtt-lines-note';
+        linesNote.className = 'vtt-lines-note';
+        langGroup.appendChild(linesNote);
+        this.linesNote = linesNote;
         // What AI translation of the second line is doing, if anything.
         const aiStatus = document.createElement('div');
         aiStatus.id = 'vtt-ai-status';
@@ -771,10 +992,12 @@ export class SidebarUI {
         aiStatus.setAttribute('aria-live', 'polite');
         langGroup.appendChild(aiStatus);
         this.setAiStatus = (s) => {
+            if (s !== aiNow) wayOutClosed = false;
+            aiNow = s;
             aiStatus.textContent = s ? aiStatusText(s) : '';
             // The row's "on" says the rest of "AI translation is on".
             aiBannerStatus.textContent = s === 'ready' ? msg('ytAiStateLabel', 'AI translation') : aiStatus.textContent;
-            showBanner();
+            this.syncAiWayOut();
         };
         settingsPanel.appendChild(langGroup);
 
@@ -1992,7 +2215,7 @@ export class SidebarUI {
         }
         if (titleEl) {
             titleEl.textContent = open
-                ? msg('ytSettingsTitle', 'Settings')
+                ? msg('ytSettingsTitle', 'Options')
                 : msg('ytSidebarTitle', 'Subtitles');
         }
         if (!open) {
@@ -2033,7 +2256,7 @@ export class SidebarUI {
         // open — and so the auth state is re-read rather than remembered.
         feedbackPanel.replaceChildren();
         this.elements = { ...this.elements, feedbackTextarea: undefined };
-        if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Settings');
+        if (titleEl) titleEl.textContent = msg('ytSettingsTitle', 'Options');
         if (restoreFocus) this.elements.feedbackLink?.focus();
     }
 
@@ -2172,9 +2395,20 @@ export class SidebarUI {
 
     // Expand straight into settings. Same reasoning as openPanel(), squared:
     // toggleSettingsPanel() is also a toggle, so it needs the same guard.
-    openSettings(): void {
+    // With "languages", the viewer came to pick another pair (Netflix's
+    // "Choose another pair"): that group is lit up for a moment, so the eye
+    // lands on it. Not focused: focus in the sidebar would take the player's
+    // keys (space to pause) away.
+    openSettings(show?: 'languages'): void {
         this.openPanel();
         if (!this.elements.settingsPanel?.classList.contains('open')) this.toggleSettingsPanel();
+        const group = show === 'languages' ? this.langGroup : null;
+        if (!group) return;
+        group.scrollIntoView?.({ block: 'nearest' });
+        group.classList.remove('vtt-group-lit');
+        void group.offsetWidth; // a second press starts the glow again
+        group.classList.add('vtt-group-lit');
+        group.addEventListener('animationend', () => group.classList.remove('vtt-group-lit'), { once: true });
     }
 
     /** Direct mode pick — what every mode control calls. */
@@ -2399,6 +2633,16 @@ export class SidebarUI {
 
     /** What the AI translation is doing; empty while it is off. A no-op until the status line is built. */
     setAiStatus: (s: AiStatus | null) => void = () => {};
+    /** The translation may be had here (its gate, a pair): the pickers offer it by name. */
+    private aiAllowed = false;
+    setAiAllowed(on: boolean): void {
+        if (on === this.aiAllowed) return;
+        this.aiAllowed = on;
+        this.updateControls();
+    }
+
+    /** Shows or hides the AI row's way out to another track (built with the row). */
+    private syncAiWayOut: () => void = () => {};
 
     /**
      * Offer to translate this video with AI, start being what the button does;
@@ -2463,18 +2707,18 @@ export class SidebarUI {
 
     // A dropdown changed. In track-picker mode the value is a track index; in
     // language-picker mode it's a language code the site loads on demand.
+    // A pick in a line's picker: that line of this video, kept for it
+    // (app.chooseLine); the viewer's languages stay as they are. "none" is
+    // one line (Single); "ai" the translation into the viewer's language.
     private onTrackSelectChange(role: TrackRole, value: string): void {
-        if (this.isLanguagePickerMode()) {
-            if (role === 'learning') this.state.selectedLearningCode = value;
-            else this.state.selectedNativeCode = value;
-            this.app.requestLanguageTrack?.(role, value);
-            // The track arrives asynchronously; reflect the new selection now so
-            // the dropdown doesn't snap back to the old value before it loads.
-            this.updateControls();
+        if (role === 'native' && value === 'none') {
+            this.setMode('single');
             return;
         }
         if (role === 'native' && value === 'ai') {
             const select = this.elements.subSelect!;
+            // The viewer's own language back on the second line, by AI.
+            this.app.chooseLine?.('native', null);
             // The offer stands only in Dual; turning Dual on makes it.
             this.setMode('dual');
             this.takeAiOffer(select, select.closest<HTMLElement>('#vtt-settings-panel') ?? select.parentElement!);
@@ -2482,11 +2726,37 @@ export class SidebarUI {
             this.updateControls();
             return;
         }
+        if (this.isLanguagePickerMode()) {
+            // A language of the title's own on the second line: in Dual, in
+            // the AI translation's place, which goes as its "on" turns it off.
+            if (role === 'native') {
+                this.aiStopFn?.();
+                if (this.state.displayMode === 'single') this.setMode('dual');
+            }
+            if (role === 'learning') this.state.selectedLearningCode = value;
+            else this.state.selectedNativeCode = value;
+            if (this.app.chooseLine) this.app.chooseLine(role, value);
+            else this.app.requestLanguageTrack?.(role, value);
+            // The track arrives asynchronously; reflect the new selection now so
+            // the dropdown doesn't snap back to the old value before it loads.
+            this.updateControls();
+            return;
+        }
+        // Read before anything changes: stopping the translation drops its
+        // track, and the indexes after it move.
         const picked = this.state.tracks[parseInt(value)];
         if (!picked) return;
-        // Another track in the AI translation's place turns it off, as its
-        // "on" does; the track is found again by name, as stopping drops one.
-        if (role === 'native' && this.aiStopFn && !picked.name.endsWith(AI_SUFFIX)) this.aiStopFn();
+        const isAi = picked.name.endsWith(AI_SUFFIX);
+        if (role === 'native') {
+            // A site track in the AI translation's place turns it off, as its
+            // "on" does; the AI track itself picked keeps it.
+            if (!isAi) this.aiStopFn?.();
+            if (this.state.displayMode === 'single') this.setMode('dual');
+        }
+        const code = isAi ? null : trackLanguageCode(picked.name);
+        if (code) this.app.chooseLine?.(role, code);
+        // The track itself, by name: the pick may be one of two of a language,
+        // and the pair just re-routed the indexes.
         const at = this.state.tracks.indexOf(picked);
         if (at === -1) return;
         if (role === 'learning') this.state.activeTrackIndex = at;
@@ -2496,6 +2766,7 @@ export class SidebarUI {
 
     updateControls(): void {
         if (!this.elements.settingsBtn || !this.elements.mainSelect || !this.elements.subSelect) return;
+        this.syncAiWayOut();
 
         this.elements.settingsBtn.style.display = 'flex';
 
@@ -2556,12 +2827,29 @@ export class SidebarUI {
         this.elements.mainSelect.innerHTML = '';
         this.elements.subSelect.innerHTML = '';
 
+        const second = this.state.tracks[this.state.secondaryTrackIndex];
+        const aiSecond = this.state.displayMode !== 'single' && !!second?.name.endsWith(AI_SUFFIX);
         if (this.isLanguagePickerMode()) {
             // Language-picker mode (Netflix): full catalog split into "this
             // title offers" (selectable) and the rest of the supported catalog
             // (disabled), so the dropdown mirrors the site's own subtitle menu.
             this.populateLanguagePicker(this.elements.mainSelect, this.state.selectedLearningCode);
-            this.populateLanguagePicker(this.elements.subSelect, this.state.selectedNativeCode);
+            this.populateLanguagePicker(this.elements.subSelect, aiSecond ? undefined : this.state.selectedNativeCode);
+            // The viewer's own language by AI, when the title has none in it:
+            // offered, running, or one pick away (another track second now).
+            const own = this.app.ownLanguages?.()?.native;
+            const shipped = new Set((this.state.languageCatalog ?? []).filter((l) => l.available).map((l) => l.code));
+            const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
+                || (this.aiAllowed && own && !shipped.has(own) ? own : undefined);
+            if (aiLanguage) {
+                const group = document.createElement('optgroup');
+                group.label = msg('ytLangGroupTranslated', 'Translated');
+                // Checked while it is the second line: running, or the line's
+                // language with no track of it (its offer, or its limit).
+                const onLine = aiSecond || (this.state.selectedNativeCode === aiLanguage && !shipped.has(aiLanguage));
+                group.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai', false, onLine));
+                this.elements.subSelect.appendChild(group);
+            }
         } else {
             // Track-picker mode (YouTube/Rezka): list the already-loaded tracks.
             // Labeled field rows (Learning/Native) make the old 'Main:'/'Sub:'
@@ -2575,12 +2863,23 @@ export class SidebarUI {
                 }
                 this.elements.subSelect?.appendChild(new Option(label, i.toString(), false, i === this.state.secondaryTrackIndex));
             });
+            // The viewer's own language by AI, when no track of it is loaded
+            // and the translation is not running: offered, or one pick away.
             // In any mode: picking it in Single turns Dual on first.
-            const aiLanguage = this.state.secondLineLanguage;
-            if (this.state.secondLineOnDemand && aiLanguage && !this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX))) {
-                this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
-            }
+            const aiRunning = this.state.tracks.some((t) => t.name.endsWith(AI_SUFFIX));
+            const own = this.app.ownLanguages?.()?.native;
+            const loaded = new Set(this.state.tracks.map((t) => trackLanguageCode(t.name)));
+            const aiLanguage = (this.state.secondLineOnDemand && this.state.secondLineLanguage)
+                || (this.aiAllowed && own && !loaded.has(own) ? own : undefined);
+            if (aiLanguage && !aiRunning) this.elements.subSelect.appendChild(new Option(aiTrackLabel(aiLanguage), 'ai'));
         }
+        // With no tracks there is nothing to show on either line.
+        const single = this.state.displayMode === 'single';
+        if (this.state.tracks.length) {
+            this.elements.subSelect.appendChild(new Option(msg('ytLineNone', 'None (one line)'), 'none', false, single));
+            if (single) this.elements.subSelect.value = 'none';
+        }
+        this.updateLinesNote();
 
         if (activeId) {
             const activeEl = document.getElementById(activeId);
@@ -2592,13 +2891,31 @@ export class SidebarUI {
         this.updateDownloadButton();
     }
 
+    /** "Kept for this video. Every video starts from your languages, English → Русский · Change ›" */
+    private linesNote: HTMLElement | null = null;
+    private updateLinesNote(): void {
+        const note = this.linesNote;
+        const pair = this.app.ownLanguages?.() ?? null;
+        if (!note) return;
+        note.replaceChildren();
+        if (!pair) return;
+        note.append(msg('ytLinesNote', 'Kept for this video. Every video starts from your languages, $1 → $2',
+            [nativeForLanguage(pair.learning), nativeForLanguage(pair.native)]));
+        if (!this.app.openSiteSettings) return;
+        const change = document.createElement('button');
+        change.type = 'button';
+        change.className = 'vtt-ai-toggle';
+        change.textContent = `${msg('ytLinesChange', 'Change')} ›`;
+        change.addEventListener('click', () => this.app.openSiteSettings?.());
+        note.append(' · ', change);
+    }
+
     // Fill one dropdown from AppState.languageCatalog: an "available in this
     // title" optgroup (selectable) followed by an "other languages" optgroup
     // (disabled). `selectedCode` is the language currently chosen for this slot.
     private populateLanguagePicker(select: HTMLSelectElement, selectedCode?: string): void {
         const catalog = this.state.languageCatalog ?? [];
         const available = catalog.filter((l) => l.available);
-        const others = catalog.filter((l) => !l.available);
 
         const addGroup = (labelText: string, items: typeof catalog, disabled: boolean): void => {
             if (items.length === 0) return;
@@ -2612,8 +2929,8 @@ export class SidebarUI {
             select.appendChild(group);
         };
 
+        // Only what this title has: the rest could not be shown on a line.
         addGroup(msg('ytLangGroupAvailable', 'Available in this video'), available, false);
-        addGroup(msg('ytLangGroupOther', 'Other languages'), others, true);
     }
 
     buildMaskedContent(text: string, revealedCount: number, index?: number): HTMLElement {
@@ -2949,7 +3266,7 @@ export class SidebarUI {
 
         const mainText = document.createElement('div');
         mainText.className = 'vtt-main-text';
-        fillPlainWordsInto(mainText, sub.text, isSaved);
+        fillMainLine(mainText, sub);
         item.appendChild(mainText);
 
         if (this.showsSecondary(index)) {
@@ -3809,7 +4126,7 @@ export class SidebarUI {
             fillMaskedWordsInto(mainDiv, sub.text, this.state.getRevealedCount(index),
                 (ti) => this.state.isWordRevealed(index, ti), isSaved);
         } else {
-            fillPlainWordsInto(mainDiv, sub.text, isSaved);
+            fillMainLine(mainDiv, sub);
         }
         return mainDiv;
     }

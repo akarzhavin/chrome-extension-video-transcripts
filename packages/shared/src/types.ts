@@ -19,6 +19,11 @@ export interface Subtitle {
   pending?: boolean;
   /** AI track only: the cue broke a backend rule and was never sent (shown as a dash). */
   skipped?: boolean;
+  /**
+   * AI track only: the line it translates. Where the translation is missing
+   * and the AI track is the one line shown, this is shown instead, muted.
+   */
+  original?: string;
 }
 
 export interface Track {
@@ -143,6 +148,16 @@ export interface AppInterface {
    * YouTube/Rezka leave it undefined and keep the legacy track-picker dropdowns.
    */
   requestLanguageTrack?(role: TrackRole, code: string): void;
+  /**
+   * A pick for one line of this video (line-choice.ts): that language there,
+   * for this video only; null puts the viewer's own language back. The site
+   * loads and shows it; the viewer's languages stay as they are.
+   */
+  chooseLine?(role: TrackRole, code: string | null): void;
+  /** Opens the site's page of this extension's settings, where the viewer's languages are set. */
+  openSiteSettings?(): void;
+  /** The viewer's own languages, as saved: what every video starts from. */
+  ownLanguages?(): { learning: string; native: string } | null;
   /**
    * Why a requested subtitle track is missing (rate-limited, no translation
    * offered, expired link…), or null when nothing failed. The sidebar uses it

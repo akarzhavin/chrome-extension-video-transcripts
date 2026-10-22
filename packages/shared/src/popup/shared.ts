@@ -59,6 +59,11 @@ export function siteSettingsUrl(edition: Edition): string {
     return `${config.frontendBaseUrl}/app/vocab/extension?${q.toString()}`;
 }
 
+/** Opens that page in a new tab, from a page (the sidebar's «Change ›»). */
+export function openSiteSettings(edition: Edition): void {
+    window.open(siteSettingsUrl(edition), '_blank', 'noopener');
+}
+
 /** The extension's own full-tab pages. */
 export const WORDS_PAGE = 'words.html';
 export const SETTINGS_PAGE = 'settings.html';

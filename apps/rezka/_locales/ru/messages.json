@@ -292,8 +292,8 @@
     "description": "Button that restores the default overlay appearance."
   },
   "ytSettingsTitle": {
-    "message": "Настройки",
-    "description": "Sidebar header title while the settings panel is open."
+    "message": "Параметры",
+    "description": "Sidebar: the name of its own screen of options (lines of this video, text, background) \u2014 its header title, the gear's name, the way back to it. Not the extension's settings page on the site. One word, as the 'Options' button in Netflix's panel."
   },
   "ytFeedbackLink": {
     "message": "Сообщить о проблеме",
@@ -926,6 +926,54 @@
   "ytAiTurnOn": {
     "message": "Включить",
     "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
+  },
+  "ytAiShowTrack": {
+    "message": "Показать $1",
+    "description": "The AI translation shown alone stopped (its limit spent): a link that shows the subtitle track named by $1 instead, e.g. 'Show English'."
+  },
+  "ytAiOtherTrack": {
+    "message": "Другая дорожка",
+    "description": "The AI translation shown alone stopped: a link that opens, right under it, the title's subtitle tracks to show another one. Short."
+  },
+  "ytAiHideLine": {
+    "message": "Скрыть",
+    "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
+  },
+  "ytAiLimitShort": {
+    "message": "лимит исчерпан",
+    "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
+  },
+  "ytAiAfter": {
+    "message": "после $1",
+    "description": "Beside an AI translation item while the AI credits are spent: when it can be used again. $1 is a time like 02:00, or a date for the month. Very short."
+  },
+  "ytGroupLinesThisVideo": {
+    "message": "Субтитры в этом видео",
+    "description": "Sidebar settings: heading of the group that picks what each subtitle line shows on the video playing now."
+  },
+  "ytFirstLine": {
+    "message": "Первая строка",
+    "description": "Sidebar settings: label of the picker for the first (upper) subtitle line on this video."
+  },
+  "ytSecondLine": {
+    "message": "Вторая строка",
+    "description": "Sidebar settings: label of the picker for the second subtitle line on this video."
+  },
+  "ytLinesNote": {
+    "message": "Сохранено для этого видео. Каждое видео начинается с ваших языков: $1 → $2",
+    "description": "Sidebar settings, under the line pickers: the pick holds for this video; $1 \u2192 $2 are the viewer's learning and native languages, which every video starts from."
+  },
+  "ytLinesChange": {
+    "message": "Изменить",
+    "description": "Sidebar settings: link after the note above; opens the site's extension settings where the languages are set. One word."
+  },
+  "ytLineNone": {
+    "message": "Нет (одна строка)",
+    "description": "Sidebar settings, second-line picker: no second line, one line shown. Short."
+  },
+  "ytLangGroupTranslated": {
+    "message": "Перевод",
+    "description": "Sidebar settings, second-line picker: group heading over the AI translation into the viewer's language. One word."
   },
   "rzCcOff": {
     "message": "Выкл.",

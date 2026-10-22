@@ -220,6 +220,27 @@ describe('attachAiTranslation translates only in Dual, only without a native tra
         expect(s.sent.length).toBeGreaterThan(before);
     });
 
+    test('Single showing the translation alone keeps it going, also when Single was already on', async () => {
+        const s = setup();
+        await settle();
+        s.state.addTrack('English', cues(300));
+        await settle();
+        expect(s.state.setDisplayMode('single')).toBe(true);
+        const paused = s.sent.length;
+        s.seek(400);
+        await s.runTimers();
+        expect(s.sent).toHaveLength(paused);
+        // Already in Single: no mode event, the line change alone resumes it.
+        s.state.setSingleTrack('Russian · AI');
+        expect(s.state.tracks[s.state.activeTrackIndex].name).toBe('Russian · AI');
+        await settle();
+        expect(s.sent.length).toBeGreaterThan(paused);
+        // Stopped, its track goes, and Single shows the learning track again.
+        s.state.setLanguagePreferences('English', undefined);
+        s.state.removeTrack('Russian · AI');
+        expect(s.state.singleTrackName).toBeUndefined();
+    });
+
     test('starting outside Dual with one track: Dual can be picked, and picking it starts the translator', async () => {
         const s = setup();
         await settle();

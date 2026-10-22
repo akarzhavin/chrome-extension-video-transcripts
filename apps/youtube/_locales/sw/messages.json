@@ -296,8 +296,8 @@
     "description": "Button that restores the default overlay appearance."
   },
   "ytSettingsTitle": {
-    "message": "Mipangilio",
-    "description": "Sidebar header title while the settings panel is open."
+    "message": "Chaguo",
+    "description": "Sidebar: the name of its own screen of options (lines of this video, text, background) \u2014 its header title, the gear's name, the way back to it. Not the extension's settings page on the site. One word, as the 'Options' button in Netflix's panel."
   },
   "ytMenuLabel": {
     "message": "Menyu ya Lingogram",
@@ -332,8 +332,8 @@
     "description": "Player-menu row that collapses the sidebar; replaces ytMenuOpenPanel while it is open."
   },
   "ytMenuSettings": {
-    "message": "Mipangilio",
-    "description": "Player-menu row that opens the sidebar with the settings panel showing."
+    "message": "Chaguo",
+    "description": "YouTube player menu: the row that opens the sidebar's Options screen. One word, the same as ytSettingsTitle."
   },
   "ytMenuOverlay": {
     "message": "Manukuu kwenye video",
@@ -1018,5 +1018,61 @@
   "ytAiTurnOn": {
     "message": "Washa",
     "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
+  },
+  "ytNfChoosePair": {
+    "message": "Chagua jozi nyingine",
+    "description": "Netflix's audio & subtitles panel, our block: a quiet link that opens the sidebar's language settings to pick any other two tracks. Short."
+  },
+  "ytNfOptions": {
+    "message": "Chaguo",
+    "description": "Netflix's audio & subtitles panel: a small button on the Subtitles heading line that opens the extension's sidebar settings. One word."
+  },
+  "ytAiShowTrack": {
+    "message": "Onyesha $1",
+    "description": "The AI translation shown alone stopped (its limit spent): a link that shows the subtitle track named by $1 instead, e.g. 'Show English'."
+  },
+  "ytAiOtherTrack": {
+    "message": "Wimbo mwingine",
+    "description": "The AI translation shown alone stopped: a link that opens, right under it, the title's subtitle tracks to show another one. Short."
+  },
+  "ytAiHideLine": {
+    "message": "Ficha",
+    "description": "Accessible name of the \u00d7 that hides the line about a stopped AI translation. One word."
+  },
+  "ytAiLimitShort": {
+    "message": "kikomo kimefikiwa",
+    "description": "In the list of subtitle tracks under 'Other track': a short grey note beside the AI translation once its daily limit is spent. Lower case, two or three words."
+  },
+  "ytAiAfter": {
+    "message": "baada ya $1",
+    "description": "Beside an AI translation item while the AI credits are spent: when it can be used again. $1 is a time like 02:00, or a date for the month. Very short."
+  },
+  "ytGroupLinesThisVideo": {
+    "message": "Manukuu katika video hii",
+    "description": "Sidebar settings: heading of the group that picks what each subtitle line shows on the video playing now."
+  },
+  "ytFirstLine": {
+    "message": "Mstari wa kwanza",
+    "description": "Sidebar settings: label of the picker for the first (upper) subtitle line on this video."
+  },
+  "ytSecondLine": {
+    "message": "Mstari wa pili",
+    "description": "Sidebar settings: label of the picker for the second subtitle line on this video."
+  },
+  "ytLinesNote": {
+    "message": "Imehifadhiwa kwa video hii. Kila video huanza na lugha zako, $1 → $2",
+    "description": "Sidebar settings, under the line pickers: the pick holds for this video; $1 \u2192 $2 are the viewer's learning and native languages, which every video starts from."
+  },
+  "ytLinesChange": {
+    "message": "Badilisha",
+    "description": "Sidebar settings: link after the note above; opens the site's extension settings where the languages are set. One word."
+  },
+  "ytLineNone": {
+    "message": "Hakuna (mstari mmoja)",
+    "description": "Sidebar settings, second-line picker: no second line, one line shown. Short."
+  },
+  "ytLangGroupTranslated": {
+    "message": "Imetafsiriwa",
+    "description": "Sidebar settings, second-line picker: group heading over the AI translation into the viewer's language. One word."
   }
 }

@@ -9,6 +9,7 @@
 // hand" steps of the no-subtitles notice keep working.
 
 import type { AppState } from '../../../../packages/shared/src/AppState';
+import { watchSpent, type AISpent } from '../../../../packages/shared/src/ai-balance/spent';
 import type { SidebarUI } from '../../../../packages/shared/src/SidebarUI';
 import { isContextOrphaned } from '../../../../packages/shared/src/content/orphan-notice';
 import { msg } from '../../../../packages/shared/src/i18n';
@@ -52,6 +53,8 @@ interface Item {
     title?: string;
     /** 'stay': the menu stays open, for the question it is about to ask. */
     pick(): void | 'stay';
+    /** Not pressable now, and why: the AI credits spent until a reset. */
+    spent?: AISpent | null;
 }
 
 export function installCcMenu(host: CcMenuHost, doc: Document = document): AiControls & { destroy(): void } {
@@ -139,6 +142,7 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
                 checked: shown && dual && !!aiStop,
                 title: costTitle(),
                 pick: () => pickAi(source.name),
+                spent,
             });
         }
         const at = own.findIndex(({ i }) => i === state.activeTrackIndex);
@@ -192,7 +196,7 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         const settings = doc.createElement('button');
         settings.type = 'button';
         settings.className = 'vtt-cc-settings';
-        settings.textContent = `${msg('ytSettingsTitle', 'Settings')} ›`;
+        settings.textContent = `${msg('ytSettingsTitle', 'Options')} ›`;
         settings.addEventListener('click', () => {
             close();
             ui.openSettings();
@@ -221,6 +225,16 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
         label.textContent = item.label;
         b.append(label);
         if (item.ai) b.append(aiChip());
+        if (item.spent) {
+            // Greyed, "після 02:00", the reason on hover; a press does nothing.
+            const note = doc.createElement('span');
+            note.className = 'vtt-cc-after';
+            note.textContent = msg('ytAiAfter', 'after $1', [item.spent.until]);
+            b.append(note);
+            b.setAttribute('aria-disabled', 'true');
+            b.title = item.spent.text;
+            return b;
+        }
         b.addEventListener('click', () => {
             if (item.pick() !== 'stay') close();
         });
@@ -333,11 +347,18 @@ export function installCcMenu(host: CcMenuHost, doc: Document = document): AiCon
     const unsubscribe = state.subscribe(() => {
         if (menu && page === 'list') render();
     });
+    /** The AI credits run out for now: the AI pair says until when, and does nothing. */
+    let spent: AISpent | null = null;
+    const unspent = watchSpent((now) => {
+        spent = now;
+        if (menu && page === 'list') render();
+    });
 
     function destroy(): void {
         close();
         for (const type of SWALLOWED) doc.removeEventListener(type, swallow, true);
         unsubscribe();
+        unspent();
     }
 
     return {

@@ -943,10 +943,12 @@ describe('the empty-panel messages are all different messages', () => {
 describe('the pickers when a language fails', () => {
     const mainSelect = () => document.getElementById('vtt-main-select') as HTMLSelectElement;
     const subSelect = () => document.getElementById('vtt-sub-select') as HTMLSelectElement;
+    // The loaded tracks: not the second line's "None", nor the languages
+    // the line could be switched to ("Other languages").
     const optionsOf = (sel: HTMLSelectElement) =>
-        [...sel.querySelectorAll('option')].map((o) => ({
+        [...sel.querySelectorAll(':scope > option')].filter((o) => (o as HTMLOptionElement).value !== 'none').map((o) => ({
             label: o.textContent ?? '',
-            disabled: o.disabled,
+            disabled: (o as HTMLOptionElement).disabled,
         }));
 
     test('a total refusal leaves both pickers empty', () => {
