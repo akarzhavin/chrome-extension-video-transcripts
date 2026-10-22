@@ -194,7 +194,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         choose.type = 'button';
         choose.className = 'vtt-nf-choose';
         choose.textContent = `${msg('ytNfChoosePair', 'Choose another pair')} ›`;
-        onPress(choose, 'choose', () => ui.openSettings());
+        onPress(choose, 'choose', () => ui.openSettings('languages'));
         head.append(choose);
 
         const question = (go: () => void): HTMLElement => {

@@ -1951,6 +1951,19 @@ describe('SidebarUI', () => {
             expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
         });
 
+        test('sent to pick a pair: the Languages group is lit for a moment, focus stays put', () => {
+            ui.toggleCollapsed();
+            const group = document.getElementById('vtt-track-selectors')!.closest('.vtt-group')!;
+            ui.openSettings();
+            expect(group.classList.contains('vtt-group-lit')).toBe(false);
+            ui.openSettings('languages');
+            expect(document.getElementById('vtt-settings-panel')!.classList.contains('open')).toBe(true);
+            expect(group.classList.contains('vtt-group-lit')).toBe(true);
+            expect(group.contains(document.activeElement)).toBe(false);
+            group.dispatchEvent(new Event('animationend'));
+            expect(group.classList.contains('vtt-group-lit')).toBe(false);
+        });
+
         test('the collapse tab is keyboard-operable and announces its state', () => {
             const tab = document.getElementById('vtt-toggle-btn')!;
             expect(tab.getAttribute('role')).toBe('button');

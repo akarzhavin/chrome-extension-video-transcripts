@@ -244,6 +244,8 @@ export class SidebarUI {
     // Where the sidebar lives outside fullscreen; captured on the way in so it
     // can be put back exactly there (see setupFullscreenHandling).
     private homeParent: HTMLElement | null = null;
+    // The Languages group, lit up when the viewer is sent there to pick a pair.
+    private langGroup: HTMLElement | null = null;
     // Teardown for everything bound outside the sidebar's own subtree —
     // document/chrome.storage listeners that removing the DOM would not undo.
     // The extensions live for the page's lifetime and never call destroy(), but
@@ -745,6 +747,7 @@ export class SidebarUI {
 
         // -- Group 1: Languages ------------------------------------------------
         const langGroup = this.buildGroup(ICONS.languages, msg('ytGroupLanguages', 'Languages'));
+        this.langGroup = langGroup;
 
         const mainSelect = document.createElement('select');
         mainSelect.id = 'vtt-main-select';
@@ -2173,9 +2176,20 @@ export class SidebarUI {
 
     // Expand straight into settings. Same reasoning as openPanel(), squared:
     // toggleSettingsPanel() is also a toggle, so it needs the same guard.
-    openSettings(): void {
+    // With "languages", the viewer came to pick another pair (Netflix's
+    // "Choose another pair"): that group is lit up for a moment, so the eye
+    // lands on it. Not focused: focus in the sidebar would take the player's
+    // keys (space to pause) away.
+    openSettings(show?: 'languages'): void {
         this.openPanel();
         if (!this.elements.settingsPanel?.classList.contains('open')) this.toggleSettingsPanel();
+        const group = show === 'languages' ? this.langGroup : null;
+        if (!group) return;
+        group.scrollIntoView?.({ block: 'nearest' });
+        group.classList.remove('vtt-group-lit');
+        void group.offsetWidth; // a second press starts the glow again
+        group.classList.add('vtt-group-lit');
+        group.addEventListener('animationend', () => group.classList.remove('vtt-group-lit'), { once: true });
     }
 
     /** Direct mode pick — what every mode control calls. */

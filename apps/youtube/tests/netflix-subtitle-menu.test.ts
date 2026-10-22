@@ -233,7 +233,7 @@ test('Choose another pair opens the sidebar settings, and clicks in the block st
     const netflixHandler = jest.fn();
     panel.addEventListener('click', netflixHandler);
     s.block()!.querySelector<HTMLButtonElement>('.vtt-nf-choose')!.click();
-    expect(s.ui.openSettings).toHaveBeenCalled();
+    expect(s.ui.openSettings).toHaveBeenCalledWith('languages');
     expect(netflixHandler).not.toHaveBeenCalled();
 });
 
