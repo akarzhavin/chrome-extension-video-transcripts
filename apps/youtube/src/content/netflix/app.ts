@@ -40,7 +40,7 @@ class NetflixVttApp extends BaseVttApp {
                 state: this.state,
                 ui: this.ui,
                 langPrefs: () => this.langPrefs,
-                titleLanguages: () => this.currentTracks.map((t) => t.base),
+                titleTracks: () => this.currentTracks,
                 showPair: () => {
                     if (!this.langPrefs) return;
                     this.requestLanguageTrack('learning', baseLang(this.langPrefs.learning));

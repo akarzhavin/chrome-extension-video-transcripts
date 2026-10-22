@@ -23,8 +23,8 @@ export interface NetflixMenuHost {
     state: AppState;
     ui: Pick<SidebarUI, 'setMode' | 'toggleOverlay' | 'openSettings' | 'refresh'>;
     langPrefs(): LanguagePrefs | null;
-    /** Base codes of the subtitle languages this title ships. */
-    titleLanguages(): string[];
+    /** The subtitle tracks this title ships: base code and Netflix's own name for it. */
+    titleTracks(): { base: string; label: string }[];
     /** Put the viewer's own pair back on the two lines (the sidebar picker may have changed them). */
     showPair(): void;
 }
@@ -36,6 +36,17 @@ const BLOCK = 'vtt-nf-block';
 const KEPT_IN_BLOCK = ['click', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'keydown'] as const;
 
 const base = (code: string) => code.split(/[-_]/)[0].toLowerCase();
+
+/** The element holding an item's words: the deepest one whose text is all of the item's. */
+function labelOf(li: Element | null): HTMLElement | null {
+    if (!li) return null;
+    const text = li.textContent?.trim();
+    let found: HTMLElement | null = null;
+    for (const el of li.querySelectorAll<HTMLElement>('*')) {
+        if (el.textContent?.trim() === text && !el.querySelector('svg')) found = el;
+    }
+    return found;
+}
 
 /** Netflix's Subtitles list: the <ul> whose items are subtitle items, else the panel's last list. */
 export function subtitleList(panel: Element): HTMLUListElement | null {
@@ -66,12 +77,16 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     const items = (): Item[] => {
         const prefs = host.langPrefs();
         if (!prefs) return [];
-        const shipped = host.titleLanguages().map(base);
-        const learning = nativeForLanguage(prefs.learning);
-        const native = nativeForLanguage(prefs.native);
+        const shipped = host.titleTracks();
+        // Named as Netflix names them beside ours; the viewer's language, when
+        // Netflix lacks it, in its own name.
+        const nameOf = (code: string) =>
+            shipped.find((t) => t.base === base(code))?.label ?? nativeForLanguage(code);
+        const learning = nameOf(prefs.learning);
+        const native = nameOf(prefs.native);
         const shown = state.overlayEnabled;
         const dual = state.displayMode === 'dual';
-        if (shipped.includes(base(prefs.native))) {
+        if (shipped.some((t) => t.base === base(prefs.native))) {
             return [{
                 label: `${learning} + ${native}`,
                 ai: false,
@@ -175,36 +190,38 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         }
 
         const ours = doc.createElement('ul');
-        ours.className = list.className;
+        ours.className = 'vtt-nf-list';
         ours.setAttribute('role', 'menu');
-        // Netflix's own items lend their classes (and the selected one its
-        // check mark), so ours read as part of the list.
-        const proto = list.querySelector('li:not([data-uia*="selected"])') ?? list.querySelector('li');
-        const check = list.querySelector('li[data-uia*="selected"] svg');
-        for (const item of all) ours.append(itemEl(item, proto, check));
+        // Copies of Netflix's own items, the selected one for a checked item:
+        // its size, indent and check mark, whatever classes carry them.
+        const plain = list.querySelector('li:not([data-uia*="selected"])') ?? list.querySelector('li');
+        const selected = list.querySelector('li[data-uia*="selected"]') ?? plain;
+        for (const item of all) ours.append(itemEl(item, item.checked ? selected : plain));
         block.append(ours);
+        // The heading and the question scale with Netflix's item text.
+        const size = labelOf(plain)?.ownerDocument.defaultView?.getComputedStyle(labelOf(plain)!).fontSize;
+        if (size && parseFloat(size) > 0) block.style.setProperty('--vtt-nf-size', size);
         return block;
     }
 
-    function itemEl(item: Item, proto: Element | null, check: Element | null): HTMLLIElement {
-        const li = doc.createElement('li');
-        li.className = `${proto?.className ?? ''} vtt-nf-item`.trim();
+    function itemEl(item: Item, proto: Element | null): HTMLLIElement {
+        const li = (proto?.cloneNode(true) as HTMLLIElement | undefined) ?? doc.createElement('li');
+        for (const el of [li, ...li.querySelectorAll('*')]) {
+            el.removeAttribute('data-uia');
+            el.removeAttribute('id');
+        }
+        li.classList.add('vtt-nf-item');
         li.setAttribute('role', 'menuitemradio');
         li.setAttribute('aria-checked', String(item.checked));
         li.tabIndex = 0;
         if (item.ai) li.title = costTitle();
-        const mark = doc.createElement('span');
-        mark.className = 'vtt-nf-mark';
-        if (item.checked && check) mark.append(check.cloneNode(true));
-        else if (item.checked) mark.textContent = '✓';
-        const label = doc.createElement('span');
+        const label = labelOf(li) ?? li;
         label.textContent = item.label;
-        li.append(mark, label);
         if (item.ai) {
             const chip = doc.createElement('span');
             chip.className = 'vtt-nf-ai';
             chip.textContent = 'AI';
-            li.append(chip);
+            label.append(chip);
         }
         const pick = () => {
             if (item.pick() !== 'stay') render();

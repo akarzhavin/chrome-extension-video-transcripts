@@ -26,6 +26,7 @@ import { AppState } from '../../../packages/shared/src/AppState';
 import type { DisplayMode, Subtitle } from '../../../packages/shared/src/types';
 import { installNetflixMenu, subtitleList } from '../src/content/netflix/subtitle-menu';
 
+const NAMES: Record<string, string> = { en: 'English', pl: 'Polish', ar: 'Arabic', es: 'Spanish' };
 const flush = () => new Promise((r) => setTimeout(r, 0));
 const frames = () => new Promise((r) => setTimeout(r, 50));
 const cues = (n: number): Subtitle[] =>
@@ -67,7 +68,7 @@ function setup(opts: { native: string; shipped: string[] }) {
         state,
         ui,
         langPrefs: () => ({ learning: 'en', native: opts.native }),
-        titleLanguages: () => opts.shipped,
+        titleTracks: () => opts.shipped.map((b) => ({ base: b, label: NAMES[b] ?? b })),
         showPair,
     });
     installed.push(controls);
@@ -94,10 +95,13 @@ test('the site has the viewer\'s language: one pair, no AI, on top of the Subtit
     s.state.addTrack('Polish', cues(5));
     s.state.setDisplayMode('dual');
     await s.open();
-    expect(s.labels()).toEqual(['English + Polski']);
+    expect(s.labels()).toEqual(['English + Polish']);
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
     expect(s.block()!.nextElementSibling).toBe(list);
     expect(s.block()!.querySelector('.vtt-nf-item')!.className).toContain('nf-item');
+    // A copy of Netflix's selected item: its check mark, no test hooks of its own.
+    expect(s.block()!.querySelector('.vtt-nf-item svg.nf-check')).not.toBeNull();
+    expect(s.block()!.querySelector('[data-uia]')).toBeNull();
     expect(s.block()!.querySelector('[aria-checked="true"]')).not.toBeNull();
 });
 
@@ -108,7 +112,7 @@ test('a pick of the pair puts the viewer\'s pair back on two lines', async () =>
     s.state.addTrack('Polish', cues(5));
     s.state.overlayEnabled = false;
     await s.open();
-    s.item('English + Polski').click();
+    s.item('English + Polish').click();
     expect(s.showPair).toHaveBeenCalled();
     expect(s.state.overlayEnabled).toBe(true);
     expect(s.state.displayMode).toBe('dual');

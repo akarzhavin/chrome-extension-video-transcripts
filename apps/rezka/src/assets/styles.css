@@ -4506,21 +4506,29 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 }
 
 /* Netflix's audio & subtitles panel, our block on top of its Subtitles column
-   (netflix/subtitle-menu.ts). Items take Netflix's own <li> classes, so these
-   rules only add what ours carry beyond them; sizes are in em so they scale
-   with the panel, which Netflix sizes by the viewport. */
+   (netflix/subtitle-menu.ts). Items are copies of Netflix's own <li>s, so they
+   keep its size, indent and check mark; these rules add only what ours carry
+   beyond them. --vtt-nf-size is Netflix's item text size, read from the panel
+   (Netflix sizes it by the viewport), so the heading and the question scale
+   with it. */
 .vtt-nf-block {
     margin: 0 0 0.4em;
     padding: 0 0 0.4em;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.vtt-nf-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
 .vtt-nf-head {
     display: flex;
     align-items: baseline;
     gap: 1em;
-    padding: 0 0 0.2em 2.2em;
-    font-size: 0.62em;
+    padding: 0.4em 0 0.1em;
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.42);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #777;
@@ -4532,7 +4540,7 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     border: 0;
     background: none;
     font: inherit;
-    font-size: 1.05em;
+    font-size: 1.15em;
     letter-spacing: 0;
     text-transform: none;
     color: #a3a3a3;
@@ -4548,47 +4556,31 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 }
 
 .vtt-nf-block .vtt-nf-item {
-    display: flex;
-    align-items: center;
     cursor: pointer;
 }
 
-.vtt-nf-block .vtt-nf-item[aria-checked='true'] {
-    color: #fff;
-}
-
-.vtt-nf-mark {
-    display: inline-flex;
-    justify-content: center;
-    width: 2.2em;
-    flex: none;
-}
-
-.vtt-nf-mark svg {
-    width: 1em;
-    height: 1em;
-}
-
 .vtt-nf-ai {
-    margin-left: 0.5em;
+    display: inline-block;
+    margin-left: 0.45em;
     padding: 0 0.3em;
     border: 1.5px solid currentColor;
     border-radius: 0.2em;
-    font-size: 0.62em;
+    font-size: 0.55em;
     font-weight: 700;
     line-height: 1.4;
     letter-spacing: 0.04em;
+    vertical-align: middle;
 }
 
 .vtt-nf-confirm {
     display: flex;
     flex-direction: column;
     gap: 0.5em;
-    margin: 0.3em 0 0.2em 2.2em;
+    margin: 0.3em 0 0.2em;
     padding: 0.7em 0.8em;
     border-radius: 4px;
     background: #333;
-    font-size: 0.8em;
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
     color: #e5e5e5;
 }
 
