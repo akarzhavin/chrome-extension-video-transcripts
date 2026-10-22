@@ -4569,21 +4569,22 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     top: 0;
     right: 0;
     transform: translateY(-50%);
-    padding: 0.3em 0.75em;
-    border: 1px solid #555;
-    border-radius: 4px;
+    padding: 0;
+    border: 0;
     background: none;
     font: inherit;
     font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
     line-height: 1.2;
     color: #a3a3a3;
+    text-decoration: underline;
+    text-decoration-color: #555;
+    text-underline-offset: 3px;
     cursor: pointer;
 }
 
 .vtt-nf-options:hover,
 .vtt-nf-options:focus-visible {
     color: #fff;
-    border-color: #a3a3a3;
 }
 
 .vtt-nf-block .vtt-nf-item {
