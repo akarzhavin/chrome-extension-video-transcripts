@@ -64,12 +64,14 @@ function setup(opts: { native: string; shipped: string[] }) {
         refresh: jest.fn(),
     };
     const showPair = jest.fn();
+    const showTrack = jest.fn();
     const controls = installNetflixMenu({
         state,
         ui,
         langPrefs: () => ({ learning: 'en', native: opts.native }),
         titleTracks: () => opts.shipped.map((b) => ({ base: b, label: NAMES[b] ?? b })),
         showPair,
+        showTrack,
     });
     installed.push(controls);
     const block = () => document.querySelector<HTMLElement>('.vtt-nf-block');
@@ -79,7 +81,7 @@ function setup(opts: { native: string; shipped: string[] }) {
         document.querySelector('[data-uia="control-audio-subtitle"]')!.dispatchEvent(new Event('pointerover', { bubbles: true }));
         await frames();
     };
-    return { state, ui, controls, showPair, block, labels, item, open };
+    return { state, ui, controls, showPair, showTrack, block, labels, item, open };
 }
 
 test('finds the Subtitles list by its items', () => {
@@ -183,16 +185,40 @@ describe('the site lacks the viewer\'s language', () => {
     });
 });
 
-test('a pick among Netflix\'s own subtitles hands the screen back to Netflix; Off does not', async () => {
+test('a pick in Netflix\'s own list is shown by us, one line; Netflix itself does not switch', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    s.state.setDisplayMode('dual');
+    await s.open();
+    const panel = document.querySelector('[data-uia="selector-audio-subtitle"]')!;
+    const netflixSaw = jest.fn();
+    panel.parentElement!.addEventListener('click', netflixSaw);
+    const list = subtitleList(panel)!;
+    const polish = list.querySelectorAll('li')[2] as HTMLElement;
+    polish.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    polish.dispatchEvent(new Event('pointerup', { bubbles: true }));
+    polish.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    expect(netflixSaw).not.toHaveBeenCalled();
+    expect(s.showTrack).toHaveBeenCalledWith('pl');
+    expect(s.state.displayMode).toBe('single');
+    expect(s.state.overlayEnabled).toBe(true);
+    // Netflix's mark follows what we show.
+    expect(list.querySelectorAll('li')[2].classList.contains('vtt-nf-shown')).toBe(true);
+    expect(list.querySelectorAll('li')[2].querySelector('.vtt-nf-check')).not.toBeNull();
+    expect(list.querySelectorAll('li')[0].classList.contains('vtt-nf-shown')).toBe(false);
+});
+
+test('Netflix\'s Off turns our lines off and carries the mark', async () => {
     netflix(['English (CC)', 'Polish']);
     const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
     s.state.addTrack('English', cues(5));
     await s.open();
     const list = subtitleList(document.querySelector('[data-uia="selector-audio-subtitle"]')!)!;
-    (list.querySelectorAll('li')[0] as HTMLElement).click();
-    expect(s.state.overlayEnabled).toBe(true);
-    (list.querySelectorAll('li')[2] as HTMLElement).click();
+    (list.querySelector('li') as HTMLElement).click();
     expect(s.state.overlayEnabled).toBe(false);
+    expect(list.querySelector('li')!.classList.contains('vtt-nf-shown')).toBe(true);
 });
 
 test('Choose another pair opens the sidebar settings, and clicks in the block stay there', async () => {
@@ -228,4 +254,67 @@ test('every opening of the panel gets the block, not only the first', async () =
     netflix(['English (CC)', 'Polish']);
     await s.open();
     expect(s.block()).not.toBeNull();
+});
+
+test('the sidebar tab steps aside while the panel is open', async () => {
+    netflix(['English (CC)', 'Polish']);
+    document.body.firstElementChild!.setAttribute('data-uia', 'control-audio-subtitle');
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    expect(document.documentElement.classList.contains('vtt-nf-panel-open')).toBe(true);
+    document.querySelector('[data-uia="selector-audio-subtitle"]')!.remove();
+    await frames();
+    expect(document.documentElement.classList.contains('vtt-nf-panel-open')).toBe(false);
+});
+
+test('a press survives Netflix re-rendering the item between pointerdown and pointerup', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.addTrack('Polish', cues(5));
+    s.state.overlayEnabled = false;
+    await s.open();
+    s.item('English + Polish').dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    // Netflix rebuilds the column: our block goes and comes back as new nodes.
+    s.block()!.remove();
+    await frames();
+    s.item('English + Polish').dispatchEvent(new Event('pointerup', { bubbles: true }));
+    expect(s.state.overlayEnabled).toBe(true);
+    expect(s.showPair).toHaveBeenCalled();
+});
+
+
+test('one check mark at most: unchecked items carry none, only the Subtitles list is managed', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'uk', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    s.state.secondLineOnDemand = true;
+    s.state.secondLineLanguage = 'uk';
+    await s.open();
+    const panel = document.querySelector('[data-uia="selector-audio-subtitle"]')!;
+    const list = subtitleList(panel)!;
+    // Netflix's English (CC) picked through its list: our mark goes there.
+    const cc = list.querySelectorAll('li')[1] as HTMLElement;
+    cc.click();
+    expect(s.block()!.querySelectorAll('svg')).toHaveLength(0);
+    expect([...s.block()!.querySelectorAll('.vtt-nf-item')].every((li) => li.getAttribute('aria-checked') === 'false')).toBe(true);
+    expect(list.classList.contains('vtt-nf-sublist')).toBe(true);
+    const audio = [...panel.querySelectorAll('ul')].find((u) => u !== list)!;
+    expect(audio.classList.contains('vtt-nf-sublist')).toBe(false);
+});
+
+test('Choose another pair works with a real press across a Netflix re-render', async () => {
+    netflix(['English (CC)', 'Polish']);
+    const s = setup({ native: 'pl', shipped: ['en', 'pl'] });
+    s.state.addTrack('English', cues(5));
+    await s.open();
+    const first = s.block()!.querySelector('.vtt-nf-choose')!;
+    first.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    s.block()!.remove();
+    await frames();
+    const again = s.block()!.querySelector('.vtt-nf-choose')!;
+    expect(again).not.toBe(first);
+    again.dispatchEvent(new Event('pointerup', { bubbles: true }));
+    expect(s.ui.openSettings).toHaveBeenCalledTimes(1);
 });

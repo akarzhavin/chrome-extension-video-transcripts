@@ -4528,21 +4528,19 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     align-items: baseline;
     gap: 1em;
     padding: 0.4em 0 0.1em var(--vtt-nf-indent, 0px);
-    font-size: calc(var(--vtt-nf-size, 20px) * 0.42);
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.65);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #777;
 }
 
-/* Next to the heading, not at the column's right edge: the sidebar's tab
-   sits over that edge and took the click. */
 .vtt-nf-head .vtt-nf-choose {
-    margin-left: 0;
+    margin-left: auto;
     padding: 0;
     border: 0;
     background: none;
     font: inherit;
-    font-size: 1.15em;
+    font-size: 1.08em;
     letter-spacing: 0;
     text-transform: none;
     color: #a3a3a3;
@@ -4582,7 +4580,7 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
     padding: 0.7em 0.8em;
     border-radius: 4px;
     background: #333;
-    font-size: calc(var(--vtt-nf-size, 20px) * 0.7);
+    font-size: calc(var(--vtt-nf-size, 20px) * 0.85);
     color: #e5e5e5;
 }
 
@@ -4630,4 +4628,23 @@ html.vtt-light #vtt-status .vtt-empty-state-action.vtt-empty-state-action--emerg
 .vtt-nf-confirm .vtt-nf-yes {
     background: #fff;
     color: #000;
+}
+
+/* While Netflix's audio & subtitles panel is open, the sidebar's collapse tab
+   steps aside: it sits over the panel's right edge, where our link is. */
+html.vtt-nf-panel-open #vtt-toggle-btn {
+    visibility: hidden;
+}
+
+/* Netflix's subtitle list, its picks taken over (netflix/subtitle-menu.ts):
+   Netflix's own check marks hide, ours mark the item we show, in Netflix's
+   selected-item white. */
+/* Only the Subtitles list: Audio keeps its own marks. */
+.vtt-nf-sublist > li svg:not(.vtt-nf-check) {
+    visibility: hidden;
+}
+
+.vtt-nf-sublist > li.vtt-nf-shown div,
+.vtt-nf-block .vtt-nf-item[aria-checked='true'] div {
+    color: #fff;
 }

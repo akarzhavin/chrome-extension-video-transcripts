@@ -2,9 +2,10 @@
 // Subtitles column: only what this viewer needs, from the two languages they
 // chose. The site has their language → the one pair. It has not → their
 // language alone and the pair, both by AI. Plus a quiet link to the sidebar's
-// language settings for any other pair. Netflix's own items stay as they are;
-// picking one of them turns our on-screen lines off so its choice stands
-// (while ours are on, the app keeps Netflix's own subtitles off).
+// language settings for any other pair. Netflix's own list stays as it is,
+// but its picks are ours: a language there is shown by the extension, one
+// line, and Off turns our lines off. Netflix's own subtitles are never
+// switched; its check marks follow what we show.
 //
 // Netflix renders the panel with React and tags its parts with data-uia
 // attributes (its test hooks, stable across releases). Our items copy the
@@ -27,15 +28,25 @@ export interface NetflixMenuHost {
     titleTracks(): { base: string; label: string }[];
     /** Put the viewer's own pair back on the two lines (the sidebar picker may have changed them). */
     showPair(): void;
+    /** Put one of the title's tracks on the first line (by base code), loading it if needed. */
+    showTrack(base: string): void;
 }
 
 const PANEL = '[data-uia="selector-audio-subtitle"]';
 const OPENERS = '[data-uia*="audio-subtitle"]';
 const BLOCK = 'vtt-nf-block';
+/** On <html> while the panel is open: the sidebar's tab steps aside (styles.css). */
+const OPEN_CLASS = 'vtt-nf-panel-open';
 // Presses that reach the panel around the block: Netflix would act on them.
 const KEPT_IN_BLOCK = ['click', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'keydown'] as const;
 
 const base = (code: string) => code.split(/[-_]/)[0].toLowerCase();
+
+/** A node this file wrote: the block or a copied check mark (or inside one). */
+function ours(node: Node): boolean {
+    const el = node instanceof Element ? node : node.parentElement;
+    return !!el?.closest(`.vtt-nf-block, .vtt-nf-check`);
+}
 
 /** The element holding an item's words: the deepest one whose text is all of the item's. */
 function labelOf(li: Element | null): HTMLElement | null {
@@ -75,6 +86,13 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     let confirming: boolean = false;
     let watched: Element | null = null;
     let panelObserver: MutationObserver | null = null;
+    /** The item a pointer went down on, by name: it may be re-rendered before the pointer comes up. */
+    let pressed: string | null = null;
+    /** The words of the Netflix item whose track we show alone; null when ours show something else. */
+    let netflixPick: string | null = null;
+    let dead = false;
+    /** Netflix's own check mark, copied onto the item we show. */
+    let check: Element | null = null;
 
     const ensureOverlay = () => {
         if (!state.overlayEnabled) ui.toggleOverlay();
@@ -98,6 +116,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
                 ai: false,
                 checked: shown && dual && !aiStop,
                 pick: () => {
+                    netflixPick = null;
                     aiStop?.();
                     host.showPair();
                     ui.setMode('dual');
@@ -125,6 +144,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
 
     // Shown as asked: alone, the translation is Single on it; paired, Dual.
     const showAi = (alone: boolean) => {
+        netflixPick = null;
         state.aiAlone = alone;
         ui.setMode(alone ? 'single' : 'dual');
         state.applyPreferences();
@@ -172,7 +192,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         choose.type = 'button';
         choose.className = 'vtt-nf-choose';
         choose.textContent = `${msg('ytNfChoosePair', 'Choose another pair')} ›`;
-        choose.addEventListener('click', () => ui.openSettings());
+        onPress(choose, 'choose', () => ui.openSettings());
         head.append(name, choose);
         block.append(head);
 
@@ -200,12 +220,13 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         const ours = doc.createElement('ul');
         ours.className = 'vtt-nf-list';
         ours.setAttribute('role', 'menu');
-        // Copies of Netflix's own items, the selected one for a checked item:
-        // its size, indent and check mark, whatever classes carry them.
+        // Copies of a plain Netflix item (its size and indent, whatever
+        // classes carry them), check marks stripped; a checked one gets
+        // Netflix's own mark, once.
         const plain = list.querySelector('li:not([data-uia*="selected"])') ?? list.querySelector('li');
-        const selected = list.querySelector('li[data-uia*="selected"]') ?? plain;
+        check ??= list.querySelector('svg:not(.vtt-nf-check)');
         for (const item of all) {
-            ours.append(itemEl(item, item.checked ? selected : plain));
+            ours.append(itemEl(item, plain));
             if (ask && item.label === ask.under) {
                 const holder = doc.createElement('li');
                 holder.setAttribute('role', 'none');
@@ -226,8 +247,29 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         return block;
     }
 
+    // A press is a pointerdown and a pointerup on the control of the same
+    // name: Netflix re-renders the column on mousedown, so the element under
+    // the pointer is a fresh copy by mouseup and the browser sends no click
+    // at all. A click with no pointer behind it (keyboard, assistive tech, a
+    // script) still counts.
+    function onPress(el: Element, name: string, act: () => void): void {
+        el.addEventListener('pointerdown', () => {
+            pressed = name;
+        });
+        el.addEventListener('pointerup', () => {
+            if (pressed !== name) return;
+            pressed = null;
+            act();
+        });
+        el.addEventListener('click', (e) => {
+            if ((e as MouseEvent).detail === 0) act();
+        });
+    }
+
     function itemEl(item: Item, proto: Element | null): HTMLLIElement {
         const li = (proto?.cloneNode(true) as HTMLLIElement | undefined) ?? doc.createElement('li');
+        for (const svg of li.querySelectorAll('svg')) svg.remove();
+        li.classList.remove('vtt-nf-shown');
         for (const el of [li, ...li.querySelectorAll('*')]) {
             el.removeAttribute('data-uia');
             el.removeAttribute('id');
@@ -245,10 +287,15 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
             chip.textContent = 'AI';
             label.append(chip);
         }
+        if (item.checked && check) {
+            const mark = check.cloneNode(true) as Element;
+            mark.removeAttribute('data-uia');
+            (li.firstElementChild ?? li).prepend(mark);
+        }
         const pick = () => {
             if (item.pick() !== 'stay') render();
         };
-        li.addEventListener('click', pick);
+        onPress(li, item.label, pick);
         li.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter' && e.key !== ' ') return;
             e.preventDefault();
@@ -259,6 +306,7 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
 
     /** Puts the block (back) on top of the Subtitles column of the open panel. */
     function render(ask?: Ask): void {
+        if (dead) return;
         const panel = doc.querySelector(PANEL);
         if (!panel) return;
         watch(panel);
@@ -268,36 +316,104 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
         panel.querySelector(`.${BLOCK}`)?.remove();
         const block = build(list, ask);
         if (block) list.parentElement.insertBefore(block, list);
+        check ??= list.querySelector('svg:not(.vtt-nf-check)');
+        markNetflix(panel, list);
     }
 
     // Netflix re-renders the panel on a pick, and may drop what it did not
-    // render; put the block back when it goes. One observer, on the panel only.
+    // render; put the block back when it goes, and note when the panel goes.
     function watch(panel: Element): void {
         if (watched === panel) return;
         panelObserver?.disconnect();
         watched = panel;
         // A question left up in a panel that closed does not carry over.
         confirming = false;
-        panelObserver = new MutationObserver(() => {
+        doc.documentElement.classList.add(OPEN_CLASS);
+        panelObserver = new MutationObserver((records) => {
             if (!panel.isConnected) {
                 panelObserver?.disconnect();
                 watched = null;
                 confirming = false;
+                doc.documentElement.classList.remove(OPEN_CLASS);
                 return;
             }
-            if (!panel.querySelector(`.${BLOCK}`)) render();
+            if (!panel.querySelector(`.${BLOCK}`)) return render();
+            // Our own writes (the block, the copied check marks) are not news.
+            if (records.every((r) => [...r.addedNodes, ...r.removedNodes].every(ours))) return;
+            // Netflix re-rendered its list: put our marks back.
+            const list = subtitleList(panel);
+            if (list) markNetflix(panel, list);
         });
-        panelObserver.observe(panel, { childList: true, subtree: true });
-        // A pick among Netflix's own subtitles (other than Off) hands the
-        // screen back to Netflix: our lines go, its own come.
-        panel.addEventListener('click', (e) => {
+        // Watched from the player, not the panel: the panel's own mutations
+        // stop when Netflix removes it, and its leaving is what clears the
+        // class above.
+        panelObserver.observe(panel.closest('[data-uia="watch-video"]') ?? doc.body, { childList: true, subtree: true });
+        // Netflix's own items, taken over: the press never reaches Netflix,
+        // and is counted on pointerup by the item's words, as ours are
+        // (Netflix re-renders the list on mousedown).
+        let down: string | null = null;
+        const take = (e: Event) => {
             const li = (e.target as Element | null)?.closest('li');
             const list = subtitleList(panel);
             if (!li || !list || li.parentElement !== list) return;
-            if (li === list.querySelector('li')) return; // Off
-            state.aiAlone = false;
+            e.stopPropagation();
+            e.preventDefault();
+            const words = li.textContent?.trim() ?? '';
+            if (e.type === 'pointerdown') down = words;
+            const press = (e.type === 'pointerup' && down === words) || (e.type === 'click' && (e as MouseEvent).detail === 0);
+            if (!press) return;
+            down = null;
+            pickNetflix(li === list.querySelector('li') ? null : words);
+        };
+        for (const type of KEPT_IN_BLOCK) panel.addEventListener(type, take, true);
+    }
+
+    /** A Netflix item: its language alone, by us; null is its Off, our lines off. */
+    function pickNetflix(words: string | null): void {
+        if (words === null) {
+            netflixPick = null;
             if (state.overlayEnabled) ui.toggleOverlay();
-        }, true);
+            return render();
+        }
+        const track = trackFor(words);
+        if (!track) return;
+        netflixPick = words;
+        state.aiAlone = false;
+        host.showTrack(track.base);
+        ui.setMode('single');
+        ensureOverlay();
+        ui.refresh();
+        render();
+    }
+
+    /** The title's track behind a Netflix item's words ("English (CC)", "Polish"). */
+    function trackFor(words: string): { base: string; label: string } | undefined {
+        const name = words.replace(/\s*\[?\(?CC\)?\]?$/i, '').trim().toLowerCase();
+        const tracks = host.titleTracks();
+        return tracks.find((t) => t.label.toLowerCase() === words.toLowerCase())
+            ?? tracks.find((t) => t.label.toLowerCase().replace(/\s*\[?\(?cc\)?\]?$/, '').trim() === name);
+    }
+
+    /** Netflix's check marks show what we show: Off when our lines are off, the item we show alone. */
+    function markNetflix(panel: Element, list: HTMLUListElement): void {
+        list.classList.add('vtt-nf-sublist');
+        const items = [...list.querySelectorAll(':scope > li')];
+        const shown = !state.overlayEnabled
+            ? items[0]
+            : netflixPick && state.displayMode === 'single' && !state.aiAlone
+              ? items.find((li) => li.textContent?.trim() === netflixPick)
+              : undefined;
+        for (const li of items) {
+            const on = li === shown;
+            if (li.classList.contains('vtt-nf-shown') !== on) li.classList.toggle('vtt-nf-shown', on);
+            const mark = li.querySelector('.vtt-nf-check');
+            if (on && !mark && check) {
+                const copy = check.cloneNode(true) as Element;
+                copy.classList.add('vtt-nf-check');
+                copy.removeAttribute('data-uia');
+                (li.firstElementChild ?? li).prepend(copy);
+            } else if (!on) mark?.remove();
+        }
     }
 
     // The panel opens from its button: look for it for a few frames after a
@@ -325,8 +441,11 @@ export function installNetflixMenu(host: NetflixMenuHost, doc: Document = docume
     });
 
     function destroy(): void {
+        // A poll already queued must not build the block again.
+        dead = true;
         for (const type of OPEN_EVENTS) doc.removeEventListener(type, onOpener, true);
         panelObserver?.disconnect();
+        doc.documentElement.classList.remove(OPEN_CLASS);
         unsubscribe();
         doc.querySelector(`.${BLOCK}`)?.remove();
     }
