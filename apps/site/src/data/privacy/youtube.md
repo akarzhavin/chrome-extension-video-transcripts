@@ -4,7 +4,7 @@ Covers the **Dual Subtitles — Lingogram: Learn Languages on YouTube & Netflix*
 extension.
 
 **Effective date:** June 22, 2026
-**Last updated:** October 21, 2026
+**Last updated:** October 22, 2026
 
 This Privacy Policy explains what information the Extension collects, how it is used,
 where it is stored, and the choices you have. It applies to the Extension wherever
@@ -59,9 +59,10 @@ translate.google.com when you import your saved phrases (Section 1h).
   one website in the toolbar popup (Section 1b). Resting the pointer
   on a marked word shows its translation, and only that word is sent to look it up;
   a marked phrase of more than one word goes to Google Translate first (Section 1e).
-* **AI translation of the second line runs only when the site has none in your
-  language.** Then, while you are signed in and in the "Dual" mode, the
-  subtitle track of the video you watch is sent to us and translated by
+* **AI translation of the second line runs only when you ask for it,** on a video
+  the site has no subtitles for in your language. Then, while you are signed in
+  and in the "Dual" mode, the subtitle track of the video is sent to us and
+  translated by
   **OpenAI**, which may use the subtitle text to improve its models. The stored
   track and its translation carry no account ID and serve everyone who watches the
   same subtitles (Section 1i). AI use is counted per account against a daily and
@@ -545,14 +546,24 @@ back.
 
 ### i. AI translation of the second subtitle line
 
-**Only when the site has no subtitles in your language.** There is no switch: AI
-translation starts by itself, and only while you are signed in, AI translation is
-on for your account (Section 1k), the sidebar is in
-**"Dual"** mode (both lines), and the video site offers subtitles in the language you
-are learning but none in your native language; without an account nothing is
-sent. The Extension then asks our server to translate the subtitle track in the
-language you are learning into your native language and shows the result as the
-second line; the sidebar shows what the translation is doing. Choosing another
+**Only when you ask, and only when the site has no subtitles in your language.**
+While you are signed in, AI translation is on for your account (Section 1k), the
+sidebar is in **"Dual"** mode (both lines), and the video site offers subtitles in
+the language you are learning but none in your native language, the sidebar offers
+it in one line: **"Translate with AI"**, whose tooltip says it uses your AI credits.
+The first time you press it, a small question says so again, with the credits you
+have left today, and translates only when you confirm; tick **"Don't ask again"**
+and it is not asked again on that device. Nothing is sent until you press it (and,
+until then, confirm); without an account nothing is offered or sent. When you press it, the Extension asks our server to translate the subtitle
+track in the language you are learning into your native language and shows the
+result as the second line; the sidebar shows what the translation is doing. The
+Extension remembers, on your device only, that you chose to translate that track
+(Section 3), so it carries on by itself when you open the same video again. While
+it runs, its status ends in the word **"on"**, which turns it off: nothing more is
+sent for that video, its translated lines are taken off the screen, and the choice
+is forgotten, so the next time you open the video it waits to be asked again.
+While the page stays open the line reads **"AI translation · off"**, and pressing
+"off" turns it back on. Choosing another
 mode pauses it (lines already translated stay) and choosing "Dual" again
 resumes it. If the site's own subtitles in your language appear, they are shown
 instead and nothing more is sent for that video.
@@ -734,6 +745,12 @@ your device only:
 * the latest answer about **which features this browser or your account has**
   (Section 1k), when it came, and when the last attempt to ask failed. Signing out
   removes them;
+* the **videos you chose to translate with AI** (Section 1i): for each, a short
+  key made of the site's label, your two languages and the length of the
+  subtitle track; no title, address or text. The newest 200 are kept; they are
+  never sent anywhere, and removing the Extension removes them;
+* whether you ticked **"Don't ask again"** on the question before AI translation
+  (Section 1i); it is never sent anywhere;
 * the **default AI limits** shown on the AI badge (Section 1j), kept after you
   sign out; and, while you are signed in, the latest **remaining AI budget** and
   marks recording that you were already warned it is running low today or this

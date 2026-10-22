@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: YouTube, Netflix എന്നിവയിൽ ഭാഷ പഠിക്കൂ",
+    "message": "Lingogram Reactor: Dual subs AI വിവർത്തനത്തോടെ [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "YouTube, Netflix എന്നിവയിൽ ഡ്യുവൽ സബ്ടൈറ്റിൽ — രണ്ട് ഭാഷ ഒരുമിച്ച്. കാണുന്നതിൽ നിന്ന് ഇംഗ്ലീഷ് പഠിക്കാം. സൗജന്യം.",
+    "message": "ഇഷ്ട വീഡിയോകളിൽ ഇംഗ്ലീഷോ മറ്റു ഭാഷയോ പഠിക്കൂ. AI ഓരോ വാക്കും വിശദീകരിക്കും. വാക്കുകൾ സേവ് ചെയ്ത് എല്ലാ സൈറ്റിലും ഹൈലൈറ്റ് ചെയ്യും.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "നിങ്ങളുടെ ഭാഷയിൽ സബ്‌ടൈറ്റിലുകളില്ല",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "AI ഉപയോഗിച്ച് വിവർത്തനം ചെയ്യുക",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "AI ക്രെഡിറ്റുകൾ ഉപയോഗിക്കും",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "ഓഫാക്കുക",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "ഇന്ന് ബാക്കിയുള്ള AI ടോക്കണുകൾ",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google മറുപടി നൽകിയില്ല, വീണ്ടും ശ്രമിക്കുക",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "AI ഉപയോഗിച്ചുള്ള വിവർത്തനം ക്രെഡിറ്റുകൾ ഉപയോഗിക്കും.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "ഇന്ന് $1 ക്രെഡിറ്റുകൾ ബാക്കി",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "വീണ്ടും ചോദിക്കരുത്",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "ഇപ്പോൾ വേണ്ട",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "വിവർത്തനം ചെയ്യുക",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "AI വിവർത്തനം",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "ഓൺ",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "ഓഫ്",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "AI വിവർത്തനം ഓണാണ്. ഓഫ് ചെയ്യുക",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "AI വിവർത്തനം ഓഫാണ്. ഓൺ ചെയ്യുക",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "ഓൺ ചെയ്യുക",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }

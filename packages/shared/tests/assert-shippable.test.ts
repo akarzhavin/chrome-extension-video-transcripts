@@ -232,29 +232,24 @@ describe('assert-shippable', () => {
     });
 
     describe('the AI translation of the second line', () => {
-        // Dev-only until it ships: the store version must
-        // carry neither the switch nor the worker that calls the backend.
-        it('refuses a background bundle carrying the worker actions', () => {
+        // The translation ships; only the switch forcing it over native tracks is dev-only.
+        it('passes a bundle carrying the worker, the backend route and the AI badge', () => {
             const { code, output } = runGate(
-                makeBuild({ background: healthyBackground() + '\nconst a = "SUBTITLE_AI_PART";' }),
+                makeBuild({
+                    background: healthyBackground() + '\nconst a = "SUBTITLE_AI_PART"; fetch(b + "/dictionary/subtitles/" + id + "/part");',
+                    extraFiles: { 'src/content/index.js': 'el.className = "vtt-ai-badge vtt-ai-status";' },
+                }),
             );
-            expect(code).toBe(1);
-            expect(output).toMatch(/AI translation of the second line is compiled in/);
+            expect(output).toBe('');
+            expect(code).toBe(0);
         });
 
-        it('refuses a content bundle carrying the switch', () => {
+        it('refuses a bundle carrying the force switch', () => {
             const { code, output } = runGate(
-                makeBuild({ extraFiles: { 'src/content/index.js': 'box.id = "vtt-ai-toggle";' } }),
+                makeBuild({ background: healthyBackground() + '\nif (op === "aiTranslateForceGet") reply();' }),
             );
             expect(code).toBe(1);
-            expect(output).toMatch(/src\/content\/index\.js/);
-        });
-
-        it('refuses a bundle carrying the backend route', () => {
-            const { code } = runGate(
-                makeBuild({ background: healthyBackground() + '\nfetch(b + "/dictionary/subtitles/" + id + "/part");' }),
-            );
-            expect(code).toBe(1);
+            expect(output).toMatch(/switch forcing AI translation over native tracks is compiled in/);
         });
     });
 

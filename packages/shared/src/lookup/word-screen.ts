@@ -109,8 +109,8 @@ export class WordScreen {
             this.openedPanel = this.host.isCollapsed();
         }
         this.host.openPanel();
-        // Takeovers do not stack: all three back chips sit absolute at the
-        // same spot, so whichever screen is open leaves before this one shows.
+        // Takeovers do not stack: all three back chips share one header grid
+        // cell, so whichever screen is open leaves before this one shows.
         this.host.closeOtherTakeovers();
         sidebar.classList.add('vtt-lookup-open');
         const titleEl = this.host.title();

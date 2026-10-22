@@ -2,6 +2,7 @@
 // GA4 api_secret and must never be pulled into a content-script bundle.
 import { handleTrackMessage, track } from '../analytics-bg';
 import { config } from './config';
+import { CLAIM, RELEASE, claim as claimAiTab, release as releaseAiTab } from '../subtitle-ai/one-tab';
 // Static, not dynamic: a dynamic import() makes Vite emit sibling .mjs chunks
 // that an MV3 service worker cannot load. Static keeps one file, and the
 // __EXT_ENV__ literal guards below still drop this module from prod bundles.
@@ -92,6 +93,8 @@ export type AuthAction =
     | 'LIMIT_REFUSED'
     | 'SUBTITLE_AI_PART'
     | 'SUBTITLE_AI_STORE'
+    | 'SUBTITLE_AI_CLAIM'
+    | 'SUBTITLE_AI_RELEASE'
     // Dev-only backend switch. The names are declared for type-checking only;
     // the values live in ./devEnvSwitch so prod bundles never carry them.
     | 'DEV_SET_ENV'
@@ -99,8 +102,8 @@ export type AuthAction =
 
 // Membership here is what isAuthAction() filters on, so an action missing from
 // this set is dropped before the handler ever sees it — silently, with no error
-// anywhere. (The DEV_* and SUBTITLE_AI_* actions are the deliberate exception:
-// they're matched by prefix below so their names never appear in a prod bundle.)
+// anywhere. (The DEV_* actions are the deliberate exception: they're matched by
+// prefix below so their names never appear in a prod bundle.)
 export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AUTH_STATUS',
     'AUTH_SIGN_IN_VIA_LINGOGRAM',
@@ -124,6 +127,10 @@ export const AUTH_ACTIONS: ReadonlySet<AuthAction> = new Set<AuthAction>([
     'AI_BALANCE_REFRESH',
     'FEATURES_REFRESH',
     'LIMIT_REFUSED',
+    'SUBTITLE_AI_PART',
+    'SUBTITLE_AI_STORE',
+    'SUBTITLE_AI_CLAIM',
+    'SUBTITLE_AI_RELEASE',
 ]);
 
 export function isAuthAction(action: unknown): action is AuthAction {
@@ -131,8 +138,7 @@ export function isAuthAction(action: unknown): action is AuthAction {
     if ((AUTH_ACTIONS as ReadonlySet<string>).has(action)) return true;
     // Dev actions are matched by prefix rather than by name, so no dev action
     // string appears in a prod bundle. Folds away entirely in prod builds.
-    // AI translation is dev-only until it ships.
-    return __EXT_ENV__ === 'dev' && (action.startsWith('DEV_') || action.startsWith('SUBTITLE_AI_'));
+    return __EXT_ENV__ === 'dev' && action.startsWith('DEV_');
 }
 
 // Save diagnostics (debug/save-diag-worker.ts): a collector per ADD_WORD /
@@ -587,10 +593,12 @@ export async function handleAuthMessage(
     sender?: chrome.runtime.MessageSender,
 ): Promise<unknown> {
     await devEnvReady();
-    // Outside the switch: case labels survive the minifier, this guard folds.
-    if (__EXT_ENV__ === 'dev' && String(request.action).startsWith('SUBTITLE_AI_')) {
+    if (request.action === 'SUBTITLE_AI_PART' || request.action === 'SUBTITLE_AI_STORE') {
         return handleSubtitleAi(request);
     }
+    // One tab translates at a time (subtitle-ai/one-tab.ts).
+    if (request.action === CLAIM) return claimAiTab(sender?.tab?.id);
+    if (request.action === RELEASE) return releaseAiTab(sender?.tab?.id);
     switch (request.action as AuthAction) {
         case 'AUTH_STATUS': {
             const state = await getAuthState();

@@ -3518,6 +3518,20 @@ describe('the transcript list', () => {
         expect(itemAt(1).querySelector('.vtt-sub-text')?.textContent ?? '').toBe('');
     });
 
+    // A blank line used to draw its divider with nothing under it, so a
+    // translation that had stopped looked like one still on its way.
+    test('a blank AI line draws no second line, and its translation adds one', () => {
+        state.displayMode = 'dual';
+        state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha' }]);
+        state.addTrack('Ukrainian · AI', [{ startTime: 0, endTime: 2, text: '' }]);
+        ui.renderSubtitles();
+        expect(itemAt(0).querySelector('.vtt-sub-text')).toBeNull();
+
+        state.tracks[1].subtitles[0].text = 'альфа';
+        ui.updateSecondaryLines();
+        expect(itemAt(0).querySelector('.vtt-sub-text')?.textContent).toBe('альфа');
+    });
+
     test('an AI line left out on purpose shows a dash', () => {
         state.displayMode = 'dual';
         state.addTrack('English', [{ startTime: 0, endTime: 2, text: 'alpha' }]);

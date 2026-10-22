@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Dual Subtitles — Lingogram: YouTube, Netflix இல் மொழி கற்கவும்",
+    "message": "Lingogram Reactor: Dual subs AI மொழிபெயர்ப்புடன் [YouTube + Netflix]",
     "description": "Extension name shown in Chrome and the Web Store."
   },
   "appDesc": {
-    "message": "YouTube, Netflix-இல் டூயல் சப்டைட்டில் — இரு மொழி ஒரே நேரத்தில். பார்ப்பதிலிருந்தே ஆங்கிலம் கற்க, ஒரே தட்டலில் சொல் சேமிப்பு.",
+    "message": "பிடித்த வீடியோவில் ஆங்கிலம் அல்லது பிற மொழி கற்கலாம். AI ஒவ்வொரு சொல்லும் விளக்கும். சொற்களைச் சேமித்து தளமெங்கும் ஹைலைட் செய்வோம்.",
     "description": "Short store summary (max 132 characters)."
   },
   "ytOnboardingTitle": {
@@ -871,6 +871,22 @@
     "message": "AI translation does not cover this language pair",
     "description": "AI translation status: the languages are not supported."
   },
+  "ytAiOfferText": {
+    "message": "உங்கள் மொழியில் வசனங்கள் இல்லை",
+    "description": "AI translation offer, first part: the video has no subtitle track in the viewer's native language. Followed by \" · \" and the ytAiOfferButton link."
+  },
+  "ytAiOfferButton": {
+    "message": "AI மூலம் மொழிபெயர்",
+    "description": "AI translation offer: the link the viewer clicks to start translating this video's subtitles with AI. Short."
+  },
+  "ytAiOfferCost": {
+    "message": "AI கிரெடிட்களைப் பயன்படுத்தும்",
+    "description": "AI translation offer, last part after the link: translating spends the viewer's AI credits. Lowercase, short."
+  },
+  "ytAiOfferStop": {
+    "message": "நிறுத்து",
+    "description": "AI translation: the link beside the status of a running translation that stops it for this video. Short."
+  },
   "aiBadgeTitle": {
     "message": "இன்று மீதமுள்ள AI டோக்கன்கள்",
     "description": "Sidebar AI badge tooltip: what the number is."
@@ -958,5 +974,49 @@
   "lookupGoogleFailed": {
     "message": "Google பதிலளிக்கவில்லை, மீண்டும் முயலவும்",
     "description": "Phrase card: Google did not answer and no other source did; the next try may work."
+  },
+  "ytAiConfirmTitle": {
+    "message": "AI மூலம் மொழிபெயர்க்க கிரெடிட்கள் செலவாகும்.",
+    "description": "AI translation: the one question before the first turn-on, in a small bubble. Says that translating spends the viewer's AI credits. One short sentence."
+  },
+  "ytAiConfirmLeft": {
+    "message": "இன்று $1 கிரெடிட்கள் மீதம்",
+    "description": "AI translation question: the viewer's AI credits left today. $1 is a compact number like 258k."
+  },
+  "ytAiConfirmDontAsk": {
+    "message": "மீண்டும் கேட்காதே",
+    "description": "AI translation question: checkbox; ticked, the question is not asked again on this device."
+  },
+  "ytAiConfirmNotNow": {
+    "message": "இப்போது வேண்டாம்",
+    "description": "AI translation question: button that closes it without translating. Short."
+  },
+  "ytAiConfirmYes": {
+    "message": "மொழிபெயர்",
+    "description": "AI translation question: button that starts translating. One word."
+  },
+  "ytAiStateLabel": {
+    "message": "AI மொழிபெயர்ப்பு",
+    "description": "Under the mode bar: the name of the feature, followed by \" · \" and the word ytAiOn or ytAiOff."
+  },
+  "ytAiOn": {
+    "message": "இயக்கம்",
+    "description": "AI translation is running; shown after \" · \" in the link colour, clicking it turns the translation off. One short word."
+  },
+  "ytAiOff": {
+    "message": "முடக்கம்",
+    "description": "AI translation was turned off on this video; shown after \" · \" in the link colour, clicking it turns it on. One short word."
+  },
+  "ytAiOnLabel": {
+    "message": "AI மொழிபெயர்ப்பு இயக்கத்தில் உள்ளது. முடக்கு",
+    "description": "Screen reader name of the ytAiOn word: what it says and what clicking does."
+  },
+  "ytAiOffLabel": {
+    "message": "AI மொழிபெயர்ப்பு முடக்கத்தில் உள்ளது. இயக்கு",
+    "description": "Screen reader name of the ytAiOff word: what it says and what clicking does."
+  },
+  "ytAiTurnOn": {
+    "message": "இயக்கு",
+    "description": "Tooltip on the ytAiOff word, followed by \" · \" and ytAiOfferCost. Short."
   }
 }
