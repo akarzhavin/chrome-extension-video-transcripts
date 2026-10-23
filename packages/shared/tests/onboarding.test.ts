@@ -190,6 +190,33 @@ describe('the analytics client id rides along on both onboarding URLs', () => {
     });
 });
 
+// The uninstall page reports the removal by the installation ID (english repo
+// spec 039). It rides in the fragment, which no server ever receives: the page
+// load carries only the cid, the page's report only the installation ID.
+describe('the installation ID rides in the uninstall URL fragment', () => {
+    const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+
+    it('adds #i=<id> once the installation module names it', async () => {
+        let tell: (id: string) => void = () => {};
+        installOnboarding('rezka', { clientId: async () => 'cid-abc', installationId: (cb) => (tell = cb) });
+        await settle();
+        tell(ID);
+        expect(setUninstallURL).toHaveBeenLastCalledWith(`${config.frontendBaseUrl}/uninstall/?ext=rezka&cid=cid-abc#i=${ID}`);
+    });
+
+    it('keeps both whichever ID is known first', async () => {
+        installOnboarding('youtube', { clientId: async () => 'cid-abc', installationId: (cb) => cb(ID) });
+        await settle();
+        expect(setUninstallURL).toHaveBeenLastCalledWith(`${config.frontendBaseUrl}/uninstall/?ext=youtube&cid=cid-abc#i=${ID}`);
+    });
+
+    it('never puts the installation ID where a server sees it', async () => {
+        installOnboarding('rezka', { clientId: async () => 'cid-abc', installationId: (cb) => cb(ID) });
+        await settle();
+        for (const [url] of setUninstallURL.mock.calls) expect((url as string).split('#')[0]).not.toContain(ID);
+    });
+});
+
 // A dev build restores its chosen backend from storage after install. The
 // welcome URL names a site, and the site mints a token for ITS project: opened
 // before the switch was restored, the tab was the build's own site, and the

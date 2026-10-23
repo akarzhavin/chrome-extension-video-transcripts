@@ -86,6 +86,14 @@ beforeEach(() => {
     clearLookupCache();
 });
 
+
+// Recorded on this backend today (spec 039): no daily record goes out besides what a test asks.
+const utcToday = new Date();
+const recordedToday = {
+    'installation.recorded': 'https://api.test',
+    'installation.recordedDay': utcToday.getUTCFullYear() * 10000 + (utcToday.getUTCMonth() + 1) * 100 + utcToday.getUTCDate(),
+};
+
 describe('AI_BALANCE_REFRESH', () => {
     test('signed out: GETs the default limits, with no token, and stores them', async () => {
         fetchMock().mockResolvedValue(json({ day: { limit: 123_000 }, month: { limit: 4_000_000 } }));
@@ -192,7 +200,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
 
         test('asks the guest route for this installation, without a token, and keeps the answer as a guest one', async () => {
             store['installation.id'] = ID;
-            store['installation.recorded'] = 'https://api.test';
+            Object.assign(store, recordedToday);
             expect(await handleAuthMessage({ action: 'FEATURES_REFRESH' })).toEqual({ ok: true });
             expect(fetchMock().mock.calls.map(([url]) => url)).toEqual([`https://api.test/dictionary/guest/features?installation=${ID}`]);
             expect(headersOf(0) ?? {}).not.toHaveProperty('Authorization');
@@ -221,7 +229,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
         });
 
         test('signed in, a link that failed at sign-in is retried first, so a join from guests is in the answer', async () => {
-            Object.assign(store, { 'installation.id': ID, 'installation.recorded': 'https://api.test', 'installation.linkPending': 'https://api.test' });
+            Object.assign(store, { 'installation.id': ID, ...recordedToday, 'installation.linkPending': 'https://api.test' });
             await signIn();
             fetchMock().mockImplementation(async (url: string) =>
                 url.endsWith('/installations/link') ? json({ joined: true }) : json({ features: { ai: true } }),
@@ -239,7 +247,7 @@ describe('FEATURES_REFRESH (spec 032)', () => {
 
         test('a guest check in flight at sign-in keeps nothing for the account', async () => {
             store['installation.id'] = ID;
-            store['installation.recorded'] = 'https://api.test';
+            Object.assign(store, recordedToday);
             let release: (r: Response) => void = () => undefined;
             fetchMock().mockImplementation(() => new Promise<Response>((r) => (release = r)));
             const ask = handleAuthMessage({ action: 'FEATURES_REFRESH' });

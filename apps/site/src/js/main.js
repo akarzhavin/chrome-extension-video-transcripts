@@ -152,8 +152,9 @@
   // ---------------------------------------------------------- /uninstall/
   //
   // A plain form: tick the reasons that apply, optionally add a note, press
-  // the button. NOTHING is sent before that press — the visitor is never
-  // recorded behind their own back, and a page they abandon leaves no trace.
+  // the button. NOTHING the visitor ticks or types is sent before that press,
+  // and a page they abandon leaves no trace of it. The one exception is the
+  // removal itself (spec 039), reported below by the installation ID alone.
   //
   // The answer goes into the Firestore `feedback` collection, the same one
   // (and the same global daily quota) the extension's rating card writes.
@@ -165,6 +166,25 @@
   // reimplemented rather than imported because this file is copied verbatim
   // into build/ with no bundler, and pulling the shared module in would drag
   // the whole auth stack onto a page that never signs anyone in.
+  //
+  // The removal report: the ID uninstall-head.js took from the fragment. No
+  // referrer, so it never travels with the cid in this page's address; no-cors,
+  // so a text/plain body needs no preflight.
+  var removedId = window.__REMOVED_INSTALLATION;
+  var apiBase = (window.LINGOGRAM_AUTH || {}).apiBase;
+  if (removedId && apiBase) {
+    try {
+      fetch(apiBase + '/dictionary/installations', {
+        method: 'POST',
+        mode: 'no-cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        keepalive: true,
+        body: JSON.stringify({ id: removedId, removed: true })
+      }).catch(function () {});
+    } catch (e) { /* a report is best effort */ }
+  }
+
   var fb = document.getElementById('feedback-form');
   // The payload is an inline script; this file is `defer` and separately
   // cached, so the two can come apart — a CSP that drops inline scripts, or a

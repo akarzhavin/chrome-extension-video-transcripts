@@ -54,6 +54,12 @@ export interface OnboardingHooks {
      * ("Could not connect the extension"). Nothing to wait for in a release.
      */
     ready?: () => Promise<void>;
+    /**
+     * Hands over the installation ID once it is known (english repo spec 039),
+     * for the uninstall page to report the removal. It goes in the URL fragment,
+     * which never reaches a server, so it never travels with the `cid`.
+     */
+    installationId?: (tell: (id: string) => void) => void;
 }
 
 /**
@@ -113,13 +119,22 @@ export function installOnboarding(
     // finishes would otherwise leave no uninstall URL at all — the one failure
     // that costs us every uninstall answer, silently. The bare URL is a valid
     // page on its own; the second call upgrades it.
-    chrome.runtime.setUninstallURL(`${UNINSTALL_URL}?ext=${ext}`);
-    void (async () => {
-        const cid = await resolveCid(hooks);
-        if (!cid) return;
+    // Each ID is set when it is known; the last call carries both.
+    let cid = '';
+    let installation = '';
+    const register = () =>
         chrome.runtime.setUninstallURL(
-            `${UNINSTALL_URL}?ext=${ext}&cid=${encodeURIComponent(cid)}`,
+            `${UNINSTALL_URL}?ext=${ext}${cid ? `&cid=${encodeURIComponent(cid)}` : ''}` +
+                (installation ? `#i=${encodeURIComponent(installation)}` : ''),
         );
+    register();
+    hooks?.installationId?.((id) => {
+        installation = id;
+        register();
+    });
+    void (async () => {
+        cid = await resolveCid(hooks);
+        if (cid) register();
     })();
 }
 

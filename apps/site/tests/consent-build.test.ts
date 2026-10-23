@@ -86,6 +86,16 @@ describe('the analytics block, with a measurement id', () => {
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
+  it('takes the installation ID out of the uninstall address before gtag is configured (english repo spec 039)', () => {
+    // GA4 reads the address for page_location; the fragment must be gone by then.
+    const html = tagged['uninstall/index.html'];
+    const taken = html.indexOf('__REMOVED_INSTALLATION');
+    expect(taken).toBeGreaterThan(-1);
+    expect(taken).toBeLessThan(html.indexOf("gtag('config'"));
+    expect(taken).toBeLessThan(html.indexOf('</head>'));
+    expect(tagged['index.html']).not.toContain('__REMOVED_INSTALLATION');
+  });
+
   it('sets no transport_type anywhere', () => {
     // Measured in a real Chrome against the live property: gtag.js already uses
     // fetch+keepalive, which survives an unload, and the flag changed nothing
