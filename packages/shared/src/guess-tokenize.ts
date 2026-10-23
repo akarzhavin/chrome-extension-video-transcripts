@@ -44,6 +44,27 @@ export function isMaskableToken(token: string): boolean {
     return /[\p{L}\p{N}]/u.test(token);
 }
 
+/**
+ * A token is split on whitespace, so the punctuation around a word comes with
+ * it: "“Hello," is “ + Hello + ,. Only the word is a word — the card looks it
+ * up, the hover lights it, a selection snaps to it — and the dictionary has no
+ * entry for "hello,", so a lookup that carried the comma went to the model.
+ *
+ * An apostrophe stays with the word at either end: "'em" and "goin'" are words
+ * of their own. Everything inside stays too — "rock-and-roll", "o'clock".
+ */
+const TOKEN_EDGES = /^([^\p{L}\p{M}\p{N}'’ʼ‘]*)([\s\S]*?)([^\p{L}\p{M}\p{N}'’ʼ‘]*)$/u;
+
+export function splitTokenEdges(token: string): { lead: string; word: string; trail: string } {
+    const m = TOKEN_EDGES.exec(token);
+    return m ? { lead: m[1], word: m[2], trail: m[3] } : { lead: '', word: token, trail: '' };
+}
+
+/** A selected term without the punctuation at its two ends; inside it is kept. */
+export function trimTermEdges(term: string): string {
+    return splitTokenEdges(term).word.trim();
+}
+
 export function tokenizeForGuess(text: string): { tokens: string[]; sep: string } {
     const trimmed = text.trim();
     // Fast path: every space-delimited line leaves before touching Intl.

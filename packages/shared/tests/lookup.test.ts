@@ -1476,7 +1476,8 @@ describe('selection — dragging a phrase opens the same card', () => {
         const spans = [...box.querySelectorAll<HTMLElement>('span[data-word]')];
         selectSpans(spans[1], spans[3]);
         await release();
-        expect(card()?.dataset.word).toBe('I got bored,');
+        // The comma at the selection's end is not part of the phrase.
+        expect(card()?.dataset.word).toBe('I got bored');
 
         const send = chrome.runtime.sendMessage as jest.Mock;
         send.mockImplementation((msg: any, cb?: (r: unknown) => void) => {

@@ -27,6 +27,7 @@
 import { createSavedWords, type SavedWords } from '../lookup/saved-words';
 import { loadMirror, onMirrorChanged } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { trimTermEdges } from '../guess-tokenize';
 
 /**
  * The class a saved word carries.
@@ -61,8 +62,10 @@ const LINE_SCOPE = '.vtt-main-text, .vtt-overlay-main';
  * Every token a line renders, in order. A masked capsule and a filler token
  * are in the stream so they BREAK a run: a phrase whose middle word is still
  * hidden is not on screen, and marking its ends would give the word away.
+ * The punctuation beside a word (word-markup's vtt-word-edge) is not a token:
+ * the comma in "well, then" is part of the phrase, not a gap in it.
  */
-const TOKEN_SELECTOR = 'span[data-word], span[data-hidden], span.vtt-guess-filler';
+const TOKEN_SELECTOR = 'span[data-word], span[data-hidden], span.vtt-guess-filler:not(.vtt-word-edge)';
 
 const view: SavedWords = createSavedWords();
 const subscribers = new Set<() => void>();
@@ -129,15 +132,25 @@ interface Token {
     line: number;
 }
 
-/** Saved multi-word terms, indexed by their first word. */
-function savedPhrases(): Map<string, string[][]> {
-    const byFirst = new Map<string, string[][]>();
+/** A saved phrase: its term as stored, and its words as the spans hold them. */
+interface SavedPhrase {
+    term: string;
+    words: string[];
+}
+
+/**
+ * Saved multi-word terms, indexed by their first word. Each word is compared
+ * without the punctuation at its ends, as a span holds it (splitTokenEdges):
+ * a phrase saved as "well, then." is on screen as the words "well" and "then".
+ */
+function savedPhrases(): Map<string, SavedPhrase[]> {
+    const byFirst = new Map<string, SavedPhrase[]>();
     for (const term of view.terms()) {
-        const words = term.split(' ');
-        if (words.length < 2) continue;
+        const words = term.split(' ').map(trimTermEdges);
+        if (words.length < 2 || words.some((w) => !w)) continue;
         const list = byFirst.get(words[0]);
-        if (list) list.push(words);
-        else byFirst.set(words[0], [words]);
+        if (list) list.push({ term, words });
+        else byFirst.set(words[0], [{ term, words }]);
     }
     return byFirst;
 }
@@ -164,7 +177,7 @@ export function markSavedPhrasesIn(container: HTMLElement): void {
     lines.forEach((lineEl, line) => {
         lineEl.querySelectorAll<HTMLElement>(TOKEN_SELECTOR).forEach((span) => {
             const raw = span.dataset.word;
-            stream.push({ span, word: raw === undefined ? null : normalizeTerm(raw), line });
+            stream.push({ span, word: raw === undefined ? null : trimTermEdges(normalizeTerm(raw)), line });
         });
     });
 
@@ -175,12 +188,12 @@ export function markSavedPhrasesIn(container: HTMLElement): void {
     const claimed = new Map<HTMLElement, SavedPhraseRun>();
     stream.forEach((token, i) => {
         if (!token.word) return;
-        for (const words of phrases.get(token.word) ?? []) {
+        for (const { term, words } of phrases.get(token.word) ?? []) {
             const run = stream.slice(i, i + words.length);
             if (run.length !== words.length) continue;
             if (!run.every((t, k) => t.word === words[k])) continue;
             if (run[run.length - 1].line - token.line > 1) continue;
-            const entry: SavedPhraseRun = { term: words.join(' '), spans: run.map((t) => t.span) };
+            const entry: SavedPhraseRun = { term, spans: run.map((t) => t.span) };
             run.forEach((t, k) => {
                 // The longest phrase a word belongs to answers for it: a
                 // saved "track down" inside a saved "to track down" is the

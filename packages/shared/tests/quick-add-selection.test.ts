@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { buildContextForIndex, installQuickAddOverlay } from '../src/content/quick-add-overlay';
+import { buildContextForIndex, getSelectionPayload, installQuickAddOverlay } from '../src/content/quick-add-overlay';
+import { fillPlainWordsInto } from '../src/transcript/word-markup';
 
 (global as any).chrome = {
     runtime: { id: 'test-extension-id', sendMessage: jest.fn() },
@@ -238,5 +239,35 @@ describe('the saved context is the three-line window, learning language only', (
 
     it('an index with no line at all yields nothing', () => {
         expect(buildContextForIndex(99)).toBe('');
+    });
+
+    it('keeps the punctuation the builders put beside the words', () => {
+        document.body.innerHTML = '<div id="vtt-list"><div class="vtt-item" data-index="0"><div class="vtt-main-text"></div></div></div>';
+        fillPlainWordsInto(document.querySelector<HTMLElement>('.vtt-main-text')!, '“Well, then.” - Go!');
+        expect(buildContextForIndex(0)).toBe('“Well, then.” - Go!');
+    });
+});
+
+// A selection snaps to the word spans, which hold no punctuation: the term
+// starts and ends on a word, and keeps what lies between.
+describe('the selected term leaves out the punctuation at its ends', () => {
+    function cue(text: string): HTMLElement[] {
+        document.body.innerHTML = '<div id="vtt-list"><div class="vtt-item" data-index="0"><div class="vtt-main-text"></div></div></div>';
+        const main = document.querySelector<HTMLElement>('.vtt-main-text')!;
+        fillPlainWordsInto(main, text);
+        stubRects();
+        return [...main.querySelectorAll<HTMLElement>('span[data-word]')];
+    }
+
+    it('one word', () => {
+        const spans = cue('“Hello,” she said.');
+        selectSpans(spans[0], spans[0]);
+        expect(getSelectionPayload()?.term).toBe('Hello');
+    });
+
+    it('a phrase, with its inner comma', () => {
+        const spans = cue('Well, then, go.');
+        selectSpans(spans[0], spans[2]);
+        expect(getSelectionPayload()?.term).toBe('Well, then, go');
     });
 });

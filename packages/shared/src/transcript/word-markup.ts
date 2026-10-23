@@ -8,8 +8,22 @@
 // Every class name and data attribute below is load-bearing beyond this file:
 // quick-add's `span[data-word]` query, the guess-mode reveal order and the
 // stylesheet all key on them.
-import { tokenizeForGuess, isMaskableToken } from '../guess-tokenize';
+import { tokenizeForGuess, isMaskableToken, splitTokenEdges } from '../guess-tokenize';
 import { SAVED_MARK_CLASS } from './saved-marks';
+
+/**
+ * The punctuation split off a word (splitTokenEdges): on the line beside the
+ * word's span, never inside it. saved-marks.ts names this class in its selector.
+ */
+export const WORD_EDGE_CLASS = 'vtt-word-edge';
+
+/** In guess mode it is coloured as a filler is: plain text that is no puzzle. */
+function edgeSpan(text: string, guess: boolean): HTMLSpanElement {
+    const span = document.createElement('span');
+    span.className = guess ? `${WORD_EDGE_CLASS} vtt-guess-filler` : WORD_EDGE_CLASS;
+    span.textContent = text;
+    return span;
+}
 
 /**
  * Answers "is this word in the learner's dictionary" for one token.
@@ -78,15 +92,19 @@ export function fillMaskedWordsInto(
         if (!revealed(probe)) { lit = probe; break; }
         probe++;
     }
-    tokens.forEach((word, i) => {
+    tokens.forEach((token, i) => {
         if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
-        if (!isMaskableToken(word)) {
+        if (!isMaskableToken(token)) {
             const plain = document.createElement('span');
             plain.className = 'vtt-guess-filler';
-            plain.textContent = word;
+            plain.textContent = token;
             container.appendChild(plain);
             return;
         }
+        // A maskable token always has a word: the capsule covers it, and the
+        // punctuation around it stays outside, as plain text.
+        const { lead, word, trail } = splitTokenEdges(token);
+        if (lead) container.appendChild(edgeSpan(lead, true));
         const isOut = revealed(m);
         const span = makeMaskedSpan(word, isOut, maskGlyphs(word, spaced));
         // The token's own index, so a click can name the word it landed on
@@ -104,6 +122,7 @@ export function fillMaskedWordsInto(
         if (isOut && isSavedTerm?.(word)) span.classList.add(SAVED_MARK_CLASS);
         if (m === lit) span.classList.add('vtt-next-word');
         container.appendChild(span);
+        if (trail) container.appendChild(edgeSpan(trail, true));
         m++;
     });
 }
@@ -143,8 +162,16 @@ export function fillPlainWordsInto(
     isSavedTerm?: IsSavedTerm,
 ): void {
     const { tokens, sep } = tokenizeForGuess(text);
-    tokens.forEach((word, i) => {
+    tokens.forEach((token, i) => {
         if (i > 0 && sep) container.appendChild(document.createTextNode(sep));
+        // The span holds the word alone (splitTokenEdges); a token with no word
+        // in it — "-", "♪" — is no lookup target and stays punctuation.
+        const { lead, word, trail } = splitTokenEdges(token);
+        if (!word) {
+            container.appendChild(edgeSpan(token, false));
+            return;
+        }
+        if (lead) container.appendChild(edgeSpan(lead, false));
         const span = document.createElement('span');
         span.dataset.word = word;
         span.textContent = word;
@@ -154,5 +181,6 @@ export function fillPlainWordsInto(
         // shoved the rest of the line sideways every time it appeared.
         if (isSavedTerm?.(word)) span.classList.add(SAVED_MARK_CLASS);
         container.appendChild(span);
+        if (trail) container.appendChild(edgeSpan(trail, false));
     });
 }

@@ -4,6 +4,8 @@ import { MAX_FEEDBACK_BYTES, clampToBytes, sendFeedback, utf8Len } from '../feed
 import { sendMessageGuarded as sendMessage } from '../messaging';
 import { deleteMirrorEntry, loadMirror, setMirrorEntry } from '../word-mirror';
 import { normalizeTerm } from '../word-key';
+import { trimTermEdges } from '../guess-tokenize';
+import { WORD_EDGE_CLASS } from '../transcript/word-markup';
 import { loadPrefs } from '../prefs';
 import {
     copyIdentity,
@@ -94,7 +96,9 @@ export function getSelectionPayload(): SelectionPayload | null {
     const active = snapped ?? range;
 
     const single = scopes.length === 1;
-    const term = scopes.map((s) => extractTerm(active, s, single)).filter(Boolean).join(' ').trim();
+    // The punctuation at the two ends is not part of the phrase: the spans
+    // already leave it out, and the range fallback (no spans) does not.
+    const term = trimTermEdges(scopes.map((s) => extractTerm(active, s, single)).filter(Boolean).join(' '));
     if (!term) return null;
 
     const rect = active.getBoundingClientRect();
@@ -163,15 +167,9 @@ function scopeFor(node: Node): Element | null {
 // this scope, so a two-cue drag whose second cue contributes no spans would
 // otherwise append the entire selection again ("world" + "world").
 function extractTerm(range: Range, scope: Element, allowRangeFallback = true): string {
-    const spans = scope.querySelectorAll<HTMLElement>('span[data-word]');
-    const words: string[] = [];
-    spans.forEach((span) => {
-        if (range.intersectsNode(span)) {
-            const w = span.dataset.word?.trim();
-            if (w) words.push(w);
-        }
-    });
-    const joined = words.join(' ').trim();
+    const touched = Array.from(scope.querySelectorAll<HTMLElement>('span[data-word]'))
+        .filter((span) => range.intersectsNode(span) && span.dataset.word?.trim());
+    const joined = lineText(touched);
     if (joined) return joined;
     // No revealed word was touched. In guess mode the fallback below would
     // return the mask glyphs ("*** ***"), so refuse instead: a word the user
@@ -222,18 +220,57 @@ function readMainText(list: HTMLElement, index: number): string {
     // Masked words carry the real text in data-hidden rather than data-word, so
     // read both: the saved context should be the whole sentence, not just the
     // part uncovered so far. It is stored with the entry, never rendered onto
-    // the still-masked line, so this reveals nothing.
-    // .vtt-guess-filler covers punctuation and sound cues, which carry neither
-    // attribute — without it the saved context loses dashes and brackets.
-    const spans = main.querySelectorAll<HTMLElement>(
-        'span[data-word], span[data-hidden], .vtt-guess-filler');
-    if (spans.length === 0) return (main.textContent ?? '').trim();
-    const words: string[] = [];
-    spans.forEach((s) => {
-        const w = (s.dataset.word ?? s.dataset.hidden ?? s.textContent)?.trim();
-        if (w) words.push(w);
-    });
-    return words.join(' ');
+    // the still-masked line, so this reveals nothing. Read node by node, not
+    // word by word: the punctuation beside a word is a node of its own
+    // (word-markup's vtt-word-edge), and the sentence needs its commas.
+    return joinLine(Array.from(main.childNodes), (el) => el.dataset.word ?? el.dataset.hidden ?? el.textContent);
+}
+
+/**
+ * The line from the first word span to the last, punctuation between them
+ * included: "well, then", not "well then". A masked word in between is left
+ * out, as it always was — it is not on screen to be selected. Spans that are
+ * not on one line (no shared parent) are read as their words alone.
+ */
+function lineText(spans: HTMLElement[]): string {
+    if (spans.length === 0) return '';
+    const first = spans[0];
+    const last = spans[spans.length - 1];
+    if (first.parentNode !== last.parentNode) {
+        return spans.map((s) => s.dataset.word ?? '').join(' ').trim();
+    }
+    const nodes: Node[] = [];
+    for (let n: Node | null = first; n; n = n.nextSibling) {
+        nodes.push(n);
+        if (n === last) break;
+    }
+    return joinLine(nodes, (el) => el.dataset.word
+        ?? (el.classList.contains('vtt-masked-word') ? null : el.textContent));
+}
+
+/**
+ * A line's nodes as one string. Words are spaced as they always were, whether
+ * or not the markup has a space between them; the punctuation split off a word
+ * (word-markup's vtt-word-edge) is attached to it. `read` gives an element's
+ * text, null to leave it out.
+ */
+function joinLine(nodes: Node[], read: (el: HTMLElement) => string | null): string {
+    let out = '';
+    let afterWord = false;
+    for (const n of nodes) {
+        if (!(n instanceof HTMLElement)) {
+            out += n.textContent ?? '';
+            afterWord = false;
+            continue;
+        }
+        const text = read(n);
+        if (text === null) continue;
+        const edge = n.classList.contains(WORD_EDGE_CLASS);
+        if (afterWord && !edge) out += ' ';
+        out += text;
+        afterWord = !edge;
+    }
+    return out.replace(/\s+/g, ' ').trim();
 }
 
 // While a selection spans two cues, the translation row caught between them
