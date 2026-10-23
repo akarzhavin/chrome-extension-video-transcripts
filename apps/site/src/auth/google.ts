@@ -19,6 +19,7 @@ import {
 import type { RuntimeAuthConfig } from './core';
 import { AuthError, fetchWithRetry } from './core';
 import { getAuthInstance } from './firebase';
+import { externalBrowserUrl, inAppMessage, isInAppBrowser, openInBrowserLabel } from './inapp';
 
 declare global {
   interface Window {
@@ -101,11 +102,28 @@ function setBusy(btn: HTMLElement) {
   };
 }
 
+// In an in-app browser the popup can only fail, so say why and offer the
+// system browser, where the same button works.
+function explainInApp(errEl: Element | null) {
+  if (!(errEl instanceof HTMLElement)) return;
+  const lang = document.documentElement.lang || 'en';
+  setError(errEl, inAppMessage(lang) + ' ');
+  const link = document.createElement('a');
+  link.href = externalBrowserUrl(location.href, navigator.userAgent);
+  link.textContent = openInBrowserLabel(lang);
+  link.setAttribute('data-open-in-browser', '');
+  errEl.append(link);
+}
+
 function wireButton(btn: HTMLElement, auth: ReturnType<typeof getAuth>) {
   const form = btn.closest('form');
   const errEl = form ? form.querySelector('[data-auth-error]') : null;
   btn.addEventListener('click', async () => {
     setError(errEl, '');
+    if (isInAppBrowser(navigator.userAgent)) {
+      explainInApp(errEl);
+      return;
+    }
     (btn as HTMLButtonElement).disabled = true;
     const busy = setBusy(btn);
     try {
