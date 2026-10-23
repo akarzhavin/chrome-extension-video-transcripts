@@ -1598,7 +1598,6 @@ const uninstallPage = (locale, hrefLang) => {
     title: t('uninstall.title'),
     description: t('uninstall.description'),
     pathName: `${root}/uninstall/`,
-    // Ahead of the analytics block: the installation ID leaves the address before gtag reads it (spec 039).
     firstHead: `<script>${UNINSTALL_HEAD}</script>\n`,
     // auth-config.js, which the default layout does NOT ship: it is what
     // resolves projectId/firestoreUrl from the hostname, and the feedback

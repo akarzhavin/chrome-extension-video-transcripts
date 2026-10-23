@@ -86,7 +86,6 @@ beforeEach(() => {
     clearLookupCache();
 });
 
-
 // Recorded on this backend today (spec 039): no daily record goes out besides what a test asks.
 const utcToday = new Date();
 const recordedToday = {
