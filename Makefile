@@ -19,7 +19,7 @@ RELEASES := releases
 version = $(shell node -p "require('./apps/$(1)/package.json').version")
 
 .DEFAULT_GOAL := help
-.PHONY: help release build-dev verify verify-all test type-check check clean-dev-zips
+.PHONY: help release unpack release-unpacked prune-releases build-dev verify verify-all test type-check check clean-dev-zips
 
 help: ## Show this help
 	@echo ''
@@ -47,6 +47,28 @@ release: ## Build all extensions for production, with analytics, then verify the
 	fi
 	./scripts/build-with-analytics.sh prod
 	@$(MAKE) --no-print-directory verify-all
+
+# To try a release before uploading it: Chrome loads the folder unpacked
+# (chrome://extensions → Load unpacked), the same files as the archive.
+unpack: ## Unpack the current archives to load unpacked: build/release-<version>/<app>
+	@for app in $(APPS); do \
+		v=$$(node -p "require('./apps/$$app/package.json').version"); \
+		zip="$(RELEASES)/$$app-v$$v.zip"; \
+		dir="build/release-$$v/$$app"; \
+		if [ ! -f "$$zip" ]; then echo "  MISSING  $$zip (make release first)"; exit 1; fi; \
+		rm -rf "$$dir" && mkdir -p "$$dir" && unzip -q "$$zip" -d "$$dir"; \
+		echo "  unpacked $$zip → $$dir"; \
+	done
+
+release-unpacked: ## make release, make unpack, then make prune-releases
+	@$(MAKE) --no-print-directory release
+	@$(MAKE) --no-print-directory unpack
+	@$(MAKE) --no-print-directory prune-releases
+
+# Old archives pile up in releases/ and old folders in build/: keep the
+# version in development and the 5 before it (scripts/prune-releases.mjs).
+prune-releases: ## Remove release archives and unpacked folders more than 5 versions behind
+	@node scripts/prune-releases.mjs
 
 build-dev: ## Build all extensions against the dev backend and dev GA4 property (no archives)
 	./scripts/build-with-analytics.sh dev
