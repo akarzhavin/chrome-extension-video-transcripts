@@ -57,6 +57,7 @@ const chromeStub = {
 (global as any).chrome = chromeStub;
 
 import { MIRROR_KEY, setMirrorEntry } from '../src/word-mirror';
+import { fillPlainWordsInto } from '../src/transcript/word-markup';
 import {
     SAVED_MARK_CLASS,
     SAVED_RUN_CLASS,
@@ -551,5 +552,17 @@ describe('a saved phrase is one line under all of its words', () => {
         markSavedIn(el);
         expect(run(el)).toEqual([]);
         expect(ends(el)).toEqual([]);
+    });
+    // The builders keep the punctuation out of the word spans now; a phrase
+    // saved with it — before, or from the card — is still the same words.
+    test('a phrase is found across the punctuation beside its words', async () => {
+        await seed('well, then.');
+        const el = document.createElement('div');
+        el.className = 'vtt-main-text';
+        fillPlainWordsInto(el, '“Well, then.” Go.');
+        document.body.appendChild(el);
+        markSavedIn(el);
+        expect(run(el)).toEqual(['Well', 'then']);
+        expect(ends(el)).toEqual(['then']);
     });
 });

@@ -34,6 +34,16 @@ describe('fillPlainWordsInto', () => {
         fillPlainWordsInto(c, 'we are going home');
         expect(c.textContent).toBe('we are going home');
     });
+
+    // The span is what the card looks up and the hover lights: "Hello," has no
+    // dictionary entry, so the comma went to the model as part of the word.
+    it('keeps the punctuation around a word out of its span, and on the line', () => {
+        const c = div();
+        fillPlainWordsInto(c, '“Hello, don’t go-kart\'em - ok.”');
+        expect([...c.querySelectorAll('span[data-word]')].map((s) => s.textContent))
+            .toEqual(['Hello', 'don’t', 'go-kart\'em', 'ok']);
+        expect(c.textContent).toBe('“Hello, don’t go-kart\'em - ok.”');
+    });
 });
 
 describe('makeMaskedSpan', () => {
@@ -105,6 +115,15 @@ describe('fillMaskedWordsInto', () => {
         fillMaskedWordsInto(c, '- we are going', 1);
         expect(c.querySelector('.vtt-guess-filler')?.textContent).toBe('-');
         expect([...c.querySelectorAll('.vtt-revealed-word')].map((s) => s.textContent)).toEqual(['we']);
+    });
+
+    it('masks the word alone, its punctuation beside it as filler', () => {
+        const c = div();
+        fillMaskedWordsInto(c, 'Well, then.', 1);
+        expect([...c.querySelectorAll('.vtt-revealed-word')].map((s) => s.textContent)).toEqual(['Well']);
+        expect([...c.querySelectorAll('.vtt-masked-word')].map((s) => (s as HTMLElement).dataset.hidden)).toEqual(['then']);
+        expect([...c.querySelectorAll('.vtt-guess-filler')].map((s) => s.textContent)).toEqual([',', '.']);
+        expect(c.textContent).toBe('Well, then.');
     });
 
     it('leaves the sentence readable end to end whatever is masked', () => {
