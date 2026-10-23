@@ -19,7 +19,7 @@ RELEASES := releases
 version = $(shell node -p "require('./apps/$(1)/package.json').version")
 
 .DEFAULT_GOAL := help
-.PHONY: help release unpack release-unpacked build-dev verify verify-all test type-check check clean-dev-zips
+.PHONY: help release unpack release-unpacked prune-releases build-dev verify verify-all test type-check check clean-dev-zips
 
 help: ## Show this help
 	@echo ''
@@ -60,9 +60,15 @@ unpack: ## Unpack the current archives to load unpacked: build/release-<version>
 		echo "  unpacked $$zip → $$dir"; \
 	done
 
-release-unpacked: ## make release, then make unpack
+release-unpacked: ## make release, make unpack, then make prune-releases
 	@$(MAKE) --no-print-directory release
 	@$(MAKE) --no-print-directory unpack
+	@$(MAKE) --no-print-directory prune-releases
+
+# Old archives pile up in releases/ and old folders in build/: keep the
+# version in development and the 5 before it (scripts/prune-releases.mjs).
+prune-releases: ## Remove release archives and unpacked folders more than 5 versions behind
+	@node scripts/prune-releases.mjs
 
 build-dev: ## Build all extensions against the dev backend and dev GA4 property (no archives)
 	./scripts/build-with-analytics.sh dev
