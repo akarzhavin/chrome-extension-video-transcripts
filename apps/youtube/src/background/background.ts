@@ -50,7 +50,7 @@ installOnboarding('youtube', {
     // The welcome URL names the backend's site: wait for a dev build's switch.
     ready: devEnvReady,
     // The uninstall page reports the removal by it (spec 039); the URL keeps it apart from the cid.
-    installationId: onInstallationId,
+    onInstallationId,
     onInstall: () => {
         // Stamps the retention clock. Installs that predate analytics have no
         // date and simply never appear in retention — deliberately, since

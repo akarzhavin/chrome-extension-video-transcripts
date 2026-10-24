@@ -198,20 +198,20 @@ describe('the installation ID rides in the uninstall URL fragment', () => {
 
     it('adds #i=<id> once the installation module names it', async () => {
         let tell: (id: string) => void = () => {};
-        installOnboarding('rezka', { clientId: async () => 'cid-abc', installationId: (cb) => (tell = cb) });
+        installOnboarding('rezka', { clientId: async () => 'cid-abc', onInstallationId: (cb) => (tell = cb) });
         await settle();
         tell(ID);
         expect(setUninstallURL).toHaveBeenLastCalledWith(`${config.frontendBaseUrl}/uninstall/?ext=rezka&cid=cid-abc#i=${ID}`);
     });
 
     it('keeps both whichever ID is known first', async () => {
-        installOnboarding('youtube', { clientId: async () => 'cid-abc', installationId: (cb) => cb(ID) });
+        installOnboarding('youtube', { clientId: async () => 'cid-abc', onInstallationId: (cb) => cb(ID) });
         await settle();
         expect(setUninstallURL).toHaveBeenLastCalledWith(`${config.frontendBaseUrl}/uninstall/?ext=youtube&cid=cid-abc#i=${ID}`);
     });
 
     it('never puts the installation ID where a server sees it', async () => {
-        installOnboarding('rezka', { clientId: async () => 'cid-abc', installationId: (cb) => cb(ID) });
+        installOnboarding('rezka', { clientId: async () => 'cid-abc', onInstallationId: (cb) => cb(ID) });
         await settle();
         for (const [url] of setUninstallURL.mock.calls) expect((url as string).split('#')[0]).not.toContain(ID);
     });

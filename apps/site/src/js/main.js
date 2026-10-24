@@ -150,24 +150,9 @@
   }
 
   // ---------------------------------------------------------- /uninstall/
-  //
-  // A plain form: tick the reasons that apply, optionally add a note, press
-  // the button. NOTHING is sent before that press — the visitor is never
-  // recorded behind their own back, and a page they abandon leaves no trace
-  // (the removal report below, spec 039, carries the installation ID alone).
-  //
-  // The answer goes into the Firestore `feedback` collection, the same one
-  // (and the same global daily quota) the extension's rating card writes.
-  // Signed out and unauthenticated: the rules allow that path with uid === "",
-  // which is the whole point — the people worth hearing from at this moment
-  // are mostly the ones who never made an account.
-  //
-  // Mirrors addFeedback() in packages/shared/src/auth/firestoreRest.ts. It is
-  // reimplemented rather than imported because this file is copied verbatim
-  // into build/ with no bundler, and pulling the shared module in would drag
-  // the whole auth stack onto a page that never signs anyone in.
 
-  // No referrer: the ID never travels with the cid in this address; no-cors: no preflight.
+  // The removal report (spec 039), sent on open. No referrer: the ID never
+  // travels with the cid in this address; no-cors: no preflight.
   var removedId = window.__REMOVED_INSTALLATION;
   var apiBase = (window.LINGOGRAM_AUTH || {}).apiBase;
   if (removedId && apiBase) {
@@ -182,6 +167,22 @@
       }).catch(function () {});
     } catch (e) { /* a report is best effort */ }
   }
+
+  // A plain form: tick the reasons that apply, optionally add a note, press
+  // the button. NOTHING is sent before that press — the visitor is never
+  // recorded behind their own back, and a page they abandon leaves no trace
+  // (the removal report above carries the installation ID alone).
+  //
+  // The answer goes into the Firestore `feedback` collection, the same one
+  // (and the same global daily quota) the extension's rating card writes.
+  // Signed out and unauthenticated: the rules allow that path with uid === "",
+  // which is the whole point — the people worth hearing from at this moment
+  // are mostly the ones who never made an account.
+  //
+  // Mirrors addFeedback() in packages/shared/src/auth/firestoreRest.ts. It is
+  // reimplemented rather than imported because this file is copied verbatim
+  // into build/ with no bundler, and pulling the shared module in would drag
+  // the whole auth stack onto a page that never signs anyone in.
 
   var fb = document.getElementById('feedback-form');
   // The payload is an inline script; this file is `defer` and separately

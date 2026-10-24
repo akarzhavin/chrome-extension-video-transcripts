@@ -59,7 +59,7 @@ export interface OnboardingHooks {
      * for the uninstall page to report the removal. It goes in the URL fragment,
      * which never reaches a server, so it never travels with the `cid`.
      */
-    installationId?: (tell: (id: string) => void) => void;
+    onInstallationId?: (tell: (id: string) => void) => void;
 }
 
 /**
@@ -121,15 +121,15 @@ export function installOnboarding(
     // page on its own; the second call upgrades it.
     // Each ID is set when it is known; the last call carries both.
     let cid = '';
-    let installation = '';
+    let installationId = '';
     const register = () =>
         chrome.runtime.setUninstallURL(
             `${UNINSTALL_URL}?ext=${ext}${cid ? `&cid=${encodeURIComponent(cid)}` : ''}` +
-                (installation ? `#i=${encodeURIComponent(installation)}` : ''),
+                (installationId ? `#i=${encodeURIComponent(installationId)}` : ''),
         );
     register();
-    hooks?.installationId?.((id) => {
-        installation = id;
+    hooks?.onInstallationId?.((id) => {
+        installationId = id;
         register();
     });
     void (async () => {

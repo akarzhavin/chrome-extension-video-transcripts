@@ -61,19 +61,19 @@ function recordInstallation(ed: Edition): Promise<void> {
 }
 
 // Who is told the ID once known (onInstallationId), and the ID last told.
-let tell: ((id: string) => void) | null = null;
-let known = '';
+let listener: ((id: string) => void) | null = null;
+let toldId = '';
 
 function announce(id: string | null): void {
-    if (!id || id === known) return;
-    known = id;
-    tell?.(id);
+    if (!id || id === toldId) return;
+    toldId = id;
+    listener?.(id);
 }
 
 /** Tells f the installation ID once it is known, read or minted (the uninstall URL, spec 039). The background hands it to onboarding. */
 export function onInstallationId(f: (id: string) => void): void {
-    tell = f;
-    if (known) f(known);
+    listener = f;
+    if (toldId) f(toldId);
 }
 
 /** Mints the ID if missing (fresh decides its flag only then) and records it unless recorded; null when storage fails. */
@@ -88,7 +88,7 @@ async function ensureInstallation(ed: Edition, fresh: boolean): Promise<string |
 export function installInstallation(ed: Edition, worker: InstallationDeps): void {
     edition = ed;
     deps = worker;
-    known = '';
+    toldId = '';
     chrome.runtime.onInstalled.addListener((details) => {
         if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) void ensureInstallation(ed, true);
         else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) void ensureInstallation(ed, false);
