@@ -55,6 +55,7 @@ test('the keys are the documented ones', () => {
         id: 'installation.id',
         fresh: 'installation.fresh',
         recorded: 'installation.recorded',
+        recordedDay: 'installation.recordedDay',
         linkPending: 'installation.linkPending',
     });
 });

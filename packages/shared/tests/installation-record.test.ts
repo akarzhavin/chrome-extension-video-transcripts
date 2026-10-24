@@ -28,7 +28,7 @@ let installed: ((d: { reason: string }) => void)[] = [];
 };
 
 import { config } from '../src/auth/config';
-import { installInstallation } from '../src/installation';
+import { installInstallation, onInstallationId } from '../src/installation';
 
 const RECORD = 'https://api.test/dictionary/installations';
 const reply = (status: number) => ({ ok: status >= 200 && status < 300, status, json: async () => ({}) }) as unknown as Response;
@@ -150,4 +150,73 @@ test('a record kept by an earlier build as `true` names no backend: it is record
     await start('rezka');
     expect(sent().map((s) => s.body)).toEqual([{ id: '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69', edition: 'rezka', fresh: false }]);
     expect(store['installation.recorded']).toBe('https://api.test');
+});
+
+describe('the ID is told, once known, for the uninstall URL (english repo spec 039)', () => {
+    test('an ID kept from before, at the worker start, once', async () => {
+        store['installation.id'] = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+        const told = jest.fn();
+        installed = [];
+        installInstallation('youtube', { ready: () => ready(), signedIn: async () => null });
+        onInstallationId(told);
+        await settle();
+        fired('update');
+        await settle();
+        expect(told.mock.calls).toEqual([['0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69']]);
+    });
+
+    test('a fresh install, when its ID is minted', async () => {
+        const told = jest.fn();
+        await start('rezka');
+        onInstallationId(told);
+        await settle();
+        expect(told).not.toHaveBeenCalled();
+        fired('install');
+        await settle();
+        expect(told.mock.calls).toEqual([[storedId()]]);
+    });
+});
+
+describe('once a UTC day, so the server knows the installation is still there (english repo spec 039)', () => {
+    let now: jest.SpyInstance<number, []>;
+    beforeEach(() => {
+        now = jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-23T23:00:00Z'));
+    });
+    afterEach(() => now.mockRestore());
+
+    test('records again on the next UTC day, as not fresh, and only once that day', async () => {
+        await start('youtube');
+        fired('install');
+        await settle();
+        const id = storedId();
+        await start('youtube');
+        now.mockReturnValue(Date.parse('2026-10-24T00:30:00Z'));
+        await start('youtube');
+        await start('youtube');
+        expect(sent().map((s) => s.body)).toEqual([
+            { id, edition: 'youtube', fresh: true },
+            { id, edition: 'youtube', fresh: false },
+        ]);
+        expect(store['installation.recordedDay']).toBe(20261024);
+    });
+
+    test('a record an earlier build kept without its day is sent once more', async () => {
+        Object.assign(store, { 'installation.id': '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69', 'installation.recorded': 'https://api.test' });
+        await start('rezka');
+        await start('rezka');
+        expect(sent().map((s) => s.body)).toEqual([{ id: '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69', edition: 'rezka', fresh: false }]);
+    });
+
+    test('a day that fails to record is tried again at the next start', async () => {
+        Object.assign(store, {
+            'installation.id': '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69',
+            'installation.recorded': 'https://api.test',
+            'installation.recordedDay': 20261022,
+        });
+        fetchMock.mockImplementationOnce(async () => reply(503));
+        await start('rezka');
+        await start('rezka');
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(store['installation.recordedDay']).toBe(20261023);
+    });
 });
