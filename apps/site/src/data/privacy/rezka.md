@@ -1,7 +1,7 @@
 # Privacy Policy — Dual Subtitles for HDrezka — Lingogram
 
 **Effective date:** June 22, 2026
-**Last updated:** October 22, 2026
+**Last updated:** October 23, 2026
 
 This Privacy Policy explains what information the **Dual Subtitles for HDrezka —
 Lingogram** browser extension ("the Extension") collects, how it is used, where it
@@ -105,11 +105,15 @@ unless you choose to add it:
   server once, with the edition and whether this was a new install or an update,
   and again each time the Extension asks which features to offer this browser
   without an account (Section 1k), at most once a minute while you open videos.
+  It is also sent once a day while the Extension is installed, signed in or not,
+  so we know the installation is still in use; that request carries nothing else.
   Each time you sign in, it is sent with your account, so we know which of your
   browsers you use the Extension in; if that request fails, it is sent again later
   while you are signed in. Our server keeps a record of each installation: the
   identifier, the edition, whether it was a new install or an update, when it was
-  recorded, and the last day it asked about features. It does not store your IP
+  recorded, the last day it asked about features, when it was last heard from,
+  and, if the farewell page reported it (Section 1f), when the Extension was
+  removed. It does not store your IP
   address with it. Once you sign in, this record is linked to your account
   (Section 1b), and the features this browser was offered move to your account.
 
@@ -484,6 +488,15 @@ Section 1c.
 This is registered with the browser in advance, so the browser opens it on its own;
 the Extension is already gone at that point and cannot decide otherwise.
 
+The farewell page's address also carries the **installation identifier** of
+Section 1a, after a `#` — the part of an address the browser never sends to any
+website. When the page opens, it takes the identifier out of its address before
+anything else on the page runs, and sends it once to our server, so the record of
+that installation notes when the Extension was removed. That request carries the
+identifier alone: not the analytics identifier, not the page's address, and
+nothing you tick or type on the page. The feedback form is still sent only if you
+press Send (Section 1g).
+
 Both addresses carry the **anonymous analytics identifier** of Section 1c, so that
 a visit can be counted against the install it belongs to rather than as an
 unrelated stranger. If you have turned analytics off, the fixed placeholder
@@ -720,7 +733,7 @@ your device only:
   **session ID** in session storage;
 * the **installation identifier** of Section 1a, whether it was created at an
   install or an update (until our server has recorded it), which server address
-  recorded it, and, when sending it with your account at sign-in failed, the server
+  recorded it and on which day, and, when sending it with your account at sign-in failed, the server
   address to send it to again. Signing out does not remove them; removing the
   Extension does;
 * the latest answer about **which features this browser or your account has**

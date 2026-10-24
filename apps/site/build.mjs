@@ -119,6 +119,9 @@ if (GA4_ID && !GA4) console.warn(`warning: SITE_GA4_MEASUREMENT_ID=${GA4_ID} is 
 // ships on every page, and consent-build.test.ts matches the literal shape.
 const consentLiteral = (value) => CONSENT_SIGNALS.map((s) => `${s}:'${value}'`).join(',');
 
+// Inlined, not a deferred file: it must run before the analytics block below (spec 039).
+const UNINSTALL_HEAD = fs.readFileSync(path.join(SRC, 'js', 'uninstall-head.js'), 'utf8').trim();
+
 const analyticsHead = () => GA4 ? `<script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('consent','default',{${consentLiteral(CONSENT_DENIED)},wait_for_update:${WAIT_FOR_UPDATE_MS}});
@@ -728,12 +731,13 @@ const RTL_LANGS = new Set(['ar', 'he', 'fa']);
 
 // `scripts` overrides the default page scripts (main.js + demo.js). The auth
 // pages pass their own set so they don't pull the demo bundle. `extraHead`
-// injects extra <head> markup (auth pages set window.LINGOGRAM_APP_URL).
+// injects extra <head> markup (auth pages set window.LINGOGRAM_APP_URL);
+// `firstHead` goes ahead of the analytics block (the uninstall page's ID strip).
 // `hrefLang`: every OTHER locale's URL for this same page, keyed by BCP-47
 // tag — self-referencing hreflang plus x-default (English) tell search
 // engines these paths are translations of one another rather than duplicate
 // content, and to default unmatched visitors to English.
-const layout = ({ lang, htmlLang, title, description, pathName, body, scripts, extraHead, hrefLang }) => `<!doctype html>
+const layout = ({ lang, htmlLang, title, description, pathName, body, scripts, extraHead, firstHead, hrefLang }) => `<!doctype html>
 <html lang="${htmlLang}"${RTL_LANGS.has(htmlLang) ? ' dir="rtl"' : ''}>
 <head>
 <meta charset="utf-8">
@@ -748,7 +752,7 @@ ${Object.entries(hrefLang || {}).map(([tag, href]) => `<link rel="alternate" hre
 <meta property="og:type" content="website">
 <link rel="icon" href="/logo.png" type="image/png">
 <link rel="stylesheet" href="/site.css?v=${BUST}">
-${analyticsHead()}${extraHead || ''}</head>
+${firstHead || ''}${analyticsHead()}${extraHead || ''}</head>
 <body>
 ${body}
 ${scripts || `${analyticsScript}
@@ -1594,6 +1598,7 @@ const uninstallPage = (locale, hrefLang) => {
     title: t('uninstall.title'),
     description: t('uninstall.description'),
     pathName: `${root}/uninstall/`,
+    firstHead: `<script>${UNINSTALL_HEAD}</script>\n`,
     // auth-config.js, which the default layout does NOT ship: it is what
     // resolves projectId/firestoreUrl from the hostname, and the feedback
     // write below reads them. Both are `defer`, so auth-config.js is

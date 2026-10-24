@@ -15,7 +15,7 @@ import { installContextMenuSave } from '../../../../packages/shared/src/context-
 import { installGtImport } from '../../../../packages/shared/src/gt-import/runner';
 // Relative: auth/background and the installation module are worker-only, not on the barrel.
 import { devEnvReady, installAuthBackground, signedInCaller } from '../../../../packages/shared/src/auth/background';
-import { installInstallation } from '../../../../packages/shared/src/installation';
+import { installInstallation, onInstallationId } from '../../../../packages/shared/src/installation';
 
 // Tags every event with the backend it came from — a dev build can be switched
 // between its targets at runtime, and they must stay distinguishable.
@@ -83,6 +83,8 @@ installOnboarding('rezka', {
     clientId: onboardingClientId,
     // The welcome URL names the backend's site: wait for a dev build's switch.
     ready: devEnvReady,
+    // The uninstall page reports the removal by it (spec 039); the URL keeps it apart from the cid.
+    onInstallationId,
     onInstall: () => {
         void markInstalled();
         // See the youtube edition: ext_source already carries this.

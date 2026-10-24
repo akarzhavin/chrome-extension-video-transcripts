@@ -37,18 +37,23 @@ async function mintOrRead(fresh: boolean): Promise<string | null> {
     }
 }
 
-/** What the backend at base has yet to record: 'recorded', the ID with its fresh flag, or null without an ID. Throws when storage does. */
-export async function pendingRecord(base: string): Promise<'recorded' | { id: string; fresh: boolean } | null> {
-    const got = await chrome.storage.local.get([INSTALLATION_KEYS.id, INSTALLATION_KEYS.fresh, INSTALLATION_KEYS.recorded]);
-    // An earlier build kept `true`, naming no backend: recorded once more, which the server takes as a no-op.
-    if (got[INSTALLATION_KEYS.recorded] === base) return 'recorded';
+/** What the backend at base has yet to record on day (yyyymmdd, UTC): 'recorded', the ID with its fresh flag, or null without an ID. Throws when storage does. */
+export async function pendingRecord(base: string, day: number): Promise<'recorded' | { id: string; fresh: boolean } | null> {
+    const got = await chrome.storage.local.get([
+        INSTALLATION_KEYS.id,
+        INSTALLATION_KEYS.fresh,
+        INSTALLATION_KEYS.recorded,
+        INSTALLATION_KEYS.recordedDay,
+    ]);
+    // An earlier build kept `true`, naming no backend, or no day: recorded once more, which only moves its last seen.
+    if (got[INSTALLATION_KEYS.recorded] === base && got[INSTALLATION_KEYS.recordedDay] === day) return 'recorded';
     const id = got[INSTALLATION_KEYS.id];
     return typeof id === 'string' && id ? { id, fresh: got[INSTALLATION_KEYS.fresh] === true } : null;
 }
 
-/** The backend at base recorded it: the fresh flag has done its job. Throws when storage does. */
-export async function markRecorded(base: string): Promise<void> {
-    await chrome.storage.local.set({ [INSTALLATION_KEYS.recorded]: base });
+/** The backend at base recorded it on day: the fresh flag has done its job. Throws when storage does. */
+export async function markRecorded(base: string, day: number): Promise<void> {
+    await chrome.storage.local.set({ [INSTALLATION_KEYS.recorded]: base, [INSTALLATION_KEYS.recordedDay]: day });
     await chrome.storage.local.remove(INSTALLATION_KEYS.fresh);
 }
 

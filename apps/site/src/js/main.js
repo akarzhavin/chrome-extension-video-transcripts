@@ -150,10 +150,28 @@
   }
 
   // ---------------------------------------------------------- /uninstall/
-  //
+
+  // The removal report (spec 039), sent on open. No referrer: the ID never
+  // travels with the cid in this address; no-cors: no preflight.
+  var removedId = window.__REMOVED_INSTALLATION;
+  var apiBase = (window.LINGOGRAM_AUTH || {}).apiBase;
+  if (removedId && apiBase) {
+    try {
+      fetch(apiBase + '/dictionary/installations', {
+        method: 'POST',
+        mode: 'no-cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        keepalive: true,
+        body: JSON.stringify({ id: removedId, removed: true })
+      }).catch(function () {});
+    } catch (e) { /* a report is best effort */ }
+  }
+
   // A plain form: tick the reasons that apply, optionally add a note, press
   // the button. NOTHING is sent before that press — the visitor is never
-  // recorded behind their own back, and a page they abandon leaves no trace.
+  // recorded behind their own back, and a page they abandon leaves no trace
+  // (the removal report above carries the installation ID alone).
   //
   // The answer goes into the Firestore `feedback` collection, the same one
   // (and the same global daily quota) the extension's rating card writes.
@@ -165,6 +183,7 @@
   // reimplemented rather than imported because this file is copied verbatim
   // into build/ with no bundler, and pulling the shared module in would drag
   // the whole auth stack onto a page that never signs anyone in.
+
   var fb = document.getElementById('feedback-form');
   // The payload is an inline script; this file is `defer` and separately
   // cached, so the two can come apart — a CSP that drops inline scripts, or a

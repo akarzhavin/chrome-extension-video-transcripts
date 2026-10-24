@@ -35,15 +35,22 @@ async function apiBase(): Promise<string> {
     return config.apiBaseUrl;
 }
 
-/** Records the stored ID unless this backend already has. A failure is retried at the next worker start, guest check or sign-in. Never throws. */
+/** Today as yyyymmdd, UTC: the server's day. */
+const utcDay = (): number => {
+    const d = new Date(Date.now());
+    return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+};
+
+/** Records the stored ID unless this backend already has today. A failure is retried at the next worker start, guest check or sign-in. Never throws. */
 function recordInstallation(ed: Edition): Promise<void> {
     recording ??= (async () => {
         try {
             const baseUrl = await apiBase();
             if (!baseUrl) return;
-            const pending = await pendingRecord(baseUrl);
+            const day = utcDay();
+            const pending = await pendingRecord(baseUrl, day);
             if (pending === 'recorded' || !pending) return;
-            if (await postInstallation(baseUrl, { id: pending.id, edition: ed, fresh: pending.fresh }, plainFetch)) await markRecorded(baseUrl);
+            if (await postInstallation(baseUrl, { id: pending.id, edition: ed, fresh: pending.fresh }, plainFetch)) await markRecorded(baseUrl, day);
         } catch {
             // Retried later, as above.
         }
@@ -53,9 +60,26 @@ function recordInstallation(ed: Edition): Promise<void> {
     return recording;
 }
 
+// Who is told the ID once known (onInstallationId), and the ID last told.
+let listener: ((id: string) => void) | null = null;
+let toldId = '';
+
+function announce(id: string | null): void {
+    if (!id || id === toldId) return;
+    toldId = id;
+    listener?.(id);
+}
+
+/** Tells f the installation ID once it is known, read or minted (the uninstall URL, spec 039). The background hands it to onboarding. */
+export function onInstallationId(f: (id: string) => void): void {
+    listener = f;
+    if (toldId) f(toldId);
+}
+
 /** Mints the ID if missing (fresh decides its flag only then) and records it unless recorded; null when storage fails. */
 async function ensureInstallation(ed: Edition, fresh: boolean): Promise<string | null> {
     const id = await mintInstallationId(fresh);
+    announce(id);
     if (id) await recordInstallation(ed);
     return id;
 }
@@ -64,6 +88,7 @@ async function ensureInstallation(ed: Edition, fresh: boolean): Promise<string |
 export function installInstallation(ed: Edition, worker: InstallationDeps): void {
     edition = ed;
     deps = worker;
+    toldId = '';
     chrome.runtime.onInstalled.addListener((details) => {
         if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) void ensureInstallation(ed, true);
         else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) void ensureInstallation(ed, false);
@@ -71,6 +96,7 @@ export function installInstallation(ed: Edition, worker: InstallationDeps): void
     // No mint here: on a fresh install it would beat the INSTALL event and record the install as an update.
     // No record without an ID either: the INSTALL event's record would share one that found none.
     void readInstallationId().then((id) => {
+        announce(id);
         if (id) void recordInstallation(ed);
     });
     void retryLink();

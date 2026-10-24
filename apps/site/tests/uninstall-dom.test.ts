@@ -7,10 +7,10 @@
  * import: the tests below eval it into the page the way a <script> tag would.
  * Testing a refactored copy would leave the shipped file uncovered.
  *
- * The contract this file exists to pin: NOTHING reaches the network before the
- * submit button is pressed. Ticking a box, typing, changing your mind — all of
- * it is local until the visitor commits, and a page they abandon leaves no
- * trace at all.
+ * The contract this file exists to pin: NOTHING the visitor does reaches the
+ * network before the submit button is pressed. Ticking a box, typing, changing
+ * your mind — all of it is local until the visitor commits. The one request on
+ * open is the removal report (spec 039), which carries the installation ID only.
  *
  * Markup mirrors what build.mjs emits for uninstallPage().
  */
@@ -118,11 +118,13 @@ function mockFirestore(opts: { failCommits?: boolean; defer?: boolean } = {}): H
   };
 }
 
-function boot(search = ''): void {
+function boot(search = '', removed?: string): void {
   // extSlug is read from location.search at eval time, so the URL must be in
   // place before the script runs.
   window.history.replaceState(null, '', `/uninstall/${search}`);
   document.body.innerHTML = pageHTML();
+  // What src/js/uninstall-head.js took from the fragment (spec 039).
+  (window as unknown as { __REMOVED_INSTALLATION?: string }).__REMOVED_INSTALLATION = removed;
   (window as unknown as { __UNINSTALL: unknown }).__UNINSTALL = {
     i18n: I18N,
     maxBytes: 2000,
@@ -132,6 +134,7 @@ function boot(search = ''): void {
   (window as unknown as { LINGOGRAM_AUTH: unknown }).LINGOGRAM_AUTH = {
     projectId: 'p',
     firestoreUrl: 'https://firestore.example',
+    apiBase: 'https://api.example',
   };
   // eslint-disable-next-line no-new-func
   new Function(MAIN_JS)();
@@ -187,6 +190,37 @@ describe('nothing is sent before the button is pressed', () => {
     await flush();
     expect(fs.calls).toEqual([]);
     expect(fs.commits).toHaveLength(0);
+  });
+});
+
+// The one exception (english repo spec 039): the removal itself is reported on
+// open, by the installation ID alone — nothing the visitor typed or ticked.
+describe('the removal report', () => {
+  const ID = '0b7c2f7e-3d1a-4c55-9a8e-1f2d3c4b5a69';
+
+  it('is the one request on open, with the installation ID, no referrer, no credentials', async () => {
+    const seen: Array<{ url: string; init: RequestInit }> = [];
+    const fs = mockFirestore();
+    const firestore = (globalThis as unknown as { fetch: (u: string, i?: RequestInit) => Promise<Response> }).fetch;
+    (globalThis as unknown as { fetch: unknown }).fetch = (url: string, init: RequestInit = {}) => {
+      seen.push({ url, init });
+      return firestore(url, init);
+    };
+    boot('?ext=rezka&cid=cid-abc', ID);
+    tick('confusing');
+    await flush();
+    expect(fs.calls).toEqual(['POST https://api.example/dictionary/installations']);
+    const { init } = seen[0];
+    expect(JSON.parse(String(init.body))).toEqual({ id: ID, removed: true });
+    expect(init).toMatchObject({ mode: 'no-cors', credentials: 'omit', referrerPolicy: 'no-referrer', keepalive: true });
+    expect(String(init.body)).not.toContain('cid-abc');
+  });
+
+  it('is not made without an ID', async () => {
+    const fs = mockFirestore();
+    boot('?ext=rezka&cid=cid-abc');
+    await flush();
+    expect(fs.calls).toEqual([]);
   });
 });
 
